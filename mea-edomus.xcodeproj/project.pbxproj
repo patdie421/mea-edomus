@@ -1,0 +1,221 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		4EE0746C1757E699005C9A31 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 4EE0746B1757E699005C9A31 /* main.c */; };
+		4EE0746E1757E699005C9A31 /* mea_edomus.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = 4EE0746D1757E699005C9A31 /* mea_edomus.1 */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		4EE074661757E699005C9A31 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+				4EE0746E1757E699005C9A31 /* mea_edomus.1 in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		4EE074681757E699005C9A31 /* mea-edomus */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "mea-edomus"; sourceTree = BUILT_PRODUCTS_DIR; };
+		4EE0746B1757E699005C9A31 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
+		4EE0746D1757E699005C9A31 /* mea_edomus.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = mea_edomus.1; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		4EE074651757E699005C9A31 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		4EE0745F1757E699005C9A31 = {
+			isa = PBXGroup;
+			children = (
+				4EE0746A1757E699005C9A31 /* mea-edomus */,
+				4EE074691757E699005C9A31 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		4EE074691757E699005C9A31 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				4EE074681757E699005C9A31 /* mea-edomus */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		4EE0746A1757E699005C9A31 /* mea-edomus */ = {
+			isa = PBXGroup;
+			children = (
+				4EE0746B1757E699005C9A31 /* main.c */,
+				4EE0746D1757E699005C9A31 /* mea_edomus.1 */,
+			);
+			path = "mea-edomus";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		4EE074671757E699005C9A31 /* mea-edomus */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4EE074711757E699005C9A31 /* Build configuration list for PBXNativeTarget "mea-edomus" */;
+			buildPhases = (
+				4EE074641757E699005C9A31 /* Sources */,
+				4EE074651757E699005C9A31 /* Frameworks */,
+				4EE074661757E699005C9A31 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "mea-edomus";
+			productName = "mea-edomus";
+			productReference = 4EE074681757E699005C9A31 /* mea-edomus */;
+			productType = "com.apple.product-type.tool";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		4EE074601757E699005C9A31 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0460;
+				ORGANIZATIONNAME = "Patrice Dietsch";
+			};
+			buildConfigurationList = 4EE074631757E699005C9A31 /* Build configuration list for PBXProject "mea-edomus" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 4EE0745F1757E699005C9A31;
+			productRefGroup = 4EE074691757E699005C9A31 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				4EE074671757E699005C9A31 /* mea-edomus */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		4EE074641757E699005C9A31 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4EE0746C1757E699005C9A31 /* main.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		4EE0746F1757E699005C9A31 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		4EE074701757E699005C9A31 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		4EE074721757E699005C9A31 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		4EE074731757E699005C9A31 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		4EE074631757E699005C9A31 /* Build configuration list for PBXProject "mea-edomus" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4EE0746F1757E699005C9A31 /* Debug */,
+				4EE074701757E699005C9A31 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4EE074711757E699005C9A31 /* Build configuration list for PBXNativeTarget "mea-edomus" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4EE074721757E699005C9A31 /* Debug */,
+				4EE074731757E699005C9A31 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 4EE074601757E699005C9A31 /* Project object */;
+}
