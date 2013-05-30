@@ -1,0 +1,1495 @@
+/**
+ * \file      xbee.c
+ * \author    patdie421
+ * \version   0.1
+ * \date      23 mai 2013
+ * \brief     moteur de gestion de communication avec XBEE et fonctions "clientes"
+ *
+ * \details   bla
+ *            bla
+ */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <termios.h>
+#include <string.h>
+#include <errno.h>
+#include <sys/select.h>
+#include <signal.h>
+#include <errno.h>
+#include <inttypes.h>
+#include <pthread.h>
+#include <time.h>
+#include <sys/time.h>
+
+#include "xbee.h"
+#include "debug.h"
+
+char *xberr_error_str[]={
+   "xbee : no error.", // XBEE_ERR_NOERR
+   "xbee : timeout while reading. No data available on serial since for 5 seconds.",
+   "xbee : error while reading serial port. Check errno.",
+   "xbee : read error. Check errno.",
+   "xbee : invalide frame type",
+   "xbee : unknown error. Check errno.",
+   "xbee : invalide frame start byte.",
+   "xbee : bad response.",
+   "xbee : system error. Check errno.",
+   "xbee : host table full.",
+   "xbee : host not found.",
+   "xbee : can call back."
+};
+
+
+#define XBEE_TIMEOUT_DELAY 1
+#define XBEE_NB_RETRY 5
+
+char *xbee_at_io_id_list[XBEE_NB_ID_PIN]={"D0","D1","D2","D3","D4","D5","D6","D7","D8","", "P0", "P1", "P2", "P3"};
+
+typedef struct xbee_queue_elem_s
+{
+   unsigned char cmd[255];
+   int l_cmd;
+   uint32_t tsp;
+   int xbee_err;
+   
+} xbee_queue_elem_t;
+
+
+struct xbee_map_nd_resp_data
+{
+   unsigned char MY[2];
+   unsigned char SH[4];
+   unsigned char SL[4];
+   unsigned char DB[1];
+   char NI[];
+} __attribute__((packed));
+
+
+// prototype des fonctions internes
+void *_xbee_thread(void *args);
+int   _xbee_build_frame(unsigned char *frame, unsigned char *cmd, uint16_t l_cmd);
+int   _xbee_read_cmd(int fd, unsigned char *frame, uint16_t *l_frame, int16_t *nerr);
+int   _xbee_write_cmd(int fd, unsigned char *cmd, uint16_t l_cmd, int16_t *nerr);
+int   _xbee_network_discovery_resp(xbee_xd_t *xd, char *data, uint16_t l_data);
+void  _xbee_add_response_to_queue(xbee_xd_t *xd, unsigned char *cmd, uint16_t l_cmd);
+
+int   _xbee_display_frame(int ret, char *resp, uint16_t l_resp);
+
+void  _xbee_host_set_addr_16(xbee_host_t *xbee_host, char *addr_16);
+void  _xbee_host_set_name(xbee_host_t *xbee_host, unsigned char *name, uint16_t l);
+void  _xbee_host_init_addr_64(xbee_host_t *xbee_host, uint32_t int_addr_64_h, uint32_t int_addr_64_l);
+void  _xbee_host_set_addr(xbee_host_t *xbee_host, uint32_t int_addr_64_h, uint32_t int_addr_64_l);
+
+int   _xbee_update_hosts_tables(xbee_hosts_table_t *table, char *addr_64_h, char *addr_64_l,
+                        char *addr_16, char *name);
+xbee_hosts_table_t 
+     *_hosts_table_create(int max_nb_hosts, int16_t *nerr);
+xbee_host_t
+     *_xbee_add_new_to_hosts_table_with_addr64(xbee_hosts_table_t *table, uint32_t addr_64_h, uint32_t addr_64_l, int16_t *nerr);
+xbee_host_t
+     *_xbee_host_find_host_by_name(xbee_hosts_table_t *table, char *name);
+xbee_host_t
+     *_xbee_host_find_host_by_addr64(xbee_hosts_table_t *table, uint32_t addr64_h, uint32_t addr64_l);
+
+void  _xbee_free_queue_elem(void *d);
+uint32_t
+      _xbee_get_timestamp();
+void  _xbee_flush_old_responses_queue(xbee_xd_t *xd);
+
+int   _xbee_build_at_cmd(unsigned char *frame, uint8_t id, unsigned char *at_cmd, uint16_t l_at_cmd);
+int   _xbee_build_at_remote_cmd(unsigned char *cmd, uint8_t id, xbee_host_t *addr, unsigned char *at_cmd, uint16_t l_at_cmd);
+uint16_t
+      _xbee_get_frame_data_id(xbee_xd_t *xd);
+
+
+
+
+int   xbee_init(xbee_xd_t *xd, char *dev, int speed)
+/**
+ * \brief     Initialise les mécanismes de communication avec un periphérique serie XBEE
+ * \details   Cette fonction assure :
+ *            - l'initialisation du "descripteur" (ensemble des éléments nécessaire à la gestion des échanges avec un XBEE). Le descripteur sera utilisé par toutes les fonctions liées à la gestion des XBEE (toujours premier paramètre des fonctions xbee_*).
+ *            - le parametrage et l'ouverture du port serie (/dev/ttyxxx)
+ * \param     xd     descripteur à initialiser. Il doit etre alloue par l'appelant.
+ * \param     dev    le chemin "unix" (/dev/ttyxxx) de l'interface série (ou USB)
+ * \param     speed  le debit de la liaison serie (constante de termios)
+ * \return    -1 en cas d'erreur, 0 sinon
+ */
+{
+   struct termios options, options_old;
+   int fd;
+   int16_t nerr;
+   
+   // ouverture du port
+   int flags;
+   
+   memset (xd,0,sizeof(xbee_xd_t));
+   
+   flags=O_RDWR | O_NOCTTY | O_NDELAY | O_EXCL;
+#ifdef O_CLOEXEC
+   flags |= O_CLOEXEC;
+#endif
+   
+   fd = open(dev, flags);
+   if (fd == -1)
+   {
+      // ouverture du port serie impossible
+      return -1;
+   }
+   strcpy(xd->serial_dev_name,dev);
+   xd->speed=speed;
+   
+   // sauvegarde des caractéristiques du port serie
+   tcgetattr(fd, &options_old);
+   
+   // initialisation à 0 de la structure des options (termios)
+   memset(&options, 0, sizeof(struct termios));
+   
+   // paramétrage du débit
+   if(cfsetispeed(&options, speed)<0)
+   {
+      // modification du debit d'entrée impossible
+      return -1;
+   }
+   if(cfsetospeed(&options, speed)<0)
+   {
+      // modification du debit de sortie impossible
+      return -1;
+   }
+   
+   // ???
+   options.c_cflag |= (CLOCAL | CREAD); // mise à 1 du CLOCAL et CREAD
+   
+   // 8 bits de données, pas de parité, 1 bit de stop (8N1):
+   options.c_cflag &= ~PARENB; // pas de parité (N)
+   options.c_cflag &= ~CSTOPB; // 1 bit de stop seulement (1)
+   options.c_cflag &= ~CSIZE;
+   options.c_cflag |= CS8; // 8 bits (8)
+   
+   // bit ICANON = 0 => port en RAW (au lieu de canonical)
+   // bit ECHO =   0 => pas d'écho des caractères
+   // bit ECHOE =  0 => pas de substitution du caractère d'"erase"
+   // bit ISIG =   0 => interruption non autorisées
+   options.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
+   
+   // pas de contrôle de parité
+   options.c_iflag &= ~INPCK;
+   
+   // pas de contrôle de flux
+   options.c_iflag &= ~(IXON | IXOFF | IXANY);
+   
+   // parce qu'on est en raw
+   options.c_oflag &=~ OPOST;
+   
+   // VMIN : Nombre minimum de caractère à lire
+   // VTIME : temps d'attentes de données (en 10eme de secondes)
+   // à 0 car O_NDELAY utilisé
+   options.c_cc[VMIN] = 0;
+   options.c_cc[VTIME] = 0;
+   
+   // réécriture des options
+   tcsetattr(fd, TCSANOW, &options);
+   
+   // préparation du descripteur
+   xd->fd=fd;
+   
+   // préparation synchro consommateur / producteur
+   pthread_cond_init(&xd->sync_cond, NULL);
+   pthread_mutex_init(&xd->sync_lock, NULL);
+
+   // verrou de section critique interne
+   pthread_mutex_init(&xd->xd_lock, NULL);
+                      
+   xd->queue=(queue_t *)malloc(sizeof(queue_t));
+   if(!xd->queue)
+      return -1;
+   
+   init_queue(xd->queue); // initialisation de la file
+   
+   xd->hosts=_hosts_table_create(XBEE_MAX_HOSTS, &nerr);
+   if(!xd->hosts)
+      return -1;
+   
+   xd->io_callback=NULL;
+   xd->commissionning_callback=NULL;
+   
+   xd->frame_id=1;
+   xd->signal_flag=0;
+
+   if(pthread_create (&(xd->read_thread), NULL, _xbee_thread, (void *)xd))
+      return -1;
+   
+   return fd;
+}
+
+
+uint16_t _xbee_get_frame_data_id(xbee_xd_t *xd)
+/**
+ * \brief     retour un identifiant "unique" à utiliser pour construire une de trame API AT.
+ * \details   Les identifiants sont séquentiels et se trouvent dans la plage 1 - XBEE_MAX_USER_FRAME_ID. Les id > XBEE_MAX_USER_FRAME_ID sont resevés pour d'autres utilisations.
+ * \param     xd     descripteur xbee.
+ * \return    id     entre 1 et XBEE_MAX_USER_FRAME_ID
+ */
+{
+   pthread_mutex_lock(&(xd->xd_lock));
+
+   unsigned char ret=xd->frame_id;
+   
+   xd->frame_id++;
+   if (xd->frame_id>XBEE_MAX_USER_FRAME_ID)
+      xd->frame_id=1;
+   
+   pthread_mutex_unlock(&(xd->xd_lock));
+
+   return ret;
+}
+
+
+int _xbee_build_at_cmd(unsigned char *frame, uint8_t id, unsigned char *at_cmd, uint16_t l_at_cmd)
+/**
+ * \brief     construit un "frame data" pour une commande AT local.
+ * \details   Il s'agit de concaténer le frame_type (0x08), l'id de trame (frame_id) et la commande AT accompagné son paramètre (si nécessaire) dans un tableau de char.
+ * \param     frame     la trame data complete (allouee par l'appelant)
+ * \param     id        l'identifiant de la trame
+ * \param     at_cmd    la commande AT et son parametre
+ * \param     l_at_cmd  la longueur de la commande AT
+ * \return    longueur de la trame
+ */
+{
+   uint16_t i=0;
+   
+   frame[i++]=0x08;
+   frame[i++]=id;
+   for(uint16_t j=0;j<l_at_cmd;j++)
+      frame[i++]=at_cmd[j];
+   return i;
+}
+
+
+int _xbee_build_at_remote_cmd(unsigned char *frame, uint8_t id, xbee_host_t *addr, unsigned char *at_cmd, uint16_t l_at_cmd)
+/**
+ * \brief     construit un "frame data" pour une commande AT remote.
+ * \details   Il s'agit de concaténer le frame_type (0x17), l'adresse de destination, l'id de trame (frame_id) et la commande AT et son parametre dans un tableau de char (uint8). 
+ * \param     frame     la trame data complete (allouee par l'appelant)
+ * \param     id        l'identifiant de la trame
+ * \param     destination    les adresses (courte et longue) du destinataire
+ * \param     at_cmd    la commande AT et son paramètre
+ * \param     l_at_cmd  la longueur de la commande AT
+ * \return    longueur de la trame
+ */
+{
+   uint16_t i=0;
+   
+   frame[i++]=0x17;
+   frame[i++]=id;
+   
+   for(uint16_t j=0;j<4;j++)
+      frame[i++]=addr->addr_64_h[j];
+   
+   for(uint16_t j=0;j<4;j++)
+      frame[i++]=addr->addr_64_l[j];
+   
+   frame[i++]=addr->addr_16[0];
+   frame[i++]=addr->addr_16[1];
+   
+   frame[i++]=0x02; // apply change
+   
+   for(uint16_t j=0;j<l_at_cmd;j++)
+      frame[i++]=at_cmd[j];
+   
+   return i;
+}
+
+
+int xbee_set_iodata_callback(xbee_xd_t *xd, callback_f f)
+/**
+ * \brief     met en place le callback qui sera déclenché à la réception d'une trame iodata.
+ * \details   reférence le pointeur de la fonction à appeler dans le descripteur.
+ * \param     xd     descripteur xbee.
+ * \param     f      pointeur sur la fonction à appeler
+ * \return    toujours 0
+ */
+{
+   xd->io_callback=f;
+   xd->io_callback_data=NULL;
+   
+   return 0;
+}
+
+
+int xbee_set_iodata_callback2(xbee_xd_t *xd, callback_f f, void *data)
+/**
+ * \brief     met en place le callback qui sera declenché à la réception d'une trame iodata et stock un pointeur sur des données qui seront toujours tramisses au callback.
+ * \details   référence le pointeur de la fonction à appeler et un pointeur sur des données (libre, a "caster" void *) dans le descripteur.
+ * \param     xd     descripteur xbee.
+ * \param     f      pointeur sur la fonction à appeler
+ * \param     data   pointeur sur la zone de données
+ * \return    toujours 0
+ */
+{
+   xd->io_callback=f;
+   xd->io_callback_data=data;
+   
+   return 0;
+}
+
+
+int xbee_remove_iodata_callback(xbee_xd_t *xd)
+/**
+ * \brief     retiré le callback sur réception de trame iodata
+ * \details   déréference la fonction et les donnees éventuellement associées.
+ * \param     xd     descripteur xbee.
+ * \return    toujours 0
+ */
+{
+   xd->io_callback=NULL;
+   xd->io_callback_data=NULL;
+   
+   return 0;
+}
+
+
+int xbee_set_dataflow_callback(xbee_xd_t *xd, callback_f f)
+/**
+ * \brief     met en place le callback qui sera déclenché à la réception d'un flot de données xbee
+ * \details   référence le pointeur de la fonction à appeler dans le descripteur.
+ * \param     xd     descripteur xbee.
+ * \param     f      pointeur sur la fonction a appeler
+ * \return    toujours 0
+ */
+{
+   xd->dataflow_callback=f;
+   xd->dataflow_callback_data=NULL;
+   
+   return 0;
+}
+
+
+int xbee_set_dataflow_callback2(xbee_xd_t *xd, callback_f f, void *data)
+/**
+ * \brief     met en place le callback qui sera declenche a la reception d'un flot de donnees xbee et stock un pointeur sur des donnees qui seront toujours tramisses au callback.
+ * \details   reference le pointeur de la fonction a appeler et un pointeur sur des donnees (libre, a caster void *) dans le descripteur. 
+ * \param     xd     descripteur xbee.
+ * \param     f      pointeur sur la fonction a appeler
+ * \param     data   pointeur sur la zone de donnees
+ * \return    toujours 0
+ */
+{
+   xd->dataflow_callback=f;
+   xd->dataflow_callback_data=data;
+   
+   return 0;
+}
+
+
+int xbee_remove_dataflow_callback(xbee_xd_t *xd)
+/**
+ * \brief     retire le callback sur reception d'un flot de donnees
+ * \details   dereference la fonction et les donnees eventuellement associees. 
+ * \param     xd     descripteur xbee.
+ * \return    toujours 0
+ */
+{
+   xd->dataflow_callback=NULL;
+   xd->dataflow_callback_data=NULL;
+   
+   return 0;
+}
+
+
+int xbee_set_commissionning_callback(xbee_xd_t *xd, callback_f f)
+/**
+ * \brief     met en place le callback qui sera declenche a la reception d'une demande de commissionnement
+ * \details   reference le pointeur de la fonction a appeler dans le descripteur. 
+ * \param     xd     descripteur xbee.
+ * \param     f      pointeur sur la fonction a appeler
+ * \return    toujours 0
+ */
+{
+   xd->commissionning_callback=f;
+   xd->commissionning_callback_data=NULL;
+   
+   return 0;
+}
+
+
+int xbee_set_commissionning_callback2(xbee_xd_t *xd, callback_f f, void *data)
+/**
+ * \brief     met en place le callback qui sera declenche a la reception d'une demande de commissionnement et stock un pointeur sur des donnees qui seront toujours tramisses au callback.
+ * \details   reference le pointeur de la fonction a appeler et un pointeur sur des donnees (libre, a caster void *) dans le descripteur. 
+ * \param     xd     descripteur xbee.
+ * \param     f      pointeur sur la fonction a appeler
+ * \param     data   pointeur sur la zone de donnees
+ * \return    toujours 0
+ */
+{
+   xd->commissionning_callback=f;
+   xd->commissionning_callback_data=data;
+   
+   return 0;
+}
+
+
+int xbee_remove_commissionning_callback(xbee_xd_t *xd)
+/**
+ * \brief     retire le callback sur reception d'un flot de donnees
+ * \details   dereference la fonction et les donnees eventuellement associees. 
+ * \param     xd    descripteur xbee.
+ * \return    toujours 0
+ */
+{
+   xd->commissionning_callback=NULL;
+   xd->commissionning_callback_data=NULL;
+   
+   return 0;
+}
+
+
+xbee_host_t *_xbee_host_find_host_by_addr64(xbee_hosts_table_t *table, uint32_t addr64_h, uint32_t addr64_l)
+/**
+ * \brief     recherche dans la table des hosts xbee un xbee avec l'adresse 64 bits precisee et le retourne. 
+ * \details   retourne un pointeur sur l'element de la table repondant au critere ou NULL si non trouve. C'est une fonction a usage interne.
+ * \param     table  pointeur sur la table host
+ * \param     addr_64_h mot haut de l'adresse xbee 64 bits
+ * \param     addr_64_l mot bas de l'adresse xbee 64 bits
+ * \return    pointeur sur l'entree de la table contenant le host recherche ou NULL
+ */
+{
+   uint16_t nb=0;
+   
+   for(uint16_t i=0;i<table->max_hosts;i++)
+   {
+      if(nb<table->nb_hosts && table->hosts_table[i])
+      {
+         if(table->hosts_table[i]->l_addr_64_l==addr64_l && table->hosts_table[i]->l_addr_64_h==addr64_h)
+         {
+            return table->hosts_table[i];
+         }
+         nb++;
+      }
+      else
+         break;
+   }
+   
+   return NULL;
+}
+
+
+xbee_host_t *_xbee_host_find_host_by_name(xbee_hosts_table_t *table, char *name)
+/**
+ * \brief     recherche dans la table des hosts xbee un xbee avec nom precise et le retourne. 
+ * \details   retourne un pointeur sur l'element de la table repondant au critere ou NULL si non trouve. C'est une fonction a usage interne.
+ * \param     table  pointeur sur la table host
+ * \param     name non (NI) de l'xbee recherche
+ * \return    pointeur sur l'entree de la table contenant le host recherche ou NULL
+ */
+{
+   uint16_t nb=0;
+   
+   for(uint16_t i=0;i<table->max_hosts;i++)
+   {
+      if(nb<table->nb_hosts && table->hosts_table[i])
+      {
+         if(strcmp(table->hosts_table[i]->name,name)==0)
+         {
+            return table->hosts_table[i];
+         }
+         nb++;
+      }
+      else
+         break;
+   }
+   
+   return 0;
+}
+
+
+void _xbee_host_set_addr_16(xbee_host_t *xbee_host, char *addr_16)
+/**
+ * \brief     ajoute (ou modifie) l'adresse 16 bits d'un xbee
+ * \details   
+ * \param     xbee_host  
+ * \param     addr_16 adresse 16 bits de l'xbee
+ */
+{
+   xbee_host->addr_16[0]=addr_16[0];
+   xbee_host->addr_16[1]=addr_16[1];
+   
+   xbee_host->l_addr_16=xbee_host->addr_16[0]*256+xbee_host->addr_16[1];
+}
+
+
+void _xbee_host_set_name(xbee_host_t *xbee_host, unsigned char *name, uint16_t l)
+/**
+ * \brief     ajoute (ou modifie) le nom (NI) d'un xbee
+ * \details   
+ * \param     xbee_host
+ * \param     name nom de l'xbee
+ * \param     l longueur de la chaine de caractere name
+ */
+{
+   memcpy(xbee_host->name,name,l);
+   xbee_host->name[l]=0;
+}
+
+
+void _xbee_host_init_addr_64(xbee_host_t *xbee_host, uint32_t int_addr_64_h, uint32_t int_addr_64_l)
+/**
+ * \brief     initialisation d'un host xbee
+ * \details   l'adresse 64 bits est positionnée à la valeur demandée, name="" et l'adresse 16 bits est possitionnée à 0xFFFE.
+ * \param     xbee_host  doit être alloué par le demandeur
+ * \param     addr_64_h  mot haut de l'adresse xbee 64 bits
+ * \param     addr_64_l  mot bas de l'adresse xbee 64 bits
+ */
+{
+   xbee_host->name[0]=0;
+   
+   xbee_host->addr_16[0]=0xFF;
+   xbee_host->addr_16[1]=0xFE;
+   
+   xbee_host->l_addr_64_h=int_addr_64_h;
+   xbee_host->l_addr_64_l=int_addr_64_l;
+   
+   xbee_host->l_addr_16=0xFFFE;
+   
+   xbee_host->addr_64_h[3]=int_addr_64_h & 0xFF;
+   int_addr_64_h=int_addr_64_h>>8;
+   xbee_host->addr_64_h[2]=int_addr_64_h & 0xFF;
+   int_addr_64_h=int_addr_64_h>>8;
+   xbee_host->addr_64_h[1]=int_addr_64_h & 0xFF;
+   int_addr_64_h=int_addr_64_h>>8;
+   xbee_host->addr_64_h[0]=int_addr_64_h & 0xFF;
+   
+   xbee_host->addr_64_l[3]=int_addr_64_l & 0xFF;
+   int_addr_64_l=int_addr_64_l>>8;
+   xbee_host->addr_64_l[2]=int_addr_64_l & 0xFF;
+   int_addr_64_l=int_addr_64_l>>8;
+   xbee_host->addr_64_l[1]=int_addr_64_l & 0xFF;
+   int_addr_64_l=int_addr_64_l>>8;
+   xbee_host->addr_64_l[0]=int_addr_64_l & 0xFF;
+}
+
+
+int xbee_get_host_by_name(xbee_xd_t *xd, xbee_host_t *host, char *name, int16_t *nerr)
+/**
+ * \brief     Recherche dans la table des xbee connus l'xbee qui porte le nom demandé. 
+ * \details   retourne une structure contenant la rescription d'un "host" xbee (les adresses, le nom, ...). Le nom n'est recherche que dans la table (pas d'interrogation du réseau si non trouvé)
+ * \param     xd[in]     descripteur xbee.
+ * \param     host  la description du host. Doit être alloué par le demandeur.
+ * \param     name  le nom recherche.
+ * \param     nerr  XBEE_NOERR (pas d'erreur) ou XBEE_HOSTNOTFOUND (pas dans la table)
+ * \return    -1 si non trouvé dans la table host ou 0 sinon
+ */
+{
+   xbee_host_t *h;
+   
+   h=_xbee_host_find_host_by_name(xd->hosts, name);
+   if(h)
+      memcpy(host,h,sizeof(xbee_host_t));
+   else
+   {
+      DEBUG_SECTION fprintf(stderr,"DEBUG (xbee_get_host_by_name) : %s not found in xbee host table.\n",name);
+      
+      *nerr=XBEE_ERR_HOSTNOTFUND;
+      return -1;
+   }
+   *nerr=XBEE_ERR_NOERR;
+   return 0;
+}
+
+
+int xbee_get_host_by_addr_64(xbee_xd_t *xd, xbee_host_t *host, uint32_t addr_64_h, uint32_t addr_64_l, int16_t *nerr)
+/**
+ * \brief     Recherche un xbee dans la table des xbee connus par son adresse 64 bits. 
+ * \details   L'adresse 64 bits est passées à l'aide de de mot de 32 bits (h et l). Si l'adresse n'éxite pas le hosts est construit à partir de l'adresse fournie, les autres élements prennent une valeur par défaut.
+ * \param     xd    descripteur xbee.
+ * \param     host  la description du host trouvé ou construit. Doit être alloué par le demandeur.
+ * \param     addr_64_h  mot haut de l'adresse xbee 64 bits
+ * \param     addr_64_l  mot bas de l'adresse xbee 64 bits
+ * \param     nerr    XBEE_NOERR (pas d'erreur) ou XBEE_HOSTNOTFOUND (pas dans la table)
+ * \return    -1 si non trouvé dans la table host ou 0 sinon
+ */
+{
+   xbee_host_t *h;
+   
+   h=_xbee_host_find_host_by_addr64(xd->hosts, addr_64_h, addr_64_l);
+   if(h)
+      memcpy(host,h,sizeof(xbee_host_t));
+   else
+   {
+      _xbee_host_init_addr_64(host, addr_64_h, addr_64_l);
+      
+      DEBUG_SECTION fprintf(stderr,"DEBUG (xbee_get_host_by_addr_64) : %08lx-%08lx not found in xbee host table.\n", (unsigned long int)addr_64_h,(unsigned long int)addr_64_l);
+      *nerr=XBEE_ERR_HOSTNOTFUND;
+      return -1;
+   }
+   *nerr=XBEE_ERR_NOERR;
+   return 0;
+}
+
+
+xbee_hosts_table_t *_hosts_table_create(int max_nb_hosts, int16_t *nerr)
+/**
+ * \brief     Création d'une nouvelle table "hosts" xbee.
+ * \details   Allocation de la table et initialisation des données de la table à vide.
+ * \param     max_nb_hosts   taille (en nombre d'entrées) de la table
+ * \param     nerr           erreur en cas d'échec de création
+ * \return    pointeur sur une nouvelle table ou NULL en cas d'erreur
+ */
+{
+   xbee_hosts_table_t *t;
+   
+   t=malloc(sizeof(xbee_hosts_table_t));
+   if(!t)
+   {
+      *nerr=XBEE_ERR_SYS;
+      return 0;
+   }
+   
+   t->hosts_table=(xbee_host_t **)malloc(sizeof(xbee_host_t *)*max_nb_hosts);
+   if(!t->hosts_table)
+   {
+      free(t);
+      t=NULL;
+      *nerr=XBEE_ERR_SYS;
+      return 0;
+   }
+   
+   memset(t->hosts_table,0,sizeof(xbee_host_t *)*max_nb_hosts);
+   
+   t->nb_hosts=0;
+   t->max_hosts=max_nb_hosts;
+   
+   *nerr=XBEE_ERR_NOERR;
+   
+   return t;
+}
+
+
+int hosts_table_display(xbee_hosts_table_t *table)
+/**
+ * \brief     affiche le contenu d'une table hosts xbee.
+ * \param     table la table à afficher
+ * \return    toujours 0
+ */
+{
+   DEBUG_SECTION {
+      uint16_t nb=0;
+      
+      for(uint16_t i=0;i<table->max_hosts;i++)
+      {
+         if(nb<table->nb_hosts && table->hosts_table[i])
+         {
+            printf("DEBUG (display_table) : [%02d] %s %lx-%lx %lx\n", i,
+                   table->hosts_table[i]->name,
+                   (long unsigned int)table->hosts_table[i]->l_addr_64_h,
+                   (long unsigned int)table->hosts_table[i]->l_addr_64_l,
+                   (long unsigned int)table->hosts_table[i]->l_addr_16);
+            nb++;
+         }
+         else
+            break;
+      }
+   }
+   return 0;
+}
+
+
+xbee_host_t *_xbee_add_new_to_hosts_table_with_addr64(xbee_hosts_table_t *table, uint32_t addr_64_h, uint32_t addr_64_l, int16_t *nerr)
+/**
+ * \brief     ajoute un nouvel xbee dans une table host.
+ * \details   Le nouveau host est créé par la fonction à partir uniquement de son adresse 64bits. Les autres éléments prennent des valeurs par defaut, l'adresse 16 bits est notamment positionnée à 0XFFFE (voir _xbee_host_init_addr_64).
+ * \param     addr_64_h  mot haut de l'adresse xbee 64 bits
+ * \param     addr_64_l  mot bas de l'adresse xbee 64 bits
+ * \param     nerr    XBEE_NOERR (pas d'erreur) ou XBEE_ERR_HOSTTABLEFULL (plus de place dans la table)
+ * \return    pointeur sur une nouvelle table ou NULL en cas d'erreur
+ */
+{
+   xbee_host_t *host;
+   
+   host=malloc(sizeof(xbee_host_t));
+   if(!host)
+   {
+      *nerr=XBEE_ERR_SYS;
+      return 0;
+   }
+   memset(host,0,sizeof(xbee_host_t));
+   
+   _xbee_host_init_addr_64(host, addr_64_h, addr_64_l);
+   
+   if(!table)
+   {
+      free(host);
+      host=NULL;
+      *nerr=XBEE_ERR_SYS; // à remplacer par une autre erreur
+      return 0;
+   }
+   else
+   {
+      for(uint16_t i=0;i<table->max_hosts;i++)
+      {
+         if(table->hosts_table[i]==0)
+         {
+            table->hosts_table[i]=host;
+            table->nb_hosts++;
+            return host;
+         }
+      }
+   }
+
+_xbee_add_new_to_hosts_table_with_addr64_error:
+   free(host);
+   host=NULL;
+   *nerr=XBEE_ERR_HOSTTABLEFULL;
+   return 0; // plus de place dans la table
+}
+
+
+int _xbee_update_hosts_tables(xbee_hosts_table_t *table, char *addr_64_h, char *addr_64_l,  char *addr_16, char *name)
+{
+   /**
+    * \brief     ajoute ou met à jour de la table host avec les éléments transmis en parametre.
+    * \details   recherche dans la table une entrée avec l'adresse 64bits spécifiées et modifie les autres éléments en concéquence. Si l'entrée n'existe pas elle est créée.
+    * \param     addr_64_h  mot haut de l'adresse xbee 64 bits
+    * \param     addr_64_l  mot bas de l'adresse xbee 64 bits
+    * \param     addr_16  adresse 16 bits de l'xbee
+    * \param     name  nom (NI) de l'xbee
+    * \return    0 si la mise à jour a été effectuée, -1 si un nouvel xbee n'a pas pu être créée.
+    */
+   uint16_t l_addr_16;
+   uint32_t l_addr_64_h,l_addr_64_l;
+   int16_t nerr;
+   xbee_host_t *host;
+   
+   l_addr_16=addr_16[0]*256+addr_16[1];
+   
+   l_addr_64_l=0;
+   l_addr_64_h=0;
+   for(int i=0;i<4;i++)
+      l_addr_64_h=l_addr_64_h+((unsigned char)addr_64_h[i] << (3-i)*8);
+   
+   for(int i=0;i<4;i++)
+      l_addr_64_l=l_addr_64_l+((unsigned char)addr_64_l[i] << (3-i)*8);
+   
+   host=_xbee_host_find_host_by_addr64(table, l_addr_64_h, l_addr_64_l);
+   if(!host)
+   {
+      host=_xbee_add_new_to_hosts_table_with_addr64(table, l_addr_64_h, l_addr_64_l, &nerr);
+      if(!host)
+         return -1;
+   }
+   
+   host->l_addr_16=l_addr_16;
+   
+   if(name)
+      strcpy(host->name,name);
+   
+   return 0;
+}
+
+
+int xbee_start_network_discovery(xbee_xd_t *xd, int16_t *nerr)
+{
+   int16_t  ret;
+   uint16_t  l_cmd;
+   unsigned char at[2];
+   unsigned char cmd[255];
+   
+   
+   at[0]='N';
+   at[1]='D';
+   
+   l_cmd=_xbee_build_at_cmd(cmd, XBEE_ND_FRAME_ID, at, 2);
+   ret=_xbee_write_cmd(xd->fd, cmd, l_cmd, nerr);
+   
+   return ret;
+}
+
+//
+// Transmet une question de type AT a l'xbee dont l'adresse est precisee par "destination"
+// Cette fonction est compatible multi-tread grace a l'utilisation de la file, d'un identifiant
+// de trame et du timestamp. La demande est immediatement applique.
+// On attends toujours une reponse. Si la reponse n'arrive pas dans les temps, la fonction retourne -1
+// Elle retourne 0 en cas de succes et met a jour resp, l_resp et xbee_err avec les donnees de
+// la reponse
+//
+int16_t xbee_atCmdToXbee(xbee_xd_t *xd,
+                         xbee_host_t *destination,
+                         unsigned char *frame_data, // zone donnee d'une trame
+                         uint16_t l_frame_data, // longueur zone donnee
+                         unsigned char *resp,
+                         uint16_t *l_resp,
+                         int16_t *xbee_err)
+{
+   char *fn_name="xbee_atCmdToXbee";
+   unsigned char xbee_frame[XBEE_MAX_FRAME_SIZE];
+   uint16_t l_xbee_frame;
+   xbee_queue_elem_t *e;
+   int16_t nerr;
+   
+   if(pthread_self()==xd->read_thread) // risque de dead lock si appeler par un call back => on interdit
+   {
+      nerr=XBEE_ERR_IN_CALLBACK;
+      return -1;
+   }
+   
+   // construction de la trame xbee a partir de la la destination, la zone data transmise et d'un identifiant de trame "unique"
+   unsigned int frame_data_id=_xbee_get_frame_data_id(xd);
+   if(destination)
+      l_xbee_frame=_xbee_build_at_remote_cmd(xbee_frame, frame_data_id, destination, frame_data, l_frame_data);
+   else
+      l_xbee_frame=_xbee_build_at_cmd(xbee_frame, frame_data_id, frame_data, l_frame_data);
+
+   if(_xbee_write_cmd(xd->fd, xbee_frame, l_xbee_frame, &nerr)==0) // envoie de l'ordre
+   {
+      int16_t ret;
+      int16_t boucle=XBEE_NB_RETRY; // 5 tentatives de 1 secondes
+      uint16_t notfound=0;
+      do
+      {
+         // on va attendre le retour dans la file des reponses
+         pthread_mutex_lock(&(xd->sync_lock));
+         if(xd->queue->nb_elem==0 || notfound==1)
+         {
+            // rien a lire => on va attendre que quelque chose soit mis dans la file
+            struct timeval tv;
+            struct timespec ts;
+            gettimeofday(&tv, NULL);
+            ts.tv_sec = tv.tv_sec + XBEE_TIMEOUT_DELAY;
+            ts.tv_nsec = 0;
+            
+            ret=pthread_cond_timedwait(&xd->sync_cond, &xd->sync_lock, &ts);
+            if(ret)
+            {
+               if(ret!=ETIMEDOUT)
+               {
+                  *xbee_err=XBEE_ERR_SYS;
+                  pthread_mutex_unlock(&(xd->sync_lock));
+                  return -1;
+               }
+            }
+         }
+         // a ce point il devrait y avoir quelque chose dans la file ou TIMEOUT.
+         uint32_t tsp=_xbee_get_timestamp();
+         
+         if(first_queue(xd->queue)==0) // parcours de la liste jusqu'a trouver une reponse pour nous
+         {
+            do
+            {
+               if(current_queue(xd->queue, (void **)&e)==0)
+               {
+                  if((uint16_t)(e->cmd[1] & 0xFF)==frame_data_id) // le deuxieme octet d'une reponse doit contenir le meme id que celui de la question
+                  {
+                     if(e->xbee_err!=XBEE_ERR_NOERR) // la reponse est une erreur
+                     {
+                        *xbee_err=e->xbee_err; // on la retourne directement
+                        
+                        // et on fait le menage avant de sortir
+                        remove_current_queue(xd->queue);
+                        _xbee_free_queue_elem(e);
+                        e=NULL;
+                        
+                        pthread_mutex_unlock(&(xd->sync_lock));
+                        return -1;
+                     }
+                     
+                     if((tsp - e->tsp)<=10) // la reponse est pour nous et dans les temps
+                     {
+                        // recuperation des donnees
+                        DEBUG_SECTION fprintf(stderr,"DEBUG (%s) : ok, for me (%d == %d)\n", fn_name, e->cmd[1], frame_data_id);
+                        memcpy(resp,e->cmd,e->l_cmd);
+                        *l_resp=e->l_cmd;
+                        *xbee_err=e->xbee_err;
+                        
+                        // et on fait le menage avant de sortir
+                        _xbee_free_queue_elem(e);
+                        xd->queue->current->d=NULL; // pour evite le bug
+                        remove_current_queue(xd->queue);
+                        e=NULL;
+                        
+                        pthread_mutex_unlock(&(xd->sync_lock));
+                        return 0;
+                     }
+                     
+                     // theoriquement pour nous mais donnees trop vieilles, on supprime
+                     DEBUG_SECTION fprintf(stderr,"DEBUG (%s) : data too old\n", fn_name);
+//                     remove_current_queue(xd->queue);
+//                     _xbee_free_queue_elem(e);
+//                     e=NULL;
+                  }
+                  else
+                  {
+                     DEBUG_SECTION fprintf(stderr,"DEBUG (%s) : not for me (%d != %d)\n", fn_name, e->cmd[1], frame_data_id);
+                     e=NULL;
+                  }
+               }
+            }
+            while(next_queue(xd->queue)==0);
+            notfound=1;
+         }
+         pthread_mutex_unlock(&(xd->sync_lock));
+      }
+      while (--boucle);
+   }
+error_exit:
+   return -1;
+}
+
+
+int xbee_operation(xbee_xd_t *xd, unsigned char *cmd, uint16_t l_cmd, unsigned char *resp, uint16_t *l_resp, int16_t *xbee_err)
+{
+   char *fn_name="xbee_operation";
+   xbee_queue_elem_t *e;
+   int16_t nerr;
+   
+   resp[0]=0;
+   *l_resp=0;
+   
+   pthread_t tid = pthread_self();
+   
+   if(tid==xd->read_thread)
+   {
+      nerr=XBEE_ERR_IN_CALLBACK;
+      return -1;
+   }
+   
+   if(_xbee_write_cmd(xd->fd, cmd, l_cmd, &nerr)==0) // envoie de l'ordre
+   {
+      int16_t ret;
+      int16_t boucle=5;
+      do
+      {
+         struct timeval tv;
+         struct timespec ts;
+         gettimeofday(&tv, NULL);
+         ts.tv_sec = tv.tv_sec + XBEE_TIMEOUT_DELAY;
+         ts.tv_nsec = 0;
+         
+         pthread_mutex_lock(&(xd->sync_lock));
+         
+         if(xd->queue->nb_elem==0)
+         {
+            ret=pthread_cond_timedwait(&xd->sync_cond, &xd->sync_lock, &ts);
+            if(ret)
+            {
+               if(ret!=ETIMEDOUT)
+               {
+                  *xbee_err=XBEE_ERR_SYS;
+                  pthread_mutex_unlock(&(xd->sync_lock));
+                  return -1;
+               }
+            }
+         }
+         
+         if(!out_queue_elem(xd->queue, (void **)&e))
+         {
+            if(e->xbee_err!=XBEE_ERR_NOERR)
+            {
+               *xbee_err=e->xbee_err;
+               free(e);
+               e=NULL;
+               pthread_mutex_unlock(&(xd->sync_lock));
+               return -1;
+            }
+            
+            if(e->cmd[1]==cmd[1])
+            {
+               DEBUG_SECTION fprintf(stderr,"DEBUG (%s) : ok, for me (%u == %u)\n", fn_name, e->cmd[1], cmd[1]);
+               memcpy(resp,e->cmd,e->l_cmd);
+               *l_resp=e->l_cmd;
+               *xbee_err=e->xbee_err;
+               
+               free(e);
+               e=NULL;
+               pthread_mutex_unlock(&(xd->sync_lock));
+               return 0;
+            }
+            else
+            {
+               DEBUG_SECTION fprintf(stderr,"DEBUG (%s) : not for me (%u != %u)\n", fn_name, e->cmd[1], cmd[1]);
+               free(e);
+               e=NULL;
+            }
+         }
+         pthread_mutex_unlock(&(xd->sync_lock));
+      }
+      while (--boucle);
+   }
+   return -1;
+}
+
+
+void xbee_free_xd(xbee_xd_t *xd)
+{
+   if(xd)
+   {
+      if(xd->queue)
+      {
+         clear_queue(xd->queue,_xbee_free_queue_elem);
+         free(xd->queue);
+         xd->queue=NULL;
+      }
+      
+      if(xd->hosts)
+      {
+         free(xd->hosts);
+         xd->hosts=NULL;
+      }
+   }
+}
+
+
+void xbee_close(xbee_xd_t *xd)
+{
+   
+   pthread_cancel(xd->read_thread);
+   pthread_join(xd->read_thread,NULL);
+   
+   close(xd->fd);
+
+//   free(xd);
+}
+
+
+void xbee_perror(int16_t nerr)
+{
+   if(nerr>=0 && nerr<=XBEE_MAX_NB_ERROR)
+   {
+      fprintf(stderr, "%s\n",xberr_error_str[nerr]);
+   }
+}
+
+
+int _xbee_display_frame(int ret, char *resp, uint16_t l_resp)
+{
+   DEBUG_SECTION {
+      if(!ret)
+      {
+         for(int i=0;i<l_resp;i++)
+            fprintf(stderr,"DEBUG (_xbee_display_frame) : %02x-[%c](%03d)\n",resp[i],resp[i],resp[i]);
+      }
+   }
+   return 0;
+}
+
+
+void _xbee_free_queue_elem(void *d) // pour vider_file2
+{
+   xbee_queue_elem_t *e=(xbee_queue_elem_t *)d;
+   
+   free(e);
+   e=NULL;
+}
+
+
+int _xbee_build_frame(unsigned char *frame, unsigned char *cmd, uint16_t l_cmd)
+{
+   uint16_t i=0;
+   uint16_t checksum=0;
+   
+   frame[i++]=0x7E;
+   frame[i++]=l_cmd/256;
+   frame[i++]=l_cmd%256;
+   for(uint16_t j=0;j<l_cmd;j++)
+      frame[i++]=cmd[j];
+   
+   for(uint16_t j=3;j<(3+l_cmd);j++)
+      checksum=checksum+frame[j];
+   
+   frame[i++]=0xFF - (checksum & 0xFF);
+   
+   return i;
+}
+
+
+int _xbee_read_cmd(int fd, char unsigned *frame, uint16_t *l_frame, int16_t *nerr)
+{
+   unsigned char c;
+   fd_set input_set;
+   struct timeval timeout;
+   
+   int ret=0;
+   uint16_t step=0;
+   int ntry=0;
+   
+   uint16_t i=0;
+   int checksum=0;
+   
+   timeout.tv_sec  = 1; // timeout après 1 secondes
+   timeout.tv_usec = 0;
+   
+   FD_ZERO(&input_set);
+   FD_SET(fd, &input_set);
+   
+   
+   *nerr=0;
+   
+   while(1)
+   {
+      ret = select(fd+1, &input_set, NULL, NULL, &timeout);
+      if (ret <= 0)
+      {
+         if(ret == 0)
+            *nerr=XBEE_ERR_TIMEOUT;
+         else
+            *nerr=XBEE_ERR_SELECT;
+         goto on_error_exit_xbee_read;
+      }
+      
+      ret=read(fd,&c,1);
+      if(ret!=1)
+      {
+         if(ntry>(XBEE_NB_RETRY-1)) // 5 essais si pas de caratères lus
+         {
+            *nerr=XBEE_ERR_READ;
+            goto on_error_exit_xbee_read;
+         }
+         ntry++;
+         continue; // attention, si aucun caractère lu on boucle
+      }
+      ntry=0;
+      
+      switch(step)
+      {
+         case 0:
+            if(c==0x7E)
+            {
+               step++;
+               break;
+            }
+            break;
+            *nerr=XBEE_ERR_STARTTRAME;
+            goto on_error_exit_xbee_read;
+         case 1:
+            *l_frame=c;
+            step++;
+            break;
+         case 2:
+            *l_frame=*l_frame*256+c;
+            step++;
+            break;
+         case 3:
+            frame[i]=c;
+            i++; // maj du reste à lire
+            if(i>=*l_frame)
+               step=10; // read checksum
+            break;
+         case 10:
+            for(i=0;i<(*l_frame);i++)
+            {
+               checksum+=frame[i];
+            }
+            if(((checksum+c) & 0xFF) == 0xFF)
+            {
+               return 0;
+            }
+            else
+            {
+               VERBOSE(5) fprintf(stderr,"INFO (_xbee_read_cmd) : Xbee reponse - checksum error.\n");
+               *nerr=XBEE_ERR_CHECKSUM;
+               return -1;
+            }
+      }
+   }
+   *nerr=XBEE_ERR_UNKNOWN; // ne devrait jamais se produire ...
+   
+on_error_exit_xbee_read:
+   return -1;
+}
+
+
+int _xbee_write_cmd(int fd, unsigned char *cmd, uint16_t l_cmd, int16_t *nerr)
+{
+   uint16_t l_frame=0;
+   unsigned char *frame=NULL;
+   int ret;
+   
+   *nerr=0;
+   
+   frame=malloc(l_cmd+4);
+   if(!frame)
+   {
+      *nerr=XBEE_ERR_SYS;
+      return -1;
+   }
+   
+   l_frame=_xbee_build_frame(frame,cmd,l_cmd);
+   
+   ret=write(fd,frame,l_frame);
+
+   free(frame);
+   
+   if(ret<0)
+   {
+      *nerr=XBEE_ERR_SYS;
+      return -1;
+   }
+   return 0;
+}
+
+
+int _xbee_network_discovery_resp(xbee_xd_t *xd, char *data, uint16_t l_data)
+{
+   
+   struct xbee_map_nd_resp_data *map;
+   
+   if(l_data==0)
+      return 0; // fin de transmission OK, on traite pas
+   
+   map=(struct xbee_map_nd_resp_data *)data; // -1 pour corriger l'alignement			
+   
+   VERBOSE(9) fprintf(stderr,"DEBUG (_xbee_network_discovery_resp) : MY = %x\n",map->MY[0]*256+map->MY[1]);
+   VERBOSE(9) fprintf(stderr,"DEBUG (_xbee_network_discovery_resp) : NI = %s\n",(map->NI)-1); // décallage de 1 a cause de l'alignement
+   
+   _xbee_update_hosts_tables(xd->hosts, (char *)map->SH, (char *)map->SL, (char *)map->MY, (map->NI)-1);
+      
+   return 0;
+}
+
+
+void _xbee_flush_old_responses_queue(xbee_xd_t *xd)
+{
+   xbee_queue_elem_t *e;
+   uint32_t tsp=_xbee_get_timestamp();
+   
+   pthread_mutex_lock(&xd->sync_lock);
+   
+   if(first_queue(xd->queue)==0)
+   {
+      while(1)
+      {
+         if(current_queue(xd->queue, (void **)&e)==0)
+         {
+            if((tsp - e->tsp) > 10)
+            {
+               _xbee_free_queue_elem(e);
+               remove_current_queue(xd->queue); // remove current passe sur le suivant
+            }
+            else
+               next_queue(xd->queue);
+         }
+         else
+            break;
+      }
+   }
+   
+   pthread_mutex_unlock(&xd->sync_lock);
+}
+
+
+// void _xbee_add_response_to_queue(xbee_xd_t *xd, unsigned char *cmd, int l_cmd, uint32_t tsp)
+void _xbee_add_response_to_queue(xbee_xd_t *xd, unsigned char *cmd, uint16_t l_cmd)
+{
+   xbee_queue_elem_t *e;
+   
+   e=malloc(sizeof(xbee_queue_elem_t));
+   if(e)
+   {
+      memcpy(e->cmd,cmd,l_cmd);
+      e->l_cmd=l_cmd;
+      e->xbee_err=XBEE_ERR_NOERR;
+      e->tsp=_xbee_get_timestamp();
+      pthread_mutex_lock(&xd->sync_lock);
+
+      in_queue_elem(xd->queue, e);
+      
+      if(xd->queue->nb_elem>=1)
+         pthread_cond_broadcast(&xd->sync_cond);
+      
+      pthread_mutex_unlock(&xd->sync_lock);
+   }
+}
+
+
+
+int xbee_reinit(xbee_xd_t *xd)
+{
+   int fd; /* File descriptor for the port */
+   uint8_t flag=0;
+   char dev[255];
+   int speed=0;
+   
+   strcpy(dev,xd->serial_dev_name);
+   speed=xd->speed;
+   
+   VERBOSE(5) fprintf(stderr,"INFO (xbee_reinit) : Réinitialisation de la com (%s).\n",dev);
+   
+   xbee_close(xd);
+   
+   for(int i=0;i<XBEE_NB_RETRY;i++) // 5 tentatives pour rétablir les communications
+   {
+      fd = xbee_init(xd, dev, speed);
+      if (fd == -1)
+      {
+         VERBOSE(1) {
+            fprintf(stderr,"ERROR (xbee_reinit) : Unable to open serial port (%s) - ",dev);
+            perror("");
+         }
+      }
+      else
+      {
+         flag=1;
+         break;
+      }
+      sleep(5);
+   }
+   
+   if(!flag)
+   {
+      VERBOSE(1) fprintf(stderr,"ERROR (xbee_reinit) : récupération impossible\n");
+      return -1;
+   }
+   
+   VERBOSE(5) fprintf(stderr,"INFO (xbee_reinit) : Réinitialisation de la com reussie.\n");
+
+   return 0;
+}	
+
+
+uint32_t _xbee_get_timestamp()
+{
+    return (uint32_t)time(NULL); 
+}
+
+
+void *_xbee_thread(void *args)
+{
+   unsigned char cmd[255];
+   uint16_t l_cmd;
+   
+   uint8_t status=0;
+   int16_t nerr;
+   int16_t ret;
+   
+   xbee_xd_t *xd=(xbee_xd_t *)args;
+   
+   VERBOSE(5) fprintf(stderr,"INFO  (_xbee_thread) : starting xbee read thread %s\n",xd->serial_dev_name);
+   while(1)
+   {
+      _xbee_flush_old_responses_queue(xd);
+      
+      ret=_xbee_read_cmd(xd->fd, cmd, &l_cmd, &nerr);
+      if(ret==0)
+      {
+         switch((uint8_t)cmd[0])
+         {
+            case 0x88: // response for local AT (0x08)
+            {
+               struct xbee_cmd_response_s *mcmd=(struct xbee_cmd_response_s *)cmd;
+               
+               if(mcmd->frame_id>XBEE_MAX_USER_FRAME_ID) // la requete est interne elle ne sera pas retransmise
+               {
+                  switch (mcmd->frame_id)
+                  {
+                     case XBEE_ND_FRAME_ID:
+                        if(status==0)
+                           _xbee_network_discovery_resp(xd, (char *)mcmd->at_cmd_data,l_cmd-5);
+                        break;
+                     default:
+                        break;
+                  }
+               }
+               else
+               {
+                  _xbee_add_response_to_queue(xd, cmd, l_cmd);
+               }
+               break;
+            }
+               
+            case 0x97: // response for remote AT (0x97)
+            {
+               struct xbee_remote_cmd_response_s *mcmd=(struct xbee_remote_cmd_response_s *)cmd;
+               
+               if(mcmd->frame_id>XBEE_MAX_USER_FRAME_ID) // la requete est interne elle ne sera pas retransmise
+               {
+                  switch (mcmd->frame_id) // pas encore de commande interne
+                  {
+                     default:
+                        break;
+                  }
+               }
+               else
+               {
+                  _xbee_add_response_to_queue(xd, cmd, l_cmd);
+               }
+               // on va quand meme récupérer les info addr64 et addr16 pour mettre a jour
+               // la table des équipements connus
+               ret=_xbee_update_hosts_tables(xd->hosts,(char *)mcmd->addr_64_h,(char *)mcmd->addr_64_l, (char *)mcmd->addr_16,NULL);
+               break;
+            }
+               
+            case 0x92: // Trame IO
+            {
+               struct xbee_map_io_data_s *mcmd=(struct xbee_map_io_data_s *)cmd;
+               
+               if(xd->io_callback)
+                  xd->io_callback(0,cmd,l_cmd, xd->io_callback_data, (char *)mcmd->addr_64_h, (char *)mcmd->addr_64_l);
+               
+               ret=_xbee_update_hosts_tables(xd->hosts,(char *)mcmd->addr_64_h,(char *)mcmd->addr_64_l,(char *)mcmd->addr_16,NULL);
+               break;
+            }
+               
+            case 0x95:
+            {
+               struct xbee_node_identification_response_s *mcmd=(struct xbee_node_identification_response_s *)cmd;
+               
+               if(xd->commissionning_callback)
+                  xd->commissionning_callback(0,cmd,l_cmd, xd->commissionning_callback_data, (char *)mcmd->remote_addr_64_h, (char *)mcmd->remote_addr_64_l);
+               
+               ret=_xbee_update_hosts_tables(xd->hosts,(char *)mcmd->remote_addr_64_h, (char *)mcmd->remote_addr_64_l, (char *)mcmd->remote_addr_16,(char *)(mcmd->nd_data));
+               break;
+            }
+               
+            case 0x90: // données "séries" en provenance d'un xbee
+            {
+               struct xbee_receive_packet_s *mcmd=(struct xbee_receive_packet_s *)cmd;
+               
+               if(xd->dataflow_callback)
+                     xd->dataflow_callback(0,cmd,l_cmd, xd->dataflow_callback_data, (char *)mcmd->addr_64_h, (char *)mcmd->addr_64_l);
+                  
+               ret=_xbee_update_hosts_tables(xd->hosts,(char *)mcmd->addr_64_h,(char *)mcmd->addr_64_l,(char *)mcmd->addr_16,NULL);
+               break;
+            }
+               
+            default:
+               VERBOSE(9) fprintf(stderr,"INFO  (_xbee_thread): reception d'une trame (%x) non prise en compte\n",cmd[0]);
+               break;
+         }
+      }
+      if(ret<0)
+      {
+         switch(nerr)
+         {
+            case XBEE_ERR_TIMEOUT:
+               break;
+            case XBEE_ERR_SELECT:
+            case XBEE_ERR_READ:
+            case XBEE_ERR_SYS:
+               VERBOSE(1) {
+                  fprintf(stderr,"ERROR (_xbee_thread) : communication error (nerr=%d).\n", nerr);
+                  perror("");
+               }
+               xd->signal_flag=1;
+               raise(SIGHUP);
+               pthread_exit(NULL);
+            case XBEE_ERR_HOSTTABLEFULL:
+               VERBOSE(1) {
+                  fprintf(stderr,"ERROR (_xbee_thread) : hosts table full (nerr=%d).\n", nerr);
+               }
+               break;
+            default:
+               VERBOSE(1) {
+                  fprintf(stderr,"ERROR (_xbee_thread) : error=%d.\n", nerr);
+               }
+               break;
+         }
+      }
+      pthread_testcancel();
+   }
+   
+   pthread_exit(NULL);
+}
+

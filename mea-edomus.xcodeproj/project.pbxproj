@@ -7,31 +7,110 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		4EE0746C1757E699005C9A31 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 4EE0746B1757E699005C9A31 /* main.c */; };
-		4EE0746E1757E699005C9A31 /* mea_edomus.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = 4EE0746D1757E699005C9A31 /* mea_edomus.1 */; };
+		4E14AC0E16083B8C000686C3 /* memory.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E14ABFF16083B8C000686C3 /* memory.c */; };
+		4E4A5EA215F003420052ABF4 /* comio.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E4A5E8F15F003420052ABF4 /* comio.c */; };
+		4E4A5EA315F003420052ABF4 /* interface_type_001.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E4A5E9115F003420052ABF4 /* interface_type_001.c */; };
+		4E4A5EA415F003420052ABF4 /* debug.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E4A5E9315F003420052ABF4 /* debug.c */; };
+		4E4A5EA615F003420052ABF4 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E4A5E9815F003420052ABF4 /* main.c */; };
+		4E4A5EA715F003420052ABF4 /* queue.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E4A5E9915F003420052ABF4 /* queue.c */; };
+		4E4A5EA815F003420052ABF4 /* interface_type_002.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E4A5E9C15F003420052ABF4 /* interface_type_002.c */; };
+		4E4A5EA915F003420052ABF4 /* tomysqldb.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E4A5E9E15F003420052ABF4 /* tomysqldb.c */; };
+		4E4A5EAA15F003420052ABF4 /* xbee.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E4A5EA015F003420052ABF4 /* xbee.c */; };
+		4E5E24C3173C34AE00B8CEFE /* mea_api.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E5E24C2173C34AE00B8CEFE /* mea_api.c */; };
+		4E5FC65F172F0F91004266EB /* interface_type_001_counters.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E5FC65B172F0F91004266EB /* interface_type_001_counters.c */; };
+		4E5FC660172F0F91004266EB /* interface_type_001_sensors.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E5FC65D172F0F91004266EB /* interface_type_001_sensors.c */; };
+		4E5FC662172F103B004266EB /* interface_type_001_actuators.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E5FC661172F103B004266EB /* interface_type_001_actuators.c */; };
+		4E5FC67917357D72004266EB /* pythonPluginServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E5FC67817357D71004266EB /* pythonPluginServer.c */; };
+		4E76CE98163F120C00A3EBA9 /* xPL-config.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E76CE8F163F120C00A3EBA9 /* xPL-config.c */; };
+		4E76CE9A163F120C00A3EBA9 /* xPL-io.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E76CE91163F120C00A3EBA9 /* xPL-io.c */; };
+		4E76CE9B163F120C00A3EBA9 /* xPL-listeners.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E76CE92163F120C00A3EBA9 /* xPL-listeners.c */; };
+		4E76CE9C163F120C00A3EBA9 /* xPL-message.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E76CE93163F120C00A3EBA9 /* xPL-message.c */; };
+		4E76CE9D163F120C00A3EBA9 /* xPL-service.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E76CE94163F120C00A3EBA9 /* xPL-service.c */; };
+		4E76CE9E163F120C00A3EBA9 /* xPL-store.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E76CE95163F120C00A3EBA9 /* xPL-store.c */; };
+		4E76CE9F163F120C00A3EBA9 /* xPL-utils.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E76CE96163F120C00A3EBA9 /* xPL-utils.c */; };
+		4E76CEA2163F124200A3EBA9 /* xPLServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E76CEA0163F124200A3EBA9 /* xPLServer.c */; };
+		4E76CEA5163F12C800A3EBA9 /* arduino_pins.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E76CEA3163F12C700A3EBA9 /* arduino_pins.c */; };
+		4E76CEAB163F146900A3EBA9 /* parameters_mgr.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E76CEA9163F146900A3EBA9 /* parameters_mgr.c */; };
+		4E76CEB2163F175100A3EBA9 /* token_strings.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E76CEB0163F175100A3EBA9 /* token_strings.c */; };
+		4EFBBC7F1746C85D00090FEE /* error.c in Sources */ = {isa = PBXBuildFile; fileRef = 4EFBBC7E1746C85D00090FEE /* error.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		4EE074661757E699005C9A31 /* CopyFiles */ = {
+		8DD76FAF0486AB0100D96B5E /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
+			buildActionMask = 8;
 			dstPath = /usr/share/man/man1/;
 			dstSubfolderSpec = 0;
 			files = (
-				4EE0746E1757E699005C9A31 /* mea_edomus.1 in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		4EE074681757E699005C9A31 /* mea-edomus */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "mea-edomus"; sourceTree = BUILT_PRODUCTS_DIR; };
-		4EE0746B1757E699005C9A31 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
-		4EE0746D1757E699005C9A31 /* mea_edomus.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = mea_edomus.1; sourceTree = "<group>"; };
+		4E1496FA163F290200E08E6D /* sample_params_data.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = sample_params_data.sql; path = sql/sample_params_data.sql; sourceTree = "<group>"; };
+		4E1496FB163F2BA400E08E6D /* dev.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = dev.sql; path = sql/dev.sql; sourceTree = "<group>"; };
+		4E1496FC163F2F1D00E08E6D /* start_mea-edomus.ksh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; name = "start_mea-edomus.ksh"; path = "linux/start_mea-edomus.ksh"; sourceTree = "<group>"; };
+		4E14ABFC16083B8C000686C3 /* interfaces.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = interfaces.h; path = src/interfaces.h; sourceTree = "<group>"; };
+		4E14ABFD16083B8C000686C3 /* macros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = macros.h; path = src/macros.h; sourceTree = "<group>"; };
+		4E14ABFF16083B8C000686C3 /* memory.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = memory.c; path = src/memory.c; sourceTree = "<group>"; };
+		4E14AC0016083B8C000686C3 /* memory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = memory.h; path = src/memory.h; sourceTree = "<group>"; };
+		4E4A5E8F15F003420052ABF4 /* comio.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = comio.c; path = src/comio.c; sourceTree = "<group>"; };
+		4E4A5E9015F003420052ABF4 /* comio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = comio.h; path = src/comio.h; sourceTree = "<group>"; };
+		4E4A5E9115F003420052ABF4 /* interface_type_001.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = interface_type_001.c; path = src/interface_type_001.c; sourceTree = "<group>"; };
+		4E4A5E9215F003420052ABF4 /* interface_type_001.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = interface_type_001.h; path = src/interface_type_001.h; sourceTree = "<group>"; };
+		4E4A5E9315F003420052ABF4 /* debug.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = debug.c; path = src/debug.c; sourceTree = "<group>"; };
+		4E4A5E9415F003420052ABF4 /* debug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = debug.h; path = src/debug.h; sourceTree = "<group>"; };
+		4E4A5E9715F003420052ABF4 /* globals.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = globals.h; path = src/globals.h; sourceTree = "<group>"; };
+		4E4A5E9815F003420052ABF4 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = src/main.c; sourceTree = "<group>"; };
+		4E4A5E9915F003420052ABF4 /* queue.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = queue.c; path = src/queue.c; sourceTree = "<group>"; };
+		4E4A5E9A15F003420052ABF4 /* queue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = queue.h; path = src/queue.h; sourceTree = "<group>"; };
+		4E4A5E9C15F003420052ABF4 /* interface_type_002.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = interface_type_002.c; path = src/interface_type_002.c; sourceTree = "<group>"; };
+		4E4A5E9D15F003420052ABF4 /* interface_type_002.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = interface_type_002.h; path = src/interface_type_002.h; sourceTree = "<group>"; };
+		4E4A5E9E15F003420052ABF4 /* tomysqldb.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = tomysqldb.c; path = src/tomysqldb.c; sourceTree = "<group>"; };
+		4E4A5E9F15F003420052ABF4 /* tomysqldb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = tomysqldb.h; path = src/tomysqldb.h; sourceTree = "<group>"; };
+		4E4A5EA015F003420052ABF4 /* xbee.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = xbee.c; path = src/xbee.c; sourceTree = "<group>"; };
+		4E4A5EA115F003420052ABF4 /* xbee.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = xbee.h; path = src/xbee.h; sourceTree = "<group>"; };
+		4E5E24C1173C34A100B8CEFE /* mea_api.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = mea_api.h; path = src/mea_api.h; sourceTree = "<group>"; };
+		4E5E24C2173C34AE00B8CEFE /* mea_api.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mea_api.c; path = src/mea_api.c; sourceTree = "<group>"; };
+		4E5E24C5173D0A1100B8CEFE /* my_dht22.py */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = text.script.python; name = my_dht22.py; path = "../../../../../Data/mea-edomus/plugins/my_dht22.py"; sourceTree = "<group>"; tabWidth = 4; usesTabs = 0; };
+		4E5FC65A172F0F91004266EB /* interface_type_001_actuators.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = interface_type_001_actuators.h; path = src/interface_type_001_actuators.h; sourceTree = "<group>"; };
+		4E5FC65B172F0F91004266EB /* interface_type_001_counters.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = interface_type_001_counters.c; path = src/interface_type_001_counters.c; sourceTree = "<group>"; };
+		4E5FC65C172F0F91004266EB /* interface_type_001_counters.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = interface_type_001_counters.h; path = src/interface_type_001_counters.h; sourceTree = "<group>"; };
+		4E5FC65D172F0F91004266EB /* interface_type_001_sensors.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = interface_type_001_sensors.c; path = src/interface_type_001_sensors.c; sourceTree = "<group>"; };
+		4E5FC65E172F0F91004266EB /* interface_type_001_sensors.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = interface_type_001_sensors.h; path = src/interface_type_001_sensors.h; sourceTree = "<group>"; };
+		4E5FC661172F103B004266EB /* interface_type_001_actuators.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = interface_type_001_actuators.c; path = src/interface_type_001_actuators.c; sourceTree = "<group>"; };
+		4E5FC67817357D71004266EB /* pythonPluginServer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = pythonPluginServer.c; path = src/pythonPluginServer.c; sourceTree = "<group>"; };
+		4E5FC67A17357DA1004266EB /* pythonPluginServer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = pythonPluginServer.h; path = src/pythonPluginServer.h; sourceTree = "<group>"; };
+		4E76CE8E163F120C00A3EBA9 /* xPL_priv.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = xPL_priv.h; path = "src/xPLLib-mac/xPL_priv.h"; sourceTree = "<group>"; };
+		4E76CE8F163F120C00A3EBA9 /* xPL-config.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "xPL-config.c"; path = "src/xPLLib-mac/xPL-config.c"; sourceTree = "<group>"; };
+		4E76CE91163F120C00A3EBA9 /* xPL-io.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "xPL-io.c"; path = "src/xPLLib-mac/xPL-io.c"; sourceTree = "<group>"; };
+		4E76CE92163F120C00A3EBA9 /* xPL-listeners.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "xPL-listeners.c"; path = "src/xPLLib-mac/xPL-listeners.c"; sourceTree = "<group>"; };
+		4E76CE93163F120C00A3EBA9 /* xPL-message.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "xPL-message.c"; path = "src/xPLLib-mac/xPL-message.c"; sourceTree = "<group>"; };
+		4E76CE94163F120C00A3EBA9 /* xPL-service.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "xPL-service.c"; path = "src/xPLLib-mac/xPL-service.c"; sourceTree = "<group>"; };
+		4E76CE95163F120C00A3EBA9 /* xPL-store.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "xPL-store.c"; path = "src/xPLLib-mac/xPL-store.c"; sourceTree = "<group>"; };
+		4E76CE96163F120C00A3EBA9 /* xPL-utils.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "xPL-utils.c"; path = "src/xPLLib-mac/xPL-utils.c"; sourceTree = "<group>"; };
+		4E76CE97163F120C00A3EBA9 /* xPL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = xPL.h; path = "src/xPLLib-mac/xPL.h"; sourceTree = "<group>"; };
+		4E76CEA0163F124200A3EBA9 /* xPLServer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = xPLServer.c; path = src/xPLServer.c; sourceTree = "<group>"; };
+		4E76CEA1163F124200A3EBA9 /* xPLServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = xPLServer.h; path = src/xPLServer.h; sourceTree = "<group>"; };
+		4E76CEA3163F12C700A3EBA9 /* arduino_pins.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = arduino_pins.c; path = src/arduino_pins.c; sourceTree = "<group>"; };
+		4E76CEA4163F12C700A3EBA9 /* arduino_pins.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = arduino_pins.h; path = src/arduino_pins.h; sourceTree = "<group>"; };
+		4E76CEA6163F133400A3EBA9 /* sqlite3_params_db.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = sqlite3_params_db.sql; path = sql/sqlite3_params_db.sql; sourceTree = "<group>"; };
+		4E76CEA7163F133400A3EBA9 /* sqlite3_queries_db.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = sqlite3_queries_db.sql; path = sql/sqlite3_queries_db.sql; sourceTree = "<group>"; };
+		4E76CEA8163F138800A3EBA9 /* Makefile.mk */ = {isa = PBXFileReference; explicitFileType = sourcecode.make; fileEncoding = 4; name = Makefile.mk; path = linux/Makefile.mk; sourceTree = "<group>"; };
+		4E76CEA9163F146900A3EBA9 /* parameters_mgr.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = parameters_mgr.c; path = src/parameters_mgr.c; sourceTree = "<group>"; };
+		4E76CEAA163F146900A3EBA9 /* parameters_mgr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = parameters_mgr.h; path = src/parameters_mgr.h; sourceTree = "<group>"; };
+		4E76CEB0163F175100A3EBA9 /* token_strings.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = token_strings.c; path = src/token_strings.c; sourceTree = "<group>"; };
+		4E76CEB1163F175100A3EBA9 /* token_strings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = token_strings.h; path = src/token_strings.h; sourceTree = "<group>"; };
+		4E76CEB4163F17E300A3EBA9 /* mysql_mea-edomus_db.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "mysql_mea-edomus_db.sql"; path = "sql/mysql_mea-edomus_db.sql"; sourceTree = "<group>"; };
+		4E99C708165050460063C1E0 /* install.rtf */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; path = install.rtf; sourceTree = "<group>"; };
+		4EFBBC7D1746C84F00090FEE /* error.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = error.h; path = src/error.h; sourceTree = "<group>"; };
+		4EFBBC7E1746C85D00090FEE /* error.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = error.c; path = src/error.c; sourceTree = "<group>"; };
+		8DD76FB20486AB0100D96B5E /* mea-eDomus */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "mea-eDomus"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		4EE074651757E699005C9A31 /* Frameworks */ = {
+		8DD76FAD0486AB0100D96B5E /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -41,181 +120,413 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		4EE0745F1757E699005C9A31 = {
+		08FB7794FE84155DC02AAC07 /* Comio */ = {
 			isa = PBXGroup;
 			children = (
-				4EE0746A1757E699005C9A31 /* mea-edomus */,
-				4EE074691757E699005C9A31 /* Products */,
+				08FB7795FE84155DC02AAC07 /* Source */,
+				C6A0FF2B0290797F04C91782 /* Documentation */,
+				1AB674ADFE9D54B511CA2CBB /* Products */,
 			);
+			name = Comio;
 			sourceTree = "<group>";
 		};
-		4EE074691757E699005C9A31 /* Products */ = {
+		08FB7795FE84155DC02AAC07 /* Source */ = {
 			isa = PBXGroup;
 			children = (
-				4EE074681757E699005C9A31 /* mea-edomus */,
+				4EFBBC801748C9BA00090FEE /* Common */,
+				4E4D4E811601F2930008C14C /* Libs */,
+				4E5FC67E1736C8A9004266EB /* plugin manager */,
+				4EE28EAA162F4DD00090B5B3 /* xPL manager */,
+				4E4D4E7F1601F2550008C14C /* Db manager */,
+				4E4D4E7E1601F1510008C14C /* Interfaces */,
+				4E4A5E9815F003420052ABF4 /* main.c */,
+				4E4A5E0815ED65840052ABF4 /* Linux */,
+			);
+			name = Source;
+			sourceTree = "<group>";
+		};
+		1AB674ADFE9D54B511CA2CBB /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				8DD76FB20486AB0100D96B5E /* mea-eDomus */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		4EE0746A1757E699005C9A31 /* mea-edomus */ = {
+		4E4A5E0815ED65840052ABF4 /* Linux */ = {
 			isa = PBXGroup;
 			children = (
-				4EE0746B1757E699005C9A31 /* main.c */,
-				4EE0746D1757E699005C9A31 /* mea_edomus.1 */,
+				4E76CEA8163F138800A3EBA9 /* Makefile.mk */,
+				4E1496FC163F2F1D00E08E6D /* start_mea-edomus.ksh */,
 			);
-			path = "mea-edomus";
+			includeInIndex = 1;
+			name = Linux;
+			sourceTree = "<group>";
+		};
+		4E4D4E7E1601F1510008C14C /* Interfaces */ = {
+			isa = PBXGroup;
+			children = (
+				4E4ED05B1668188400820EF8 /* Interface_type_002 */,
+				4E4ED05A1668186300820EF8 /* Interface_type_001 */,
+				4E14ABFC16083B8C000686C3 /* interfaces.h */,
+			);
+			name = Interfaces;
+			sourceTree = "<group>";
+		};
+		4E4D4E7F1601F2550008C14C /* Db manager */ = {
+			isa = PBXGroup;
+			children = (
+				4EFD8C3215D97ABE0032D454 /* SQL */,
+				4E4A5E9E15F003420052ABF4 /* tomysqldb.c */,
+				4E4A5E9F15F003420052ABF4 /* tomysqldb.h */,
+			);
+			name = "Db manager";
+			sourceTree = "<group>";
+		};
+		4E4D4E801601F2730008C14C /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				4E76CEB1163F175100A3EBA9 /* token_strings.h */,
+				4E76CEB0163F175100A3EBA9 /* token_strings.c */,
+				4E76CEAA163F146900A3EBA9 /* parameters_mgr.h */,
+				4E76CEA9163F146900A3EBA9 /* parameters_mgr.c */,
+				4E14ABFF16083B8C000686C3 /* memory.c */,
+				4E14AC0016083B8C000686C3 /* memory.h */,
+				4E4A5E9915F003420052ABF4 /* queue.c */,
+				4E4A5E9A15F003420052ABF4 /* queue.h */,
+			);
+			name = Utils;
+			sourceTree = "<group>";
+		};
+		4E4D4E811601F2930008C14C /* Libs */ = {
+			isa = PBXGroup;
+			children = (
+				4E4D4E801601F2730008C14C /* Utils */,
+				4E76CEA3163F12C700A3EBA9 /* arduino_pins.c */,
+				4E76CEA4163F12C700A3EBA9 /* arduino_pins.h */,
+				4E4A5EA015F003420052ABF4 /* xbee.c */,
+				4E4A5EA115F003420052ABF4 /* xbee.h */,
+				4E4A5E8F15F003420052ABF4 /* comio.c */,
+				4E4A5E9015F003420052ABF4 /* comio.h */,
+			);
+			name = Libs;
+			sourceTree = "<group>";
+		};
+		4E4ED05A1668186300820EF8 /* Interface_type_001 */ = {
+			isa = PBXGroup;
+			children = (
+				4E5FC65A172F0F91004266EB /* interface_type_001_actuators.h */,
+				4E5FC661172F103B004266EB /* interface_type_001_actuators.c */,
+				4E5FC65E172F0F91004266EB /* interface_type_001_sensors.h */,
+				4E5FC65D172F0F91004266EB /* interface_type_001_sensors.c */,
+				4E5FC65C172F0F91004266EB /* interface_type_001_counters.h */,
+				4E5FC65B172F0F91004266EB /* interface_type_001_counters.c */,
+				4E4A5E9215F003420052ABF4 /* interface_type_001.h */,
+				4E4A5E9115F003420052ABF4 /* interface_type_001.c */,
+			);
+			name = Interface_type_001;
+			sourceTree = "<group>";
+		};
+		4E4ED05B1668188400820EF8 /* Interface_type_002 */ = {
+			isa = PBXGroup;
+			children = (
+				4E4A5E9D15F003420052ABF4 /* interface_type_002.h */,
+				4E4A5E9C15F003420052ABF4 /* interface_type_002.c */,
+			);
+			name = Interface_type_002;
+			sourceTree = "<group>";
+		};
+		4E5E24C0173C346800B8CEFE /* API */ = {
+			isa = PBXGroup;
+			children = (
+				4E5E24C1173C34A100B8CEFE /* mea_api.h */,
+				4E5E24C2173C34AE00B8CEFE /* mea_api.c */,
+			);
+			name = API;
+			sourceTree = "<group>";
+		};
+		4E5E24C4173D09EB00B8CEFE /* Plugins */ = {
+			isa = PBXGroup;
+			children = (
+				4E5E24C5173D0A1100B8CEFE /* my_dht22.py */,
+			);
+			name = Plugins;
+			sourceTree = "<group>";
+		};
+		4E5FC67E1736C8A9004266EB /* plugin manager */ = {
+			isa = PBXGroup;
+			children = (
+				4E5E24C4173D09EB00B8CEFE /* Plugins */,
+				4E5E24C0173C346800B8CEFE /* API */,
+				4E5FC67817357D71004266EB /* pythonPluginServer.c */,
+				4E5FC67A17357DA1004266EB /* pythonPluginServer.h */,
+			);
+			name = "plugin manager";
+			sourceTree = "<group>";
+		};
+		4EE28E95162F4A550090B5B3 /* xPLLib */ = {
+			isa = PBXGroup;
+			children = (
+				4E76CE8E163F120C00A3EBA9 /* xPL_priv.h */,
+				4E76CE8F163F120C00A3EBA9 /* xPL-config.c */,
+				4E76CE91163F120C00A3EBA9 /* xPL-io.c */,
+				4E76CE92163F120C00A3EBA9 /* xPL-listeners.c */,
+				4E76CE93163F120C00A3EBA9 /* xPL-message.c */,
+				4E76CE94163F120C00A3EBA9 /* xPL-service.c */,
+				4E76CE95163F120C00A3EBA9 /* xPL-store.c */,
+				4E76CE96163F120C00A3EBA9 /* xPL-utils.c */,
+				4E76CE97163F120C00A3EBA9 /* xPL.h */,
+			);
+			name = xPLLib;
+			sourceTree = "<group>";
+		};
+		4EE28EAA162F4DD00090B5B3 /* xPL manager */ = {
+			isa = PBXGroup;
+			children = (
+				4EE28E95162F4A550090B5B3 /* xPLLib */,
+				4E76CEA1163F124200A3EBA9 /* xPLServer.h */,
+				4E76CEA0163F124200A3EBA9 /* xPLServer.c */,
+			);
+			name = "xPL manager";
+			sourceTree = "<group>";
+		};
+		4EFBBC801748C9BA00090FEE /* Common */ = {
+			isa = PBXGroup;
+			children = (
+				4E4A5E9715F003420052ABF4 /* globals.h */,
+				4E14ABFD16083B8C000686C3 /* macros.h */,
+				4E4A5E9415F003420052ABF4 /* debug.h */,
+				4E4A5E9315F003420052ABF4 /* debug.c */,
+				4EFBBC7D1746C84F00090FEE /* error.h */,
+				4EFBBC7E1746C85D00090FEE /* error.c */,
+			);
+			name = Common;
+			sourceTree = "<group>";
+		};
+		4EFD8C3215D97ABE0032D454 /* SQL */ = {
+			isa = PBXGroup;
+			children = (
+				4E1496FA163F290200E08E6D /* sample_params_data.sql */,
+				4E76CEB4163F17E300A3EBA9 /* mysql_mea-edomus_db.sql */,
+				4E76CEA6163F133400A3EBA9 /* sqlite3_params_db.sql */,
+				4E76CEA7163F133400A3EBA9 /* sqlite3_queries_db.sql */,
+				4E1496FB163F2BA400E08E6D /* dev.sql */,
+			);
+			name = SQL;
+			sourceTree = "<group>";
+		};
+		C6A0FF2B0290797F04C91782 /* Documentation */ = {
+			isa = PBXGroup;
+			children = (
+				4E99C708165050460063C1E0 /* install.rtf */,
+			);
+			name = Documentation;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		4EE074671757E699005C9A31 /* mea-edomus */ = {
+		8DD76FA90486AB0100D96B5E /* mea-eDomus */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 4EE074711757E699005C9A31 /* Build configuration list for PBXNativeTarget "mea-edomus" */;
+			buildConfigurationList = 1DEB928508733DD80010E9CD /* Build configuration list for PBXNativeTarget "mea-eDomus" */;
 			buildPhases = (
-				4EE074641757E699005C9A31 /* Sources */,
-				4EE074651757E699005C9A31 /* Frameworks */,
-				4EE074661757E699005C9A31 /* CopyFiles */,
+				8DD76FAB0486AB0100D96B5E /* Sources */,
+				8DD76FAD0486AB0100D96B5E /* Frameworks */,
+				8DD76FAF0486AB0100D96B5E /* CopyFiles */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
-			name = "mea-edomus";
-			productName = "mea-edomus";
-			productReference = 4EE074681757E699005C9A31 /* mea-edomus */;
+			name = "mea-eDomus";
+			productInstallPath = "$(HOME)/bin";
+			productName = Comio;
+			productReference = 8DD76FB20486AB0100D96B5E /* mea-eDomus */;
 			productType = "com.apple.product-type.tool";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		4EE074601757E699005C9A31 /* Project object */ = {
+		08FB7793FE84155DC02AAC07 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0460;
-				ORGANIZATIONNAME = "Patrice Dietsch";
+				LastUpgradeCheck = 0450;
 			};
-			buildConfigurationList = 4EE074631757E699005C9A31 /* Build configuration list for PBXProject "mea-edomus" */;
+			buildConfigurationList = 1DEB928908733DD80010E9CD /* Build configuration list for PBXProject "mea-eDomus" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
-			hasScannedForEncodings = 0;
+			hasScannedForEncodings = 1;
 			knownRegions = (
-				en,
+				English,
+				Japanese,
+				French,
+				German,
 			);
-			mainGroup = 4EE0745F1757E699005C9A31;
-			productRefGroup = 4EE074691757E699005C9A31 /* Products */;
+			mainGroup = 08FB7794FE84155DC02AAC07 /* Comio */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				4EE074671757E699005C9A31 /* mea-edomus */,
+				8DD76FA90486AB0100D96B5E /* mea-eDomus */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXSourcesBuildPhase section */
-		4EE074641757E699005C9A31 /* Sources */ = {
+		8DD76FAB0486AB0100D96B5E /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4EE0746C1757E699005C9A31 /* main.c in Sources */,
+				4E4A5EA215F003420052ABF4 /* comio.c in Sources */,
+				4E4A5EA315F003420052ABF4 /* interface_type_001.c in Sources */,
+				4E4A5EA415F003420052ABF4 /* debug.c in Sources */,
+				4E4A5EA615F003420052ABF4 /* main.c in Sources */,
+				4E4A5EA715F003420052ABF4 /* queue.c in Sources */,
+				4E4A5EA815F003420052ABF4 /* interface_type_002.c in Sources */,
+				4E4A5EA915F003420052ABF4 /* tomysqldb.c in Sources */,
+				4E4A5EAA15F003420052ABF4 /* xbee.c in Sources */,
+				4E14AC0E16083B8C000686C3 /* memory.c in Sources */,
+				4E76CE98163F120C00A3EBA9 /* xPL-config.c in Sources */,
+				4E76CE9A163F120C00A3EBA9 /* xPL-io.c in Sources */,
+				4E76CE9B163F120C00A3EBA9 /* xPL-listeners.c in Sources */,
+				4E76CE9C163F120C00A3EBA9 /* xPL-message.c in Sources */,
+				4E76CE9D163F120C00A3EBA9 /* xPL-service.c in Sources */,
+				4E76CE9E163F120C00A3EBA9 /* xPL-store.c in Sources */,
+				4E76CE9F163F120C00A3EBA9 /* xPL-utils.c in Sources */,
+				4E76CEA2163F124200A3EBA9 /* xPLServer.c in Sources */,
+				4E76CEA5163F12C800A3EBA9 /* arduino_pins.c in Sources */,
+				4E76CEAB163F146900A3EBA9 /* parameters_mgr.c in Sources */,
+				4E76CEB2163F175100A3EBA9 /* token_strings.c in Sources */,
+				4E5FC65F172F0F91004266EB /* interface_type_001_counters.c in Sources */,
+				4E5FC660172F0F91004266EB /* interface_type_001_sensors.c in Sources */,
+				4E5FC662172F103B004266EB /* interface_type_001_actuators.c in Sources */,
+				4E5FC67917357D72004266EB /* pythonPluginServer.c in Sources */,
+				4E5E24C3173C34AE00B8CEFE /* mea_api.c in Sources */,
+				4EFBBC7F1746C85D00090FEE /* error.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		4EE0746F1757E699005C9A31 /* Debug */ = {
+		1DEB928608733DD80010E9CD /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
-				CLANG_CXX_LIBRARY = "libc++";
-				CLANG_WARN_CONSTANT_CONVERSION = YES;
-				CLANG_WARN_EMPTY_BODY = YES;
-				CLANG_WARN_ENUM_CONVERSION = YES;
-				CLANG_WARN_INT_CONVERSION = YES;
-				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-					"$(inherited)",
+				HEADER_SEARCH_PATHS = (
+					"/usr/local/mysql/include/**",
+					"/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7/**",
 				);
-				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
-				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				GCC_WARN_ABOUT_RETURN_TYPE = YES;
-				GCC_WARN_UNINITIALIZED_AUTOS = YES;
-				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.8;
-				ONLY_ACTIVE_ARCH = YES;
+				INSTALL_PATH = /usr/local/bin;
+				LIBRARY_SEARCH_PATHS = (
+					/usr/local/mysql/lib,
+					/System/Library/Frameworks/Python.framework/Versions/2.7/lib/,
+				);
+				OTHER_LDFLAGS = (
+					"-lz",
+					"-lm",
+					"-lmysqlclient",
+					"-lsqlite3",
+					"-lpython2.7",
+				);
+				PRODUCT_NAME = "mea-eDomus";
 				SDKROOT = macosx;
 			};
 			name = Debug;
 		};
-		4EE074701757E699005C9A31 /* Release */ = {
+		1DEB928708733DD80010E9CD /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
-				CLANG_CXX_LIBRARY = "libc++";
-				CLANG_WARN_CONSTANT_CONVERSION = YES;
-				CLANG_WARN_EMPTY_BODY = YES;
-				CLANG_WARN_ENUM_CONVERSION = YES;
-				CLANG_WARN_INT_CONVERSION = YES;
-				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				GCC_C_LANGUAGE_STANDARD = gnu99;
-				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
-				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				GCC_WARN_ABOUT_RETURN_TYPE = YES;
-				GCC_WARN_UNINITIALIZED_AUTOS = YES;
-				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				GCC_MODEL_TUNING = G5;
+				HEADER_SEARCH_PATHS = (
+					"/usr/local/mysql/include/**",
+					"/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7/**",
+				);
+				INSTALL_PATH = /usr/local/bin;
+				LIBRARY_SEARCH_PATHS = (
+					/usr/local/mysql/lib,
+					/System/Library/Frameworks/Python.framework/Versions/2.7/lib/,
+				);
+				ONLY_ACTIVE_ARCH = YES;
+				OTHER_LDFLAGS = (
+					"-lz",
+					"-lm",
+					"-lmysqlclient",
+					"-lsqlite3",
+					"-lpython2.7",
+				);
+				PRODUCT_NAME = "mea-eDomus";
 				SDKROOT = macosx;
 			};
 			name = Release;
 		};
-		4EE074721757E699005C9A31 /* Debug */ = {
+		1DEB928A08733DD80010E9CD /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = "/usr/local/mysql/include/**";
+				LIBRARY_SEARCH_PATHS = /usr/local/mysql/lib;
+				ONLY_ACTIVE_ARCH = YES;
+				OTHER_CFLAGS = "-D__DEBUG_ON__";
+				OTHER_LDFLAGS = (
+					"-lz",
+					"-lm",
+					"-lmysqlclient",
+				);
+				SDKROOT = macosx;
 			};
 			name = Debug;
 		};
-		4EE074731757E699005C9A31 /* Release */ = {
+		1DEB928B08733DD80010E9CD /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = "/usr/local/mysql/include/**";
+				LIBRARY_SEARCH_PATHS = /usr/local/mysql/lib;
+				OTHER_CFLAGS = "-D__DEBUG_ON__";
+				OTHER_LDFLAGS = (
+					"-lz",
+					"-lm",
+					"-lmysqlclient",
+				);
+				SDKROOT = macosx;
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		4EE074631757E699005C9A31 /* Build configuration list for PBXProject "mea-edomus" */ = {
+		1DEB928508733DD80010E9CD /* Build configuration list for PBXNativeTarget "mea-eDomus" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				4EE0746F1757E699005C9A31 /* Debug */,
-				4EE074701757E699005C9A31 /* Release */,
+				1DEB928608733DD80010E9CD /* Debug */,
+				1DEB928708733DD80010E9CD /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		4EE074711757E699005C9A31 /* Build configuration list for PBXNativeTarget "mea-edomus" */ = {
+		1DEB928908733DD80010E9CD /* Build configuration list for PBXProject "mea-eDomus" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				4EE074721757E699005C9A31 /* Debug */,
-				4EE074731757E699005C9A31 /* Release */,
+				1DEB928A08733DD80010E9CD /* Debug */,
+				1DEB928B08733DD80010E9CD /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
-	rootObject = 4EE074601757E699005C9A31 /* Project object */;
+	rootObject = 08FB7793FE84155DC02AAC07 /* Project object */;
 }

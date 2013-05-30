@@ -1,0 +1,5 @@
+CREATE TABLE queries
+(
+id INTEGER PRIMARY KEY,
+request TEXT
+);

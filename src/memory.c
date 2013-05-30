@@ -1,0 +1,65 @@
+//
+//  memory.c
+//
+//  Created by Patrice DIETSCH on 17/09/12.
+//
+//
+
+#include "debug.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+
+/*
+void display_malloc_error(char *f, char *file, int line)
+{
+   fprintf (stderr, "ERROR (%s) : malloc error (%s/%d) - ",f,file,line);
+   perror("");
+}
+*/
+
+char *string_malloc_and_copy(char *str,int v)
+{
+   char *new_str=(char *)malloc(strlen(str)+1);
+   if(new_str)
+      strcpy(new_str,str);
+   else
+   {
+      VERBOSE(1) {
+         fprintf (stderr, "ERROR (string_malloc_and_copy) : malloc error");
+         perror("");
+      }
+      return NULL;
+   }
+   return new_str;
+}
+
+
+char *string_free_malloc_and_copy(char **org_str, char *str, int v)
+{
+   if(*org_str)
+   {
+      free(*org_str);
+      *org_str=NULL;
+   }
+   
+   *org_str=(char *)malloc(strlen(str)+1);
+   if(*org_str)
+      strcpy(*org_str,str);
+   else
+   {
+      VERBOSE(1) {
+         fprintf (stderr, "ERROR (string_myfree_malloc_and_copy) : malloc error ");
+         perror("");
+      }
+      return NULL;
+   }
+   return *org_str;
+}
+
+
+
+
+
