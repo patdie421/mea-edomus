@@ -436,7 +436,6 @@ static PyObject *mea_atCmdToXbee(PyObject *self, PyObject *args)
    Py_INCREF(Py_None);
    return Py_None;
    
-   
 mea_AtCmdToXbee_arg_err:
    VERBOSE(9) fprintf(stderr, "ERROR (mea_AtCmdToXbee) : arguments error\n");
    PyErr_BadArgument();

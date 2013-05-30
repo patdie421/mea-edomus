@@ -10,12 +10,16 @@ parameters TEXT,
 state INTEGER
 );
 
-CREATE TABLE location
+
+CREATE TABLE types
 (
 id INTEGER PRIMARY KEY,
-id_location INTEGER,
-name TEXT
+id_type INTEGER,
+name TEXT,
+description TEXT,
+parameters TEXT
 );
+
 
 CREATE TABLE sensors_actuators
 (
@@ -30,12 +34,11 @@ parameters TEXT,
 state INTEGER
 );
 
-CREATE TABLE types
+
+CREATE TABLE locations
 (
 id INTEGER PRIMARY KEY,
-id_type INTEGER,
+id_location INTEGER,
 name TEXT,
-description TEXT,
-parameters TEXT
+description TEXT
 );
-
