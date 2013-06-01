@@ -20,6 +20,7 @@
 #include "error.h"
 #include "debug.h"
 #include "queue.h"
+#include "token_strings.h"
 
 #include "pythonPluginServer.h"
 
@@ -82,7 +83,7 @@ int pythonPluginServer_add_cmd(char *module, char *module_parameters, void *data
    if(!e)
       return -1;
    e->python_module=NULL;
-   e->parameters=NULL;
+//   e->parameters=NULL;
    e->data=NULL;
    e->l_data=0;
    
@@ -91,12 +92,12 @@ int pythonPluginServer_add_cmd(char *module, char *module_parameters, void *data
    if(!e->python_module)
       goto exit_pythonPluginServer_add_cmd;
    strcpy(e->python_module, module);
-   
+/*
    e->parameters=(char *)malloc(strlen(module_parameters)+1);
    if(!e->parameters)
       goto exit_pythonPluginServer_add_cmd;
    strcpy(e->parameters, module_parameters);
-   
+*/   
    e->data=(char *)malloc(l_data);
    if(!e->data)
       goto exit_pythonPluginServer_add_cmd;
@@ -118,8 +119,8 @@ exit_pythonPluginServer_add_cmd:
    {
       if(e->python_module)
          free(e->python_module);
-      if(e->parameters)
-         free(e->parameters);
+//      if(e->parameters)
+//         free(e->parameters);
       if(e->data)
          free(e->data);
       e->l_data=0;
@@ -129,7 +130,7 @@ exit_pythonPluginServer_add_cmd:
 }
 
 
-int call_pythonPlugin2(char *module, int type, PyObject *data_dict)
+int call_pythonPlugin(char *module, int type, PyObject *data_dict)
 {
    static const char *fn_name = "call_pythonPlugin2";
    
@@ -185,6 +186,8 @@ int call_pythonPlugin2(char *module, int type, PyObject *data_dict)
          case XBEEDATA: pFunc = PyObject_GetAttrString(pModule, "mea_dataFromSensor");
             break;
          case XPLMSG: pFunc = PyObject_GetAttrString(pModule, "mea_xplCmndMsg");
+            break;
+         case COMMISSIONNING: pFunc = PyObject_GetAttrString(pModule, "mea_commissionningRequest");
             break;
          default:
             return 0;
@@ -247,10 +250,17 @@ void *_pythonPlugin_thread(void *data)
    static const char *fn_name="_pythonPlugin_thread";
    
    pythonPlugin_cmd_t *e;
+   PyThreadState *mainThreadState, *myThreadState, *tempState;
    
+   // initialisation de l'interpréteur Python pour le multi-threading => transferé dans main.c et main()
    Py_Initialize();
-//   PyEval_InitThreads(); // voir ici http://www.codeproject.com/Articles/11805/Embedding-Python-in-C-C-Part-I
-//   PyEval_ReleaseLock();
+   PyEval_InitThreads(); // voir ici http://www.codeproject.com/Articles/11805/Embedding-Python-in-C-C-Part-I
+   
+   mainThreadState = PyThreadState_Get();
+   myThreadState = PyThreadState_New(mainThreadState->interp);
+   
+   PyEval_ReleaseLock();
+   // Save a pointer to the main PyThreadState object
    
    // chemin vers les plugins rajouté dans le path de l'interpréteur Python
    PyObject* sysPath = PySys_GetObject((char*)"path");
@@ -259,8 +269,9 @@ void *_pythonPlugin_thread(void *data)
    Py_DECREF(pluginsDir);
 
    known_modules=PyDict_New(); // initialisation du cache de module
+
    mea_api_init(); // initialisation du module mea mis à disposition du plugin
-   
+
    while(1)
    {
       pthread_mutex_lock(&pythonPluginCmd_queue_lock);
@@ -294,33 +305,41 @@ void *_pythonPlugin_thread(void *data)
          pthread_mutex_unlock(&pythonPluginCmd_queue_lock);
 
          plugin_queue_elem_t *data = (plugin_queue_elem_t *)e->data;
-         
-         PyObject *pydict_data=device_context_to_pydict(data,(int)e->l_data);
-         call_pythonPlugin2(e->python_module, data->type_elem, pydict_data);
-         Py_DECREF(pydict_data);
 
+         PyEval_AcquireLock();
+         tempState = PyThreadState_Swap(myThreadState);
+
+         PyObject *pydict_data=data->aDict;
+         call_pythonPlugin(e->python_module, data->type_elem, pydict_data);
+         Py_DECREF(pydict_data);
+         
+         PyThreadState_Swap(tempState);
+         PyEval_ReleaseLock();
+         
          if(e)
          {
             if(e->python_module)
                free(e->python_module);
-           if(e->parameters)
-               free(e->parameters);
             if(e->data)
                free(e->data);
             e->l_data=0;
             free(e);
+
+            pthread_mutex_unlock(&pythonPluginCmd_queue_lock);
          }
       }
       else
       {
          // pb d'accès aux données de la file
          VERBOSE(5) fprintf(stderr,"%s (%s) : out_queue_elem - can't access\n", ERROR_STR, fn_name);
-         pthread_mutex_unlock(&pythonPluginCmd_queue_lock);
       }
       pthread_testcancel();
    }
 
    Py_Finalize();
+
+   PyThreadState_Clear(myThreadState);
+   PyThreadState_Delete(myThreadState);
 
    pthread_exit(NULL);
 

@@ -63,9 +63,6 @@ typedef struct device_context_s
     -          « device_interface_type_name » : OK
     -          « device_location_id » :
     -          « device_location_name » :
-    -          « xpl-vendor-id » :
-    -          « xpl-device-id » :
-    -          « xpl-instance-id » :
     */
    int            device_id;
    char           device_name[PLUGIN_DATA_MAX_SIZE];
@@ -79,7 +76,23 @@ typedef struct device_context_s
    int            device_location_id;
    int            device_state;
    uint32_t       addr_h,addr_l;
+
 } device_context_t;
+
+
+typedef struct interface_context_s
+{
+   int            interface_id;
+   char           interface_name[PLUGIN_DATA_MAX_SIZE];
+   char           interface_parameters[PLUGIN_DATA_MAX_SIZE];
+   int            interface_type_id;
+   char           interface_type_name[PLUGIN_DATA_MAX_SIZE];
+   char           interface_type_parameters[PLUGIN_DATA_MAX_SIZE];
+   int            interface_location_id;
+   int            interface_state;
+   uint32_t       addr_h,addr_l;
+
+} interface_context_t;
 
 
 typedef struct plugin_xbeedata_queue_elem_s
@@ -99,18 +112,33 @@ typedef struct plugin_xpl_queue_elem_s
 } plugin_xpl_queue_elem_t;
 
 
+typedef struct plugin_commissionning_queue_elem_s
+{
+   PyObject      *parameters;
+} plugin_commissionning_queue_elem_t;
+
+
 typedef struct plugin_queue_elem_s
 {
    pythonPlugin_type type_elem;
-   device_context_t  device_context;
-   xbee_xd_t        *xd;
-
+   PyObject *aDict;
+   char buff[128];
+   uint16_t l_buff;
+   
+   // xbee_xd_t *xd;
+   /*
+   union
+   {
+      device_context_t  device_context;
+      interface_context_t interface_context;
+   } context;
    union
    {
       plugin_xpl_queue_elem_t      xpl;
       plugin_xbeedata_queue_elem_t xbeedata;
+      plugin_commissionning_queue_elem_t commissionning;
    } complement;
-   
+   */
 } plugin_queue_elem_t;
 
 
@@ -125,6 +153,7 @@ int stop_interface_type_002(interface_type_002_t *it002, int signal_number);
 int restart_interface_type_002(interface_type_002_t *i002,sqlite3 *db, tomysqldb_md_t *md);
 int check_status_interface_type_002(interface_type_002_t *it002);
 PyObject *device_context_to_pydict(plugin_queue_elem_t *e, int l_data);
+PyObject *interface_context_to_pydict(plugin_queue_elem_t *e, int l_data);
 
 
 #endif

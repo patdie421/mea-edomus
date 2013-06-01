@@ -75,6 +75,15 @@ extern char *xpl_input_str;
 #define DEVICE_STATE_ID               37
 #define DEVICE_TYPE_PARAMETERS_ID     38
 
+#define INTERFACE_ID_ID           39
+#define INTERFACE_NAME_ID         40
+#define INTERFACE_TYPE_ID_ID      41
+#define INTERFACE_LOCATION_ID_ID  42
+#define INTERFACE_STATE_ID        43
+#define INTERFACE_PARAMETERS_ID   44
+
+#define DEVICE_PARAMETERS_ID 45
+
 /*
 #define XPL_CONTROL_STR xpl_control_str
 #define XPL_BASIC_STR   xpl_basic_str

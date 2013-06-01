@@ -10,14 +10,14 @@
 
 #include "queue.h"
 
-typedef enum {XBEEDATA=1, XPLMSG=2} pythonPlugin_type;
+typedef enum {XBEEDATA=1, XPLMSG=2, COMMISSIONNING=3} pythonPlugin_type;
 
 typedef struct pythonPlugin_cmd_s
 {
 //   pythonPlugin_type type;
    char *python_module;
 //   unsigned long id_sensor;
-   char *parameters;
+//   char *parameters;
    char *data;
    int  l_data;
 } pythonPlugin_cmd_t;

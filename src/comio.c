@@ -253,7 +253,6 @@ int _comio_read(comio_ad_t *ad, unsigned char *op, unsigned char *var, unsigned 
                break;
             }
             break;
-
       }
    }
    *nerr=COMIO_ERR_UNKNOWN;

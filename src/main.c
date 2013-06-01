@@ -225,7 +225,12 @@ int main(int argc, const char * argv[])
    signal(SIGQUIT, _signal_STOP);
    signal(SIGTERM, _signal_STOP);
    signal(SIGHUP,  _signal_HUP);
-   
+  
+//   Py_Initialize();
+//   PyEval_InitThreads(); // voir ici http://www.codeproject.com/Articles/11805/Embedding-Python-in-C-C-Part-I
+//   PyEval_ReleaseLock();
+   pythonPluginServer(NULL);
+
 /*
    sigset_t set;
    int s;
@@ -377,8 +382,6 @@ int main(int argc, const char * argv[])
    }
    
    xPLServer(interfaces);
-
-   pythonPluginServer(NULL);
    
    while(1)
    {

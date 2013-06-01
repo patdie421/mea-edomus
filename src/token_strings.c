@@ -70,6 +70,13 @@ struct token_s tokens_list[]={
    {"device_interface_type_name", DEVICE_INTERFACE_TYPE_NAME_ID},
    {"device_state",               DEVICE_STATE_ID},
    {"device_type_parameters",     DEVICE_TYPE_PARAMETERS_ID},
+   {"interface_id",               INTERFACE_ID_ID},
+   {"interface_name",             INTERFACE_NAME_ID},
+   {"interface_type_id",          INTERFACE_TYPE_ID_ID},
+   {"interface_location_id",      INTERFACE_LOCATION_ID_ID},
+   {"interface_state",            INTERFACE_STATE_ID},
+   {"interface_parameters",       INTERFACE_PARAMETERS_ID},
+   {"device_parameters",          DEVICE_PARAMETERS_ID},
    {NULL,0}
 };
 
