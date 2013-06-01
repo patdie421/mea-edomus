@@ -189,37 +189,6 @@ void addr_64_char_array_to_int(char *h, char *l, uint32_t *addr_64_h, uint32_t *
 }
 
 
-int *stmt_to_device_context(device_context_t *device_context, sqlite3_stmt * stmt)
-{
-   uint32_t addr_h, addr_l;
-
-   // info sur le capteur
-   device_context->device_id=sqlite3_column_int(stmt, 0);
-   device_context->device_location_id=sqlite3_column_int(stmt, 1);
-   device_context->device_type_id=sqlite3_column_int(stmt, 5);
-   strncpy(device_context->device_name, (char *)sqlite3_column_text(stmt, 6), sizeof(device_context->device_name));
-   strncpy(device_context->device_parameters, (char *)sqlite3_column_text(stmt, 3), sizeof(device_context->device_parameters));
-   device_context->device_state=sqlite3_column_int(stmt, 2);
-   
-   strncpy(device_context->device_type_parameters, (char *)sqlite3_column_text(stmt, 4), sizeof(device_context->device_type_parameters));
-   strncpy(device_context->device_interface_name, (char *)sqlite3_column_text(stmt, 7), sizeof(device_context->device_interface_name));
-   strncpy(device_context->device_interface_type_name, (char *)sqlite3_column_text(stmt, 9), sizeof(device_context->device_interface_type_name));
-   
-   if(sscanf((char *)sqlite3_column_text(stmt, 10), "MESH://%x-%x", &addr_h, &addr_l)==2)
-   {
-      device_context->addr_h=addr_h;
-      device_context->addr_l=addr_l;
-   }
-   else
-   {
-      device_context->addr_h=0;
-      device_context->addr_l=0;
-   }
-   
-   return 1;
-}
-
-
 void addLong_to_pydict(PyObject *data_dict, char *key, long value)
 {
    PyObject * val = PyLong_FromLong((long)value);
@@ -684,12 +653,10 @@ void *_thread_interface_type_002_xbeedata(void *args)
             free(e);
             e=NULL;
          }
-//         sleep(1);
-
       }
       else
       {
-         // pb d'acc√®s aux donn√©es de la file
+         // pb d'accès aux données de la file
          VERBOSE(5) fprintf(stderr,"%s (%s) : out_queue_elem - can't access\n", ERROR_STR, fn_name);
          pthread_mutex_unlock(&callback_data->callback_lock);
       }
@@ -862,7 +829,7 @@ int start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, int id_int
    i002->xd=xd;
    
    /*
-    * Pr√©paration du r√©seau XBEE
+    * Préparation du réseau XBEE
     */
    
    local_xbee=(xbee_host_t *)malloc(sizeof(xbee_host_t)); // description de l'xbee directement connect√©
