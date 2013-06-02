@@ -751,8 +751,8 @@ _xbee_add_new_to_hosts_table_with_addr64_error:
 int _xbee_update_hosts_tables(xbee_hosts_table_t *table, char *addr_64_h, char *addr_64_l,  char *addr_16, char *name)
 {
    /**
-    * \brief     ajoute ou met à jour de la table host avec les éléments transmis en parametre.
-    * \details   recherche dans la table une entrée avec l'adresse 64bits spécifiées et modifie les autres éléments en concéquence. Si l'entrée n'existe pas elle est créée.
+    * \brief     ajoute ou met à jour la table host avec les éléments transmis en paramètre.
+    * \details   recherche dans la table une entrée avec l'adresse 64bits spécifiées et modifie les éléments en concéquence si l'entrée existe. Si l'entrée n'existe pas elle est créée.
     * \param     addr_64_h  mot haut de l'adresse xbee 64 bits
     * \param     addr_64_l  mot bas de l'adresse xbee 64 bits
     * \param     addr_16  adresse 16 bits de l'xbee
@@ -792,30 +792,22 @@ int _xbee_update_hosts_tables(xbee_hosts_table_t *table, char *addr_64_h, char *
 
 
 int xbee_start_network_discovery(xbee_xd_t *xd, int16_t *nerr)
+/**
+ * \brief     Lance une découverte du réseau xbee.
+ * \details   Envoie la commande ATND en broadcast. Les résultats seront trappés par le thread xbee et la table hosts sera construite ou mise à jour.
+ * \param     xd         descripteur de communication xbee
+ * \param     nerr       numero d'erreur
+ * \return    0 = OK, -1 = KO, voir nerr pour le type d'erreur.
+ */
 {
-   int16_t  ret;
    uint16_t  l_cmd;
-   unsigned char at[2];
-   unsigned char cmd[255];
+   unsigned char cmd[16];
    
-   
-   at[0]='N';
-   at[1]='D';
-   
-   l_cmd=_xbee_build_at_cmd(cmd, XBEE_ND_FRAME_ID, at, 2);
-   ret=_xbee_write_cmd(xd->fd, cmd, l_cmd, nerr);
-   
-   return ret;
+   l_cmd=_xbee_build_at_cmd(cmd, XBEE_ND_FRAME_ID, (unsigned char *)"ND", 2);
+   return _xbee_write_cmd(xd->fd, cmd, l_cmd, nerr);
 }
 
-//
-// Transmet une question de type AT a l'xbee dont l'adresse est precisee par "destination"
-// Cette fonction est compatible multi-tread grace a l'utilisation de la file, d'un identifiant
-// de trame et du timestamp. La demande est immediatement applique.
-// On attends toujours une reponse. Si la reponse n'arrive pas dans les temps, la fonction retourne -1
-// Elle retourne 0 en cas de succes et met a jour resp, l_resp et xbee_err avec les donnees de
-// la reponse
-//
+
 int16_t xbee_atCmdToXbee(xbee_xd_t *xd,
                          xbee_host_t *destination,
                          unsigned char *frame_data, // zone donnee d'une trame
@@ -823,6 +815,18 @@ int16_t xbee_atCmdToXbee(xbee_xd_t *xd,
                          unsigned char *resp,
                          uint16_t *l_resp,
                          int16_t *xbee_err)
+/**
+ * \brief     commande AT vers xbee.
+ * \details   Transmet une question de type AT à l'xbee dont l'adresse est precisée par "destination". Cette fonction est compatible multi-tread grâce à l'utilisation d'une file, d'un identifiant de trame et d'un timestamp. La demande est immediatement appliqué. On attends toujours une réponse. Si la réponse n'arrive pas dans les temps, la fonction retourne -1. Elle retourne 0 en cas de succès et met a jour resp, l_resp et xbee_err avec les données de la réponse.
+ * \param     xd           descripteur de communication xbee
+ * \param     destination  adresse de l'xbee à commander. Si destination = NULL la commande est destinée à l'xbee local. destination est de type xbee_host_t et doit au moins disposer de l'adresse 64bits correctement positionnée.
+ * \param     frame_data   ensemble de la commande AT à transmettre.
+ * \param     l_frame_data longueur de la commande.
+ * \param     resp         ensemble de la réponse de l'xbee.
+ * \param     l_resp       longueur de la réponse.
+ * \param     xbee_err     numero d'erreur
+ * \return    0 = OK, -1 = KO, voir nerr pour le type d'erreur.
+ */
 {
    char *fn_name="xbee_atCmdToXbee";
    unsigned char xbee_frame[XBEE_MAX_FRAME_SIZE];
@@ -938,7 +942,7 @@ error_exit:
    return -1;
 }
 
-
+/*
 int xbee_operation(xbee_xd_t *xd, unsigned char *cmd, uint16_t l_cmd, unsigned char *resp, uint16_t *l_resp, int16_t *xbee_err)
 {
    char *fn_name="xbee_operation";
@@ -1020,7 +1024,7 @@ int xbee_operation(xbee_xd_t *xd, unsigned char *cmd, uint16_t l_cmd, unsigned c
    }
    return -1;
 }
-
+*/
 
 void xbee_free_xd(xbee_xd_t *xd)
 {

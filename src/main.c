@@ -226,19 +226,8 @@ int main(int argc, const char * argv[])
    signal(SIGTERM, _signal_STOP);
    signal(SIGHUP,  _signal_HUP);
   
-//   Py_Initialize();
-//   PyEval_InitThreads(); // voir ici http://www.codeproject.com/Articles/11805/Embedding-Python-in-C-C-Part-I
-//   PyEval_ReleaseLock();
    pythonPluginServer(NULL);
 
-/*
-   sigset_t set;
-   int s;
-   
-   sigemptyset(&set);
-   sigaddset(&set, SIGUSR2);
-   s = pthread_sigmask(SIG_BLOCK, &set, NULL);
-*/
    ret=tomysqldb_init(&md,mysql_db_server,database,user,passwd,sqlite3_db_file);
    if(ret==-1)
    {
@@ -250,6 +239,7 @@ int main(int argc, const char * argv[])
    char sql[255];
    sqlite3_stmt * stmt;
    
+   sqlite3_config(SQLITE_CONFIG_SERIALIZED); // pour le multithreading
    ret = sqlite3_open (sqlite3_db_param_path, &sqlite3_param_db);
    if(ret)
    {

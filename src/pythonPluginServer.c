@@ -92,12 +92,7 @@ int pythonPluginServer_add_cmd(char *module, char *module_parameters, void *data
    if(!e->python_module)
       goto exit_pythonPluginServer_add_cmd;
    strcpy(e->python_module, module);
-/*
-   e->parameters=(char *)malloc(strlen(module_parameters)+1);
-   if(!e->parameters)
-      goto exit_pythonPluginServer_add_cmd;
-   strcpy(e->parameters, module_parameters);
-*/   
+
    e->data=(char *)malloc(l_data);
    if(!e->data)
       goto exit_pythonPluginServer_add_cmd;
@@ -119,8 +114,6 @@ exit_pythonPluginServer_add_cmd:
    {
       if(e->python_module)
          free(e->python_module);
-//      if(e->parameters)
-//         free(e->parameters);
       if(e->data)
          free(e->data);
       e->l_data=0;
@@ -310,7 +303,9 @@ void *_pythonPlugin_thread(void *data)
          tempState = PyThreadState_Swap(myThreadState);
 
          PyObject *pydict_data=data->aDict;
+         
          call_pythonPlugin(e->python_module, data->type_elem, pydict_data);
+         
          Py_DECREF(pydict_data);
          
          PyThreadState_Swap(tempState);

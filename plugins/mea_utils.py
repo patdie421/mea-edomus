@@ -145,4 +145,36 @@ def xplMsgToString(xplMsg):
       return s
    except:
       return None
- 
+
+
+def parseKeyValueDatasToDictionary(aString, sep_assoc=";", sep_keyvalue="="):
+   assocList=aString.split(sep_assoc)
+   if assocList:
+      keysValuesDict={}
+      for i in assocList:
+         keyValue=i.split(sep_keyvalue)
+         if len(keyValue) == 1:
+            keysValuesDict[(keyValue[0].strip()).lower()]=None
+         elif len(keyValue) == 2:
+            keysValuesDict[(keyValue[0].strip()).lower()]=keyValue[1].strip()
+         else:
+            return None
+      return keysValuesDict
+   return None
+
+
+def parseKeyValueDatasToList(aString, sep_assoc=";", sep_keyvalue="="):
+   assocList=aString.split(sep_assoc)
+   if assocList:
+      keysValuesList=[]
+      for i in assocList:
+         keyValue=i.split(sep_keyvalue)
+         if len(keyValue) == 1:
+            keysValuesList.append(((keyValue[0].strip()).lower(),None))
+         elif len(keyValue) == 2:
+            keysValuesList.append(((keyValue[0].strip()).lower(),keyValue[1].strip()))
+         else:
+            return None
+      return keysValuesList
+   return None
+

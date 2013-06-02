@@ -406,7 +406,7 @@ void *_comio_read_thread_func(void *args)
             
             in_queue_elem(ad->queue, c);
             
-            if(ad->queue->nb_elem==1)
+            if(ad->queue->nb_elem>=1)
                pthread_cond_broadcast(&ad->sync_cond);
             pthread_mutex_unlock(&ad->sync_lock);
          }

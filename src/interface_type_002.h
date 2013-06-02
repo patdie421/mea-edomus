@@ -44,6 +44,7 @@ typedef struct interface_type_002_s
    pthread_t       *thread_data;
    pthread_mutex_t  operation_lock;
    xpl_f            xPL_callback;
+   void            *xPL_callback_data;
 } interface_type_002_t;
 
 #define PLUGIN_DATA_MAX_SIZE 80

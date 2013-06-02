@@ -12,15 +12,7 @@
 #include <string.h>
 
 
-/*
-void display_malloc_error(char *f, char *file, int line)
-{
-   fprintf (stderr, "ERROR (%s) : malloc error (%s/%d) - ",f,file,line);
-   perror("");
-}
-*/
-
-char *string_malloc_and_copy(char *str,int v)
+char *string_malloc_and_copy(char *str, int v)
 {
    char *new_str=(char *)malloc(strlen(str)+1);
    if(new_str)

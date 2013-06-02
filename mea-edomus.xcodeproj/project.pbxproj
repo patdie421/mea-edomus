@@ -48,6 +48,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		4E05C665175BC9390022DA3E /* generic.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = generic.py; path = plugins/generic.py; sourceTree = "<group>"; };
 		4E1496FA163F290200E08E6D /* sample_params_data.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = sample_params_data.sql; path = sql/sample_params_data.sql; sourceTree = "<group>"; };
 		4E1496FC163F2F1D00E08E6D /* start_mea-edomus.ksh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; name = "start_mea-edomus.ksh"; path = "linux/start_mea-edomus.ksh"; sourceTree = "<group>"; };
 		4E14ABFC16083B8C000686C3 /* interfaces.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = interfaces.h; path = src/interfaces.h; sourceTree = "<group>"; };
@@ -250,6 +251,7 @@
 		4E5E24C4173D09EB00B8CEFE /* Plugins */ = {
 			isa = PBXGroup;
 			children = (
+				4E05C665175BC9390022DA3E /* generic.py */,
 				4EF7B08D1757F6AA0029ABBC /* mea_simulation.py */,
 				4EF7B08E1757F6AA0029ABBC /* mea_utils.py */,
 				4EF7B08F1757F6AA0029ABBC /* vmc.py */,

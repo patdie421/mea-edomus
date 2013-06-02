@@ -1,14 +1,17 @@
 import re
+from sets import Set
+import string
+
 import mea_utils
 try:
     import mea
 except:
     import mea_simulation as mea
 
-from sets import Set
-import string
 
-debug=0
+def mea_commissionningRequest(data):
+    print data
+    return True
 
 def mea_xplCmndMsg(data):
     try:
