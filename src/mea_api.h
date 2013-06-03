@@ -16,6 +16,7 @@ void mea_api_init();
 static PyObject *mea_get_memory(PyObject *self, PyObject *args);
 static PyObject *mea_xplMsgSend(PyObject *self, PyObject *args);
 static PyObject *mea_atCmdToXbee(PyObject *self, PyObject *args);
+static PyObject *mea_atCmdSend(PyObject *self, PyObject *args);
 
 PyObject *xplMsgToPyDict(xPL_MessagePtr xplMsg);
 

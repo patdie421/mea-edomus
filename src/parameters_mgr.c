@@ -221,7 +221,6 @@ int nb;
 /*
 parsed_parameter_t *mpp=malloc_parsed_parameters("aA=1; b = 00021;C=10;;X=1;A_a =20.0;", tofind, &nb);
 */
-
 void display_parsed_parameters(parsed_parameter_t *mpp, int nb)
 {
    if(mpp)

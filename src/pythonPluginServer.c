@@ -36,6 +36,8 @@ queue_t *pythonPluginCmd_queue;
 pthread_cond_t pythonPluginCmd_queue_cond;
 pthread_mutex_t pythonPluginCmd_queue_lock;
 
+// pthread_mutex_t gil_lock;
+
 PyObject *known_modules;
 
 
@@ -69,7 +71,9 @@ int pythonPluginServer_init()
    
    pthread_mutex_init(&pythonPluginCmd_queue_lock, NULL);
    pthread_cond_init(&pythonPluginCmd_queue_cond, NULL);
-   
+
+//   pthread_mutex_init(&gil_lock, NULL);
+
    return 0;
 }
 
@@ -193,8 +197,10 @@ int call_pythonPlugin(char *module, int type, PyObject *data_dict)
          // data_dict
          Py_INCREF(data_dict); // incrément car PyTuple_SetItem vole la référence
          PyTuple_SetItem(pArgs, 0, data_dict);
-         
+         uint32_t last_time;
+         DEBUG_SECTION printf("CHRONO : avant PyObject_CallObject(%d) a %u ms\n", type, start_chrono(&last_time));
          pValue = PyObject_CallObject(pFunc, pArgs);
+         DEBUG_SECTION printf("CHRONO : apres PyObject_CallObject(%d) a %u ms\n", type, take_chrono((&last_time)));
          Py_DECREF(pArgs);
          
          if (pValue != NULL)
@@ -243,9 +249,10 @@ void *_pythonPlugin_thread(void *data)
    static const char *fn_name="_pythonPlugin_thread";
    
    pythonPlugin_cmd_t *e;
-   PyThreadState *mainThreadState, *myThreadState, *tempState;
+   PyThreadState *mainThreadState, *myThreadState;
+//   uint32_t local_last_time;
    
-   // initialisation de l'interpréteur Python pour le multi-threading => transferé dans main.c et main()
+   // initialisation de l'interprÈteur Python pour le multi-threading => transferÈ dans main.c et main()
    Py_Initialize();
    PyEval_InitThreads(); // voir ici http://www.codeproject.com/Articles/11805/Embedding-Python-in-C-C-Part-I
    
@@ -255,16 +262,16 @@ void *_pythonPlugin_thread(void *data)
    PyEval_ReleaseLock();
    // Save a pointer to the main PyThreadState object
    
-   // chemin vers les plugins rajouté dans le path de l'interpréteur Python
+   // chemin vers les plugins rajoutÈ dans le path de l'interprÈteur Python
    PyObject* sysPath = PySys_GetObject((char*)"path");
    PyObject* pluginsDir = PyString_FromString(plugin_path);
    PyList_Append(sysPath, pluginsDir);
    Py_DECREF(pluginsDir);
-
+   
    known_modules=PyDict_New(); // initialisation du cache de module
-
-   mea_api_init(); // initialisation du module mea mis à disposition du plugin
-
+   
+   mea_api_init(); // initialisation du module mea mis ‡ disposition du plugin
+   
    while(1)
    {
       pthread_mutex_lock(&pythonPluginCmd_queue_lock);
@@ -288,7 +295,7 @@ void *_pythonPlugin_thread(void *data)
             }
             else
             {
-               // autres erreurs à traiter
+               // autres erreurs ‡ traiter
             }
             pthread_mutex_unlock(&pythonPluginCmd_queue_lock);
          }
@@ -296,12 +303,13 @@ void *_pythonPlugin_thread(void *data)
       if(!out_queue_elem(pythonPluginCmd_queue, (void **)&e))
       {
          pthread_mutex_unlock(&pythonPluginCmd_queue_lock);
-
+         
          plugin_queue_elem_t *data = (plugin_queue_elem_t *)e->data;
-
+         
          PyEval_AcquireLock();
-         tempState = PyThreadState_Swap(myThreadState);
-
+         // DEBUG_PyEval_AcquireLock(fn_name, &local_last_time);
+         PyThreadState *tempState = PyThreadState_Swap(myThreadState);
+         
          PyObject *pydict_data=data->aDict;
          
          call_pythonPlugin(e->python_module, data->type_elem, pydict_data);
@@ -310,6 +318,7 @@ void *_pythonPlugin_thread(void *data)
          
          PyThreadState_Swap(tempState);
          PyEval_ReleaseLock();
+         // DEBUG_PyEval_ReleaseLock(fn_name, &local_last_time);
          
          if(e)
          {
@@ -319,25 +328,25 @@ void *_pythonPlugin_thread(void *data)
                free(e->data);
             e->l_data=0;
             free(e);
-
+            
             pthread_mutex_unlock(&pythonPluginCmd_queue_lock);
          }
       }
       else
       {
-         // pb d'accès aux données de la file
+         // pb d'accËs aux donnÈes de la file
          VERBOSE(5) fprintf(stderr,"%s (%s) : out_queue_elem - can't access\n", ERROR_STR, fn_name);
       }
       pthread_testcancel();
    }
-
+   
    Py_Finalize();
-
+   
    PyThreadState_Clear(myThreadState);
    PyThreadState_Delete(myThreadState);
-
+   
    pthread_exit(NULL);
-
+   
    return NULL;
 }
 

@@ -10,8 +10,7 @@ except:
 from sets import Set
 
 
-def mea_commissionningRequest(data):
-   print data
+def mea_commissionningRequest(data):   
    if "interface_parameters" in data:
       paramsList=mea_utils.parseKeyValueDatasToList(data["interface_parameters"], ",", ":")
       if paramsList != None:

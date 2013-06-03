@@ -13,24 +13,6 @@
 
 #include "token_strings.h"
 
-/*
-char *xpl_control_str="control";
-char *xpl_basic_str="basic";
-char *xpl_device_str="device";
-char *xpl_type_str="type";
-char *xpl_output_str="output";
-char *xpl_current_str="current";
-char *xpl_sensor_str="sensor";
-char *xpl_pulse_str="pulse";
-char *xpl_command_str="command";
-char *xpl_data1_str="data1";
-char *xpl_request_str="request";
-char *xpl_energy_str="energy";
-char *xpl_power_str="power";
-char *xpl_temp_str="temp";
-char *xpl_input_str="input";
-*/
-
 struct token_s tokens_list[]={
    {"control",                    XPL_CONTROL_ID},
    {"basic",                      XPL_BASIC_ID},

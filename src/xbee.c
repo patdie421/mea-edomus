@@ -76,7 +76,7 @@ int   _xbee_write_cmd(int fd, unsigned char *cmd, uint16_t l_cmd, int16_t *nerr)
 int   _xbee_network_discovery_resp(xbee_xd_t *xd, char *data, uint16_t l_data);
 void  _xbee_add_response_to_queue(xbee_xd_t *xd, unsigned char *cmd, uint16_t l_cmd);
 
-int   _xbee_display_frame(int ret, char *resp, uint16_t l_resp);
+int   _xbee_display_frame(int ret, unsigned char *resp, uint16_t l_resp);
 
 void  _xbee_host_set_addr_16(xbee_host_t *xbee_host, char *addr_16);
 void  _xbee_host_set_name(xbee_host_t *xbee_host, unsigned char *name, uint16_t l);
@@ -808,6 +808,37 @@ int xbee_start_network_discovery(xbee_xd_t *xd, int16_t *nerr)
 }
 
 
+int16_t xbee_atCmdSend(xbee_xd_t *xd,
+                      xbee_host_t *destination,
+                      unsigned char *frame_data, // zone donnee d'une trame
+                      uint16_t l_frame_data, // longueur zone donnee
+                      int16_t *xbee_err)
+{
+//   char *fn_name="xbee_atCmdSend";
+   unsigned char xbee_frame[XBEE_MAX_FRAME_SIZE];
+   uint16_t l_xbee_frame;
+   int16_t nerr;
+   
+   if(pthread_self()==xd->read_thread) // risque de dead lock si appeler par un call back => on interdit
+   {
+      nerr=XBEE_ERR_IN_CALLBACK;
+      return -1;
+   }
+   
+   // construction de la trame xbee a partir de la la destination, la zone data transmise et d'un identifiant de trame "unique"
+   unsigned int frame_data_id=0; // 0 = pas de réponse attendues
+   if(destination)
+      l_xbee_frame=_xbee_build_at_remote_cmd(xbee_frame, frame_data_id, destination, frame_data, l_frame_data);
+   else
+      l_xbee_frame=_xbee_build_at_cmd(xbee_frame, frame_data_id, frame_data, l_frame_data);
+   
+   if(_xbee_write_cmd(xd->fd, xbee_frame, l_xbee_frame, &nerr)==0) // envoie de l'ordre
+   {
+      return 0;
+   }
+   return 1;
+}
+
 int16_t xbee_atCmdToXbee(xbee_xd_t *xd,
                          xbee_host_t *destination,
                          unsigned char *frame_data, // zone donnee d'une trame
@@ -942,89 +973,6 @@ error_exit:
    return -1;
 }
 
-/*
-int xbee_operation(xbee_xd_t *xd, unsigned char *cmd, uint16_t l_cmd, unsigned char *resp, uint16_t *l_resp, int16_t *xbee_err)
-{
-   char *fn_name="xbee_operation";
-   xbee_queue_elem_t *e;
-   int16_t nerr;
-   
-   resp[0]=0;
-   *l_resp=0;
-   
-   pthread_t tid = pthread_self();
-   
-   if(tid==xd->read_thread)
-   {
-      nerr=XBEE_ERR_IN_CALLBACK;
-      return -1;
-   }
-   
-   if(_xbee_write_cmd(xd->fd, cmd, l_cmd, &nerr)==0) // envoie de l'ordre
-   {
-      int16_t ret;
-      int16_t boucle=5;
-      do
-      {
-         struct timeval tv;
-         struct timespec ts;
-         gettimeofday(&tv, NULL);
-         ts.tv_sec = tv.tv_sec + XBEE_TIMEOUT_DELAY;
-         ts.tv_nsec = 0;
-         
-         pthread_mutex_lock(&(xd->sync_lock));
-         
-         if(xd->queue->nb_elem==0)
-         {
-            ret=pthread_cond_timedwait(&xd->sync_cond, &xd->sync_lock, &ts);
-            if(ret)
-            {
-               if(ret!=ETIMEDOUT)
-               {
-                  *xbee_err=XBEE_ERR_SYS;
-                  pthread_mutex_unlock(&(xd->sync_lock));
-                  return -1;
-               }
-            }
-         }
-         
-         if(!out_queue_elem(xd->queue, (void **)&e))
-         {
-            if(e->xbee_err!=XBEE_ERR_NOERR)
-            {
-               *xbee_err=e->xbee_err;
-               free(e);
-               e=NULL;
-               pthread_mutex_unlock(&(xd->sync_lock));
-               return -1;
-            }
-            
-            if(e->cmd[1]==cmd[1])
-            {
-               DEBUG_SECTION fprintf(stderr,"DEBUG (%s) : ok, for me (%u == %u)\n", fn_name, e->cmd[1], cmd[1]);
-               memcpy(resp,e->cmd,e->l_cmd);
-               *l_resp=e->l_cmd;
-               *xbee_err=e->xbee_err;
-               
-               free(e);
-               e=NULL;
-               pthread_mutex_unlock(&(xd->sync_lock));
-               return 0;
-            }
-            else
-            {
-               DEBUG_SECTION fprintf(stderr,"DEBUG (%s) : not for me (%u != %u)\n", fn_name, e->cmd[1], cmd[1]);
-               free(e);
-               e=NULL;
-            }
-         }
-         pthread_mutex_unlock(&(xd->sync_lock));
-      }
-      while (--boucle);
-   }
-   return -1;
-}
-*/
 
 void xbee_free_xd(xbee_xd_t *xd)
 {
@@ -1067,13 +1015,15 @@ void xbee_perror(int16_t nerr)
 }
 
 
-int _xbee_display_frame(int ret, char *resp, uint16_t l_resp)
+int _xbee_display_frame(int ret, unsigned char *resp, uint16_t l_resp)
 {
    DEBUG_SECTION {
       if(!ret)
       {
+         fprintf(stderr,"DEBUG (_xbee_display_frame) : ");
          for(int i=0;i<l_resp;i++)
-            fprintf(stderr,"DEBUG (_xbee_display_frame) : %02x-[%c](%03d)\n",resp[i],resp[i],resp[i]);
+            fprintf(stderr, "%02x-[%c] ", resp[i], resp[i]);
+         printf("\n");
       }
    }
    return 0;

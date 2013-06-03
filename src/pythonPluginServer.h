@@ -8,7 +8,14 @@
 #ifndef pythonPluginServer_h
 #define pythonPluginServer_h
 
+#include <pthread.h>
+
 #include "queue.h"
+
+// extern pthread_mutex_t gil_lock;
+
+// #define GIL_LOCK pthread_mutex_lock(&gil_lock);
+// #define GIL_UNLOCK pthread_mutex_unlock(&gil_lock);
 
 typedef enum {XBEEDATA=1, XPLMSG=2, COMMISSIONNING=3} pythonPlugin_type;
 
