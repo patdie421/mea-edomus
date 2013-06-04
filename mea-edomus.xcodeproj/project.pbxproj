@@ -33,6 +33,8 @@
 		4E76CEAB163F146900A3EBA9 /* parameters_mgr.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E76CEA9163F146900A3EBA9 /* parameters_mgr.c */; };
 		4E76CEB2163F175100A3EBA9 /* token_strings.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E76CEB0163F175100A3EBA9 /* token_strings.c */; };
 		4EFBBC7F1746C85D00090FEE /* error.c in Sources */ = {isa = PBXBuildFile; fileRef = 4EFBBC7E1746C85D00090FEE /* error.c */; };
+		4EFBFCAE175E616E007BBFD1 /* httpServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4EFBFCAD175E616E007BBFD1 /* httpServer.c */; };
+		4EFBFCC9175E6BE7007BBFD1 /* mongoose.c in Sources */ = {isa = PBXBuildFile; fileRef = 4EFBFCC8175E6BE7007BBFD1 /* mongoose.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -109,6 +111,10 @@
 		4EF7B08F1757F6AA0029ABBC /* vmc.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = vmc.py; path = plugins/vmc.py; sourceTree = "<group>"; };
 		4EFBBC7D1746C84F00090FEE /* error.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = error.h; path = src/error.h; sourceTree = "<group>"; };
 		4EFBBC7E1746C85D00090FEE /* error.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = error.c; path = src/error.c; sourceTree = "<group>"; };
+		4EFBFCAA175E60F9007BBFD1 /* mongoose.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = mongoose.h; path = src/mongoose.h; sourceTree = "<group>"; };
+		4EFBFCAC175E6155007BBFD1 /* httpServer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = httpServer.h; path = src/httpServer.h; sourceTree = "<group>"; };
+		4EFBFCAD175E616E007BBFD1 /* httpServer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = httpServer.c; path = src/httpServer.c; sourceTree = "<group>"; };
+		4EFBFCC8175E6BE7007BBFD1 /* mongoose.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mongoose.c; path = src/mongoose.c; sourceTree = "<group>"; };
 		8DD76FB20486AB0100D96B5E /* mea-eDomus */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "mea-eDomus"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -136,6 +142,7 @@
 		08FB7795FE84155DC02AAC07 /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				4EFBFCAB175E612D007BBFD1 /* ihm manager */,
 				4EFBBC801748C9BA00090FEE /* Common */,
 				4E4D4E811601F2930008C14C /* Libs */,
 				4E5FC67E1736C8A9004266EB /* plugin manager */,
@@ -310,6 +317,17 @@
 			name = Common;
 			sourceTree = "<group>";
 		};
+		4EFBFCAB175E612D007BBFD1 /* ihm manager */ = {
+			isa = PBXGroup;
+			children = (
+				4EFBFCAA175E60F9007BBFD1 /* mongoose.h */,
+				4EFBFCC8175E6BE7007BBFD1 /* mongoose.c */,
+				4EFBFCAC175E6155007BBFD1 /* httpServer.h */,
+				4EFBFCAD175E616E007BBFD1 /* httpServer.c */,
+			);
+			name = "ihm manager";
+			sourceTree = "<group>";
+		};
 		4EFD8C3215D97ABE0032D454 /* SQL */ = {
 			isa = PBXGroup;
 			children = (
@@ -408,6 +426,8 @@
 				4E5FC67917357D72004266EB /* pythonPluginServer.c in Sources */,
 				4E5E24C3173C34AE00B8CEFE /* mea_api.c in Sources */,
 				4EFBBC7F1746C85D00090FEE /* error.c in Sources */,
+				4EFBFCAE175E616E007BBFD1 /* httpServer.c in Sources */,
+				4EFBFCC9175E6BE7007BBFD1 /* mongoose.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

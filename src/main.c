@@ -31,7 +31,7 @@
 
 #include "xPLServer.h"
 #include "pythonPluginServer.h"
-
+#include "httpServer.h"
 #include "parameters_mgr.h"
 
 tomysqldb_md_t md;
@@ -372,6 +372,8 @@ int main(int argc, const char * argv[])
    }
    
    xPLServer(interfaces);
+   
+   start_ihm();
    
    while(1)
    {
