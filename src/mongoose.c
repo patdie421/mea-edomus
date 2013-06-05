@@ -3285,6 +3285,9 @@ static void prepare_cgi_environment(struct mg_connection *conn,
    assert(blk->nvars < (int) ARRAY_SIZE(blk->vars));
    assert(blk->len > 0);
    assert(blk->len < (int) sizeof(blk->buf));
+   
+   for(int i=0;i<blk->nvars;i++)
+      printf("CGI : %s\n",blk->vars[i]);
 }
 
 static void handle_cgi_request(struct mg_connection *conn, const char *prog) {

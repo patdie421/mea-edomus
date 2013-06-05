@@ -28,12 +28,11 @@ char *content = "<html><head><title>Test PHP</title></head><body><p>Bonjour le m
 
 struct mg_context* g_mongooseContext = 0;
 
-
-static const char *open_file_cb(const struct mg_connection *conn, const char *path, size_t *size)
+// fichier "mémoire"
+static const char *open_file_handler(const struct mg_connection *conn, const char *path, size_t *size)
+// ne peut pas marcher avec les cgi car le cgi-php va chercher sur disque le fichier ... utile néanmoins pour fournir des pages statiques ...
 {
-//   const struct mg_request_info *request_info = mg_get_request_info((struct mg_connection *)conn);
-   
-   if (!strcmp(path, "/Data/www/test.php"))
+   if (!strcmp(path, "/Data/www/test.html"))
    {
       *size = strlen(content);
       return content;
@@ -44,6 +43,8 @@ static const char *open_file_cb(const struct mg_connection *conn, const char *pa
 
 static int begin_request_handler(struct mg_connection *conn)
 {
+// pour diffuser des pages dynamique
+   
 //   const struct mg_request_info *request_info = mg_get_request_info(conn);
 
    return 0;
@@ -57,7 +58,7 @@ int16_t start_ihm()
    memset(&callbacks,0,sizeof(struct mg_callbacks));
 
 //   callbacks.begin_request = begin_request_handler;
-   callbacks.open_file = open_file_cb;
+   callbacks.open_file = open_file_handler;
    
    g_mongooseContext = mg_start(&callbacks, NULL, options);
    if (g_mongooseContext == NULL)

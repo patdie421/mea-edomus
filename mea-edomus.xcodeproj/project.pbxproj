@@ -35,6 +35,7 @@
 		4EFBBC7F1746C85D00090FEE /* error.c in Sources */ = {isa = PBXBuildFile; fileRef = 4EFBBC7E1746C85D00090FEE /* error.c */; };
 		4EFBFCAE175E616E007BBFD1 /* httpServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4EFBFCAD175E616E007BBFD1 /* httpServer.c */; };
 		4EFBFCC9175E6BE7007BBFD1 /* mongoose.c in Sources */ = {isa = PBXBuildFile; fileRef = 4EFBFCC8175E6BE7007BBFD1 /* mongoose.c */; };
+		4EFBFCCC175E8BDC007BBFD1 /* python_api_utils.c in Sources */ = {isa = PBXBuildFile; fileRef = 4EFBFCCB175E8BDC007BBFD1 /* python_api_utils.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -115,6 +116,8 @@
 		4EFBFCAC175E6155007BBFD1 /* httpServer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = httpServer.h; path = src/httpServer.h; sourceTree = "<group>"; };
 		4EFBFCAD175E616E007BBFD1 /* httpServer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = httpServer.c; path = src/httpServer.c; sourceTree = "<group>"; };
 		4EFBFCC8175E6BE7007BBFD1 /* mongoose.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mongoose.c; path = src/mongoose.c; sourceTree = "<group>"; };
+		4EFBFCCB175E8BDC007BBFD1 /* python_api_utils.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = python_api_utils.c; path = src/python_api_utils.c; sourceTree = "<group>"; };
+		4EFBFCCD175E8BF7007BBFD1 /* python_api_utils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = python_api_utils.h; path = src/python_api_utils.h; sourceTree = "<group>"; };
 		8DD76FB20486AB0100D96B5E /* mea-eDomus */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "mea-eDomus"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -142,13 +145,12 @@
 		08FB7795FE84155DC02AAC07 /* Source */ = {
 			isa = PBXGroup;
 			children = (
-				4EFBFCAB175E612D007BBFD1 /* ihm manager */,
 				4EFBBC801748C9BA00090FEE /* Common */,
 				4E4D4E811601F2930008C14C /* Libs */,
-				4E5FC67E1736C8A9004266EB /* plugin manager */,
-				4EE28EAA162F4DD00090B5B3 /* xPL manager */,
-				4E4D4E7F1601F2550008C14C /* Db manager */,
 				4E4D4E7E1601F1510008C14C /* Interfaces */,
+				4E5FC67E1736C8A9004266EB /* plugin manager */,
+				4EFBFCAB175E612D007BBFD1 /* ihm manager */,
+				4EE28EAA162F4DD00090B5B3 /* xPL manager */,
 				4E4A5E9815F003420052ABF4 /* main.c */,
 				4E4A5E0815ED65840052ABF4 /* Linux */,
 			);
@@ -183,14 +185,14 @@
 			name = Interfaces;
 			sourceTree = "<group>";
 		};
-		4E4D4E7F1601F2550008C14C /* Db manager */ = {
+		4E4D4E7F1601F2550008C14C /* db manager */ = {
 			isa = PBXGroup;
 			children = (
 				4EFD8C3215D97ABE0032D454 /* SQL */,
 				4E4A5E9E15F003420052ABF4 /* tomysqldb.c */,
 				4E4A5E9F15F003420052ABF4 /* tomysqldb.h */,
 			);
-			name = "Db manager";
+			name = "db manager";
 			sourceTree = "<group>";
 		};
 		4E4D4E801601F2730008C14C /* Utils */ = {
@@ -204,6 +206,8 @@
 				4E14AC0016083B8C000686C3 /* memory.h */,
 				4E4A5E9915F003420052ABF4 /* queue.c */,
 				4E4A5E9A15F003420052ABF4 /* queue.h */,
+				4EFBFCCB175E8BDC007BBFD1 /* python_api_utils.c */,
+				4EFBFCCD175E8BF7007BBFD1 /* python_api_utils.h */,
 			);
 			name = Utils;
 			sourceTree = "<group>";
@@ -270,6 +274,7 @@
 		4E5FC67E1736C8A9004266EB /* plugin manager */ = {
 			isa = PBXGroup;
 			children = (
+				4E4D4E7F1601F2550008C14C /* db manager */,
 				4E5E24C4173D09EB00B8CEFE /* Plugins */,
 				4E5E24C0173C346800B8CEFE /* API */,
 				4E5FC67817357D71004266EB /* pythonPluginServer.c */,
@@ -428,6 +433,7 @@
 				4EFBBC7F1746C85D00090FEE /* error.c in Sources */,
 				4EFBFCAE175E616E007BBFD1 /* httpServer.c in Sources */,
 				4EFBFCC9175E6BE7007BBFD1 /* mongoose.c in Sources */,
+				4EFBFCCC175E8BDC007BBFD1 /* python_api_utils.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -42,7 +42,6 @@ typedef struct interface_type_002_s
    xbee_host_t     *local_xbee;
    pthread_t       *thread_commissionning; // thread id
    pthread_t       *thread_data;
-   pthread_mutex_t  operation_lock;
    xpl_f            xPL_callback;
    void            *xPL_callback_data;
 } interface_type_002_t;

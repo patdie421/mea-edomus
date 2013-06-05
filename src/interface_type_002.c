@@ -34,6 +34,8 @@
 #include "parameters_mgr.h"
 #include "mea_api.h"
 #include "pythonPluginServer.h"
+#include "python_api_utils.h"
+
 
 typedef void (*thread_f)(void *);
 
@@ -44,8 +46,6 @@ char *valid_xbee_plugin_params[]={"S:PLUGIN","S:PARAMETERS", NULL};
 
 char *sql_select_device_info="SELECT sensors_actuators.id_sensor_acutator, sensors_actuators.id_location, sensors_actuators.state, sensors_actuators.parameters, types.parameters, sensors_actuators.id_type, sensors_actuators.name, interfaces.name, interfaces.id_type, (SELECT types.name FROM types WHERE types.id_type = interfaces.id_type), interfaces.dev FROM sensors_actuators INNER JOIN interfaces ON sensors_actuators.id_interface = interfaces.id_interface INNER JOIN types ON sensors_actuators.id_type = types.id_type";
 char *sql_select_interface_info="SELECT * FROM interfaces";
-
-// char *sql_where_interface_dev_equal_mesh_addr=" WHERE interfaces.dev ='MESH://";
 
 char *printf_mask_addr="%02x%02x%02x%02x-%02x%02x%02x%02x";
 
@@ -205,22 +205,6 @@ void addr_64_char_array_to_int(char *h, char *l, uint32_t *addr_64_h, uint32_t *
    *addr_64_l=0;
    for(int i=0;i<4;i++)
       *addr_64_l=*addr_64_l | (int32_t)((unsigned char)l[i])<<((3-i)*8);
-}
-
-
-void addLong_to_pydict(PyObject *data_dict, char *key, long value)
-{
-   PyObject * val = PyLong_FromLong((long)value);
-   PyDict_SetItemString(data_dict, key, val);
-   Py_DECREF(val);
-}
-
-
-void addString_to_pydict(PyObject *data_dict, char *key, char *value)
-{
-   PyObject *val = PyString_FromString(value);
-   PyDict_SetItemString(data_dict, key, val);
-   Py_DECREF(val);
 }
 
 
@@ -443,7 +427,6 @@ int interface_type_002_commissionning_callback(int id, unsigned char *cmd, uint1
    char sql[1024];
    sqlite3_stmt * stmt;
    sprintf(sql,"%s WHERE interfaces.dev ='MESH://%s';", sql_select_interface_info, addr);
-   //   sprintf(sql,"%s WHERE dev ='MESH://%s';", sql_select_interface_info, addr);
    
    int ret = sqlite3_prepare_v2(params_db,sql,strlen(sql)+1,&stmt,NULL);
    if(ret)
@@ -567,8 +550,7 @@ void *_thread_interface_type_002_xbeedata(void *args)
          
          pthread_mutex_unlock(&callback_data->callback_lock);
          sprintf(addr,
-                 //               "%02x%02x%02x%02x-%02x%02x%02x%02x",
-                 printf_mask_addr,
+                 printf_mask_addr, // "%02x%02x%02x%02x-%02x%02x%02x%02x"
                  e->addr_64_h[0],
                  e->addr_64_h[1],
                  e->addr_64_h[2],
@@ -811,8 +793,6 @@ int start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, int id_int
    struct callback_data_s *xbeedata_callback_params=NULL;
    struct callback_xpl_data_s *xpl_callback_params=NULL;
    
-   //   pthread_mutex_init(&i002->operation_lock, NULL);
-   
    if(sscanf((char *)dev,"SERIAL://%s",buff)==1)
       sprintf(unix_dev,"/dev/%s",buff);
    else
@@ -824,7 +804,6 @@ int start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, int id_int
    xd=(xbee_xd_t *)malloc(sizeof(xbee_xd_t));
    if(!xd)
    {
-      //      VERBOSE(1) fprintf(stderr,"%s (%s) : malloc error\n", ERROR_STR, fn_name);
       VERBOSE(1) fprintf(stderr,"%s (%s) : %s\n", ERROR_STR, MALLOC_ERROR_STR, fn_name);
       goto clean_exit;
    }
@@ -847,7 +826,6 @@ int start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, int id_int
    local_xbee=(xbee_host_t *)malloc(sizeof(xbee_host_t)); // description de l'xbee directement connecté
    if(!local_xbee)
    {
-      //      VERBOSE(1) fprintf(stderr,"%s (%s) : malloc error\n", ERROR_STR, fn_name);
       VERBOSE(1) fprintf(stderr,"%s (%s) : %s\n", ERROR_STR, MALLOC_ERROR_STR, fn_name);
       goto clean_exit;
    }
@@ -916,7 +894,6 @@ int start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, int id_int
    xbeedata_callback_params=(struct callback_data_s *)malloc(sizeof(struct callback_data_s));
    if(!xbeedata_callback_params)
    {
-      //      VERBOSE(1) fprintf(stderr,"%s (%s) : malloc error\n", ERROR_STR, fn_name);
       VERBOSE(1) fprintf(stderr,"%s (%s) : %s\n", ERROR_STR, MALLOC_ERROR_STR, fn_name);
       goto clean_exit;
    }
@@ -933,7 +910,6 @@ int start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, int id_int
    commissionning_callback_params=(struct callback_commissionning_data_s *)malloc(sizeof(struct callback_commissionning_data_s));
    if(!commissionning_callback_params)
    {
-      //      VERBOSE(1) fprintf(stderr,"%s (%s) : malloc error\n", ERROR_STR, fn_name);
       VERBOSE(1) fprintf(stderr,"%s (%s) : %s\n", ERROR_STR, MALLOC_ERROR_STR, fn_name);
       goto clean_exit;
    }
@@ -949,7 +925,6 @@ int start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, int id_int
    xpl_callback_params=(struct callback_xpl_data_s *)malloc(sizeof(struct callback_xpl_data_s));
    if(!xpl_callback_params)
    {
-      //      VERBOSE(1) fprintf(stderr,"%s (%s) : malloc error\n", ERROR_STR, fn_name);
       VERBOSE(1) fprintf(stderr,"%s (%s) : %s\n", ERROR_STR, MALLOC_ERROR_STR, fn_name);
       goto clean_exit;
    }

@@ -70,7 +70,7 @@ parsed_parameter_t *malloc_parsed_parameters(char *parameters_string, char *para
    char *ptr = parameters_string;
    char label[21];
    char *label_token;
-   char value[21];
+   char value[81];
    char *value_token;
    int n;
    int ret;
@@ -99,7 +99,7 @@ parsed_parameter_t *malloc_parsed_parameters(char *parameters_string, char *para
    
    while(1)
    {
-      ret=sscanf(ptr,"%20[^=;]=%20[^;]%n",label,value,&n);
+      ret=sscanf(ptr,"%20[^=;]=%80[^;]%n",label,value,&n);
       if(ret==EOF) // plus rien a lire
          break;
       

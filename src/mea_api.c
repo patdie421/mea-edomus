@@ -538,6 +538,7 @@ static PyObject *mea_atCmdSend(PyObject *self, PyObject *args)
    }
    
    int16_t nerr;
+   printf("->>> %s\n",at_cmd);
    ret=xbee_atCmdSend(xd, host, at_cmd, l_at_cmd, &nerr);
    
    free(host);
