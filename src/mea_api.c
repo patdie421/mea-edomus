@@ -19,11 +19,15 @@
 
 PyObject *mea_memory;
 
+
 static PyMethodDef MeaMethods[] = {
-   {"get_memory",  mea_get_memory,  METH_VARARGS, "Return a dictionary"},
-   {"xplMsgSend",  mea_xplMsgSend,  METH_VARARGS, "Envoie un message XPL"},
-   {"atCmdToXbee", mea_atCmdToXbee, METH_VARARGS, "Envoie d'une commande AT"},
-   {"atCmdSend",   mea_atCmdSend,   METH_VARARGS, "Envoie d'une commande AT sans attendre de reponse"},
+   {"get_memory",        mea_get_memory,       METH_VARARGS, "Return a dictionary"},
+   {"xplMsgSend",        mea_xplMsgSend,       METH_VARARGS, "Envoie un message XPL"},
+   {"atCmdToXbee",       mea_atCmdToXbee,      METH_VARARGS, "Envoie d'une commande AT"},
+   {"atCmdSend",         mea_atCmdSend,        METH_VARARGS, "Envoie d'une commande AT sans attendre de reponse"},
+   {"xplGetVendorID",    mea_xplGetVendorID,   METH_VARARGS, "VendorID"},
+   {"xplGetDeviceID",    mea_xplGetDeviceID,   METH_VARARGS, "DeviceID"},
+   {"xplGetInstanceID",  mea_xplGetInstanceID, METH_VARARGS, "InstanceID"},
    {NULL, NULL, 0, NULL}
 };
 
@@ -33,6 +37,24 @@ void mea_api_init()
    mea_memory=PyDict_New(); // initialisation de la mémoire
    
    Py_InitModule("mea", MeaMethods);  
+}
+
+
+static PyObject *mea_xplGetVendorID()
+{
+   return PyString_FromString("mea");
+}
+
+
+static PyObject *mea_xplGetDeviceID()
+{
+   return  PyString_FromString("edomus");
+}
+
+
+static PyObject *mea_xplGetInstanceID()
+{
+   return PyString_FromString("cheznousdev");
 }
 
 
@@ -538,7 +560,6 @@ static PyObject *mea_atCmdSend(PyObject *self, PyObject *args)
    }
    
    int16_t nerr;
-   printf("->>> %s\n",at_cmd);
    ret=xbee_atCmdSend(xd, host, at_cmd, l_at_cmd, &nerr);
    
    free(host);

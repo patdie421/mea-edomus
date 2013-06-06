@@ -169,7 +169,7 @@ int at_get_local_char_array_reg(xbee_xd_t *xd, unsigned char at_cmd[2], char *re
    unsigned char resp[254];
    uint16_t l_resp;
    unsigned char at[16];
-   uint16_t	l_at;
+   uint16_t     l_at;
    int16_t ret;
    
    struct xbee_cmd_response_s *map_resp;
@@ -269,7 +269,7 @@ int interface_type_002_xPL_callback(xPL_ServicePtr theService, xPL_MessagePtr xp
    char *device;
    int ret;
    int err;
-//   uint32_t local_last_time;
+   //   uint32_t local_last_time;
    
    
    interface_type_002_t *interface=(interface_type_002_t *)userValue;
@@ -305,7 +305,7 @@ int interface_type_002_xPL_callback(xPL_ServicePtr theService, xPL_MessagePtr xp
       {
          parsed_parameter_t *plugin_params=NULL;
          int nb_plugin_params;
-
+         
          plugin_params=malloc_parsed_parameters((char *)sqlite3_column_text(stmt, 3), valid_xbee_plugin_params, &nb_plugin_params, &err, 0);
          if(!plugin_params || !plugin_params[XBEE_PLUGIN_PARAMS_PLUGIN].value.s)
          {
@@ -333,7 +333,7 @@ int interface_type_002_xPL_callback(xPL_ServicePtr theService, xPL_MessagePtr xp
                Py_DECREF(d);
                
                if(plugin_params[XBEE_PLUGIN_PARAMS_PARAMETERS].value.s)
-                  addString_to_pydict(plugin_elem->aDict, get_token_by_id(INTERFACE_PARAMETERS_ID), plugin_params[XBEE_PLUGIN_PARAMS_PARAMETERS].value.s);
+                  addString_to_pydict(plugin_elem->aDict, get_token_by_id(DEVICE_PARAMETERS_ID), plugin_params[XBEE_PLUGIN_PARAMS_PARAMETERS].value.s);
                
                PyThreadState_Swap(tempState);
                PyEval_ReleaseLock();
@@ -401,7 +401,7 @@ int interface_type_002_commissionning_callback(int id, unsigned char *cmd, uint1
    struct xbee_node_identification_nd_data_s *nd_data;
    int rval=0;
    int err;
-//   uint32_t local_last_time;
+   //   uint32_t local_last_time;
    
    struct callback_commissionning_data_s *callback_commissionning=(struct callback_commissionning_data_s *)data;
    sqlite3 *params_db=callback_commissionning->param_db;
@@ -440,7 +440,7 @@ int interface_type_002_commissionning_callback(int id, unsigned char *cmd, uint1
    {
       parsed_parameter_t *plugin_params=NULL;
       int nb_plugin_params;
-
+      
       plugin_params=malloc_parsed_parameters((char *)sqlite3_column_text(stmt, 6), valid_xbee_plugin_params, &nb_plugin_params, &err, 0);
       if(!plugin_params || !plugin_params[XBEE_PLUGIN_PARAMS_PLUGIN].value.s)
       {
@@ -509,7 +509,7 @@ void *_thread_interface_type_002_xbeedata(void *args)
    data_queue_elem_t *e;
    int ret;
    PyThreadState *mainThreadState, *myThreadState;
-//   uint32_t local_last_time;
+   //   uint32_t local_last_time;
    free(params);
    params=NULL;
    
@@ -597,6 +597,8 @@ void *_thread_interface_type_002_xbeedata(void *args)
                   memcpy(plugin_elem->buff, e->cmd, e->l_cmd);
                   plugin_elem->l_buff=e->l_cmd;
                   
+                  uint16_t data_type = e->cmd[0]; // 0x90 serie, 0x92 iodata
+                  
                   { // appel des fonctions Python
                      PyEval_AcquireLock();
                      // DEBUG_PyEval_AcquireLock(fn_name, &local_last_time);
@@ -604,15 +606,22 @@ void *_thread_interface_type_002_xbeedata(void *args)
                      
                      plugin_elem->aDict=stmt_to_pydict_device(stmt);
                      
-                     PyObject *value = PyBuffer_FromMemory(plugin_elem->buff, plugin_elem->l_buff);
+                     PyObject *value;
+                     value = PyBuffer_FromMemory(plugin_elem->buff, plugin_elem->l_buff);
                      PyDict_SetItemString(plugin_elem->aDict, "cmd", value);
                      Py_DECREF(value);
+                     addLong_to_pydict(plugin_elem->aDict, "l_cmd_data", (long)plugin_elem->l_buff-12);
                      
-                     addLong_to_pydict(plugin_elem->aDict, "l_cmd", (long)e->l_cmd);
+                     value = PyBuffer_FromMemory(&(plugin_elem->buff[12]), plugin_elem->l_buff-12);
+                     PyDict_SetItemString(plugin_elem->aDict, "cmd_data", value);
+                     Py_DECREF(value);
+                     addLong_to_pydict(plugin_elem->aDict, "l_cmd_data", (long)plugin_elem->l_buff-12);
+                     
+                     addLong_to_pydict(plugin_elem->aDict, "data_type", (long)data_type);
                      addLong_to_pydict(plugin_elem->aDict, get_token_by_id(ID_XBEE_ID), (long)callback_data->xd);
                      
                      if(plugin_params[XBEE_PLUGIN_PARAMS_PARAMETERS].value.s)
-                        addString_to_pydict(plugin_elem->aDict, get_token_by_id(INTERFACE_PARAMETERS_ID), plugin_params[XBEE_PLUGIN_PARAMS_PARAMETERS].value.s);
+                        addString_to_pydict(plugin_elem->aDict, get_token_by_id(DEVICE_PARAMETERS_ID), plugin_params[XBEE_PLUGIN_PARAMS_PARAMETERS].value.s);
                      
                      PyThreadState_Swap(tempState);
                      PyEval_ReleaseLock();
@@ -820,7 +829,7 @@ int start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, int id_int
    i002->xd=xd;
    
    /*
-    * Préparation du réseau XBEE
+    * Pr?paration du r?seau XBEE
     */
    
    local_xbee=(xbee_host_t *)malloc(sizeof(xbee_host_t)); // description de l'xbee directement connect√©
@@ -851,7 +860,7 @@ int start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, int id_int
    VERBOSE(9) fprintf(stderr, "INFO  (%s) : local address is : %02x-%02x\n", fn_name, addr_64_h, addr_64_l);
    xbee_get_host_by_addr_64(xd, local_xbee, addr_64_h, addr_64_l, &nerr);
    
-   /* a remplacer par l'appel du plugin python associé a l'interface s'il existe
+   /* a remplacer par l'appel du plugin python associ? a l'interface s'il existe
     int xbee_flag=0;
     for(int i=0;i<5;i++) // 5 essais
     {
@@ -879,7 +888,7 @@ int start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, int id_int
    // d√©couverte des xbee du r√©seau
    xbee_start_network_discovery(xd, &nerr); // lancement de la d√©couverte "asynchrone"
    
-   // on attend que la d√©couverte soit termin√©e (√† remplacer par un "evenement")
+   // on attend que la d√©couverte soit termin√©e (√  remplacer par un "evenement")
    sleep(10);
    
    
@@ -890,7 +899,7 @@ int start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, int id_int
     * Gestion des sous-interfaces
     */
    
-   // initialisation du thread de gestion des "entrées" xbee
+   // initialisation du thread de gestion des "entr?es" xbee
    xbeedata_callback_params=(struct callback_data_s *)malloc(sizeof(struct callback_data_s));
    if(!xbeedata_callback_params)
    {
@@ -939,7 +948,7 @@ int start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, int id_int
    
 clean_exit:
    // vider la queue de callback_data_iodata
-   // arrêter les threads s'ils sont démarrés ... à faire
+   // arrêter les threads s'ils sont d?marr?s ... ? faire
    
    if(xbeedata_callback_params)
    {
@@ -964,4 +973,3 @@ clean_exit:
    
    return -1;
 }
-

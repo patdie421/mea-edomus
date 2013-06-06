@@ -23,4 +23,9 @@ void addString_to_pydict(PyObject *data_dict, char *key, char *value)
    Py_DECREF(val);
 }
 
+void addpydict_to_pydict(PyObject *data_dict, char *key, PyObject *adict)
+{
+   PyDict_SetItemString(data_dict, key, adict);
+   Py_DECREF(adict);
+}
 

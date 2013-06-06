@@ -129,7 +129,7 @@ exit_pythonPluginServer_add_cmd:
 
 int call_pythonPlugin(char *module, int type, PyObject *data_dict)
 {
-   static const char *fn_name = "call_pythonPlugin2";
+   static const char *fn_name = "call_pythonPlugin";
    
    PyObject *pName, *pModule, *pFunc;
    PyObject *pArgs, *pValue;
@@ -224,7 +224,7 @@ int call_pythonPlugin(char *module, int type, PyObject *data_dict)
             VERBOSE(5) fprintf(stderr, "%s (%s) : python error - ", ERROR_STR, fn_name);
             PyErr_Print();
          }
-         VERBOSE(5) fprintf(stderr, "%s (%s) : mea_edomus_plugin not found", ERROR_STR, fn_name);
+         VERBOSE(5) fprintf(stderr, "%s (%s) : mea_edomus_plugin not found\n", ERROR_STR, fn_name);
          return_code=-1;
          goto call_pythonPlugin_clean_exit;
       }

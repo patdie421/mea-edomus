@@ -11,5 +11,6 @@
 
 void addLong_to_pydict(PyObject *data_dict, char *key, long value);
 void addString_to_pydict(PyObject *data_dict, char *key, char *value);
+void addpydict_to_pydict(PyObject *data_dict, char *key, PyObject *adict);
 
 #endif

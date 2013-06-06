@@ -1,8 +1,20 @@
 from sets import Set
 import string
+import sys
 
 allowed_chars  = Set(string.ascii_lowercase + string.digits)
 allowed_chars_other = Set(string.ascii_lowercase + string.digits + "-")
+
+
+current_verbose_level=9
+
+def verbose(level, *args):
+   if level <= current_verbose_level:
+      for i in args:
+         sys.stderr.write(str(i))
+      sys.stderr.write("\n")
+      sys.stderr.flush()
+
 
 # retourne True si tous les caracteres sont autorises en tenant compte de
 # dash_allowe et si la longueur est inferieure a max_str_len

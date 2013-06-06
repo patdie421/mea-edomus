@@ -17,6 +17,9 @@ static PyObject *mea_get_memory(PyObject *self, PyObject *args);
 static PyObject *mea_xplMsgSend(PyObject *self, PyObject *args);
 static PyObject *mea_atCmdToXbee(PyObject *self, PyObject *args);
 static PyObject *mea_atCmdSend(PyObject *self, PyObject *args);
+static PyObject *mea_xplGetVendorID();
+static PyObject *mea_xplGetDeviceID();
+static PyObject *mea_xplGetInstanceID();
 
 PyObject *xplMsgToPyDict(xPL_MessagePtr xplMsg);
 
