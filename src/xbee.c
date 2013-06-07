@@ -839,13 +839,13 @@ int16_t xbee_atCmdSend(xbee_xd_t *xd,
    return 1;
 }
 
-int16_t xbee_atCmdToXbee(xbee_xd_t *xd,
-                         xbee_host_t *destination,
-                         unsigned char *frame_data, // zone donnee d'une trame
-                         uint16_t l_frame_data, // longueur zone donnee
-                         unsigned char *resp,
-                         uint16_t *l_resp,
-                         int16_t *xbee_err)
+int16_t xbee_atCmdSendAndWaitResp(xbee_xd_t *xd,
+                                  xbee_host_t *destination,
+                                  unsigned char *frame_data, // zone donnee d'une trame
+                                  uint16_t l_frame_data, // longueur zone donnee
+                                  unsigned char *resp,
+                                  uint16_t *l_resp,
+                                  int16_t *xbee_err)
 /**
  * \brief     commande AT vers xbee.
  * \details   Transmet une question de type AT à l'xbee dont l'adresse est precisée par "destination". Cette fonction est compatible multi-tread grâce à l'utilisation d'une file, d'un identifiant de trame et d'un timestamp. La demande est immediatement appliqué. On attends toujours une réponse. Si la réponse n'arrive pas dans les temps, la fonction retourne -1. Elle retourne 0 en cas de succès et met a jour resp, l_resp et xbee_err avec les données de la réponse.
@@ -934,7 +934,7 @@ int16_t xbee_atCmdToXbee(xbee_xd_t *xd,
                      if((tsp - e->tsp)<=10) // la reponse est pour nous et dans les temps
                      {
                         // recuperation des donnees
-                        DEBUG_SECTION fprintf(stderr,"DEBUG (%s) : ok, for me (%d == %d)\n", fn_name, e->cmd[1], frame_data_id);
+//                        DEBUG_SECTION fprintf(stderr,"DEBUG (%s) : ok, for me (%d == %d)\n", fn_name, e->cmd[1], frame_data_id);
                         memcpy(resp,e->cmd,e->l_cmd);
                         *l_resp=e->l_cmd;
                         *xbee_err=e->xbee_err;
@@ -1195,8 +1195,10 @@ int _xbee_network_discovery_resp(xbee_xd_t *xd, char *data, uint16_t l_data)
    
    map=(struct xbee_map_nd_resp_data *)data; // -1 pour corriger l'alignement			
    
-   VERBOSE(9) fprintf(stderr,"DEBUG (_xbee_network_discovery_resp) : MY = %x\n",map->MY[0]*256+map->MY[1]);
-   VERBOSE(9) fprintf(stderr,"DEBUG (_xbee_network_discovery_resp) : NI = %s\n",(map->NI)-1); // décallage de 1 a cause de l'alignement
+   DEBUG_SECTION {
+      fprintf(stderr,"DEBUG (_xbee_network_discovery_resp) : MY = %x\n",map->MY[0]*256+map->MY[1]);
+      fprintf(stderr,"DEBUG (_xbee_network_discovery_resp) : NI = %s\n",(map->NI)-1); // décallage de 1 a cause de l'alignement
+   }
    
    _xbee_update_hosts_tables(xd->hosts, (char *)map->SH, (char *)map->SL, (char *)map->MY, (map->NI)-1);
       

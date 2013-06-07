@@ -24,11 +24,11 @@
 
 #include <errmsg.h>
 
+int tomysqldb_connect(tomysqldb_md_t *md, MYSQL **conn);
+
 
 // #define SQLITEDB "/Users/patrice/db/domotique_dev.db"
 
-
-int tomysqldb_connect(tomysqldb_md_t *md, MYSQL **conn);
 
 
 void _tomysqldb_free_queue_elem(void *d) // pour vider_file2
@@ -440,6 +440,9 @@ int tomysqldb_connect(tomysqldb_md_t *md, MYSQL **conn)
 
 int tomysqldb_init(tomysqldb_md_t *md, char *db_server, char *base, char *user, char *passwd, char *sqlite3_db_path)
 {
+   if(!db_server || !base || !user || !passwd || !sqlite3_db_path)
+      return -1;
+
    md->db_server=string_malloc_and_copy(db_server,1);
    IF_NULL_RETURN(md->db_server,-1);
    

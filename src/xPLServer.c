@@ -19,6 +19,7 @@
 #include "xPL.h"
 #include "debug.h"
 #include "queue.h"
+#include "memory.h"
 
 #include "interfaces.h"
 #include "interface_type_001.h"
@@ -28,6 +29,28 @@
 
 
 xPL_ServicePtr xPLService = NULL;
+
+
+char *xpl_vendorID=NULL;
+char *xpl_deviceID=NULL;
+char *xpl_instanceID=NULL;
+
+
+char *set_xPL_vendorID(char *value)
+{
+   return string_free_malloc_and_copy(&xpl_vendorID, value, 1);
+}
+
+char *set_xPL_deviceID(char *value)
+{
+   return string_free_malloc_and_copy(&xpl_deviceID, value, 1);
+}
+
+
+char *set_xPL_instanceID(char *value)
+{
+   return string_free_malloc_and_copy(&xpl_instanceID, value, 1);
+}
 
 
 xPL_ServicePtr get_xPL_ServicePtr()
@@ -132,6 +155,11 @@ int xPLServer(queue_t *interfaces)
 {
 //   pthread_t *xPL_thread=NULL;
    
+   if(!xpl_deviceID || !xpl_instanceID || !xpl_vendorID)
+   {
+      return -1;
+   }
+
    xPL_thread=(pthread_t *)malloc(sizeof(pthread_t));
    if(!xPL_thread)
    {
@@ -139,13 +167,13 @@ int xPLServer(queue_t *interfaces)
          fprintf (stderr, "ERROR (xPLServer) : malloc (%s/%d) - ",__FILE__,__LINE__);
          perror("");
       }
-      exit(1);
+      return -1;
    }
 
    if(pthread_create (xPL_thread, NULL, _xPL_server_thread, (void *)interfaces))
    {
       VERBOSE(1) fprintf(stderr, "ERROR (xPLServer) : pthread_create - can't start thread\n");
-      exit(1);
+      return -1;
    }
    
    return 0;

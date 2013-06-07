@@ -29,4 +29,15 @@ INSERT INTO "locations" VALUES(1,10,'TABLEAU','Tableau electrique');
 INSERT INTO "locations" VALUES(2,20,'SALON','Salon');
 INSERT INTO "locations" VALUES(3,50,'SDB BAS','Salle de bain RDC');
 
+INSERT INTO "application_parameters" VALUES(1, 'BUFFERDB', '/Data/mea-edomus/queries.db', '');
+INSERT INTO "application_parameters" VALUES(2, 'DBSERVER', '192.168.0.22', '');
+INSERT INTO "application_parameters" VALUES(3, 'DATABASE', 'domotique', '');
+INSERT INTO "application_parameters" VALUES(4, 'USER', 'domotique', '');
+INSERT INTO "application_parameters" VALUES(5, 'PASSWORD', 'maison', '');
+INSERT INTO "application_parameters" VALUES(6, 'VENDORID', 'mea', '');
+INSERT INTO "application_parameters" VALUES(7, 'DEVICEID', 'edomus', '');
+INSERT INTO "application_parameters" VALUES(8, 'INSTANCEID', 'cheznousdev', '');
+INSERT INTO "application_parameters" VALUES(9, 'PLUGINPATH', '/Data/mea-edomus/plugins', '');
+
+
 COMMIT;

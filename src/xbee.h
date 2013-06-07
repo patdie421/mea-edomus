@@ -218,13 +218,13 @@ int xbee_init(xbee_xd_t *xd, char *dev, int speed);
 int xbee_reinit(xbee_xd_t *xd);
 void xbee_close(xbee_xd_t *xd);
 
-int16_t xbee_atCmdToXbee(xbee_xd_t *xd,
-                         xbee_host_t *destination,
-                         unsigned char *frame_data, // zone donnee d'une trame
-                         uint16_t l_frame_data, // longueur zone donnee
-                         unsigned char *resp,
-                         uint16_t *l_resp,
-                         int16_t *xbee_err);
+int16_t xbee_atCmdSendAndWaitResp(xbee_xd_t *xd,
+                                  xbee_host_t *destination,
+                                  unsigned char *frame_data, // zone donnee d'une trame
+                                  uint16_t l_frame_data, // longueur zone donnee
+                                  unsigned char *resp,
+                                  uint16_t *l_resp,
+                                  int16_t *xbee_err);
 
 int16_t xbee_atCmdSend(xbee_xd_t *xd,
                        xbee_host_t *destination,

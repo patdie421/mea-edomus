@@ -19,15 +19,14 @@
 
 PyObject *mea_memory;
 
-
 static PyMethodDef MeaMethods[] = {
-   {"get_memory",        mea_get_memory,       METH_VARARGS, "Return a dictionary"},
-   {"xplMsgSend",        mea_xplMsgSend,       METH_VARARGS, "Envoie un message XPL"},
-   {"atCmdToXbee",       mea_atCmdToXbee,      METH_VARARGS, "Envoie d'une commande AT"},
-   {"atCmdSend",         mea_atCmdSend,        METH_VARARGS, "Envoie d'une commande AT sans attendre de reponse"},
-   {"xplGetVendorID",    mea_xplGetVendorID,   METH_VARARGS, "VendorID"},
-   {"xplGetDeviceID",    mea_xplGetDeviceID,   METH_VARARGS, "DeviceID"},
-   {"xplGetInstanceID",  mea_xplGetInstanceID, METH_VARARGS, "InstanceID"},
+   {"getMemory",            mea_getMemory,            METH_VARARGS, "Return a dictionary"},
+   {"sendAtCmdAndWaitResp", mea_sendAtCmdAndWaitResp, METH_VARARGS, "Envoie d'une commande AT et recupere la reponse"},
+   {"sendAtCmd",            mea_sendAtCmd,            METH_VARARGS, "Envoie d'une commande AT sans attendre de reponse"},
+   {"xplGetVendorID",       mea_xplGetVendorID,       METH_VARARGS, "VendorID"},
+   {"xplGetDeviceID",       mea_xplGetDeviceID,       METH_VARARGS, "DeviceID"},
+   {"xplGetInstanceID",     mea_xplGetInstanceID,     METH_VARARGS, "InstanceID"},
+   {"xplSendMsg",           mea_xplSendMsg,           METH_VARARGS, "Envoie un message XPL"},
    {NULL, NULL, 0, NULL}
 };
 
@@ -155,7 +154,7 @@ PyObject *xplMsgToPyDict(xPL_MessagePtr xplMsg)
 }
 
 
-static PyObject *mea_xplMsgSend(PyObject *self, PyObject *args)
+static PyObject *mea_xplSendMsg(PyObject *self, PyObject *args)
 {
    PyObject *PyXplMsg;
    PyObject *item;
@@ -290,7 +289,7 @@ static PyObject *mea_xplMsgSend(PyObject *self, PyObject *args)
 }
 
 
-static PyObject *mea_get_memory(PyObject *self, PyObject *args)
+static PyObject *mea_getMemory(PyObject *self, PyObject *args)
 {
    PyObject *key;
    PyObject *mem;
@@ -345,7 +344,7 @@ uint32_t indianConvertion(uint32_t val_x86)
 }
 
 
-static PyObject *mea_atCmdToXbee(PyObject *self, PyObject *args)
+static PyObject *mea_sendAtCmdAndWaitResp(PyObject *self, PyObject *args)
 {
    unsigned char at_cmd[81];
    uint16_t l_at_cmd;
@@ -359,7 +358,7 @@ static PyObject *mea_atCmdToXbee(PyObject *self, PyObject *args)
    xbee_host_t *host=NULL;
 
    // récupération des paramètres et contrôle des types
-   if(PyTuple_Size(args)!=7)
+   if(PyTuple_Size(args)!=5)
       goto mea_AtCmdToXbee_arg_err;
 
    xbee_xd_t *xd;
@@ -383,22 +382,8 @@ static PyObject *mea_atCmdToXbee(PyObject *self, PyObject *args)
    else
       goto mea_AtCmdToXbee_arg_err;
    
-   uint32_t need_response;
-   arg=PyTuple_GetItem(args, 3);
-   if(PyNumber_Check(arg))
-      need_response=(uint32_t)PyLong_AsLong(arg);
-   else
-      goto mea_AtCmdToXbee_arg_err;
-
-   uint32_t apply_change;
-   arg=PyTuple_GetItem(args, 4);
-   if(PyNumber_Check(arg))
-      apply_change=(uint32_t)PyLong_AsLong(arg);
-   else
-      goto mea_AtCmdToXbee_arg_err;
-
    char *at;
-   arg=PyTuple_GetItem(args, 5);
+   arg=PyTuple_GetItem(args, 3);
    if(PyString_Check(arg))
       at=(char *)PyString_AsString(arg);
    else
@@ -407,7 +392,7 @@ static PyObject *mea_atCmdToXbee(PyObject *self, PyObject *args)
    at_cmd[0]=at[0];
    at_cmd[1]=at[1];
    
-   arg=PyTuple_GetItem(args, 6);
+   arg=PyTuple_GetItem(args, 4);
    if(PyNumber_Check(arg))
    {
       uint32_t val=(uint32_t)PyLong_AsLong(arg);
@@ -435,6 +420,7 @@ static PyObject *mea_atCmdToXbee(PyObject *self, PyObject *args)
    // recuperer le host dans la table (necessite d'avoir accès à xd
    int16_t err;
    
+   host=NULL;
    host=(xbee_host_t *)malloc(sizeof(xbee_host_t)); // description de l'xbee directement connecté
    xbee_get_host_by_addr_64(xd, host, addr_h, addr_l, &err);
    if(err==XBEE_ERR_NOERR)
@@ -442,40 +428,62 @@ static PyObject *mea_atCmdToXbee(PyObject *self, PyObject *args)
    }
    else
    {
-      VERBOSE(9) fprintf(stderr, "ERROR (mea_AtCmdToXbee) : host not found\n");
+      VERBOSE(9) fprintf(stderr, "ERROR (mea_sendAtCmdAndWaitResp) : host not found\n");
+      if(host)
+         free(host);
+      PyErr_BadArgument(); // à remplacer
       return NULL;
    }
    
    int16_t nerr;
-   if(need_response)
-      ret=xbee_atCmdToXbee(xd, host, at_cmd, l_at_cmd, resp, &l_resp, &nerr);
-   else
-      ret=xbee_atCmdSend(xd, host, at_cmd, l_at_cmd, &nerr);
+   ret=xbee_atCmdSendAndWaitResp(xd, host, at_cmd, l_at_cmd, resp, &l_resp, &nerr);
+   if(ret==-1)
+   {
+      VERBOSE(9) fprintf(stderr, "ERROR (mea_sendAtCmdAndWaitResp) : error %d\n",nerr);
+      if(host)
+         free(host);
+      PyErr_BadArgument(); // à remplacer
+      return NULL;
+   }
+   
+   struct xbee_remote_cmd_response_s *mapped_resp=(struct xbee_remote_cmd_response_s *)resp;
+   
+   void *data;
+   long l_data;
 
-   // map_resp=(struct xbee_remote_cmd_response_s *)resp;
-   //
-   // il manque le traitement de la réponse ...
-   //
+   PyObject *t=PyTuple_New(3);
+   PyObject *py_cmd=PyBuffer_New(l_resp);
+   if (!PyObject_AsWriteBuffer(py_cmd, &data, &l_data))
+   {
+      memcpy(data,resp,l_data);
+      PyTuple_SetItem(t, 0, PyLong_FromLong(mapped_resp->cmd_status));
+      PyTuple_SetItem(t, 1, py_cmd);
+      PyTuple_SetItem(t, 2, PyLong_FromLong(l_resp));
+   }
+   else
+   {
+      Py_DECREF(py_cmd);
+      Py_DECREF(t);
+   }
    
    free(host);
-   
-   Py_INCREF(Py_None);
-   return Py_None;
+
+   return t; // return True
    
 mea_AtCmdToXbee_arg_err:
-   VERBOSE(9) fprintf(stderr, "ERROR (mea_AtCmdToXbee) : arguments error\n");
-   PyErr_BadArgument();
+   VERBOSE(9) fprintf(stderr, "ERROR (mea_sendAtCmdAndWaitResp) : arguments error\n");
    if(host)
    {
       free(host);
       host=NULL;
    }
    
+   PyErr_BadArgument();
    return NULL;
 }
 
 
-static PyObject *mea_atCmdSend(PyObject *self, PyObject *args)
+static PyObject *mea_sendAtCmd(PyObject *self, PyObject *args)
 {
    unsigned char at_cmd[81];
    uint16_t l_at_cmd;

@@ -106,8 +106,10 @@ int display_frame(int ret, unsigned char *resp, uint16_t l_resp)
 
 void display_addr(char *a)
 {
-   for(int i=0;i<4;i++)
-      fprintf(stderr,"%s (display_addr) : %02x",DEBUG_STR, a[i]);
+   DEBUG_SECTION {
+      for(int i=0;i<4;i++)
+         fprintf(stderr,"%s (display_addr) : %02x",DEBUG_STR, a[i]);
+   }
 }
 
 
@@ -154,7 +156,7 @@ int at_set_16bits_reg_from_int(xbee_xd_t *xd, xbee_host_t *host, char at_cmd[2],
    at[0]=at_cmd[0];at[1]=at_cmd[1];
    
    l_at=add_16bits_to_at_uchar_cmd_from_int(at, reg_val);
-   ret=xbee_atCmdToXbee(xd, host, at, l_at, resp, &l_resp, nerr);
+   ret=xbee_atCmdSendAndWaitResp(xd, host, at, l_at, resp, &l_resp, nerr);
    
    if(ret)
       return -1;
@@ -178,7 +180,7 @@ int at_get_local_char_array_reg(xbee_xd_t *xd, unsigned char at_cmd[2], char *re
    
    int16_t err;
    
-   ret=xbee_atCmdToXbee(xd,NULL,at,l_at,resp,&l_resp, &err);
+   ret=xbee_atCmdSendAndWaitResp(xd,NULL,at,l_at,resp,&l_resp, &err);
    if(ret<0)
       return -1;
    
@@ -559,7 +561,7 @@ void *_thread_interface_type_002_xbeedata(void *args)
                  e->addr_64_l[1],
                  e->addr_64_l[2],
                  e->addr_64_l[3]);
-         VERBOSE(9) fprintf(stderr, "%s (%s) : data from = %s received\n",DEBUG_STR, fn_name, addr);
+         VERBOSE(9) fprintf(stderr, "%s  (%s) : data from = %s received\n",INFO_STR, fn_name, addr);
          
          sprintf(sql,"%s WHERE interfaces.dev ='MESH://%s';", sql_select_device_info, addr);
          ret = sqlite3_prepare_v2(params_db,sql,strlen(sql)+1,&stmt,NULL);

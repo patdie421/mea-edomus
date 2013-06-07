@@ -13,10 +13,12 @@
 
 void mea_api_init();
 
-static PyObject *mea_get_memory(PyObject *self, PyObject *args);
-static PyObject *mea_xplMsgSend(PyObject *self, PyObject *args);
-static PyObject *mea_atCmdToXbee(PyObject *self, PyObject *args);
-static PyObject *mea_atCmdSend(PyObject *self, PyObject *args);
+static PyObject *mea_getMemory(PyObject *self, PyObject *args);
+
+static PyObject *mea_sendAtCmdAndWaitResp(PyObject *self, PyObject *args);
+static PyObject *mea_sendAtCmd(PyObject *self, PyObject *args);
+
+static PyObject *mea_xplSendMsg(PyObject *self, PyObject *args);
 static PyObject *mea_xplGetVendorID();
 static PyObject *mea_xplGetDeviceID();
 static PyObject *mea_xplGetInstanceID();

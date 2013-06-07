@@ -61,7 +61,7 @@ int pythonPluginServer_init()
    pythonPluginCmd_queue=(queue_t *)malloc(sizeof(queue_t));
    if(!pythonPluginCmd_queue)
    {
-      VERBOSE(5) {
+      VERBOSE(2) {
          fprintf (stderr, "%s (%s) : %s - ", ERROR_STR, fn_name, MALLOC_ERROR_STR);
          perror("");
       }
@@ -197,10 +197,10 @@ int call_pythonPlugin(char *module, int type, PyObject *data_dict)
          // data_dict
          Py_INCREF(data_dict); // incrément car PyTuple_SetItem vole la référence
          PyTuple_SetItem(pArgs, 0, data_dict);
-         uint32_t last_time;
-         DEBUG_SECTION printf("CHRONO : avant PyObject_CallObject(%d) a %u ms\n", type, start_chrono(&last_time));
+//         uint32_t last_time;
+//         DEBUG_SECTION printf("CHRONO : avant PyObject_CallObject(%d) a %u ms\n", type, start_chrono(&last_time));
          pValue = PyObject_CallObject(pFunc, pArgs);
-         DEBUG_SECTION printf("CHRONO : apres PyObject_CallObject(%d) a %u ms\n", type, take_chrono((&last_time)));
+//         DEBUG_SECTION printf("CHRONO : apres PyObject_CallObject(%d) a %u ms\n", type, take_chrono((&last_time)));
          Py_DECREF(pArgs);
          
          if (pValue != NULL)
@@ -209,7 +209,7 @@ int call_pythonPlugin(char *module, int type, PyObject *data_dict)
          }
          else
          {
-            VERBOSE(5) fprintf(stderr, "%s (%s) : python error - ", fn_name, DEBUG_STR);
+            VERBOSE(5) fprintf(stderr, "%s (%s) : python error - ", fn_name, ERROR_STR);
             PyErr_Print();
             return_code=-1;
             goto call_pythonPlugin_clean_exit;

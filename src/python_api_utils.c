@@ -6,7 +6,6 @@
 //
 //
 #include <python.h>
-
 #include <stdio.h>
 
 void addLong_to_pydict(PyObject *data_dict, char *key, long value)

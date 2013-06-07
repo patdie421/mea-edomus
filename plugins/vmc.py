@@ -22,7 +22,7 @@ def mea_xplCmndMsg(data):
       print "device_id not found"
       return 0
 
-   mem=mea.get_memory(id_sensor)
+   mem=mea.getMemory(id_sensor)
    try:
       xplmsg=data["xplmsg"]
       body=xplmsg["body"]
@@ -32,6 +32,6 @@ def mea_xplCmndMsg(data):
 	   return 0
 
    if v==4 or v==5:
-      mea.atCmdToXbee(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], True, True, "D1", v);
+      mea.sendAtCmd(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], "D1", v);
     
    return True

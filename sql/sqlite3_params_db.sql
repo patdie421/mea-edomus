@@ -1,3 +1,14 @@
+
+
+CREATE TABLE application_parameters
+(
+id INTEGER PRIMARY KEY,
+key TEXT,
+value TEXT,
+complement TEXT
+);
+
+
 CREATE TABLE interfaces
 (
 id INTEGER PRIMARY KEY,

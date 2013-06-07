@@ -76,7 +76,7 @@ typedef struct tomysqldb_md_s
    char *passwd;
    
    char *sqlite3_db_path;
-   
+
 } tomysqldb_md_t;
 
 

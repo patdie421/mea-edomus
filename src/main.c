@@ -34,16 +34,10 @@
 #include "httpServer.h"
 #include "parameters_mgr.h"
 
+
 tomysqldb_md_t md;
 sqlite3 *sqlite3_param_db; // descritpteur SQLITE
-
-sqlite3 *get_sqlite3_param_db()  // temporaire en attendant une reflexion plus globale. Prototype dans globals.h
-{
-   return sqlite3_param_db;
-}
-
 // xbee_xd_t xd;
-
 
 queue_t *interfaces;
 
@@ -51,11 +45,79 @@ queue_t *interfaces;
 pthread_t *counters_thread=NULL;
 
 char *sqlite3_db_file=NULL;
-char *sqlite3_db_param_path=NULL;
 char *mysql_db_server=NULL;
-char *database=NULL;
-char *user=NULL;
-char *passwd=NULL;
+char *mysql_database=NULL;
+char *mysql_user=NULL;
+char *mysql_passwd=NULL;
+
+char *sqlite3_db_buff_path=NULL; // old name : sqlite3_db_file
+char *sqlite3_db_param_path=NULL; // path to parameters db file
+
+
+void strToUpper(char *str)
+{
+   for(uint16_t i=0;i<strlen(str);i++)
+	   str[i]=toupper(str[i]);
+}
+
+
+int16_t read_all_application_parameters(sqlite3 *sqlite3_param_db)
+{
+   char sql[41];
+   sqlite3_stmt * stmt;
+   
+   sprintf(sql,"SELECT * FROM application_parameters");
+   int ret = sqlite3_prepare_v2(sqlite3_param_db,sql,strlen(sql)+1,&stmt,NULL);
+   if(ret)
+   {
+      VERBOSE(1) fprintf (stderr, "ERROR (main) : sqlite3_prepare_v2 - %s\n", sqlite3_errmsg (sqlite3_param_db));
+      return -1;
+   }
+   
+   while (1)
+   {
+      int s = sqlite3_step (stmt);
+      
+      if (s == SQLITE_ROW)
+      {
+         // uint32_t id = sqlite3_column_int(stmt, 0);
+         char *key = (char *)sqlite3_column_text(stmt, 1);
+         char *value = (char *)sqlite3_column_text(stmt, 2);
+         // char *complement = (char *)sqlite3_column_text(stmt, 3);
+         
+         strToUpper(key);
+         
+         if(strcmp(key,"BUFFERDB")==0)
+            string_free_malloc_and_copy(&sqlite3_db_buff_path, value, 1);
+         else if (strcmp(key,"DBSERVER")==0)
+            string_free_malloc_and_copy(&mysql_db_server, value, 1);
+         else if (strcmp(key,"DATABASE")==0)
+            string_free_malloc_and_copy(&mysql_database, value, 1);
+         else if (strcmp(key,"USER")==0)
+            string_free_malloc_and_copy(&mysql_user, value, 1);
+         else if (strcmp(key,"PASSWORD")==0)
+            string_free_malloc_and_copy(&mysql_passwd, value, 1);
+         else if (strcmp(key,"VENDORID")==0)
+            set_xPL_vendorID(value);
+         else if (strcmp(key,"DEVICEID")==0)
+            set_xPL_deviceID(value);
+         else if (strcmp(key,"INSTANCEID")==0)
+            set_xPL_instanceID(value);
+         else if (strcmp(key,"PLUGINPATH")==0)
+            setPythonPluginPath(value);
+         else if (strcmp(key,"VERBOSELEVEL")==0)
+            set_verbose_level(atoi(value));
+      }
+      else if (s == SQLITE_DONE)
+      {
+         sqlite3_finalize(stmt);
+         break;
+      }
+      else
+         return -1;
+   }
+   return 0;
+}
 
 
 static void _signal_STOP(int signal_number)
@@ -142,31 +204,39 @@ static void _signal_HUP(int signal_number)
 
 void usage(char *cmd)
 {
-   fprintf(stderr,"usage : %s -d <dev> -s <serveur> -b <base> -u <user> -p <passwd> -l <sqlite3_db_path>\n\n",cmd);
+   fprintf(stderr,"usage : %s -a <sqlite3_db_path>\n\n",cmd);
    fprintf(stderr,"TOUS LES PARAMETRES SONT OBLIGATOIRES\n\n");
 }
 
-
-char *tofind[]={"I:B","L:AA","F:A_A","S:X","I:C", NULL};
+// char *tofind[]={"I:B","L:AA","F:A_A","S:X","I:C", NULL};
+//-s
+//192.168.0.22
+//-b
+//domotique
+//-u
+//domotique
+//-p
+//maison
+//-l
+///Data/mea-edomus/queries.db
 
 int main(int argc, const char * argv[])
 {
  int c;
- int _a=0,_s=0,_b=0,_u=0,_p=0,_l=0;
+ int _a=0;
  int ret;
 
-   
 #ifdef __DEBUG_ON__
    debug_on();
 #else
    debug_off();
 #endif
+   debug_off();
+
    
    set_verbose_level(9);
    
-   setPythonPluginPath("/Data/mea-edomus/plugins");
-
-   while ((c = getopt (argc, (char **)argv, "a:s:b:u:p:l:")) != -1)
+   while ((c = getopt (argc, (char **)argv, "a:")) != -1)
    {
       switch (c)
       {
@@ -176,46 +246,13 @@ int main(int argc, const char * argv[])
             _a=1;
             break;
             
-         case 's':
-            string_free_malloc_and_copy(&mysql_db_server, optarg,1);
-            IF_NULL_EXIT(mysql_db_server,1);
-            _s=1;
-            break;
-            
-         case 'l':
-            string_free_malloc_and_copy(&sqlite3_db_file, optarg,1);
-            IF_NULL_EXIT(sqlite3_db_file,1);
-            _l=1;
-            break;
-            
-         case 'b':
-            string_free_malloc_and_copy(&database, optarg,1);
-            IF_NULL_EXIT(database,1);
-            _b=1;
-            break;
-            
-         case 'u':
-            string_free_malloc_and_copy(&user, optarg,1);
-            IF_NULL_EXIT(user,1);
-            _u=1;
-            break;
-            
-         case 'p':
-            if(optarg==NULL)
-               string_free_malloc_and_copy(&passwd, "",1);
-            else
-               string_free_malloc_and_copy(&passwd, optarg,1);
-            IF_NULL_EXIT(passwd,1);
-            _p=1;
-            break;
-            
          default:
             VERBOSE(1) fprintf(stderr,"ERROR (main) : Paramètre \"%s\" inconnu.\n",optarg);
             exit(1);
       }
    }
    
-   if((_a+_s+_b+_u+_p+_l)!=6)
+   if(!_a)
    {
       usage((char *)argv[0]);
       exit(1);
@@ -225,19 +262,7 @@ int main(int argc, const char * argv[])
    signal(SIGQUIT, _signal_STOP);
    signal(SIGTERM, _signal_STOP);
    signal(SIGHUP,  _signal_HUP);
-  
-   pythonPluginServer(NULL);
-
-   ret=tomysqldb_init(&md,mysql_db_server,database,user,passwd,sqlite3_db_file);
-   if(ret==-1)
-   {
-      VERBOSE(1) fprintf(stderr,"ERROR (main) : impossible d'initialiser la gestion de la base de données.\n");
-      exit(1);
-   }
    
-   
-   char sql[255];
-   sqlite3_stmt * stmt;
    
    sqlite3_config(SQLITE_CONFIG_SERIALIZED); // pour le multithreading
    ret = sqlite3_open (sqlite3_db_param_path, &sqlite3_param_db);
@@ -247,6 +272,22 @@ int main(int argc, const char * argv[])
       exit(1);
    }
    
+   ret = read_all_application_parameters(sqlite3_param_db);
+   if(ret)
+   {
+      VERBOSE(2) fprintf (stderr, "ERROR (main) : can't load parameters\n");
+      exit(1);
+   }
+
+   ret=tomysqldb_init(&md,mysql_db_server,mysql_database,mysql_user,mysql_passwd,sqlite3_db_buff_path);
+   if(ret==-1)
+   {
+      VERBOSE(1) fprintf(stderr,"ERROR (main) : impossible d'initialiser la gestion de la base de données.\n");
+      exit(1);
+   }
+   
+   start_ihm();
+   pythonPluginServer(NULL);
    
    /*
     * recherche de toutes les interfaces
@@ -263,6 +304,9 @@ int main(int argc, const char * argv[])
    init_queue(interfaces);
 
    
+   char sql[255];
+   sqlite3_stmt * stmt;
+
    sprintf(sql,"SELECT * FROM interfaces");
    ret = sqlite3_prepare_v2(sqlite3_param_db,sql,strlen(sql)+1,&stmt,NULL);
    if(ret)
@@ -371,10 +415,24 @@ int main(int argc, const char * argv[])
          exit(1);
    }
    
-   xPLServer(interfaces);
    
-   start_ihm();
+   ret=xPLServer(interfaces);
+   if(ret==-1)
+   {
+      VERBOSE(1) fprintf(stderr,"ERROR (main) : can't start xpl server.\n");
+      exit(1);
+   }
+
    
+   free(mysql_db_server);
+   mysql_db_server=NULL;
+   free(mysql_database);
+   mysql_database=NULL;
+   free(mysql_user);
+   mysql_user=NULL;
+   free(mysql_passwd);
+   mysql_passwd=NULL;
+
    while(1)
    {
       sleep(5);

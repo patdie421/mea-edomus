@@ -17,12 +17,12 @@ def mea_xplCmndMsg(data):
         print "device_id not found"
         return 0
 
-    mem=mea.get_memory(id_sensor)
+    mem=mea.getMemory(id_sensor)
     xplMsg=mea_utils.xplMsgNew("mea", "edomus", "cheznousdev", "xpl-stat", "sensor", "basic", data["device_name"])
     mea_utils.xplMsgAddValue(xplMsg,"current",mem["current_h"])
     mea_utils.xplMsgAddValue(xplMsg,"type","humidity")
     mea_utils.xplMsgAddValue(xplMsg,"last",mem["last_h"])
-    mea.xplMsgSend(xplMsg)
+    mea.xplSendMsg(xplMsg)
 
     return True
 
@@ -37,7 +37,7 @@ def mea_dataFromSensor(data):
         print "CMD not found"
         return 0
 
-    mem=mea.get_memory(id_sensor)
+    mem=mea.getMemory(id_sensor)
 
     if debug == 1:
         print mem
@@ -69,7 +69,7 @@ def mea_dataFromSensor(data):
                 mea_utils.xplMsgAddValue(xplMsg,"type","humidity")
                 mea_utils.xplMsgAddValue(xplMsg,"last",last_h)
                 # print mea_utils.xplMsgToString(xplMsg)
-                mea.xplMsgSend(xplMsg)
+                mea.xplSendMsg(xplMsg)
             return True
                 
         if id_type == 2001 and l2[0] == 'T':

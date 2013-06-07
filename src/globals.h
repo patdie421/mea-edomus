@@ -13,9 +13,12 @@
 
 #include "tomysqldb.h"
 
+extern char *mysql_db_server;
+extern char *mysql_database;
+extern char *mysql_user;
+extern char *mysql_passwd;
+
 extern tomysqldb_md_t md;
 extern char *plugin_path;
-
-sqlite3 *get_sqlite3_param_db(); // temporaire en attendant une reflexion plus globale
 
 #endif
