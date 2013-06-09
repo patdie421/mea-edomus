@@ -51,7 +51,7 @@ static int begin_request_handler(struct mg_connection *conn)
 }
 
 
-int16_t start_ihm()
+int16_t httpServer()
 {
    struct mg_callbacks callbacks;
 

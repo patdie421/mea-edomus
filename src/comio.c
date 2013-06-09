@@ -316,6 +316,9 @@ int comio_operation(comio_ad_t *ad, unsigned char op, unsigned char var, unsigne
       ts.tv_sec = tv.tv_sec + TIMEOUT_DELAY;
       ts.tv_nsec = 0;
       
+      int16_t return_val=0;
+      
+      pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&ad->sync_lock);
       pthread_mutex_lock(&ad->sync_lock);
       if(ad->queue->nb_elem==0)
       {
@@ -335,13 +338,18 @@ int comio_operation(comio_ad_t *ad, unsigned char op, unsigned char var, unsigne
             {
                *comio_err=COMIO_ERR_SYS;
             }
-            pthread_mutex_unlock(&ad->sync_lock);
-            return -1;
+            return_val=-1;
          }
       }
       
-      ret=out_queue_elem(ad->queue, (void **)&c);
+      if(return_val!=-1)
+         ret=out_queue_elem(ad->queue, (void **)&c);
+      
       pthread_mutex_unlock(&ad->sync_lock);
+      pthread_cleanup_pop(0);
+      
+      if(return_val==-1)
+         return -1;
       
       if(!ret)
       {
@@ -402,13 +410,13 @@ void *_comio_read_thread_func(void *args)
             c->ret_val=val;
             c->comio_err=nerr;
             
+            pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&ad->sync_lock);
             pthread_mutex_lock(&ad->sync_lock);
-            
             in_queue_elem(ad->queue, c);
-            
             if(ad->queue->nb_elem>=1)
                pthread_cond_broadcast(&ad->sync_cond);
             pthread_mutex_unlock(&ad->sync_lock);
+            pthread_cleanup_pop(0);
          }
          else
          {

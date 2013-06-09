@@ -9,6 +9,6 @@
 #ifndef mea_eDomus_httpServer_h
 #define mea_eDomus_httpServer_h
 
-int16_t start_ihm();
+int16_t httpServer();
 
 #endif

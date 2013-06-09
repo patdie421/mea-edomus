@@ -385,11 +385,13 @@ int inteface_type_002_xbeedata_callback(int id, unsigned char *cmd, uint16_t l_c
    e->l_cmd=l_cmd;
    memcpy(&e->tv,&tv,sizeof(struct timeval));
    
+   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)(&callback_data->callback_lock) );
    pthread_mutex_lock(&callback_data->callback_lock);
    in_queue_elem(callback_data->queue, e);
    if(callback_data->queue->nb_elem>=1)
       pthread_cond_broadcast(&callback_data->callback_cond);
    pthread_mutex_unlock(&callback_data->callback_lock);
+   pthread_cleanup_pop(0);
    
    return 0;
 }
@@ -522,7 +524,9 @@ void *_thread_interface_type_002_xbeedata(void *args)
    
    while(1)
    {
+      pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)(&callback_data->callback_lock) );
       pthread_mutex_lock(&callback_data->callback_lock);
+      
       if(callback_data->queue->nb_elem==0)
       {
          struct timeval tv;
@@ -540,17 +544,22 @@ void *_thread_interface_type_002_xbeedata(void *args)
             }
             else
             {
-               // autres erreurs √  traiter
+               // autres erreurs à traiter
             }
          }
       }
-      if(!out_queue_elem(callback_data->queue, (void **)&e))
+      
+      ret=out_queue_elem(callback_data->queue, (void **)&e);
+      
+      pthread_mutex_unlock(&callback_data->callback_lock);
+      pthread_cleanup_pop(0);
+      
+      if(!ret)
       {
          sqlite3_stmt * stmt;
          char sql[1024];
          char addr[18];
          
-         pthread_mutex_unlock(&callback_data->callback_lock);
          sprintf(addr,
                  printf_mask_addr, // "%02x%02x%02x%02x-%02x%02x%02x%02x"
                  e->addr_64_h[0],
@@ -659,9 +668,8 @@ void *_thread_interface_type_002_xbeedata(void *args)
       }
       else
       {
-         // pb d'accès aux donn?es de la file
+         // pb d'accès aux données de la file
          VERBOSE(5) fprintf(stderr,"%s (%s) : out_queue_elem - can't access\n", ERROR_STR, fn_name);
-         pthread_mutex_unlock(&callback_data->callback_lock);
       }
       pthread_testcancel();
    }
@@ -731,14 +739,14 @@ int stop_interface_type_002(interface_type_002_t *it002, int signal_number)
    static const char *fn_name="stop_interface_type_002";
    
    VERBOSE(5) fprintf(stderr,"%s  (%s) : shutdown interface_type_002 thread (signal = %d).\n",INFO_STR, fn_name,signal_number);
-   
+/*
    if(it002->thread_commissionning)
    {
       pthread_cancel(*(it002->thread_commissionning));
       pthread_join(*(it002->thread_commissionning), NULL);
       it002->thread_commissionning=NULL;
    }
-   
+*/
    if(it002->thread_data)
    {
       pthread_cancel(*(it002->thread_data));
@@ -750,7 +758,7 @@ int stop_interface_type_002(interface_type_002_t *it002, int signal_number)
    
    xbee_free_xd(it002->xd);
    FREE(it002->local_xbee);
-   FREE(it002->thread_commissionning);
+//   FREE(it002->thread_commissionning);
    FREE(it002->thread_data);
    
    VERBOSE(5) fprintf(stderr,"%s  (%s) : counter thread is down.\n",INFO_STR, fn_name);
@@ -831,7 +839,7 @@ int start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, int id_int
    i002->xd=xd;
    
    /*
-    * Pr?paration du r?seau XBEE
+    * Préparation du réseau XBEE
     */
    
    local_xbee=(xbee_host_t *)malloc(sizeof(xbee_host_t)); // description de l'xbee directement connect√©

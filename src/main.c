@@ -53,6 +53,8 @@ char *mysql_passwd=NULL;
 char *sqlite3_db_buff_path=NULL; // old name : sqlite3_db_file
 char *sqlite3_db_param_path=NULL; // path to parameters db file
 
+pthread_t *xPLServer_thread=NULL;
+pthread_t *pythonPluginServer_thread=NULL;
 
 void strToUpper(char *str)
 {
@@ -286,9 +288,16 @@ int main(int argc, const char * argv[])
       exit(1);
    }
    
-   start_ihm();
-   pythonPluginServer(NULL);
+   pythonPluginServer_thread=pythonPluginServer(NULL);
+   if(pythonPluginServer_thread==NULL)
+   {
+      VERBOSE(1) fprintf(stderr,"ERROR (main) : can't start Python Plugin Server.\n");
+      exit(1);
+   }
+
+   httpServer();
    
+
    /*
     * recherche de toutes les interfaces
     */
@@ -416,8 +425,8 @@ int main(int argc, const char * argv[])
    }
    
    
-   ret=xPLServer(interfaces);
-   if(ret==-1)
+   xPLServer_thread=xPLServer(interfaces);
+   if(xPLServer_thread==NULL)
    {
       VERBOSE(1) fprintf(stderr,"ERROR (main) : can't start xpl server.\n");
       exit(1);

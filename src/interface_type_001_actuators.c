@@ -245,9 +245,11 @@ int xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNomsValeur
                      val=(iq->arduino_pin) << 8;
                      val=val | ((pulse_width / 100) & 0xFF);
                      
+                     pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)(&i001->operation_lock) );
                      pthread_mutex_lock(&i001->operation_lock);
                      comio_call(i001->ad, iq->arduino_function, val, &comio_err);
                      pthread_mutex_unlock(&i001->operation_lock);
+                     pthread_cleanup_pop(0);
                   }
                   else
                      return 0;
@@ -274,9 +276,11 @@ int xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNomsValeur
                   val=(iq->arduino_pin) << 8;
                   val=val | o;
                   
+                  pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)(&i001->operation_lock) );
                   pthread_mutex_lock(&i001->operation_lock);
                   comio_call(i001->ad, iq->arduino_function, val, &comio_err);
                   pthread_mutex_unlock(&i001->operation_lock);
+                  pthread_cleanup_pop(0);
                   
                   return 1;
                   break;
@@ -357,9 +361,11 @@ int xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNomsValeur
                   val=(iq->arduino_pin) << 8;
                   val=val | o;
                   
+                  pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)(&i001->operation_lock) );
                   pthread_mutex_lock(&i001->operation_lock);
                   comio_call(i001->ad, iq->arduino_function, val, &comio_err);
                   pthread_mutex_unlock(&i001->operation_lock);
+                  pthread_cleanup_pop(0);
                   
                   return 1;
                   break;

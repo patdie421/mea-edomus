@@ -273,13 +273,14 @@ void *tomysqldb_thread(void *args)
    {
       int nb=0;
       
-      ret=pthread_mutex_lock(&(md->lock));
-      if(!ret)
+      pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(md->lock));
+      if(!pthread_mutex_lock(&(md->lock)))
       {
          nb=md->queue->nb_elem;
          pthread_mutex_unlock(&(md->lock));
       }
-      
+      pthread_cleanup_pop(0);
+         
       if(nb) // s'il y a quelque chose à traiter
       {
          if(mysql_connected == 1)
@@ -359,8 +360,8 @@ void *tomysqldb_thread(void *args)
 
          while(nb)
          {
-            ret=pthread_mutex_lock(&(md->lock));
-            if(!ret)
+            pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(md->lock));
+            if(!pthread_mutex_lock(&(md->lock)))
             {
                last_queue(md->queue); // on se positionne en fin de queue
                current_queue(md->queue,(void **)&elem); // on lit le dernier element de la file sans le sortir
@@ -387,8 +388,7 @@ void *tomysqldb_thread(void *args)
                }
                pthread_mutex_unlock(&(md->lock));
             }
-            else
-               break;
+            pthread_cleanup_pop(0);
          }
       }
       

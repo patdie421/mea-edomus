@@ -234,15 +234,19 @@ uint16_t _xbee_get_frame_data_id(xbee_xd_t *xd)
  * \return    id     entre 1 et XBEE_MAX_USER_FRAME_ID
  */
 {
+   unsigned char ret;
+   
+   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(xd->xd_lock) );
    pthread_mutex_lock(&(xd->xd_lock));
 
-   unsigned char ret=xd->frame_id;
+   ret=xd->frame_id;
    
    xd->frame_id++;
    if (xd->frame_id>XBEE_MAX_USER_FRAME_ID)
       xd->frame_id=1;
    
    pthread_mutex_unlock(&(xd->xd_lock));
+   pthread_cleanup_pop(0);
 
    return ret;
 }
@@ -864,6 +868,7 @@ int16_t xbee_atCmdSendAndWaitResp(xbee_xd_t *xd,
    uint16_t l_xbee_frame;
    xbee_queue_elem_t *e;
    int16_t nerr;
+   int16_t return_val=1;
    
    if(pthread_self()==xd->read_thread) // risque de dead lock si appeler par un call back => on interdit
    {
@@ -886,6 +891,8 @@ int16_t xbee_atCmdSendAndWaitResp(xbee_xd_t *xd,
       do
       {
          // on va attendre le retour dans la file des reponses
+         
+         pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(xd->sync_lock) );
          pthread_mutex_lock(&(xd->sync_lock));
          if(xd->queue->nb_elem==0 || notfound==1)
          {
@@ -902,11 +909,12 @@ int16_t xbee_atCmdSendAndWaitResp(xbee_xd_t *xd,
                if(ret!=ETIMEDOUT)
                {
                   *xbee_err=XBEE_ERR_SYS;
-                  pthread_mutex_unlock(&(xd->sync_lock));
-                  return -1;
+                  return_val=-1;
+                  goto next_or_return;
                }
             }
          }
+         
          // a ce point il devrait y avoir quelque chose dans la file ou TIMEOUT.
          uint32_t tsp=_xbee_get_timestamp();
          
@@ -926,9 +934,11 @@ int16_t xbee_atCmdSendAndWaitResp(xbee_xd_t *xd,
                         remove_current_queue(xd->queue);
                         _xbee_free_queue_elem(e);
                         e=NULL;
-                        
-                        pthread_mutex_unlock(&(xd->sync_lock));
-                        return -1;
+
+                        return_val=-1;
+                        goto next_or_return;
+                        //pthread_mutex_unlock(&(xd->sync_lock));
+                        //return -1;
                      }
                      
                      if((tsp - e->tsp)<=10) // la reponse est pour nous et dans les temps
@@ -945,8 +955,10 @@ int16_t xbee_atCmdSendAndWaitResp(xbee_xd_t *xd,
                         remove_current_queue(xd->queue);
                         e=NULL;
                         
-                        pthread_mutex_unlock(&(xd->sync_lock));
-                        return 0;
+                        return_val=0;
+                        goto next_or_return;
+                        //pthread_mutex_unlock(&(xd->sync_lock));
+                        //return 0;
                      }
                      
                      // theoriquement pour nous mais donnees trop vieilles, on supprime
@@ -965,7 +977,12 @@ int16_t xbee_atCmdSendAndWaitResp(xbee_xd_t *xd,
             while(next_queue(xd->queue)==0);
             notfound=1;
          }
+next_or_return:
          pthread_mutex_unlock(&(xd->sync_lock));
+         pthread_cleanup_pop(0);
+         
+         if(return_val ==0 || return_val==-1)
+            return return_val;
       }
       while (--boucle);
    }
@@ -1211,6 +1228,7 @@ void _xbee_flush_old_responses_queue(xbee_xd_t *xd)
    xbee_queue_elem_t *e;
    uint32_t tsp=_xbee_get_timestamp();
    
+   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(xd->sync_lock) );
    pthread_mutex_lock(&xd->sync_lock);
    
    if(first_queue(xd->queue)==0)
@@ -1233,6 +1251,7 @@ void _xbee_flush_old_responses_queue(xbee_xd_t *xd)
    }
    
    pthread_mutex_unlock(&xd->sync_lock);
+   pthread_cleanup_pop(0);
 }
 
 
@@ -1248,6 +1267,8 @@ void _xbee_add_response_to_queue(xbee_xd_t *xd, unsigned char *cmd, uint16_t l_c
       e->l_cmd=l_cmd;
       e->xbee_err=XBEE_ERR_NOERR;
       e->tsp=_xbee_get_timestamp();
+      
+      pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(xd->sync_lock) );
       pthread_mutex_lock(&xd->sync_lock);
 
       in_queue_elem(xd->queue, e);
@@ -1256,6 +1277,7 @@ void _xbee_add_response_to_queue(xbee_xd_t *xd, unsigned char *cmd, uint16_t l_c
          pthread_cond_broadcast(&xd->sync_cond);
       
       pthread_mutex_unlock(&xd->sync_lock);
+      pthread_cleanup_pop(0);
    }
 }
 

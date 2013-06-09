@@ -4,8 +4,6 @@
 //  Created by Patrice DIETSCH on 17/10/12.
 //
 //
-
-#include <stdio.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -40,6 +38,7 @@ char *set_xPL_vendorID(char *value)
 {
    return string_free_malloc_and_copy(&xpl_vendorID, value, 1);
 }
+
 
 char *set_xPL_deviceID(char *value)
 {
@@ -102,6 +101,7 @@ void cmndMsgHandler(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xPL_Ob
 
 void *_xPL_server_thread(void *data)
 {
+/*
    char hostname[21];
    
    gethostname(hostname, 20);
@@ -111,12 +111,13 @@ void *_xPL_server_thread(void *data)
          hostname[i]=0;
          break;
       }
-   
+*/   
    if ( !xPL_initialize(xPL_getParsedConnectionType()) ) return 0 ;
    
    // myService = xPL_createService(myVendor, myDevice, myInstance);
-   //xPLService = xPL_createService("mnntamoi", hostname, "default");
-   xPLService = xPL_createService("mea", "edomus", "cheznousdev");
+   // xPLService = xPL_createService("mnntamoi", hostname, "default");
+   // xPLService = xPL_createService("mea", "edomus", "cheznousdev")
+   xPLService = xPL_createService(xpl_vendorID, xpl_deviceID, xpl_instanceID);
    xPL_setServiceVersion(xPLService, XPL_VERSION);
    
    xPL_setRespondingToBroadcasts(xPLService, TRUE);
@@ -149,15 +150,15 @@ void *_xPL_server_thread(void *data)
 }
 
 
-pthread_t *xPL_thread=NULL;
+// pthread_t *xPL_thread=NULL;
 
-int xPLServer(queue_t *interfaces)
+pthread_t *xPLServer(queue_t *interfaces)
 {
-//   pthread_t *xPL_thread=NULL;
+   pthread_t *xPL_thread=NULL;
    
    if(!xpl_deviceID || !xpl_instanceID || !xpl_vendorID)
    {
-      return -1;
+      return NULL;
    }
 
    xPL_thread=(pthread_t *)malloc(sizeof(pthread_t));
@@ -167,16 +168,16 @@ int xPLServer(queue_t *interfaces)
          fprintf (stderr, "ERROR (xPLServer) : malloc (%s/%d) - ",__FILE__,__LINE__);
          perror("");
       }
-      return -1;
+      return NULL;
    }
 
    if(pthread_create (xPL_thread, NULL, _xPL_server_thread, (void *)interfaces))
    {
       VERBOSE(1) fprintf(stderr, "ERROR (xPLServer) : pthread_create - can't start thread\n");
-      return -1;
+      return NULL;
    }
    
-   return 0;
+   return xPL_thread;
 }
 
 

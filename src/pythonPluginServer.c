@@ -41,6 +41,16 @@ pthread_mutex_t pythonPluginCmd_queue_lock;
 PyObject *known_modules;
 
 
+void _pythonPlugin_thread_cleanup_PyEval_AcquireLock(void *arg)
+{
+   PyThreadState *tempState=(PyThreadState *)arg;
+   
+   if(tempState)
+      PyThreadState_Swap(tempState);
+   PyEval_ReleaseLock();
+}
+
+
 void setPythonPluginPath(char *path)
 {
    if(plugin_path)
@@ -72,8 +82,6 @@ int pythonPluginServer_init()
    pthread_mutex_init(&pythonPluginCmd_queue_lock, NULL);
    pthread_cond_init(&pythonPluginCmd_queue_cond, NULL);
 
-//   pthread_mutex_init(&gil_lock, NULL);
-
    return 0;
 }
 
@@ -103,6 +111,8 @@ int pythonPluginServer_add_cmd(char *module, char *module_parameters, void *data
    memcpy(e->data,data,l_data);
    
    e->l_data=l_data;
+   
+   pthread_cleanup_push(pthread_mutex_unlock(&pythonPluginCmd_queue_lock), (void *)&pythonPluginCmd_queue_lock);
    pthread_mutex_lock(&pythonPluginCmd_queue_lock);
    
    in_queue_elem(pythonPluginCmd_queue, e);
@@ -110,7 +120,8 @@ int pythonPluginServer_add_cmd(char *module, char *module_parameters, void *data
    if(pythonPluginCmd_queue->nb_elem>=1)
       pthread_cond_broadcast(&pythonPluginCmd_queue_cond);
    pthread_mutex_unlock(&pythonPluginCmd_queue_lock);
-   
+   pthread_cleanup_pop(0);
+
    return 0;
    
 exit_pythonPluginServer_add_cmd:
@@ -247,20 +258,16 @@ call_pythonPlugin_clean_exit:
 void *_pythonPlugin_thread(void *data)
 {
    static const char *fn_name="_pythonPlugin_thread";
-   
+   int ret;
    pythonPlugin_cmd_t *e;
    PyThreadState *mainThreadState, *myThreadState;
 //   uint32_t local_last_time;
    
-   // initialisation de l'interprÈteur Python pour le multi-threading => transferÈ dans main.c et main()
    Py_Initialize();
    PyEval_InitThreads(); // voir ici http://www.codeproject.com/Articles/11805/Embedding-Python-in-C-C-Part-I
-   
    mainThreadState = PyThreadState_Get();
    myThreadState = PyThreadState_New(mainThreadState->interp);
-   
    PyEval_ReleaseLock();
-   // Save a pointer to the main PyThreadState object
    
    // chemin vers les plugins rajoutÈ dans le path de l'interprÈteur Python
    PyObject* sysPath = PySys_GetObject((char*)"path");
@@ -270,11 +277,17 @@ void *_pythonPlugin_thread(void *data)
    
    known_modules=PyDict_New(); // initialisation du cache de module
    
-   mea_api_init(); // initialisation du module mea mis ‡ disposition du plugin
+   mea_api_init(); // initialisation du module mea mis à disposition du plugin
+
+   int16_t pass;
    
    while(1)
    {
+      pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&pythonPluginCmd_queue_lock);
       pthread_mutex_lock(&pythonPluginCmd_queue_lock);
+   
+      pass=0; // pour faire en sorte de n'avoir qu'un seul pthread_mutex_unlock en face du pthread_mutex_lock ci-dessus
+      ret=0;
       if(pythonPluginCmd_queue->nb_elem==0)
       {
          struct timeval tv;
@@ -283,32 +296,45 @@ void *_pythonPlugin_thread(void *data)
          ts.tv_sec = tv.tv_sec + 30; // timeout de 30 secondes
          ts.tv_nsec = 0;
          
-         int ret=pthread_cond_timedwait(&pythonPluginCmd_queue_cond, &pythonPluginCmd_queue_lock, &ts);
+         ret=pthread_cond_timedwait(&pythonPluginCmd_queue_cond, &pythonPluginCmd_queue_lock, &ts);
          if(ret)
          {
             if(ret==ETIMEDOUT)
             {
-               DEBUG_SECTION fprintf(stderr,"%s (%s) : Nb elements in queue after TIMEOUT : %ld)\n",DEBUG_STR, fn_name, pythonPluginCmd_queue->nb_elem);
-               // pthread_mutex_unlock(&pythonPluginCmd_queue_lock);
-               // pthread_testcancel();
-               // break;
+               DEBUG_SECTION fprintf(stderr,"%s (%s) : Nb elements in queue after TIMEOUT : %ld\n",DEBUG_STR, fn_name, pythonPluginCmd_queue->nb_elem);
+               pass=1;
             }
             else
             {
-               // autres erreurs ‡ traiter
+               // autres erreurs à traiter
+               DEBUG_SECTION fprintf(stderr,"%s (%s) : pthread_cond_timedwait error - ",DEBUG_STR, fn_name);
+               perror("");
+               pass=1;
             }
-            pthread_mutex_unlock(&pythonPluginCmd_queue_lock);
          }
       }
-      if(!out_queue_elem(pythonPluginCmd_queue, (void **)&e))
+      
+      if (!pass) // pas d'erreur, on récupère un élément dans la queue
+         ret=out_queue_elem(pythonPluginCmd_queue, (void **)&e);
+      
+      pthread_mutex_unlock(&pythonPluginCmd_queue_lock);
+      pthread_cleanup_pop(0);
+
+      if (pass) // une erreur, retour au début de la boucle
       {
-         pthread_mutex_unlock(&pythonPluginCmd_queue_lock);
+         pthread_testcancel();
+         continue;
+      }
+      
+      if(!ret)
+      {
          
          plugin_queue_elem_t *data = (plugin_queue_elem_t *)e->data;
-         
-         PyEval_AcquireLock();
-         // DEBUG_PyEval_AcquireLock(fn_name, &local_last_time);
-         PyThreadState *tempState = PyThreadState_Swap(myThreadState);
+
+         PyThreadState *tempState=NULL;
+         pthread_cleanup_push(_pythonPlugin_thread_cleanup_PyEval_AcquireLock,tempState);
+         PyEval_AcquireLock(); // DEBUG_PyEval_AcquireLock(fn_name, &local_last_time);
+         tempState = PyThreadState_Swap(myThreadState);
          
          PyObject *pydict_data=data->aDict;
          
@@ -317,8 +343,8 @@ void *_pythonPlugin_thread(void *data)
          Py_DECREF(pydict_data);
          
          PyThreadState_Swap(tempState);
-         PyEval_ReleaseLock();
-         // DEBUG_PyEval_ReleaseLock(fn_name, &local_last_time);
+         PyEval_ReleaseLock(); // DEBUG_PyEval_ReleaseLock(fn_name, &local_last_time);
+         pthread_cleanup_pop(0);
          
          if(e)
          {
@@ -329,7 +355,7 @@ void *_pythonPlugin_thread(void *data)
             e->l_data=0;
             free(e);
             
-            pthread_mutex_unlock(&pythonPluginCmd_queue_lock);
+//            pthread_mutex_unlock(&pythonPluginCmd_queue_lock);
          }
       }
       else
@@ -351,16 +377,16 @@ void *_pythonPlugin_thread(void *data)
 }
 
 
-pthread_t *pythonPlugin_thread=NULL;
 
-int pythonPluginServer(queue_t *plugin_queue)
+pthread_t *pythonPluginServer(queue_t *plugin_queue)
 {
    static const char *fn_name="pythonPluginServer";
+   pthread_t *pythonPlugin_thread=NULL;
    
    if(pythonPluginServer_init())
    {
       VERBOSE(1) fprintf (stderr, "%s (%s) : can't initialize pluginServer\n", FATAL_ERROR_STR, fn_name);
-      exit(1);
+      return NULL;
    }
    
    pythonPlugin_thread=(pthread_t *)malloc(sizeof(pthread_t));
@@ -370,17 +396,17 @@ int pythonPluginServer(queue_t *plugin_queue)
          fprintf (stderr, "%s (%s) : %s - ",FATAL_ERROR_STR, fn_name, MALLOC_ERROR_STR);
          perror("");
       }
-      exit(1);
+      return NULL;
    }
    
    if(pthread_create (pythonPlugin_thread, NULL, _pythonPlugin_thread, (void *)pythonPluginCmd_queue))
    {
       VERBOSE(1) fprintf(stderr, "%s (%s) : pthread_create - can't start thread - ", FATAL_ERROR_STR, fn_name);
       perror("");
-      exit(1);
+      return NULL;
    }
    
-   return 0;
+   return pythonPlugin_thread;
 }
 
 

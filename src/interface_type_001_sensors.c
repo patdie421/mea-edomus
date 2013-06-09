@@ -97,7 +97,6 @@ int digital_in_trap(int numTrap, void *args, char *buff)
    
    sensor->val=(unsigned char)buff[0];
    
-   //   pthread_mutex_lock(&(counter->lock));
    {
       char value[20];
       xPL_ServicePtr servicePtr;
@@ -128,8 +127,6 @@ int digital_in_trap(int numTrap, void *args, char *buff)
       
       xPL_releaseMessage(cntrMessageStat);
    }
-   
-   //   pthread_mutex_unlock(&(counter->lock));
    
    printf("Changement d'état de %d\n",numTrap-10);
    

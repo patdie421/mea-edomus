@@ -57,6 +57,7 @@ int counter_trap(int numTrap, void *args, char *buff)
    // prise du chrono
    gettimeofday(&tv, NULL);
    
+   pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(counter->lock));
    pthread_mutex_lock(&(counter->lock));
    { // début section critique
       if(counter->t<0)
@@ -102,10 +103,15 @@ int counter_trap(int numTrap, void *args, char *buff)
          qelem->type=TOMYSQLDB_TYPE_PINST;
          qelem->data=(void *)query_pinst;
          
-         pthread_mutex_lock(&(md.lock));
-         if(qelem)
-            in_queue_elem(md.queue,(void *)qelem);
-         pthread_mutex_unlock(&(md.lock));
+
+         pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(md.lock));
+         if(!pthread_mutex_lock(&(md.lock)))
+         {
+            if(qelem)
+               in_queue_elem(md.queue,(void *)qelem);
+            pthread_mutex_unlock(&(md.lock));
+         }
+         pthread_cleanup_pop(0);
          
          {
             char value[20];
@@ -131,7 +137,7 @@ int counter_trap(int numTrap, void *args, char *buff)
       }
    } // fin section critique
    pthread_mutex_unlock(&(counter->lock));
-   
+   pthread_cleanup_pop(0);
    return 0;
 }
 

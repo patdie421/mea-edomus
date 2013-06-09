@@ -271,6 +271,8 @@ void *_thread_interface_type_001(void *args)
    unsigned int cntr=0;
    while(1)
    {
+      sleep(5);
+      // sleep(TEMPO);
       cntr++;
       
       {
@@ -283,10 +285,14 @@ void *_thread_interface_type_001(void *args)
 
             if(sensor->arduino_pin_type==ANALOG_IN_ID)
             {
+               int v;
+               
+               pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)(&i001->operation_lock) );
                pthread_mutex_lock(&i001->operation_lock);
-               int v=(int16_t)comio_call(i001->ad, sensor->arduino_function, sensor->arduino_pin, &comio_err);
+               v=(int16_t)comio_call(i001->ad, sensor->arduino_function, sensor->arduino_pin, &comio_err);
                pthread_mutex_unlock(&i001->operation_lock);
-
+               pthread_cleanup_pop(0);
+               
                if(v>=0 && sensor->val!=v)
                {
                   sensor->val=v;
@@ -348,6 +354,7 @@ void *_thread_interface_type_001(void *args)
             {
                l2=0;l3=0;l4=0;
                // lecture des compteurs stockés dans les variables partagées
+               pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)(&i001->operation_lock) );
                pthread_mutex_lock(&i001->operation_lock);
                l1=comio_operation(ad, OP_LECTURE, counter->sensor_mem_addr[0], TYPE_MEMOIRE, 0, &err);
                if(l1<0)
@@ -362,6 +369,7 @@ void *_thread_interface_type_001(void *args)
                
 _thread_interface_type_001_operation_abord:
                pthread_mutex_unlock(&i001->operation_lock);
+               pthread_cleanup_pop(0);
             }
             while(l1<0 || l2<0 || l3<0 || l4<0);
             c=     l4;
@@ -375,6 +383,7 @@ _thread_interface_type_001_operation_abord:
             // prise du chrono
             gettimeofday(&tv, NULL);
             
+            pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(md->lock));
             ret=pthread_mutex_lock(&(counter->lock));
             if(!ret)
             {
@@ -382,59 +391,7 @@ _thread_interface_type_001_operation_abord:
                counter->wh_counter=c;
                counter->kwh_counter=c / 1000;
                counter->counter=c;
-               
-               ec_query=(struct electricity_counters_query_s *)malloc(sizeof(struct electricity_counters_query_s));
-               if(!ec_query)
-               {
-                  VERBOSE(1) {
-                     fprintf (stderr, "ERROR (_thread_interface_type_001) : malloc error (%s/%d) - ",__FILE__,__LINE__);
-                     perror("");
-                  }
-                  pthread_exit(NULL);
-               }
-               ec_query->sensor_id=counter->sensor_id; // à remplacer
-               ec_query->wh_counter=counter->wh_counter;
-               ec_query->kwh_counter=counter->kwh_counter;
-               ec_query->flag=0;
-               memcpy(&(ec_query->date_tv),&tv,sizeof(struct timeval));
-               
                pthread_mutex_unlock(&(counter->lock));
-               
-               qelem=malloc(sizeof(tomysqldb_queue_elem_t));
-               if(!qelem)
-               {
-                  VERBOSE(1) {
-                     fprintf (stderr, "ERROR (_thread_interface_type_001) : malloc error (%s/%d) - ",__FILE__,__LINE__);
-                     perror("");
-                  }
-                  if(ec_query)
-                  {
-                     free(ec_query);
-                     ec_query=NULL;
-                  }
-                  pthread_exit(NULL);
-               }
-               qelem->type=TOMYSQLDB_TYPE_EC;
-               qelem->data=(void *)ec_query;
-               
-               {
-                  char value[20];
-                  xPL_MessagePtr cntrMessageStat = xPL_createBroadcastMessage(get_xPL_ServicePtr(), xPL_MESSAGE_TRIGGER);
-                  
-                  sprintf(value,"%d",counter->kwh_counter);
-                  
-                  xPL_setSchema(cntrMessageStat, get_token_by_id(XPL_SENSOR_ID), get_token_by_id(XPL_BASIC_ID));
-                  xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_DEVICE_ID),counter->name);
-                  xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_TYPE_ID), get_token_by_id(XPL_ENERGY_ID));
-                  xPL_setMessageNamedValue(cntrMessageStat,  get_token_by_id(XPL_CURRENT_ID),value);
-                  
-                  // Broadcast the message
-                  xPL_sendMessage(cntrMessageStat);
-                  
-                  xPL_releaseMessage(cntrMessageStat);
-               }
-               
-               VERBOSE(9) fprintf(stderr,"INFO  (_thread_interface_type_001) : counter %s %ld (WH=%d KWH=%d)\n",counter->name, counter->counter, counter->wh_counter,counter->kwh_counter);
             }
             else
             {
@@ -442,25 +399,81 @@ _thread_interface_type_001_operation_abord:
                VERBOSE(1) {
                   fprintf(stderr,"ERROR (_thread_interface_type_001) : can't take semaphore - ");
                   perror("");
+                  continue;
                }
             }
-            
-            if(qelem)
+            pthread_cleanup_pop(0);
+
+            ec_query=(struct electricity_counters_query_s *)malloc(sizeof(struct electricity_counters_query_s));
+            if(!ec_query)
             {
-               pthread_mutex_lock(&(md->lock));
+               VERBOSE(1) {
+                  fprintf (stderr, "ERROR (_thread_interface_type_001) : malloc error (%s/%d) - ",__FILE__,__LINE__);
+                  perror("");
+               }
+               pthread_exit(NULL);
+            }
+            ec_query->sensor_id=counter->sensor_id; // à remplacer
+            ec_query->wh_counter=counter->wh_counter;
+            ec_query->kwh_counter=counter->kwh_counter;
+            ec_query->flag=0;
+            memcpy(&(ec_query->date_tv),&tv,sizeof(struct timeval));
+            
+            qelem=malloc(sizeof(tomysqldb_queue_elem_t));
+            if(!qelem)
+            {
+               VERBOSE(1) {
+                  fprintf (stderr, "ERROR (_thread_interface_type_001) : malloc error (%s/%d) - ",__FILE__,__LINE__);
+                  perror("");
+               }
+               if(ec_query)
+               {
+                  free(ec_query);
+                  ec_query=NULL;
+               }
+               pthread_exit(NULL);
+            }
+            qelem->type=TOMYSQLDB_TYPE_EC;
+            qelem->data=(void *)ec_query;
+            
+            {
+               char value[20];
+               xPL_MessagePtr cntrMessageStat = xPL_createBroadcastMessage(get_xPL_ServicePtr(), xPL_MESSAGE_TRIGGER);
+               
+               sprintf(value,"%d",counter->kwh_counter);
+               
+               xPL_setSchema(cntrMessageStat, get_token_by_id(XPL_SENSOR_ID), get_token_by_id(XPL_BASIC_ID));
+               xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_DEVICE_ID),counter->name);
+               xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_TYPE_ID), get_token_by_id(XPL_ENERGY_ID));
+               xPL_setMessageNamedValue(cntrMessageStat,  get_token_by_id(XPL_CURRENT_ID),value);
+               
+               // Broadcast the message
+               xPL_sendMessage(cntrMessageStat);
+               
+               xPL_releaseMessage(cntrMessageStat);
+            }
+            
+            VERBOSE(9) fprintf(stderr,"INFO  (_thread_interface_type_001) : counter %s %ld (WH=%d KWH=%d)\n",counter->name, counter->counter, counter->wh_counter,counter->kwh_counter);
+         }
+         
+         if(qelem)
+         {
+            pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(md->lock));
+            if(!pthread_mutex_lock(&(md->lock)))
+            {
                in_queue_elem(md->queue,(void *)qelem);
                pthread_mutex_unlock(&(md->lock));
             }
-            
-            next_queue(counters_list);
+            pthread_cleanup_pop(0);
          }
+         
+         next_queue(counters_list);
       }
-      pthread_testcancel();
-      
-      // sleep(TEMPO);
-      sleep(5);
    }
+   pthread_testcancel();
+   
 }
+
 
 
 int check_status_interface_type_001(interface_type_001_t *i001)
