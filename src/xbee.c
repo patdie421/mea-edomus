@@ -74,7 +74,8 @@ int   _xbee_build_frame(unsigned char *frame, unsigned char *cmd, uint16_t l_cmd
 int   _xbee_read_cmd(int fd, unsigned char *frame, uint16_t *l_frame, int16_t *nerr);
 int   _xbee_write_cmd(int fd, unsigned char *cmd, uint16_t l_cmd, int16_t *nerr);
 int   _xbee_network_discovery_resp(xbee_xd_t *xd, char *data, uint16_t l_data);
-void  _xbee_add_response_to_queue(xbee_xd_t *xd, unsigned char *cmd, uint16_t l_cmd);
+int16_t
+      _xbee_add_response_to_queue(xbee_xd_t *xd, unsigned char *cmd, uint16_t l_cmd);
 
 int   _xbee_display_frame(int ret, unsigned char *resp, uint16_t l_resp);
 
@@ -317,6 +318,9 @@ int xbee_set_iodata_callback(xbee_xd_t *xd, callback_f f)
  * \return    toujours 0
  */
 {
+   if(!xd)
+      return -1;
+   
    xd->io_callback=f;
    xd->io_callback_data=NULL;
    
@@ -334,6 +338,9 @@ int xbee_set_iodata_callback2(xbee_xd_t *xd, callback_f f, void *data)
  * \return    toujours 0
  */
 {
+   if(!xd)
+      return -1;
+
    xd->io_callback=f;
    xd->io_callback_data=data;
    
@@ -349,6 +356,9 @@ int xbee_remove_iodata_callback(xbee_xd_t *xd)
  * \return    toujours 0
  */
 {
+   if(!xd)
+      return -1;
+
    xd->io_callback=NULL;
    xd->io_callback_data=NULL;
    
@@ -365,6 +375,9 @@ int xbee_set_dataflow_callback(xbee_xd_t *xd, callback_f f)
  * \return    toujours 0
  */
 {
+   if(!xd)
+      return -1;
+
    xd->dataflow_callback=f;
    xd->dataflow_callback_data=NULL;
    
@@ -382,6 +395,9 @@ int xbee_set_dataflow_callback2(xbee_xd_t *xd, callback_f f, void *data)
  * \return    toujours 0
  */
 {
+   if(!xd)
+      return -1;
+
    xd->dataflow_callback=f;
    xd->dataflow_callback_data=data;
    
@@ -397,6 +413,9 @@ int xbee_remove_dataflow_callback(xbee_xd_t *xd)
  * \return    toujours 0
  */
 {
+   if(!xd)
+      return -1;
+
    xd->dataflow_callback=NULL;
    xd->dataflow_callback_data=NULL;
    
@@ -413,6 +432,9 @@ int xbee_set_commissionning_callback(xbee_xd_t *xd, callback_f f)
  * \return    toujours 0
  */
 {
+   if(!xd)
+      return -1;
+
    xd->commissionning_callback=f;
    xd->commissionning_callback_data=NULL;
    
@@ -430,6 +452,9 @@ int xbee_set_commissionning_callback2(xbee_xd_t *xd, callback_f f, void *data)
  * \return    toujours 0
  */
 {
+   if(!xd)
+      return -1;
+
    xd->commissionning_callback=f;
    xd->commissionning_callback_data=data;
    
@@ -445,6 +470,9 @@ int xbee_remove_commissionning_callback(xbee_xd_t *xd)
  * \return    toujours 0
  */
 {
+   if(!xd)
+      return -1;
+
    xd->commissionning_callback=NULL;
    xd->commissionning_callback_data=NULL;
    
@@ -463,6 +491,9 @@ xbee_host_t *_xbee_host_find_host_by_addr64(xbee_hosts_table_t *table, uint32_t 
  */
 {
    uint16_t nb=0;
+   
+   if(!table)
+      return NULL;
    
    for(uint16_t i=0;i<table->max_hosts;i++)
    {
@@ -493,6 +524,9 @@ xbee_host_t *_xbee_host_find_host_by_name(xbee_hosts_table_t *table, char *name)
 {
    uint16_t nb=0;
    
+   if(!table)
+      return NULL;
+
    for(uint16_t i=0;i<table->max_hosts;i++)
    {
       if(nb<table->nb_hosts && table->hosts_table[i])
@@ -507,7 +541,7 @@ xbee_host_t *_xbee_host_find_host_by_name(xbee_hosts_table_t *table, char *name)
          break;
    }
    
-   return 0;
+   return NULL;
 }
 
 
@@ -683,6 +717,9 @@ int hosts_table_display(xbee_hosts_table_t *table)
    DEBUG_SECTION {
       uint16_t nb=0;
       
+      if(!table)
+         return NULL;
+
       for(uint16_t i=0;i<table->max_hosts;i++)
       {
          if(nb<table->nb_hosts && table->hosts_table[i])
@@ -714,6 +751,13 @@ xbee_host_t *_xbee_add_new_to_hosts_table_with_addr64(xbee_hosts_table_t *table,
 {
    xbee_host_t *host;
    
+   if(!table)
+   {
+      host=NULL;
+      *nerr=XBEE_ERR_SYS; // à remplacer par une autre erreur
+      return 0;
+   }
+   
    host=malloc(sizeof(xbee_host_t));
    if(!host)
    {
@@ -724,23 +768,13 @@ xbee_host_t *_xbee_add_new_to_hosts_table_with_addr64(xbee_hosts_table_t *table,
    
    _xbee_host_init_addr_64(host, addr_64_h, addr_64_l);
    
-   if(!table)
+   for(uint16_t i=0;i<table->max_hosts;i++)
    {
-      free(host);
-      host=NULL;
-      *nerr=XBEE_ERR_SYS; // à remplacer par une autre erreur
-      return 0;
-   }
-   else
-   {
-      for(uint16_t i=0;i<table->max_hosts;i++)
+      if(table->hosts_table[i]==0)
       {
-         if(table->hosts_table[i]==0)
-         {
-            table->hosts_table[i]=host;
-            table->nb_hosts++;
-            return host;
-         }
+         table->hosts_table[i]=host;
+         table->nb_hosts++;
+         return host;
       }
    }
 
@@ -767,6 +801,9 @@ int _xbee_update_hosts_tables(xbee_hosts_table_t *table, char *addr_64_h, char *
    uint32_t l_addr_64_h,l_addr_64_l;
    int16_t nerr;
    xbee_host_t *host;
+   
+   if(!table)
+      return -1;
    
    l_addr_16=addr_16[0]*256+addr_16[1];
    
@@ -1013,13 +1050,10 @@ void xbee_free_xd(xbee_xd_t *xd)
 
 void xbee_close(xbee_xd_t *xd)
 {
-   
    pthread_cancel(xd->read_thread);
-   pthread_join(xd->read_thread,NULL);
-   
+   pthread_join(xd->read_thread, NULL);
+   xbee_free_xd(xd);
    close(xd->fd);
-
-//   free(xd);
 }
 
 
@@ -1256,10 +1290,13 @@ void _xbee_flush_old_responses_queue(xbee_xd_t *xd)
 
 
 // void _xbee_add_response_to_queue(xbee_xd_t *xd, unsigned char *cmd, int l_cmd, uint32_t tsp)
-void _xbee_add_response_to_queue(xbee_xd_t *xd, unsigned char *cmd, uint16_t l_cmd)
+int16_t _xbee_add_response_to_queue(xbee_xd_t *xd, unsigned char *cmd, uint16_t l_cmd)
 {
    xbee_queue_elem_t *e;
    
+   if(!xd)
+      return -1;
+
    e=malloc(sizeof(xbee_queue_elem_t));
    if(e)
    {
@@ -1279,6 +1316,8 @@ void _xbee_add_response_to_queue(xbee_xd_t *xd, unsigned char *cmd, uint16_t l_c
       pthread_mutex_unlock(&xd->sync_lock);
       pthread_cleanup_pop(0);
    }
+   
+   return 0;
 }
 
 
@@ -1290,6 +1329,9 @@ int xbee_reinit(xbee_xd_t *xd)
    char dev[255];
    int speed=0;
    
+   if(!xd)
+      return -1;
+
    strcpy(dev,xd->serial_dev_name);
    speed=xd->speed;
    
@@ -1452,6 +1494,7 @@ void *_xbee_thread(void *args)
                }
                xd->signal_flag=1;
                raise(SIGHUP);
+               sleep(5); // on attend 5 secondes avant de s'arrêter seul.
                pthread_exit(NULL);
             case XBEE_ERR_HOSTTABLEFULL:
                VERBOSE(1) {

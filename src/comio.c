@@ -77,7 +77,7 @@ int comio_remove_trap(comio_ad_t *ad, int numTrap)
    return -1;
 }
 
-
+/*
 static void _comio_timeout(int signal_number)
 {
    if (signal_number == SIGALRM)
@@ -85,7 +85,7 @@ static void _comio_timeout(int signal_number)
       DEBUG_SECTION fprintf(stderr,"DEBUG (_comio_timeout) : Timeout (read semaphore)\n");
    }
 }
-
+*/
 
 int _comio_read(comio_ad_t *ad, unsigned char *op, unsigned char *var, unsigned char *type, unsigned int *val, char **option, int *nerr)
 {
@@ -617,12 +617,8 @@ int comio_init(comio_ad_t *ad, char *dev)
 
 void comio_close(comio_ad_t *ad)
 {
-   if(ad->read_thread)
-   {
-      pthread_cancel(ad->read_thread);
+   if(pthread_cancel(ad->read_thread)==0)
       pthread_join(ad->read_thread,NULL);
-      // ad->read_thread=NULL;
-   }
    
    if(ad->queue)
    {
