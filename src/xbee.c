@@ -854,6 +854,16 @@ int16_t xbee_atCmdSend(xbee_xd_t *xd,
                       unsigned char *frame_data, // zone donnee d'une trame
                       uint16_t l_frame_data, // longueur zone donnee
                       int16_t *xbee_err)
+/**
+ * \brief     Transmet une commande (AT) à un xbee sans attendre de réponse.
+ * \details   Si destination == NULL, la commande est transmise à l'xbee local, sinon elle est transmise à un xbee distant
+ * \param     xd           descripteur de communication xbee
+ * \param     destination  description de l'xbee destination
+ * \param     frame_data   commande AT et le paramettre associé en transmettre à l'xbee
+ * \param     l_frame_data nombre d'octet à transmettre à l'xbee
+ * \param     xbee_err     numero d'erreur
+ * \return    -1 en cas d'erreur, 0 ..., 1 ...
+ */
 {
 //   char *fn_name="xbee_atCmdSend";
    unsigned char xbee_frame[XBEE_MAX_FRAME_SIZE];
@@ -888,7 +898,7 @@ int16_t xbee_atCmdSendAndWaitResp(xbee_xd_t *xd,
                                   uint16_t *l_resp,
                                   int16_t *xbee_err)
 /**
- * \brief     commande AT vers xbee.
+ * \brief     commande AT vers xbee et récupère la réponse
  * \details   Transmet une question de type AT à l'xbee dont l'adresse est precisée par "destination". Cette fonction est compatible multi-tread grâce à l'utilisation d'une file, d'un identifiant de trame et d'un timestamp. La demande est immediatement appliqué. On attends toujours une réponse. Si la réponse n'arrive pas dans les temps, la fonction retourne -1. Elle retourne 0 en cas de succès et met a jour resp, l_resp et xbee_err avec les données de la réponse.
  * \param     xd           descripteur de communication xbee
  * \param     destination  adresse de l'xbee à commander. Si destination = NULL la commande est destinée à l'xbee local. destination est de type xbee_host_t et doit au moins disposer de l'adresse 64bits correctement positionnée.

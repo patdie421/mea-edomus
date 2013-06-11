@@ -11,6 +11,7 @@
 #include <Python.h>
 #include <sqlite3.h>
 
+#include "error.h"
 #include "xbee.h"
 #include "tomysqldb.h"
 #include "xPLServer.h"
@@ -40,59 +41,12 @@ typedef struct interface_type_002_s
    int              id_interface;
    xbee_xd_t       *xd;
    xbee_host_t     *local_xbee;
-//   pthread_t       *thread_commissionning; // thread id
    pthread_t       *thread_data;
    xpl_f            xPL_callback;
    void            *xPL_callback_data;
 } interface_type_002_t;
 
 #define PLUGIN_DATA_MAX_SIZE 80
-
-typedef struct device_context_s
-{
-   /*
-    -          « device_id » : OK
-    -          « device_name » : OK
-    -          « device_parameters » : OK
-    -          « device_type_id » : OK
-    -          « device_type_name » :
-    -          « device_type_parameters » : OK
-    -          « device_interface_id » : OK
-    -          « device_interface_name » : OK
-    -          « device_interface_type_id » :
-    -          « device_interface_type_name » : OK
-    -          « device_location_id » :
-    -          « device_location_name » :
-    */
-   int            device_id;
-   char           device_name[PLUGIN_DATA_MAX_SIZE];
-   char           device_parameters[PLUGIN_DATA_MAX_SIZE];
-   int            device_type_id;
-   char           device_type_name[PLUGIN_DATA_MAX_SIZE];
-   char           device_type_parameters[PLUGIN_DATA_MAX_SIZE];
-   int            device_interface_id;
-   char           device_interface_name[PLUGIN_DATA_MAX_SIZE];
-   char           device_interface_type_name[PLUGIN_DATA_MAX_SIZE];
-   int            device_location_id;
-   int            device_state;
-   uint32_t       addr_h,addr_l;
-
-} device_context_t;
-
-
-typedef struct interface_context_s
-{
-   int            interface_id;
-   char           interface_name[PLUGIN_DATA_MAX_SIZE];
-   char           interface_parameters[PLUGIN_DATA_MAX_SIZE];
-   int            interface_type_id;
-   char           interface_type_name[PLUGIN_DATA_MAX_SIZE];
-   char           interface_type_parameters[PLUGIN_DATA_MAX_SIZE];
-   int            interface_location_id;
-   int            interface_state;
-   uint32_t       addr_h,addr_l;
-
-} interface_context_t;
 
 
 typedef struct plugin_xbeedata_queue_elem_s
@@ -124,36 +78,12 @@ typedef struct plugin_queue_elem_s
    PyObject *aDict;
    char buff[128];
    uint16_t l_buff;
-   
-   // xbee_xd_t *xd;
-   /*
-   union
-   {
-      device_context_t  device_context;
-      interface_context_t interface_context;
-   } context;
-   union
-   {
-      plugin_xpl_queue_elem_t      xpl;
-      plugin_xbeedata_queue_elem_t xbeedata;
-      plugin_commissionning_queue_elem_t commissionning;
-   } complement;
-   */
 } plugin_queue_elem_t;
 
 
-int interface_type_002_activate_plugin(plugin_queue_elem_t *e);
-
-void temperatures_init(xbee_xd_t *xd);
-void temperatures_reset(xbee_xd_t *xd);
-pthread_t *temperatures(xbee_xd_t *xd, char *dev, tomysqldb_md_t *md);
-
-int start_interface_type_002(interface_type_002_t *it002, sqlite3 *db, int id_interface, const unsigned char *dev, tomysqldb_md_t *md);
-int stop_interface_type_002(interface_type_002_t *it002, int signal_number);
-int restart_interface_type_002(interface_type_002_t *i002,sqlite3 *db, tomysqldb_md_t *md);
-int check_status_interface_type_002(interface_type_002_t *it002);
-PyObject *device_context_to_pydict(plugin_queue_elem_t *e, int l_data);
-PyObject *interface_context_to_pydict(plugin_queue_elem_t *e, int l_data);
-
+error_t start_interface_type_002(interface_type_002_t *it002, sqlite3 *db, int id_interface, const unsigned char *dev, tomysqldb_md_t *md);
+error_t stop_interface_type_002(interface_type_002_t *it002, int signal_number);
+error_t restart_interface_type_002(interface_type_002_t *i002,sqlite3 *db, tomysqldb_md_t *md);
+error_t check_status_interface_type_002(interface_type_002_t *it002);
 
 #endif

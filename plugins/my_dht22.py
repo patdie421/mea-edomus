@@ -68,7 +68,6 @@ def mea_dataFromSensor(data):
                 mea_utils.xplMsgAddValue(xplMsg,"current",humidite)
                 mea_utils.xplMsgAddValue(xplMsg,"type","humidity")
                 mea_utils.xplMsgAddValue(xplMsg,"last",last_h)
-                # print mea_utils.xplMsgToString(xplMsg)
                 mea.xplSendMsg(xplMsg)
             return True
                 

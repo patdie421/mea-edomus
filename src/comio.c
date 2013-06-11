@@ -66,6 +66,16 @@ int comio_set_trap2(comio_ad_t *ad, int numTrap, trap_f trap, void *args)
 }
 
 
+void comio_remove_all_traps(comio_ad_t *ad)
+{
+   for(uint16_t i=1;i<=MAX_TRAP;i++)
+   {
+      ad->tabTrap[i-1].trap=NULL;
+      ad->tabTrap[i-1].args=NULL;
+   }
+}
+
+
 int comio_remove_trap(comio_ad_t *ad, int numTrap)
 {
    if(numTrap>0 && numTrap<=MAX_TRAP)

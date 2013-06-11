@@ -83,6 +83,7 @@ void comio_close(comio_ad_t *ad);
 int  comio_set_trap(comio_ad_t *ad, int numTrap, trap_f trap);
 int  comio_set_trap2(comio_ad_t *ad, int numTrap, trap_f trap, void *args);
 int  comio_remove_trap(comio_ad_t *ad, int numTrap);
+void comio_remove_all_traps(comio_ad_t *ad);
 
 int  comio_call(comio_ad_t *ad, unsigned char num_function, unsigned int val, int *comio_err);
 

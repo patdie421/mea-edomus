@@ -18,6 +18,7 @@
 #include <sqlite3.h>
 
 #include "debug.h"
+#include "error.h"
 #include "macros.h"
 #include "memory.h"
 #include "queue.h"
@@ -135,11 +136,11 @@ static void _signal_STOP(int signal_number)
       switch (iq->type)
       {
          case INTERFACE_TYPE_001:
-            stop_interface_type_001((interface_type_001_t *)(iq->context), 0);
+            stop_interface_type_001((interface_type_001_t *)(iq->context), signal_number);
             // rajouter ici les free manquants
             break;
          case INTERFACE_TYPE_002:
-            stop_interface_type_002((interface_type_002_t *)(iq->context), 0);
+            stop_interface_type_002((interface_type_002_t *)(iq->context), signal_number);
             // rajouter ici les free manquants
             break;
             
@@ -158,9 +159,13 @@ static void _signal_STOP(int signal_number)
 
 static void _signal_HUP(int signal_number)
 {
+   char *fn_name="_signal_HUP";
+   
    interfaces_queue_elem_t *iq;
    int ret;
    
+   VERBOSE(5) fprintf(stderr,"%s  (%s) : communication error signal (signal = %d).\n", INFO_STR, fn_name, signal_number);
+
    if(!interfaces->nb_elem)
       return;
    
@@ -177,6 +182,8 @@ static void _signal_HUP(int signal_number)
             ret=check_status_interface_type_001(i001);
             if( ret != 0)
             {
+               sleep(1);
+               VERBOSE(5) fprintf(stderr,"%s  (%s) : restart interface type_001 (interface_id=%d).\n", INFO_STR, fn_name, i001->id_interface);
                restart_interface_type_001(i001, sqlite3_param_db, &md);
             }
             break;
@@ -187,6 +194,8 @@ static void _signal_HUP(int signal_number)
             ret=check_status_interface_type_002(i002);
             if( ret != 0)
             {
+               sleep(1);
+               VERBOSE(5) fprintf(stderr,"%s  (%s) : restart interface type_002 (interface_id=%d).\n", INFO_STR, fn_name, i002->id_interface);
                restart_interface_type_002(i002, sqlite3_param_db, &md);
             }
             break;
@@ -206,8 +215,7 @@ static void _signal_HUP(int signal_number)
 
 void usage(char *cmd)
 {
-   fprintf(stderr,"usage : %s -a <sqlite3_db_path>\n\n",cmd);
-   fprintf(stderr,"TOUS LES PARAMETRES SONT OBLIGATOIRES\n\n");
+   fprintf(stderr,"usage : %s -a <sqlite3_db_path>\n",cmd);
 }
 
 // char *tofind[]={"I:B","L:AA","F:A_A","S:X","I:C", NULL};
@@ -233,7 +241,6 @@ int main(int argc, const char * argv[])
 #else
    debug_off();
 #endif
-   debug_off();
 
    
    set_verbose_level(9);

@@ -135,7 +135,6 @@ def enable_change_detection(data,mem):
 def enable_sample(data,mem):
    analog_in_enabled=False
    for i in mem:
-      print "i[0:1]=",i[0:2]
       if i[0:1]=="d":
          if mem[i]==2:
             analog_in_enabled=True
@@ -194,7 +193,6 @@ def mea_xplCmndMsg(data):
    current_key=pin+"_current"
    last_key=pin+"_last"
 
-   print data
    try:
       xplMsg=mea_utils.xplMsgNew("mea", "edomus", "cheznousdev", "xpl-stat", "sensor", "basic", data["device_name"])
 
@@ -287,14 +285,12 @@ def mea_commissionningRequest(data):
    if "interface_parameters" in data:
       mem={}
       try:
-         mem=mea.get_memory(data["interface_id"])
+         mem=mea.getMemory(data["interface_id"])
       except:
-
          verbose(5, "ERROR - can't acces share memory")
          return False
       
       sample_set=False
-      print data["interface_parameters"]
       paramsList=mea_utils.parseKeyValueDatasToList(data["interface_parameters"], ",", ":")
       if paramsList != None:
          for i in paramsList:
@@ -369,6 +365,7 @@ def mea_commissionningRequest(data):
          enable_change_detection(data,mem)
          if sample_set==False:
             enable_sample(data,mem)
+         return True
       
       else:
          return False

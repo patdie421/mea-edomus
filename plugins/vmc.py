@@ -8,12 +8,14 @@ try:
 except:
     import mea_simulation as mea
 
+
 def mea_dataFromSensor(data):
    return False
 
 
 def mea_commissionningRequest(data):
    return True
+
 
 def mea_xplCmndMsg(data):
    try:

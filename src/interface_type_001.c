@@ -146,6 +146,8 @@ int cntr_trap(int numTrap, void *args, char *buff)
 
 int stop_interface_type_001(interface_type_001_t *i001, int signal_number)
 {
+   comio_remove_all_traps(i001->ad);
+
    queue_t *counters_list=i001->counters_list;
    struct electricity_counter_s *counter;
 
@@ -161,7 +163,7 @@ int stop_interface_type_001(interface_type_001_t *i001, int signal_number)
    while(counters_list->nb_elem)
    {
       out_queue_elem(counters_list, (void **)&counter);
-      comio_remove_trap(i001->ad, counter->trap);
+//      comio_remove_trap(i001->ad, counter->trap);
       free(counter);
       counter=NULL;
    }
@@ -170,7 +172,7 @@ int stop_interface_type_001(interface_type_001_t *i001, int signal_number)
    while(sensors_list->nb_elem)
    {
       out_queue_elem(sensors_list, (void **)&sensor);
-      comio_remove_trap(i001->ad, sensor->arduino_pin+10);
+//      comio_remove_trap(i001->ad, sensor->arduino_pin+10);
       free(sensor);
       sensor=NULL;
    }
@@ -215,6 +217,7 @@ int restart_interface_type_001(interface_type_001_t *i001,sqlite3 *db, tomysqldb
    id_interface=i001->id_interface;
    
    stop_interface_type_001(i001, 0);
+   sleep(1);
    ret=start_interface_type_001(i001, db, id_interface, (const unsigned char *)dev, md);
    
 
@@ -334,7 +337,6 @@ void *_thread_interface_type_001(void *args)
                   }
                }
             }
-            
             next_queue(sensors_list);
          }
 

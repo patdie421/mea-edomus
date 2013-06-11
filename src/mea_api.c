@@ -63,7 +63,6 @@ PyObject *xplMsgToPyDict(xPL_MessagePtr xplMsg)
    PyObject *s;
    PyObject *l;
    char tmpStr[35]; // chaine temporaire. Taille max pour vendorID(8) + "-"(1) + deviceID(8) + "."(1) + instanceID(16)
-//   char *pStr;   // pointeur sur une chaine
    
    
    pyXplMsg = PyDict_New();
@@ -177,7 +176,6 @@ static PyObject *mea_xplSendMsg(PyObject *self, PyObject *args)
       return NULL;
    }
    
-   
    // on peut commencer a recuperer les elements necessaires
    // il nous faut :
    // - le type de message xpl (xpl-cmnd, xpl-trig ou xpl-stat)
@@ -234,20 +232,20 @@ static PyObject *mea_xplSendMsg(PyObject *self, PyObject *args)
             xPL_setSchema(xplMsg, xpl_class,xpl_type);
          else
          {
-            PyErr_SetString(PyExc_RuntimeError, "ERROR (mea_xplMsgSend) : bat schema");
-            return NULL;
+            PyErr_SetString(PyExc_RuntimeError, "ERROR (mea_xplMsgSend) : bad schema");
+            goto mea_xplSendMsg_exit;
          }
       }
       else
       {
          PyErr_SetString(PyExc_RuntimeError, "ERROR (mea_xplMsgSend) : schema not a string");
-         return NULL; // False
+         goto mea_xplSendMsg_exit;
       }
    }
    else
    {
       PyErr_SetString(PyExc_RuntimeError, "ERROR (mea_xplMsgSend) : xpl schema not found");
-      return NULL; // False
+      goto mea_xplSendMsg_exit;
    }
    
    
@@ -257,7 +255,7 @@ static PyObject *mea_xplSendMsg(PyObject *self, PyObject *args)
       if(!PyDict_Check(body))
       {
          PyErr_SetString(PyExc_RuntimeError, "ERROR (mea_xplMsgSend) : body not a dictionary.\n");
-         return NULL;
+         goto mea_xplSendMsg_exit;
       }
       
       // parcours de la liste
@@ -271,7 +269,7 @@ static PyObject *mea_xplSendMsg(PyObject *self, PyObject *args)
          if(!key || !value)
          {
             PyErr_SetString(PyExc_RuntimeError, "ERROR (mea_xplMsgSend) : incorrect data in body");
-            return NULL;
+            goto mea_xplSendMsg_exit;
          }
          xPL_setMessageNamedValue(xplMsg, skey, svalue);
       }
@@ -279,13 +277,19 @@ static PyObject *mea_xplSendMsg(PyObject *self, PyObject *args)
    else
    {
       PyErr_SetString(PyExc_RuntimeError, "ERROR (mea_xplMsgSend) : xpl body data not found");
-      return NULL; // False
+      goto mea_xplSendMsg_exit;
    }
    
    xPL_sendMessage(xplMsg);
    xPL_releaseMessage(xplMsg);
    
    return PyLong_FromLong(1L); // return True
+   
+mea_xplSendMsg_exit:
+   if(xplMsg)
+      xPL_releaseMessage(xplMsg);
+   
+   return NULL; // retour un exception python
 }
 
 
@@ -557,14 +561,13 @@ static PyObject *mea_sendAtCmd(PyObject *self, PyObject *args)
    
    host=(xbee_host_t *)malloc(sizeof(xbee_host_t)); // description de l'xbee directement connecté
    xbee_get_host_by_addr_64(xd, host, addr_h, addr_l, &err);
-   
    if(err==XBEE_ERR_NOERR)
    {
    }
    else
    {
       VERBOSE(9) fprintf(stderr, "ERROR (mea_AtCmdToXbee) : host not found\n");
-      return NULL;
+      goto mea_atCmdSend_arg_err;
    }
    
    int16_t nerr;
@@ -583,7 +586,6 @@ mea_atCmdSend_arg_err:
       free(host);
       host=NULL;
    }
-   
    return NULL;
 }
 

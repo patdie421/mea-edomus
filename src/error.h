@@ -8,6 +8,12 @@
 #ifndef mea_eDomus_error_h
 #define mea_eDomus_error_h
 
+typedef enum error_e
+{
+   ERROR=-1,
+   NOERROR=0
+} error_t;
+
 extern char *_error_str;
 extern char *_info_str;
 extern char *_debug_str;
