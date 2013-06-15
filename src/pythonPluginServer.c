@@ -36,8 +36,6 @@ queue_t *pythonPluginCmd_queue;
 pthread_cond_t pythonPluginCmd_queue_cond;
 pthread_mutex_t pythonPluginCmd_queue_lock;
 
-// pthread_mutex_t gil_lock;
-
 PyObject *known_modules;
 
 
@@ -64,42 +62,37 @@ void setPythonPluginPath(char *path)
 }
 
 
-int pythonPluginServer_init()
+error_t pythonPluginServer_init()
 {
-   static const char *fn_name="pythonPluginServer_init";
-   
    pythonPluginCmd_queue=(queue_t *)malloc(sizeof(queue_t));
    if(!pythonPluginCmd_queue)
    {
       VERBOSE(2) {
-         fprintf (stderr, "%s (%s) : %s - ", ERROR_STR, fn_name, MALLOC_ERROR_STR);
+         fprintf (stderr, "%s (%s) : %s - ", ERROR_STR, __func__, MALLOC_ERROR_STR);
          perror("");
       }
-      return -1;
+      return ERROR;
    }
    init_queue(pythonPluginCmd_queue);
    
    pthread_mutex_init(&pythonPluginCmd_queue_lock, NULL);
    pthread_cond_init(&pythonPluginCmd_queue_cond, NULL);
 
-   return 0;
+   return NOERROR;
 }
 
 
-int pythonPluginServer_add_cmd(char *module, char *module_parameters, void *data, int l_data)
+error_t pythonPluginServer_add_cmd(char *module, char *module_parameters, void *data, int l_data)
 {
    pythonPlugin_cmd_t *e=NULL;
-   int ret=-1;
    
    e=(pythonPlugin_cmd_t *)malloc(sizeof(pythonPlugin_cmd_t));
    if(!e)
-      return -1;
+      return ERROR;
    e->python_module=NULL;
-//   e->parameters=NULL;
    e->data=NULL;
    e->l_data=0;
    
-   //   e->type=type;
    e->python_module=(char *)malloc(strlen(module)+1);
    if(!e->python_module)
       goto exit_pythonPluginServer_add_cmd;
@@ -112,7 +105,7 @@ int pythonPluginServer_add_cmd(char *module, char *module_parameters, void *data
    
    e->l_data=l_data;
    
-   pthread_cleanup_push(pthread_mutex_unlock(&pythonPluginCmd_queue_lock), (void *)&pythonPluginCmd_queue_lock);
+   pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&pythonPluginCmd_queue_lock);
    pthread_mutex_lock(&pythonPluginCmd_queue_lock);
    
    in_queue_elem(pythonPluginCmd_queue, e);
@@ -122,7 +115,7 @@ int pythonPluginServer_add_cmd(char *module, char *module_parameters, void *data
    pthread_mutex_unlock(&pythonPluginCmd_queue_lock);
    pthread_cleanup_pop(0);
 
-   return 0;
+   return NOERROR;
    
 exit_pythonPluginServer_add_cmd:
    if(e)
@@ -134,14 +127,12 @@ exit_pythonPluginServer_add_cmd:
       e->l_data=0;
       free(e);
    }
-   return ret;
+   return ERROR;
 }
 
 
-int call_pythonPlugin(char *module, int type, PyObject *data_dict)
+error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
 {
-   static const char *fn_name = "call_pythonPlugin";
-   
    PyObject *pName, *pModule, *pFunc;
    PyObject *pArgs, *pValue;
    
@@ -155,9 +146,9 @@ int call_pythonPlugin(char *module, int type, PyObject *data_dict)
          PyDict_SetItem(known_modules, pName, pModule);
       else
       {
-         VERBOSE(5) fprintf(stderr, "%s (%s) : %s not found\n", ERROR_STR, fn_name, module);
+         VERBOSE(5) fprintf(stderr, "%s (%s) : %s not found\n", ERROR_STR, __func__, module);
          
-         return -1;
+         return NOERROR;
       }
    }
    else
@@ -198,7 +189,7 @@ int call_pythonPlugin(char *module, int type, PyObject *data_dict)
          case COMMISSIONNING: pFunc = PyObject_GetAttrString(pModule, "mea_commissionningRequest");
             break;
          default:
-            return 0;
+            return NOERROR;
       }
       
       if (pFunc && PyCallable_Check(pFunc))
@@ -208,21 +199,18 @@ int call_pythonPlugin(char *module, int type, PyObject *data_dict)
          // data_dict
          Py_INCREF(data_dict); // incrément car PyTuple_SetItem vole la référence
          PyTuple_SetItem(pArgs, 0, data_dict);
-//         uint32_t last_time;
-//         DEBUG_SECTION printf("CHRONO : avant PyObject_CallObject(%d) a %u ms\n", type, start_chrono(&last_time));
          pValue = PyObject_CallObject(pFunc, pArgs);
-//         DEBUG_SECTION printf("CHRONO : apres PyObject_CallObject(%d) a %u ms\n", type, take_chrono((&last_time)));
          Py_DECREF(pArgs);
          
          if (pValue != NULL)
          {
-            DEBUG_SECTION fprintf(stderr, "%s (%s) : Result of call: %ld\n", DEBUG_STR, fn_name, PyInt_AsLong(pValue));
+            DEBUG_SECTION fprintf(stderr, "%s (%s) : Result of call: %ld\n", DEBUG_STR, __func__, PyInt_AsLong(pValue));
          }
          else
          {
-            VERBOSE(5) fprintf(stderr, "%s (%s) : python error - ", fn_name, ERROR_STR);
+            VERBOSE(5) fprintf(stderr, "%s (%s) : python error - ", __func__, ERROR_STR);
             PyErr_Print();
-            return_code=-1;
+            return_code=ERROR;
             goto call_pythonPlugin_clean_exit;
          }
          
@@ -232,19 +220,19 @@ int call_pythonPlugin(char *module, int type, PyObject *data_dict)
       {
          if (PyErr_Occurred())
          {
-            VERBOSE(5) fprintf(stderr, "%s (%s) : python error - ", ERROR_STR, fn_name);
+            VERBOSE(5) fprintf(stderr, "%s (%s) : python error - ", ERROR_STR, __func__);
             PyErr_Print();
          }
-         VERBOSE(5) fprintf(stderr, "%s (%s) : mea_edomus_plugin not found\n", ERROR_STR, fn_name);
-         return_code=-1;
+         VERBOSE(5) fprintf(stderr, "%s (%s) : mea_edomus_plugin not found\n", ERROR_STR, __func__);
+         return_code=ERROR;
          goto call_pythonPlugin_clean_exit;
       }
    }
    else
    {
-      VERBOSE(5) fprintf(stderr, "%s (%s) : python error - ", ERROR_STR, fn_name);
+      VERBOSE(5) fprintf(stderr, "%s (%s) : python error - ", ERROR_STR, __func__);
       PyErr_Print();
-      return -1;
+      return ERROR;
    }
    
 call_pythonPlugin_clean_exit:
@@ -261,7 +249,6 @@ void *_pythonPlugin_thread(void *data)
    int ret;
    pythonPlugin_cmd_t *e;
    PyThreadState *mainThreadState, *myThreadState;
-//   uint32_t local_last_time;
    
    Py_Initialize();
    PyEval_InitThreads(); // voir ici http://www.codeproject.com/Articles/11805/Embedding-Python-in-C-C-Part-I
@@ -339,12 +326,12 @@ void *_pythonPlugin_thread(void *data)
          PyObject *pydict_data=data->aDict;
          
          call_pythonPlugin(e->python_module, data->type_elem, pydict_data);
-         
          Py_DECREF(pydict_data);
          
          PyThreadState_Swap(tempState);
          PyEval_ReleaseLock(); // DEBUG_PyEval_ReleaseLock(fn_name, &local_last_time);
          pthread_cleanup_pop(0);
+
          
          if(e)
          {
@@ -354,13 +341,11 @@ void *_pythonPlugin_thread(void *data)
                free(e->data);
             e->l_data=0;
             free(e);
-            
-//            pthread_mutex_unlock(&pythonPluginCmd_queue_lock);
          }
       }
       else
       {
-         // pb d'accËs aux donnÈes de la file
+         // pb d'accés aux données de la file
          VERBOSE(5) fprintf(stderr,"%s (%s) : out_queue_elem - can't access\n", ERROR_STR, fn_name);
       }
       pthread_testcancel();

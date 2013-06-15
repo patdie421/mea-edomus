@@ -19,6 +19,7 @@
 
 #include "tomysqldb.h"
 
+#include "error.h"
 #include "debug.h"
 #include "globals.h"
 #include "xPLServer.h"
@@ -35,7 +36,7 @@ char *valid_counter_params[]={"I:M1","I:M2","I:M3","I:M4","I:TRAP",NULL};
 #define COUNTER_PARAMS_TRAP     4
 
 
-void _interface_type_001_free_counters_queue_elem(void *d)
+void interface_type_001_free_counters_queue_elem(void *d)
 {
    struct electricity_counter_s *e=(struct electricity_counter_s *)d;
    
@@ -45,7 +46,7 @@ void _interface_type_001_free_counters_queue_elem(void *d)
 
 
 // pour la reception d'un trap à chaque changement du compteur
-int counter_trap(int numTrap, void *args, char *buff)
+error_t counter_trap(int numTrap, void *args, char *buff)
 {
    double t_old;
    struct timeval tv;
@@ -82,7 +83,7 @@ int counter_trap(int numTrap, void *args, char *buff)
                fprintf (stderr, "ERROR (counter_trap) : malloc error (%s/%d) - ",__FILE__,__LINE__);
                perror("");
             }
-            return -1;
+            return ERROR;
          }
          
          memcpy(&(query_pinst->date_tv),&tv,sizeof(struct timeval));
@@ -98,7 +99,7 @@ int counter_trap(int numTrap, void *args, char *buff)
                fprintf (stderr, "ERROR (counter_trap) : malloc error (%s/%d) - ",__FILE__,__LINE__);
                perror("");
             }
-            return -1;
+            return ERROR;
          }
          qelem->type=TOMYSQLDB_TYPE_PINST;
          qelem->data=(void *)query_pinst;
@@ -138,7 +139,7 @@ int counter_trap(int numTrap, void *args, char *buff)
    } // fin section critique
    pthread_mutex_unlock(&(counter->lock));
    pthread_cleanup_pop(0);
-   return 0;
+   return NOERROR;
 }
 
 

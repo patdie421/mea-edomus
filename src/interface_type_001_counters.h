@@ -9,6 +9,8 @@
 #ifndef _interface_type_001_counters_h
 #define _interface_type_001_counters_h
 
+#include "error.h"
+
 #include <pthread.h>
 
 // modélisation d'un compteur
@@ -31,8 +33,8 @@ struct electricity_counter_s
 };
 
 struct electricity_counter_s *valid_and_malloc_counter(int id_sensor_actuator, char *name, char *parameters);
-void _interface_type_001_free_counters_queue_elem(void *d);
-int counter_trap(int numTrap, void *args, char *buff);
+void interface_type_001_free_counters_queue_elem(void *d);
+error_t counter_trap(int numTrap, void *args, char *buff);
 
 
 #endif

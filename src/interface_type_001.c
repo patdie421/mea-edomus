@@ -56,7 +56,6 @@ int interface_type_001_xPL_callback(xPL_ServicePtr theService, xPL_MessagePtr th
    xPL_NameValueListPtr ListNomsValeursPtr ;
    char *schema_type, *schema_class, *device, *type;
    interface_type_001_t *i001=(interface_type_001_t *)userValue;
-
    schema_class       = xPL_getSchemaClass(theMessage);
    schema_type        = xPL_getSchemaType(theMessage);
    ListNomsValeursPtr = xPL_getMessageBody(theMessage);
@@ -690,7 +689,7 @@ start_interface_type_001_clean_exit:
    {
       if(i001->counters_list)
       {
-         clear_queue(i001->counters_list,_interface_type_001_free_counters_queue_elem);
+         clear_queue(i001->counters_list,interface_type_001_free_counters_queue_elem);
          FREE(i001->counters_list);
       }
       if(i001->actuators_list)

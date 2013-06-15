@@ -61,14 +61,6 @@ struct callback_data_s // donnee "userdata" pour les callbacks
 };
 
 
-struct xbee_data_thread_s
-{
-   queue_t        *queue;
-   pthread_mutex_t callback_lock;
-   pthread_cond_t  callback_cond;
-};
-
-
 struct callback_commissionning_data_s
 {
    PyThreadState  *mainThreadState;
@@ -287,7 +279,9 @@ PyObject *stmt_to_pydict_interface(sqlite3_stmt * stmt)
 
 error_t _interface_type_002_xPL_callback(xPL_ServicePtr theService, xPL_MessagePtr xplMsg, xPL_ObjectPtr userValue)
 {
-   static const char *fn_name = "interface_type_002_xPL_callback";
+//   static const char *fn_name = "interface_type_002_xPL_callback";
+   const char *fn_name=__func__;
+
    xPL_NameValueListPtr xplBody;
    char *device;
    int ret;
@@ -306,8 +300,6 @@ error_t _interface_type_002_xPL_callback(xPL_ServicePtr theService, xPL_MessageP
    
    xplBody = xPL_getMessageBody(xplMsg);
    device  = xPL_getNamedValue(xplBody, get_token_by_id(XPL_DEVICE_ID));
-   
-   VERBOSE(9) fprintf(stderr,"%s  (%s) : xPL Message to process : %s.%s (%s)\n", INFO_STR, fn_name, xPL_getSchemaClass(xplMsg), xPL_getSchemaType(xplMsg), device);
    
    char sql[1024];
    sqlite3_stmt * stmt;
@@ -365,6 +357,7 @@ error_t _interface_type_002_xPL_callback(xPL_ServicePtr theService, xPL_MessageP
             free_parsed_parameters(plugin_params, nb_plugin_params);
             free(plugin_elem);
          }
+         
          free(plugin_params);
       }
       else if (s == SQLITE_DONE)
@@ -378,7 +371,6 @@ error_t _interface_type_002_xPL_callback(xPL_ServicePtr theService, xPL_MessageP
          break; // voir autres erreurs possibles
       }
    }
-   
    return NOERROR;
 }
 
@@ -417,7 +409,8 @@ error_t _inteface_type_002_xbeedata_callback(int id, unsigned char *cmd, uint16_
 
 error_t _interface_type_002_commissionning_callback(int id, unsigned char *cmd, uint16_t l_cmd, void *data, char *addr_h, char *addr_l)
 {
-   static const char *fn_name = "commissionning_callback";
+//   static const char *fn_name = "commissionning_callback";
+   const char *fn_name=__func__;
    
    struct xbee_node_identification_response_s *nd_resp;
    struct xbee_node_identification_nd_data_s *nd_data;
@@ -502,8 +495,9 @@ error_t _interface_type_002_commissionning_callback(int id, unsigned char *cmd, 
          
          pythonPluginServer_add_cmd(plugin_params[XBEE_PLUGIN_PARAMS_PLUGIN].value.s, plugin_params[XBEE_PLUGIN_PARAMS_PARAMETERS].value.s, (void *)plugin_elem, sizeof(plugin_queue_elem_t));
          
+         FREE(plugin_elem);
          free_parsed_parameters(plugin_params, nb_plugin_params);
-         free(plugin_params);
+         FREE(plugin_params);
       }
    }
    sqlite3_finalize(stmt);
@@ -560,7 +554,8 @@ void *_thread_interface_type_002_xbeedata_cleanup(void *args)
 
 void *_thread_interface_type_002_xbeedata(void *args)
 {
-   static const char *fn_name="_thread_interface_type_002_xbeedata";
+//   static const char *fn_name="_thread_interface_type_002_xbeedata";
+   const char *fn_name=__func__;
    
    struct thread_params_s *params=(struct thread_params_s *)args;
 
@@ -750,10 +745,12 @@ void *_thread_interface_type_002_xbeedata(void *args)
 
 pthread_t *start_interface_type_002_xbeedata_thread(interface_type_002_t *i002, xbee_xd_t *xd, sqlite3 *db, tomysqldb_md_t *md,thread_f function)
 {
-   static const char *fn_name="start_interface_type_002_thread";
+//   static const char *fn_name="start_interface_type_002_thread";
+   const char *fn_name=__func__;
    
    pthread_t *thread=NULL;
    struct thread_params_s *params=NULL;
+   struct callback_data_s *callback_xbeedata=NULL;
    
    params=malloc(sizeof(struct thread_params_s));
    if(!params)
@@ -779,7 +776,7 @@ pthread_t *start_interface_type_002_xbeedata_thread(interface_type_002_t *i002, 
    params->myThreadState = NULL;
    
    // prŽparation des donnŽes pour les callback io_data et data_flow dont les donnŽes sont traitŽes par le mme thread
-   struct callback_data_s *callback_xbeedata=(struct callback_data_s *)malloc(sizeof(struct callback_data_s));
+   callback_xbeedata=(struct callback_data_s *)malloc(sizeof(struct callback_data_s));
    if(!callback_xbeedata)
    {
       VERBOSE(1) fprintf(stderr,"%s (%s) : %s\n", ERROR_STR, fn_name, MALLOC_ERROR_STR);
@@ -808,6 +805,7 @@ pthread_t *start_interface_type_002_xbeedata_thread(interface_type_002_t *i002, 
    
 clean_exit:
    FREE(thread);
+   FREE(callback_xbeedata);
    if(params->queue && params->queue->nb_elem>0) // on vide s'il y a quelque chose avant de partir
       clear_queue(params->queue, _iodata_free_queue_elem);
    FREE(params->queue);
@@ -816,29 +814,29 @@ clean_exit:
 }
 
 
-error_t stop_interface_type_002(interface_type_002_t *it002, int signal_number)
+error_t stop_interface_type_002(interface_type_002_t *i002, int signal_number)
 {
-   static const char *fn_name="stop_interface_type_002";
+//   static const char *fn_name="stop_interface_type_002";
+   const char *fn_name=__func__;
    
    VERBOSE(5) fprintf(stderr,"%s  (%s) : shutdown interface_type_002 thread (signal = %d).\n",INFO_STR, fn_name,signal_number);
 
-   if(it002->thread_data)
+   if(i002->thread)
    {
-      pthread_cancel(*(it002->thread_data));
-      pthread_join(*(it002->thread_data), NULL);
-      it002->thread_data=NULL;
+      pthread_cancel(*(i002->thread));
+      pthread_join(*(i002->thread), NULL);
+      FREE(i002->thread);
    }
    
-   xbee_remove_iodata_callback(it002->xd);
-   xbee_remove_commissionning_callback(it002->xd);
-   xbee_remove_dataflow_callback(it002->xd);
+   xbee_remove_iodata_callback(i002->xd);
+   xbee_remove_commissionning_callback(i002->xd);
+   xbee_remove_dataflow_callback(i002->xd);
 
-   xbee_close(it002->xd);
-   
-   xbee_free_xd(it002->xd);
+   xbee_close(i002->xd);
+   xbee_free_xd(i002->xd);
+   free(i002->xd);
 
-   FREE(it002->local_xbee);
-   FREE(it002->thread_data);
+   FREE(i002->local_xbee);
    
    VERBOSE(5) fprintf(stderr,"%s  (%s) : counter thread is down.\n",INFO_STR, fn_name);
    
@@ -883,7 +881,8 @@ error_t check_status_interface_type_002(interface_type_002_t *it002)
 
 error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, int id_interface, const unsigned char *dev, tomysqldb_md_t *md)
 {
-   static const char *fn_name="start_interface_type_002";
+//   static const char *fn_name="start_interface_type_002";
+   const char *fn_name=__func__;
    
    char unix_dev[80];
    char buff[80];
@@ -927,7 +926,6 @@ error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, int id
    /*
     * PrŽparation du rŽseau XBEE
     */
-   
    local_xbee=(xbee_host_t *)malloc(sizeof(xbee_host_t)); // description de l'xbee directement connectÃ©
    if(!local_xbee)
    {
@@ -994,7 +992,7 @@ error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, int id
    /*
     * Gestion des sous-interfaces
     */
-   i002->thread_data=start_interface_type_002_xbeedata_thread(i002, xd, db, md, (thread_f)_thread_interface_type_002_xbeedata);
+   i002->thread=start_interface_type_002_xbeedata_thread(i002, xd, db, md, (thread_f)_thread_interface_type_002_xbeedata);
 
    //
    // gestion du commissionnement : mettre une zone donnees specifique au commissionnement
@@ -1002,7 +1000,7 @@ error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, int id
    commissionning_callback_params=(struct callback_commissionning_data_s *)malloc(sizeof(struct callback_commissionning_data_s));
    if(!commissionning_callback_params)
    {
-      VERBOSE(1) fprintf(stderr,"%s (%s) : %s\n", ERROR_STR, fn_name, MALLOC_ERROR_STR);
+      VERBOSE(1) fprintf(stderr,"%s (%s) : %s\n", ERROR_STR, __func__, MALLOC_ERROR_STR);
       goto clean_exit;
    }
    commissionning_callback_params->xd=xd;
@@ -1018,7 +1016,7 @@ error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, int id
    xpl_callback_params=(struct callback_xpl_data_s *)malloc(sizeof(struct callback_xpl_data_s));
    if(!xpl_callback_params)
    {
-      VERBOSE(1) fprintf(stderr,"%s (%s) : %s\n", ERROR_STR, fn_name, MALLOC_ERROR_STR);
+      VERBOSE(1) fprintf(stderr,"%s (%s) : %s\n", ERROR_STR, __func__, MALLOC_ERROR_STR);
       goto clean_exit;
    }
    xpl_callback_params->param_db=db;
@@ -1039,7 +1037,7 @@ clean_exit:
    }
    
    // vider la queue de callback_data_iodata
-   if(i002->thread_data)
+   if(i002->thread);
       stop_interface_type_002(i002, 0);
    
    if(xbeedata_callback_params)

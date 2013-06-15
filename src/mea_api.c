@@ -575,8 +575,10 @@ static PyObject *mea_sendAtCmd(PyObject *self, PyObject *args)
    
    free(host);
    
-   Py_INCREF(Py_None);
-   return Py_None;
+   return PyLong_FromLong(1L); // return True
+
+//   Py_INCREF(Py_None);
+//   return Py_None;
    
 mea_atCmdSend_arg_err:
    VERBOSE(9) fprintf(stderr, "ERROR (mea_AtCmdToXbee) : arguments error\n");

@@ -71,6 +71,7 @@ void cmndMsgHandler(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xPL_Ob
    
    if(first_queue(interfaces)==-1)
       return;
+
    while(1)
    {
       current_queue(interfaces, (void **)&iq);
@@ -101,17 +102,6 @@ void cmndMsgHandler(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xPL_Ob
 
 void *_xPL_server_thread(void *data)
 {
-/*
-   char hostname[21];
-   
-   gethostname(hostname, 20);
-   for(int i=0;hostname[i];i++)
-      if(hostname[i]=='.')
-      {
-         hostname[i]=0;
-         break;
-      }
-*/   
    if ( !xPL_initialize(xPL_getParsedConnectionType()) ) return 0 ;
    
    // myService = xPL_createService(myVendor, myDevice, myInstance);
@@ -149,8 +139,6 @@ void *_xPL_server_thread(void *data)
    while (1);
 }
 
-
-// pthread_t *xPL_thread=NULL;
 
 pthread_t *xPLServer(queue_t *interfaces)
 {

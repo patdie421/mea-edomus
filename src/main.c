@@ -244,6 +244,8 @@ int main(int argc, const char * argv[])
 
    
    set_verbose_level(9);
+
+   VERBOSE(9) fprintf(stderr,"Starting MEA-EDOMUS 0.1aplha1-A\n");
    
    while ((c = getopt (argc, (char **)argv, "a:")) != -1)
    {

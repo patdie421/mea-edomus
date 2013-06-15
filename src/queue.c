@@ -13,6 +13,9 @@
 
 unsigned long nb_queue_elem(queue_t *queue)
 {
+   if(!queue)
+      return -1;
+
    return queue->nb_elem;
 }
 
@@ -21,6 +24,9 @@ int in_queue_elem(queue_t *queue, void *data)
 {
    struct queue_elem *new;
    
+   if(!queue)
+      return -1;
+
    new=(struct queue_elem *)malloc(sizeof(struct queue_elem));
    if(!new)
       return -1;
@@ -52,6 +58,9 @@ int out_queue_elem(queue_t *queue, void **data)
 {
    struct queue_elem *ptr;
    
+   if(!queue)
+      return -1;
+   
    if(queue->last)
    {
       ptr=queue->last;
@@ -81,6 +90,9 @@ int out_queue_elem(queue_t *queue, void **data)
 
 int init_queue(queue_t *queue)
 {
+   if(!queue)
+      return -1;
+
    queue->first=NULL;
    queue->last=NULL;
    queue->current=NULL;
@@ -145,6 +157,9 @@ int clear_queue(queue_t *queue,free_data_f f)
 {
    struct queue_elem *ptr;
    
+   if(!queue)
+      return -1;
+
    while(queue->nb_elem>0)
    {
       if(queue->last)
@@ -180,6 +195,9 @@ int clear_queue(queue_t *queue,free_data_f f)
 
 int current_queue(queue_t *queue, void **data)
 {
+   if(!queue)
+      return -1;
+
    if(!queue->current)
       return -1;
    
@@ -191,6 +209,9 @@ int current_queue(queue_t *queue, void **data)
 
 int remove_current_queue(queue_t *queue)
 {
+   if(!queue)
+      return -1;
+
     if(queue->nb_elem==0)
        return -1;
    
@@ -242,6 +263,9 @@ int process_all_queue_elem(queue_t *queue, void (*f)(void *))
 {
    struct queue_elem *ptr;
    
+   if(!queue)
+      return -1;
+
    ptr=queue->first;
    if(!ptr)
       return -1;

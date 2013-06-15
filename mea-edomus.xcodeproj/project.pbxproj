@@ -148,6 +148,7 @@
 				4EFBBC801748C9BA00090FEE /* Common */,
 				4E4D4E811601F2930008C14C /* Libs */,
 				4E4D4E7E1601F1510008C14C /* Interfaces */,
+				4E4D4E7F1601F2550008C14C /* db manager */,
 				4E5FC67E1736C8A9004266EB /* plugin manager */,
 				4EFBFCAB175E612D007BBFD1 /* ihm manager */,
 				4EE28EAA162F4DD00090B5B3 /* xPL manager */,
@@ -274,7 +275,6 @@
 		4E5FC67E1736C8A9004266EB /* plugin manager */ = {
 			isa = PBXGroup;
 			children = (
-				4E4D4E7F1601F2550008C14C /* db manager */,
 				4E5E24C4173D09EB00B8CEFE /* Plugins */,
 				4E5E24C0173C346800B8CEFE /* API */,
 				4E5FC67817357D71004266EB /* pythonPluginServer.c */,

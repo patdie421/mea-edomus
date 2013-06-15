@@ -41,7 +41,7 @@ typedef struct interface_type_002_s
    int              id_interface;
    xbee_xd_t       *xd;
    xbee_host_t     *local_xbee;
-   pthread_t       *thread_data;
+   pthread_t       *thread;
    xpl_f            xPL_callback;
    void            *xPL_callback_data;
 } interface_type_002_t;

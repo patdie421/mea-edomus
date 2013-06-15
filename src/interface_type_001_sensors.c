@@ -89,7 +89,7 @@ void _interface_type_001_free_sensors_queue_elem(void *d)
 }
 
 
-int digital_in_trap(int numTrap, void *args, char *buff)
+error_t digital_in_trap(int numTrap, void *args, char *buff)
 {
    struct sensor_s *sensor;
    
@@ -132,7 +132,7 @@ int digital_in_trap(int numTrap, void *args, char *buff)
    
    printf("%d\n",buff[0]);
    
-   return 0;
+   return NOERROR;
 }
 
 
@@ -317,7 +317,7 @@ valid_and_malloc_sensor_clean_exit:
 }
 
 
-int xpl_sensor(interface_type_001_t *i001, xPL_ServicePtr theService, xPL_NameValueListPtr ListNomsValeursPtr, char *device, char *type)
+error_t xpl_sensor(interface_type_001_t *i001, xPL_ServicePtr theService, xPL_NameValueListPtr ListNomsValeursPtr, char *device, char *type)
 {
    queue_t *sensors_list=i001->sensors_list;
    struct sensor_s *sensor;
@@ -357,7 +357,7 @@ int xpl_sensor(interface_type_001_t *i001, xPL_ServicePtr theService, xPL_NameVa
                sprintf(value,"high");
          }
          else
-            return 0;
+            return ERROR;
          
          VERBOSE(9) fprintf(stderr,"INFO  (xPL_callback) : sensor %s = %s\n",sensor->name,value);
          cntrMessageStat = xPL_createBroadcastMessage(theService, xPL_MESSAGE_STATUS) ;
@@ -372,12 +372,12 @@ int xpl_sensor(interface_type_001_t *i001, xPL_ServicePtr theService, xPL_NameVa
          
          xPL_releaseMessage(cntrMessageStat);
          
-         return 1;
+         return NOERROR;
       }
       
       next_queue(sensors_list);
    }
-   return 0;
+   return ERROR;
 }
 
 

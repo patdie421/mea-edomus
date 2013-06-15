@@ -195,7 +195,7 @@ valid_and_malloc_relay_clean_exit:
 }
 
 
-int xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNomsValeursPtr, char *device, char *type)
+error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNomsValeursPtr, char *device, char *type)
 {
    int ret;
    int comio_err;
@@ -208,10 +208,10 @@ int xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNomsValeur
     */
    type_id=get_id_by_string(type);
    if(type_id != XPL_OUTPUT_ID && type_id !=VARIABLE_ID)
-      return 0;
+      return ERROR;
    
    if(first_queue(i001->actuators_list)==-1)
-      return 0;
+      return ERROR;
    
    struct actuator_s *iq;
    while(1)
@@ -252,8 +252,8 @@ int xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNomsValeur
                      pthread_cleanup_pop(0);
                   }
                   else
-                     return 0;
-                  return 1;
+                     return ERROR;
+                  return NOERROR;
                   break;
                }
                   
@@ -269,7 +269,7 @@ int xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNomsValeur
                   else if(strcmplower(current_value, "low")==0)
                      o=0;
                   else
-                     return 0;
+                     return ERROR;
                   
                   VERBOSE(9) fprintf(stderr,"INFO  (xPL_callback) : %s set %d on pin %d\n",device,o,iq->arduino_pin);
                   
@@ -282,7 +282,7 @@ int xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNomsValeur
                   pthread_mutex_unlock(&i001->operation_lock);
                   pthread_cleanup_pop(0);
                   
-                  return 1;
+                  return NOERROR;
                   break;
                }
             }
@@ -343,7 +343,7 @@ int xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNomsValeur
                         else
                         {
                            VERBOSE(9) fprintf(stderr,"INFO  (xPL_callback) : %s ???\n",current_value);
-                           return 0; // erreur de syntaxe ...
+                           return ERROR; // erreur de syntaxe ...
                         }
                      }
                      break;
@@ -367,16 +367,16 @@ int xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNomsValeur
                   pthread_mutex_unlock(&i001->operation_lock);
                   pthread_cleanup_pop(0);
                   
-                  return 1;
+                  return NOERROR;
                   break;
                }
             }
          }
-         return 0;
+         return ERROR;
       }
       ret=next_queue(i001->actuators_list);
       if(ret<0)
          break;
    }
-   return 0;
+   return ERROR;
 }

@@ -1,5 +1,5 @@
 //
-//  ihm.c
+//  httpServer.c
 //  mea-eDomus
 //
 //  Created by Patrice Dietsch on 04/06/13.
@@ -10,6 +10,7 @@
 #include <inttypes.h>
 #include <string.h>
 
+#include "error.h"
 #include "httpServer.h"
 #include "mongoose.h"
 
@@ -51,7 +52,7 @@ static int begin_request_handler(struct mg_connection *conn)
 }
 
 
-int16_t httpServer()
+error_t httpServer()
 {
    struct mg_callbacks callbacks;
 
@@ -62,8 +63,8 @@ int16_t httpServer()
    
    g_mongooseContext = mg_start(&callbacks, NULL, options);
    if (g_mongooseContext == NULL)
-      return 0;
+      return ERROR;
    else
-      return 1;
+      return NOERROR;
 }
 

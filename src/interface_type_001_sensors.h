@@ -9,6 +9,8 @@
 #ifndef _interface_type_001_sensors_h
 #define _interface_type_001_sensors_h
 
+#include "error.h"
+
 #include "interface_type_001.h"
 
 struct sensor_s
@@ -33,7 +35,7 @@ struct sensor_s
 
 struct sensor_s *valid_and_malloc_sensor(int id_sensor_actuator, char *name, char *parameters);
 void _interface_type_001_free_sensors_queue_elem(void *d);
-int digital_in_trap(int numTrap, void *args, char *buff);
-int xpl_sensor(interface_type_001_t *i001, xPL_ServicePtr theService, xPL_NameValueListPtr ListNomsValeursPtr, char *device, char *type);
+error_t digital_in_trap(int numTrap, void *args, char *buff);
+error_t xpl_sensor(interface_type_001_t *i001, xPL_ServicePtr theService, xPL_NameValueListPtr ListNomsValeursPtr, char *device, char *type);
 
 #endif

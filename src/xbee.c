@@ -718,7 +718,7 @@ int hosts_table_display(xbee_hosts_table_t *table)
       uint16_t nb=0;
       
       if(!table)
-         return NULL;
+         return -1;
 
       for(uint16_t i=0;i<table->max_hosts;i++)
       {
