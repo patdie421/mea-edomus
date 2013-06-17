@@ -136,13 +136,23 @@ static void _signal_STOP(int signal_number)
       switch (iq->type)
       {
          case INTERFACE_TYPE_001:
-            stop_interface_type_001((interface_type_001_t *)(iq->context), signal_number);
+         {
+            interface_type_001_t *i001=(interface_type_001_t *)(iq->context);
+            if(i001->xPL_callback)
+               i001->xPL_callback=NULL;
+            stop_interface_type_001(i001, signal_number);
             // rajouter ici les free manquants
             break;
+         }
          case INTERFACE_TYPE_002:
-            stop_interface_type_002((interface_type_002_t *)(iq->context), signal_number);
+         {
+            interface_type_002_t *i002=(interface_type_002_t *)(iq->context);
+            if(i002->xPL_callback)
+               i002->xPL_callback=NULL;
+            stop_interface_type_002(i002, signal_number);
             // rajouter ici les free manquants
             break;
+         }
             
          default:
             break;
@@ -182,6 +192,8 @@ static void _signal_HUP(int signal_number)
             ret=check_status_interface_type_001(i001);
             if( ret != 0)
             {
+               if(i001->xPL_callback)
+                  i001->xPL_callback=NULL;
                sleep(1);
                VERBOSE(5) fprintf(stderr,"%s  (%s) : restart interface type_001 (interface_id=%d).\n", INFO_STR, fn_name, i001->id_interface);
                restart_interface_type_001(i001, sqlite3_param_db, &md);
@@ -194,6 +206,8 @@ static void _signal_HUP(int signal_number)
             ret=check_status_interface_type_002(i002);
             if( ret != 0)
             {
+               if(i002->xPL_callback)
+                  i002->xPL_callback=NULL;
                sleep(1);
                VERBOSE(5) fprintf(stderr,"%s  (%s) : restart interface type_002 (interface_id=%d).\n", INFO_STR, fn_name, i002->id_interface);
                restart_interface_type_002(i002, sqlite3_param_db, &md);

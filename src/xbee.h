@@ -12,6 +12,8 @@
 #include <pthread.h>
 #include <semaphore.h>
 
+#include "error.h"
+
 #include "queue.h"
 
 #define XBEE_MAX_CALLBACK 16
@@ -232,22 +234,22 @@ int16_t xbee_atCmdSend(xbee_xd_t *xd,
                        uint16_t l_frame_data,
                        int16_t *xbee_err);
 
-int xbee_get_host_by_name(xbee_xd_t *xd, xbee_host_t *host, char *name, int16_t *nerr);
-int xbee_get_host_by_addr_64(xbee_xd_t *xd, xbee_host_t *host, uint32_t addr_64_h, uint32_t addr_64_l, int16_t *nerr);
+error_t xbee_get_host_by_name(xbee_xd_t *xd, xbee_host_t *host, char *name, int16_t *nerr);
+error_t xbee_get_host_by_addr_64(xbee_xd_t *xd, xbee_host_t *host, uint32_t addr_64_h, uint32_t addr_64_l, int16_t *nerr);
 
-int xbee_set_iodata_callback(xbee_xd_t *xd, callback_f f);
-int xbee_set_iodata_callback2(xbee_xd_t *xd, callback_f f, void *data);
-int xbee_remove_iodata_callback(xbee_xd_t *xd);
+error_t xbee_set_iodata_callback(xbee_xd_t *xd, callback_f f);
+error_t xbee_set_iodata_callback2(xbee_xd_t *xd, callback_f f, void *data);
+error_t xbee_remove_iodata_callback(xbee_xd_t *xd);
 
-int xbee_set_commissionning_callback(xbee_xd_t *xd, callback_f f);
-int xbee_set_commissionning_callback2(xbee_xd_t *xd, callback_f f, void *data);
-int xbee_remove_commissionning_callback(xbee_xd_t *xd);
+error_t xbee_set_commissionning_callback(xbee_xd_t *xd, callback_f f);
+error_t xbee_set_commissionning_callback2(xbee_xd_t *xd, callback_f f, void *data);
+error_t xbee_remove_commissionning_callback(xbee_xd_t *xd);
 
-int xbee_set_dataflow_callback(xbee_xd_t *xd, callback_f f);
-int xbee_set_dataflow_callback2(xbee_xd_t *xd, callback_f f, void *data);
-int xbee_remove_dataflow_callback(xbee_xd_t *xd);
+error_t xbee_set_dataflow_callback(xbee_xd_t *xd, callback_f f);
+error_t xbee_set_dataflow_callback2(xbee_xd_t *xd, callback_f f, void *data);
+error_t xbee_remove_dataflow_callback(xbee_xd_t *xd);
 
-int xbee_start_network_discovery(xbee_xd_t *xd, int16_t *nerr);
+int16_t xbee_start_network_discovery(xbee_xd_t *xd, int16_t *nerr);
 
 void xbee_perror(int16_t nerr);
 void xbee_free_xd(xbee_xd_t *xd);

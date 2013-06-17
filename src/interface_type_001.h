@@ -10,7 +10,9 @@
 #define __interface_type_001_h
 
 #include <sqlite3.h>
+#include <inttypes.h>
 
+#include "error.h"
 #include "comio.h"
 #include "tomysqldb.h"
 #include "xPLServer.h"
@@ -33,10 +35,10 @@ typedef float (*compute_f)(unsigned int value);
 
 void counters_stop(pthread_t *counters_thread, comio_ad_t *ad, int signal_number);
 
-int stop_interface_type_001(interface_type_001_t *i001, int signal_number);
-int start_interface_type_001(interface_type_001_t *itd, sqlite3 *db, int id_interface, const unsigned char *dev, tomysqldb_md_t *md);
-int restart_interface_type_001(interface_type_001_t *i001,sqlite3 *db, tomysqldb_md_t *md);
+error_t stop_interface_type_001(interface_type_001_t *i001, int signal_number);
+error_t start_interface_type_001(interface_type_001_t *itd, sqlite3 *db, int id_interface, const unsigned char *dev, tomysqldb_md_t *md);
+error_t restart_interface_type_001(interface_type_001_t *i001,sqlite3 *db, tomysqldb_md_t *md);
 
-int check_status_interface_type_001(interface_type_001_t *i001);
+int16_t check_status_interface_type_001(interface_type_001_t *i001);
 
 #endif

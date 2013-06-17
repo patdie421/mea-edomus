@@ -8,6 +8,8 @@
 #ifndef __arduino_pins_h
 #define __arduino_pins_h
 
+#include <inttypes.h>
+
 /* PORTD
  * PIN  0 : [RX]
  * PIN  1 : [TX]
@@ -72,6 +74,6 @@
 #define ARDUINO_AI6 20
 #define ARDUINO_AI7 21
 
-int get_arduino_pin(char *spin);
+int16_t get_arduino_pin(char *spin);
 
 #endif

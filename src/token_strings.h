@@ -8,6 +8,7 @@
 #ifndef __xPL_strings_h
 #define __xPL_strings_h
 
+#include <inttypes.h>
 
 struct token_s
 {
@@ -65,10 +66,12 @@ extern struct token_s tokens_list[];
 #define ID_XBEE_ID                    46
 #define ADDR_H_ID                     47
 #define ADDR_L_ID                     48
+#define DIGITAL_ID                    49
+#define ANALOG_ID                     50
 
 char *get_token_by_id(int id);
-int get_id_by_string(char *str);
-int strcmplower(char *str1, char *str2);
-int int_isin(int val, int list[]);
+int16_t get_id_by_string(char *str);
+int16_t strcmplower(char *str1, char *str2);
+int16_t int_isin(int val, int list[]);
 
 #endif

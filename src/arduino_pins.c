@@ -7,6 +7,8 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <inttypes.h>
+
 #include "token_strings.h"
 #include "arduino_pins.h"
 
@@ -50,7 +52,7 @@ struct arduino_digital_pins arduino_uno_list[]={
 };
 
 
-int get_arduino_pin(char *spin)
+int16_t get_arduino_pin(char *spin)
 {
    for(int i=0;arduino_uno_list[i].name;i++)
    {

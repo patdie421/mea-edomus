@@ -77,7 +77,7 @@ int   _xbee_network_discovery_resp(xbee_xd_t *xd, char *data, uint16_t l_data);
 int16_t
       _xbee_add_response_to_queue(xbee_xd_t *xd, unsigned char *cmd, uint16_t l_cmd);
 
-int   _xbee_display_frame(int ret, unsigned char *resp, uint16_t l_resp);
+void  _xbee_display_frame(int ret, unsigned char *resp, uint16_t l_resp);
 
 void  _xbee_host_set_addr_16(xbee_host_t *xbee_host, char *addr_16);
 void  _xbee_host_set_name(xbee_host_t *xbee_host, unsigned char *name, uint16_t l);
@@ -309,26 +309,26 @@ int _xbee_build_at_remote_cmd(unsigned char *frame, uint8_t id, xbee_host_t *add
 }
 
 
-int xbee_set_iodata_callback(xbee_xd_t *xd, callback_f f)
+error_t xbee_set_iodata_callback(xbee_xd_t *xd, callback_f f)
 /**
  * \brief     met en place le callback qui sera déclenché à la réception d'une trame iodata.
  * \details   reférence le pointeur de la fonction à appeler dans le descripteur.
  * \param     xd     descripteur xbee.
  * \param     f      pointeur sur la fonction à appeler
- * \return    toujours 0
+ * \return    -1 si xd n'est pas initialisé (ie=NULL) 0 sinon
  */
 {
    if(!xd)
-      return -1;
+      return ERROR;
    
    xd->io_callback=f;
    xd->io_callback_data=NULL;
    
-   return 0;
+   return NOERROR;
 }
 
 
-int xbee_set_iodata_callback2(xbee_xd_t *xd, callback_f f, void *data)
+error_t xbee_set_iodata_callback2(xbee_xd_t *xd, callback_f f, void *data)
 /**
  * \brief     met en place le callback qui sera declenché à la réception d'une trame iodata et stock un pointeur sur des données qui seront toujours tramisses au callback.
  * \details   référence le pointeur de la fonction à appeler et un pointeur sur des données (libre, a "caster" void *) dans le descripteur.
@@ -339,16 +339,16 @@ int xbee_set_iodata_callback2(xbee_xd_t *xd, callback_f f, void *data)
  */
 {
    if(!xd)
-      return -1;
+      return ERROR;
 
    xd->io_callback=f;
    xd->io_callback_data=data;
    
-   return 0;
+   return NOERROR;
 }
 
 
-int xbee_remove_iodata_callback(xbee_xd_t *xd)
+error_t xbee_remove_iodata_callback(xbee_xd_t *xd)
 /**
  * \brief     retiré le callback sur réception de trame iodata
  * \details   déréference la fonction et les donnees éventuellement associées.
@@ -357,16 +357,16 @@ int xbee_remove_iodata_callback(xbee_xd_t *xd)
  */
 {
    if(!xd)
-      return -1;
+      return ERROR;
 
    xd->io_callback=NULL;
    xd->io_callback_data=NULL;
    
-   return 0;
+   return NOERROR;
 }
 
 
-int xbee_set_dataflow_callback(xbee_xd_t *xd, callback_f f)
+error_t xbee_set_dataflow_callback(xbee_xd_t *xd, callback_f f)
 /**
  * \brief     met en place le callback qui sera déclenché à la réception d'un flot de données xbee
  * \details   référence le pointeur de la fonction à appeler dans le descripteur.
@@ -376,16 +376,16 @@ int xbee_set_dataflow_callback(xbee_xd_t *xd, callback_f f)
  */
 {
    if(!xd)
-      return -1;
+      return ERROR;
 
    xd->dataflow_callback=f;
    xd->dataflow_callback_data=NULL;
    
-   return 0;
+   return NOERROR;
 }
 
 
-int xbee_set_dataflow_callback2(xbee_xd_t *xd, callback_f f, void *data)
+error_t xbee_set_dataflow_callback2(xbee_xd_t *xd, callback_f f, void *data)
 /**
  * \brief     met en place le callback qui sera declenche a la reception d'un flot de donnees xbee et stock un pointeur sur des donnees qui seront toujours tramisses au callback.
  * \details   reference le pointeur de la fonction a appeler et un pointeur sur des donnees (libre, a caster void *) dans le descripteur. 
@@ -396,16 +396,16 @@ int xbee_set_dataflow_callback2(xbee_xd_t *xd, callback_f f, void *data)
  */
 {
    if(!xd)
-      return -1;
+      return ERROR;
 
    xd->dataflow_callback=f;
    xd->dataflow_callback_data=data;
    
-   return 0;
+   return NOERROR;
 }
 
 
-int xbee_remove_dataflow_callback(xbee_xd_t *xd)
+error_t xbee_remove_dataflow_callback(xbee_xd_t *xd)
 /**
  * \brief     retire le callback sur reception d'un flot de donnees
  * \details   dereference la fonction et les donnees eventuellement associees. 
@@ -414,16 +414,16 @@ int xbee_remove_dataflow_callback(xbee_xd_t *xd)
  */
 {
    if(!xd)
-      return -1;
+      return ERROR;
 
    xd->dataflow_callback=NULL;
    xd->dataflow_callback_data=NULL;
    
-   return 0;
+   return NOERROR;
 }
 
 
-int xbee_set_commissionning_callback(xbee_xd_t *xd, callback_f f)
+error_t xbee_set_commissionning_callback(xbee_xd_t *xd, callback_f f)
 /**
  * \brief     met en place le callback qui sera declenche a la reception d'une demande de commissionnement
  * \details   reference le pointeur de la fonction a appeler dans le descripteur. 
@@ -433,16 +433,16 @@ int xbee_set_commissionning_callback(xbee_xd_t *xd, callback_f f)
  */
 {
    if(!xd)
-      return -1;
+      return ERROR;
 
    xd->commissionning_callback=f;
    xd->commissionning_callback_data=NULL;
    
-   return 0;
+   return NOERROR;
 }
 
 
-int xbee_set_commissionning_callback2(xbee_xd_t *xd, callback_f f, void *data)
+error_t xbee_set_commissionning_callback2(xbee_xd_t *xd, callback_f f, void *data)
 /**
  * \brief     met en place le callback qui sera declenche a la reception d'une demande de commissionnement et stock un pointeur sur des donnees qui seront toujours tramisses au callback.
  * \details   reference le pointeur de la fonction a appeler et un pointeur sur des donnees (libre, a caster void *) dans le descripteur. 
@@ -453,16 +453,16 @@ int xbee_set_commissionning_callback2(xbee_xd_t *xd, callback_f f, void *data)
  */
 {
    if(!xd)
-      return -1;
+      return ERROR;
 
    xd->commissionning_callback=f;
    xd->commissionning_callback_data=data;
    
-   return 0;
+   return NOERROR;
 }
 
 
-int xbee_remove_commissionning_callback(xbee_xd_t *xd)
+error_t xbee_remove_commissionning_callback(xbee_xd_t *xd)
 /**
  * \brief     retire le callback sur reception d'un flot de donnees
  * \details   dereference la fonction et les donnees eventuellement associees. 
@@ -471,12 +471,12 @@ int xbee_remove_commissionning_callback(xbee_xd_t *xd)
  */
 {
    if(!xd)
-      return -1;
+      return ERROR;
 
    xd->commissionning_callback=NULL;
    xd->commissionning_callback_data=NULL;
    
-   return 0;
+   return NOERROR;
 }
 
 
@@ -611,7 +611,7 @@ void _xbee_host_init_addr_64(xbee_host_t *xbee_host, uint32_t int_addr_64_h, uin
 }
 
 
-int xbee_get_host_by_name(xbee_xd_t *xd, xbee_host_t *host, char *name, int16_t *nerr)
+error_t xbee_get_host_by_name(xbee_xd_t *xd, xbee_host_t *host, char *name, int16_t *nerr)
 /**
  * \brief     Recherche dans la table des xbee connus l'xbee qui porte le nom demandé. 
  * \details   retourne une structure contenant la rescription d'un "host" xbee (les adresses, le nom, ...). Le nom n'est recherche que dans la table (pas d'interrogation du réseau si non trouvé)
@@ -632,14 +632,14 @@ int xbee_get_host_by_name(xbee_xd_t *xd, xbee_host_t *host, char *name, int16_t 
       DEBUG_SECTION fprintf(stderr,"DEBUG (xbee_get_host_by_name) : %s not found in xbee host table.\n",name);
       
       *nerr=XBEE_ERR_HOSTNOTFUND;
-      return -1;
+      return ERROR;
    }
    *nerr=XBEE_ERR_NOERR;
-   return 0;
+   return NOERROR;
 }
 
 
-int xbee_get_host_by_addr_64(xbee_xd_t *xd, xbee_host_t *host, uint32_t addr_64_h, uint32_t addr_64_l, int16_t *nerr)
+error_t xbee_get_host_by_addr_64(xbee_xd_t *xd, xbee_host_t *host, uint32_t addr_64_h, uint32_t addr_64_l, int16_t *nerr)
 /**
  * \brief     Recherche un xbee dans la table des xbee connus par son adresse 64 bits. 
  * \details   L'adresse 64 bits est passées à l'aide de de mot de 32 bits (h et l). Si l'adresse n'éxite pas le hosts est construit à partir de l'adresse fournie, les autres élements prennent une valeur par défaut.
@@ -662,10 +662,10 @@ int xbee_get_host_by_addr_64(xbee_xd_t *xd, xbee_host_t *host, uint32_t addr_64_
       
       DEBUG_SECTION fprintf(stderr,"DEBUG (xbee_get_host_by_addr_64) : %08lx-%08lx not found in xbee host table.\n", (unsigned long int)addr_64_h,(unsigned long int)addr_64_l);
       *nerr=XBEE_ERR_HOSTNOTFUND;
-      return -1;
+      return ERROR;
    }
    *nerr=XBEE_ERR_NOERR;
-   return 0;
+   return NOERROR;
 }
 
 
@@ -707,7 +707,7 @@ xbee_hosts_table_t *_hosts_table_create(int max_nb_hosts, int16_t *nerr)
 }
 
 
-int hosts_table_display(xbee_hosts_table_t *table)
+error_t hosts_table_display(xbee_hosts_table_t *table)
 /**
  * \brief     affiche le contenu d'une table hosts xbee.
  * \param     table la table à afficher
@@ -718,7 +718,7 @@ int hosts_table_display(xbee_hosts_table_t *table)
       uint16_t nb=0;
       
       if(!table)
-         return -1;
+         return ERROR;
 
       for(uint16_t i=0;i<table->max_hosts;i++)
       {
@@ -735,7 +735,7 @@ int hosts_table_display(xbee_hosts_table_t *table)
             break;
       }
    }
-   return 0;
+   return NOERROR;
 }
 
 
@@ -786,7 +786,7 @@ _xbee_add_new_to_hosts_table_with_addr64_error:
 }
 
 
-int _xbee_update_hosts_tables(xbee_hosts_table_t *table, char *addr_64_h, char *addr_64_l,  char *addr_16, char *name)
+error_t _xbee_update_hosts_tables(xbee_hosts_table_t *table, char *addr_64_h, char *addr_64_l,  char *addr_16, char *name)
 {
    /**
     * \brief     ajoute ou met à jour la table host avec les éléments transmis en paramètre.
@@ -803,7 +803,7 @@ int _xbee_update_hosts_tables(xbee_hosts_table_t *table, char *addr_64_h, char *
    xbee_host_t *host;
    
    if(!table)
-      return -1;
+      return ERROR;
    
    l_addr_16=addr_16[0]*256+addr_16[1];
    
@@ -820,7 +820,7 @@ int _xbee_update_hosts_tables(xbee_hosts_table_t *table, char *addr_64_h, char *
    {
       host=_xbee_add_new_to_hosts_table_with_addr64(table, l_addr_64_h, l_addr_64_l, &nerr);
       if(!host)
-         return -1;
+         return ERROR;
    }
    
    host->l_addr_16=l_addr_16;
@@ -828,11 +828,11 @@ int _xbee_update_hosts_tables(xbee_hosts_table_t *table, char *addr_64_h, char *
    if(name)
       strcpy(host->name,name);
    
-   return 0;
+   return NOERROR;
 }
 
 
-int xbee_start_network_discovery(xbee_xd_t *xd, int16_t *nerr)
+int16_t xbee_start_network_discovery(xbee_xd_t *xd, int16_t *nerr)
 /**
  * \brief     Lance une découverte du réseau xbee.
  * \details   Envoie la commande ATND en broadcast. Les résultats seront trappés par le thread xbee et la table hosts sera construite ou mise à jour.
@@ -898,10 +898,10 @@ int16_t xbee_atCmdSendAndWaitResp(xbee_xd_t *xd,
                                   uint16_t *l_resp,
                                   int16_t *xbee_err)
 /**
- * \brief     commande AT vers xbee et récupère la réponse
- * \details   Transmet une question de type AT à l'xbee dont l'adresse est precisée par "destination". Cette fonction est compatible multi-tread grâce à l'utilisation d'une file, d'un identifiant de trame et d'un timestamp. La demande est immediatement appliqué. On attends toujours une réponse. Si la réponse n'arrive pas dans les temps, la fonction retourne -1. Elle retourne 0 en cas de succès et met a jour resp, l_resp et xbee_err avec les données de la réponse.
+ * \brief     Transmet une commande AT vers un xbee et lit la réponse
+ * \details   Transmet une question de type AT à l'xbee dont l'adresse est precisée par "destination". Cette fonction est compatible multi-tread grâce à l'utilisation d'une file, d'un identifiant de trame et d'un timestamp. La demande est immediatement appliquée. On attends toujours une réponse. Si la réponse n'arrive pas dans les temps, la fonction retourne -1. Elle retourne 0 en cas de succès et met a jour resp, l_resp et xbee_err avec les données de la réponse.
  * \param     xd           descripteur de communication xbee
- * \param     destination  adresse de l'xbee à commander. Si destination = NULL la commande est destinée à l'xbee local. destination est de type xbee_host_t et doit au moins disposer de l'adresse 64bits correctement positionnée.
+ * \param     destination  adresse de l'xbee à commander. Si destination == NULL la commande est destinée à l'xbee local. destination est de type xbee_host_t et doit au moins disposer de l'adresse 64bits correctement positionnée.
  * \param     frame_data   ensemble de la commande AT à transmettre.
  * \param     l_frame_data longueur de la commande.
  * \param     resp         ensemble de la réponse de l'xbee.
@@ -938,7 +938,6 @@ int16_t xbee_atCmdSendAndWaitResp(xbee_xd_t *xd,
       do
       {
          // on va attendre le retour dans la file des reponses
-         
          pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(xd->sync_lock) );
          pthread_mutex_lock(&(xd->sync_lock));
          if(xd->queue->nb_elem==0 || notfound==1)
@@ -984,14 +983,11 @@ int16_t xbee_atCmdSendAndWaitResp(xbee_xd_t *xd,
 
                         return_val=-1;
                         goto next_or_return;
-                        //pthread_mutex_unlock(&(xd->sync_lock));
-                        //return -1;
                      }
                      
                      if((tsp - e->tsp)<=10) // la reponse est pour nous et dans les temps
                      {
                         // recuperation des donnees
-//                        DEBUG_SECTION fprintf(stderr,"DEBUG (%s) : ok, for me (%d == %d)\n", fn_name, e->cmd[1], frame_data_id);
                         memcpy(resp,e->cmd,e->l_cmd);
                         *l_resp=e->l_cmd;
                         *xbee_err=e->xbee_err;
@@ -1004,8 +1000,6 @@ int16_t xbee_atCmdSendAndWaitResp(xbee_xd_t *xd,
                         
                         return_val=0;
                         goto next_or_return;
-                        //pthread_mutex_unlock(&(xd->sync_lock));
-                        //return 0;
                      }
                      
                      // theoriquement pour nous mais donnees trop vieilles, on supprime
@@ -1039,6 +1033,11 @@ error_exit:
 
 
 void xbee_free_xd(xbee_xd_t *xd)
+/**
+ * \brief     Vide les "conteneurs" (queue et hosts) d'un descipteur xd
+ * \details   Appeler cette fonction avant de libérer la mémoire allouée pour un descipteur de communication xbee afin de vider proprement (pas de memory leak).
+ * \param     xd           descripteur de communication xbeeio
+ */
 {
    if(xd)
    {
@@ -1060,6 +1059,11 @@ void xbee_free_xd(xbee_xd_t *xd)
 
 void xbee_close(xbee_xd_t *xd)
 {
+/**
+* \brief     fermeture d'une communication avec un xbee
+* \details   arrête le thead de gestion de la communication, ménage dans xd et fermeture du "fichier".
+* \param     xd           descripteur de communication xbeeio
+*/
    pthread_cancel(xd->read_thread);
    pthread_join(xd->read_thread, NULL);
    xbee_free_xd(xd);
@@ -1068,6 +1072,10 @@ void xbee_close(xbee_xd_t *xd)
 
 
 void xbee_perror(int16_t nerr)
+/**
+ * \brief     affichage d'un message d'erreur xbeeio sur la sortie d'erreur standard
+ * \param     nerr numero d'erreur xbeeio
+ */
 {
    if(nerr>=0 && nerr<=XBEE_MAX_NB_ERROR)
    {
@@ -1076,7 +1084,7 @@ void xbee_perror(int16_t nerr)
 }
 
 
-int _xbee_display_frame(int ret, unsigned char *resp, uint16_t l_resp)
+void _xbee_display_frame(int ret, unsigned char *resp, uint16_t l_resp)
 {
    DEBUG_SECTION {
       if(!ret)
@@ -1087,7 +1095,6 @@ int _xbee_display_frame(int ret, unsigned char *resp, uint16_t l_resp)
          printf("\n");
       }
    }
-   return 0;
 }
 
 

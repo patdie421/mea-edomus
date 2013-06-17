@@ -203,12 +203,12 @@
 				4E76CEB0163F175100A3EBA9 /* token_strings.c */,
 				4E76CEAA163F146900A3EBA9 /* parameters_mgr.h */,
 				4E76CEA9163F146900A3EBA9 /* parameters_mgr.c */,
-				4E14ABFF16083B8C000686C3 /* memory.c */,
 				4E14AC0016083B8C000686C3 /* memory.h */,
-				4E4A5E9915F003420052ABF4 /* queue.c */,
+				4E14ABFF16083B8C000686C3 /* memory.c */,
 				4E4A5E9A15F003420052ABF4 /* queue.h */,
-				4EFBFCCB175E8BDC007BBFD1 /* python_api_utils.c */,
+				4E4A5E9915F003420052ABF4 /* queue.c */,
 				4EFBFCCD175E8BF7007BBFD1 /* python_api_utils.h */,
+				4EFBFCCB175E8BDC007BBFD1 /* python_api_utils.c */,
 			);
 			name = Utils;
 			sourceTree = "<group>";

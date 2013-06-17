@@ -17,9 +17,11 @@
 #include <errno.h>
 #include <time.h>
 #include <sys/time.h>
+#include <inttypes.h>
 
-#include "debug.h"
 #include "comio.h"
+#include "debug.h"
+#include "error.h"
 
 #define TIMEOUT_DELAY 1
 
@@ -42,27 +44,27 @@ void _comio_free_queue_elem(void *d)
 }
 
 
-int comio_set_trap(comio_ad_t *ad, int numTrap, trap_f trap)
+error_t comio_set_trap(comio_ad_t *ad, int numTrap, trap_f trap)
 {
    if(numTrap>0 && numTrap<=MAX_TRAP)
    {
       ad->tabTrap[numTrap-1].trap=trap;
       ad->tabTrap[numTrap-1].args=NULL;
-      return 0;
+      return NOERROR;
    }
-   return -1;
+   return ERROR;
 }
 
 
-int comio_set_trap2(comio_ad_t *ad, int numTrap, trap_f trap, void *args)
+error_t comio_set_trap2(comio_ad_t *ad, int numTrap, trap_f trap, void *args)
 {
    if(numTrap>0 && numTrap<=MAX_TRAP)
    {
       ad->tabTrap[numTrap-1].trap=trap;
       ad->tabTrap[numTrap-1].args=args;
-      return 0;
+      return NOERROR;
    }
-   return -1;
+   return ERROR;
 }
 
 
@@ -76,26 +78,17 @@ void comio_remove_all_traps(comio_ad_t *ad)
 }
 
 
-int comio_remove_trap(comio_ad_t *ad, int numTrap)
+error_t comio_remove_trap(comio_ad_t *ad, int numTrap)
 {
    if(numTrap>0 && numTrap<=MAX_TRAP)
    {
       ad->tabTrap[numTrap-1].trap=NULL;
       ad->tabTrap[numTrap-1].args=NULL;
-      return 0;
+      return NOERROR;
    }
-   return -1;
+   return ERROR;
 }
 
-/*
-static void _comio_timeout(int signal_number)
-{
-   if (signal_number == SIGALRM)
-   {
-      DEBUG_SECTION fprintf(stderr,"DEBUG (_comio_timeout) : Timeout (read semaphore)\n");
-   }
-}
-*/
 
 int _comio_read(comio_ad_t *ad, unsigned char *op, unsigned char *var, unsigned char *type, unsigned int *val, char **option, int *nerr)
 {
@@ -312,7 +305,7 @@ int _comio_write(comio_ad_t *ad, unsigned char op, unsigned char var, unsigned c
 }
 
 
-int comio_operation(comio_ad_t *ad, unsigned char op, unsigned char var, unsigned char type, unsigned int val, int *comio_err)
+error_t comio_operation(comio_ad_t *ad, unsigned char op, unsigned char var, unsigned char type, unsigned int val, int *comio_err)
 {
    comio_queue_elem_t *c;
    
@@ -348,18 +341,18 @@ int comio_operation(comio_ad_t *ad, unsigned char op, unsigned char var, unsigne
             {
                *comio_err=COMIO_ERR_SYS;
             }
-            return_val=-1;
+            return_val=ERROR;
          }
       }
       
-      if(return_val!=-1)
+      if(return_val!=ERROR)
          ret=out_queue_elem(ad->queue, (void **)&c);
       
       pthread_mutex_unlock(&ad->sync_lock);
       pthread_cleanup_pop(0);
       
-      if(return_val==-1)
-         return -1;
+      if(return_val==ERROR)
+         return ERROR;
       
       if(!ret)
       {
@@ -368,7 +361,7 @@ int comio_operation(comio_ad_t *ad, unsigned char op, unsigned char var, unsigne
             *comio_err=c->comio_err;
             free(c);
             c=NULL;
-            return -1;
+            return ERROR;
          }
          
          if((c->ret_op==op)&&(c->ret_var==var)&&(c->ret_type==type))
@@ -382,17 +375,17 @@ int comio_operation(comio_ad_t *ad, unsigned char op, unsigned char var, unsigne
          else
          {
             *comio_err=COMIO_ERR_DISCORDANCE;
-            return -1;
+            return ERROR;
          }
       }
       else
       {
          *comio_err=COMIO_ERR_UNKNOWN1;
-         return -1;
+         return ERROR;
       }
    }
    *comio_err=COMIO_ERR_UNKNOWN;
-   return -1;
+   return ERROR;
 }
 
 
@@ -484,13 +477,13 @@ void *_comio_read_thread_func(void *args)
 }
 
 
-int comio_call(comio_ad_t *ad, unsigned char num_function, unsigned int val, int *comio_err)
+error_t comio_call(comio_ad_t *ad, unsigned char num_function, unsigned int val, int *comio_err)
 {
    return comio_operation(ad, OP_FONCTION, num_function, TYPE_FONCTION, val, comio_err);
 }
 
 
-int comio_open(comio_ad_t *ad, char *dev)
+int16_t comio_open(comio_ad_t *ad, char *dev)
 {
    struct termios options;
    int fd;
@@ -588,7 +581,7 @@ int comio_open(comio_ad_t *ad, char *dev)
 }
 
 
-int comio_init(comio_ad_t *ad, char *dev)
+int16_t comio_init(comio_ad_t *ad, char *dev)
 {
    int fd;
    int flag=0;

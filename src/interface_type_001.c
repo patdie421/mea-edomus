@@ -25,6 +25,7 @@
 #include "debug.h"
 #include "memory.h"
 #include "macros.h"
+#include "error.h"
 
 #include "comio.h"
 #include "tomysqldb.h"
@@ -51,7 +52,7 @@ struct thread_interface_type_001_params_s
 // xPLSend -c sensor.request -m cmnd request=current device=CONSO type=POWER => dernière puissance instantannée
 // xPLSend -c sensor.request -m cmnd request=current device=CONSO type=ENERGY => valeur du compteur ERDF
 //
-int interface_type_001_xPL_callback(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
+int16_t interface_type_001_xPL_callback(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
 {
    xPL_NameValueListPtr ListNomsValeursPtr ;
    char *schema_type, *schema_class, *device, *type;
@@ -136,15 +137,9 @@ int interface_type_001_xPL_callback(xPL_ServicePtr theService, xPL_MessagePtr th
 }
 
 
-/*
-int cntr_trap(int numTrap, void *args, char *buff)
+error_t stop_interface_type_001(interface_type_001_t *i001, int signal_number)
 {
-   return 0;
-}
-*/
 
-int stop_interface_type_001(interface_type_001_t *i001, int signal_number)
-{
    comio_remove_all_traps(i001->ad);
 
    queue_t *counters_list=i001->counters_list;
@@ -162,7 +157,6 @@ int stop_interface_type_001(interface_type_001_t *i001, int signal_number)
    while(counters_list->nb_elem)
    {
       out_queue_elem(counters_list, (void **)&counter);
-//      comio_remove_trap(i001->ad, counter->trap);
       free(counter);
       counter=NULL;
    }
@@ -171,7 +165,6 @@ int stop_interface_type_001(interface_type_001_t *i001, int signal_number)
    while(sensors_list->nb_elem)
    {
       out_queue_elem(sensors_list, (void **)&sensor);
-//      comio_remove_trap(i001->ad, sensor->arduino_pin+10);
       free(sensor);
       sensor=NULL;
    }
@@ -188,22 +181,22 @@ int stop_interface_type_001(interface_type_001_t *i001, int signal_number)
    {
       pthread_cancel(*(i001->thread));
       pthread_join(*(i001->thread), NULL);
+      FREE(i001->thread);
       i001->thread=NULL;
    }
    
    comio_close(i001->ad);
 
    FREE(i001->ad);
-   FREE(i001->thread);
    FREE(i001->counters_list);
    
    VERBOSE(9) fprintf(stderr,"INFO  (stop_interface_type_001) : stoping counter thread done.\n");
    
-   return 0;
+   return NOERROR;
 }
 
 
-int restart_interface_type_001(interface_type_001_t *i001,sqlite3 *db, tomysqldb_md_t *md)
+error_t restart_interface_type_001(interface_type_001_t *i001,sqlite3 *db, tomysqldb_md_t *md)
 {
    char full_dev[80];
    char dev[80];
@@ -218,7 +211,6 @@ int restart_interface_type_001(interface_type_001_t *i001,sqlite3 *db, tomysqldb
    stop_interface_type_001(i001, 0);
    sleep(1);
    ret=start_interface_type_001(i001, db, id_interface, (const unsigned char *)dev, md);
-   
 
    return ret;
 }
@@ -285,7 +277,7 @@ void *_thread_interface_type_001(void *args)
          {
             current_queue(sensors_list, (void **)&sensor);
 
-            if(sensor->arduino_pin_type==ANALOG_IN_ID)
+            if(sensor->arduino_pin_type==ANALOG_ID)
             {
                int v;
                
@@ -477,7 +469,7 @@ _thread_interface_type_001_operation_abord:
 
 
 
-int check_status_interface_type_001(interface_type_001_t *i001)
+int16_t check_status_interface_type_001(interface_type_001_t *i001)
 {
    if(i001->ad->signal_flag!=0)
       return -1;
@@ -486,7 +478,7 @@ int check_status_interface_type_001(interface_type_001_t *i001)
 }
 
 
-int start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, int id_interface, const unsigned char *dev, tomysqldb_md_t *md)
+error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, int id_interface, const unsigned char *dev, tomysqldb_md_t *md)
 {
    int ret;
    
@@ -510,7 +502,7 @@ int start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, int id_int
    else
    {
       VERBOSE(1) fprintf (stderr, "ERROR (start_interface_type_001) : unknow interface device - %s\n", dev);
-      return -1;
+      return ERROR;
    }
    
    
@@ -521,7 +513,7 @@ int start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, int id_int
       VERBOSE(1) {
          fprintf (stderr, "ERROR (start_interface_type_001) : malloc (%s/%d) - ",__FILE__,__LINE__-4);
          perror(""); }
-      return -1;
+      return ERROR;
    }
    init_queue(i001->counters_list);
    
@@ -533,7 +525,7 @@ int start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, int id_int
       VERBOSE(1) {
          fprintf (stderr, "ERROR (start_interface_type_001) : malloc (%s/%d) - ",__FILE__,__LINE__-4);
          perror(""); }
-      return -1;
+      return ERROR;
    }
    init_queue(i001->actuators_list);
 
@@ -545,7 +537,7 @@ int start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, int id_int
       VERBOSE(1) {
          fprintf (stderr, "ERROR (start_interface_type_001) : malloc (%s/%d) - ",__FILE__,__LINE__-4);
          perror(""); }
-      return -1;
+      return ERROR;
    }
    init_queue(i001->sensors_list);
 
@@ -556,7 +548,7 @@ int start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, int id_int
    if(ret)
    {
       VERBOSE(1) fprintf (stderr, "ERROR (start_interface_type_001) : sqlite3_prepare_v2 - %s\n", sqlite3_errmsg (db));
-      return -1;
+      return ERROR;
    }
    
    // récupération des parametrages des capteurs dans la base
@@ -617,7 +609,7 @@ int start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, int id_int
       {
          // traitement d'erreur à faire ici
          sqlite3_finalize(stmt);
-         return -1;
+         return ERROR;
       }
    }
    
@@ -647,7 +639,7 @@ int start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, int id_int
    else
    {
       fprintf(stderr,"ERROR (start_interface_type_001) : no sensor/actuator active for this interface (%d) : ",id_interface);
-      return -1; // pas de capteur on s'arrête
+      return ERROR; // pas de capteur on s'arrête
    }
    
    
@@ -675,7 +667,7 @@ int start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, int id_int
    
    i001->thread=counters_thread;
    
-   return 0;
+   return NOERROR;
    
 start_interface_type_001_clean_exit:
    FREE(params);
@@ -704,6 +696,6 @@ start_interface_type_001_clean_exit:
       }
    }
    
-   return -1;
+   return ERROR;
 }
 

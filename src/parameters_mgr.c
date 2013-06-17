@@ -16,7 +16,7 @@
 #include "parameters_mgr.h"
 
 
-int is_in_assocs_list(struct assoc_s *assocs_list, int val1, int val2)
+int16_t is_in_assocs_list(struct assoc_s *assocs_list, int val1, int val2)
 {
    for(int i=0;assocs_list[i].val1!=-1;i++)
       if(assocs_list[i].val1==val1 && assocs_list[i].val2==val2)

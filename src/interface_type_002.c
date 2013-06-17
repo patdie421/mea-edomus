@@ -277,7 +277,7 @@ PyObject *stmt_to_pydict_interface(sqlite3_stmt * stmt)
 }
 
 
-error_t _interface_type_002_xPL_callback(xPL_ServicePtr theService, xPL_MessagePtr xplMsg, xPL_ObjectPtr userValue)
+int16_t _interface_type_002_xPL_callback(xPL_ServicePtr theService, xPL_MessagePtr xplMsg, xPL_ObjectPtr userValue)
 {
 //   static const char *fn_name = "interface_type_002_xPL_callback";
    const char *fn_name=__func__;
@@ -821,23 +821,24 @@ error_t stop_interface_type_002(interface_type_002_t *i002, int signal_number)
    
    VERBOSE(5) fprintf(stderr,"%s  (%s) : shutdown interface_type_002 thread (signal = %d).\n",INFO_STR, fn_name,signal_number);
 
+   if(i002->xPL_callback)
+      i002->xPL_callback=NULL;
    if(i002->thread)
    {
       pthread_cancel(*(i002->thread));
       pthread_join(*(i002->thread), NULL);
-      FREE(i002->thread);
    }
+   FREE(i002->thread);
    
    xbee_remove_iodata_callback(i002->xd);
    xbee_remove_commissionning_callback(i002->xd);
    xbee_remove_dataflow_callback(i002->xd);
 
    xbee_close(i002->xd);
-   xbee_free_xd(i002->xd);
    free(i002->xd);
 
    FREE(i002->local_xbee);
-   
+
    VERBOSE(5) fprintf(stderr,"%s  (%s) : counter thread is down.\n",INFO_STR, fn_name);
    
    return NOERROR;
@@ -896,6 +897,8 @@ error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, int id
    struct callback_commissionning_data_s *commissionning_callback_params=NULL;
    struct callback_xpl_data_s *xpl_callback_params=NULL;
    struct callback_data_s *xbeedata_callback_params=NULL;
+   
+   i002->thread=NULL;
    
    if(sscanf((char *)dev,"SERIAL://%s",buff)==1)
       sprintf(unix_dev,"/dev/%s",buff);
@@ -1037,7 +1040,7 @@ clean_exit:
    }
    
    // vider la queue de callback_data_iodata
-   if(i002->thread);
+   if(i002->thread)
       stop_interface_type_002(i002, 0);
    
    if(xbeedata_callback_params)

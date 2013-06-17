@@ -6,6 +6,7 @@
  *
  */
 #include "queue.h"
+#include "error.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,16 +21,16 @@ unsigned long nb_queue_elem(queue_t *queue)
 }
 
 
-int in_queue_elem(queue_t *queue, void *data)
+error_t in_queue_elem(queue_t *queue, void *data)
 {
    struct queue_elem *new;
    
    if(!queue)
-      return -1;
+      return ERROR;
 
    new=(struct queue_elem *)malloc(sizeof(struct queue_elem));
    if(!new)
-      return -1;
+      return ERROR;
    
    new->d=data;
    
@@ -50,16 +51,16 @@ int in_queue_elem(queue_t *queue, void *data)
    
    queue->nb_elem++;
    
-   return 0;
+   return NOERROR;
 }
 
 
-int out_queue_elem(queue_t *queue, void **data)
+error_t out_queue_elem(queue_t *queue, void **data)
 {
    struct queue_elem *ptr;
    
    if(!queue)
-      return -1;
+      return ERROR;
    
    if(queue->last)
    {
@@ -80,85 +81,86 @@ int out_queue_elem(queue_t *queue, void **data)
       ptr=NULL;
    }
    else 
-      return -1;
+      return ERROR;
    
    queue->nb_elem--;
    
-   return 0;
+   return NOERROR;
 }
 
 
-int init_queue(queue_t *queue)
+error_t init_queue(queue_t *queue)
 {
    if(!queue)
-      return -1;
+      return ERROR;
 
    queue->first=NULL;
    queue->last=NULL;
    queue->current=NULL;
    queue->nb_elem=0;
    
-   return 0;
+   return NOERROR;
 }
 
 
-int first_queue(queue_t *queue)
+error_t first_queue(queue_t *queue)
 {
     if(!queue || !queue->first)
-      return -1;
+      return ERROR;
    
    queue->current=queue->first;
-   return 0;
+   return NOERROR;
 }
 
 
-int last_queue(queue_t *queue)
+error_t last_queue(queue_t *queue)
 {
-   if(!queue->last)
-      return -1;
+   if(!queue || !queue->last)
+      return ERROR;
    
    queue->current=queue->last;
-   return 0;
+   return NOERROR;
 }
 
 
-int next_queue(queue_t *queue)
+error_t next_queue(queue_t *queue)
 {
-   if(!queue->current)
-      return -1;
+   if(!queue || !queue->current)
+      return ERROR;
+   
    if(!queue->current->next)
    {
       queue->current=NULL;
-      return -1;
+      return ERROR;
    }
    
    queue->current=queue->current->next;
-   return 0;
+   return NOERROR;
 }
 
 
-int prev_queue(queue_t *queue)
+error_t prev_queue(queue_t *queue)
 {
-   if(!queue->current)
-      return -1;
+   if(!queue || !queue->current)
+      return ERROR;
    if(!queue->current->prev)
    {
       queue->current=NULL;
-      return -1;
+      return ERROR;
    }
    
    queue->current=queue->current->prev;
    
-   return 0;
+   return NOERROR;
 }
 
 
-int clear_queue(queue_t *queue,free_data_f f)
+error_t clear_queue(queue_t *queue,free_data_f f)
 {
    struct queue_elem *ptr;
    
    if(!queue)
-      return -1;
+      return ERROR;
 
    while(queue->nb_elem>0)
    {
@@ -185,35 +187,35 @@ int clear_queue(queue_t *queue,free_data_f f)
          ptr=NULL;
       }
       else 
-         return 0;
+         return NOERROR;
       
       queue->nb_elem--;		
    }
-   return 0;
+   return NOERROR;
 }
 
 
-int current_queue(queue_t *queue, void **data)
+error_t current_queue(queue_t *queue, void **data)
 {
    if(!queue)
-      return -1;
+      return ERROR;
 
    if(!queue->current)
-      return -1;
+      return ERROR;
    
    *data=queue->current->d;
    
-   return 0;
+   return NOERROR;
 }
 
 
-int remove_current_queue(queue_t *queue)
+error_t remove_current_queue(queue_t *queue)
 {
    if(!queue)
-      return -1;
+      return ERROR;
 
     if(queue->nb_elem==0)
-       return -1;
+       return ERROR;
    
     if(queue->nb_elem==1)
     {
@@ -222,7 +224,7 @@ int remove_current_queue(queue_t *queue)
        queue->first=NULL;
        queue->last=NULL;
        queue->nb_elem=0;
-       return 0;
+       return NOERROR;
     }
    
    struct queue_elem *prev;
@@ -255,20 +257,20 @@ int remove_current_queue(queue_t *queue)
    
    free(old);
    
-   return 0;
+   return NOERROR;
 }
 
 
-int process_all_queue_elem(queue_t *queue, void (*f)(void *))
+error_t process_all_queue_elem(queue_t *queue, void (*f)(void *))
 {
    struct queue_elem *ptr;
    
    if(!queue)
-      return -1;
+      return ERROR;
 
    ptr=queue->first;
    if(!ptr)
-      return -1;
+      return ERROR;
    do
    {
       f(ptr->d);
@@ -276,6 +278,6 @@ int process_all_queue_elem(queue_t *queue, void (*f)(void *))
       
    } while (ptr);
    
-   return 0;
+   return NOERROR;
 }
 

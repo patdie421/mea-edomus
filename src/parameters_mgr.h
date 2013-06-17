@@ -40,6 +40,6 @@ parsed_parameter_t *malloc_parsed_parameters(char *parameters_string, char *para
 void free_parsed_parameters(parsed_parameter_t *params, int nb_params);
 void display_parsed_parameters(parsed_parameter_t *params, int nb_params);
 
-int is_in_assocs_list(struct assoc_s *assocs_list, int val1, int val2);
+int16_t is_in_assocs_list(struct assoc_s *assocs_list, int val1, int val2);
 
 #endif

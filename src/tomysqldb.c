@@ -27,10 +27,6 @@
 int tomysqldb_connect(tomysqldb_md_t *md, MYSQL **conn);
 
 
-// #define SQLITEDB "/Users/patrice/db/domotique_dev.db"
-
-
-
 void _tomysqldb_free_queue_elem(void *d) // pour vider_file2
 {
    tomysqldb_queue_elem_t *e=(tomysqldb_queue_elem_t *)d;

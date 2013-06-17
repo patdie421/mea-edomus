@@ -315,7 +315,6 @@ void *_pythonPlugin_thread(void *data)
       
       if(!ret)
       {
-         
          plugin_queue_elem_t *data = (plugin_queue_elem_t *)e->data;
 
          PyThreadState *tempState=NULL;
@@ -331,7 +330,6 @@ void *_pythonPlugin_thread(void *data)
          PyThreadState_Swap(tempState);
          PyEval_ReleaseLock(); // DEBUG_PyEval_ReleaseLock(fn_name, &local_last_time);
          pthread_cleanup_pop(0);
-
          
          if(e)
          {
@@ -360,7 +358,6 @@ void *_pythonPlugin_thread(void *data)
    
    return NULL;
 }
-
 
 
 pthread_t *pythonPluginServer(queue_t *plugin_queue)

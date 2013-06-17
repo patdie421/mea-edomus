@@ -24,29 +24,29 @@
 
 
 // PIN=D5;TYPE=DIGITAL_OUT
-char *valid_relay_params[]={"S:PIN","S:TYPE","S:ACTION",NULL};
+char *valid_relay_params[]={"S:PIN","S:MODE","S:ACTION",NULL};
 #define RELAY_PARAMS_PIN        0
 #define RELAY_PARAMS_TYPE       1
 #define RELAY_PARAMS_ACTION     2
 
 
 struct assoc_s type_pin_assocs_i001_actuators[] = {
-   {DIGITAL_OUT_ID,ARDUINO_D5},
-   {DIGITAL_OUT_ID,ARDUINO_D11},
-   {DIGITAL_OUT_ID,ARDUINO_D13},
-   {DIGITAL_OUT_ID,ARDUINO_AI0},
-   {DIGITAL_OUT_ID,ARDUINO_AI1},
-   {DIGITAL_OUT_ID,ARDUINO_AI2},
-   {ANALOG_OUT_ID, ARDUINO_D5},
-   {ANALOG_OUT_ID, ARDUINO_D11},
+   {DIGITAL_ID,ARDUINO_D5},
+   {DIGITAL_ID,ARDUINO_D11},
+   {DIGITAL_ID,ARDUINO_D13},
+   {DIGITAL_ID,ARDUINO_AI0},
+   {DIGITAL_ID,ARDUINO_AI1},
+   {DIGITAL_ID,ARDUINO_AI2},
+   {ANALOG_ID, ARDUINO_D5},
+   {ANALOG_ID, ARDUINO_D11},
    {-1,-1}
 };
 
 
 struct assoc_s type_action_assocs_i001_actuator[] = {
-   {DIGITAL_OUT_ID, XPL_PULSE_ID},
-   {DIGITAL_OUT_ID, ONOFF_ID},
-   {ANALOG_OUT_ID, PWM_ID},
+   {DIGITAL_ID, XPL_PULSE_ID},
+   {DIGITAL_ID, ONOFF_ID},
+   {ANALOG_ID, PWM_ID},
    {-1,-1}
 };
 
@@ -157,10 +157,10 @@ struct actuator_s *valid_and_malloc_actuator(int id_sensor_actuator, char *name,
             case 0:
                switch(type_id)
                {
-                  case DIGITAL_OUT_ID:
+                  case DIGITAL_ID:
                      actuator->arduino_function=1;
                      break;
-                  case ANALOG_OUT_ID:
+                  case ANALOG_ID:
                      actuator->arduino_function=2;
                      break;
                }

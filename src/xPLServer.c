@@ -80,14 +80,16 @@ void cmndMsgHandler(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xPL_Ob
          case INTERFACE_TYPE_001:
          {
             interface_type_001_t *i001 = (interface_type_001_t *)(iq->context);
-            i001->xPL_callback(theService, theMessage, (xPL_ObjectPtr)i001);
+            if(i001->xPL_callback)
+               i001->xPL_callback(theService, theMessage, (xPL_ObjectPtr)i001);
             break;
          }
 
          case INTERFACE_TYPE_002:
          {
             interface_type_002_t *i002 = (interface_type_002_t *)(iq->context);
-            i002->xPL_callback(theService, theMessage, (xPL_ObjectPtr)i002);
+            if(i002->xPL_callback)
+               i002->xPL_callback(theService, theMessage, (xPL_ObjectPtr)i002);
             break;
          }
          default:

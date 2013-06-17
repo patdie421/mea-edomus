@@ -25,7 +25,7 @@
 
 
 // parametres valide pour les capteurs ou actionneurs pris en compte par le type 1.
-char *valid_sensor_params[]={"S:PIN","S:TYPE","S:COMPUTE","S:ALGO",NULL};
+char *valid_sensor_params[]={"S:PIN","S:MODE","S:COMPUTE","S:ALGO",NULL};
 #define SENSOR_PARAMS_PIN       0
 #define SENSOR_PARAMS_TYPE      1
 #define SENSOR_PARAMS_COMPUTE   2
@@ -33,17 +33,17 @@ char *valid_sensor_params[]={"S:PIN","S:TYPE","S:COMPUTE","S:ALGO",NULL};
 
 
 struct assoc_s type_pin_assocs_i001_sensors[] = {
-   {DIGITAL_IN_ID, ARDUINO_D4},
-   {DIGITAL_IN_ID, ARDUINO_D10},
-   {DIGITAL_IN_ID, ARDUINO_D12},
-   {ANALOG_IN_ID,  ARDUINO_AI3},
+   {DIGITAL_ID, ARDUINO_D4},
+   {DIGITAL_ID, ARDUINO_D10},
+   {DIGITAL_ID, ARDUINO_D12},
+   {ANALOG_ID,  ARDUINO_AI3},
    {-1,-1}
 };
 
 
 struct assoc_s type_compute_assocs_i001_sensors[] = {
-   {ANALOG_IN_ID, XPL_TEMP_ID},
-   {ANALOG_IN_ID, XPL_VOLTAGE_ID},
+   {ANALOG_ID, XPL_TEMP_ID},
+   {ANALOG_ID, XPL_VOLTAGE_ID},
    {-1,-1}
 };
 
@@ -248,10 +248,10 @@ struct sensor_s *valid_and_malloc_sensor(int id_sensor_actuator, char *name, cha
       
       switch(type_id)
       {
-         case ANALOG_IN_ID:
+         case ANALOG_ID:
             sensor->arduino_function=5;
             break;
-         case DIGITAL_IN_ID:
+         case DIGITAL_ID:
             sensor->arduino_function=6;
             break;
          default:

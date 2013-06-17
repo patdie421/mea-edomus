@@ -31,7 +31,7 @@ void debug_off()
 }
 
 
-int debug_status()
+int16_t debug_status()
 {
    return debug_msg;
 }

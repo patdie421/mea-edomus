@@ -9,9 +9,11 @@
 
 #include <pthread.h>
 #include <semaphore.h>
+#include <inttypes.h>
 
 #include "debug.h"
 #include "queue.h"
+#include "error.h"
 
 #define MAX_TRAP              40
 
@@ -75,17 +77,17 @@ typedef struct comio_ad_s
 } comio_ad_t;
 
 
-int  comio_open(comio_ad_t *ad,char *dev);
-int  comio_init(comio_ad_t *ad, char *dev);
-int  comio_operation(comio_ad_t *ad, unsigned char op, unsigned char var, unsigned char type, unsigned int val, int *comio_err);
+int16_t comio_open(comio_ad_t *ad,char *dev);
+int16_t comio_init(comio_ad_t *ad, char *dev);
+error_t  comio_operation(comio_ad_t *ad, unsigned char op, unsigned char var, unsigned char type, unsigned int val, int *comio_err);
 void comio_close(comio_ad_t *ad);
 
-int  comio_set_trap(comio_ad_t *ad, int numTrap, trap_f trap);
-int  comio_set_trap2(comio_ad_t *ad, int numTrap, trap_f trap, void *args);
-int  comio_remove_trap(comio_ad_t *ad, int numTrap);
+error_t comio_set_trap(comio_ad_t *ad, int numTrap, trap_f trap);
+error_t comio_set_trap2(comio_ad_t *ad, int numTrap, trap_f trap, void *args);
+error_t comio_remove_trap(comio_ad_t *ad, int numTrap);
 void comio_remove_all_traps(comio_ad_t *ad);
 
-int  comio_call(comio_ad_t *ad, unsigned char num_function, unsigned int val, int *comio_err);
+error_t comio_call(comio_ad_t *ad, unsigned char num_function, unsigned int val, int *comio_err);
 
 
 #endif

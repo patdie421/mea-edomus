@@ -45,7 +45,7 @@ extern int verbose_level;
 
 void debug_on();
 void debug_off();
-int debug_status();
+int16_t debug_status();
 void set_verbose_level(int level);
 
 uint32_t start_chrono(uint32_t *_last_time);

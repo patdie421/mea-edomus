@@ -62,6 +62,8 @@ struct token_s tokens_list[]={
    {"ID_XBEE",                    ID_XBEE_ID},
    {"ADDR_H",                     ADDR_H_ID},
    {"ADDR_L",                     ADDR_L_ID},
+   {"digital",                    DIGITAL_ID},
+   {"analog",                     ANALOG_ID},
    {NULL,0}
 };
 
@@ -77,7 +79,7 @@ char *get_token_by_id(int id)
 }
 
 
-int get_id_by_string(char *str)
+int16_t get_id_by_string(char *str)
 {
    if(!str)
       return -1;
@@ -91,7 +93,7 @@ int get_id_by_string(char *str)
 }
 
 
-int strcmplower(char *str1, char *str2)
+int16_t strcmplower(char *str1, char *str2)
 {
    int i;
    for(i=0;str1[i];i++)
@@ -103,7 +105,7 @@ int strcmplower(char *str1, char *str2)
 }
 
 
-int int_isin(int val, int list[])
+int16_t int_isin(int val, int list[])
 {
    for(int i=0; list[i]!=-1; i++)
       if(val==list[i])
