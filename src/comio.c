@@ -333,7 +333,7 @@ error_t comio_operation(comio_ad_t *ad, unsigned char op, unsigned char var, uns
             {
                *comio_err=COMIO_ERR_TIMEOUT;
                
-               DEBUG_SECTION fprintf(stderr,"DEBUG (comio_operation) : Nb elements in queue after TIMEOUT : %ld)\n",ad->queue->nb_elem);
+               DEBUG_SECTION fprintf(stderr,"%s (%s) : Nb elements in queue after TIMEOUT : %ld)\n",DEBUG_STR,__func__,ad->queue->nb_elem);
                if(ad->queue->nb_elem>0) // on vide s'il y a quelque chose avant de partir
                   clear_queue(ad->queue,_comio_free_queue_elem);
             }
@@ -424,7 +424,7 @@ void *_comio_read_thread_func(void *args)
          else
          {
             VERBOSE(1) {
-               fprintf (stderr, "ERROR (arduino_read_thread_func) : malloc error (%s/%d) - ",__FILE__,__LINE__);
+               fprintf (stderr, "%s (%s) : malloc error (%s/%d) - ",ERROR_STR,__func__,__FILE__,__LINE__);
                perror("");
             }
             pthread_exit(NULL);
@@ -439,7 +439,7 @@ void *_comio_read_thread_func(void *args)
                ad->tabTrap[ret-1].trap(ret,ad->tabTrap[ret-1].args,NULL);
             else
             {
-               DEBUG_SECTION fprintf(stderr,"DEBUG (_comio_read_thread_func) : no handler for trap %d.\n",ret);
+               DEBUG_SECTION fprintf(stderr,"%s (%s) : no handler for trap %d.\n",DEBUG_STR,__func__,ret);
             }
          }
          else
@@ -450,7 +450,7 @@ void *_comio_read_thread_func(void *args)
                ad->tabTrap[trap].trap(ret-256,ad->tabTrap[trap].args, buff);
             else
             {
-               DEBUG_SECTION fprintf(stderr,"DEBUG (_comio_read_thread_func) : no handler for long trap %d.\n",trap);
+               DEBUG_SECTION fprintf(stderr,"%s (%s) : no handler for long trap %d.\n",DEBUG_STR,__func__,trap);
             }
             free(buff);
          }
@@ -462,7 +462,7 @@ void *_comio_read_thread_func(void *args)
          {
             // connection lost with arduino
             VERBOSE(1) {
-               fprintf(stderr,"ERROR (_comio_read_thread_func) : irremediable error (%d) - ",nerr);
+               fprintf(stderr,"%s (%s) : irremediable error (%d) - ",ERROR_STR,__func__,nerr);
                perror("");
             }
             ad->signal_flag=1;
@@ -559,7 +559,7 @@ int16_t comio_open(comio_ad_t *ad, char *dev)
    if(!ad->queue)
    {
       VERBOSE(1) {
-         fprintf (stderr, "ERROR (comio_open) : malloc error (%s/%d) - ",__FILE__,__LINE__);
+         fprintf (stderr, "%s (%s) : malloc error (%s/%d) - ",ERROR_STR,__func__,__FILE__,__LINE__);
          perror("");
       }
       return -1;
@@ -586,7 +586,7 @@ int16_t comio_init(comio_ad_t *ad, char *dev)
    int fd;
    int flag=0;
    
-   VERBOSE(5) fprintf(stderr,"INFO  (comio_init) : try to initialize commmunication (%s).\n",dev);
+   VERBOSE(5) fprintf(stderr,"%s  (%s) : try to initialize commmunication (%s).\n",INFO_STR,__func__,dev);
    
    //comio_close(ad);
    for(int i=0;i<5;i++) // try 5 times to reopen
@@ -595,7 +595,7 @@ int16_t comio_init(comio_ad_t *ad, char *dev)
       if (fd == -1)
       {
          VERBOSE(5) {
-            fprintf(stderr,"INFO  (comio_init) : unable to open serial port (%s) - ",dev);
+            fprintf(stderr,"%s  (%s) : unable to open serial port (%s) - ",INFO_STR,__func__,dev);
             perror("");
          }
       }
@@ -609,11 +609,11 @@ int16_t comio_init(comio_ad_t *ad, char *dev)
    
    if(!flag)
    {
-      VERBOSE(1) fprintf(stderr,"ERROR (comio_init) : can't initialize communication.\n");
+      VERBOSE(1) fprintf(stderr,"%s (%s) : can't initialize communication.\n", ERROR_STR,__func__);
       return -1;
    }
    
-   VERBOSE(5) fprintf(stderr,"INFO  (comio_init) : initialisazion done.\n");
+   VERBOSE(9) fprintf(stderr,"%s  (%s) : initialisazion done.\n", INFO_STR,__func__);
    return fd;
 }
 

@@ -103,7 +103,7 @@ error_t display_frame(int ret, unsigned char *resp, uint16_t l_resp)
       if(!ret)
       {
          for(int i=0;i<l_resp;i++)
-            fprintf(stderr,"%s (display_frame) : %02x-[%c](%03d)\n",DEBUG_STR, resp[i],resp[i],resp[i]);
+            fprintf(stderr,"%s (%s) : %02x-[%c](%03d)\n",DEBUG_STR,__func__,resp[i],resp[i],resp[i]);
          printf("\n");
       }
    }
@@ -115,7 +115,7 @@ void display_addr(char *a)
 {
    DEBUG_SECTION {
       for(int i=0;i<4;i++)
-         fprintf(stderr,"%s (display_addr) : %02x",DEBUG_STR, a[i]);
+         fprintf(stderr,"%s (%s) : %02x",DEBUG_STR, __func__,a[i]);
    }
 }
 
@@ -279,9 +279,6 @@ PyObject *stmt_to_pydict_interface(sqlite3_stmt * stmt)
 
 int16_t _interface_type_002_xPL_callback(xPL_ServicePtr theService, xPL_MessagePtr xplMsg, xPL_ObjectPtr userValue)
 {
-//   static const char *fn_name = "interface_type_002_xPL_callback";
-   const char *fn_name=__func__;
-
    xPL_NameValueListPtr xplBody;
    char *device;
    int ret;
@@ -308,7 +305,7 @@ int16_t _interface_type_002_xPL_callback(xPL_ServicePtr theService, xPL_MessageP
    ret = sqlite3_prepare_v2(params_db, sql, strlen(sql)+1, &stmt, NULL);
    if(ret)
    {
-      VERBOSE(1) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, fn_name, sqlite3_errmsg (params_db));
+      VERBOSE(1) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (params_db));
       return NOERROR;
    }
    
@@ -409,9 +406,6 @@ error_t _inteface_type_002_xbeedata_callback(int id, unsigned char *cmd, uint16_
 
 error_t _interface_type_002_commissionning_callback(int id, unsigned char *cmd, uint16_t l_cmd, void *data, char *addr_h, char *addr_l)
 {
-//   static const char *fn_name = "commissionning_callback";
-   const char *fn_name=__func__;
-   
    struct xbee_node_identification_response_s *nd_resp;
    struct xbee_node_identification_nd_data_s *nd_data;
    int rval=0;
@@ -436,7 +430,7 @@ error_t _interface_type_002_commissionning_callback(int id, unsigned char *cmd, 
            nd_resp->addr_64_l[2],
            nd_resp->addr_64_l[3]);
    
-   VERBOSE(9) printf("%s (%s) : commissionning request received from %s.\n", INFO_STR, fn_name, addr);
+   VERBOSE(9) printf("%s (%s) : commissionning request received from %s.\n", INFO_STR, __func__, addr);
    
    char sql[1024];
    sqlite3_stmt * stmt;
@@ -445,7 +439,7 @@ error_t _interface_type_002_commissionning_callback(int id, unsigned char *cmd, 
    int ret = sqlite3_prepare_v2(params_db,sql,strlen(sql)+1,&stmt,NULL);
    if(ret)
    {
-      VERBOSE(1) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, fn_name, sqlite3_errmsg (params_db));
+      VERBOSE(1) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (params_db));
       return ERROR;
    }
    
@@ -504,9 +498,9 @@ error_t _interface_type_002_commissionning_callback(int id, unsigned char *cmd, 
    
    VERBOSE(9) {
       if(!rval)
-         printf("%s (%s) : commissionning request transmitted.\n", INFO_STR, fn_name);
+         printf("%s (%s) : commissionning request transmitted.\n", INFO_STR, __func__);
       else
-         printf("%s (%s) : can't transmit commissionning request.\n", INFO_STR, fn_name);
+         printf("%s (%s) : can't transmit commissionning request.\n", INFO_STR, __func__);
    }
    return rval;
 }
@@ -554,9 +548,6 @@ void *_thread_interface_type_002_xbeedata_cleanup(void *args)
 
 void *_thread_interface_type_002_xbeedata(void *args)
 {
-//   static const char *fn_name="_thread_interface_type_002_xbeedata";
-   const char *fn_name=__func__;
-   
    struct thread_params_s *params=(struct thread_params_s *)args;
 
    pthread_cleanup_push( (void *)_thread_interface_type_002_xbeedata_cleanup, (void *)params );
@@ -594,7 +585,7 @@ void *_thread_interface_type_002_xbeedata(void *args)
          {
             if(ret==ETIMEDOUT)
             {
-               DEBUG_SECTION fprintf(stderr,"%s (%s) : Nb elements in queue after TIMEOUT : %ld)\n", DEBUG_STR, fn_name, params->queue->nb_elem);
+               DEBUG_SECTION fprintf(stderr,"%s (%s) : Nb elements in queue after TIMEOUT : %ld)\n", DEBUG_STR, __func__, params->queue->nb_elem);
             }
             else
             {
@@ -623,14 +614,16 @@ void *_thread_interface_type_002_xbeedata(void *args)
                  e->addr_64_l[1],
                  e->addr_64_l[2],
                  e->addr_64_l[3]);
-         VERBOSE(9) fprintf(stderr, "%s  (%s) : data from = %s received\n",INFO_STR, fn_name, addr);
+         VERBOSE(9) fprintf(stderr, "%s  (%s) : data from = %s received\n",INFO_STR, __func__, addr);
          
          sprintf(sql,"%s WHERE interfaces.dev ='MESH://%s';", sql_select_device_info, addr);
          ret = sqlite3_prepare_v2(params_db,sql,strlen(sql)+1,&(params->stmt),NULL);
          if(ret)
          {
-            VERBOSE(1) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, fn_name, sqlite3_errmsg (params_db));
-            exit(1);
+            VERBOSE(1) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (params_db));
+            raise(SIGQUIT); // arreur du process
+            sleep(5); // on attend 5 secondes avant de s'arrter seul.
+            pthread_exit(NULL);
          }
          
          while(1)
@@ -701,7 +694,7 @@ void *_thread_interface_type_002_xbeedata(void *args)
                }
                else
                {
-                  VERBOSE(1) fprintf(stderr,"%s (%s) : %s\n", ERROR_STR, fn_name, MALLOC_ERROR_STR);
+                  VERBOSE(1) fprintf(stderr,"%s (%s) : %s\n", ERROR_STR, __func__, MALLOC_ERROR_STR);
                   pthread_exit(PTHREAD_CANCELED);
                }
                free_parsed_parameters(params->plugin_params, params->nb_plugin_params);
@@ -732,7 +725,7 @@ void *_thread_interface_type_002_xbeedata(void *args)
       else
       {
          // pb d'accs aux donnŽes de la file
-         VERBOSE(5) fprintf(stderr,"%s (%s) : out_queue_elem - can't access\n", ERROR_STR, fn_name);
+         VERBOSE(5) fprintf(stderr,"%s (%s) : out_queue_elem - can't access\n", ERROR_STR, __func__);
       }
       pthread_testcancel();
    }
@@ -745,9 +738,6 @@ void *_thread_interface_type_002_xbeedata(void *args)
 
 pthread_t *start_interface_type_002_xbeedata_thread(interface_type_002_t *i002, xbee_xd_t *xd, sqlite3 *db, tomysqldb_md_t *md,thread_f function)
 {
-//   static const char *fn_name="start_interface_type_002_thread";
-   const char *fn_name=__func__;
-   
    pthread_t *thread=NULL;
    struct thread_params_s *params=NULL;
    struct callback_data_s *callback_xbeedata=NULL;
@@ -755,13 +745,13 @@ pthread_t *start_interface_type_002_xbeedata_thread(interface_type_002_t *i002, 
    params=malloc(sizeof(struct thread_params_s));
    if(!params)
    {
-      VERBOSE(1) fprintf(stderr,"%s (%s) : %s\n", ERROR_STR, fn_name, MALLOC_ERROR_STR);
+      VERBOSE(1) fprintf(stderr,"%s (%s) : %s\n", ERROR_STR, __func__, MALLOC_ERROR_STR);
       goto clean_exit;
    }
    params->queue=(queue_t *)malloc(sizeof(queue_t));
    if(!params->queue)
    {
-      VERBOSE(1) fprintf(stderr,"%s (%s) : %s\n", ERROR_STR, fn_name, MALLOC_ERROR_STR);
+      VERBOSE(1) fprintf(stderr,"%s (%s) : %s\n", ERROR_STR, __func__, MALLOC_ERROR_STR);
       goto clean_exit;
    }
    init_queue(params->queue);
@@ -779,7 +769,7 @@ pthread_t *start_interface_type_002_xbeedata_thread(interface_type_002_t *i002, 
    callback_xbeedata=(struct callback_data_s *)malloc(sizeof(struct callback_data_s));
    if(!callback_xbeedata)
    {
-      VERBOSE(1) fprintf(stderr,"%s (%s) : %s\n", ERROR_STR, fn_name, MALLOC_ERROR_STR);
+      VERBOSE(1) fprintf(stderr,"%s (%s) : %s\n", ERROR_STR, __func__, MALLOC_ERROR_STR);
       goto clean_exit;
    }
    callback_xbeedata->xd=xd;
@@ -794,7 +784,7 @@ pthread_t *start_interface_type_002_xbeedata_thread(interface_type_002_t *i002, 
    thread=(pthread_t *)malloc(sizeof(pthread_t));
    if(!thread)
    {
-      VERBOSE(1) fprintf(stderr,"%s (%s) : %s\n", ERROR_STR, fn_name, MALLOC_ERROR_STR);
+      VERBOSE(1) fprintf(stderr,"%s (%s) : %s\n", ERROR_STR, __func__, MALLOC_ERROR_STR);
       goto clean_exit;
    }
    
@@ -816,10 +806,7 @@ clean_exit:
 
 error_t stop_interface_type_002(interface_type_002_t *i002, int signal_number)
 {
-//   static const char *fn_name="stop_interface_type_002";
-   const char *fn_name=__func__;
-   
-   VERBOSE(5) fprintf(stderr,"%s  (%s) : shutdown interface_type_002 thread (signal = %d).\n",INFO_STR, fn_name,signal_number);
+   VERBOSE(5) fprintf(stderr,"%s  (%s) : shutdown interface_type_002 thread (signal = %d).\n",INFO_STR, __func__,signal_number);
 
    if(i002->xPL_callback)
       i002->xPL_callback=NULL;
@@ -839,7 +826,7 @@ error_t stop_interface_type_002(interface_type_002_t *i002, int signal_number)
 
    FREE(i002->local_xbee);
 
-   VERBOSE(5) fprintf(stderr,"%s  (%s) : counter thread is down.\n",INFO_STR, fn_name);
+   VERBOSE(5) fprintf(stderr,"%s  (%s) : counter thread is down.\n",INFO_STR, __func__);
    
    return NOERROR;
 }
@@ -904,14 +891,14 @@ error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, int id
       sprintf(unix_dev,"/dev/%s",buff);
    else
    {
-      VERBOSE(1) fprintf (stderr, "%s (%s) : unknow device name - %s\n", ERROR_STR, fn_name, dev);
+      VERBOSE(1) fprintf (stderr, "%s (%s) : unknow device name - %s\n", ERROR_STR, __func__, dev);
       goto clean_exit;
    }
    
    xd=(xbee_xd_t *)malloc(sizeof(xbee_xd_t));
    if(!xd)
    {
-      VERBOSE(1) fprintf(stderr,"%s (%s) : %s\n", ERROR_STR, fn_name, MALLOC_ERROR_STR);
+      VERBOSE(1) fprintf(stderr,"%s (%s) : %s\n", ERROR_STR, __func__, MALLOC_ERROR_STR);
       goto clean_exit;
    }
    
@@ -919,7 +906,7 @@ error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, int id
    if (fd == -1)
    {
       VERBOSE(1) {
-         fprintf(stderr,"%s (%s) : init_xbee - Unable to open serial port (%s) : ", ERROR_STR, fn_name, unix_dev);
+         fprintf(stderr,"%s (%s) : init_xbee - Unable to open serial port (%s) : ", ERROR_STR, __func__, unix_dev);
          perror("");
       }
       goto clean_exit;
@@ -932,7 +919,7 @@ error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, int id
    local_xbee=(xbee_host_t *)malloc(sizeof(xbee_host_t)); // description de l'xbee directement connectÃ©
    if(!local_xbee)
    {
-      VERBOSE(1) fprintf(stderr,"%s (%s) : %s\n", ERROR_STR, fn_name, MALLOC_ERROR_STR);
+      VERBOSE(1) fprintf(stderr,"%s (%s) : %s\n", ERROR_STR, __func__, MALLOC_ERROR_STR);
       goto clean_exit;
    }
    i002->local_xbee=local_xbee;

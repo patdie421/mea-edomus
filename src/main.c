@@ -73,7 +73,7 @@ int16_t read_all_application_parameters(sqlite3 *sqlite3_param_db)
    int ret = sqlite3_prepare_v2(sqlite3_param_db,sql,strlen(sql)+1,&stmt,NULL);
    if(ret)
    {
-      VERBOSE(1) fprintf (stderr, "ERROR (main) : sqlite3_prepare_v2 - %s\n", sqlite3_errmsg (sqlite3_param_db));
+      VERBOSE(1) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
       return -1;
    }
    
@@ -127,7 +127,7 @@ static void _signal_STOP(int signal_number)
 {
    interfaces_queue_elem_t *iq;
    
-   VERBOSE(5) fprintf(stderr,"INFO  (_signal_STOP) : arrêt programme demandé (signal = %d).\n",signal_number);
+   VERBOSE(5) fprintf(stderr,"%s  (%s) : arrêt programme demandé (signal = %d).\n",INFO_STR,__func__,signal_number);
    
    first_queue(interfaces);
    while(interfaces->nb_elem)
@@ -169,12 +169,10 @@ static void _signal_STOP(int signal_number)
 
 static void _signal_HUP(int signal_number)
 {
-   char *fn_name="_signal_HUP";
-   
    interfaces_queue_elem_t *iq;
    int ret;
    
-   VERBOSE(5) fprintf(stderr,"%s  (%s) : communication error signal (signal = %d).\n", INFO_STR, fn_name, signal_number);
+   VERBOSE(5) fprintf(stderr,"%s  (%s) : communication error signal (signal = %d).\n", INFO_STR, __func__, signal_number);
 
    if(!interfaces->nb_elem)
       return;
@@ -195,7 +193,7 @@ static void _signal_HUP(int signal_number)
                if(i001->xPL_callback)
                   i001->xPL_callback=NULL;
                sleep(1);
-               VERBOSE(5) fprintf(stderr,"%s  (%s) : restart interface type_001 (interface_id=%d).\n", INFO_STR, fn_name, i001->id_interface);
+               VERBOSE(5) fprintf(stderr,"%s  (%s) : restart interface type_001 (interface_id=%d).\n", INFO_STR, __func__, i001->id_interface);
                restart_interface_type_001(i001, sqlite3_param_db, &md);
             }
             break;
@@ -209,7 +207,7 @@ static void _signal_HUP(int signal_number)
                if(i002->xPL_callback)
                   i002->xPL_callback=NULL;
                sleep(1);
-               VERBOSE(5) fprintf(stderr,"%s  (%s) : restart interface type_002 (interface_id=%d).\n", INFO_STR, fn_name, i002->id_interface);
+               VERBOSE(5) fprintf(stderr,"%s  (%s) : restart interface type_002 (interface_id=%d).\n", INFO_STR, __func__, i002->id_interface);
                restart_interface_type_002(i002, sqlite3_param_db, &md);
             }
             break;
@@ -259,7 +257,7 @@ int main(int argc, const char * argv[])
    
    set_verbose_level(9);
 
-   VERBOSE(9) fprintf(stderr,"Starting MEA-EDOMUS 0.1aplha1-A\n");
+   DEBUG_SECTION fprintf(stderr,"Starting MEA-EDOMUS 0.1aplha1-A\n");
    
    while ((c = getopt (argc, (char **)argv, "a:")) != -1)
    {
@@ -272,7 +270,7 @@ int main(int argc, const char * argv[])
             break;
             
          default:
-            VERBOSE(1) fprintf(stderr,"ERROR (main) : Paramètre \"%s\" inconnu.\n",optarg);
+            VERBOSE(1) fprintf(stderr,"%s (%s) : Paramètre \"%s\" inconnu.\n",ERROR_STR,__func__,optarg);
             exit(1);
       }
    }
@@ -293,28 +291,28 @@ int main(int argc, const char * argv[])
    ret = sqlite3_open (sqlite3_db_param_path, &sqlite3_param_db);
    if(ret)
    {
-      VERBOSE(2) fprintf (stderr, "ERROR (main) : sqlite3_open - %s\n", sqlite3_errmsg (sqlite3_param_db));
+      VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_open - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
       exit(1);
    }
    
    ret = read_all_application_parameters(sqlite3_param_db);
    if(ret)
    {
-      VERBOSE(2) fprintf (stderr, "ERROR (main) : can't load parameters\n");
+      VERBOSE(2) fprintf (stderr, "%s (%s) : can't load parameters\n",ERROR_STR,__func__);
       exit(1);
    }
 
    ret=tomysqldb_init(&md,mysql_db_server,mysql_database,mysql_user,mysql_passwd,sqlite3_db_buff_path);
    if(ret==-1)
    {
-      VERBOSE(1) fprintf(stderr,"ERROR (main) : impossible d'initialiser la gestion de la base de données.\n");
+      VERBOSE(1) fprintf(stderr,"%s (%s) : impossible d'initialiser la gestion de la base de données.\n",ERROR_STR,__func__);
       exit(1);
    }
    
    pythonPluginServer_thread=pythonPluginServer(NULL);
    if(pythonPluginServer_thread==NULL)
    {
-      VERBOSE(1) fprintf(stderr,"ERROR (main) : can't start Python Plugin Server.\n");
+      VERBOSE(1) fprintf(stderr,"%s (%s) : can't start Python Plugin Server.\n",ERROR_STR,__func__);
       exit(1);
    }
 
@@ -328,7 +326,7 @@ int main(int argc, const char * argv[])
    if(!interfaces)
    {
       VERBOSE(1) {
-         fprintf (stderr, "ERROR (main) : malloc - ");
+         fprintf (stderr, "%s (%s) : malloc - ",ERROR_STR,__func__);
          perror("");
       }
       exit(1);
@@ -343,7 +341,7 @@ int main(int argc, const char * argv[])
    ret = sqlite3_prepare_v2(sqlite3_param_db,sql,strlen(sql)+1,&stmt,NULL);
    if(ret)
    {
-      VERBOSE(1) fprintf (stderr, "ERROR (main) : sqlite3_prepare_v2 - %s\n", sqlite3_errmsg (sqlite3_param_db));
+      VERBOSE(1) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
       exit(1);
    }
    while (1)
@@ -373,7 +371,7 @@ int main(int argc, const char * argv[])
                   if(!i001)
                   {
                      VERBOSE(1) {
-                        fprintf (stderr, "ERROR (main) : malloc - can't start interface (%d).\n",id_interface);
+                        fprintf (stderr, "%s (%s) : malloc - can't start interface (%d).\n",ERROR_STR,__func__,id_interface);
                         perror(""); }
                      break;
                   }
@@ -389,7 +387,7 @@ int main(int argc, const char * argv[])
                   else
                   {
                      VERBOSE(1) {
-                        fprintf (stderr, "ERROR  (main) : start_interface_type_001 - can't start interface (%d).\n",id_interface);
+                        fprintf (stderr, "%s (%s) : start_interface_type_001 - can't start interface (%d).\n",ERROR_STR,__func__,id_interface);
                      }
                      free(i001);
                      i001=NULL;
@@ -405,7 +403,7 @@ int main(int argc, const char * argv[])
                   if(!i002)
                   {
                      VERBOSE(1) {
-                        fprintf (stderr, "ERROR  (main) : malloc - can't start interface (%d).\n",id_interface);
+                        fprintf (stderr, "%s (%s) : malloc - can't start interface (%d).\n",ERROR_STR,__func__,id_interface);
                         perror(""); }
                      break;
                   }
@@ -421,7 +419,7 @@ int main(int argc, const char * argv[])
                   else
                   {
                      VERBOSE(1) {
-                        fprintf (stderr, "ERROR  (main) : start_interface_type_002 - can't start interface (%d).\n",id_interface);
+                        fprintf (stderr, "%s (%s) : start_interface_type_002 - can't start interface (%d).\n",ERROR_STR,__func__,id_interface);
                      }
                      free(i002);
                      i002=NULL;
@@ -435,7 +433,7 @@ int main(int argc, const char * argv[])
          }
          else
          {
-            VERBOSE(9) fprintf(stderr,"INFO  (main) : %s not activated (state = %d)\n",dev,state);
+            VERBOSE(9) fprintf(stderr,"%s  (%s) : %s not activated (state = %d)\n",INFO_STR,__func__,dev,state);
          }
       }
       else if (s == SQLITE_DONE)
@@ -451,7 +449,7 @@ int main(int argc, const char * argv[])
    xPLServer_thread=xPLServer(interfaces);
    if(xPLServer_thread==NULL)
    {
-      VERBOSE(1) fprintf(stderr,"ERROR (main) : can't start xpl server.\n");
+      VERBOSE(1) fprintf(stderr,"%s (%s) : can't start xpl server.\n",ERROR_STR,__func__);
       exit(1);
    }
 

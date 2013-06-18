@@ -67,7 +67,7 @@ void cmndMsgHandler(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xPL_Ob
 
    interfaces=(queue_t *)userValue;
    
-   VERBOSE(9) fprintf(stderr,"INFO  (cmndMsgHandler) : Reception message xPL\n");
+   VERBOSE(9) fprintf(stderr,"%s  (%s) : Reception message xPL\n",INFO_STR,__func__);
    
    if(first_queue(interfaces)==-1)
       return;
@@ -129,7 +129,7 @@ void *_xPL_server_thread(void *data)
          if(compteur>59)
          {
             compteur=0;
-            fprintf(stderr,"INFO  (_xPL_server_thread) : xPLServer thread actif\n");
+            fprintf(stderr,"%s  (%s) : xPLServer thread actif\n",INFO_STR,__func__);
          }
          else
             compteur++;
@@ -155,7 +155,7 @@ pthread_t *xPLServer(queue_t *interfaces)
    if(!xPL_thread)
    {
       VERBOSE(1) {
-         fprintf (stderr, "ERROR (xPLServer) : malloc (%s/%d) - ",__FILE__,__LINE__);
+         fprintf (stderr, "%s (%s) : malloc (%s/%d) - ",ERROR_STR,__func__,__FILE__,__LINE__);
          perror("");
       }
       return NULL;
@@ -163,7 +163,7 @@ pthread_t *xPLServer(queue_t *interfaces)
 
    if(pthread_create (xPL_thread, NULL, _xPL_server_thread, (void *)interfaces))
    {
-      VERBOSE(1) fprintf(stderr, "ERROR (xPLServer) : pthread_create - can't start thread\n");
+      VERBOSE(1) fprintf(stderr, "%s (%s) : pthread_create - can't start thread\n",ERROR_STR,__func__);
       return NULL;
    }
    

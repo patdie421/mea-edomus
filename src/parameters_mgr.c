@@ -90,7 +90,7 @@ parsed_parameter_t *malloc_parsed_parameters(char *parameters_string, char *para
    parsed_parameters=malloc(sizeof(parsed_parameter_t) * *nb_params);
    if(!parsed_parameters)
    {
-      VERBOSE(1) fprintf(stderr,"ERROR (malloc_parsed_parameters) : malloc error\n");
+      VERBOSE(1) fprintf(stderr,"%s (%s) : malloc error\n",ERROR_STR,__func__);
       if(err) *err=1; // erreur système, voir errno;
       return NULL;
    }
@@ -145,7 +145,7 @@ parsed_parameter_t *malloc_parsed_parameters(char *parameters_string, char *para
                      parsed_parameters[i].value.s=malloc(r+1);
                      if(!parsed_parameters[i].value.s)
                      {
-                        VERBOSE(1) fprintf(stderr,"ERROR (malloc_parsed_parameters) : malloc error\n");
+                        VERBOSE(1) fprintf(stderr,"%s (%s) : malloc error\n", ERROR_STR,__func__);
                         if(parsed_parameters)
                         {
                            free_parsed_parameters(parsed_parameters, *nb_params);
@@ -223,6 +223,7 @@ parsed_parameter_t *mpp=malloc_parsed_parameters("aA=1; b = 00021;C=10;;X=1;A_a 
 */
 void display_parsed_parameters(parsed_parameter_t *mpp, int nb)
 {
+   DEBUG_SECTION {
    if(mpp)
       for(int i=0;i<nb;i++)
       {
@@ -246,4 +247,5 @@ void display_parsed_parameters(parsed_parameter_t *mpp, int nb)
                break;
          }
       }
+   }
 }

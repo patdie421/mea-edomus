@@ -24,6 +24,7 @@ INSERT INTO "sensors_actuators" VALUES(4,4,2001,4,'TEMP01','Capteur de temperatu
 INSERT INTO "sensors_actuators" VALUES(5,5,2002,4,'PILE01','Capteur de niveau des piles DHT22',50,'PLUGIN=my_dht22;PARAMETERS=NONE',1);
 INSERT INTO "sensors_actuators" VALUES(10,9,201,3,'RELY01','RELAI XBEE D1',10,'PLUGIN=vmc;PARAMETERS=D1:4',1);
 INSERT INTO "sensors_actuators" VALUES(11,10,201,3,'TEST01','ENTREE D2 XBEE',10,'PLUGIN=generic;PARAMETERS=PIN:A2',1);
+INSERT INTO "sensors_actuators" VALUES(NULL,11,1000,3,'CNTR0','COMPTEUR PROD',10,'COUNTER=0',1);
 
 INSERT INTO "locations" VALUES(1,10,'TABLEAU','Tableau electrique');
 INSERT INTO "locations" VALUES(2,20,'SALON','Salon');

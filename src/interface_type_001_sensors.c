@@ -27,7 +27,7 @@
 // parametres valide pour les capteurs ou actionneurs pris en compte par le type 1.
 char *valid_sensor_params[]={"S:PIN","S:MODE","S:COMPUTE","S:ALGO",NULL};
 #define SENSOR_PARAMS_PIN       0
-#define SENSOR_PARAMS_TYPE      1
+#define SENSOR_PARAMS_MODE      1
 #define SENSOR_PARAMS_COMPUTE   2
 #define SENSOR_PARAMS_ALGO      3
 
@@ -128,10 +128,6 @@ error_t digital_in_trap(int numTrap, void *args, char *buff)
       xPL_releaseMessage(cntrMessageStat);
    }
    
-   printf("Changement d'état de %d\n",numTrap-10);
-   
-   printf("%d\n",buff[0]);
-   
    return NOERROR;
 }
 
@@ -162,13 +158,13 @@ int valide_sensor_i001(int token_type_id, int pin_id, int token_compute_id, int 
    if(token_type_id==-1)
    {
       *err=1;
-      VERBOSE(5) fprintf(stderr,"ERROR (valide_sensor_i001) : bad i/o type (%d)\n",token_type_id);
+      VERBOSE(5) fprintf(stderr,"%s (%s) : bad i/o type (%d)\n",ERROR_STR,__func__,token_type_id);
    }
    
    if(pin_id==-1)
    {
       *err=2;
-      VERBOSE(5) fprintf(stderr,"ERROR (valide_sensor_i001) : bad pin (%d)\n",pin_id);
+      VERBOSE(5) fprintf(stderr,"%s (%s) : bad pin (%d)\n",ERROR_STR,__func__,pin_id);
    }
    
    int ret;
@@ -177,7 +173,7 @@ int valide_sensor_i001(int token_type_id, int pin_id, int token_compute_id, int 
    if(!ret)
    {
       *err=3;
-      VERBOSE(5) fprintf(stderr,"ERROR (valide_sensor_i001) : bad pin (%d) for pin type (%d)\n",pin_id,token_type_id);
+      VERBOSE(5) fprintf(stderr,"%s (%s) : bad pin (%d) for pin type (%d)\n",ERROR_STR,__func__,pin_id,token_type_id);
       return 0;
    }
    
@@ -187,7 +183,7 @@ int valide_sensor_i001(int token_type_id, int pin_id, int token_compute_id, int 
       if(!ret)
       {
          *err=3;
-         VERBOSE(5) fprintf(stderr,"ERROR (valide_sensor_i001) : bad compute (%d) for pin type (%d)\n",token_compute_id,token_type_id);
+         VERBOSE(5) fprintf(stderr,"%s (%s) : bad compute (%d) for pin type (%d)\n",ERROR_STR,__func__,token_compute_id,token_type_id);
          return 0;
       }
       
@@ -197,7 +193,7 @@ int valide_sensor_i001(int token_type_id, int pin_id, int token_compute_id, int 
          if(!ret)
          {
             *err=4;
-            VERBOSE(5) fprintf(stderr,"ERROR (valide_sensor_i001) : bad algo (%d) for compute (%d)\n",token_algo_id,token_compute_id);
+            VERBOSE(5) fprintf(stderr,"%s (%s) : bad algo (%d) for compute (%d)\n",ERROR_STR,__func__,token_algo_id,token_compute_id);
             return 0;
          }
       }
@@ -207,7 +203,7 @@ int valide_sensor_i001(int token_type_id, int pin_id, int token_compute_id, int 
       if(token_algo_id!=-1)
       {
          *err=4;
-         VERBOSE(5) fprintf(stderr,"ERROR (valide_sensor_i001) : aglo set (%d) but non compute set\n",token_algo_id);
+         VERBOSE(5) fprintf(stderr,"%s (%s) : aglo set (%d) but non compute set\n",ERROR_STR,__func__,token_algo_id);
          return 0;
       }
    }
@@ -231,7 +227,7 @@ struct sensor_s *valid_and_malloc_sensor(int id_sensor_actuator, char *name, cha
    if(!sensor)
    {
       VERBOSE(1) {
-         fprintf (stderr, "ERROR (valid_and_malloc_sensor) : malloc (%s/%d) - ",__FILE__,__LINE__-4);
+         fprintf (stderr, "%s (%s) : malloc (%s/%d) - ",ERROR_STR,__func__,__FILE__,__LINE__-4);
          perror("");
       }
       goto valid_and_malloc_sensor_clean_exit;
@@ -241,7 +237,7 @@ struct sensor_s *valid_and_malloc_sensor(int id_sensor_actuator, char *name, cha
    
    if(sensor_params)
    {
-      type_id=get_id_by_string(sensor_params[SENSOR_PARAMS_TYPE].value.s);
+      type_id=get_id_by_string(sensor_params[SENSOR_PARAMS_MODE].value.s);
       pin_id=get_arduino_pin(sensor_params[SENSOR_PARAMS_PIN].value.s);
       compute_id=get_id_by_string(sensor_params[SENSOR_PARAMS_COMPUTE].value.s);
       algo_id=get_id_by_string(sensor_params[SENSOR_PARAMS_ALGO].value.s);
@@ -255,7 +251,7 @@ struct sensor_s *valid_and_malloc_sensor(int id_sensor_actuator, char *name, cha
             sensor->arduino_function=6;
             break;
          default:
-            VERBOSE(1) fprintf (stderr, "ERROR (valid_and_malloc_sensor) : bad sensor type (%s)\n",sensor_params[SENSOR_PARAMS_TYPE].value.s);
+            VERBOSE(1) fprintf (stderr, "%s (%s) : bad sensor type (%s)\n",ERROR_STR,__func__,sensor_params[SENSOR_PARAMS_MODE].value.s);
             goto valid_and_malloc_sensor_clean_exit;
             break;
       }
@@ -296,13 +292,15 @@ struct sensor_s *valid_and_malloc_sensor(int id_sensor_actuator, char *name, cha
       }
       else
       {
-         VERBOSE(1) fprintf (stderr, "ERROR (valid_and_malloc_sensor) : parametres (%s) non valides\n",parameters);
+         VERBOSE(1) fprintf (stderr, "%s (%s) : parametres (%s) non valides\n",ERROR_STR,__func__,parameters);
          goto valid_and_malloc_sensor_clean_exit;
       }
    }
    else
    {
-      fprintf(stderr,"%s ERROR\n",parameters);
+      VERBOSE(1) {
+         fprintf(stderr,"%s (%s) : %s/%s invalid. Check parameters.\n",ERROR_STR,__func__,name,parameters);
+      }
    }
    
 valid_and_malloc_sensor_clean_exit:
@@ -359,7 +357,7 @@ error_t xpl_sensor(interface_type_001_t *i001, xPL_ServicePtr theService, xPL_Na
          else
             return ERROR;
          
-         VERBOSE(9) fprintf(stderr,"INFO  (xPL_callback) : sensor %s = %s\n",sensor->name,value);
+         VERBOSE(9) fprintf(stderr,"%s  (%s) : sensor %s = %s\n",INFO_STR,__func__,sensor->name,value);
          cntrMessageStat = xPL_createBroadcastMessage(theService, xPL_MESSAGE_STATUS) ;
          
          xPL_setSchema(cntrMessageStat, get_token_by_id(XPL_SENSOR_ID), get_token_by_id(XPL_BASIC_ID));

@@ -63,7 +63,7 @@ int16_t interface_type_001_xPL_callback(xPL_ServicePtr theService, xPL_MessagePt
    device             = xPL_getNamedValue(ListNomsValeursPtr, get_token_by_id(XPL_DEVICE_ID));
    type               = xPL_getNamedValue(ListNomsValeursPtr, get_token_by_id(XPL_TYPE_ID));
    
-   VERBOSE(9) fprintf(stderr,"INFO  (interface_type_001_xPL_callback) : xPL Message to process : %s.%s\n",schema_class,schema_type);
+   VERBOSE(9) fprintf(stderr,"%s  (%s) : xPL Message to process : %s.%s\n",INFO_STR,__func__,schema_class,schema_type);
 
    if(strcmplower(schema_class, get_token_by_id(XPL_CONTROL_ID)) == 0 &&
       strcmplower(schema_type, get_token_by_id(XPL_BASIC_ID)) == 0)
@@ -151,7 +151,7 @@ error_t stop_interface_type_001(interface_type_001_t *i001, int signal_number)
    queue_t *actuators_list=i001->actuators_list;
    struct actuator_s *actuator;
 
-   VERBOSE(9) fprintf(stderr,"INFO  (stop_interface_type_001) : start stoping counter thread (signal = %d).\n",signal_number);
+   VERBOSE(9) fprintf(stderr,"%s  (%s) : start stoping counter thread (signal = %d).\n",INFO_STR,__func__,signal_number);
    
    first_queue(counters_list);
    while(counters_list->nb_elem)
@@ -190,7 +190,7 @@ error_t stop_interface_type_001(interface_type_001_t *i001, int signal_number)
    FREE(i001->ad);
    FREE(i001->counters_list);
    
-   VERBOSE(9) fprintf(stderr,"INFO  (stop_interface_type_001) : stoping counter thread done.\n");
+   VERBOSE(9) fprintf(stderr,"%s  (%s) : stoping counter thread done.\n",INFO_STR,__func__);
    
    return NOERROR;
 }
@@ -294,15 +294,15 @@ void *_thread_interface_type_001(void *args)
                   
                   if(sensor->compute==XPL_TEMP_ID)
                   {
-                     VERBOSE(9) fprintf(stderr,"INFO  (_thread_interface_type_001) : Temp sensor %s =  %.1f °C (%d) \n",sensor->name,sensor->computed_val,sensor->val);
+                     VERBOSE(9) fprintf(stderr,"%s  (%s) : Temp sensor %s =  %.1f °C (%d) \n",INFO_STR,__func__,sensor->name,sensor->computed_val,sensor->val);
                   }
                   else if(sensor->compute==XPL_VOLTAGE_ID)
                   {
-                     VERBOSE(9) fprintf(stderr,"INFO  (_thread_interface_type_001) : Voltage sensor %s =  %.1f V (%d) \n",sensor->name,sensor->computed_val,sensor->val);
+                     VERBOSE(9) fprintf(stderr,"%s  (%s) : Voltage sensor %s =  %.1f V (%d) \n",INFO_STR,__func__,sensor->name,sensor->computed_val,sensor->val);
                   }
                   else
                   {
-                     VERBOSE(9) fprintf(stderr,"INFO  (_thread_interface_type_001) : sensor %s = %d\n",sensor->name,sensor->val);
+                     VERBOSE(9) fprintf(stderr,"%s  (%s) : sensor %s = %d\n",INFO_STR,__func__,sensor->name,sensor->val);
                   }
                   
                   {
@@ -332,7 +332,6 @@ void *_thread_interface_type_001(void *args)
          }
 
       }
-      
       if(cntr>60)
       {
          int l1,l2,l3,l4;
@@ -390,7 +389,7 @@ _thread_interface_type_001_operation_abord:
             {
                qelem=NULL;
                VERBOSE(1) {
-                  fprintf(stderr,"ERROR (_thread_interface_type_001) : can't take semaphore - ");
+                  fprintf(stderr,"%s (%s) : can't take semaphore - ",ERROR_STR,__func__);
                   perror("");
                   continue;
                }
@@ -401,7 +400,7 @@ _thread_interface_type_001_operation_abord:
             if(!ec_query)
             {
                VERBOSE(1) {
-                  fprintf (stderr, "ERROR (_thread_interface_type_001) : malloc error (%s/%d) - ",__FILE__,__LINE__);
+                  fprintf (stderr, "%s (%s) : malloc error (%s/%d) - ",ERROR_STR,__func__,__FILE__,__LINE__);
                   perror("");
                }
                pthread_exit(NULL);
@@ -416,7 +415,7 @@ _thread_interface_type_001_operation_abord:
             if(!qelem)
             {
                VERBOSE(1) {
-                  fprintf (stderr, "ERROR (_thread_interface_type_001) : malloc error (%s/%d) - ",__FILE__,__LINE__);
+                  fprintf (stderr, "%s (%s) : malloc error (%s/%d) - ",ERROR_STR,__func__,__FILE__,__LINE__);
                   perror("");
                }
                if(ec_query)
@@ -446,7 +445,7 @@ _thread_interface_type_001_operation_abord:
                xPL_releaseMessage(cntrMessageStat);
             }
             
-            VERBOSE(9) fprintf(stderr,"INFO  (_thread_interface_type_001) : counter %s %ld (WH=%d KWH=%d)\n",counter->name, counter->counter, counter->wh_counter,counter->kwh_counter);
+            VERBOSE(9) fprintf(stderr,"%s  (%s) : counter %s %ld (WH=%d KWH=%d)\n",INFO_STR,__func__,counter->name, counter->counter, counter->wh_counter,counter->kwh_counter);
          }
          
          if(qelem)
@@ -501,7 +500,7 @@ error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, int id
       sprintf(real_dev,"/dev/%s",buff);
    else
    {
-      VERBOSE(1) fprintf (stderr, "ERROR (start_interface_type_001) : unknow interface device - %s\n", dev);
+      VERBOSE(1) fprintf (stderr, "%s (%s) : unknow interface device - %s\n", ERROR_STR,__func__,dev);
       return ERROR;
    }
    
@@ -511,7 +510,7 @@ error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, int id
    if(!i001->counters_list)
    {
       VERBOSE(1) {
-         fprintf (stderr, "ERROR (start_interface_type_001) : malloc (%s/%d) - ",__FILE__,__LINE__-4);
+         fprintf (stderr, "%s (%s) : malloc (%s/%d) - ",ERROR_STR,__func__,__FILE__,__LINE__-4);
          perror(""); }
       return ERROR;
    }
@@ -523,7 +522,7 @@ error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, int id
    if(!i001->actuators_list)
    {
       VERBOSE(1) {
-         fprintf (stderr, "ERROR (start_interface_type_001) : malloc (%s/%d) - ",__FILE__,__LINE__-4);
+         fprintf (stderr, "%s (%s) : malloc (%s/%d) - ",ERROR_STR,__func__,__FILE__,__LINE__-4);
          perror(""); }
       return ERROR;
    }
@@ -535,7 +534,7 @@ error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, int id
    if(!i001->sensors_list)
    {
       VERBOSE(1) {
-         fprintf (stderr, "ERROR (start_interface_type_001) : malloc (%s/%d) - ",__FILE__,__LINE__-4);
+         fprintf (stderr, "%s (%s) : malloc (%s/%d) - ",ERROR_STR,__func__,__FILE__,__LINE__-4);
          perror(""); }
       return ERROR;
    }
@@ -547,7 +546,7 @@ error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, int id
    ret = sqlite3_prepare_v2(db,sql_request,strlen(sql_request)+1,&stmt,NULL);
    if(ret)
    {
-      VERBOSE(1) fprintf (stderr, "ERROR (start_interface_type_001) : sqlite3_prepare_v2 - %s\n", sqlite3_errmsg (db));
+      VERBOSE(1) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg (db));
       return ERROR;
    }
    
@@ -620,7 +619,7 @@ error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, int id
       if(!ad)
       {
          VERBOSE(1) {
-            fprintf (stderr, "ERROR (start_interface_type_001) : malloc (%s/%d) - ",__FILE__,__LINE__-4);
+            fprintf (stderr, "%s (%s) : malloc (%s/%d) - ",ERROR_STR,__func__,__FILE__,__LINE__-4);
             perror("");
          }
          goto start_interface_type_001_clean_exit;
@@ -630,7 +629,7 @@ error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, int id
       if (fd == -1)
       {
          VERBOSE(1) {
-            fprintf(stderr,"ERROR (start_interface_type_001) : init_arduino - Unable to open serial port (%s) : ",dev);
+            fprintf(stderr,"%s (%s) : init_arduino - Unable to open serial port (%s) : ",ERROR_STR,__func__,dev);
             perror("");
          }
          goto start_interface_type_001_clean_exit;
@@ -638,7 +637,7 @@ error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, int id
    }
    else
    {
-      fprintf(stderr,"ERROR (start_interface_type_001) : no sensor/actuator active for this interface (%d) : ",id_interface);
+      fprintf(stderr,"%s (%s) : no sensor/actuator active for this interface (%d) : ",ERROR_STR,__func__,id_interface);
       return ERROR; // pas de capteur on s'arrête
    }
    
@@ -661,7 +660,7 @@ error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, int id
    
    if(pthread_create (counters_thread, NULL, _thread_interface_type_001, (void *)params))
    {
-      VERBOSE(1) fprintf(stderr, "ERROR (start_interface_type_001) : pthread_create - can't start thread\n");
+      VERBOSE(1) fprintf(stderr, "%s (%s) : pthread_create - can't start thread\n",ERROR_STR,__func__);
       goto start_interface_type_001_clean_exit;
    }
    

@@ -57,9 +57,7 @@ int16_t get_arduino_pin(char *spin)
    for(int i=0;arduino_uno_list[i].name;i++)
    {
       if(strcmplower(spin,arduino_uno_list[i].name)==0)
-      {
          return arduino_uno_list[i].pin;
-      }
    }
    return -1;
 }

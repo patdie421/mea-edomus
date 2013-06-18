@@ -68,7 +68,7 @@ PyObject *xplMsgToPyDict(xPL_MessagePtr xplMsg)
    pyXplMsg = PyDict_New();
    if(!pyXplMsg)
    {
-      PyErr_SetString(PyExc_RuntimeError, "ERROR (mea_xplMsgSend) : PyDict_New error");
+      PyErr_SetString(PyExc_RuntimeError, "ERROR (xplMSgToPyDict) : PyDict_New error");
       return NULL;
    }
    
@@ -432,7 +432,7 @@ static PyObject *mea_sendAtCmdAndWaitResp(PyObject *self, PyObject *args)
    }
    else
    {
-      VERBOSE(9) fprintf(stderr, "ERROR (mea_sendAtCmdAndWaitResp) : host not found\n");
+      VERBOSE(3) fprintf(stderr, "%s (%s) : host not found\n",ERROR_STR,__func__);
       if(host)
          free(host);
       PyErr_BadArgument(); // à remplacer
@@ -443,7 +443,7 @@ static PyObject *mea_sendAtCmdAndWaitResp(PyObject *self, PyObject *args)
    ret=xbee_atCmdSendAndWaitResp(xd, host, at_cmd, l_at_cmd, resp, &l_resp, &nerr);
    if(ret==-1)
    {
-      VERBOSE(9) fprintf(stderr, "ERROR (mea_sendAtCmdAndWaitResp) : error %d\n",nerr);
+      VERBOSE(9) fprintf(stderr, "%s (%s) : error %d\n",ERROR_STR,__func__,nerr);
       if(host)
          free(host);
       PyErr_BadArgument(); // à remplacer
@@ -475,7 +475,7 @@ static PyObject *mea_sendAtCmdAndWaitResp(PyObject *self, PyObject *args)
    return t; // return True
    
 mea_AtCmdToXbee_arg_err:
-   VERBOSE(9) fprintf(stderr, "ERROR (mea_sendAtCmdAndWaitResp) : arguments error\n");
+   VERBOSE(9) fprintf(stderr, "%s (%s) : arguments error\n",ERROR_STR,__func__);
    if(host)
    {
       free(host);
@@ -566,7 +566,7 @@ static PyObject *mea_sendAtCmd(PyObject *self, PyObject *args)
    }
    else
    {
-      VERBOSE(9) fprintf(stderr, "ERROR (mea_AtCmdToXbee) : host not found\n");
+      VERBOSE(9) fprintf(stderr, "%s (%s) : host not found\n", ERROR_STR,__func__);
       goto mea_atCmdSend_arg_err;
    }
    
@@ -578,7 +578,7 @@ static PyObject *mea_sendAtCmd(PyObject *self, PyObject *args)
    return PyLong_FromLong(1L); // return True
 
 mea_atCmdSend_arg_err:
-   VERBOSE(9) fprintf(stderr, "ERROR (mea_AtCmdToXbee) : arguments error\n");
+   VERBOSE(9) fprintf(stderr, "%s (%s) : arguments error\n", ERROR_STR,__func__);
    PyErr_BadArgument();
    if(host)
    {

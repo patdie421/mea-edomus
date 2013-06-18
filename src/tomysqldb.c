@@ -107,7 +107,7 @@ int sqlite_to_mysql(sqlite3 *db, MYSQL *conn)
    ret = sqlite3_prepare_v2(db,sql,strlen(sql)+1,&stmt,NULL);
    if(ret)
    {
-      VERBOSE(1) fprintf (stderr, "ERROR (sqlite_to_mysql) : sqlite3_prepare_v2 - %s\n", sqlite3_errmsg (db));
+      VERBOSE(1) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg (db));
       return -1;
    }
 
@@ -126,19 +126,19 @@ int sqlite_to_mysql(sqlite3 *db, MYSQL *conn)
          ret=mysql_query(conn, (const char *)query);
          if(ret)
          {
-            VERBOSE(1) fprintf (stderr, "ERROR (sqlite_to_mysql) : mysql_query - %u : %s\n", mysql_errno(conn), mysql_error(conn));
+            VERBOSE(1) fprintf (stderr, "%s (%s) : mysql_query - %u : %s\n", ERROR_STR,__func__,mysql_errno(conn), mysql_error(conn));
             return -1;
          }
          else
          {
-            VERBOSE(9) fprintf(stderr,"INFO  (sqlite_to_mysql) : mysql_query = %s\n",query);
+            VERBOSE(9) fprintf(stderr,"%s  (%s) : mysql_query = %s\n",INFO_STR,__func__,query);
          }
 
          sprintf(sql,"DELETE FROM queries WHERE id=%s", id);
          ret = sqlite3_exec(db,sql,0,0,0);
          if(ret)
          {
-            VERBOSE(1) fprintf (stderr, "ERROR (sqlite_to_mysql) : sqlite3_exec - %s\n", sqlite3_errmsg (db));
+            VERBOSE(1) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", ERROR_STR,__func__,sqlite3_errmsg (db));
             return -1;
          }
       }
@@ -151,7 +151,7 @@ int sqlite_to_mysql(sqlite3 *db, MYSQL *conn)
          }
          else
          {
-            VERBOSE(1) fprintf (stderr, "ERROR (sqlite_to_mysql) : sqlite3_step - %s\n", sqlite3_errmsg (db));
+            VERBOSE(1) fprintf (stderr, "%s (%s) : sqlite3_step - %s\n", ERROR_STR,__func__,sqlite3_errmsg (db));
             sqlite3_finalize(stmt);
             return -1;
          }
@@ -169,7 +169,7 @@ int do_sql_query(MYSQL *conn, char *sql_query)
    ret=mysql_query(conn, sql_query);
    if(ret)
    {
-      VERBOSE(1) fprintf (stderr, "ERROR (do_sql_query) : mysql_query - %u : %s\n", mysql_errno(conn), mysql_error(conn));
+      VERBOSE(1) fprintf (stderr, "%s (%s) : mysql_query - %u : %s\n", ERROR_STR,__func__,mysql_errno(conn), mysql_error(conn));
       return -1;
    }
    return 0;
@@ -186,7 +186,7 @@ int save_sql_query(sqlite3 *db, char *sql_query)
    ret = sqlite3_exec(db,sql,0,0,0);
    if(ret)
    {
-      VERBOSE(1) fprintf (stderr, "ERROR (save_sql_query) : sqlite3_exec - %s\n", sqlite3_errmsg (db));
+      VERBOSE(1) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", ERROR_STR,__func__,sqlite3_errmsg (db));
       return -1;
    }
    return 0;
@@ -197,7 +197,7 @@ int to_db(tomysqldb_md_t *md, int mysql_connected, MYSQL *conn, sqlite3 *db, tom
 {
    char sql[255];
    
-   VERBOSE(9) fprintf(stderr,"INFO  (to_db) : Insertion data type %d\n",elem->type);
+   VERBOSE(9) fprintf(stderr,"%s  (%s) : Insertion data type %d\n",INFO_STR,__func__,elem->type);
    
    switch(elem->type)
    {
@@ -287,7 +287,7 @@ void *tomysqldb_thread(void *args)
             ret=mysql_ping(conn); // le ping pour éventuellement forcer une reconnexion
             if(ret) // pas de réponse au ping et reconnexion impossible.
             {
-               VERBOSE(2) fprintf (stderr, "ERROR (tomysqldb_thread) : mysql_ping - %u: %s\n", mysql_errno(conn), mysql_error(conn));
+               VERBOSE(5) fprintf (stderr, "%s  (%s) : mysql_ping - %u: %s\n",INFO_STR,__func__,mysql_errno(conn), mysql_error(conn));
                mysql_connected = 0; // plus de connexion au serveur mysql
             }
             else
@@ -299,7 +299,7 @@ void *tomysqldb_thread(void *args)
                   // faire ce qu'il y a a faire en cas de reconnexion
                   // voir ici pour les info : http://dev.mysql.com/doc/refman/5.0/en/auto-reconnect.html
                   // pour l'instant on ne fait rien
-                  VERBOSE(9) fprintf(stderr,"INFO  (tomysqldb_thread) : Une reconnexion à la base Mysql à eu lieu\n");
+                  VERBOSE(9) fprintf(stderr,"%s  (%s) : Une reconnexion à la base Mysql à eu lieu\n", INFO_STR,__func__);
                }
             }
          }
@@ -324,7 +324,7 @@ void *tomysqldb_thread(void *args)
                if(ret)
                {
                   sqlite_opened=0;
-                  VERBOSE(2) fprintf (stderr, "ERROR (tomysqldb_thread) : sqlite3_open - %s\n", sqlite3_errmsg (db));
+                  VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_open - %s\n", ERROR_STR,__func__,sqlite3_errmsg (db));
                }
                else
                {
@@ -340,7 +340,7 @@ void *tomysqldb_thread(void *args)
             ret=mysql_query(conn, sql_query);
             if(ret)
             {
-               VERBOSE(2) fprintf (stderr, "ERROR (tomysqldb_thread) : sql_query - %u: %s\n", mysql_errno(conn), mysql_error(conn));
+               VERBOSE(2) fprintf (stderr, "%s (%s) : sql_query - %u: %s\n", ERROR_STR,__func__,mysql_errno(conn), mysql_error(conn));
             }
 
             if(sqlite_opened==1) // sqlite est encore ouvert, il faut vider la table des requetes
@@ -411,14 +411,14 @@ int tomysqldb_connect(tomysqldb_md_t *md, MYSQL **conn)
    *conn = mysql_init(NULL);
    if (*conn == NULL)
    {
-      VERBOSE(1) fprintf(stderr,"ERROR (tomysqldb_connect) : %u - %s\n", mysql_errno(*conn), mysql_error(*conn));
+      VERBOSE(1) fprintf(stderr,"%s (%s) : %u - %s\n", ERROR_STR,__func__,mysql_errno(*conn), mysql_error(*conn));
       return -1;
    }
    
    // connexion à mysql
    if (mysql_real_connect(*conn, md->db_server, md->user, md->passwd, md->base, 0, NULL, 0) == NULL)
    {
-      VERBOSE(1) fprintf(stderr,"ERROR (tomysqldb_connect) : %u - %s\n", mysql_errno(*conn), mysql_error(*conn));
+      VERBOSE(1) fprintf(stderr,"%s (%s) : %u - %s\n", ERROR_STR,__func__,mysql_errno(*conn), mysql_error(*conn));
       return -1;
    }
    
@@ -426,7 +426,7 @@ int tomysqldb_connect(tomysqldb_md_t *md, MYSQL **conn)
    ret=mysql_options(*conn, MYSQL_OPT_RECONNECT, &reconnect);
    if(ret)
    {
-      VERBOSE(1) fprintf(stderr,"ERROR (tomysqldb_connect) : %u - %s\n", mysql_errno(*conn), mysql_error(*conn));
+      VERBOSE(1) fprintf(stderr,"%s (%s) : %u - %s\n", ERROR_STR,__func__,mysql_errno(*conn), mysql_error(*conn));
       return -1;
    }
 
@@ -458,7 +458,7 @@ int tomysqldb_init(tomysqldb_md_t *md, char *db_server, char *base, char *user, 
    md->queue=(queue_t *)malloc(sizeof(queue_t));
    if(!md->queue)
    {
-      VERBOSE(1) fprintf(stderr,"ERROR (tomysqldb_init) : can't create queue.\n");
+      VERBOSE(1) fprintf(stderr,"%s (%s) : can't create queue.\n",ERROR_STR,__func__);
       return -1;
    }
    init_queue(md->queue); // initialisation de la file
@@ -467,7 +467,7 @@ int tomysqldb_init(tomysqldb_md_t *md, char *db_server, char *base, char *user, 
    
    if(pthread_create (&(md->thread), NULL, tomysqldb_thread, (void *)md))
    {
-      VERBOSE(1) fprintf(stderr,"ERROR (tomysqldb_init) : can't create thread.\n");
+      VERBOSE(1) fprintf(stderr,"%s (%s) : can't create thread.\n", ERROR_STR, __func__);
       return -1;
    }
    

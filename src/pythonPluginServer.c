@@ -67,7 +67,7 @@ error_t pythonPluginServer_init()
    pythonPluginCmd_queue=(queue_t *)malloc(sizeof(queue_t));
    if(!pythonPluginCmd_queue)
    {
-      VERBOSE(2) {
+      VERBOSE(1) {
          fprintf (stderr, "%s (%s) : %s - ", ERROR_STR, __func__, MALLOC_ERROR_STR);
          perror("");
       }
@@ -245,7 +245,6 @@ call_pythonPlugin_clean_exit:
 
 void *_pythonPlugin_thread(void *data)
 {
-   static const char *fn_name="_pythonPlugin_thread";
    int ret;
    pythonPlugin_cmd_t *e;
    PyThreadState *mainThreadState, *myThreadState;
@@ -288,13 +287,13 @@ void *_pythonPlugin_thread(void *data)
          {
             if(ret==ETIMEDOUT)
             {
-               DEBUG_SECTION fprintf(stderr,"%s (%s) : Nb elements in queue after TIMEOUT : %ld\n",DEBUG_STR, fn_name, pythonPluginCmd_queue->nb_elem);
+               DEBUG_SECTION fprintf(stderr,"%s (%s) : Nb elements in queue after TIMEOUT : %ld\n",DEBUG_STR, __func__, pythonPluginCmd_queue->nb_elem);
                pass=1;
             }
             else
             {
                // autres erreurs à traiter
-               DEBUG_SECTION fprintf(stderr,"%s (%s) : pthread_cond_timedwait error - ",DEBUG_STR, fn_name);
+               DEBUG_SECTION fprintf(stderr,"%s (%s) : pthread_cond_timedwait error - ",DEBUG_STR, __func__);
                perror("");
                pass=1;
             }
@@ -344,7 +343,7 @@ void *_pythonPlugin_thread(void *data)
       else
       {
          // pb d'accés aux données de la file
-         VERBOSE(5) fprintf(stderr,"%s (%s) : out_queue_elem - can't access\n", ERROR_STR, fn_name);
+         VERBOSE(5) fprintf(stderr,"%s (%s) : out_queue_elem - can't access\n", ERROR_STR, __func__);
       }
       pthread_testcancel();
    }
@@ -362,12 +361,11 @@ void *_pythonPlugin_thread(void *data)
 
 pthread_t *pythonPluginServer(queue_t *plugin_queue)
 {
-   static const char *fn_name="pythonPluginServer";
    pthread_t *pythonPlugin_thread=NULL;
    
    if(pythonPluginServer_init())
    {
-      VERBOSE(1) fprintf (stderr, "%s (%s) : can't initialize pluginServer\n", FATAL_ERROR_STR, fn_name);
+      VERBOSE(1) fprintf (stderr, "%s (%s) : can't initialize pluginServer\n", FATAL_ERROR_STR, __func__);
       return NULL;
    }
    
@@ -375,7 +373,7 @@ pthread_t *pythonPluginServer(queue_t *plugin_queue)
    if(!pythonPlugin_thread)
    {
       VERBOSE(1) {
-         fprintf (stderr, "%s (%s) : %s - ",FATAL_ERROR_STR, fn_name, MALLOC_ERROR_STR);
+         fprintf (stderr, "%s (%s) : %s - ",FATAL_ERROR_STR, __func__, MALLOC_ERROR_STR);
          perror("");
       }
       return NULL;
@@ -383,7 +381,7 @@ pthread_t *pythonPluginServer(queue_t *plugin_queue)
    
    if(pthread_create (pythonPlugin_thread, NULL, _pythonPlugin_thread, (void *)pythonPluginCmd_queue))
    {
-      VERBOSE(1) fprintf(stderr, "%s (%s) : pthread_create - can't start thread - ", FATAL_ERROR_STR, fn_name);
+      VERBOSE(1) fprintf(stderr, "%s (%s) : pthread_create - can't start thread - ", FATAL_ERROR_STR, __func__);
       perror("");
       return NULL;
    }

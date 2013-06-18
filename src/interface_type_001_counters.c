@@ -28,12 +28,24 @@
 #include "token_strings.h"
 #include "interface_type_001_counters.h"
 
+uint16_t counters_mem[2][4]={
+   {0,1,2,3},
+   {10,11,12,13}
+};
+
+uint16_t counters_trap[2]={1,2};
+
+/*
 char *valid_counter_params[]={"I:M1","I:M2","I:M3","I:M4","I:TRAP",NULL};
 #define COUNTER_PARAMS_M1       0
 #define COUNTER_PARAMS_M2       1
 #define COUNTER_PARAMS_M3       2
 #define COUNTER_PARAMS_M4       3
 #define COUNTER_PARAMS_TRAP     4
+*/
+
+char *valid_counter_params[]={"I:COUNTER", NULL};
+#define COUNTER_PARAMS_COUNTER  0
 
 
 void interface_type_001_free_counters_queue_elem(void *d)
@@ -80,7 +92,7 @@ error_t counter_trap(int numTrap, void *args, char *buff)
          if(!query_pinst)
          {
             VERBOSE(1) {
-               fprintf (stderr, "ERROR (counter_trap) : malloc error (%s/%d) - ",__FILE__,__LINE__);
+               fprintf (stderr, "%s (%s) : malloc error (%s/%d) - ",ERROR_STR,__func__,__FILE__,__LINE__);
                perror("");
             }
             return ERROR;
@@ -96,7 +108,7 @@ error_t counter_trap(int numTrap, void *args, char *buff)
          if(!qelem)
          {
             VERBOSE(1) {
-               fprintf (stderr, "ERROR (counter_trap) : malloc error (%s/%d) - ",__FILE__,__LINE__);
+               fprintf (stderr, "%s (%s) : malloc error (%s/%d) - ",ERROR_STR,__func__,__FILE__,__LINE__);
                perror("");
             }
             return ERROR;
@@ -133,7 +145,7 @@ error_t counter_trap(int numTrap, void *args, char *buff)
          VERBOSE(9) {
             char now[30];
             strftime(now,30,"%d/%m/%y;%H:%M:%S",localtime(&tv.tv_sec));
-            fprintf(stderr,"INFO  (cptr_trap) : %s;%s;%f;%f;%f\n",counter->name,now,counter->t,counter->t-t_old,counter->power);
+            fprintf(stderr,"%s  (%s) : %s;%s;%f;%f;%f\n",INFO_STR,__func__,counter->name,now,counter->t,counter->t-t_old,counter->power);
          }
       }
    } // fin section critique
@@ -151,8 +163,9 @@ struct electricity_counter_s *valid_and_malloc_counter(int id_sensor_actuator, c
    if(!counter)
    {
       VERBOSE(1) {
-         fprintf (stderr, "ERROR (start_interface_type_001) : malloc (%s/%d) - ",__FILE__,__LINE__);
-         perror(""); }
+         fprintf (stderr, "%s (%s) : malloc (%s/%d) - ",ERROR_STR,__func__,__FILE__,__LINE__);
+         perror("");
+      }
       goto valid_and_malloc_counter_clean_exit;
    }
    
@@ -163,25 +176,16 @@ struct electricity_counter_s *valid_and_malloc_counter(int id_sensor_actuator, c
    counter_params=malloc_parsed_parameters(parameters, valid_counter_params, &nb_counter_params, &err,1);
    if(counter_params)
    {
-      int all_memory_params_set = 1;
-      // VERBOSE(9) display_parsed_parameters(counter_params, nb_counter_params);
-      for(int i=0;i<4;i++)
-      {
-         if(counter_params[i].label)
-            counter->sensor_mem_addr[i]=counter_params[i].value.i;
-         else
-         {
-            all_memory_params_set=0; // manque au moins un paramètre
-            break;
-         }
-      }
-      if(all_memory_params_set==0)
+//      VERBOSE(9) display_parsed_parameters(counter_params, nb_counter_params);
+      int16_t num_counter=-1;
+      
+      num_counter=counter_params[COUNTER_PARAMS_COUNTER].value.i;
+      if(num_counter<0 || num_counter>1)
          goto valid_and_malloc_counter_clean_exit;
       
-      if(counter_params[4].label)
-         counter->trap=counter_params[4].value.i;
-      else
-         goto valid_and_malloc_counter_clean_exit;
+      for(int i=0;i<4;i++)
+         counter->sensor_mem_addr[i]=counters_mem[num_counter][i];
+      counter->trap=counters_trap[num_counter];
       
       free_parsed_parameters(counter_params, nb_counter_params);
       free(counter_params);
@@ -211,7 +215,7 @@ valid_and_malloc_counter_clean_exit:
       free(counter_params);
    }
    VERBOSE(1) {
-      fprintf(stderr,"ERROR (start_interface_type_001 : %s/%s invalid. Check parameters\n",name,parameters);
+      fprintf(stderr,"%s (%s) : %s/%s invalid. Check parameters.\n",ERROR_STR,__func__,name,parameters);
    }
    
    return NULL;

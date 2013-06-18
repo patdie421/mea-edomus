@@ -629,7 +629,7 @@ error_t xbee_get_host_by_name(xbee_xd_t *xd, xbee_host_t *host, char *name, int1
       memcpy(host,h,sizeof(xbee_host_t));
    else
    {
-      DEBUG_SECTION fprintf(stderr,"DEBUG (xbee_get_host_by_name) : %s not found in xbee host table.\n",name);
+      DEBUG_SECTION fprintf(stderr,"%s (%s) : %s not found in xbee host table.\n",DEBUG_STR,__func__,name);
       
       *nerr=XBEE_ERR_HOSTNOTFUND;
       return ERROR;
@@ -660,7 +660,7 @@ error_t xbee_get_host_by_addr_64(xbee_xd_t *xd, xbee_host_t *host, uint32_t addr
    {
       _xbee_host_init_addr_64(host, addr_64_h, addr_64_l);
       
-      DEBUG_SECTION fprintf(stderr,"DEBUG (xbee_get_host_by_addr_64) : %08lx-%08lx not found in xbee host table.\n", (unsigned long int)addr_64_h,(unsigned long int)addr_64_l);
+      DEBUG_SECTION fprintf(stderr,"%s (%s) : %08lx-%08lx not found in xbee host table.\n", DEBUG_STR,__func__,(unsigned long int)addr_64_h,(unsigned long int)addr_64_l);
       *nerr=XBEE_ERR_HOSTNOTFUND;
       return ERROR;
    }
@@ -724,7 +724,7 @@ error_t hosts_table_display(xbee_hosts_table_t *table)
       {
          if(nb<table->nb_hosts && table->hosts_table[i])
          {
-            printf("DEBUG (display_table) : [%02d] %s %lx-%lx %lx\n", i,
+            printf("%s (%s) : [%02d] %s %lx-%lx %lx\n",DEBUG_STR,__func__,i,
                    table->hosts_table[i]->name,
                    (long unsigned int)table->hosts_table[i]->l_addr_64_h,
                    (long unsigned int)table->hosts_table[i]->l_addr_64_l,
@@ -910,7 +910,6 @@ int16_t xbee_atCmdSendAndWaitResp(xbee_xd_t *xd,
  * \return    0 = OK, -1 = KO, voir nerr pour le type d'erreur.
  */
 {
-   char *fn_name="xbee_atCmdToXbee";
    unsigned char xbee_frame[XBEE_MAX_FRAME_SIZE];
    uint16_t l_xbee_frame;
    xbee_queue_elem_t *e;
@@ -1003,14 +1002,14 @@ int16_t xbee_atCmdSendAndWaitResp(xbee_xd_t *xd,
                      }
                      
                      // theoriquement pour nous mais donnees trop vieilles, on supprime
-                     DEBUG_SECTION fprintf(stderr,"DEBUG (%s) : data too old\n", fn_name);
+                     DEBUG_SECTION fprintf(stderr,"%s (%s) : data too old\n", DEBUG_STR,__func__);
 //                     remove_current_queue(xd->queue);
 //                     _xbee_free_queue_elem(e);
 //                     e=NULL;
                   }
                   else
                   {
-                     DEBUG_SECTION fprintf(stderr,"DEBUG (%s) : not for me (%d != %d)\n", fn_name, e->cmd[1], frame_data_id);
+                     DEBUG_SECTION fprintf(stderr,"%s (%s) : not for me (%d != %d)\n", DEBUG_STR,__func__, e->cmd[1], frame_data_id);
                      e=NULL;
                   }
                }
@@ -1089,7 +1088,7 @@ void _xbee_display_frame(int ret, unsigned char *resp, uint16_t l_resp)
    DEBUG_SECTION {
       if(!ret)
       {
-         fprintf(stderr,"DEBUG (_xbee_display_frame) : ");
+         fprintf(stderr,"%s (%s) : ", DEBUG_STR,__func__);
          for(int i=0;i<l_resp;i++)
             fprintf(stderr, "%02x-[%c] ", resp[i], resp[i]);
          printf("\n");
@@ -1210,7 +1209,7 @@ int _xbee_read_cmd(int fd, char unsigned *frame, uint16_t *l_frame, int16_t *ner
             }
             else
             {
-               VERBOSE(5) fprintf(stderr,"INFO (_xbee_read_cmd) : Xbee reponse - checksum error.\n");
+               VERBOSE(5) fprintf(stderr,"%s  (%s) : Xbee reponse - checksum error.\n",INFO_STR,__func__);
                *nerr=XBEE_ERR_CHECKSUM;
                return -1;
             }
@@ -1264,8 +1263,8 @@ int _xbee_network_discovery_resp(xbee_xd_t *xd, char *data, uint16_t l_data)
    map=(struct xbee_map_nd_resp_data *)data; // -1 pour corriger l'alignement			
    
    DEBUG_SECTION {
-      fprintf(stderr,"DEBUG (_xbee_network_discovery_resp) : MY = %x\n",map->MY[0]*256+map->MY[1]);
-      fprintf(stderr,"DEBUG (_xbee_network_discovery_resp) : NI = %s\n",(map->NI)-1); // décallage de 1 a cause de l'alignement
+      fprintf(stderr,"%s (%s) : MY = %x\n",DEBUG_STR,__func__,map->MY[0]*256+map->MY[1]);
+      fprintf(stderr,"%s (%s) : NI = %s\n",DEBUG_STR,__func__,(map->NI)-1); // décallage de 1 a cause de l'alignement
    }
    
    _xbee_update_hosts_tables(xd->hosts, (char *)map->SH, (char *)map->SL, (char *)map->MY, (map->NI)-1);
@@ -1352,7 +1351,7 @@ int xbee_reinit(xbee_xd_t *xd)
    strcpy(dev,xd->serial_dev_name);
    speed=xd->speed;
    
-   VERBOSE(5) fprintf(stderr,"INFO (xbee_reinit) : Réinitialisation de la com (%s).\n",dev);
+   VERBOSE(9) fprintf(stderr,"%s  (%s) : Réinitialisation de la com (%s).\n",INFO_STR,__func__,dev);
    
    xbee_close(xd);
    
@@ -1362,7 +1361,7 @@ int xbee_reinit(xbee_xd_t *xd)
       if (fd == -1)
       {
          VERBOSE(1) {
-            fprintf(stderr,"ERROR (xbee_reinit) : Unable to open serial port (%s) - ",dev);
+            fprintf(stderr,"%s (%s) : Unable to open serial port (%s) - ",ERROR_STR,__func__,dev);
             perror("");
          }
       }
@@ -1376,11 +1375,11 @@ int xbee_reinit(xbee_xd_t *xd)
    
    if(!flag)
    {
-      VERBOSE(1) fprintf(stderr,"ERROR (xbee_reinit) : récupération impossible\n");
+      VERBOSE(1) fprintf(stderr,"%s (%s) : récupération impossible\n", ERROR_STR,__func__);
       return -1;
    }
    
-   VERBOSE(5) fprintf(stderr,"INFO (xbee_reinit) : Réinitialisation de la com reussie.\n");
+   VERBOSE(5) fprintf(stderr,"%s  (%s) : Réinitialisation de la com reussie.\n",INFO_STR,__func__);
 
    return 0;
 }	
@@ -1403,7 +1402,7 @@ void *_xbee_thread(void *args)
    
    xbee_xd_t *xd=(xbee_xd_t *)args;
    
-   VERBOSE(5) fprintf(stderr,"INFO  (_xbee_thread) : starting xbee read thread %s\n",xd->serial_dev_name);
+   VERBOSE(5) fprintf(stderr,"%s  (%s) : starting xbee read thread %s\n",INFO_STR,__func__,xd->serial_dev_name);
    while(1)
    {
       _xbee_flush_old_responses_queue(xd);
@@ -1492,7 +1491,7 @@ void *_xbee_thread(void *args)
             }
                
             default:
-               VERBOSE(9) fprintf(stderr,"INFO  (_xbee_thread): reception d'une trame (%x) non prise en compte\n",cmd[0]);
+               VERBOSE(9) fprintf(stderr,"%s  (%s): reception d'une trame (%x) non prise en compte\n",INFO_STR,__func__,cmd[0]);
                break;
          }
       }
@@ -1506,7 +1505,7 @@ void *_xbee_thread(void *args)
             case XBEE_ERR_READ:
             case XBEE_ERR_SYS:
                VERBOSE(1) {
-                  fprintf(stderr,"ERROR (_xbee_thread) : communication error (nerr=%d).\n", nerr);
+                  fprintf(stderr,"%s (%s) : communication error (nerr=%d).\n", ERROR_STR,__func__,nerr);
                   perror("");
                }
                xd->signal_flag=1;
@@ -1515,12 +1514,12 @@ void *_xbee_thread(void *args)
                pthread_exit(NULL);
             case XBEE_ERR_HOSTTABLEFULL:
                VERBOSE(1) {
-                  fprintf(stderr,"ERROR (_xbee_thread) : hosts table full (nerr=%d).\n", nerr);
+                  fprintf(stderr,"%s (%s) : hosts table full (nerr=%d).\n", ERROR_STR,__func__,nerr);
                }
                break;
             default:
                VERBOSE(1) {
-                  fprintf(stderr,"ERROR (_xbee_thread) : error=%d.\n", nerr);
+                  fprintf(stderr,"%s (%s) : error=%d.\n", ERROR_STR,__func__,nerr);
                }
                break;
          }

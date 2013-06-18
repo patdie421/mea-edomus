@@ -25,9 +25,9 @@
 
 // PIN=D5;TYPE=DIGITAL_OUT
 char *valid_relay_params[]={"S:PIN","S:MODE","S:ACTION",NULL};
-#define RELAY_PARAMS_PIN        0
-#define RELAY_PARAMS_TYPE       1
-#define RELAY_PARAMS_ACTION     2
+#define ACTUATOR_PARAMS_PIN        0
+#define ACTUATOR_PARAMS_TYPE       1
+#define ACTUATOR_PARAMS_ACTION     2
 
 
 struct assoc_s type_pin_assocs_i001_actuators[] = {
@@ -80,13 +80,13 @@ int valide_actuator_i001(int token_type_id, int pin_id, int token_action_id, int
    if(token_type_id==-1)
    {
       *err=1;
-      VERBOSE(5) fprintf(stderr,"ERROR (valide_actuator_i001) : bad i/o type (%d)\n",token_type_id);
+      VERBOSE(5) fprintf(stderr,"%s (%s) : bad i/o type (%d)\n",ERROR_STR,__func__,token_type_id);
    }
    
    if(pin_id==-1)
    {
       *err=2;
-      VERBOSE(5) fprintf(stderr,"ERROR (valide_actuator_i001) : bad pin (%d)\n",pin_id);
+      VERBOSE(5) fprintf(stderr,"%s (%s) : bad pin (%d)\n",ERROR_STR,__func__,pin_id);
    }
    
    int ret=actuator_pin_type_i001(token_type_id, pin_id);
@@ -94,7 +94,7 @@ int valide_actuator_i001(int token_type_id, int pin_id, int token_action_id, int
    if(!ret)
    {
       *err=3;
-      VERBOSE(5) fprintf(stderr,"ERROR (valide_sensor_i001) : bad pin (%d) for pin type (%d)\n",pin_id,token_type_id);
+      VERBOSE(5) fprintf(stderr,"%s (%s) : bad pin (%d) for pin type (%d)\n",ERROR_STR,__func__,pin_id,token_type_id);
       return 0;
    }
    
@@ -117,7 +117,7 @@ struct actuator_s *valid_and_malloc_actuator(int id_sensor_actuator, char *name,
    if(!actuator)
    {
       VERBOSE(1) {
-         fprintf (stderr, "ERROR (valid_and_malloc_relay) : malloc (%s/%d) - ",__FILE__,__LINE__-4);
+         fprintf (stderr, "%s (%s) : malloc (%s/%d) - ",ERROR_STR,__func__,__FILE__,__LINE__-4);
          perror(""); }
       goto valid_and_malloc_relay_clean_exit;
    }
@@ -125,10 +125,10 @@ struct actuator_s *valid_and_malloc_actuator(int id_sensor_actuator, char *name,
    relay_params=malloc_parsed_parameters((char *)parameters, valid_relay_params, &nb_relay_params, &err,1);
    if(relay_params)
    {
-      type_id=get_id_by_string(relay_params[RELAY_PARAMS_TYPE].value.s);
-      pin_id=get_arduino_pin(relay_params[RELAY_PARAMS_PIN].value.s);
-      if(relay_params[RELAY_PARAMS_ACTION].label) // action set ?
-         action_id=get_id_by_string(relay_params[RELAY_PARAMS_ACTION].value.s);
+      type_id=get_id_by_string(relay_params[ACTUATOR_PARAMS_TYPE].value.s);
+      pin_id=get_arduino_pin(relay_params[ACTUATOR_PARAMS_PIN].value.s);
+      if(relay_params[ACTUATOR_PARAMS_ACTION].label) // action set ?
+         action_id=get_id_by_string(relay_params[ACTUATOR_PARAMS_ACTION].value.s);
       else
          action_id=0;
       
@@ -174,13 +174,15 @@ struct actuator_s *valid_and_malloc_actuator(int id_sensor_actuator, char *name,
       }
       else
       {
-         VERBOSE(1) fprintf (stderr, "ERROR (valid_and_malloc_sensor) : parametres (%s) non valides\n",parameters);
+         VERBOSE(1) fprintf (stderr, "%s (%s) : parametres (%s) non valides\n",ERROR_STR,__func__,parameters);
          goto valid_and_malloc_relay_clean_exit;
       }
    }
    else
    {
-      fprintf(stderr,"%s ERROR\n",parameters);
+      VERBOSE(1) {
+         fprintf(stderr,"%s (%s) : %s/%s invalid. Check parameters.\n",ERROR_STR,__func__,name,parameters);
+      }
    }
    
 valid_and_malloc_relay_clean_exit:
@@ -240,7 +242,7 @@ error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNomsVa
                      else
                         pulse_width=250;
                      
-                     VERBOSE(9) fprintf(stderr,"INFO  (xPL_callback) : %s PLUSE %d ms on %d\n",device,pulse_width,iq->arduino_pin);
+                     VERBOSE(9) fprintf(stderr,"%s  (%s) : %s PLUSE %d ms on %d\n",INFO_STR,__func__,device,pulse_width,iq->arduino_pin);
                      
                      val=(iq->arduino_pin) << 8;
                      val=val | ((pulse_width / 100) & 0xFF);
@@ -271,7 +273,7 @@ error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNomsVa
                   else
                      return ERROR;
                   
-                  VERBOSE(9) fprintf(stderr,"INFO  (xPL_callback) : %s set %d on pin %d\n",device,o,iq->arduino_pin);
+                  VERBOSE(9) fprintf(stderr,"%s  (%s) : %s set %d on pin %d\n",INFO_STR,__func__,device,o,iq->arduino_pin);
                   
                   val=(iq->arduino_pin) << 8;
                   val=val | o;
@@ -342,7 +344,7 @@ error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNomsVa
                         }
                         else
                         {
-                           VERBOSE(9) fprintf(stderr,"INFO  (xPL_callback) : %s ???\n",current_value);
+                           VERBOSE(9) fprintf(stderr,"%s  (%s) : %s ???\n",INFO_STR,__func__,current_value);
                            return ERROR; // erreur de syntaxe ...
                         }
                      }
@@ -356,7 +358,7 @@ error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNomsVa
                   iq->old_val=o;
                   
                   // fonction à ajouter dans l'arduino
-                  VERBOSE(9) fprintf(stderr,"INFO  (xPL_callback) : %s set %d on pin %d\n",device,o,iq->arduino_pin);
+                  VERBOSE(9) fprintf(stderr,"%s  (%s) : %s set %d on pin %d\n",INFO_STR, __func__,device,o,iq->arduino_pin);
                   
                   val=(iq->arduino_pin) << 8;
                   val=val | o;
