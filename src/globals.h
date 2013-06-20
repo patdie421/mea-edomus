@@ -18,7 +18,8 @@ extern char *mysql_database;
 extern char *mysql_user;
 extern char *mysql_passwd;
 
-extern tomysqldb_md_t md;
+//extern tomysqldb_md_t md;
+extern tomysqldb_md_t *myd;
 extern char *plugin_path;
 
 #endif

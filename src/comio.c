@@ -424,7 +424,7 @@ void *_comio_read_thread_func(void *args)
          else
          {
             VERBOSE(1) {
-               fprintf (stderr, "%s (%s) : malloc error (%s/%d) - ",ERROR_STR,__func__,__FILE__,__LINE__);
+               fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
                perror("");
             }
             pthread_exit(NULL);
@@ -558,8 +558,8 @@ int16_t comio_open(comio_ad_t *ad, char *dev)
    ad->queue=(queue_t *)malloc(sizeof(queue_t));
    if(!ad->queue)
    {
-      VERBOSE(1) {
-         fprintf (stderr, "%s (%s) : malloc error (%s/%d) - ",ERROR_STR,__func__,__FILE__,__LINE__);
+      VERBOSE(2) {
+         fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
          perror("");
       }
       return -1;
@@ -594,7 +594,7 @@ int16_t comio_init(comio_ad_t *ad, char *dev)
       fd = comio_open(ad, dev);
       if (fd == -1)
       {
-         VERBOSE(5) {
+         VERBOSE(2) {
             fprintf(stderr,"%s  (%s) : unable to open serial port (%s) - ",INFO_STR,__func__,dev);
             perror("");
          }
@@ -609,7 +609,7 @@ int16_t comio_init(comio_ad_t *ad, char *dev)
    
    if(!flag)
    {
-      VERBOSE(1) fprintf(stderr,"%s (%s) : can't initialize communication.\n", ERROR_STR,__func__);
+      VERBOSE(2) fprintf(stderr,"%s (%s) : can't initialize communication.\n", ERROR_STR,__func__);
       return -1;
    }
    

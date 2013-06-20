@@ -197,6 +197,9 @@ int to_db(tomysqldb_md_t *md, int mysql_connected, MYSQL *conn, sqlite3 *db, tom
 {
    char sql[255];
    
+   if(!md)
+      return 0;
+   
    VERBOSE(9) fprintf(stderr,"%s  (%s) : Insertion data type %d\n",INFO_STR,__func__,elem->type);
    
    switch(elem->type)
@@ -359,23 +362,26 @@ void *tomysqldb_thread(void *args)
             pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(md->lock));
             if(!pthread_mutex_lock(&(md->lock)))
             {
-               last_queue(md->queue); // on se positionne en fin de queue
-               current_queue(md->queue,(void **)&elem); // on lit le dernier element de la file sans le sortir
-               
-               ret=to_db(md, mysql_connected, conn, db, elem);
-               if(!ret)
+               if(md)
                {
-                  out_queue_elem(md->queue,(void **)&elem);
-                  nb=md->queue->nb_elem;
-                  if(elem->data)
+                  last_queue(md->queue); // on se positionne en fin de queue
+                  current_queue(md->queue,(void **)&elem); // on lit le dernier element de la file sans le sortir
+                  
+                  ret=to_db(md, mysql_connected, conn, db, elem);
+                  if(!ret)
                   {
-                     free(elem->data);
-                     elem->data=NULL;
-                  }
-                  if(elem)
-                  {
-                     free(elem); // /!\ libération a revoir ... il faut aussi liberer à l'intérieur ...
-                     elem=NULL;
+                     out_queue_elem(md->queue,(void **)&elem);
+                     nb=md->queue->nb_elem;
+                     if(elem->data)
+                     {
+                        free(elem->data);
+                        elem->data=NULL;
+                     }
+                     if(elem)
+                     {
+                        free(elem); // /!\ libération a revoir ... il faut aussi liberer à l'intérieur ...
+                        elem=NULL;
+                     }
                   }
                }
                else
@@ -477,14 +483,17 @@ int tomysqldb_init(tomysqldb_md_t *md, char *db_server, char *base, char *user, 
 
 void tomysqldb_release(tomysqldb_md_t *md)
 {
-   pthread_cancel(md->thread);
-   pthread_join(md->thread,NULL);
-   
-   clear_queue(md->queue,_tomysqldb_free_queue_elem);
-
-   FREE(md->queue);
-   FREE(md->db_server);
-   FREE(md->base);
-   FREE(md->user);
-   FREE(md->passwd);
+   if(md)
+   {
+      pthread_cancel(md->thread);
+      pthread_join(md->thread,NULL);
+      
+      clear_queue(md->queue,_tomysqldb_free_queue_elem);
+      
+      FREE(md->queue);
+      FREE(md->db_server);
+      FREE(md->base);
+      FREE(md->user);
+      FREE(md->passwd);
+   }
 }

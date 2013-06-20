@@ -20,7 +20,7 @@ char *string_malloc_and_copy(char *str, int v)
    else
    {
       VERBOSE(1) {
-         fprintf (stderr, "%s (%sy) : malloc error",ERROR_STR,__func__);
+         fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
          perror("");
       }
       return NULL;
@@ -43,7 +43,7 @@ char *string_free_malloc_and_copy(char **org_str, char *str, int v)
    else
    {
       VERBOSE(1) {
-         fprintf (stderr, "%s (%s) : malloc error ",ERROR_STR,__func__);
+         fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
          perror("");
       }
       return NULL;

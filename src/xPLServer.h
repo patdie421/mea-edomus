@@ -24,5 +24,6 @@ xPL_ServicePtr get_xPL_ServicePtr();
 char *set_xPL_vendorID(char *value);
 char *set_xPL_deviceID(char *value);
 char *set_xPL_instanceID(char *value);
+int is_started();
 
 #endif

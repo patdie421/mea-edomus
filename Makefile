@@ -1,7 +1,10 @@
 SHELL = /bin/bash
 CC = gcc
 
-DEBUGFLAGS  = -D__DEBUG_ON__ -D_BSD_SOURCE -g
+DEBUGFLAGS  = -g \
+              -D__DEBUG_ON__ \
+              -D__NO_TOMYSQL__ \
+              -D_BSD_SOURCE
 CFLAGS      = -std=c99 \
               -O2 \
               -I./src/xPLLib-mac -I/usr/include/mysql \

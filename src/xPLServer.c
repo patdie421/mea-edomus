@@ -145,7 +145,7 @@ void *_xPL_server_thread(void *data)
 pthread_t *xPLServer(queue_t *interfaces)
 {
    pthread_t *xPL_thread=NULL;
-   
+
    if(!xpl_deviceID || !xpl_instanceID || !xpl_vendorID)
    {
       return NULL;
@@ -155,7 +155,7 @@ pthread_t *xPLServer(queue_t *interfaces)
    if(!xPL_thread)
    {
       VERBOSE(1) {
-         fprintf (stderr, "%s (%s) : malloc (%s/%d) - ",ERROR_STR,__func__,__FILE__,__LINE__);
+         fprintf (stderr, "%s (%s) : malloc - ",ERROR_STR,__func__);
          perror("");
       }
       return NULL;
@@ -166,7 +166,7 @@ pthread_t *xPLServer(queue_t *interfaces)
       VERBOSE(1) fprintf(stderr, "%s (%s) : pthread_create - can't start thread\n",ERROR_STR,__func__);
       return NULL;
    }
-   
+      
    return xPL_thread;
 }
 

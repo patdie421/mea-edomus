@@ -90,7 +90,7 @@ parsed_parameter_t *malloc_parsed_parameters(char *parameters_string, char *para
    parsed_parameters=malloc(sizeof(parsed_parameter_t) * *nb_params);
    if(!parsed_parameters)
    {
-      VERBOSE(1) fprintf(stderr,"%s (%s) : malloc error\n",ERROR_STR,__func__);
+      VERBOSE(1) fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
       if(err) *err=1; // erreur système, voir errno;
       return NULL;
    }
@@ -145,7 +145,7 @@ parsed_parameter_t *malloc_parsed_parameters(char *parameters_string, char *para
                      parsed_parameters[i].value.s=malloc(r+1);
                      if(!parsed_parameters[i].value.s)
                      {
-                        VERBOSE(1) fprintf(stderr,"%s (%s) : malloc error\n", ERROR_STR,__func__);
+                        VERBOSE(1) fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
                         if(parsed_parameters)
                         {
                            free_parsed_parameters(parsed_parameters, *nb_params);

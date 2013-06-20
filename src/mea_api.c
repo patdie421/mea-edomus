@@ -203,7 +203,12 @@ static PyObject *mea_xplSendMsg(PyObject *self, PyObject *args)
             PyErr_SetString(PyExc_RuntimeError, "ERROR (mea_xplMsgSend) : xpl message type error");
             return NULL;
          }
-         xplMsg = xPL_createBroadcastMessage(get_xPL_ServicePtr(), message_type);
+         
+         xplMsg=NULL;
+         
+         xPL_ServicePtr servicePtr = get_xPL_ServicePtr();
+         if(servicePtr)
+            xplMsg = xPL_createBroadcastMessage(servicePtr, message_type);
          if(!xplMsg)
          {
             PyErr_SetString(PyExc_RuntimeError, "ERROR (mea_xplMsgSend) : internal error");

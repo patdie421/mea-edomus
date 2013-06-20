@@ -29,6 +29,7 @@
 
 #include "comio.h"
 #include "tomysqldb.h"
+#include "xPLServer.h"
 
 #include "arduino_pins.h"
 #include "parameters_mgr.h"
@@ -151,7 +152,7 @@ error_t stop_interface_type_001(interface_type_001_t *i001, int signal_number)
    queue_t *actuators_list=i001->actuators_list;
    struct actuator_s *actuator;
 
-   VERBOSE(9) fprintf(stderr,"%s  (%s) : start stoping counter thread (signal = %d).\n",INFO_STR,__func__,signal_number);
+   VERBOSE(9) fprintf(stderr,"%s  (%s) : shutdown thread (signal = %d) ... \n",INFO_STR,__func__,signal_number);
    
    first_queue(counters_list);
    while(counters_list->nb_elem)
@@ -190,7 +191,7 @@ error_t stop_interface_type_001(interface_type_001_t *i001, int signal_number)
    FREE(i001->ad);
    FREE(i001->counters_list);
    
-   VERBOSE(9) fprintf(stderr,"%s  (%s) : stoping counter thread done.\n",INFO_STR,__func__);
+   VERBOSE(9) fprintf(stderr,"done.\n");
    
    return NOERROR;
 }
@@ -305,26 +306,24 @@ void *_thread_interface_type_001(void *args)
                      VERBOSE(9) fprintf(stderr,"%s  (%s) : sensor %s = %d\n",INFO_STR,__func__,sensor->name,sensor->val);
                   }
                   
+                  char str_value[20];
+                  
+                  xPL_ServicePtr servicePtr = get_xPL_ServicePtr();
+                  if(servicePtr)
                   {
-                     char str_value[20];
+                     xPL_MessagePtr cntrMessageStat = xPL_createBroadcastMessage(servicePtr, xPL_MESSAGE_TRIGGER);
                      
-                     xPL_ServicePtr servicePtr = get_xPL_ServicePtr();
-                     if(servicePtr)
-                     {
-                        xPL_MessagePtr cntrMessageStat = xPL_createBroadcastMessage(servicePtr, xPL_MESSAGE_TRIGGER);
+                     sprintf(str_value,"%0.1f",sensor->computed_val);
                      
-                        sprintf(str_value,"%0.1f",sensor->computed_val);
+                     xPL_setSchema(cntrMessageStat, get_token_by_id(XPL_SENSOR_ID), get_token_by_id(XPL_BASIC_ID));
+                     xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_DEVICE_ID),sensor->name);
+                     xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_TYPE_ID), get_token_by_id(XPL_ENERGY_ID));
+                     xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_TEMP_ID),str_value);
                      
-                        xPL_setSchema(cntrMessageStat, get_token_by_id(XPL_SENSOR_ID), get_token_by_id(XPL_BASIC_ID));
-                        xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_DEVICE_ID),sensor->name);
-                        xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_TYPE_ID), get_token_by_id(XPL_ENERGY_ID));
-                        xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_TEMP_ID),str_value);
+                     // Broadcast the message
+                     xPL_sendMessage(cntrMessageStat);
                      
-                        // Broadcast the message
-                        xPL_sendMessage(cntrMessageStat);
-                     
-                        xPL_releaseMessage(cntrMessageStat);
-                     }
+                     xPL_releaseMessage(cntrMessageStat);
                   }
                }
             }
@@ -333,6 +332,7 @@ void *_thread_interface_type_001(void *args)
 
       }
       if(cntr>60)
+//      if(cntr>1)
       {
          int l1,l2,l3,l4;
          unsigned long c;
@@ -375,7 +375,7 @@ _thread_interface_type_001_operation_abord:
             // prise du chrono
             gettimeofday(&tv, NULL);
             
-            pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(md->lock));
+            pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(counter->lock));
             ret=pthread_mutex_lock(&(counter->lock));
             if(!ret)
             {
@@ -388,7 +388,7 @@ _thread_interface_type_001_operation_abord:
             else
             {
                qelem=NULL;
-               VERBOSE(1) {
+               VERBOSE(2) {
                   fprintf(stderr,"%s (%s) : can't take semaphore - ",ERROR_STR,__func__);
                   perror("");
                   continue;
@@ -400,7 +400,7 @@ _thread_interface_type_001_operation_abord:
             if(!ec_query)
             {
                VERBOSE(1) {
-                  fprintf (stderr, "%s (%s) : malloc error (%s/%d) - ",ERROR_STR,__func__,__FILE__,__LINE__);
+                  fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
                   perror("");
                }
                pthread_exit(NULL);
@@ -415,7 +415,7 @@ _thread_interface_type_001_operation_abord:
             if(!qelem)
             {
                VERBOSE(1) {
-                  fprintf (stderr, "%s (%s) : malloc error (%s/%d) - ",ERROR_STR,__func__,__FILE__,__LINE__);
+                  fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
                   perror("");
                }
                if(ec_query)
@@ -430,19 +430,24 @@ _thread_interface_type_001_operation_abord:
             
             {
                char value[20];
-               xPL_MessagePtr cntrMessageStat = xPL_createBroadcastMessage(get_xPL_ServicePtr(), xPL_MESSAGE_TRIGGER);
                
-               sprintf(value,"%d",counter->kwh_counter);
-               
-               xPL_setSchema(cntrMessageStat, get_token_by_id(XPL_SENSOR_ID), get_token_by_id(XPL_BASIC_ID));
-               xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_DEVICE_ID),counter->name);
-               xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_TYPE_ID), get_token_by_id(XPL_ENERGY_ID));
-               xPL_setMessageNamedValue(cntrMessageStat,  get_token_by_id(XPL_CURRENT_ID),value);
-               
-               // Broadcast the message
-               xPL_sendMessage(cntrMessageStat);
-               
-               xPL_releaseMessage(cntrMessageStat);
+               xPL_ServicePtr servicePtr = get_xPL_ServicePtr();
+               if(servicePtr)
+               {
+                  xPL_MessagePtr cntrMessageStat = xPL_createBroadcastMessage(servicePtr, xPL_MESSAGE_TRIGGER);
+                  
+                  sprintf(value,"%d",counter->kwh_counter);
+                  
+                  xPL_setSchema(cntrMessageStat, get_token_by_id(XPL_SENSOR_ID), get_token_by_id(XPL_BASIC_ID));
+                  xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_DEVICE_ID),counter->name);
+                  xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_TYPE_ID), get_token_by_id(XPL_ENERGY_ID));
+                  xPL_setMessageNamedValue(cntrMessageStat,  get_token_by_id(XPL_CURRENT_ID),value);
+                  
+                  // Broadcast the message
+                  xPL_sendMessage(cntrMessageStat);
+                  
+                  xPL_releaseMessage(cntrMessageStat);
+               }
             }
             
             VERBOSE(9) fprintf(stderr,"%s  (%s) : counter %s %ld (WH=%d KWH=%d)\n",INFO_STR,__func__,counter->name, counter->counter, counter->wh_counter,counter->kwh_counter);
@@ -450,13 +455,16 @@ _thread_interface_type_001_operation_abord:
          
          if(qelem)
          {
-            pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(md->lock));
-            if(!pthread_mutex_lock(&(md->lock)))
+            if(md)
             {
-               in_queue_elem(md->queue,(void *)qelem);
-               pthread_mutex_unlock(&(md->lock));
+               pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(md->lock));
+               if(!pthread_mutex_lock(&(md->lock)))
+               {
+                  in_queue_elem(md->queue,(void *)qelem);
+                  pthread_mutex_unlock(&(md->lock));
+               }
+               pthread_cleanup_pop(0);
             }
-            pthread_cleanup_pop(0);
          }
          
          next_queue(counters_list);
@@ -500,7 +508,7 @@ error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, int id
       sprintf(real_dev,"/dev/%s",buff);
    else
    {
-      VERBOSE(1) fprintf (stderr, "%s (%s) : unknow interface device - %s\n", ERROR_STR,__func__,dev);
+      VERBOSE(2) fprintf (stderr, "%s (%s) : unknow interface device - %s\n", ERROR_STR,__func__,dev);
       return ERROR;
    }
    
@@ -509,8 +517,8 @@ error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, int id
    i001->counters_list=(queue_t *)malloc(sizeof(queue_t));
    if(!i001->counters_list)
    {
-      VERBOSE(1) {
-         fprintf (stderr, "%s (%s) : malloc (%s/%d) - ",ERROR_STR,__func__,__FILE__,__LINE__-4);
+      VERBOSE(2) {
+         fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
          perror(""); }
       return ERROR;
    }
@@ -521,8 +529,8 @@ error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, int id
    i001->actuators_list=(queue_t *)malloc(sizeof(queue_t));
    if(!i001->actuators_list)
    {
-      VERBOSE(1) {
-         fprintf (stderr, "%s (%s) : malloc (%s/%d) - ",ERROR_STR,__func__,__FILE__,__LINE__-4);
+      VERBOSE(2) {
+         fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
          perror(""); }
       return ERROR;
    }
@@ -533,8 +541,8 @@ error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, int id
    i001->sensors_list=(queue_t *)malloc(sizeof(queue_t));
    if(!i001->sensors_list)
    {
-      VERBOSE(1) {
-         fprintf (stderr, "%s (%s) : malloc (%s/%d) - ",ERROR_STR,__func__,__FILE__,__LINE__-4);
+      VERBOSE(2) {
+         fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
          perror(""); }
       return ERROR;
    }
@@ -546,7 +554,7 @@ error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, int id
    ret = sqlite3_prepare_v2(db,sql_request,strlen(sql_request)+1,&stmt,NULL);
    if(ret)
    {
-      VERBOSE(1) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg (db));
+      VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg (db));
       return ERROR;
    }
    
@@ -618,8 +626,8 @@ error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, int id
       ad=(comio_ad_t *)malloc(sizeof(comio_ad_t));
       if(!ad)
       {
-         VERBOSE(1) {
-            fprintf (stderr, "%s (%s) : malloc (%s/%d) - ",ERROR_STR,__func__,__FILE__,__LINE__-4);
+         VERBOSE(2) {
+            fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
             perror("");
          }
          goto start_interface_type_001_clean_exit;
@@ -628,7 +636,7 @@ error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, int id
       int fd = comio_init(ad, real_dev);
       if (fd == -1)
       {
-         VERBOSE(1) {
+         VERBOSE(2) {
             fprintf(stderr,"%s (%s) : init_arduino - Unable to open serial port (%s) : ",ERROR_STR,__func__,dev);
             perror("");
          }
@@ -637,7 +645,7 @@ error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, int id
    }
    else
    {
-      fprintf(stderr,"%s (%s) : no sensor/actuator active for this interface (%d) : ",ERROR_STR,__func__,id_interface);
+      VERBOSE(5) fprintf(stderr,"%s (%s) : no sensor/actuator active for this interface (%d) : ",ERROR_STR,__func__,id_interface);
       return ERROR; // pas de capteur on s'arrête
    }
    
@@ -660,7 +668,7 @@ error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, int id
    
    if(pthread_create (counters_thread, NULL, _thread_interface_type_001, (void *)params))
    {
-      VERBOSE(1) fprintf(stderr, "%s (%s) : pthread_create - can't start thread\n",ERROR_STR,__func__);
+      VERBOSE(2) fprintf(stderr, "%s (%s) : pthread_create - can't start thread\n",ERROR_STR,__func__);
       goto start_interface_type_001_clean_exit;
    }
    

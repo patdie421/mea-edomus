@@ -116,8 +116,8 @@ struct actuator_s *valid_and_malloc_actuator(int id_sensor_actuator, char *name,
    struct actuator_s *actuator=(struct actuator_s *)malloc(sizeof(struct actuator_s));
    if(!actuator)
    {
-      VERBOSE(1) {
-         fprintf (stderr, "%s (%s) : malloc (%s/%d) - ",ERROR_STR,__func__,__FILE__,__LINE__-4);
+      VERBOSE(2) {
+         fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
          perror(""); }
       goto valid_and_malloc_relay_clean_exit;
    }
@@ -174,7 +174,7 @@ struct actuator_s *valid_and_malloc_actuator(int id_sensor_actuator, char *name,
       }
       else
       {
-         VERBOSE(1) fprintf (stderr, "%s (%s) : parametres (%s) non valides\n",ERROR_STR,__func__,parameters);
+         VERBOSE(2) fprintf (stderr, "%s (%s) : parametres (%s) non valides\n",ERROR_STR,__func__,parameters);
          goto valid_and_malloc_relay_clean_exit;
       }
    }

@@ -104,6 +104,7 @@ error_t digital_in_trap(int numTrap, void *args, char *buff)
       servicePtr=get_xPL_ServicePtr();
       if(!servicePtr)
          return 1;
+      
       xPL_MessagePtr cntrMessageStat = xPL_createBroadcastMessage(servicePtr, xPL_MESSAGE_TRIGGER);
       
       if(buff[0]==0)
@@ -227,7 +228,7 @@ struct sensor_s *valid_and_malloc_sensor(int id_sensor_actuator, char *name, cha
    if(!sensor)
    {
       VERBOSE(1) {
-         fprintf (stderr, "%s (%s) : malloc (%s/%d) - ",ERROR_STR,__func__,__FILE__,__LINE__-4);
+         fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
          perror("");
       }
       goto valid_and_malloc_sensor_clean_exit;

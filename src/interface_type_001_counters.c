@@ -92,7 +92,7 @@ error_t counter_trap(int numTrap, void *args, char *buff)
          if(!query_pinst)
          {
             VERBOSE(1) {
-               fprintf (stderr, "%s (%s) : malloc error (%s/%d) - ",ERROR_STR,__func__,__FILE__,__LINE__);
+               fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
                perror("");
             }
             return ERROR;
@@ -108,7 +108,7 @@ error_t counter_trap(int numTrap, void *args, char *buff)
          if(!qelem)
          {
             VERBOSE(1) {
-               fprintf (stderr, "%s (%s) : malloc error (%s/%d) - ",ERROR_STR,__func__,__FILE__,__LINE__);
+               fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
                perror("");
             }
             return ERROR;
@@ -117,18 +117,21 @@ error_t counter_trap(int numTrap, void *args, char *buff)
          qelem->data=(void *)query_pinst;
          
 
-         pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(md.lock));
-         if(!pthread_mutex_lock(&(md.lock)))
+         pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(myd->lock));
+         if(!pthread_mutex_lock(&(myd->lock)))
          {
             if(qelem)
-               in_queue_elem(md.queue,(void *)qelem);
-            pthread_mutex_unlock(&(md.lock));
+               in_queue_elem(myd->queue,(void *)qelem);
+            pthread_mutex_unlock(&(myd->lock));
          }
          pthread_cleanup_pop(0);
          
+         char value[20];
+         
+         xPL_ServicePtr servicePtr = get_xPL_ServicePtr();
+         if(servicePtr)
          {
-            char value[20];
-            xPL_MessagePtr cntrMessageStat = xPL_createBroadcastMessage(get_xPL_ServicePtr(), xPL_MESSAGE_TRIGGER);
+            xPL_MessagePtr cntrMessageStat = xPL_createBroadcastMessage(servicePtr, xPL_MESSAGE_TRIGGER);
             
             sprintf(value,"%f",counter->power);
             xPL_setSchema(cntrMessageStat, get_token_by_id(XPL_SENSOR_ID), get_token_by_id(XPL_BASIC_ID));
@@ -163,7 +166,7 @@ struct electricity_counter_s *valid_and_malloc_counter(int id_sensor_actuator, c
    if(!counter)
    {
       VERBOSE(1) {
-         fprintf (stderr, "%s (%s) : malloc (%s/%d) - ",ERROR_STR,__func__,__FILE__,__LINE__);
+         fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
          perror("");
       }
       goto valid_and_malloc_counter_clean_exit;

@@ -36,9 +36,10 @@
 #include "parameters_mgr.h"
 
 
-tomysqldb_md_t md;
+//tomysqldb_md_t md;
+tomysqldb_md_t *myd;
+
 sqlite3 *sqlite3_param_db; // descritpteur SQLITE
-// xbee_xd_t xd;
 
 queue_t *interfaces;
 
@@ -129,6 +130,11 @@ static void _signal_STOP(int signal_number)
    
    VERBOSE(5) fprintf(stderr,"%s  (%s) : arrêt programme demandé (signal = %d).\n",INFO_STR,__func__,signal_number);
    
+   VERBOSE(5) fprintf(stderr,"%s  (%s) : stoping xPLServer ... ",INFO_STR,__func__);
+   pthread_cancel(*xPLServer_thread);
+   pthread_join(*xPLServer_thread, NULL);
+   VERBOSE(5) fprintf(stderr,"done\n");
+   
    first_queue(interfaces);
    while(interfaces->nb_elem)
    {
@@ -161,7 +167,7 @@ static void _signal_STOP(int signal_number)
       iq=NULL;
    }
    
-   tomysqldb_release(&md);	
+   tomysqldb_release(myd);
    
    exit(0);
 }
@@ -194,7 +200,7 @@ static void _signal_HUP(int signal_number)
                   i001->xPL_callback=NULL;
                sleep(1);
                VERBOSE(5) fprintf(stderr,"%s  (%s) : restart interface type_001 (interface_id=%d).\n", INFO_STR, __func__, i001->id_interface);
-               restart_interface_type_001(i001, sqlite3_param_db, &md);
+               restart_interface_type_001(i001, sqlite3_param_db, myd);
             }
             break;
          }
@@ -208,7 +214,7 @@ static void _signal_HUP(int signal_number)
                   i002->xPL_callback=NULL;
                sleep(1);
                VERBOSE(5) fprintf(stderr,"%s  (%s) : restart interface type_002 (interface_id=%d).\n", INFO_STR, __func__, i002->id_interface);
-               restart_interface_type_002(i002, sqlite3_param_db, &md);
+               restart_interface_type_002(i002, sqlite3_param_db, myd);
             }
             break;
          }
@@ -302,12 +308,28 @@ int main(int argc, const char * argv[])
       exit(1);
    }
 
-   ret=tomysqldb_init(&md,mysql_db_server,mysql_database,mysql_user,mysql_passwd,sqlite3_db_buff_path);
+   myd=NULL;
+#ifndef __NO_TOMYSQL__
+   myd=(struct tomysqldb_md_s *)malloc(sizeof(struct tomysqldb_md_s));
+   if(!myd)
+   {
+      VERBOSE(1) {
+         fprintf(stderr,"%s (%s) : %s - ", ERROR_STR, __func__, MALLOC_ERROR_STR);
+         perror("");
+      }
+      exit(1);
+   }
+   memset(myd,0,sizeof(struct tomysqldb_md_s));
+   
+   ret=tomysqldb_init(myd,mysql_db_server,mysql_database,mysql_user,mysql_passwd,sqlite3_db_buff_path);
    if(ret==-1)
    {
       VERBOSE(1) fprintf(stderr,"%s (%s) : impossible d'initialiser la gestion de la base de données.\n",ERROR_STR,__func__);
       exit(1);
    }
+#else
+   VERBOSE(9) fprintf(stderr,"%s  (%s) : tomysql not started.\n",INFO_STR,__func__);
+#endif
    
    pythonPluginServer_thread=pythonPluginServer(NULL);
    if(pythonPluginServer_thread==NULL)
@@ -326,7 +348,7 @@ int main(int argc, const char * argv[])
    if(!interfaces)
    {
       VERBOSE(1) {
-         fprintf (stderr, "%s (%s) : malloc - ",ERROR_STR,__func__);
+         fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
          perror("");
       }
       exit(1);
@@ -371,12 +393,12 @@ int main(int argc, const char * argv[])
                   if(!i001)
                   {
                      VERBOSE(1) {
-                        fprintf (stderr, "%s (%s) : malloc - can't start interface (%d).\n",ERROR_STR,__func__,id_interface);
+                        fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
                         perror(""); }
                      break;
                   }
                   i001->id_interface=id_interface;
-                  ret=start_interface_type_001(i001, sqlite3_param_db, id_interface, dev, &md);
+                  ret=start_interface_type_001(i001, sqlite3_param_db, id_interface, dev, myd);
                   if(!ret)
                   {
                      interfaces_queue_elem_t *iq=(interfaces_queue_elem_t *)malloc(sizeof(interfaces_queue_elem_t));
@@ -403,12 +425,12 @@ int main(int argc, const char * argv[])
                   if(!i002)
                   {
                      VERBOSE(1) {
-                        fprintf (stderr, "%s (%s) : malloc - can't start interface (%d).\n",ERROR_STR,__func__,id_interface);
+                        fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
                         perror(""); }
                      break;
                   }
                   i002->id_interface=id_interface;
-                  ret=start_interface_type_002(i002, sqlite3_param_db, id_interface, dev, &md);
+                  ret=start_interface_type_002(i002, sqlite3_param_db, id_interface, dev, myd);
                   if(!ret)
                   {
                      interfaces_queue_elem_t *iq=(interfaces_queue_elem_t *)malloc(sizeof(interfaces_queue_elem_t));
