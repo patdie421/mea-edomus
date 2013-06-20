@@ -152,7 +152,7 @@ error_t stop_interface_type_001(interface_type_001_t *i001, int signal_number)
    queue_t *actuators_list=i001->actuators_list;
    struct actuator_s *actuator;
 
-   VERBOSE(9) fprintf(stderr,"%s  (%s) : shutdown thread (signal = %d) ... \n",INFO_STR,__func__,signal_number);
+   VERBOSE(9) fprintf(stderr,"%s  (%s) : shutdown thread ... ",INFO_STR,__func__);
    
    first_queue(counters_list);
    while(counters_list->nb_elem)

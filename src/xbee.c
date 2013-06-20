@@ -1052,6 +1052,12 @@ void xbee_free_xd(xbee_xd_t *xd)
          free(xd->hosts);
          xd->hosts=NULL;
       }
+      
+      if(xd->hosts)
+      {
+         // ajouter le vidage de la table avant ...
+         free(xd->hosts);
+      }
    }
 }
 
