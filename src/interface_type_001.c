@@ -138,7 +138,7 @@ int16_t interface_type_001_xPL_callback(xPL_ServicePtr theService, xPL_MessagePt
 }
 
 
-error_t stop_interface_type_001(interface_type_001_t *i001, int signal_number)
+mea_error_t stop_interface_type_001(interface_type_001_t *i001, int signal_number)
 {
 
    comio_remove_all_traps(i001->ad);
@@ -197,7 +197,7 @@ error_t stop_interface_type_001(interface_type_001_t *i001, int signal_number)
 }
 
 
-error_t restart_interface_type_001(interface_type_001_t *i001,sqlite3 *db, tomysqldb_md_t *md)
+mea_error_t restart_interface_type_001(interface_type_001_t *i001,sqlite3 *db, tomysqldb_md_t *md)
 {
    char full_dev[80];
    char dev[80];
@@ -332,7 +332,7 @@ void *_thread_interface_type_001(void *args)
 
       }
       if(cntr>60)
-//      if(cntr>1)
+//      if(cntr>2)
       {
          int l1,l2,l3,l4;
          unsigned long c;
@@ -344,7 +344,7 @@ void *_thread_interface_type_001(void *args)
             current_queue(counters_list, (void **)&counter);
             do
             {
-               l2=0;l3=0;l4=0;
+               l1=0;l2=0;l3=0;l4=0;
                // lecture des compteurs stockés dans les variables partagées
                pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)(&i001->operation_lock) );
                pthread_mutex_lock(&i001->operation_lock);
@@ -485,7 +485,7 @@ int16_t check_status_interface_type_001(interface_type_001_t *i001)
 }
 
 
-error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, int id_interface, const unsigned char *dev, tomysqldb_md_t *md)
+mea_error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, int id_interface, const unsigned char *dev, tomysqldb_md_t *md)
 {
    int ret;
    

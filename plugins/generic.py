@@ -119,22 +119,15 @@ def enable_change_detection(data,mem):
    mask=0
    for i in mem:
       if i[0:1]=="d":
-         # if mem[i]==4 or mem[i]==5:
          if mem[i]==3:
             v=int(i[1:2])
             if v<=8:
-               print "i=", i
-               print "v=", v
                bit=1<<v
-               print "bit=", bit
                mask=mask+bit
    
    ret=0
-   print hex(mask)
    if mask != 0:
-      print "MASK =", mask
       ret=mea.sendAtCmd(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], "IC", mask)
-   print "ret = ",ret
    return ret
 
 
@@ -200,7 +193,8 @@ def mea_xplCmndMsg(data):
    last_key=pin+"_last"
 
    try:
-      xplMsg=mea_utils.xplMsgNew("mea", "edomus", "cheznousdev", "xpl-stat", "sensor", "basic", data["device_name"])
+      # xplMsg=mea_utils.xplMsgNew("mea", "edomus", "cheznousdev", "xpl-stat", "sensor", "basic", data["device_name"])
+      xplMsg=mea_utils.xplMsgNew(mea.xplGetVendorID(), mea.xplGetDeviceID(), mea.xplGetInstanceID(), "xpl-stat", "sensor", "basic", data["device_name"])
 
       x=data["xplmsg"]
       body=x["body"]
@@ -265,7 +259,7 @@ def mea_dataFromSensor(data):
             mem[last_key]=0
 
          strVal=""
-         if pin[0]=="D":
+         if pin[0].lower()=="d":
             if val==1:
                mem[current_key]="HIGH"
             else:
@@ -367,7 +361,6 @@ def mea_commissionningRequest(data):
                   ret=mea.sendAtCmd(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], i[0][1:3].upper(), "");
                   if ret == 0:
                      verbose(9, "Transmission error for", i[0], "= ", numVal)
-         print "Avant enable change", mem
          enable_change_detection(data,mem)
          if sample_set==False:
             enable_sample(data,mem)

@@ -35,7 +35,7 @@ struct sensor_s
 
 struct sensor_s *valid_and_malloc_sensor(int id_sensor_actuator, char *name, char *parameters);
 void _interface_type_001_free_sensors_queue_elem(void *d);
-error_t digital_in_trap(int numTrap, void *args, char *buff);
-error_t xpl_sensor(interface_type_001_t *i001, xPL_ServicePtr theService, xPL_NameValueListPtr ListNomsValeursPtr, char *device, char *type);
+mea_error_t digital_in_trap(int numTrap, void *args, char *buff);
+mea_error_t xpl_sensor(interface_type_001_t *i001, xPL_ServicePtr theService, xPL_NameValueListPtr ListNomsValeursPtr, char *device, char *type);
 
 #endif

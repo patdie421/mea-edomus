@@ -21,7 +21,7 @@ unsigned long nb_queue_elem(queue_t *queue)
 }
 
 
-error_t in_queue_elem(queue_t *queue, void *data)
+mea_error_t in_queue_elem(queue_t *queue, void *data)
 {
    struct queue_elem *new;
    
@@ -55,7 +55,7 @@ error_t in_queue_elem(queue_t *queue, void *data)
 }
 
 
-error_t out_queue_elem(queue_t *queue, void **data)
+mea_error_t out_queue_elem(queue_t *queue, void **data)
 {
    struct queue_elem *ptr;
    
@@ -89,7 +89,7 @@ error_t out_queue_elem(queue_t *queue, void **data)
 }
 
 
-error_t init_queue(queue_t *queue)
+mea_error_t init_queue(queue_t *queue)
 {
    if(!queue)
       return ERROR;
@@ -103,7 +103,7 @@ error_t init_queue(queue_t *queue)
 }
 
 
-error_t first_queue(queue_t *queue)
+mea_error_t first_queue(queue_t *queue)
 {
     if(!queue || !queue->first)
       return ERROR;
@@ -113,7 +113,7 @@ error_t first_queue(queue_t *queue)
 }
 
 
-error_t last_queue(queue_t *queue)
+mea_error_t last_queue(queue_t *queue)
 {
    if(!queue || !queue->last)
       return ERROR;
@@ -123,7 +123,7 @@ error_t last_queue(queue_t *queue)
 }
 
 
-error_t next_queue(queue_t *queue)
+mea_error_t next_queue(queue_t *queue)
 {
    if(!queue || !queue->current)
       return ERROR;
@@ -139,7 +139,7 @@ error_t next_queue(queue_t *queue)
 }
 
 
-error_t prev_queue(queue_t *queue)
+mea_error_t prev_queue(queue_t *queue)
 {
    if(!queue || !queue->current)
       return ERROR;
@@ -155,7 +155,7 @@ error_t prev_queue(queue_t *queue)
 }
 
 
-error_t clear_queue(queue_t *queue,free_data_f f)
+mea_error_t clear_queue(queue_t *queue,free_data_f f)
 {
    struct queue_elem *ptr;
    
@@ -195,7 +195,7 @@ error_t clear_queue(queue_t *queue,free_data_f f)
 }
 
 
-error_t current_queue(queue_t *queue, void **data)
+mea_error_t current_queue(queue_t *queue, void **data)
 {
    if(!queue)
       return ERROR;
@@ -209,7 +209,7 @@ error_t current_queue(queue_t *queue, void **data)
 }
 
 
-error_t remove_current_queue(queue_t *queue)
+mea_error_t remove_current_queue(queue_t *queue)
 {
    if(!queue)
       return ERROR;
@@ -261,7 +261,7 @@ error_t remove_current_queue(queue_t *queue)
 }
 
 
-error_t process_all_queue_elem(queue_t *queue, void (*f)(void *))
+mea_error_t process_all_queue_elem(queue_t *queue, void (*f)(void *))
 {
    struct queue_elem *ptr;
    

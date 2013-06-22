@@ -34,7 +34,7 @@ struct electricity_counter_s
 
 struct electricity_counter_s *valid_and_malloc_counter(int id_sensor_actuator, char *name, char *parameters);
 void interface_type_001_free_counters_queue_elem(void *d);
-error_t counter_trap(int numTrap, void *args, char *buff);
+mea_error_t counter_trap(int numTrap, void *args, char *buff);
 
 
 #endif

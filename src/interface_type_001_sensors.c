@@ -89,7 +89,7 @@ void _interface_type_001_free_sensors_queue_elem(void *d)
 }
 
 
-error_t digital_in_trap(int numTrap, void *args, char *buff)
+mea_error_t digital_in_trap(int numTrap, void *args, char *buff)
 {
    struct sensor_s *sensor;
    
@@ -316,7 +316,7 @@ valid_and_malloc_sensor_clean_exit:
 }
 
 
-error_t xpl_sensor(interface_type_001_t *i001, xPL_ServicePtr theService, xPL_NameValueListPtr ListNomsValeursPtr, char *device, char *type)
+mea_error_t xpl_sensor(interface_type_001_t *i001, xPL_ServicePtr theService, xPL_NameValueListPtr ListNomsValeursPtr, char *device, char *type)
 {
    queue_t *sensors_list=i001->sensors_list;
    struct sensor_s *sensor;

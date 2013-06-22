@@ -58,7 +58,7 @@ void interface_type_001_free_counters_queue_elem(void *d)
 
 
 // pour la reception d'un trap à chaque changement du compteur
-error_t counter_trap(int numTrap, void *args, char *buff)
+mea_error_t counter_trap(int numTrap, void *args, char *buff)
 {
    double t_old;
    struct timeval tv;

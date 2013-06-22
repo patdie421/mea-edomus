@@ -309,7 +309,7 @@ int _xbee_build_at_remote_cmd(unsigned char *frame, uint8_t id, xbee_host_t *add
 }
 
 
-error_t xbee_set_iodata_callback(xbee_xd_t *xd, callback_f f)
+mea_error_t xbee_set_iodata_callback(xbee_xd_t *xd, callback_f f)
 /**
  * \brief     met en place le callback qui sera déclenché à la réception d'une trame iodata.
  * \details   reférence le pointeur de la fonction à appeler dans le descripteur.
@@ -328,7 +328,7 @@ error_t xbee_set_iodata_callback(xbee_xd_t *xd, callback_f f)
 }
 
 
-error_t xbee_set_iodata_callback2(xbee_xd_t *xd, callback_f f, void *data)
+mea_error_t xbee_set_iodata_callback2(xbee_xd_t *xd, callback_f f, void *data)
 /**
  * \brief     met en place le callback qui sera declenché à la réception d'une trame iodata et stock un pointeur sur des données qui seront toujours tramisses au callback.
  * \details   référence le pointeur de la fonction à appeler et un pointeur sur des données (libre, a "caster" void *) dans le descripteur.
@@ -348,7 +348,7 @@ error_t xbee_set_iodata_callback2(xbee_xd_t *xd, callback_f f, void *data)
 }
 
 
-error_t xbee_remove_iodata_callback(xbee_xd_t *xd)
+mea_error_t xbee_remove_iodata_callback(xbee_xd_t *xd)
 /**
  * \brief     retiré le callback sur réception de trame iodata
  * \details   déréference la fonction et les donnees éventuellement associées.
@@ -366,7 +366,7 @@ error_t xbee_remove_iodata_callback(xbee_xd_t *xd)
 }
 
 
-error_t xbee_set_dataflow_callback(xbee_xd_t *xd, callback_f f)
+mea_error_t xbee_set_dataflow_callback(xbee_xd_t *xd, callback_f f)
 /**
  * \brief     met en place le callback qui sera déclenché à la réception d'un flot de données xbee
  * \details   référence le pointeur de la fonction à appeler dans le descripteur.
@@ -385,7 +385,7 @@ error_t xbee_set_dataflow_callback(xbee_xd_t *xd, callback_f f)
 }
 
 
-error_t xbee_set_dataflow_callback2(xbee_xd_t *xd, callback_f f, void *data)
+mea_error_t xbee_set_dataflow_callback2(xbee_xd_t *xd, callback_f f, void *data)
 /**
  * \brief     met en place le callback qui sera declenche a la reception d'un flot de donnees xbee et stock un pointeur sur des donnees qui seront toujours tramisses au callback.
  * \details   reference le pointeur de la fonction a appeler et un pointeur sur des donnees (libre, a caster void *) dans le descripteur. 
@@ -405,7 +405,7 @@ error_t xbee_set_dataflow_callback2(xbee_xd_t *xd, callback_f f, void *data)
 }
 
 
-error_t xbee_remove_dataflow_callback(xbee_xd_t *xd)
+mea_error_t xbee_remove_dataflow_callback(xbee_xd_t *xd)
 /**
  * \brief     retire le callback sur reception d'un flot de donnees
  * \details   dereference la fonction et les donnees eventuellement associees. 
@@ -423,7 +423,7 @@ error_t xbee_remove_dataflow_callback(xbee_xd_t *xd)
 }
 
 
-error_t xbee_set_commissionning_callback(xbee_xd_t *xd, callback_f f)
+mea_error_t xbee_set_commissionning_callback(xbee_xd_t *xd, callback_f f)
 /**
  * \brief     met en place le callback qui sera declenche a la reception d'une demande de commissionnement
  * \details   reference le pointeur de la fonction a appeler dans le descripteur. 
@@ -442,7 +442,7 @@ error_t xbee_set_commissionning_callback(xbee_xd_t *xd, callback_f f)
 }
 
 
-error_t xbee_set_commissionning_callback2(xbee_xd_t *xd, callback_f f, void *data)
+mea_error_t xbee_set_commissionning_callback2(xbee_xd_t *xd, callback_f f, void *data)
 /**
  * \brief     met en place le callback qui sera declenche a la reception d'une demande de commissionnement et stock un pointeur sur des donnees qui seront toujours tramisses au callback.
  * \details   reference le pointeur de la fonction a appeler et un pointeur sur des donnees (libre, a caster void *) dans le descripteur. 
@@ -462,7 +462,7 @@ error_t xbee_set_commissionning_callback2(xbee_xd_t *xd, callback_f f, void *dat
 }
 
 
-error_t xbee_remove_commissionning_callback(xbee_xd_t *xd)
+mea_error_t xbee_remove_commissionning_callback(xbee_xd_t *xd)
 /**
  * \brief     retire le callback sur reception d'un flot de donnees
  * \details   dereference la fonction et les donnees eventuellement associees. 
@@ -611,7 +611,7 @@ void _xbee_host_init_addr_64(xbee_host_t *xbee_host, uint32_t int_addr_64_h, uin
 }
 
 
-error_t xbee_get_host_by_name(xbee_xd_t *xd, xbee_host_t *host, char *name, int16_t *nerr)
+mea_error_t xbee_get_host_by_name(xbee_xd_t *xd, xbee_host_t *host, char *name, int16_t *nerr)
 /**
  * \brief     Recherche dans la table des xbee connus l'xbee qui porte le nom demandé. 
  * \details   retourne une structure contenant la rescription d'un "host" xbee (les adresses, le nom, ...). Le nom n'est recherche que dans la table (pas d'interrogation du réseau si non trouvé)
@@ -639,7 +639,7 @@ error_t xbee_get_host_by_name(xbee_xd_t *xd, xbee_host_t *host, char *name, int1
 }
 
 
-error_t xbee_get_host_by_addr_64(xbee_xd_t *xd, xbee_host_t *host, uint32_t addr_64_h, uint32_t addr_64_l, int16_t *nerr)
+mea_error_t xbee_get_host_by_addr_64(xbee_xd_t *xd, xbee_host_t *host, uint32_t addr_64_h, uint32_t addr_64_l, int16_t *nerr)
 /**
  * \brief     Recherche un xbee dans la table des xbee connus par son adresse 64 bits. 
  * \details   L'adresse 64 bits est passées à l'aide de de mot de 32 bits (h et l). Si l'adresse n'éxite pas le hosts est construit à partir de l'adresse fournie, les autres élements prennent une valeur par défaut.
@@ -707,7 +707,35 @@ xbee_hosts_table_t *_hosts_table_create(int max_nb_hosts, int16_t *nerr)
 }
 
 
-error_t hosts_table_display(xbee_hosts_table_t *table)
+void _hosts_table_delete(xbee_hosts_table_t *table)
+/**
+ * \brief     detruit une table "hosts" xbee.
+ * \details   desalocation complete d'une table host.
+ * \param     table table à détruire
+ */
+{
+   uint16_t nb=0;
+
+   for(uint16_t i=0;i<table->max_hosts;i++)
+   {
+      if(nb<table->nb_hosts && table->hosts_table[i])
+      {
+         free(table->hosts_table[i]);
+         table->hosts_table[i]=NULL;
+      }
+      else
+         break;
+      nb++;
+   }
+   
+   free(table->hosts_table);
+   table->hosts_table=NULL;
+   
+   free(table);
+}
+
+
+mea_error_t hosts_table_display(xbee_hosts_table_t *table)
 /**
  * \brief     affiche le contenu d'une table hosts xbee.
  * \param     table la table à afficher
@@ -786,7 +814,7 @@ _xbee_add_new_to_hosts_table_with_addr64_error:
 }
 
 
-error_t _xbee_update_hosts_tables(xbee_hosts_table_t *table, char *addr_64_h, char *addr_64_l,  char *addr_16, char *name)
+mea_error_t _xbee_update_hosts_tables(xbee_hosts_table_t *table, char *addr_64_h, char *addr_64_l,  char *addr_16, char *name)
 {
    /**
     * \brief     ajoute ou met à jour la table host avec les éléments transmis en paramètre.
@@ -1047,16 +1075,11 @@ void xbee_free_xd(xbee_xd_t *xd)
          xd->queue=NULL;
       }
       
+
       if(xd->hosts)
       {
-         free(xd->hosts);
+         _hosts_table_delete(xd->hosts);
          xd->hosts=NULL;
-      }
-      
-      if(xd->hosts)
-      {
-         // ajouter le vidage de la table avant ...
-         free(xd->hosts);
       }
    }
 }

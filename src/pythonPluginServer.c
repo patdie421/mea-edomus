@@ -62,7 +62,7 @@ void setPythonPluginPath(char *path)
 }
 
 
-error_t pythonPluginServer_init()
+mea_error_t pythonPluginServer_init()
 {
    pythonPluginCmd_queue=(queue_t *)malloc(sizeof(queue_t));
    if(!pythonPluginCmd_queue)
@@ -82,7 +82,7 @@ error_t pythonPluginServer_init()
 }
 
 
-error_t pythonPluginServer_add_cmd(char *module, char *module_parameters, void *data, int l_data)
+mea_error_t pythonPluginServer_add_cmd(char *module, char *module_parameters, void *data, int l_data)
 {
    pythonPlugin_cmd_t *e=NULL;
    
@@ -131,7 +131,7 @@ exit_pythonPluginServer_add_cmd:
 }
 
 
-error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
+mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
 {
    PyObject *pName, *pModule, *pFunc;
    PyObject *pArgs, *pValue;

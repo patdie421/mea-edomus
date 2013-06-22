@@ -44,7 +44,7 @@ void _comio_free_queue_elem(void *d)
 }
 
 
-error_t comio_set_trap(comio_ad_t *ad, int numTrap, trap_f trap)
+mea_error_t comio_set_trap(comio_ad_t *ad, int numTrap, trap_f trap)
 {
    if(numTrap>0 && numTrap<=MAX_TRAP)
    {
@@ -56,7 +56,7 @@ error_t comio_set_trap(comio_ad_t *ad, int numTrap, trap_f trap)
 }
 
 
-error_t comio_set_trap2(comio_ad_t *ad, int numTrap, trap_f trap, void *args)
+mea_error_t comio_set_trap2(comio_ad_t *ad, int numTrap, trap_f trap, void *args)
 {
    if(numTrap>0 && numTrap<=MAX_TRAP)
    {
@@ -78,7 +78,7 @@ void comio_remove_all_traps(comio_ad_t *ad)
 }
 
 
-error_t comio_remove_trap(comio_ad_t *ad, int numTrap)
+mea_error_t comio_remove_trap(comio_ad_t *ad, int numTrap)
 {
    if(numTrap>0 && numTrap<=MAX_TRAP)
    {
@@ -305,7 +305,7 @@ int _comio_write(comio_ad_t *ad, unsigned char op, unsigned char var, unsigned c
 }
 
 
-error_t comio_operation(comio_ad_t *ad, unsigned char op, unsigned char var, unsigned char type, unsigned int val, int *comio_err)
+mea_error_t comio_operation(comio_ad_t *ad, unsigned char op, unsigned char var, unsigned char type, unsigned int val, int *comio_err)
 {
    comio_queue_elem_t *c;
    
@@ -375,6 +375,8 @@ error_t comio_operation(comio_ad_t *ad, unsigned char op, unsigned char var, uns
          else
          {
             *comio_err=COMIO_ERR_DISCORDANCE;
+            free(c);
+            c=NULL;
             return ERROR;
          }
       }
@@ -415,6 +417,8 @@ void *_comio_read_thread_func(void *args)
             
             pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&ad->sync_lock);
             pthread_mutex_lock(&ad->sync_lock);
+            if(ad->queue->nb_elem>0)
+               clear_queue(ad->queue,_comio_free_queue_elem);
             in_queue_elem(ad->queue, c);
             if(ad->queue->nb_elem>=1)
                pthread_cond_broadcast(&ad->sync_cond);
@@ -477,7 +481,7 @@ void *_comio_read_thread_func(void *args)
 }
 
 
-error_t comio_call(comio_ad_t *ad, unsigned char num_function, unsigned int val, int *comio_err)
+mea_error_t comio_call(comio_ad_t *ad, unsigned char num_function, unsigned int val, int *comio_err)
 {
    return comio_operation(ad, OP_FONCTION, num_function, TYPE_FONCTION, val, comio_err);
 }

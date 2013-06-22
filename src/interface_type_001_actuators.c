@@ -197,7 +197,7 @@ valid_and_malloc_relay_clean_exit:
 }
 
 
-error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNomsValeursPtr, char *device, char *type)
+mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNomsValeursPtr, char *device, char *type)
 {
    int ret;
    int comio_err;

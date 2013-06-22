@@ -52,7 +52,7 @@ static int begin_request_handler(struct mg_connection *conn)
 }
 
 
-error_t httpServer()
+mea_error_t httpServer()
 {
    struct mg_callbacks callbacks;
 

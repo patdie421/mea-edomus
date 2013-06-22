@@ -24,7 +24,7 @@ typedef struct pythonPlugin_cmd_s
 } pythonPlugin_cmd_t;
 
 pthread_t *pythonPluginServer(queue_t *plugin_queue);
-error_t pythonPluginServer_add_cmd(char *module, char *module_parameters, void *data, int l_data);
+mea_error_t pythonPluginServer_add_cmd(char *module, char *module_parameters, void *data, int l_data);
 void setPythonPluginPath(char *path);
 
 #endif

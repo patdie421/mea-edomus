@@ -10,6 +10,6 @@
 
 #include "error.h"
 
-error_t httpServer();
+mea_error_t httpServer();
 
 #endif

@@ -1,22 +1,21 @@
 SHELL = /bin/bash
 CC = gcc
 
-DEBUGFLAGS  = -g \
-              -D__DEBUG_ON__ \
-              -D__NO_TOMYSQL__ \
-              -D_BSD_SOURCE
+DEBUGFLAGS  = -D__DEBUG_ON__
 CFLAGS      = -std=c99 \
+              -D__NO_TOMYSQL__ \
+              -D_BSD_SOURCE \
               -O2 \
-              -I./src/xPLLib-mac -I/usr/include/mysql \
+              -I./src/xPLLib-mac \
               -I/usr/local/mysql/include \
               -I/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7 \
               $(DEBUGFLAGS)
 LDFLAGS     = -L/usr/local/mysql/lib \
               -L/System/Library/Frameworks/Python.framework/Versions/2.7/lib \
-              -lmysqlclient \
               -lpthread \
               -lm \
               -ldl \
+              -lmysqlclient \
               -lsqlite3 \
               -lpython2.7
 
