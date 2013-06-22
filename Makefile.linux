@@ -1,0 +1,31 @@
+SHELL = /bin/bash
+CC = gcc
+
+DEBUGFLAGS  = -g \
+              -D__DEBUG_ON__
+CFLAGS      = -std=c99 \
+              -O2 \
+              -D_BSD_SOURCE \
+              -D__NO_TOMYSQL__ \
+              -I/usr/include/mysql \
+              -I/usr/include/python2.7 \
+              $(DEBUGFLAGS)
+LDFLAGS     = -lmysqlclient \
+              -lpthread \
+              -lm \
+              -ldl \
+              -lxPL \
+              -lsqlite3 \
+              -lpython2.7
+
+SOURCES=$(shell echo src/*.c)
+OBJECTS=$(SOURCES:.c=.o)
+EXECUTABLE=mea-edomus
+
+all: $(SOURCES) $(EXECUTABLE)
+	
+$(EXECUTABLE): $(OBJECTS) 
+	$(CC) $(LDFLAGS) $(OBJECTS) -o $@
+
+clean:
+	-rm -f $(OBJECTS)
