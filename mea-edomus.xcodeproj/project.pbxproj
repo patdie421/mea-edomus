@@ -118,6 +118,7 @@
 		4EFBFCC8175E6BE7007BBFD1 /* mongoose.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mongoose.c; path = src/mongoose.c; sourceTree = "<group>"; };
 		4EFBFCCB175E8BDC007BBFD1 /* python_api_utils.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = python_api_utils.c; path = src/python_api_utils.c; sourceTree = "<group>"; };
 		4EFBFCCD175E8BF7007BBFD1 /* python_api_utils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = python_api_utils.h; path = src/python_api_utils.h; sourceTree = "<group>"; };
+		4EFC89B21778DA28009B6E34 /* init_params_db.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = init_params_db.sql; path = sql/init_params_db.sql; sourceTree = "<group>"; };
 		8DD76FB20486AB0100D96B5E /* mea-eDomus */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "mea-eDomus"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -340,6 +341,7 @@
 				4E76CEB4163F17E300A3EBA9 /* mysql_mea-edomus_db.sql */,
 				4E76CEA6163F133400A3EBA9 /* sqlite3_params_db.sql */,
 				4E76CEA7163F133400A3EBA9 /* sqlite3_queries_db.sql */,
+				4EFC89B21778DA28009B6E34 /* init_params_db.sql */,
 			);
 			name = SQL;
 			sourceTree = "<group>";

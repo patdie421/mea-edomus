@@ -2,6 +2,17 @@ PRAGMA foreign_keys=OFF;
 
 BEGIN TRANSACTION;
 
+INSERT INTO "application_parameters" VALUES(1,'BUFFERDB','/data/prod/mea-edomus/var/db/queries.db','');
+INSERT INTO "application_parameters" VALUES(2,'DBSERVER','192.168.0.22','');
+INSERT INTO "application_parameters" VALUES(3,'DATABASE','domotique','');
+INSERT INTO "application_parameters" VALUES(4,'USER','domotique','');
+INSERT INTO "application_parameters" VALUES(5,'PASSWORD','maison','');
+INSERT INTO "application_parameters" VALUES(6,'VENDORID','mea','');
+INSERT INTO "application_parameters" VALUES(7,'DEVICEID','edomus','');
+INSERT INTO "application_parameters" VALUES(8,'INSTANCEID','cheznousdev','');
+INSERT INTO "application_parameters" VALUES(9,'PLUGINPATH','/data/prod/mea-edomus/lib/plugins','');
+
+
 INSERT INTO "interfaces" VALUES(1,1,100,'ARDUINO01','Compteurs EDF-ERDF','SERIAL://ttyACM0','',1);
 INSERT INTO "interfaces" VALUES(2,2,200,'MESHNETWORK01','Reseau de capteurs/actionneurs XBEE','SERIAL://ttyUSB0','',1);
 INSERT INTO "interfaces" VALUES(3,3,201,'XBEE01','Interface actionneur VMC','MESH://0013a200-4079a4c0','PLUGIN=generic;PARAMETERS=#d1:digital_out_h,#d2:analog_in,#d3:digital_in,#set_name:$my_name,#set_sample:5000',2);
@@ -34,14 +45,4 @@ INSERT INTO "locations" VALUES(1,10,'TABLEAU','Tableau electrique');
 INSERT INTO "locations" VALUES(2,20,'SALON','Salon');
 INSERT INTO "locations" VALUES(3,50,'SDB BAS','Salle de bain RDC');
 
-
-INSERT INTO "application_parameters" VALUES(1,'BUFFERDB','/data/prod/mea-edomus/var/db/queries.db','');
-INSERT INTO "application_parameters" VALUES(2,'DBSERVER','192.168.0.22','');
-INSERT INTO "application_parameters" VALUES(3,'DATABASE','domotique','');
-INSERT INTO "application_parameters" VALUES(4,'USER','domotique','');
-INSERT INTO "application_parameters" VALUES(5,'PASSWORD','maison','');
-INSERT INTO "application_parameters" VALUES(6,'VENDORID','mea','');
-INSERT INTO "application_parameters" VALUES(7,'DEVICEID','edomus','');
-INSERT INTO "application_parameters" VALUES(8,'INSTANCEID','cheznousdev','');
-INSERT INTO "application_parameters" VALUES(9,'PLUGINPATH','/data/prod/mea-edomus/lib/plugins','');
 COMMIT;
