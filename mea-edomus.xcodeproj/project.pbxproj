@@ -51,7 +51,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		4E05C665175BC9390022DA3E /* generic.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = generic.py; path = plugins/generic.py; sourceTree = "<group>"; };
+		4E05C665175BC9390022DA3E /* xbee_generic.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = xbee_generic.py; path = plugins/xbee_generic.py; sourceTree = "<group>"; };
 		4E1496FA163F290200E08E6D /* sample_params_data.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = sample_params_data.sql; path = sql/sample_params_data.sql; sourceTree = "<group>"; };
 		4E1496FC163F2F1D00E08E6D /* start_mea-edomus.ksh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; name = "start_mea-edomus.ksh"; path = "linux/start_mea-edomus.ksh"; sourceTree = "<group>"; };
 		4E14ABFC16083B8C000686C3 /* interfaces.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = interfaces.h; path = src/interfaces.h; sourceTree = "<group>"; };
@@ -106,10 +106,8 @@
 		4E76CEB0163F175100A3EBA9 /* token_strings.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = token_strings.c; path = src/token_strings.c; sourceTree = "<group>"; };
 		4E76CEB1163F175100A3EBA9 /* token_strings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = token_strings.h; path = src/token_strings.h; sourceTree = "<group>"; };
 		4E76CEB4163F17E300A3EBA9 /* mysql_mea-edomus_db.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "mysql_mea-edomus_db.sql"; path = "sql/mysql_mea-edomus_db.sql"; sourceTree = "<group>"; };
-		4E99C708165050460063C1E0 /* install.rtf */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; path = install.rtf; sourceTree = "<group>"; };
 		4EF7B08D1757F6AA0029ABBC /* mea_simulation.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = mea_simulation.py; path = plugins/mea_simulation.py; sourceTree = "<group>"; };
 		4EF7B08E1757F6AA0029ABBC /* mea_utils.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = mea_utils.py; path = plugins/mea_utils.py; sourceTree = "<group>"; };
-		4EF7B08F1757F6AA0029ABBC /* vmc.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = vmc.py; path = plugins/vmc.py; sourceTree = "<group>"; };
 		4EFBBC7D1746C84F00090FEE /* error.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = error.h; path = src/error.h; sourceTree = "<group>"; };
 		4EFBBC7E1746C85D00090FEE /* error.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = error.c; path = src/error.c; sourceTree = "<group>"; };
 		4EFBFCAA175E60F9007BBFD1 /* mongoose.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = mongoose.h; path = src/mongoose.h; sourceTree = "<group>"; };
@@ -137,7 +135,6 @@
 			isa = PBXGroup;
 			children = (
 				08FB7795FE84155DC02AAC07 /* Source */,
-				C6A0FF2B0290797F04C91782 /* Documentation */,
 				1AB674ADFE9D54B511CA2CBB /* Products */,
 			);
 			name = Comio;
@@ -264,10 +261,9 @@
 		4E5E24C4173D09EB00B8CEFE /* Plugins */ = {
 			isa = PBXGroup;
 			children = (
-				4E05C665175BC9390022DA3E /* generic.py */,
+				4E05C665175BC9390022DA3E /* xbee_generic.py */,
 				4EF7B08D1757F6AA0029ABBC /* mea_simulation.py */,
 				4EF7B08E1757F6AA0029ABBC /* mea_utils.py */,
-				4EF7B08F1757F6AA0029ABBC /* vmc.py */,
 				4E5E24C5173D0A1100B8CEFE /* my_dht22.py */,
 			);
 			name = Plugins;
@@ -344,14 +340,6 @@
 				4EFC89B21778DA28009B6E34 /* init_params_db.sql */,
 			);
 			name = SQL;
-			sourceTree = "<group>";
-		};
-		C6A0FF2B0290797F04C91782 /* Documentation */ = {
-			isa = PBXGroup;
-			children = (
-				4E99C708165050460063C1E0 /* install.rtf */,
-			);
-			name = Documentation;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

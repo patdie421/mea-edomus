@@ -48,8 +48,8 @@ struct thread_interface_type_001_params_s
 };
 
 
-//
-// xPLSend -c control.basic -m cmnd device=RELAY1 type=output current=pulse data1=2000
+
+// xPLSend -c control.basic -m cmnd device=RELAY1 type=output current=pulse data1=125
 // xPLSend -c sensor.request -m cmnd request=current device=CONSO type=POWER => dernière puissance instantannée
 // xPLSend -c sensor.request -m cmnd request=current device=CONSO type=ENERGY => valeur du compteur ERDF
 //

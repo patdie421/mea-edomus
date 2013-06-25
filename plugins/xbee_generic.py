@@ -148,18 +148,18 @@ def enable_sample(data,mem):
 def parseIOData(cmd_data, l_cmd_data):
    io_data={}
    xplMsg={}
-
+   
    digital_mask = ord(cmd_data[2])
    analog_mask = ord(cmd_data[3])
    digital_states = ord(cmd_data[5])
-
+   
    for i in range(0,7):
       if digital_mask & 0x01:
          key="D"+str(i)
          io_data[key]=digital_states & 0x01
       digital_mask=digital_mask>>1
       digital_states=digital_states>>1
-
+   
    j=6
    for i in range(0,3):
       if analog_mask & 0x01:
@@ -178,43 +178,59 @@ def mea_xplCmndMsg(data):
       return 0
    
    mem=mea.getMemory(id_sensor)
-
+   
    paramsDict=mea_utils.parseKeyValueDatasToDictionary(data["device_parameters"], ",", ":")
+   
    if "pin" in paramsDict:
       pin=paramsDict["pin"]
    else:
       return False
+   
    if "sensor_type" in paramsDict:
       type=paramsDict["sensor_type"]
    else:
       type="generic"
-
-   current_key=pin+"_current"
-   last_key=pin+"_last"
-
-   try:
-      # xplMsg=mea_utils.xplMsgNew("mea", "edomus", "cheznousdev", "xpl-stat", "sensor", "basic", data["device_name"])
-      xplMsg=mea_utils.xplMsgNew(mea.xplGetVendorID(), mea.xplGetDeviceID(), mea.xplGetInstanceID(), "xpl-stat", "sensor", "basic", data["device_name"])
-
-      x=data["xplmsg"]
-      body=x["body"]
+   
+   x=data["xplmsg"]
+   body=x["body"]
+   
+   if x["schema"]=="sensor.request":
+      current_key=pin+"_current"
+      last_key=pin+"_last"
       
-      if x["schema"]=="sensor.request":
+      try:
+         xplMsg=mea_utils.xplMsgNew(mea.xplGetVendorID(), mea.xplGetDeviceID(), mea.xplGetInstanceID(), "xpl-stat", "sensor", "basic", data["device_name"])
+         
          if body["request"]=="current":
             mea_utils.xplMsgAddValue(xplMsg,"current",mem[current_key])
          elif body["request"]=="last":
             mea_utils.xplMsgAddValue(xplMsg,"last",mem[last_key])
          else:
             return False
-
+         
          mea_utils.xplMsgAddValue(xplMsg,"type",type)
-
+         
          print mea_utils.xplMsgToString(xplMsg)
          mea.xplSendMsg(xplMsg)
-   except:
+         
+         return True
+      except:
+         return False
+   
+   elif x["schema"]=="control.basic":
+      if body["type"]=="output":
+         if body["current"].lower()=="low":
+            mea.sendAtCmd(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], pin, 4);
+            return True
+         elif body["current"].lower()=="high":
+            mea.sendAtCmd(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], pin, 5);
+            return True
+         else:
+            return False
+      else:
+         return False
+   else:
       return False
-
-   return True
 
 
 def mea_dataFromSensor(data):
@@ -235,12 +251,12 @@ def mea_dataFromSensor(data):
    if data_type==0x92:
       mem["iodata"]=parseIOData(cmd_data, l_cmd_data)
       paramsDict=mea_utils.parseKeyValueDatasToDictionary(data["device_parameters"], ",", ":")
-
+      
       if "pin" in paramsDict:
          pin=paramsDict["pin"]
       else:
          return False
-         
+      
       if "sensor_type" in paramsDict:
          type=paramsDict["sensor_type"]
       else:
@@ -248,16 +264,16 @@ def mea_dataFromSensor(data):
       
       current_key=pin+"_current"
       last_key=pin+"_last"
-
+      
       if pin in mem["iodata"]:
          val=mem["iodata"][pin]
          last_val=0
-
+         
          try:
             mem[last_key]=mem[current_key]
          except:
             mem[last_key]=0
-
+         
          strVal=""
          if pin[0].lower()=="d":
             if val==1:
@@ -272,7 +288,7 @@ def mea_dataFromSensor(data):
             mea_utils.xplMsgAddValue(xplMsg,"current", mem[current_key])
             mea_utils.xplMsgAddValue(xplMsg,"type", type)
             mea_utils.xplMsgAddValue(xplMsg,"last",mem[last_key])
-#            print mea_utils.xplMsgToString(xplMsg)
+            #            print mea_utils.xplMsgToString(xplMsg)
             mea.xplSendMsg(xplMsg)
             return True
    
@@ -281,7 +297,7 @@ def mea_dataFromSensor(data):
 
 def mea_commissionningRequest(data):
    fn_name=sys._getframe().f_code.co_name
-
+   
    if "interface_parameters" in data:
       mem={}
       try:

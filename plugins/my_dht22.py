@@ -126,7 +126,7 @@ def mea_dataFromSensor(data):
             except:
                 pass
             mem["current_t"]=temperature
-            verbose(9, "INFO  (mea_dataFromSensor) : temperature =", temperature, "%")
+            verbose(9, "INFO  (mea_dataFromSensor) : temperature =", temperature, "C")
 
             if last_t != temperature:
                 current=temperature
