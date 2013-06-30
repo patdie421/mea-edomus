@@ -267,10 +267,11 @@ on_error_exit_arduino_read:
    buff[nb_cars++]=0;
    if(strlen(buff)>0)
    {
+      fprintf(stderr,"%s (%s) : read error (%d) - buffer = ",DEBUG_STR, __func__,*nerr);
+
       for(int i=0;i<strlen(buff);i++)
-         fprintf(stderr,"%x(%c) ",buff[i],buff[i]);
+         fprintf(stderr,"%02x(%c) ",buff[i],buff[i]);
       fprintf(stderr,"\n");
-      fprintf(stderr,"nerr=%d\n",*nerr);
    }
 #endif
    return -1;

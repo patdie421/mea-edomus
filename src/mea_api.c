@@ -306,7 +306,7 @@ static PyObject *mea_getMemory(PyObject *self, PyObject *args)
    if(PyTuple_Size(args)!=1)
    {
       VERBOSE(9) fprintf(stderr, "ERROR (mea_get_memory) : arguments error\n");
-      PyErr_BadArgument(); // à replacer
+      PyErr_BadArgument();
       return NULL;
    }
    
@@ -314,7 +314,7 @@ static PyObject *mea_getMemory(PyObject *self, PyObject *args)
    if(!key)
    {
       VERBOSE(9) fprintf(stderr, "ERROR (mea_get_memory) : bad mem id\n");
-      PyErr_BadArgument(); // à remplacer
+      PyErr_BadArgument();
       return NULL;
    }
          
@@ -426,11 +426,11 @@ static PyObject *mea_sendAtCmdAndWaitResp(PyObject *self, PyObject *args)
    else
       goto mea_AtCmdToXbee_arg_err;
 
-   // recuperer le host dans la table (necessite d'avoir accès à xd
+   // recuperer le host dans la table (necessite d'avoir accès à xd)
    int16_t err;
    
    host=NULL;
-   host=(xbee_host_t *)malloc(sizeof(xbee_host_t)); // description de l'xbee directement connecté
+   host=(xbee_host_t *)malloc(sizeof(xbee_host_t));
    xbee_get_host_by_addr_64(xd, host, addr_h, addr_l, &err);
    if(err==XBEE_ERR_NOERR)
    {
@@ -564,7 +564,7 @@ static PyObject *mea_sendAtCmd(PyObject *self, PyObject *args)
    
    int16_t err;
    
-   host=(xbee_host_t *)malloc(sizeof(xbee_host_t)); // description de l'xbee directement connecté
+   host=(xbee_host_t *)malloc(sizeof(xbee_host_t));
    xbee_get_host_by_addr_64(xd, host, addr_h, addr_l, &err);
    if(err==XBEE_ERR_NOERR)
    {

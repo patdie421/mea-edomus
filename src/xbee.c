@@ -737,7 +737,7 @@ void _hosts_table_delete(xbee_hosts_table_t *table)
 
 mea_error_t hosts_table_display(xbee_hosts_table_t *table)
 /**
- * \brief     affiche le contenu d'une table hosts xbee.
+ * \brief     affiche le contenu d'une table hosts xbee (pour le debugging)
  * \param     table la table à afficher
  * \return    toujours 0
  */
@@ -752,7 +752,7 @@ mea_error_t hosts_table_display(xbee_hosts_table_t *table)
       {
          if(nb<table->nb_hosts && table->hosts_table[i])
          {
-            printf("%s (%s) : [%02d] %s %lx-%lx %lx\n",DEBUG_STR,__func__,i,
+            fprintf(stderr, "%s (%s) : [%02d] %s %lx-%lx %lx\n",DEBUG_STR,__func__,i,
                    table->hosts_table[i]->name,
                    (long unsigned int)table->hosts_table[i]->l_addr_64_h,
                    (long unsigned int)table->hosts_table[i]->l_addr_64_l,
