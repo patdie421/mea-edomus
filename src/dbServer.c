@@ -6,7 +6,7 @@
  *
  */
 
-#include "tomysqldb.h"
+#include "dbServer.h"
 
 #include "debug.h"
 #include "macros.h"

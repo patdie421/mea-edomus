@@ -11,9 +11,9 @@
 
 #include <sqlite3.h>
 
-#include "tomysqldb.h"
+#include "dbServer.h"
 
-#define __MEA_EDOMUS_VERSION__ "0.1aplha2"
+#define __MEA_EDOMUS_VERSION__ "0.1aplha2-ondev"
 
 extern char *mysql_db_server;
 extern char *mysql_database;

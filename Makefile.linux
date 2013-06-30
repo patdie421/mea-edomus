@@ -6,7 +6,6 @@ DEBUGFLAGS  = -g \
 CFLAGS      = -std=c99 \
               -O2 \
               -D_BSD_SOURCE \
-              -D__NO_TOMYSQL__ \
               -I/usr/include/mysql \
               -I/usr/include/python2.7 \
               $(DEBUGFLAGS)

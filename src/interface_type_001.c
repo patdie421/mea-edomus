@@ -28,7 +28,7 @@
 #include "error.h"
 
 #include "comio.h"
-#include "tomysqldb.h"
+#include "dbServer.h"
 #include "xPLServer.h"
 
 #include "arduino_pins.h"

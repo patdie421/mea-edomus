@@ -3,7 +3,6 @@ CC = gcc
 
 DEBUGFLAGS  = -D__DEBUG_ON__
 CFLAGS      = -std=c99 \
-              -D__NO_TOMYSQL__ \
               -D_BSD_SOURCE \
               -O2 \
               -I./src/xPLLib-mac \

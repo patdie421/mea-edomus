@@ -17,7 +17,7 @@
 #include <string.h>
 #include <pthread.h>
 
-#include "tomysqldb.h"
+#include "dbServer.h"
 
 #include "error.h"
 #include "debug.h"

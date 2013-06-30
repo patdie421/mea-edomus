@@ -14,7 +14,7 @@
 		4E4A5EA615F003420052ABF4 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E4A5E9815F003420052ABF4 /* main.c */; };
 		4E4A5EA715F003420052ABF4 /* queue.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E4A5E9915F003420052ABF4 /* queue.c */; };
 		4E4A5EA815F003420052ABF4 /* interface_type_002.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E4A5E9C15F003420052ABF4 /* interface_type_002.c */; };
-		4E4A5EA915F003420052ABF4 /* tomysqldb.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E4A5E9E15F003420052ABF4 /* tomysqldb.c */; };
+		4E4A5EA915F003420052ABF4 /* dbServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E4A5E9E15F003420052ABF4 /* dbServer.c */; };
 		4E4A5EAA15F003420052ABF4 /* xbee.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E4A5EA015F003420052ABF4 /* xbee.c */; };
 		4E5E24C3173C34AE00B8CEFE /* mea_api.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E5E24C2173C34AE00B8CEFE /* mea_api.c */; };
 		4E5FC65F172F0F91004266EB /* interface_type_001_counters.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E5FC65B172F0F91004266EB /* interface_type_001_counters.c */; };
@@ -70,8 +70,8 @@
 		4E4A5E9A15F003420052ABF4 /* queue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = queue.h; path = src/queue.h; sourceTree = "<group>"; };
 		4E4A5E9C15F003420052ABF4 /* interface_type_002.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = interface_type_002.c; path = src/interface_type_002.c; sourceTree = "<group>"; };
 		4E4A5E9D15F003420052ABF4 /* interface_type_002.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = interface_type_002.h; path = src/interface_type_002.h; sourceTree = "<group>"; };
-		4E4A5E9E15F003420052ABF4 /* tomysqldb.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = tomysqldb.c; path = src/tomysqldb.c; sourceTree = "<group>"; };
-		4E4A5E9F15F003420052ABF4 /* tomysqldb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = tomysqldb.h; path = src/tomysqldb.h; sourceTree = "<group>"; };
+		4E4A5E9E15F003420052ABF4 /* dbServer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = dbServer.c; path = src/dbServer.c; sourceTree = "<group>"; };
+		4E4A5E9F15F003420052ABF4 /* dbServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = dbServer.h; path = src/dbServer.h; sourceTree = "<group>"; };
 		4E4A5EA015F003420052ABF4 /* xbee.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = xbee.c; path = src/xbee.c; sourceTree = "<group>"; };
 		4E4A5EA115F003420052ABF4 /* xbee.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = xbee.h; path = src/xbee.h; sourceTree = "<group>"; };
 		4E5E24C1173C34A100B8CEFE /* mea_api.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = mea_api.h; path = src/mea_api.h; sourceTree = "<group>"; };
@@ -188,8 +188,8 @@
 			isa = PBXGroup;
 			children = (
 				4EFD8C3215D97ABE0032D454 /* SQL */,
-				4E4A5E9E15F003420052ABF4 /* tomysqldb.c */,
-				4E4A5E9F15F003420052ABF4 /* tomysqldb.h */,
+				4E4A5E9E15F003420052ABF4 /* dbServer.c */,
+				4E4A5E9F15F003420052ABF4 /* dbServer.h */,
 			);
 			name = "db manager";
 			sourceTree = "<group>";
@@ -371,7 +371,7 @@
 			attributes = {
 				LastUpgradeCheck = 0450;
 			};
-			buildConfigurationList = 1DEB928908733DD80010E9CD /* Build configuration list for PBXProject "mea-eDomus" */;
+			buildConfigurationList = 1DEB928908733DD80010E9CD /* Build configuration list for PBXProject "mea-edomus" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 1;
@@ -401,7 +401,7 @@
 				4E4A5EA615F003420052ABF4 /* main.c in Sources */,
 				4E4A5EA715F003420052ABF4 /* queue.c in Sources */,
 				4E4A5EA815F003420052ABF4 /* interface_type_002.c in Sources */,
-				4E4A5EA915F003420052ABF4 /* tomysqldb.c in Sources */,
+				4E4A5EA915F003420052ABF4 /* dbServer.c in Sources */,
 				4E4A5EAA15F003420052ABF4 /* xbee.c in Sources */,
 				4E14AC0E16083B8C000686C3 /* memory.c in Sources */,
 				4E76CE98163F120C00A3EBA9 /* xPL-config.c in Sources */,
@@ -539,7 +539,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		1DEB928908733DD80010E9CD /* Build configuration list for PBXProject "mea-eDomus" */ = {
+		1DEB928908733DD80010E9CD /* Build configuration list for PBXProject "mea-edomus" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				1DEB928A08733DD80010E9CD /* Debug */,
