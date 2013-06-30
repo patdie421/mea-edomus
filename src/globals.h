@@ -13,6 +13,8 @@
 
 #include "tomysqldb.h"
 
+#define __MEA_EDOMUS_VERSION__ "0.1aplha2"
+
 extern char *mysql_db_server;
 extern char *mysql_database;
 extern char *mysql_user;
