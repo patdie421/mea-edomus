@@ -202,7 +202,7 @@ struct electricity_counter_s *valid_and_malloc_counter(int id_sensor_actuator, c
    counter->sensor_id=id_sensor_actuator;
    counter->wh_counter=0;
    counter->kwh_counter=0;
-   counter->counter=num_counter;
+   counter->counter=0;
    counter->t=-1.0;
    counter->lock=(pthread_mutex_t)PTHREAD_MUTEX_INITIALIZER;
    
