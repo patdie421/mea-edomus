@@ -176,12 +176,11 @@ struct electricity_counter_s *valid_and_malloc_counter(int id_sensor_actuator, c
    int nb_counter_params;
    int err;
    
+   int16_t num_counter=-1;
    counter_params=malloc_parsed_parameters(parameters, valid_counter_params, &nb_counter_params, &err,1);
    if(counter_params)
    {
 //      VERBOSE(9) display_parsed_parameters(counter_params, nb_counter_params);
-      int16_t num_counter=-1;
-      
       num_counter=counter_params[COUNTER_PARAMS_COUNTER].value.i;
       if(num_counter<0 || num_counter>1)
          goto valid_and_malloc_counter_clean_exit;
@@ -203,7 +202,7 @@ struct electricity_counter_s *valid_and_malloc_counter(int id_sensor_actuator, c
    counter->sensor_id=id_sensor_actuator;
    counter->wh_counter=0;
    counter->kwh_counter=0;
-   counter->counter=0;
+   counter->counter=num_counter;
    counter->t=-1.0;
    counter->lock=(pthread_mutex_t)PTHREAD_MUTEX_INITIALIZER;
    

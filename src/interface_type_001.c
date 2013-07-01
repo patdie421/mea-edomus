@@ -451,23 +451,23 @@ _thread_interface_type_001_operation_abord:
             }
             
             VERBOSE(9) fprintf(stderr,"%s  (%s) : counter %s %ld (WH=%d KWH=%d)\n",INFO_STR,__func__,counter->name, counter->counter, counter->wh_counter,counter->kwh_counter);
-         }
-         
-         if(qelem)
-         {
-            if(md)
+            
+            if(qelem)
             {
-               pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(md->lock));
-               if(!pthread_mutex_lock(&(md->lock)))
+               if(md)
                {
-                  in_queue_elem(md->queue,(void *)qelem);
-                  pthread_mutex_unlock(&(md->lock));
+                  pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(md->lock));
+                  if(!pthread_mutex_lock(&(md->lock)))
+                  {
+                     in_queue_elem(md->queue,(void *)qelem);
+                     pthread_mutex_unlock(&(md->lock));
+                  }
+                  pthread_cleanup_pop(0);
                }
-               pthread_cleanup_pop(0);
             }
+            next_queue(counters_list);
          }
          
-         next_queue(counters_list);
       }
    }
    pthread_testcancel();

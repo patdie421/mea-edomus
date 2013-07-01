@@ -1,13 +1,13 @@
 CREATE DATABASE DOMOTIQUE;
 
-CREATE USER domotique;
-CREATE USER domotique@'localhost';
+CREATE USER edomusdev;
+CREATE USER edomusdev@'localhost';
 
-SET PASSWORD FOR domotique = PASSWORD('passwd');
-SET PASSWORD FOR domotique@'localhost' = PASSWORD('passwd');
+SET PASSWORD FOR edomusdev = PASSWORD('maison');
+SET PASSWORD FOR edomusdev@'localhost' = PASSWORD('maison');
 
-GRANT SELECT, INSERT, DELETE, UPDATE, LOCK TABLES ON domotique.* TO 'domotique'@'%' WITH GRANT OPTION;
-GRANT SELECT, INSERT, DELETE, UPDATE, LOCK TABLES ON domotique.* TO 'domotique'@'localhost' WITH GRANT OPTION;
+GRANT SELECT, INSERT, DELETE, UPDATE, LOCK TABLES ON DOMOTIQUE.* TO 'edomusdev'@'%' WITH GRANT OPTION;
+GRANT SELECT, INSERT, DELETE, UPDATE, LOCK TABLES ON DOMOTIQUE.* TO 'edomusdev'@'localhost' WITH GRANT OPTION;
 
 FLUSH PRIVILEGES;
 

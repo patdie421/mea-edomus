@@ -35,7 +35,7 @@ parameters TEXT
 CREATE TABLE sensors_actuators
 (
 id INTEGER PRIMARY KEY,
-id_sensor_acutator INTEGER,
+id_sensor_actuator INTEGER,
 id_type INTEGER,
 id_interface INTERGER,
 name TEXT,
