@@ -24,6 +24,7 @@
 
 #include <errmsg.h>
 
+
 int tomysqldb_connect(tomysqldb_md_t *md, MYSQL **conn);
 
 
@@ -62,6 +63,8 @@ int sql_query_insert_tbl_pinst(char *query, char *table, struct pinst_query_s *p
 {
    char s[255];
    
+   return 0;
+   
    // préparation de la requete
    strftime(s,sizeof(s)-1,"%y-%m-%d %H:%M:%S",localtime(&(p_inst->date_tv.tv_sec)));
    
@@ -81,6 +84,8 @@ int sql_query_insert_tbl_temperature(char *query, char *table, struct requete_te
 {
    char s[255];
    struct tm t;
+   
+   return 0;
    
 // trouver dans la table les info pour temperature->addr
    localtime_r(&(temperature->date_tv.tv_sec), &t);

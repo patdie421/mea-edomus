@@ -20,6 +20,8 @@
 #include "arduino_pins.h"
 #include "parameters_mgr.h"
 #include "token_strings.h"
+#include "string_utils.h"
+
 #include "interface_type_001_actuators.h"
 
 

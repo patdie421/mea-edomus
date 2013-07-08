@@ -9,7 +9,7 @@
 #include <string.h>
 #include <inttypes.h>
 
-#include "token_strings.h"
+#include "string_utils.h"
 #include "arduino_pins.h"
 
 struct arduino_digital_pins

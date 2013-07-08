@@ -11,6 +11,7 @@
 #include <string.h>
 #include <ctype.h>
 
+#include "string_utils.h"
 #include "token_strings.h"
 
 struct token_s tokens_list[]={
@@ -92,7 +93,7 @@ int16_t get_id_by_string(char *str)
    return -1;
 }
 
-
+/*
 int16_t strcmplower(char *str1, char *str2)
 {
    int i;
@@ -103,7 +104,7 @@ int16_t strcmplower(char *str1, char *str2)
       return 1;
    return 0;
 }
-
+*/
 
 int16_t int_isin(int val, int list[])
 {

@@ -71,7 +71,7 @@ extern struct token_s tokens_list[];
 
 char *get_token_by_id(int id);
 int16_t get_id_by_string(char *str);
-int16_t strcmplower(char *str1, char *str2);
+// int16_t strcmplower(char *str1, char *str2);
 int16_t int_isin(int val, int list[]);
 
 #endif

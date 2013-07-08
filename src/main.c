@@ -17,60 +17,68 @@
 
 #include <sqlite3.h>
 
+#include "globals.h"
 #include "debug.h"
 #include "error.h"
 #include "macros.h"
 #include "memory.h"
 #include "queue.h"
-#include "comio.h"
-#include "xbee.h"
-#include "dbServer.h"
+#include "string_utils.h"
+
+//#include "parameters_mgr.h"
+
+//#include "comio.h"
+//#include "xbee.h"
 
 #include "interfaces.h"
 #include "interface_type_001.h"
 #include "interface_type_002.h"
 
+#include "dbServer.h"
 #include "xPLServer.h"
 #include "pythonPluginServer.h"
 #include "httpServer.h"
-#include "parameters_mgr.h"
 
 
-//tomysqldb_md_t md;
 tomysqldb_md_t *myd;
-
 sqlite3 *sqlite3_param_db; // descritpteur SQLITE
-
 queue_t *interfaces;
 
-
-pthread_t *counters_thread=NULL;
+pthread_t *xPLServer_thread=NULL;
+pthread_t *pythonPluginServer_thread=NULL;
+// pthread_t *counters_thread=NULL;
 
 char *sqlite3_db_file=NULL;
 char *mysql_db_server=NULL;
 char *mysql_database=NULL;
 char *mysql_user=NULL;
 char *mysql_passwd=NULL;
-
 char *sqlite3_db_buff_path=NULL; // old name : sqlite3_db_file
 char *sqlite3_db_param_path=NULL; // path to parameters db file
 
-pthread_t *xPLServer_thread=NULL;
-pthread_t *pythonPluginServer_thread=NULL;
 
-void strToUpper(char *str)
+void usage(char *cmd)
+/**
+ * \brief     Affiche les "usages" de mea_edomus
+ * \param     cmd    nom d'appel de mea_edomus (argv[0])
+ */
 {
-   for(uint16_t i=0;i<strlen(str);i++)
-	   str[i]=toupper(str[i]);
+   fprintf(stderr,"usage : %s -a <sqlite3_db_path>\n",cmd);
 }
 
 
 int16_t read_all_application_parameters(sqlite3 *sqlite3_param_db)
+/**
+ * \brief     Chargement de tous les parametres nécessaires au démarrage de l'application depuis la base de parametres
+ * \param     sqlite3_param_db descripteur initialisé (ouvert) d'accès à la base.
+ * \return   -1 en cas d'erreur, 0 sinon
+ */
 {
-   char sql[41];
    sqlite3_stmt * stmt;
    
-   sprintf(sql,"SELECT * FROM application_parameters");
+   //char sql[41];
+   //sprintf(sql,"SELECT * FROM application_parameters");
+   char *sql="SELECT * FROM application_parameters";
    int ret = sqlite3_prepare_v2(sqlite3_param_db,sql,strlen(sql)+1,&stmt,NULL);
    if(ret)
    {
@@ -125,16 +133,22 @@ int16_t read_all_application_parameters(sqlite3 *sqlite3_param_db)
 
 
 static void _signal_STOP(int signal_number)
+/**
+ * \brief     Traitement des signaux d'arrêt (SIGINT, SIGQUIT, SIGTERM)
+ * \details   L'arrêt de l'application se déclanche par l'émission d'un signal d'arrêt. A l'a reception de l'un de ces signaux
+ *            Les différents process de mea_edomus doivent être arrêtés.
+ * \param     signal_number  numéro du signal (pas utilisé mais nécessaire pour la déclaration du handler).
+ */
 {
    interfaces_queue_elem_t *iq;
    
-   VERBOSE(5) fprintf(stderr,"%s  (%s) : arrêt programme demandé (signal = %d).\n",INFO_STR,__func__,signal_number);
-   
-   VERBOSE(5) fprintf(stderr,"%s  (%s) : stoping xPLServer ... ",INFO_STR,__func__);
+   VERBOSE(5) fprintf(stderr,"%s  (%s) : Stopping mea-edomus requested (signal = %d).\n",INFO_STR,__func__,signal_number);
+   VERBOSE(5) fprintf(stderr,"%s  (%s) : Stopping xPLServer... ",INFO_STR,__func__);
    pthread_cancel(*xPLServer_thread);
    pthread_join(*xPLServer_thread, NULL);
    VERBOSE(5) fprintf(stderr,"done\n");
    
+   VERBOSE(5) fprintf(stderr,"%s  (%s) : Stopping interfaces... (",INFO_STR,__func__);
    first_queue(interfaces);
    while(interfaces->nb_elem)
    {
@@ -144,19 +158,21 @@ static void _signal_STOP(int signal_number)
          case INTERFACE_TYPE_001:
          {
             interface_type_001_t *i001=(interface_type_001_t *)(iq->context);
+            VERBOSE(5) fprintf(stderr,"(%d:",i001->id_interface);
             if(i001->xPL_callback)
                i001->xPL_callback=NULL;
             stop_interface_type_001(i001, signal_number);
-            // rajouter ici les free manquants
+            VERBOSE(5) fprintf(stderr,"done)");
             break;
          }
          case INTERFACE_TYPE_002:
          {
             interface_type_002_t *i002=(interface_type_002_t *)(iq->context);
+            VERBOSE(5) fprintf(stderr,"(%d:",i002->id_interface);
             if(i002->xPL_callback)
                i002->xPL_callback=NULL;
             stop_interface_type_002(i002, signal_number);
-            // rajouter ici les free manquants
+            VERBOSE(5) fprintf(stderr,"done)");
             break;
          }
             
@@ -166,24 +182,32 @@ static void _signal_STOP(int signal_number)
       free(iq);
       iq=NULL;
    }
+   VERBOSE(5) fprintf(stderr,") done\n");
    
+   VERBOSE(5) fprintf(stderr,"%s  (%s) : Stopping dbServer... ",INFO_STR,__func__);
    tomysqldb_release(myd);
+   VERBOSE(5) fprintf(stderr,"done\n");
    
    exit(0);
 }
 
 
 static void _signal_HUP(int signal_number)
+/**
+ * \brief     Traitement des signaux HUP
+ * \details   Un signal HUP peut être est levé par les threads de gestion des interfaces lorsqu'elles détectent une anomalie bloquante.
+ *            Le gestionnaire de signal lorsqu'il est déclanché doit determiner quelle interface a émis le signal et forcer un arrêt/relance de cette l'interface.
+ * \param     signal_number  numéro du signal (pas utilisé mais nécessaire pour la déclaration du handler).
+ */
 {
    interfaces_queue_elem_t *iq;
    int ret;
    
    VERBOSE(5) fprintf(stderr,"%s  (%s) : communication error signal (signal = %d).\n", INFO_STR, __func__, signal_number);
-
    if(!interfaces->nb_elem)
       return;
    
-   // on cherche qui est à l'origine du signal
+   // on cherche qui est à l'origine du signal et on le relance
    first_queue(interfaces);
    while(1)
    {
@@ -218,7 +242,7 @@ static void _signal_HUP(int signal_number)
             }
             break;
          }
-
+            
          default:
             break;
       }
@@ -231,40 +255,35 @@ static void _signal_HUP(int signal_number)
 }
 
 
-void usage(char *cmd)
-{
-   fprintf(stderr,"usage : %s -a <sqlite3_db_path>\n",cmd);
-}
-
-// char *tofind[]={"I:B","L:AA","F:A_A","S:X","I:C", NULL};
-//-s
-//192.168.0.22
-//-b
-//domotique
-//-u
-//domotique
-//-p
-//maison
-//-l
-///Data/mea-edomus/queries.db
-
 int main(int argc, const char * argv[])
+/**
+ * \brief     Point d'entrée du mea_edomus
+ * \details   Intitialisation des structures de données et lancement des différents "process" (threads) de l'application
+ * \param     argc   parametres de lancement de l'application. Un seul paramètre attendu (-a parameters.db).
+ * \param     argv   nombre de paramètres.
+ * \return    1 en cas d'erreur, 0 sinon
+ */
 {
- int c;
- int _a=0;
- int ret;
-
+   int c;
+   int ret;
+   
 #ifdef __DEBUG_ON__
    debug_on();
+   set_verbose_level(9);
 #else
    debug_off();
 #endif
-
    
-   set_verbose_level(9);
-
-   DEBUG_SECTION fprintf(stderr,"Starting MEA-EDOMUS 0.1aplha1-A\n");
+   DEBUG_SECTION fprintf(stderr,"Starting MEA-EDOMUS %s\n",__MEA_EDOMUS_VERSION__);
    
+   // initialisation gestions des signaux
+   signal(SIGINT,  _signal_STOP);
+   signal(SIGQUIT, _signal_STOP);
+   signal(SIGTERM, _signal_STOP);
+   signal(SIGHUP,  _signal_HUP);
+   
+   // récupération des paramètres de la ligne de commande
+   int _a=0;
    while ((c = getopt (argc, (char **)argv, "a:")) != -1)
    {
       switch (c)
@@ -280,19 +299,14 @@ int main(int argc, const char * argv[])
             exit(1);
       }
    }
-   
    if(!_a)
    {
       usage((char *)argv[0]);
       exit(1);
    }
    
-   signal(SIGINT,  _signal_STOP);
-   signal(SIGQUIT, _signal_STOP);
-   signal(SIGTERM, _signal_STOP);
-   signal(SIGHUP,  _signal_HUP);
    
-   
+   // ouverture de la base de paramétrage
    sqlite3_config(SQLITE_CONFIG_SERIALIZED); // pour le multithreading
    ret = sqlite3_open (sqlite3_db_param_path, &sqlite3_param_db);
    if(ret)
@@ -301,13 +315,17 @@ int main(int argc, const char * argv[])
       exit(1);
    }
    
+   
+   // lecture de tous les paramètres de l'application
    ret = read_all_application_parameters(sqlite3_param_db);
    if(ret)
    {
       VERBOSE(2) fprintf (stderr, "%s (%s) : can't load parameters\n",ERROR_STR,__func__);
       exit(1);
    }
-
+   
+   
+   // initialisation de la communication avec la base MySQL
    myd=NULL;
 #ifndef __NO_TOMYSQL__
    myd=(struct tomysqldb_md_s *)malloc(sizeof(struct tomysqldb_md_s));
@@ -320,7 +338,6 @@ int main(int argc, const char * argv[])
       exit(1);
    }
    memset(myd,0,sizeof(struct tomysqldb_md_s));
-   
    ret=tomysqldb_init(myd,mysql_db_server,mysql_database,mysql_user,mysql_passwd,sqlite3_db_buff_path);
    if(ret==-1)
    {
@@ -328,22 +345,26 @@ int main(int argc, const char * argv[])
       exit(1);
    }
 #else
-   VERBOSE(9) fprintf(stderr,"%s  (%s) : tomysql not started.\n",INFO_STR,__func__);
+   VERBOSE(9) fprintf(stderr,"%s  (%s) : dbServer not started.\n",INFO_STR,__func__);
 #endif
    
+   
+   // initialisation du serveur de plugin python
    pythonPluginServer_thread=pythonPluginServer(NULL);
    if(pythonPluginServer_thread==NULL)
    {
       VERBOSE(1) fprintf(stderr,"%s (%s) : can't start Python Plugin Server.\n",ERROR_STR,__func__);
       exit(1);
    }
-
+   
+   
+   // initialisation du serveur HTTP
    httpServer();
    
-
-   /*
-    * recherche de toutes les interfaces
-    */
+   
+   // initialisation des interfaces
+   char sql[255];
+   sqlite3_stmt * stmt;
    interfaces=(queue_t *)malloc(sizeof(queue_t));
    if(!interfaces)
    {
@@ -354,11 +375,6 @@ int main(int argc, const char * argv[])
       exit(1);
    }
    init_queue(interfaces);
-
-   
-   char sql[255];
-   sqlite3_stmt * stmt;
-
    sprintf(sql,"SELECT * FROM interfaces");
    ret = sqlite3_prepare_v2(sqlite3_param_db,sql,strlen(sql)+1,&stmt,NULL);
    if(ret)
@@ -466,16 +482,19 @@ int main(int argc, const char * argv[])
       else
          exit(1);
    }
+   sqlite3_finalize(stmt);
    
    
+   // initialisation du serveur xPL
    xPLServer_thread=xPLServer(interfaces);
    if(xPLServer_thread==NULL)
    {
       VERBOSE(1) fprintf(stderr,"%s (%s) : can't start xpl server.\n",ERROR_STR,__func__);
       exit(1);
    }
-
    
+   
+   // libération des espaces mémoires globaux inutiles
    free(mysql_db_server);
    mysql_db_server=NULL;
    free(mysql_database);
@@ -484,11 +503,12 @@ int main(int argc, const char * argv[])
    mysql_user=NULL;
    free(mysql_passwd);
    mysql_passwd=NULL;
-
+   
+   DEBUG_SECTION fprintf(stderr,"MEA-EDOMUS %s starded\n",__MEA_EDOMUS_VERSION__);
+   
+   // boucle sans fin.
    while(1)
    {
       sleep(5);
    }
-
-   sqlite3_finalize(stmt);
 }

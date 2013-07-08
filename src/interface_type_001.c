@@ -21,6 +21,7 @@
 #include <sqlite3.h>
 
 #include "globals.h"
+#include "string_utils.h"
 #include "token_strings.h"
 #include "debug.h"
 #include "memory.h"
