@@ -1,0 +1,30 @@
+//
+//  timer.h
+//  mea-edomus
+//
+//  Created by Patrice Dietsch on 08/07/13.
+//
+//
+
+#ifndef mea_edomus_Header_h
+#define mea_edomus_Header_h
+
+#include <time.h>
+#include <inttypes.h>
+
+typedef struct timer_s
+{
+   uint16_t stat; // (0 = inactive, 1=active)
+   time_t start_time;
+   uint32_t delay; // timer delay
+   uint16_t autorestart; // (0 = no, 1=yes)
+   
+} timer_t;
+
+
+uint16_t init_timer(timer_t *aTimer, uint32_t aDelay, uint16_t restartStatus);
+void start_timer(timer_t *aTimer);
+void stop_timer(timer_t *aTimer);
+uint16_t test_timer(timer_t *aTimer);
+
+#endif

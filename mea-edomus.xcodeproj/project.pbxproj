@@ -33,6 +33,7 @@
 		4E76CEAB163F146900A3EBA9 /* parameters_mgr.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E76CEA9163F146900A3EBA9 /* parameters_mgr.c */; };
 		4E76CEB2163F175100A3EBA9 /* token_strings.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E76CEB0163F175100A3EBA9 /* token_strings.c */; };
 		4E8F781C178B44490099A751 /* string_utils.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E8F781B178B44490099A751 /* string_utils.c */; };
+		4E8F781E178B47C80099A751 /* timer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E8F781D178B47C80099A751 /* timer.c */; };
 		4EFBBC7F1746C85D00090FEE /* error.c in Sources */ = {isa = PBXBuildFile; fileRef = 4EFBBC7E1746C85D00090FEE /* error.c */; };
 		4EFBFCAE175E616E007BBFD1 /* httpServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4EFBFCAD175E616E007BBFD1 /* httpServer.c */; };
 		4EFBFCC9175E6BE7007BBFD1 /* mongoose.c in Sources */ = {isa = PBXBuildFile; fileRef = 4EFBFCC8175E6BE7007BBFD1 /* mongoose.c */; };
@@ -109,6 +110,8 @@
 		4E76CEB4163F17E300A3EBA9 /* mysql_mea-edomus_db.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "mysql_mea-edomus_db.sql"; path = "sql/mysql_mea-edomus_db.sql"; sourceTree = "<group>"; };
 		4E8F781A178B443E0099A751 /* string_utils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = string_utils.h; path = src/string_utils.h; sourceTree = "<group>"; };
 		4E8F781B178B44490099A751 /* string_utils.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = string_utils.c; path = src/string_utils.c; sourceTree = "<group>"; };
+		4E8F781D178B47C80099A751 /* timer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = timer.c; path = src/timer.c; sourceTree = "<group>"; };
+		4E8F781F178B47F80099A751 /* timer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = timer.h; path = src/timer.h; sourceTree = "<group>"; };
 		4EF7B08D1757F6AA0029ABBC /* mea_simulation.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = mea_simulation.py; path = plugins/mea_simulation.py; sourceTree = "<group>"; };
 		4EF7B08E1757F6AA0029ABBC /* mea_utils.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = mea_utils.py; path = plugins/mea_utils.py; sourceTree = "<group>"; };
 		4EFBBC7D1746C84F00090FEE /* error.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = error.h; path = src/error.h; sourceTree = "<group>"; };
@@ -200,6 +203,8 @@
 		4E4D4E801601F2730008C14C /* Utils */ = {
 			isa = PBXGroup;
 			children = (
+				4E8F781F178B47F80099A751 /* timer.h */,
+				4E8F781D178B47C80099A751 /* timer.c */,
 				4E8F781A178B443E0099A751 /* string_utils.h */,
 				4E8F781B178B44490099A751 /* string_utils.c */,
 				4E76CEB1163F175100A3EBA9 /* token_strings.h */,
@@ -430,6 +435,7 @@
 				4EFBFCC9175E6BE7007BBFD1 /* mongoose.c in Sources */,
 				4EFBFCCC175E8BDC007BBFD1 /* python_api_utils.c in Sources */,
 				4E8F781C178B44490099A751 /* string_utils.c in Sources */,
+				4E8F781E178B47C80099A751 /* timer.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

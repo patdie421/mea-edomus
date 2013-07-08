@@ -21,12 +21,12 @@ typedef union
    char *s;
 } value_token_t;
 
-typedef struct parsed_parameter_s
+typedef struct parsed_parameters_s
 {
    char *label;
    enum { INT=1, LONG=2, FLOAT=3, STRING=4 } type;
    value_token_t value;
-} parsed_parameter_t;
+} parsed_parameters_t;
 
 
 struct assoc_s
@@ -35,10 +35,10 @@ struct assoc_s
    int val2;
 };
 
-parsed_parameter_t *malloc_parsed_parameters(char *parameters_string, char *parameters_to_find[], int *nb_params, int *err, int value_to_upper)
+parsed_parameters_t *malloc_parsed_parameters(char *parameters_string, char *parameters_to_find[], int *nb_params, int *err, int value_to_upper)
 ;
-void free_parsed_parameters(parsed_parameter_t *params, int nb_params);
-void display_parsed_parameters(parsed_parameter_t *params, int nb_params);
+void free_parsed_parameters(parsed_parameters_t *params, int nb_params);
+void display_parsed_parameters(parsed_parameters_t *params, int nb_params);
 
 int16_t is_in_assocs_list(struct assoc_s *assocs_list, int val1, int val2);
 

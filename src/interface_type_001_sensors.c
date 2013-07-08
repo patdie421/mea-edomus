@@ -221,7 +221,7 @@ struct sensor_s *valid_and_malloc_sensor(int id_sensor_actuator, char *name, cha
    int compute_id;
    int algo_id;
    
-   parsed_parameter_t *sensor_params=NULL;
+   parsed_parameters_t *sensor_params=NULL;
    int nb_sensor_params;
    int err;
    

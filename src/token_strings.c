@@ -93,18 +93,6 @@ int16_t get_id_by_string(char *str)
    return -1;
 }
 
-/*
-int16_t strcmplower(char *str1, char *str2)
-{
-   int i;
-   for(i=0;str1[i];i++)
-      if(tolower(str1[i])!=tolower(str2[i]))
-         return 1;
-   if(str1[i]!=str2[i])
-      return 1;
-   return 0;
-}
-*/
 
 int16_t int_isin(int val, int list[])
 {

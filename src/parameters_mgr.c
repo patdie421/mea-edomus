@@ -1,5 +1,5 @@
 //
-//  parametersparser.c
+//  parameters_mgr.c
 //
 //  Created by Patrice DIETSCH on 24/10/12.
 //
@@ -30,7 +30,7 @@ char *getToken(char *str)
    char *end;
    
    // suppression des blancs avant
-   while(isspace(*str))
+   while(isspace(*str) && str)
       str++;
    
    if(*str!=0) // si la chaine n'est pas vide
@@ -42,12 +42,14 @@ char *getToken(char *str)
          end--;
       *(end+1)=0;
    }
+   else
+      return NULL;
    
    // vérification des caractères
    for(int i=0;str[i];i++)
    {
       if(!(isalpha(str[i]) || isdigit(str[i]) || str[i]=='_' || str[i]=='.' || str[i]==':'))
-         return 0;
+         return NULL;
       
       str[i]=toupper(str[i]);
    }
@@ -56,29 +58,29 @@ char *getToken(char *str)
 }
 
 
-void free_parsed_parameters(parsed_parameter_t *params, int nb_params)
+void free_parsed_parameters(parsed_parameters_t *params, int nb_params)
 {
    for(int i=0;i<nb_params;i++)
       if(params[i].type==STRING)
          if(params[i].value.s)
             free(params[i].value.s);
 }
-       
-       
-parsed_parameter_t *malloc_parsed_parameters(char *parameters_string, char *parameters_to_find[], int *nb_params, int *err, int value_to_upper)
+
+
+parsed_parameters_t *malloc_parsed_parameters(char *parameters_string, char *parameters_to_find[], int *nb_params, int *err, int value_to_upper)
 {
    char *ptr = parameters_string;
    char label[21];
    char *label_token;
-   char value[256];
+   char *value;
    char *value_token;
    int n;
    int ret;
-   parsed_parameter_t *parsed_parameters;
+   parsed_parameters_t *parsed_parameters;
    
    if(err) *err=0;
-   // nombre de label dans la liste
-   for(*nb_params=0;parameters_to_find[*nb_params];(*nb_params)++);
+   // nombre max de label dans la liste
+   for(*nb_params=0;parameters_to_find[*nb_params];(*nb_params)++); // nombre max de parametres
    
    // préparation du tableau à retourner
    if(!*nb_params)
@@ -87,20 +89,27 @@ parsed_parameter_t *malloc_parsed_parameters(char *parameters_string, char *para
       return NULL;
    }
    
-   parsed_parameters=malloc(sizeof(parsed_parameter_t) * *nb_params);
-   if(!parsed_parameters)
+   value=malloc(strlen(parameters_string+1)); // taille de valeur au max (et même un peu plus).
+   if(!value)
    {
-      VERBOSE(1) fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
-      if(err) *err=1; // erreur système, voir errno;
+      if(err) *err=1;
       return NULL;
    }
    
-   memset(parsed_parameters,0,sizeof(parsed_parameter_t) * *nb_params);
+   parsed_parameters=malloc(sizeof(parsed_parameters_t) * *nb_params);
+   if(!parsed_parameters)
+   {
+      VERBOSE(1) fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
+      if(err) *err=1; // erreur système, voir errno
+      return NULL;
+   }
+   
+   memset(parsed_parameters,0,sizeof(parsed_parameters_t) * *nb_params);
    
    while(1)
    {
-      ret=sscanf(ptr,"%20[^=;]=%256[^;]%n",label,value,&n);
-      if(ret==EOF) // plus rien a lire
+      ret=sscanf(ptr,"%20[^=;]=%[^;]%n",label,value,&n); // /!\ pas plus de 20 caractères pour un TOKEN
+      if(ret==EOF) // plus rien à lire
          break;
       
       if(ret==2)
@@ -152,7 +161,7 @@ parsed_parameter_t *malloc_parsed_parameters(char *parameters_string, char *para
                            free(parsed_parameters);
                         }
                         if(err) *err=1; // erreur système, voir errno
-                        return NULL;
+                        goto malloc_parsed_parameters_exit;
                      }
                      strcpy(parsed_parameters[i].value.s,value_token);
                      break;
@@ -169,7 +178,7 @@ parsed_parameter_t *malloc_parsed_parameters(char *parameters_string, char *para
                      parsed_parameters=NULL;
                   }
                   if(err) *err=2; // erreur de syntaxe;
-                  return NULL;
+                  goto malloc_parsed_parameters_exit;
                }
                break;
             }
@@ -182,8 +191,8 @@ parsed_parameter_t *malloc_parsed_parameters(char *parameters_string, char *para
                free(parsed_parameters);
             }
             if(err) *err=3; // label inconnu
-            return NULL;
-         }         
+            goto malloc_parsed_parameters_exit;
+         }
          // déplacement du pointeur sur les données suivantes
          ptr+=n;
       }
@@ -194,11 +203,9 @@ parsed_parameter_t *malloc_parsed_parameters(char *parameters_string, char *para
          if(!ret) // si on avait rien lu
             ret=2; // on fait comme si on avait lu ...
       }
-
+      
       if(*ptr == 0) // fin de ligne, OK.
-      {
          break; // sortie de la boucle
-      }
       
       if(ret<2) // si on a pas un label et une valeur
       {
@@ -209,43 +216,48 @@ parsed_parameter_t *malloc_parsed_parameters(char *parameters_string, char *para
             parsed_parameters=NULL;
          }
          if(err) *err=4; // label sans valeur
-         return NULL;
+         goto malloc_parsed_parameters_exit;
       }
    }
+   free(value);
    return parsed_parameters;
+   
+malloc_parsed_parameters_exit:
+   FREE(value);
+   return NULL;
 }
 
 
 int nb;
 
 /*
-parsed_parameter_t *mpp=malloc_parsed_parameters("aA=1; b = 00021;C=10;;X=1;A_a =20.0;", tofind, &nb);
-*/
-void display_parsed_parameters(parsed_parameter_t *mpp, int nb)
+ parsed_parameter_t *mpp=malloc_parsed_parameters("aA=1; b = 00021;C=10;;X=1;A_a =20.0;", tofind, &nb);
+ */
+void display_parsed_parameters(parsed_parameters_t *mpp, int nb)
 {
    DEBUG_SECTION {
-   if(mpp)
-      for(int i=0;i<nb;i++)
-      {
-         printf("%s = ",mpp[i].label);
-         switch((int)(mpp[i].type))
+      if(mpp)
+         for(int i=0;i<nb;i++)
          {
-            case 1:
-               printf("%d (I)\n",mpp[i].value.i);
-               break;
-            case 2:
-               printf("%ld (L)\n",mpp[i].value.l);
-               break;
-            case 3:
-               printf("%f (F)\n",mpp[i].value.f);
-               break;
-            case 4:
-               printf("%s (S)\n",mpp[i].value.s);
-               break;
-            default:
-               printf("\n");
-               break;
+            printf("%s = ",mpp[i].label);
+            switch((int)(mpp[i].type))
+            {
+               case 1:
+                  printf("%d (I)\n",mpp[i].value.i);
+                  break;
+               case 2:
+                  printf("%ld (L)\n",mpp[i].value.l);
+                  break;
+               case 3:
+                  printf("%f (F)\n",mpp[i].value.f);
+                  break;
+               case 4:
+                  printf("%s (S)\n",mpp[i].value.s);
+                  break;
+               default:
+                  printf("\n");
+                  break;
+            }
          }
-      }
    }
 }

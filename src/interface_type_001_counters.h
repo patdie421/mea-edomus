@@ -9,9 +9,12 @@
 #ifndef _interface_type_001_counters_h
 #define _interface_type_001_counters_h
 
-#include "error.h"
-
 #include <pthread.h>
+
+#include "comio.h"
+#include "dbServer.h"
+#include "error.h"
+#include "timer.h"
 
 // modélisation d'un compteur
 struct electricity_counter_s
@@ -30,11 +33,17 @@ struct electricity_counter_s
    
    int sensor_mem_addr[4]; // sensor data addr
    int trap; // comio trap number
+   
+   timer_t timer;
 };
 
 struct electricity_counter_s *valid_and_malloc_counter(int id_sensor_actuator, char *name, char *parameters);
 void interface_type_001_free_counters_queue_elem(void *d);
 mea_error_t counter_trap(int numTrap, void *args, char *buff);
+
+void counter_to_xpl(struct electricity_counter_s *counter);
+void counter_to_db(tomysqldb_md_t *md, struct electricity_counter_s *counter);
+void read_counter(comio_ad_t *ad, struct electricity_counter_s *counter);
 
 
 #endif

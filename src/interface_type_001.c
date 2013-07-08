@@ -218,7 +218,147 @@ mea_error_t restart_interface_type_001(interface_type_001_t *i001,sqlite3 *db, t
 }
 
 
+
+
 void *_thread_interface_type_001(void *args)
+{
+   struct thread_interface_type_001_params_s *params=(struct thread_interface_type_001_params_s *)args;
+   
+   interface_type_001_t *i001=params->it001;
+   comio_ad_t *ad=i001->ad;
+   queue_t *counters_list=i001->counters_list;
+   queue_t *sensors_list=i001->sensors_list;
+   tomysqldb_md_t *md=params->md;
+   free(params);
+   params=NULL;
+   
+   
+   struct electricity_counter_s *counter;
+   struct sensor_s *sensor;
+   
+   // initialisation des trap compteurs
+   first_queue(counters_list);
+   for(int i=0; i<counters_list->nb_elem; i++)
+   {
+      current_queue(counters_list, (void **)&counter);
+      comio_set_trap2(ad, counter->trap, counter_trap, (void *)counter);
+      start_timer(&(counter->timer));
+      
+      next_queue(counters_list);
+   }
+   
+   // initialisation des trap changement etat entrées logiques
+   first_queue(sensors_list);
+   for(int i=0; i<sensors_list->nb_elem; i++)
+   {
+      current_queue(sensors_list, (void **)&sensor);
+      comio_set_trap2(ad,  sensor->arduino_pin+10, digital_in_trap, (void *)sensor);
+      
+      next_queue(sensors_list);
+   }
+   
+   // a partir d'ici besoin de mutuex pour l'acces à compteur_prod et compteur_conso, car le trap est généré par un
+   // thread s'exécutant en parallele
+   unsigned int cntr=0;
+   while(1)
+   {
+      sleep(1);
+      // sleep(TEMPO);
+      cntr++;
+      
+      {
+         int comio_err;
+         
+         first_queue(sensors_list);
+         for(int i=0; i<sensors_list->nb_elem; i++)
+         {
+            current_queue(sensors_list, (void **)&sensor);
+            
+            if(sensor->arduino_pin_type==ANALOG_ID)
+            {
+               int v;
+               
+               pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)(&i001->operation_lock) );
+               pthread_mutex_lock(&i001->operation_lock);
+               
+               v=(int16_t)comio_call(i001->ad, sensor->arduino_function, sensor->arduino_pin, &comio_err);
+               
+               pthread_mutex_unlock(&i001->operation_lock);
+               pthread_cleanup_pop(0);
+               
+               if(v>=0 && sensor->val!=v)
+               {
+                  sensor->val=v;
+                  sensor->computed_val=sensor->compute_fn(v);
+                  
+                  if(sensor->compute==XPL_TEMP_ID)
+                  {
+                     VERBOSE(9) fprintf(stderr,"%s  (%s) : Temp sensor %s =  %.1f °C (%d) \n",INFO_STR,__func__,sensor->name,sensor->computed_val,sensor->val);
+                  }
+                  else if(sensor->compute==XPL_VOLTAGE_ID)
+                  {
+                     VERBOSE(9) fprintf(stderr,"%s  (%s) : Voltage sensor %s =  %.1f V (%d) \n",INFO_STR,__func__,sensor->name,sensor->computed_val,sensor->val);
+                  }
+                  else
+                  {
+                     VERBOSE(9) fprintf(stderr,"%s  (%s) : sensor %s = %d\n",INFO_STR,__func__,sensor->name,sensor->val);
+                  }
+                  
+                  char str_value[20];
+                  
+                  xPL_ServicePtr servicePtr = get_xPL_ServicePtr();
+                  if(servicePtr)
+                  {
+                     xPL_MessagePtr cntrMessageStat = xPL_createBroadcastMessage(servicePtr, xPL_MESSAGE_TRIGGER);
+                     
+                     sprintf(str_value,"%0.1f",sensor->computed_val);
+                     
+                     xPL_setSchema(cntrMessageStat, get_token_by_id(XPL_SENSOR_ID), get_token_by_id(XPL_BASIC_ID));
+                     xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_DEVICE_ID),sensor->name);
+                     xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_TYPE_ID), get_token_by_id(XPL_ENERGY_ID));
+                     xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_TEMP_ID),str_value);
+                     
+                     // Broadcast the message
+                     xPL_sendMessage(cntrMessageStat);
+                     
+                     xPL_releaseMessage(cntrMessageStat);
+                  }
+               }
+            }
+            next_queue(sensors_list);
+         }
+         
+      }
+      
+      first_queue(counters_list);
+      for(int i=0; i<counters_list->nb_elem; i++)
+      {
+         current_queue(counters_list, (void **)&counter);
+         if(test_timer(&(counter->timer)))
+         {
+            pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)(&i001->operation_lock) );
+            
+            pthread_mutex_lock(&i001->operation_lock);
+            read_counter(ad, counter);
+            pthread_mutex_unlock(&i001->operation_lock);
+            
+            pthread_cleanup_pop(0);
+
+            counter_to_db(md, counter);
+            
+            counter_to_xpl(counter);
+            
+            VERBOSE(9) fprintf(stderr,"%s  (%s) : counter %s %ld (WH=%d KWH=%d)\n",INFO_STR,__func__,counter->name, counter->counter, counter->wh_counter,counter->kwh_counter);
+               
+            next_queue(counters_list);
+         }
+      }
+   }
+   pthread_testcancel();
+}
+
+
+void *_thread_interface_type_001_(void *args)
 {
    struct thread_interface_type_001_params_s *params=(struct thread_interface_type_001_params_s *)args;
    
@@ -247,10 +387,11 @@ void *_thread_interface_type_001(void *args)
    {
       current_queue(counters_list, (void **)&counter);
       comio_set_trap2(ad, counter->trap, counter_trap, (void *)counter);
+      start_timer(&(counter->timer));
       
       next_queue(counters_list);
    }
-
+   
    // initialisation des trap changement etat entrées logiques
    first_queue(sensors_list);
    for(int i=0; i<sensors_list->nb_elem; i++)
@@ -261,24 +402,24 @@ void *_thread_interface_type_001(void *args)
       next_queue(sensors_list);
    }
    
-
+   
    // a partir d'ici besoin de mutuex pour l'acces à compteur_prod et compteur_conso, car le trap est généré par un
    // thread s'exécutant en parallele
    unsigned int cntr=0;
    while(1)
    {
-      sleep(5);
+      sleep(1);
       // sleep(TEMPO);
       cntr++;
       
       {
          int comio_err;
-
+         
          first_queue(sensors_list);
          for(int i=0; i<sensors_list->nb_elem; i++)
          {
             current_queue(sensors_list, (void **)&sensor);
-
+            
             if(sensor->arduino_pin_type==ANALOG_ID)
             {
                int v;
@@ -330,10 +471,9 @@ void *_thread_interface_type_001(void *args)
             }
             next_queue(sensors_list);
          }
-
+         
       }
-      if(cntr>60)
-//      if(cntr>2)
+      
       {
          int l1,l2,l3,l4;
          unsigned long c;
@@ -343,138 +483,138 @@ void *_thread_interface_type_001(void *args)
          for(int i=0; i<counters_list->nb_elem; i++)
          {
             current_queue(counters_list, (void **)&counter);
-            do
+            if(test_timer(&(counter->timer)))
             {
-               l1=0;l2=0;l3=0;l4=0;
-               // lecture des compteurs stockés dans les variables partagées
-               pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)(&i001->operation_lock) );
-               pthread_mutex_lock(&i001->operation_lock);
-               l1=comio_operation(ad, OP_LECTURE, counter->sensor_mem_addr[0], TYPE_MEMOIRE, 0, &err);
-               if(l1<0)
-                  goto _thread_interface_type_001_operation_abord;
-               l2=comio_operation(ad, OP_LECTURE, counter->sensor_mem_addr[1], TYPE_MEMOIRE, 0, &err);
-               if(l2<0)
-                  goto _thread_interface_type_001_operation_abord;
-               l3=comio_operation(ad, OP_LECTURE, counter->sensor_mem_addr[2], TYPE_MEMOIRE, 0, &err);
-               if(l3<0)
-                  goto _thread_interface_type_001_operation_abord;
-               l4=comio_operation(ad, OP_LECTURE, counter->sensor_mem_addr[3], TYPE_MEMOIRE, 0, &err);
-               
-_thread_interface_type_001_operation_abord:
-               pthread_mutex_unlock(&i001->operation_lock);
-               pthread_cleanup_pop(0);
-            }
-            while(l1<0 || l2<0 || l3<0 || l4<0);
-            c=     l4;
-            c=c <<  8;
-            c=c |  l3;
-            c=c <<  8;
-            c=c |  l2;
-            c=c <<  8;
-            c=c |  l1;
-            
-            // prise du chrono
-            gettimeofday(&tv, NULL);
-            
-            pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(counter->lock));
-            ret=pthread_mutex_lock(&(counter->lock));
-            if(!ret)
-            {
-               // debut section critique
-               counter->wh_counter=c;
-               counter->kwh_counter=c / 1000;
-               counter->counter=c;
-               pthread_mutex_unlock(&(counter->lock));
-            }
-            else
-            {
-               qelem=NULL;
-               VERBOSE(2) {
-                  fprintf(stderr,"%s (%s) : can't take semaphore - ",ERROR_STR,__func__);
-                  perror("");
-                  continue;
-               }
-            }
-            pthread_cleanup_pop(0);
-
-            ec_query=(struct electricity_counters_query_s *)malloc(sizeof(struct electricity_counters_query_s));
-            if(!ec_query)
-            {
-               VERBOSE(1) {
-                  fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
-                  perror("");
-               }
-               pthread_exit(NULL);
-            }
-            ec_query->sensor_id=counter->sensor_id; // à remplacer
-            ec_query->wh_counter=counter->wh_counter;
-            ec_query->kwh_counter=counter->kwh_counter;
-            ec_query->flag=0;
-            memcpy(&(ec_query->date_tv),&tv,sizeof(struct timeval));
-            
-            qelem=malloc(sizeof(tomysqldb_queue_elem_t));
-            if(!qelem)
-            {
-               VERBOSE(1) {
-                  fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
-                  perror("");
-               }
-               if(ec_query)
+               do
                {
-                  free(ec_query);
-                  ec_query=NULL;
-               }
-               pthread_exit(NULL);
-            }
-            qelem->type=TOMYSQLDB_TYPE_EC;
-            qelem->data=(void *)ec_query;
-            
-            {
-               char value[20];
-               
-               xPL_ServicePtr servicePtr = get_xPL_ServicePtr();
-               if(servicePtr)
-               {
-                  xPL_MessagePtr cntrMessageStat = xPL_createBroadcastMessage(servicePtr, xPL_MESSAGE_TRIGGER);
+                  l1=0;l2=0;l3=0;l4=0;
+                  // lecture des compteurs stockés dans les variables partagées
+                  pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)(&i001->operation_lock) );
+                  pthread_mutex_lock(&i001->operation_lock);
+                  l1=comio_operation(ad, OP_LECTURE, counter->sensor_mem_addr[0], TYPE_MEMOIRE, 0, &err);
+                  if(l1<0)
+                     goto _thread_interface_type_001_operation_abord;
+                  l2=comio_operation(ad, OP_LECTURE, counter->sensor_mem_addr[1], TYPE_MEMOIRE, 0, &err);
+                  if(l2<0)
+                     goto _thread_interface_type_001_operation_abord;
+                  l3=comio_operation(ad, OP_LECTURE, counter->sensor_mem_addr[2], TYPE_MEMOIRE, 0, &err);
+                  if(l3<0)
+                     goto _thread_interface_type_001_operation_abord;
+                  l4=comio_operation(ad, OP_LECTURE, counter->sensor_mem_addr[3], TYPE_MEMOIRE, 0, &err);
                   
-                  sprintf(value,"%d",counter->kwh_counter);
-                  
-                  xPL_setSchema(cntrMessageStat, get_token_by_id(XPL_SENSOR_ID), get_token_by_id(XPL_BASIC_ID));
-                  xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_DEVICE_ID),counter->name);
-                  xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_TYPE_ID), get_token_by_id(XPL_ENERGY_ID));
-                  xPL_setMessageNamedValue(cntrMessageStat,  get_token_by_id(XPL_CURRENT_ID),value);
-                  
-                  // Broadcast the message
-                  xPL_sendMessage(cntrMessageStat);
-                  
-                  xPL_releaseMessage(cntrMessageStat);
-               }
-            }
-            
-            VERBOSE(9) fprintf(stderr,"%s  (%s) : counter %s %ld (WH=%d KWH=%d)\n",INFO_STR,__func__,counter->name, counter->counter, counter->wh_counter,counter->kwh_counter);
-            
-            if(qelem)
-            {
-               if(md)
-               {
-                  pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(md->lock));
-                  if(!pthread_mutex_lock(&(md->lock)))
-                  {
-                     in_queue_elem(md->queue,(void *)qelem);
-                     pthread_mutex_unlock(&(md->lock));
-                  }
+               _thread_interface_type_001_operation_abord:
+                  pthread_mutex_unlock(&i001->operation_lock);
                   pthread_cleanup_pop(0);
+               }
+               while(l1<0 || l2<0 || l3<0 || l4<0);
+               c=     l4;
+               c=c <<  8;
+               c=c |  l3;
+               c=c <<  8;
+               c=c |  l2;
+               c=c <<  8;
+               c=c |  l1;
+               
+               // prise du chrono
+               gettimeofday(&tv, NULL);
+               
+               pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(counter->lock));
+               ret=pthread_mutex_lock(&(counter->lock));
+               if(!ret)
+               {
+                  // debut section critique
+                  counter->wh_counter=c;
+                  counter->kwh_counter=c / 1000;
+                  counter->counter=c;
+                  pthread_mutex_unlock(&(counter->lock));
+               }
+               else
+               {
+                  qelem=NULL;
+                  VERBOSE(2) {
+                     fprintf(stderr,"%s (%s) : can't take semaphore - ",ERROR_STR,__func__);
+                     perror("");
+                     continue;
+                  }
+               }
+               pthread_cleanup_pop(0);
+               
+               ec_query=(struct electricity_counters_query_s *)malloc(sizeof(struct electricity_counters_query_s));
+               if(!ec_query)
+               {
+                  VERBOSE(1) {
+                     fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
+                     perror("");
+                  }
+                  pthread_exit(NULL);
+               }
+               ec_query->sensor_id=counter->sensor_id; // à remplacer
+               ec_query->wh_counter=counter->wh_counter;
+               ec_query->kwh_counter=counter->kwh_counter;
+               ec_query->flag=0;
+               memcpy(&(ec_query->date_tv),&tv,sizeof(struct timeval));
+               
+               qelem=malloc(sizeof(tomysqldb_queue_elem_t));
+               if(!qelem)
+               {
+                  VERBOSE(1) {
+                     fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
+                     perror("");
+                  }
+                  if(ec_query)
+                  {
+                     free(ec_query);
+                     ec_query=NULL;
+                  }
+                  pthread_exit(NULL);
+               }
+               qelem->type=TOMYSQLDB_TYPE_EC;
+               qelem->data=(void *)ec_query;
+               
+               {
+                  char value[20];
+                  
+                  xPL_ServicePtr servicePtr = get_xPL_ServicePtr();
+                  if(servicePtr)
+                  {
+                     xPL_MessagePtr cntrMessageStat = xPL_createBroadcastMessage(servicePtr, xPL_MESSAGE_TRIGGER);
+                     
+                     sprintf(value,"%d",counter->kwh_counter);
+                     
+                     xPL_setSchema(cntrMessageStat, get_token_by_id(XPL_SENSOR_ID), get_token_by_id(XPL_BASIC_ID));
+                     xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_DEVICE_ID),counter->name);
+                     xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_TYPE_ID), get_token_by_id(XPL_ENERGY_ID));
+                     xPL_setMessageNamedValue(cntrMessageStat,  get_token_by_id(XPL_CURRENT_ID),value);
+                     
+                     // Broadcast the message
+                     xPL_sendMessage(cntrMessageStat);
+                     
+                     xPL_releaseMessage(cntrMessageStat);
+                  }
+               }
+               
+               VERBOSE(9) fprintf(stderr,"%s  (%s) : counter %s %ld (WH=%d KWH=%d)\n",INFO_STR,__func__,counter->name, counter->counter, counter->wh_counter,counter->kwh_counter);
+               
+               if(qelem)
+               {
+                  if(md)
+                  {
+                     pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(md->lock));
+                     if(!pthread_mutex_lock(&(md->lock)))
+                     {
+                        in_queue_elem(md->queue,(void *)qelem);
+                        pthread_mutex_unlock(&(md->lock));
+                     }
+                     pthread_cleanup_pop(0);
+                  }
                }
             }
             next_queue(counters_list);
          }
-         
       }
    }
    pthread_testcancel();
-   
 }
-
 
 
 int16_t check_status_interface_type_001(interface_type_001_t *i001)

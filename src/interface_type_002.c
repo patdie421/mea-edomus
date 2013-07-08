@@ -89,7 +89,7 @@ struct thread_params_s
    pthread_cond_t       callback_cond;
    PyThreadState       *mainThreadState;
    PyThreadState       *myThreadState;
-   parsed_parameter_t  *plugin_params;
+   parsed_parameters_t  *plugin_params;
    int                  nb_plugin_params;
    sqlite3_stmt        *stmt;
    data_queue_elem_t   *e;
@@ -314,7 +314,7 @@ int16_t _interface_type_002_xPL_callback(xPL_ServicePtr theService, xPL_MessageP
       int s = sqlite3_step(stmt);
       if (s == SQLITE_ROW)
       {
-         parsed_parameter_t *plugin_params=NULL;
+         parsed_parameters_t *plugin_params=NULL;
          int nb_plugin_params;
          
          plugin_params=malloc_parsed_parameters((char *)sqlite3_column_text(stmt, 3), valid_xbee_plugin_params, &nb_plugin_params, &err, 0);
@@ -447,7 +447,7 @@ mea_error_t _interface_type_002_commissionning_callback(int id, unsigned char *c
    int s = sqlite3_step(stmt);
    if (s == SQLITE_ROW) // on ne traite que la premiere ligne si elle existe car on ne devrait pas pouvoir avoir n ligne sur cette requete
    {
-      parsed_parameter_t *plugin_params=NULL;
+      parsed_parameters_t *plugin_params=NULL;
       int nb_plugin_params;
       
       plugin_params=malloc_parsed_parameters((char *)sqlite3_column_text(stmt, 6), valid_xbee_plugin_params, &nb_plugin_params, &err, 0);

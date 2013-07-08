@@ -111,7 +111,7 @@ struct actuator_s *valid_and_malloc_actuator(int id_sensor_actuator, char *name,
    int type_id;
    int action_id;
    
-   parsed_parameter_t *relay_params=NULL;
+   parsed_parameters_t *relay_params=NULL;
    int nb_relay_params;
    int err;
    
