@@ -320,7 +320,7 @@ void counter_to_db(tomysqldb_md_t *md, struct electricity_counter_s *counter)
 }
 
 
-void read_counter(comio_ad_t *ad, struct electricity_counter_s *counter)
+void counter_read(comio_ad_t *ad, struct electricity_counter_s *counter)
 {
    int l1,l2,l3,l4;
    unsigned long c;

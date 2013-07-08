@@ -43,7 +43,7 @@ mea_error_t counter_trap(int numTrap, void *args, char *buff);
 
 void counter_to_xpl(struct electricity_counter_s *counter);
 void counter_to_db(tomysqldb_md_t *md, struct electricity_counter_s *counter);
-void read_counter(comio_ad_t *ad, struct electricity_counter_s *counter);
+void counter_read(comio_ad_t *ad, struct electricity_counter_s *counter);
 
 
 #endif

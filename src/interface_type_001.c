@@ -339,7 +339,7 @@ void *_thread_interface_type_001(void *args)
             pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)(&i001->operation_lock) );
             
             pthread_mutex_lock(&i001->operation_lock);
-            read_counter(ad, counter);
+            counter_read(ad, counter);
             pthread_mutex_unlock(&i001->operation_lock);
             
             pthread_cleanup_pop(0);
