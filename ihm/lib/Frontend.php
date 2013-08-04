@@ -13,26 +13,27 @@ class Frontend extends ApiFrontend {
         // in atk4-addons subdirectory.
 
         $this->addLocation('atk4-addons',array(
-                    'php'=>array(
-                        'mvc',
-                        'misc/lib',
-								'sterling/jqplot/lib',
-								'sterling/jqplot/templates/view',
-                        ),
+                           'php'=>array('mvc',
+                                        'misc/lib',
+								        'sterling/jqplot/lib',
+                                       ),
 								
-                    'css'=>array(
-                         'sterling/jqplot/templates/js/jqplot',
-                        ),
+                           'css'=>array(
+                                        'sterling/jqplot/templates/js/jqplot',
+                                       ),
 								
-                    'js'=>array(
-                         'sterling/jqplot/templates/js/jqplot/plugins',
-                         'sterling/jqplot/templates/js/jqplot',
-                         'sterling/jqplot/templates/js/',
+                           'js'=> array(
+                                        'sterling/jqplot/templates/js/jqplot/plugins',
+                                        'sterling/jqplot/templates/js/jqplot',
+                                        'sterling/jqplot/templates/js/',
+								       ),
 								 
-						  'html'=>array('sterling/jqplot/templates/view',), 
-                    )))
-
-            ->setParent($this->pathfinder->base_location);
+					      'template'=>array(
+						                'sterling/jqplot/templates',
+					                   ), 
+                                       )
+        )
+        ->setParent($this->pathfinder->base_location);
 
         // A lot of the functionality in Agile Toolkit requires jUI
         $this->add('jUI');
@@ -63,7 +64,8 @@ class Frontend extends ApiFrontend {
         // it and place in a separate class
        $this->add('Menu',null,'Menu')
 		      ->addMenuItem('logout')
-		      ->addMenuItem('mypage','jqPlot');
+//		      ->addMenuItem('mypage','jqPlot')
+;
  /*
         $this->add('Menu',null,'Menu')
             ->addMenuItem('index','Accueil')

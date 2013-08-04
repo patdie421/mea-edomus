@@ -359,7 +359,7 @@ int main(int argc, const char * argv[])
    
    
    // initialisation du serveur HTTP
-   httpServer();
+   httpServer(8083,"/Data/mea-edomus/gui","/Data/mea-edomus/bin/php-cgi","/Data/mea-edomus/etc");
    
    
    // initialisation des interfaces

@@ -4,6 +4,5 @@ class Model_InterfacesForCRUDEdition extends Model_Interfaces {
         parent::init();
  		  
 		  $id_field='id';
-
     }
 }

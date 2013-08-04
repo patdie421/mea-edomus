@@ -3,7 +3,7 @@
 $config['atk']['base_path']='./atk4/';
 //$config['dsn']='mysql://root:root@localhost/example';
 $config['dsn'] = array(
-                    'sqlite:/Data/mea-edomus/params.db',
+                    'sqlite:/Data/mea-edomus/var/db/params.db',
                  );
 $config['url_postfix']='';
 $config['url_prefix']='?page=';

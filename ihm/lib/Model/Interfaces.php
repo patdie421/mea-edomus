@@ -5,7 +5,7 @@ class Model_Interfaces extends Model_Table {
         parent::init();
 		  
         /* 		  
-		  CREATE TABLE interfaces
+		CREATE TABLE interfaces
         (
         id INTEGER PRIMARY KEY,
         id_interface INTEGER,
@@ -18,45 +18,45 @@ class Model_Interfaces extends Model_Table {
         );
         */
 		  
-		  $this->id_field='id_interface';
+		$this->id_field='id_interface';
 		  
         $this->addField('id_interface')
-				 ->mandatory(true)
-				 ->caption('id');
+             ->mandatory(true)
+             ->caption('id');
         $this->addField('name')
-		       ->mandatory(true)
-				 ->sortable(true);
-        $this->addField('id_type')
-		       ->refModel('Model_Types')
-				 ->mandatory(true);
+		     ->mandatory(true)
+             ->sortable(true);
+        $this->addField('id_type')->caption('type')
+             ->refModel('Model_Types')
+             ->mandatory(true);
         $this->addField('description')
-		       ->type('text');
+		     ->type('text');
         $this->addField('dev')
-		       ->mandatory(true)
-				 ->caption('device');
+		     ->mandatory(true)
+             ->caption('device');
         $this->addField('parameters')
-		       ->type('text');
+		     ->type('text');
         $this->addField('state')
-		       ->mandatory(true)
-				 ->setValueList(array(0=>'disable',1=>'enable',2=>'delegate'));
+		     ->mandatory(true)
+             ->setValueList(array(0=>'disable',1=>'enable',2=>'delegate'));
 		  
-		  $this->addHook('beforeSave',$this);
+//		  $this->addHook('beforeSave',$this);
     }
 	 
     function beforeSave(){
 	 
 	    $identifier='id_interface';
-		 $name='name';
+		$name='name';
 
-       $anId=$this->dsql()->field('id')->where($identifier,$this[$identifier])->do_getOne();
-       if($anId && $anId!=$this['id']){
-          throw $this->exception('Interface identifier all-ready exist, choose an other ...','ValidityCheck')->setField($identifier);
-       }
+        $anId=$this->dsql()->field('id')->where($identifier,$this[$identifier])->do_getOne();
+        if($anId && $anId!=$this['id']){
+            throw $this->exception('Interface identifier all-ready exist, choose an other ...','ValidityCheck')->setField($identifier);
+        }
 
-       $anId=$this->dsql()->field('id')->where($name,$this[$name])->do_getOne();
-       if($anId && $anId!=$this['id']){
-          throw $this->exception('Interface name all-ready exist, choose an other ...','ValidityCheck')->setField($name);
-       }
+        $anId=$this->dsql()->field('id')->where($name,$this[$name])->do_getOne();
+        if($anId && $anId!=$this['id']){
+            throw $this->exception('Interface name all-ready exist, choose an other ...','ValidityCheck')->setField($name);
+        }
     }
 }
 
