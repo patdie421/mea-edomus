@@ -8,12 +8,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <inttypes.h>
 #include <time.h>
 #include <sys/time.h>
 #include <signal.h>
 #include <errno.h>
 #include <string.h>
 #include <getopt.h>
+#include <libgen.h>
 
 #include <sqlite3.h>
 
@@ -25,10 +27,7 @@
 #include "queue.h"
 #include "string_utils.h"
 
-//#include "parameters_mgr.h"
-
-//#include "comio.h"
-//#include "xbee.h"
+#include "init.h"
 
 #include "interfaces.h"
 #include "interface_type_001.h"
@@ -47,6 +46,11 @@ queue_t *interfaces;
 pthread_t *xPLServer_thread=NULL;
 pthread_t *pythonPluginServer_thread=NULL;
 // pthread_t *counters_thread=NULL;
+
+char *mea_path=NULL;
+char *gui_path=NULL;
+char *phpcgi_path=NULL;
+char *phpini_path=NULL;
 
 char *sqlite3_db_file=NULL;
 char *mysql_db_server=NULL;
@@ -119,6 +123,10 @@ int16_t read_all_application_parameters(sqlite3 *sqlite3_param_db)
             setPythonPluginPath(value);
          else if (strcmp(key,"VERBOSELEVEL")==0)
             set_verbose_level(atoi(value));
+         else if (strcmp(key,"PHPCGIPATH")==0)
+            string_free_malloc_and_copy(&phpcgi_path, value, 1);
+         else if (strcmp(key,"PHPINIPATH")==0)
+            string_free_malloc_and_copy(&phpini_path, value, 1);
       }
       else if (s == SQLITE_DONE)
       {
@@ -266,6 +274,7 @@ int main(int argc, const char * argv[])
 {
    int c;
    int ret;
+   char *buff;
    
 #ifdef __DEBUG_ON__
    debug_on();
@@ -281,17 +290,37 @@ int main(int argc, const char * argv[])
    signal(SIGQUIT, _signal_STOP);
    signal(SIGTERM, _signal_STOP);
    signal(SIGHUP,  _signal_HUP);
+
+   
+   // chemin "théorique" de l'installation mea-domus (si les recommendations ont été respectées)
+   buff=(char *)malloc(strlen(argv[0])+1);
+   if(realpath(argv[0], buff))
+   {
+      char *path;
+
+      path=malloc(strlen(dirname(buff))+1);
+      strcpy(path,dirname(buff));
+      
+      mea_path=(char *)malloc(strlen(dirname(path))+1);
+      strcpy(mea_path,dirname(path));
+      free(path);
+   }
+   free(buff);
    
    // récupération des paramètres de la ligne de commande
-   int _a=0;
-   while ((c = getopt (argc, (char **)argv, "a:")) != -1)
+   int _a=0,_i=0;
+   while ((c = getopt (argc, (char **)argv, "ia:")) != -1)
    {
       switch (c)
       {
          case 'a':
-            string_free_malloc_and_copy(&sqlite3_db_param_path, optarg,1);
+            string_free_malloc_and_copy(&sqlite3_db_param_path, optarg, 1);
             IF_NULL_EXIT(sqlite3_db_param_path,1);
             _a=1;
+            break;
+         
+         case 'i':
+            _i=1;
             break;
             
          default:
@@ -299,23 +328,62 @@ int main(int argc, const char * argv[])
             exit(1);
       }
    }
-   if(!_a)
+   
+   if(!_a) // si pas de db en parametre on construit un chemin vers le nom "théorique" de la db
    {
-      usage((char *)argv[0]);
-      exit(1);
+      sqlite3_db_param_path=(char *)malloc(strlen(mea_path)+1 + 17); // lenght("/var/db/params.db") = 17
+      sprintf(sqlite3_db_param_path,"%s/var/db/params.db",mea_path);
+   }
+   
+   sqlite3_config(SQLITE_CONFIG_SERIALIZED); // pour le multithreading
+
+   
+   if(_i)
+   {
+      initMeaEdomus(sqlite3_db_param_path);
+      exit(0);
    }
    
    
+   int16_t cause;
+   if(!checkParamsDb(sqlite3_db_param_path,&cause))
+   {
+      exit(1);
+   }
+
+   
+/*
+   if( access( sqlite3_db_param_path, F_OK) == -1 ) // file exist ?
+   {
+      VERBOSE(1) fprintf(stderr,"%s (%s) : \"%s\" n'existe pas ou n'est pas accessible.\n",ERROR_STR,__func__,sqlite3_db_param_path);
+      exit(1);
+   }
+
+   if( access( sqlite3_db_param_path, R_OK | W_OK) == -1 )
+   {
+      VERBOSE(1) fprintf(stderr,"%s (%s) : \"%s\" doit etre accessible en lecture/ecriture.\n",ERROR_STR,__func__,sqlite3_db_param_path);
+      exit(1);
+   }
+*/
+
+   // ret=check_and_open_sqlite3_db_param(sqlite3_db_param_path, &sqlite3_param_db); // verifier que la base est bien une base mea
+   
    // ouverture de la base de paramétrage
-   sqlite3_config(SQLITE_CONFIG_SERIALIZED); // pour le multithreading
-   ret = sqlite3_open (sqlite3_db_param_path, &sqlite3_param_db);
+   ret = sqlite3_open_v2(sqlite3_db_param_path, &sqlite3_param_db, SQLITE_OPEN_READWRITE, NULL);
    if(ret)
    {
       VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_open - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
       exit(1);
    }
-   
-   
+/*
+   ret = sqlite3_open(sqlite3_db_param_path, &sqlite3_param_db);
+   if(ret)
+   {
+      VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_open - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
+      exit(1);
+   }
+*/
+
    // lecture de tous les paramètres de l'application
    ret = read_all_application_parameters(sqlite3_param_db);
    if(ret)
@@ -359,8 +427,16 @@ int main(int argc, const char * argv[])
    
    
    // initialisation du serveur HTTP
-   httpServer(8083,"/Data/mea-edomus/gui","/Data/mea-edomus/bin/php-cgi","/Data/mea-edomus/etc");
-   
+   //
+   gui_path=(char *)malloc(strlen(mea_path)+1 + 4);
+   sprintf(gui_path,"%s/gui",mea_path);
+   if(create_config_default_php(gui_path, sqlite3_db_param_path)==0)
+      httpServer(8083, gui_path, "/Data/mea-edomus/bin/php-cgi", "/Data/mea-edomus/etc");
+   else
+   {
+      VERBOSE(1) fprintf(stderr,"%s (%s) : can't start gui Server.\n",ERROR_STR,__func__);
+      exit(1);
+   }
    
    // initialisation des interfaces
    char sql[255];
@@ -509,6 +585,9 @@ int main(int argc, const char * argv[])
    // boucle sans fin.
    while(1)
    {
+//      printf("boucle\n");
       sleep(5);
    }
+   
+   free(mea_path);
 }

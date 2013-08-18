@@ -729,7 +729,7 @@ void *_thread_interface_type_002_xbeedata(void *args)
       else
       {
          // pb d'accès aux données de la file
-         VERBOSE(5) fprintf(stderr,"%s (%s) : out_queue_elem - can't access\n", ERROR_STR, __func__);
+         VERBOSE(9) fprintf(stderr,"%s (%s) : out_queue_elem - no data in queue\n", DEBUG_STR, __func__);
       }
       pthread_testcancel();
    }

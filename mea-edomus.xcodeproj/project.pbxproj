@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4E09454E17C10FB2003749FE /* init.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E09454D17C10FB2003749FE /* init.c */; };
 		4E14AC0E16083B8C000686C3 /* memory.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E14ABFF16083B8C000686C3 /* memory.c */; };
 		4E4A5EA215F003420052ABF4 /* comio.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E4A5E8F15F003420052ABF4 /* comio.c */; };
 		4E4A5EA315F003420052ABF4 /* interface_type_001.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E4A5E9115F003420052ABF4 /* interface_type_001.c */; };
@@ -54,8 +55,9 @@
 
 /* Begin PBXFileReference section */
 		4E05C665175BC9390022DA3E /* xbee_generic.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = xbee_generic.py; path = plugins/xbee_generic.py; sourceTree = "<group>"; };
+		4E09454C17C10FA6003749FE /* init.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = init.h; path = src/init.h; sourceTree = "<group>"; };
+		4E09454D17C10FB2003749FE /* init.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = init.c; path = src/init.c; sourceTree = "<group>"; };
 		4E1496FA163F290200E08E6D /* sample_params_data.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = sample_params_data.sql; path = sql/sample_params_data.sql; sourceTree = "<group>"; };
-		4E1496FC163F2F1D00E08E6D /* start_mea-edomus.ksh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; name = "start_mea-edomus.ksh"; path = "linux/start_mea-edomus.ksh"; sourceTree = "<group>"; };
 		4E14ABFC16083B8C000686C3 /* interfaces.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = interfaces.h; path = src/interfaces.h; sourceTree = "<group>"; };
 		4E14ABFD16083B8C000686C3 /* macros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = macros.h; path = src/macros.h; sourceTree = "<group>"; };
 		4E14ABFF16083B8C000686C3 /* memory.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = memory.c; path = src/memory.c; sourceTree = "<group>"; };
@@ -102,7 +104,6 @@
 		4E76CEA4163F12C700A3EBA9 /* arduino_pins.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = arduino_pins.h; path = src/arduino_pins.h; sourceTree = "<group>"; };
 		4E76CEA6163F133400A3EBA9 /* sqlite3_params_db.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = sqlite3_params_db.sql; path = sql/sqlite3_params_db.sql; sourceTree = "<group>"; };
 		4E76CEA7163F133400A3EBA9 /* sqlite3_queries_db.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = sqlite3_queries_db.sql; path = sql/sqlite3_queries_db.sql; sourceTree = "<group>"; };
-		4E76CEA8163F138800A3EBA9 /* Makefile.mk */ = {isa = PBXFileReference; explicitFileType = sourcecode.make; fileEncoding = 4; name = Makefile.mk; path = linux/Makefile.mk; sourceTree = "<group>"; };
 		4E76CEA9163F146900A3EBA9 /* parameters_mgr.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = parameters_mgr.c; path = src/parameters_mgr.c; sourceTree = "<group>"; };
 		4E76CEAA163F146900A3EBA9 /* parameters_mgr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = parameters_mgr.h; path = src/parameters_mgr.h; sourceTree = "<group>"; };
 		4E76CEB0163F175100A3EBA9 /* token_strings.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = token_strings.c; path = src/token_strings.c; sourceTree = "<group>"; };
@@ -151,13 +152,14 @@
 			children = (
 				4EFBBC801748C9BA00090FEE /* Common */,
 				4E4D4E811601F2930008C14C /* Libs */,
-				4E4D4E7E1601F1510008C14C /* Interfaces */,
+				4E4D4E7E1601F1510008C14C /* Interfaces_manager */,
 				4E4D4E7F1601F2550008C14C /* db manager */,
 				4E5FC67E1736C8A9004266EB /* plugin manager */,
-				4EFBFCAB175E612D007BBFD1 /* ihm manager */,
+				4EFBFCAB175E612D007BBFD1 /* gui manager */,
 				4EE28EAA162F4DD00090B5B3 /* xPL manager */,
 				4E4A5E9815F003420052ABF4 /* main.c */,
-				4E4A5E0815ED65840052ABF4 /* Linux */,
+				4E09454C17C10FA6003749FE /* init.h */,
+				4E09454D17C10FB2003749FE /* init.c */,
 			);
 			name = Source;
 			sourceTree = "<group>";
@@ -170,24 +172,14 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		4E4A5E0815ED65840052ABF4 /* Linux */ = {
+		4E4D4E7E1601F1510008C14C /* Interfaces_manager */ = {
 			isa = PBXGroup;
 			children = (
-				4E76CEA8163F138800A3EBA9 /* Makefile.mk */,
-				4E1496FC163F2F1D00E08E6D /* start_mea-edomus.ksh */,
-			);
-			includeInIndex = 1;
-			name = Linux;
-			sourceTree = "<group>";
-		};
-		4E4D4E7E1601F1510008C14C /* Interfaces */ = {
-			isa = PBXGroup;
-			children = (
-				4E4ED05B1668188400820EF8 /* Interface_type_002 */,
 				4E4ED05A1668186300820EF8 /* Interface_type_001 */,
+				4E4ED05B1668188400820EF8 /* Interface_type_002 */,
 				4E14ABFC16083B8C000686C3 /* interfaces.h */,
 			);
-			name = Interfaces;
+			name = Interfaces_manager;
 			sourceTree = "<group>";
 		};
 		4E4D4E7F1601F2550008C14C /* db manager */ = {
@@ -329,7 +321,7 @@
 			name = Common;
 			sourceTree = "<group>";
 		};
-		4EFBFCAB175E612D007BBFD1 /* ihm manager */ = {
+		4EFBFCAB175E612D007BBFD1 /* gui manager */ = {
 			isa = PBXGroup;
 			children = (
 				4EFBFCAA175E60F9007BBFD1 /* mongoose.h */,
@@ -337,7 +329,7 @@
 				4EFBFCAC175E6155007BBFD1 /* httpServer.h */,
 				4EFBFCAD175E616E007BBFD1 /* httpServer.c */,
 			);
-			name = "ihm manager";
+			name = "gui manager";
 			sourceTree = "<group>";
 		};
 		4EFD8C3215D97ABE0032D454 /* SQL */ = {
@@ -436,6 +428,7 @@
 				4EFBFCCC175E8BDC007BBFD1 /* python_api_utils.c in Sources */,
 				4E8F781C178B44490099A751 /* string_utils.c in Sources */,
 				4E8F781E178B47C80099A751 /* timer.c in Sources */,
+				4E09454E17C10FB2003749FE /* init.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -11,6 +11,7 @@
 #include <inttypes.h>
 #include <string.h>
 
+#include "debug.h"
 #include "error.h"
 #include "httpServer.h"
 #include "mongoose.h"
@@ -20,7 +21,7 @@
 //
 // ./configure --prefix=/usr/local/php --disable-all --enable-session --enable-pdo --with-sqlite3 --with-pdo-sqlite --enable-json
 //
-// supprimer aussi "-g" dans Makefile resultant pour taille minimum de l'executable
+// supprimer aussi "-g" dans Makefile pour une taille minimum de l'executable
 //
 
 const char *str_document_root="document_root";
@@ -52,29 +53,49 @@ const char* options[] = {
 };
 */
 
-// "/Data/mea-edomus/var/db/params.db";
-
-const char *options_[15];
-
-char *content = "<html><head><title>Test PHP</title></head><body><p>Bonjour le monde</p></body></html>";
+const char *options[15];
 
 struct mg_context* g_mongooseContext = 0;
 
 
-void make_config_default_php(char *params_db_fullname)
+int create_config_default_php(char *home, char *params_db_fullname)
 {
-   printf("<?php");
-   printf("$config['atk']['base_path']='./atk4/';");
-   printf("$config['dsn'] = array('sqlite:%s,');",params_db_fullname);
-   printf("$config['url_postfix']='';");
-   printf("$config['url_prefix']='?page=';");
+   FILE *fd;
+   const char *file="config-default.php";
+   char *f;
+   
+   f=malloc(strlen(home) + strlen(file) + 2);
+   sprintf(f,"%s/%s",home,file);
+   
+   fd=fopen(f,"w");
+   if(fd)
+   {
+      fprintf(fd,"<?php\n");
+      fprintf(fd,"$config['atk']['base_path']='./atk4/';\n");
+      fprintf(fd,"$config['dsn'] = array('sqlite:%s',);\n",params_db_fullname);
+      fprintf(fd,"$config['url_postfix']='';\n");
+      fprintf(fd,"$config['url_prefix']='?page=';\n");
+   
+      fclose(fd);
+   }
+   else
+   {
+      VERBOSE(1) {
+         fprintf(stderr, "%s (%s) : cannot write config-default.php file - ",ERROR_STR,__func__);
+         perror("");
+      }
+      return -1;
+   }
+   return 0;
 }
 
 
 // fichier "mémoire"
 static const char *open_file_handler(const struct mg_connection *conn, const char *path, size_t *size)
-// ne peut pas marcher avec les cgi car le cgi-php va chercher sur disque le fichier ... utile néanmoins pour fournir des pages statiques ...
 {
+   // ne peut pas marcher avec les cgi car le cgi-php va chercher sur disque le fichier ... utile néanmoins pour fournir des pages statiques ...
+   char *content = "<html><head><title>Test PHP</title></head><body><p>Bonjour le monde</p></body></html>";
+
    if (!strcmp(path, "/Data/www/test.html"))
    {
       *size = strlen(content);
@@ -116,28 +137,29 @@ mea_error_t httpServer(uint16_t port, char *home, char *php_cgi, char *php_ini_p
    val_cgi_environment=malloc(6+strlen(php_ini_path)+1);
    sprintf(val_cgi_environment,"PHPRC=%s", php_ini_path);
    
-   options_[ 0]=str_document_root;
-   options_[ 1]=(const char *)val_document_root;
-   options_[ 2]=str_listening_ports;
-   options_[ 3]=(const char *)val_listening_ports;
-   options_[ 4]=str_index_files;
-   options_[ 5]="index.php";
-   options_[ 6]=str_cgi_interpreter;
-   options_[ 7]=(const char *)val_cgi_interpreter;
-   options_[ 8]=str_cgi_environment;
-   options_[ 9]=(const char *)val_cgi_environment;
-   options_[10]=str_cgi_pattern;
-   options_[11]="**.php$";
-   options_[12]=str_num_threads;
-   options_[13]="5";
-   options_[14]=NULL;
+   options[ 0]=str_document_root;
+   options[ 1]=(const char *)val_document_root;
+   options[ 2]=str_listening_ports;
+   options[ 3]=(const char *)val_listening_ports;
+   options[ 4]=str_index_files;
+   options[ 5]="index.php";
+   options[ 6]=str_cgi_interpreter;
+   options[ 7]=(const char *)val_cgi_interpreter;
+   options[ 8]=str_cgi_environment;
+   options[ 9]=(const char *)val_cgi_environment;
+   options[10]=str_cgi_pattern;
+   options[11]="**.php$";
+   options[12]=str_num_threads;
+   options[13]="5";
+   options[14]=NULL;
+
    
    struct mg_callbacks callbacks;
    memset(&callbacks,0,sizeof(struct mg_callbacks));
 //   callbacks.begin_request = begin_request_handler;
    callbacks.open_file = open_file_handler;
    
-   g_mongooseContext = mg_start(&callbacks, NULL, options_);
+   g_mongooseContext = mg_start(&callbacks, NULL, options);
    if (g_mongooseContext == NULL)
       return ERROR;
    else
