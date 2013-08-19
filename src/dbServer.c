@@ -24,6 +24,7 @@
 
 #include <errmsg.h>
 
+int tomysl_started=0;
 
 int tomysqldb_connect(tomysqldb_md_t *md, MYSQL **conn);
 
@@ -44,6 +45,9 @@ void _tomysqldb_free_queue_elem(void *d) // pour vider_file2
 int sql_query_insert_tbl_ec(char *query, char *table, struct electricity_counters_query_s *ec_query)
 {
    char s[255];
+   
+   if(tomysl_started==0)
+      return 0;
    
    strftime(s,sizeof(s)-1,"%y-%m-%d %H:%M:%S",localtime(&(ec_query->date_tv.tv_sec)));
    
@@ -481,6 +485,8 @@ int tomysqldb_init(tomysqldb_md_t *md, char *db_server, char *base, char *user, 
       VERBOSE(1) fprintf(stderr,"%s (%s) : can't create thread.\n", ERROR_STR, __func__);
       return -1;
    }
+   
+   tomysl_started=1;
    
    return 0;
 }

@@ -50,6 +50,7 @@ pthread_t *pythonPluginServer_thread=NULL;
 char *mea_path=NULL;
 char *gui_path=NULL;
 char *phpcgi_path=NULL;
+char *phpcgibin=NULL;
 char *phpini_path=NULL;
 
 char *sqlite3_db_file=NULL;
@@ -127,6 +128,8 @@ int16_t read_all_application_parameters(sqlite3 *sqlite3_param_db)
             string_free_malloc_and_copy(&phpcgi_path, value, 1);
          else if (strcmp(key,"PHPINIPATH")==0)
             string_free_malloc_and_copy(&phpini_path, value, 1);
+         else if (strcmp(key,"GUIPATH")==0)
+            string_free_malloc_and_copy(&gui_path, value, 1);
       }
       else if (s == SQLITE_DONE)
       {
@@ -196,6 +199,17 @@ static void _signal_STOP(int signal_number)
    tomysqldb_release(myd);
    VERBOSE(5) fprintf(stderr,"done\n");
    
+   if(mea_path)
+      free(mea_path);
+   if(gui_path)
+      free(gui_path);
+   if(phpcgi_path)
+      free(phpcgi_path);
+   if(phpcgi_path)
+      free(phpcgi_path);
+   if(phpini_path)
+      free(phpini_path);
+
    exit(0);
 }
 
@@ -285,13 +299,6 @@ int main(int argc, const char * argv[])
    
    DEBUG_SECTION fprintf(stderr,"Starting MEA-EDOMUS %s\n",__MEA_EDOMUS_VERSION__);
    
-   // initialisation gestions des signaux
-   signal(SIGINT,  _signal_STOP);
-   signal(SIGQUIT, _signal_STOP);
-   signal(SIGTERM, _signal_STOP);
-   signal(SIGHUP,  _signal_HUP);
-
-   
    // chemin "théorique" de l'installation mea-domus (si les recommendations ont été respectées)
    buff=(char *)malloc(strlen(argv[0])+1);
    if(realpath(argv[0], buff))
@@ -340,34 +347,18 @@ int main(int argc, const char * argv[])
    
    if(_i)
    {
-      initMeaEdomus(sqlite3_db_param_path);
+      initMeaEdomus(0,sqlite3_db_param_path, mea_path);
       exit(0);
    }
    
    
    int16_t cause;
-   if(!checkParamsDb(sqlite3_db_param_path,&cause))
+   if(!checkParamsDb(sqlite3_db_param_path, &cause))
    {
       exit(1);
    }
 
-   
-/*
-   if( access( sqlite3_db_param_path, F_OK) == -1 ) // file exist ?
-   {
-      VERBOSE(1) fprintf(stderr,"%s (%s) : \"%s\" n'existe pas ou n'est pas accessible.\n",ERROR_STR,__func__,sqlite3_db_param_path);
-      exit(1);
-   }
-
-   if( access( sqlite3_db_param_path, R_OK | W_OK) == -1 )
-   {
-      VERBOSE(1) fprintf(stderr,"%s (%s) : \"%s\" doit etre accessible en lecture/ecriture.\n",ERROR_STR,__func__,sqlite3_db_param_path);
-      exit(1);
-   }
-*/
-
-   // ret=check_and_open_sqlite3_db_param(sqlite3_db_param_path, &sqlite3_param_db); // verifier que la base est bien une base mea
-   
+      
    // ouverture de la base de paramétrage
    ret = sqlite3_open_v2(sqlite3_db_param_path, &sqlite3_param_db, SQLITE_OPEN_READWRITE, NULL);
    if(ret)
@@ -375,24 +366,26 @@ int main(int argc, const char * argv[])
       VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_open - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
       exit(1);
    }
-/*
-   ret = sqlite3_open(sqlite3_db_param_path, &sqlite3_param_db);
-   if(ret)
-   {
-      VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_open - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
-      exit(1);
-   }
-*/
+
 
    // lecture de tous les paramètres de l'application
    ret = read_all_application_parameters(sqlite3_param_db);
    if(ret)
    {
       VERBOSE(2) fprintf (stderr, "%s (%s) : can't load parameters\n",ERROR_STR,__func__);
+      sqlite3_close(sqlite3_param_db);
+      
       exit(1);
    }
+
    
+   // initialisation gestions des signaux (arrêt de l'appli et réinitialisation
+   signal(SIGINT,  _signal_STOP);
+   signal(SIGQUIT, _signal_STOP);
+   signal(SIGTERM, _signal_STOP);
+   signal(SIGHUP,  _signal_HUP);
    
+
    // initialisation de la communication avec la base MySQL
    myd=NULL;
 #ifndef __NO_TOMYSQL__
@@ -410,7 +403,7 @@ int main(int argc, const char * argv[])
    if(ret==-1)
    {
       VERBOSE(1) fprintf(stderr,"%s (%s) : impossible d'initialiser la gestion de la base de données.\n",ERROR_STR,__func__);
-      exit(1);
+//      exit(1);
    }
 #else
    VERBOSE(9) fprintf(stderr,"%s  (%s) : dbServer not started.\n",INFO_STR,__func__);
@@ -422,23 +415,38 @@ int main(int argc, const char * argv[])
    if(pythonPluginServer_thread==NULL)
    {
       VERBOSE(1) fprintf(stderr,"%s (%s) : can't start Python Plugin Server.\n",ERROR_STR,__func__);
+      sqlite3_close(sqlite3_param_db);
+
       exit(1);
    }
    
    
+   //
    // initialisation du serveur HTTP
    //
-   gui_path=(char *)malloc(strlen(mea_path)+1 + 4);
-   sprintf(gui_path,"%s/gui",mea_path);
-   if(create_config_default_php(gui_path, sqlite3_db_param_path)==0)
-      httpServer(8083, gui_path, "/Data/mea-edomus/bin/php-cgi", "/Data/mea-edomus/etc");
+   if(phpcgi_path && phpcgibin && phpini_path)
+   {
+      phpcgibin=(char *)malloc(strlen(phpcgi_path)+10); // 9 = strlen("/cgi-bin") + 1
+      sprintf(phpcgibin, "%s/php-cgi",phpcgi_path);
+
+      if(create_config_default_php(gui_path, sqlite3_db_param_path)==0)
+         httpServer(8083, gui_path, phpcgibin, phpini_path);
+      else
+      {
+         VERBOSE(1) fprintf(stderr,"%s (%s) : can't start gui Server.\n",ERROR_STR,__func__);
+         // on continu sans ihm
+      }
+   }
    else
    {
       VERBOSE(1) fprintf(stderr,"%s (%s) : can't start gui Server.\n",ERROR_STR,__func__);
-      exit(1);
+      // on continu sans ihm
    }
    
+   
+   //
    // initialisation des interfaces
+   //
    char sql[255];
    sqlite3_stmt * stmt;
    interfaces=(queue_t *)malloc(sizeof(queue_t));
@@ -456,6 +464,7 @@ int main(int argc, const char * argv[])
    if(ret)
    {
       VERBOSE(1) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
+      sqlite3_close(sqlite3_param_db);
       exit(1);
    }
    while (1)
@@ -556,9 +565,15 @@ int main(int argc, const char * argv[])
          break;
       }
       else
+      {
+         VERBOSE(1) fprintf (stderr, "%s (%s) : sqlite3_step - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
+         sqlite3_finalize(stmt);
+         sqlite3_close(sqlite3_param_db);
          exit(1);
+      }
    }
-   sqlite3_finalize(stmt);
+   
+   sqlite3_close(sqlite3_param_db);
    
    
    // initialisation du serveur xPL
@@ -581,13 +596,11 @@ int main(int argc, const char * argv[])
    mysql_passwd=NULL;
    
    DEBUG_SECTION fprintf(stderr,"MEA-EDOMUS %s starded\n",__MEA_EDOMUS_VERSION__);
-   
+
+
    // boucle sans fin.
    while(1)
    {
-//      printf("boucle\n");
       sleep(5);
    }
-   
-   free(mea_path);
 }

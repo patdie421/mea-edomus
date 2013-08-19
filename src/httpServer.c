@@ -32,13 +32,13 @@ const char *str_cgi_environment="cgi_environment";
 const char *str_cgi_pattern="cgi_pattern";
 const char *str_num_threads="num_threads";
 
-char *val_document_root;
-char *val_listening_ports;
-char *val_index_files;
-char *val_cgi_interpreter;
-char *val_cgi_environment;
-char *val_cgi_pattern;
-char *val_num_threads;
+char *val_document_root=NULL;
+char *val_listening_ports=NULL;
+char *val_index_files=NULL;
+char *val_cgi_interpreter=NULL;
+char *val_cgi_environment=NULL;
+char *val_cgi_pattern=NULL;
+char *val_num_threads=NULL;
 
 /*
 const char* options[] = {
@@ -119,21 +119,19 @@ mea_error_t httpServer(uint16_t port, char *home, char *php_cgi, char *php_ini_p
 {
    if(port==0)
       port=8083;
+   
+   if(!home || !php_cgi || !php_ini_path)
+      return ERROR;
+   
    val_listening_ports=(char *)malloc(6);
    sprintf(val_listening_ports,"%d",port);
    
-   if(home==NULL)
-      home="/usr/local/mea-edomus/gui";
    val_document_root=malloc(strlen(home)+1);
    strcpy(val_document_root,home);
    
-   if(php_cgi==NULL)
-      php_cgi="/usr/local/bin";
    val_cgi_interpreter=malloc(strlen(php_cgi)+1);
    strcpy(val_cgi_interpreter,php_cgi);
    
-   if(php_ini_path==NULL)
-      php_ini_path="/usr/local/lib";
    val_cgi_environment=malloc(6+strlen(php_ini_path)+1);
    sprintf(val_cgi_environment,"PHPRC=%s", php_ini_path);
    
@@ -152,7 +150,6 @@ mea_error_t httpServer(uint16_t port, char *home, char *php_cgi, char *php_ini_p
    options[12]=str_num_threads;
    options[13]="5";
    options[14]=NULL;
-
    
    struct mg_callbacks callbacks;
    memset(&callbacks,0,sizeof(struct mg_callbacks));

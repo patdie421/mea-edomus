@@ -11,9 +11,9 @@
 
 #include <inttypes.h>
 
-int checkInstallationPaths(char *base_path);
-int checkParamsDb(char *sqlite3_db_param_path, int16_t *cause);
+int16_t checkInstallationPaths(char *base_path);
+int16_t checkParamsDb(char *sqlite3_db_param_path, int16_t *cause);
 
-int initMeaEdomus(char *sqlite3_db_param_path);
+int16_t initMeaEdomus(int16_t mode, char *sqlite3_db_param_path, char *base_path);
 
 #endif

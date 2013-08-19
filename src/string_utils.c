@@ -24,7 +24,7 @@ void strToUpper(char *str)
 int16_t strcmplower(char *str1, char *str2)
 /**
  * \brief     comparaison de deux chaines sur la base de "caractères en mimuscules"
- * \details   chaque caractère des deux chaines est convertie en minuscule avant d'être comparés
+ * \details   chaque caractère des deux chaines est converti en minuscule avant de les comparer
  * \param     str1   premiere chaine à comparer.
  * \param     str2   deuxième chaine à comparer.
  * \return    0 chaines égales, 1 chaines différentes
