@@ -1,0 +1,43 @@
+.section {
+  background-color:#7f7f7f;
+  border-color:black;
+  border-width:1px;
+  border-style:solid;
+  height: 40px;
+  margin: 10px;
+  padding:20px;
+  min-width: 400px;
+}
+
+.texte {
+  float:left;
+  height: 20px;
+  margin: 5px;
+  padding: 5px;
+}
+
+.bouton {
+  background-color:#00ff00;
+  border-color:black;
+  border-width:1px;
+  border-style:solid;
+  width: 75px;
+  height: 20px;
+  float:right;
+  margin: 5px;
+  padding: 5px;
+  text-align: center;
+}
+
+.statut {
+  background-color:#0fff00;
+  border-color:black;
+  border-width:1px;
+  border-style:solid;
+  height: 20px;
+  float:right;
+  margin: 5px;
+  padding: 5px;
+  text-align: center;
+  display: none;
+}

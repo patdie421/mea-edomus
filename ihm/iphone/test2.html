@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+
+<html>
+   
+   <head>
+      
+      <meta content="yes" name="apple-mobile-web-app-capable" />
+      <meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+      <meta content="minimum-scale=1.0, width=device-width, maximum-scale=0.6667, user-scalable=no" name="viewport" />
+      <link href="css/style.css" type="text/css" rel="stylesheet" />
+      <script src="javascript/functions.js" type="text/javascript"></script>
+      <link rel="apple-touch-icon" href="homescreen.png"/>
+      <link href="startup.png" rel="apple-touch-startup-image" />
+      
+      <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+      
+      <title>Mea eDomus</title>
+      <style type="text/css">
+         DIV {
+            font-family:Arial, Helvetica, sans-serif;
+         }
+         
+         .jaune {
+            height: 24px;
+            margin: 3px;
+            padding:5px;
+            min-width: 200px;
+            font-size: 18px;
+         }
+         
+         .texte {
+            float:left;
+            height: 20px;
+            width: 60px;
+            margin: 1px;
+            padding: 1px;
+         }
+         
+         .bouton {
+            float:right;
+            width: 75px;
+            height: 22px;
+            padding: 1px;
+            
+            border-color:black;
+            border-width:1px;
+            border-style:solid;
+            background-color:#00ff00;
+            border-radius: 20px;
+            
+            text-align: center;
+            font-size:18px;
+            color: black;
+            
+            background: -webkit-linear-gradient(top, rgba(0,255,0,1) 10%,rgba(0,230,0,1) 60%,rgba(0,210,0,1) 100%);
+            -webkit-box-shadow: 0 3px 5px #ccc;
+         }
+
+         .statut {
+            float:right;
+            display: none;
+            height: 16px;
+            width: 100px;
+            margin: 4px;
+            margin-right:10px;
+            padding-right: 1px;
+
+            border-color:black;
+            border-width:1px;
+            border-style:solid;
+            background-color:yellow;
+
+            text-align: center;
+            font-size: 14px;
+            color: black;
+         }
+         </style>
+   </head>
+   
+   <body>
+      <div id="topbar">
+         <div id="title">Mea eDomus</div>
+      </div>
+      <div id="content">
+         <span class="graytitle">Eclairage</span>
+         <ul class="pageitem">
+            <li class="bigfield">
+               <DIV id='t1' class='jaune'>
+                  <DIV id='t10' class='texte'><B>Salle</B></DIV>
+                  <DIV id='t11' class='bouton'><B>Push</B></DIV>
+                  <DIV id='t13' class='statut'></DIV>
+                  <DIV id='t14' class='statut'></DIV></DIV>
+            </li>
+            <li class="bigfield">
+               <DIV id='t2' class='jaune'>
+                  <DIV id='t20' class='texte'><B>Salon</B></DIV>
+                  <DIV id='t21' class='bouton'><B>Push</B></DIV>
+                  <DIV id='t23' class='statut'></DIV>
+                  <DIV id='t24' class='statut'></DIV></DIV>
+            </li>
+         </ul>
+         
+         <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+         <script type="text/javascript">
+            
+            jQuery.fn.extend({
+                             disableSelection : function() {
+                             return this.each(function() {
+                                              this.onselectstart = function() { return false; };
+                                              this.unselectable = "on";
+                                              jQuery(this).css('user-select', 'none');
+                                              jQuery(this).css('-o-user-select', 'none');
+                                              jQuery(this).css('-moz-user-select', 'none');
+                                              jQuery(this).css('-khtml-user-select', 'none');
+                                              jQuery(this).css('-webkit-user-select', 'none');
+                                              });
+                             }
+                             });
+            
+            $.ajaxSetup({ cache: false });
+            $('.bouton').disableSelection();
+            
+            $('#t14').css('background-color','red');
+            $('#t14').text("Cliquer Moins vite !!!");
+            $('#t24').css('background-color','red');
+            $('#t24').text("Cliquer Moins vite !!!");
+            
+            $('.bouton').click(doBoutons); // .boutton représente la class css "bouton"
+            
+            function doBoutons(){ // un bouton a été cliqué
+               id=$(this).attr('id'); // quel bouton ?
+               
+               if(id=='t11'){
+                     $.get('ws1.php',{ device: "RELAY1", data1: "toggle" }, // appel de Webservice
+                           function(data){ // traitement asynchro de la réponse (ici affichage du code retour)
+                           $('#t13').text(data.device+":"+data.retour);
+                           $('#t13').fadeIn(800).fadeOut(800);
+                           $('#t11').css('background-color','#00ff00');
+                           
+                           }, "json");
+                  }
+                  if(id=='t21'){
+                     $.get('ws1.php',{ device: "RELAY2", data1: "toggle" },
+                           function(data){
+                           $('#t23').text(data.device+":"+data.retour);
+                           $('#t23').fadeIn(800).fadeOut(800);
+                           $('#t21').css('background-color','#00ff00');
+                           }, "json");
+                  }
+               }
+
+            </script>
+         </body>
+   
+</html>
