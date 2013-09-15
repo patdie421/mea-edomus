@@ -5,7 +5,7 @@ session_start();
 <!DOCTYPE html>
 
 <?php
-    if(!isset($_SESSION['userid']))
+    if(!isset($_SESSION['logged_in']))
     {
         $dest=$_SERVER['PHP_SELF'];
         echo "<script>window.location = \"login.php?dest=$dest\";</script>";
@@ -21,7 +21,7 @@ session_start();
 </head>
 <body>
     <style>
-        .ui-widget{font-size:12px;}
+        .ui-widget{font-size:14px;}
     </style>
     <div>
         <div id='entete'>
@@ -49,10 +49,10 @@ session_start();
         $.ajaxSetup({ cache: false });
 
         $(function(){
-            $('#entete').load('sub-pages/commun/page-entete.php');
-            $("#menu").load('sub-pages/commun/page-menu.php');
-            $("#contenu").load('sub-pages/commandes-contenu.php');
-            $("#piedpage").load('sub-pages/commun/page-pied.php');
+            $("#entete").load("views/commun/page-entete.php");
+            $("#menu").load("views/commun/page-menu.php");
+            $("#contenu").load("views/commandes-contenu.php");
+            $("#piedpage").load("views/commun/page-pied.php");
         });
     </script>
 </body>

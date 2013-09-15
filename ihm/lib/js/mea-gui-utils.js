@@ -134,3 +134,40 @@ function Sections(selector,name){
         return false;
     }
 }
+
+function mea_alert(title, text, fx){
+    $("#dialog-confirm-text").html(text);
+    $( "#dialog-confirm" ).dialog({
+        title: title,
+        resizable: true,
+        height:250,
+        width:500,
+        modal: true,
+        buttons: {
+            Ok: function() {
+                $( this ).dialog( "close" );
+                fx();
+            }
+        }
+    });
+}
+
+function mea_yesno(title, text, yesFunc, yesFuncParams){
+    $("#dialog-confirm-text").html(text);
+    $( "#dialog-confirm" ).dialog({
+        title:title,
+        resizable: true,
+        height:250,
+        width:500,
+        modal: true,
+        buttons: {
+            Oui: function() {
+                $( this ).dialog( "close" );
+                yesFunc(yesFuncParams);
+            },
+            Non: function() {
+                $( this ).dialog( "close" );
+            }
+        }
+    });
+}

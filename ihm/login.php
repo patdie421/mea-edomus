@@ -1,7 +1,7 @@
 <?php
 session_start();
+session_destroy();
 ?>
-
 <!DOCTYPE html>
 
 <html>
@@ -85,7 +85,7 @@ session_start();
 <body>
     <?php include "lib/includes.php"; ?>
     <style>
-        .ui-widget{font-size:12px;}
+        .ui-widget{font-size:14px;}
     </style>
     
     <div style="align:center;">
@@ -113,6 +113,10 @@ session_start();
             </div>
         </div>
     </div>
+
+    <div id="dialog-confirm" title="Default" style="display:none;">
+        <p><span class="ui-icon ui-icon-alert" style="float: left; margin: 0 7px 20px 0;"></span><div id="dialog-confirm-text">Default<div></p>
+    </div>
     
     <div id="piedpage">
     </div>
@@ -121,14 +125,44 @@ session_start();
     $.ajaxSetup({ cache: false });
 
     $(function(){
+    /*
+    function mea_alert(title, text, fx){
+        $("#dialog-confirm-text").html(text);
+        $( "#dialog-confirm" ).dialog({
+            title: title,
+            resizable: true,
+            height:250,
+            width:500,
+            modal: true,
+            buttons: {
+                Ok: function() {
+                    $( this ).dialog( "close" );
+                    fx();
+                }
+            }
+        });
+    }
+    */
     function login(){
         if($("#userid").val()!="")
         {
-            $.get('lib/php/auth.php',
-                { passwd: $('#passwd').val(),
-                  userid: $('#userid').val() },
+            $.get('models/auth.php',
+                { user_password: $('#passwd').val(),
+                  user_name: $('#userid').val() },
                 function(data){
-                    if(data.retour=="OK"){
+                    if(data.retour==1){
+                        if(data.flag==1){
+                            mea_alert('Première connexion','Le mot de passe doit être changé ...',function(){
+                            <?php
+                                echo "window.location = \"change_password.php";
+                                if(isset($_GET['dest'])){
+                                    $dest=$_GET['dest'];
+                                    echo "?dest=$dest";
+                                }
+                                echo "\";";
+                            ?>
+                            });
+                        }else{
                         <?php
                             echo "window.location = ";
                             if(isset($_GET['dest'])){
@@ -138,8 +172,9 @@ session_start();
                             }
                             echo "\";";
                         ?>
+                        }
                     }else{
-                        $('#info').text(data.erreur).fadeIn(1000).fadeOut(1000);
+                        $('#info').text(data.erreur).fadeIn(1000).delay(1000).fadeOut(1000);
                     }
                 },
                 "json"
@@ -150,8 +185,8 @@ session_start();
         }
     }
 
-    $('#entete').load('login-entete.php');
-    $("#piedpage").load("page-pied.php");
+    $("#entete").load("views/commun/login-entete.php");
+    $("#piedpage").load("views/commun/page-pied.php");
 
     if(jQuery.support.placeholder==false){
         // No default treatment

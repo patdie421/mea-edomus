@@ -5,7 +5,7 @@ session_start();
 <!DOCTYPE html>
 
 <?php
-    if(!isset($_SESSION['userid']))
+    if(!isset($_SESSION['logged_in']))
     {
         $dest=$_SERVER['PHP_SELF'];
         echo "<script>window.location = \"login.php?dest=$dest\";</script>";
@@ -29,7 +29,7 @@ session_start();
         </div>
         <div id='titre'>
             <div style="padding-left:170px; text-align:center; font-size:18px;">
-            Gestions des objets et automatismes
+            Administration des objets
             </div>
         </div>
         <div id='main'>
@@ -45,14 +45,14 @@ session_start();
         </div>
     </div>
     
-    <script type="text/javascript">
+    <script>
         $.ajaxSetup({ cache: false });
 
         $(function(){
-            $('#entete').load('sub-pages/commun/page-entete.php');
-            $("#menu").load('sub-pages/commun/page-menu.php');
-            $("#contenu").load('sub-pages/parametrages-contenu.php');
-            $("#piedpage").load('sub-pages/commun/page-pied.php');
+            $("#entete").load("views/commun/page-entete.php");
+            $("#menu").load("views/commun/page-menu.php");
+            $("#contenu").load("views/parametrages-contenu.php");
+            $("#piedpage").load("views/commun/page-pied.php");
         });
     </script>
 </body>

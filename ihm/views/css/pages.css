@@ -1,0 +1,62 @@
+#entete, #titre, #menu, #contenu, #pied {
+    padding:1px 0;
+}
+    
+#entete {
+    min-width:1024px;
+	max-width:1200px;
+	height:50px;
+    margin:auto;
+	}
+
+#titre {
+    clear:both;
+    min-width:1024px;
+	max-width:1300px;
+	height:30px;
+    margin:auto;
+	}
+    
+#main {
+    min-width:1024px;
+	max-width:1300px;
+    position:relative;
+    margin:auto;
+    }
+    
+#menu {
+    float:left;
+    width:170px;
+	min-height:200px;
+    position:absolute;
+    z-index:10;
+    }
+    
+#contenu {
+    margin-left:170px;
+	min-height:500px;
+	}
+    
+#contenu-login {
+	min-height:500px;
+	}
+
+#piedpage {
+    min-width:1024px;
+	max-width:1300px;
+	height:50px;
+    margin:auto;
+    clear:both;
+	}
+
+body{
+    font-family: 'Lucida Grande', Tahoma, Verdana, sans-serif;
+    }
+
+div#mapage {
+    text-align:left;
+    }
+
+.ui-jqgrid {
+    font-size:20px;
+    }
