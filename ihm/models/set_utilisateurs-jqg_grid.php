@@ -1,12 +1,29 @@
 <?php
+session_start();
 include_once('../lib/configs.php');
+include_once('../lib/php/auth_utils.php');
 
+$check=check_admin();
+switch($check){
+    case 98:
+        echo json_encode(array("result"=>"KO","error"=>98,"error_msg"=>"pas habilité" ));
+        exit(1);
+    case 99:
+        echo json_encode(array("result"=>"KO","error"=>99,"error_msg"=>"non connecté" ));
+        exit(1);
+    case 0:
+        break;
+    default:
+        echo json_encode(array("result"=>"KO","error"=>1,"error_msg"=>"erreur inconnue (".$check.")." ));
+        exit(1);
+}
+/*
 ob_start();
 var_dump($_POST);
 $contents = ob_get_contents();
 ob_end_clean();
 error_log($contents);
-
+*/
 if(isset($_POST['oper'])){
     $oper = $_POST['oper'];
     $fields=array('oper','id_user','name','password','description','profil','flag');
@@ -15,7 +32,7 @@ if(isset($_POST['oper'])){
     if($oper==='del')
         $fields=array('oper','id');
 }else{
-    echo json_encode(array("error"=>1,"error_msg"=>"parameters error"));
+    echo json_encode(array("result"=>"KO","error"=>2,"error_msg"=>"parameters error"));
     exit(1);
 }
 
@@ -27,7 +44,7 @@ foreach ($fields as $field){
 }
 
 if(count($fieldsNotSet)){
-    echo json_encode(array("error"=>1,"error_msg"=>"parameters error","error_fields"=>$fieldsNotSet ));
+    echo json_encode(array("result"=>"KO","error"=>3,"error_msg"=>"parameters error","error_fields"=>$fieldsNotSet ));
     exit(1);
 }
 
@@ -43,7 +60,7 @@ $flag = $_POST['flag'];
 try {
     $file_db = new PDO($PARAMS_DB_PATH);
 }catch (PDOException $e){
-    echo json_encode(array("error"=>2,"error_msg"=>$e->getMessage() ));
+    echo json_encode(array("result"=>"KO","error"=>4,"error_msg"=>$e->getMessage() ));
     exit(1);
 }
 
@@ -68,7 +85,7 @@ if($oper === 'add'){
         );
      }catch(PDOException $e){
         error_log($e->getMessage());
-        echo json_encode(array("error"=>3,"error_msg"=>$e->getMessage() ));
+        echo json_encode(array("result"=>"KO","error"=>5,"error_msg"=>$e->getMessage() ));
         $file_db=null;
         exit(1);
      }
@@ -98,12 +115,45 @@ if($oper === 'add'){
         );
     }catch(PDOException $e){
         error_log($e->getMessage());
-        echo json_encode(array("error"=>4,"error_msg"=>$e->getMessage() ));
+        echo json_encode(array("result"=>"KO","error"=>6,"error_msg"=>$e->getMessage() ));
         $file_db=null;
         exit(1);
     }
+
+    $SQL="SELECT sessionid FROM sessions WHERE userid=\"$name\"";
+    try{
+        $stmt2 = $file_db->prepare($SQL);
+        $stmt2->execute();
+        $result = $stmt2->fetchAll();
+    }catch(PDOException $e){
+        error_log($e->getMessage());
+        echo json_encode(array("result"=>"KO","error"=>3,"error_msg"=>$e->getMessage() ));
+        $file_db=null;
+        exit(1);
+    }
+    $stmt2=null;
+
+    $my_session_id=session_id();
+    foreach ($result as $result_row){
+        $sessionid=$result_row['sessionid'];
+        if(isset($sessionid)){
+            session_write_close();
+            session_id($sessionid);
+            session_start();
+            error_log($_SESSION['userid']." ".$_SESSION['profil']." ".$profil);
+            $_SESSION['profil']=$profil;
+            $_SESSION['flag']=$flag;
+        }
+    }
+    session_write_close();
+    session_id($my_session_id);
+    session_start();
+
+    // boucle, voir deconnect_user.php
+    
 }elseif($oper === 'del'){
     $sql_delete="DELETE FROM users WHERE id=:id";
+    error_log($sql_delete);
     try{
         $stmt = $file_db->prepare($sql_delete);
         $stmt->execute(
@@ -113,7 +163,7 @@ if($oper === 'add'){
         );
     }catch(PDOException $e){
         error_log($e->getMessage());
-        echo json_encode(array("error"=>5,"error_msg"=>$e->getMessage() ));
+        echo json_encode(array("result"=>"KO","error"=>7,"error_msg"=>$e->getMessage() ));
         $file_db=null;
         exit(1);
     }

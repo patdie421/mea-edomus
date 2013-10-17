@@ -1,14 +1,22 @@
 <?php
+//
+//  PAGE PRINCIPALE (VIEW) : paramétrage de l'applications : capteurs/actionneurs, interfaces, types, lieux
+//
 session_start();
 ?>
-
 <!DOCTYPE html>
-
 <?php
+include "lib/configs.php";
+
     if(!isset($_SESSION['logged_in']))
     {
         $dest=$_SERVER['PHP_SELF'];
         echo "<script>window.location = \"login.php?dest=$dest\";</script>";
+        exit();
+    }
+    
+    if(!isset($_SESSION['profil']) || $_SESSION['profil']!=1){
+        echo "<script>window.location = \"index.php\";</script>";
         exit();
     }
 ?>
@@ -16,7 +24,9 @@ session_start();
 <html>
 <head>
     <meta charset="utf-8">
-    <title>MES TEST JQUERY</title>
+    <title>
+    <?php echo $TITRE_APPLICATION; ?>
+    </title>
     <?php include "lib/includes.php"; ?>
 </head>
 <body>
@@ -28,8 +38,8 @@ session_start();
         ENTETE
         </div>
         <div id='titre'>
-            <div style="padding-left:170px; text-align:center; font-size:18px;">
-            Administration des objets
+            <div id="objects_admin" style="padding-left:170px; text-align:center; font-size:18px;">
+            Objects administration
             </div>
         </div>
         <div id='main'>
@@ -41,19 +51,24 @@ session_start();
             </div>
         </div>
         <div id='piedpage'>
-        PIED
+        PIEDPAGE
         </div>
     </div>
-    
-    <script>
-        $.ajaxSetup({ cache: false });
-
-        $(function(){
-            $("#entete").load("views/commun/page-entete.php");
-            $("#menu").load("views/commun/page-menu.php");
-            $("#contenu").load("views/parametrages-contenu.php");
-            $("#piedpage").load("views/commun/page-pied.php");
-        });
-    </script>
 </body>
+    
+<script type="text/javascript" src="lib/js/strings.js"></script>
+<script type="text/javascript">
+jQuery(document).ready(function(){
+    $.ajaxSetup({ cache: false });
+    
+    // traduction
+    $("#objects_admin").text(str_objects_admin.capitalize());
+    
+    // chargement des sous-pages
+    $("#entete").load("views/commun/page-entete.php");
+    $("#menu").load("views/commun/page-menu.php");
+    $("#contenu").load("views/parametrages-contenu.php");
+    $("#piedpage").load("views/commun/page-pied.php");
+});
+</script>
 </html>

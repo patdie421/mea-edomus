@@ -1,5 +1,21 @@
 <?php
+session_start();
 include_once('../lib/configs.php');
+include_once('../lib/php/auth_utils.php');
+
+switch(check_admin()){
+    case 98:
+        echo json_encode(array("result"=>"KO","error"=>98,"error_msg"=>"pas habilité" ));
+        exit(1);
+    case 99:
+        echo json_encode(array("result"=>"KO","error"=>99,"error_msg"=>"non connecté" ));
+        exit(1);
+    case 0:
+        break;
+    default:
+        echo json_encode(array("result"=>"KO","error"=>1,"error_msg"=>"erreur inconnue" ));
+        exit(1);
+}
 
 if(isset($_POST['oper'])){
     $oper = $_POST['oper'];
@@ -9,7 +25,7 @@ if(isset($_POST['oper'])){
     if($oper==='del')
         $fields=array('oper','id');
 }else{
-    echo json_encode(array("error"=>1,"error_msg"=>"parameters error"));
+    echo json_encode(array("result"=>"KO","error"=>2,"error_msg"=>"parameters error"));
     exit(1);
 }
 
@@ -21,7 +37,7 @@ foreach ($fields as $field){
 }
 
 if(count($fieldsNotSet)){
-    echo json_encode(array("error"=>1,"error_msg"=>"parameters error","error_fields"=>$fieldsNotSet ));
+    echo json_encode(array("result"=>"KO","error"=>3,"error_msg"=>"parameters error","error_fields"=>$fieldsNotSet ));
     exit(1);
 }
 
@@ -35,7 +51,7 @@ $parameters = $_POST['parameters'];
 try {
     $file_db = new PDO($PARAMS_DB_PATH);
 }catch (PDOException $e){
-    echo json_encode(array("error"=>2,"error_msg"=>$e->getMessage() ));
+    echo json_encode(array("result"=>"KO","error"=>4,"error_msg"=>$e->getMessage() ));
     error_log($e->getMessage());
     exit(1);
 }
@@ -44,10 +60,14 @@ $file_db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 $file_db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION); // ERRMODE_WARNING | ERRMODE_EXCEPTION | ERRMODE_SILENT
 
 if($oper === 'add'){
-    $sql_insert="INSERT INTO types (id_type,name,description,parameters) "
-               ."VALUES(:id_type, :name, :description, :parameters)";
+    $sql_insert="INSERT INTO types (id_type,name,description,parameters,flag) "
+               ."VALUES(:id_type, :name, :description, :parameters, :flag)";
                
     try{
+        if($id_type<2000)
+            $flag=1;
+        else
+            $flag=2;
         $stmt = $file_db->prepare($sql_insert);
         $stmt->execute(
             array(
@@ -55,10 +75,12 @@ if($oper === 'add'){
                 ":name"        => $name,
                 ":description" => $description,
                 ":parameters"  => $parameters,
+                ":flag"        => $flag
             )
         );
      }catch(PDOException $e){
-        echo json_encode(array("error"=>3,"error_msg"=>$e->getMessage() ));
+        error_log($e->getMessage());
+        echo json_encode(array("result"=>"KO","error"=>5,"error_msg"=>$e->getMessage() ));
         $file_db=null;
         exit(1);
      }
@@ -83,7 +105,7 @@ if($oper === 'add'){
         );
     }catch(PDOException $e){
         error_log($e->getMessage());
-        echo json_encode(array("error"=>4,"error_msg"=>$e->getMessage() ));
+        echo json_encode(array("result"=>"KO","error"=>6,"error_msg"=>$e->getMessage() ));
         $file_db=null;
         exit(1);
     }
@@ -97,7 +119,7 @@ if($oper === 'add'){
             )
         );
     }catch(PDOException $e){
-        echo json_encode(array("error"=>5,"error_msg"=>$e->getMessage() ));
+        echo json_encode(array("result"=>"KO","error"=>7,"error_msg"=>$e->getMessage() ));
         $file_db=null;
         exit(1);
     }

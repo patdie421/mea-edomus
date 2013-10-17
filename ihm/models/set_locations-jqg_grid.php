@@ -1,5 +1,21 @@
 <?php
+session_start();
 include_once('../lib/configs.php');
+include_once('../lib/php/auth_utils.php');
+
+switch(check_admin()){
+    case 98:
+        echo json_encode(array("result"=>"KO","error"=>98,"error_msg"=>"pas habilité" ));
+        exit(1);
+    case 99:
+        echo json_encode(array("result"=>"KO","error"=>99,"error_msg"=>"non connecté" ));
+        exit(1);
+    case 0:
+        break;
+    default:
+        echo json_encode(array("result"=>"KO","error"=>1,"error_msg"=>"erreur inconnue" ));
+        exit(1);
+}
 
 ob_start();
 var_dump($_POST);
@@ -15,7 +31,7 @@ if(isset($_POST['oper'])){
     if($oper==='del')
         $fields=array('oper','id');
 }else{
-    echo json_encode(array("error"=>1,"error_msg"=>"parameters error"));
+    echo json_encode(array("result"=>"KO","error"=>2,"error_msg"=>"parameters error"));
     exit(1);
 }
 
@@ -27,7 +43,7 @@ foreach ($fields as $field){
 }
 
 if(count($fieldsNotSet)){
-    echo json_encode(array("error"=>1,"error_msg"=>"parameters error","error_fields"=>$fieldsNotSet ));
+    echo json_encode(array("result"=>"KO","error"=>3,"error_msg"=>"parameters error","error_fields"=>$fieldsNotSet ));
     exit(1);
 }
 
@@ -40,7 +56,7 @@ $description = $_POST['description'];
 try {
     $file_db = new PDO($PARAMS_DB_PATH);
 }catch (PDOException $e){
-    echo json_encode(array("error"=>2,"error_msg"=>$e->getMessage() ));
+    echo json_encode(array("result"=>"KO","error"=>4,"error_msg"=>$e->getMessage() ));
     exit(1);
 }
 
@@ -62,7 +78,7 @@ if($oper === 'add'){
         );
      }catch(PDOException $e){
         error_log($e->getMessage());
-        echo json_encode(array("error"=>3,"error_msg"=>$e->getMessage() ));
+        echo json_encode(array("result"=>"KO","error"=>5,"error_msg"=>$e->getMessage() ));
         $file_db=null;
         exit(1);
      }
@@ -85,7 +101,7 @@ if($oper === 'add'){
         );
     }catch(PDOException $e){
         error_log($e->getMessage());
-        echo json_encode(array("error"=>4,"error_msg"=>$e->getMessage() ));
+        echo json_encode(array("result"=>"KO","error"=>6,"error_msg"=>$e->getMessage() ));
         $file_db=null;
         exit(1);
     }
@@ -100,7 +116,7 @@ if($oper === 'add'){
         );
     }catch(PDOException $e){
         error_log($e->getMessage());
-        echo json_encode(array("error"=>5,"error_msg"=>$e->getMessage() ));
+        echo json_encode(array("result"=>"KO","error"=>7,"error_msg"=>$e->getMessage() ));
         $file_db=null;
         exit(1);
     }

@@ -1,28 +1,35 @@
 <?php
+//
+//  PAGE PRINCIPALE (VIEW) : home page
+//
 session_start();
 ?>
-
 <!DOCTYPE html>
-
 <?php
-    if(!isset($_SESSION['logged_in']))
-    {
-        $dest=$_SERVER['PHP_SELF'];
-        echo "<script>window.location = \"login.php?dest=$dest\";</script>";
-        exit();
-    }
+include "lib/configs.php";
+
+// contrôle et redirections
+if(!isset($_SESSION['logged_in']))
+{
+    $dest=$_SERVER['PHP_SELF'];
+    echo "<script>window.location = \"login.php?dest=$dest\";</script>";
+    exit();
+}
 ?>
 
 <html>
 <head>
     <meta charset="utf-8">
-    <title>MES TEST JQUERY</title>
+    <title>
+    <?php echo $TITRE_APPLICATION; ?>
+    </title>
     <?php include "lib/includes.php"; ?>
 </head>
 <body>
     <style>
         .ui-widget{font-size:14px;}
     </style>
+    
     <div>
         <div id='entete'>
         ENTETE
@@ -44,16 +51,16 @@ session_start();
         PIED
         </div>
     </div>
-    
-    <script type="text/javascript">
-        $.ajaxSetup({ cache: false });
-
-        $(function(){
-            $("#entete").load("views/commun/page-entete.php");
-            $("#menu").load("views/commun/page-menu.php");
-            //$("#contenu").load("sub-pages/index-contenu.php");
-            $("#piedpage").load("views/commun/page-pied.php");
-        });
-    </script>
 </body>
+<script type="text/javascript" src="lib/js/mea-gui-utils.js"></script>
+<script type="text/javascript" src="lib/js/strings.js"></script>
+<script type="text/javascript">
+jQuery(document).ready(function(){
+    $.ajaxSetup({ cache: false });
+    $("#entete").load("views/commun/page-entete.php");
+    $("#menu").load("views/commun/page-menu.php");
+    //$("#contenu").load("sub-pages/index-contenu.php");
+    $("#piedpage").load("views/commun/page-pied.php");
+});
+</script>
 </html>

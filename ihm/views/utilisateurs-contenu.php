@@ -1,19 +1,23 @@
-<div style="text-align:center; margin:auto;">
+<?php
+//
+//  SOUS-PAGE (SUB-VIEW) de utilisateurs.php : grille des utilisateurs de l'application
+//
+session_start()
+?>
+
+<div class="ui-corner-all" style="border: solid 1px #a6c9e2; text-align:center; margin:auto; padding: 20px">
         <table id="table_utilisateurs"></table>
         <div id="pager_utilisateurs"></div>
 </div>
 
-<div id="dialog-confirm" title="Default" style="display:none;">
-    <p><span class="ui-icon ui-icon-alert" style="float: left; margin: 0 7px 20px 0;"></span><div id="dialog-confirm-text">Default<div></p>
-</div>
+<script type="text/javascript" src="lib/js/mea-auth-utils.js"></script>
+<script type="text/javascript" src="lib/js/mea-gui-utils.js"></script>
+<script type="text/javascript" src="lib/js/mea-grid-utils.js"></script>
 
-<script type="text/javascript" src="../lib/js/mea-grid-utils.js"></script>
+<script type="text/javascript" src="controlers/grid_utilisateurs.js"></script>
 
-<script type="text/javascript" src="../controlers/grid_utilisateurs.js"></script>
-
-<script>
+<script type="text/javascript">
 jQuery(document).ready(function(){
-
     function resizeGrid(){
         var grid='utilisateurs';
         

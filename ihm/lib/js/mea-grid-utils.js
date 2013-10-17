@@ -1,7 +1,5 @@
 function ajax_error(xhr, ajaxOptions, thrownError){
-    alert(xhr.responseText);
-    alert(xhr.status);
-    alert(thrownError);
+    alert("responseText="+xhr.responseText+" status="+xhr.status+" thrownError="+thrownError);
 }
 
 
@@ -32,10 +30,10 @@ function check_field_exist_by_id(grid,table,fieldName,fieldValue){
            dataType: 'json',
            data: wsdata,
            success: function(data){
-           if(data.exist==0)
-           passes=true;
-           else
-           passes=false;
+                if(data.exist==0)
+                    passes=true;
+                else
+                    passes=false;
            },
            error:ajax_error
            });
@@ -67,7 +65,7 @@ function _editRow(grid,fx,fx2) {
     if (rowKey) {
         if(!fx2)
             fx2=function(){$("#name").focus();};
-        grid.editGridRow(rowKey,
+        grid.editGridRow( rowKey,
                         { width:700,
                           recreateForm: true,
                           viewPagerButtons:false,
@@ -76,7 +74,7 @@ function _editRow(grid,fx,fx2) {
                           afterShowForm: function() { fx2();},
                         });
     } else {
-        mea_alert("Avertissement", "Veuillez selectionner une ligne !");
+        mea_alert2(str_title_warning, str_select_row);
     }
 }
 
@@ -88,7 +86,7 @@ function _deleteRow(grid) {
     if (rowKey) {
         grid.delRowData(rowKey);
     } else {
-        mea_alert("Avertissement", "Veuillez selectionner une ligne !");
+        mea_alert2(str_title_warning.capitalize(), str_select_row.capitalize());
     }
 }
 
@@ -106,8 +104,8 @@ function _addRow(ngrid,fx) {
 }
 
 
-function add_button_to_toolbar(grid,label,fx1,icon){
-    $("<button id="+grid+"_"+label+">"+label+"</button>").button({icons: {primary: icon}})
+function add_button_to_toolbar(grid,bouton,label,fx1,icon){
+    $("<button id="+grid+"_"+bouton+">"+label+"</button>").button({icons: {primary: icon}})
         .css({
             float: "left",
             height: "30px",
@@ -129,11 +127,21 @@ function db_delete(grid,table,id){
            dataType: 'json',
            data: {table:table,id:id},
            success: function(data){
-           $("#"+grid).trigger("reloadGrid", [{current: true}]);
+                $("#"+grid).trigger("reloadGrid", [{current: true}]);
            },
            error: ajax_error
-           });
+    });
 }
 
 
-
+function deconnect_user(userid){
+    $.ajax({ url: 'models/deconnect_user.php',
+           async: false,
+           type: 'GET',
+           dataType: 'json',
+           data: {user:userid},
+           success: function(data) {
+           },
+           error: ajax_error
+    });
+}

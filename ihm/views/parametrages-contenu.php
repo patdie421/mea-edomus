@@ -1,11 +1,16 @@
+<?php
+//
+//  SOUS-PAGE (SUB-VIEW) de parametrages.php : 
+//
+?>
 <div style="text-align:center; margin:auto;">
 <div id="tabs1">
     <ul>
-        <li><a href="#tabs1-1">Capteurs/Actionneurs</a></li>
-        <li><a href="#tabs1-2">Interfaces</a></li>
-        <li><a href="#tabs1-3">Lieux</a></li>
-        <li><a href="#tabs1-4">Types</a></li>
-    </ul> 
+        <li><a href="#tabs1-1" id='sensors_actuators'>Sensors/Actuators</a></li>
+        <li><a href="#tabs1-2" id='interfaces'>Interfaces</a></li>
+        <li><a href="#tabs1-3" id='locations'>Locations</a></li>
+        <li><a href="#tabs1-4" id='types'>Types</a></li>
+    </ul>
     <div id="tabs1-1">
         <table id="table_sensors_actuators"></table>
         <div id="pager_sensors_actuators"></div>
@@ -26,32 +31,22 @@
 <div id="aff">
 </div>
 </div>
-<div id="dialog-confirm" title="Default" style="display:none;">
-    <p><span class="ui-icon ui-icon-alert" style="float: left; margin: 0 7px 20px 0;"></span><div id="dialog-confirm-text">Default<div></p>
-</div>
 
-<script>
-jQuery(document).ready(function(){
-    $("div.ui-tabs-panel").css('padding-left','1px');
-    $("div.ui-tabs-panel").css('padding-right','2px');
-    $("div.ui-tabs-panel").css('padding-top','5px');
-    $("div.ui-tabs-panel").css('padding-bottom','1px');
-});
-</script>
+<script type="text/javascript" src="lib/js/mea-auth-utils.js"></script>
+<script type="text/javascript" src="lib/js/mea-gui-utils.js"></script>
+<script type="text/javascript" src="lib/js/mea-grid-utils.js"></script>
 
-
-<script type="text/javascript" src="../lib/js/mea-grid-utils.js"></script>
-
-<script type="text/javascript" src="../controlers/grid_sensors_actuators.js"></script>
-<script type="text/javascript" src="../controlers/grid_interfaces.js"></script>
-<script type="text/javascript" src="../controlers/grid_locations.js"></script>
-<script type="text/javascript" src="../controlers/grid_types.js"></script>
+<script type="text/javascript" src="controlers/grid_sensors_actuators.js"></script>
+<script type="text/javascript" src="controlers/grid_interfaces.js"></script>
+<script type="text/javascript" src="controlers/grid_locations.js"></script>
+<script type="text/javascript" src="controlers/grid_types.js"></script>
 
 <script>
 var interfaces_inEdit, sensors_actuators_inEdit, locations_inEdit, types_inEdit,
     isActivate=[false,false,false,false];
 
 jQuery(document).ready(function(){
+    // redimentionnement des grilles
     function resizeGrid(){
         active = $("#tabs1").tabs("option", "active");
         grid=null;
@@ -75,9 +70,10 @@ jQuery(document).ready(function(){
         }
     }
 
-    
+    // déclenchement des contrôleurs sur selection d'un nouvel onglet
     function activeGrids(event,ui) {
         active = $("#tabs1").tabs("option", "active");
+
         switch(active)
         {
             case 0: if(!isActivate[active]){
@@ -106,10 +102,18 @@ jQuery(document).ready(function(){
         isActivate[active]=true;
         resizeGrid();
     }    
-    
+
+    // traduction
+    $("#sensors_actuators").text(str_sensors_actuators.capitalize());
+    $("#interfaces").text(str_interfaces.capitalize());
+    $("#locations").text(str_locations.capitalize());
+    $("#types").text(str_types.capitalize());
     $("#tabs1").tabs({activate:activeGrids});
+
+    // affichage grille
     activeGrids();
     
+    // évenements
     $(window).on('resize',resizeGrid).trigger('resize');
 });
 </script>

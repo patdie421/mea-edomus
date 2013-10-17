@@ -1,9 +1,14 @@
 <?php
+//
+//  PAGE PRINCIPALE (VIEW) : changement du mot de passe de l'utilisateur connecté
+//
 session_start();
 ?>
 <!DOCTYPE html>
 <?php
+include "lib/configs.php";
 
+// contrôle et redirections
 if(isset($_SESSION['change_passwd_flag'])){
     if($_SESSION['change_passwd_flag']==0){
         session_destroy();
@@ -31,7 +36,9 @@ if(isset($_SESSION['change_passwd_flag']))
 
 <html>
 <head>
-    <title>MEA eDomus</title>
+    <title>
+    <?php echo $TITRE_APPLICATION; ?>
+    </title>
     <meta charset="utf-8">
     <style>
 .form-chgpasswd {
@@ -41,7 +48,7 @@ if(isset($_SESSION['change_passwd_flag']))
     padding: 20px 20px 20px;
     width: 310px;
 
-    border-color:black;
+    border-color:#a6c9e2;
     border-width:1px;
     border-style:solid;
     }
@@ -56,18 +63,7 @@ if(isset($_SESSION['change_passwd_flag']))
     line-height: 40px;
     font-size: 15px;
     font-weight: bold;
-    color: #555;
     text-align: center;
-    text-shadow: 0 1px white;
-    background: #f3f3f3;
-    border-bottom: 1px solid #cfcfcf;
-    border-radius: 3px 3px 0 0;
-    background-image: -webkit-linear-gradient(top, whiteffd, #eef2f5);
-    background-image: -moz-linear-gradient(top, whiteffd, #eef2f5);
-    background-image: -o-linear-gradient(top, whiteffd, #eef2f5);
-    background-image: linear-gradient(to bottom, whiteffd, #eef2f5);
-    -webkit-box-shadow: 0 1px whitesmoke;
-    box-shadow: 0 1px whitesmoke;
     }
 
 .form-chgpasswd input[type=text], .form-chgpasswd input[type=password] {
@@ -89,7 +85,7 @@ if(isset($_SESSION['change_passwd_flag']))
     box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.12);
 }
 
-.form-chgpasswd input[type=text]:focus, .form-login input[type=password]:focus {
+.form-chgpasswd input[type=text]:focus, .form-chgpasswd input[type=password]:focus {
     border-color: #7dc9e2;
     outline-color: #dceefc;
     outline-offset: 0;
@@ -108,7 +104,8 @@ if(isset($_SESSION['change_passwd_flag']))
 </head>
 
 <body>
-    <?php include "lib/includes.php";?>
+    <?php include "lib/includes.php"; ?>
+    
     <style>
         .ui-widget{font-size:14px;}
     </style>
@@ -119,31 +116,31 @@ if(isset($_SESSION['change_passwd_flag']))
 
     <div id="main">
         <div id='contenu-chgpasswd' style="font-family: 'Lucida Grande', Tahoma, Verdana, sans-serif; font-size: 14px;">
-            <div class='form-chgpasswd'>
-                <h1>Change password</h1>
+            <div class='form-chgpasswd ui-corner-all'>
+                <h1 class= 'ui-widget-header' id="chg_passwd">Change password</h1>
                 <form onSubmit="return false;">
                     <?php
                     if(!isset($_SESSION['change_passwd_flag'])){
-                        echo "<div>";
+                        echo "<div id=\"label_old_passwd\">";
                         echo "ancien mot de passe :";
                         echo "</div>";
                         echo "<p><input type=\"password\" name=\"passwd_old\" value=\"\" placeholder=\"old password\" id=\"old_passwd\"></p>";
                     }
                     ?>
-                    <div>
-                    nouveau mot de passe :
+                    <div id="label_new_passwd">
+                    New password :
                     </div>
                     <p><input type="password" name="passwd1" value="" placeholder="new password" id='passwd1'></p>
-                    <div>
-                    confirmation :
+                    <div id="label_confirm_passwd">
+                    New password confirmation :
                     </div>
                     <p><input type="password" name="passwd2" value="" placeholder="new password confirmation" id='passwd2'></p>
                     <div style="font-size: 12px;
                                 text-color:#FF0000; float:left;"
                          id='info'></div>
                     <div style="text-align:right;">
-                        <input type="submit" value="changer" id='blogin'>
-                        <button id='bannuler'>Annuler</button>
+                        <input type="submit" value="Change" id='bchange'>
+                        <button id='bannuler'>Cancel</button>
                     </div>
                 </form>
             </div>
@@ -152,106 +149,42 @@ if(isset($_SESSION['change_passwd_flag']))
     
     <div id="piedpage">
     </div>
+</body>
 
-    <div id="dialog-confirm" title="Default" style="display:none;">
-        <p><span class="ui-icon ui-icon-alert" style="float: left; margin: 0 7px 20px 0;"></span><div id="dialog-confirm-text">Default<div></p>
-    </div>
+<?php include "controlers/change_password.php"; ?>
 
-    <script type="text/javascript">
+<script type="text/javascript" src="lib/js/strings.js"></script>
+<script type="text/javascript">
+jQuery(document).ready(function(){
+     $.ajaxSetup({ cache: false });
 
-$(function(){
-    function valide_password(password){
-        if(password.length<=8){
-            return 1;
-        }
-    }
-    
-    function mea_alert(title, text, fx){
-        $("#dialog-confirm-text").html(text);
-        $( "#dialog-confirm" ).dialog({
-            title: title,
-            resizable: true,
-            height:250,
-            width:500,
-            modal: true,
-            buttons: {
-                Ok: function() {
-                    $( this ).dialog( "close" );
-                    fx();
-                }
-            }
-        });
-    }
+//
+// initialisation de l'interface
+//
+    // traduction
+    $("#chg_passwd").text(str_chg_passwd.capitalize());
+    $("#label_old_passwd").text(str_label_old_passwd.capitalize());
+    $("#label_new_passwd").text(str_label_new_passwd.capitalize());
+    $("#label_confirm_passwd").text(str_label_confirm_passwd.capitalize());
+    $("#bchange").val(str_change.capitalize());
+    $("#bannuler").text(str_cancel.capitalize())
 
-    function chgpasswd(){
-        passwd1=$('#passwd1').val();
-        passwd2=$('#passwd2').val();
-        
-        if(valide_password(passwd1)){
-            $('#info').text("8 caractères minimum").fadeIn(1000).delay(1000).fadeOut(1000);
-            return 0;
-        }
-        
-        if(passwd1!=passwd2){
-            $('#info').text("mot de passe ...").fadeIn(1000).delay(1000).fadeOut(1000);
-            return 0;
-        }
-
-        if($('#old_passwd').length)
-            old_password=$('#old_passwd').val();
-        
-        <?php
-            if(!isset($_SESSION['change_passwd_flag'])){
-                echo "set_password_params={old_password:old_password, new_password:passwd1};";
-            }else{
-                echo "set_password_params={new_password:passwd1};";
-            }
-         ?>
-
-        $.ajax({ url: 'models/set_passwd.php',
-            async: false,
-            type: 'GET',
-            dataType: 'json',
-            data: set_password_params,
-            success: function(data){
-                if(data.retour==1)
-                {
-                    mea_alert('Succes','Le mot de passe a été changé avec succès.',function(){
-                    <?php
-                        if(isset($_GET['dest'])){
-                            $dest=$_GET['dest'];
-                            echo "window.location = \"$dest\";";
-                        }else{
-                            echo "window.location = \"index.php\";";
-                        }
-                    ?>
-                });
-                }
-                else
-                    $('#info').text("mot de passe incorrecte").delay(3000).fadeOut(1000);
-            },
-            error:function(){
-                $('#info').text("Erreur ...").delay(3000).fadeOut(1000);
-            }
-        });
-    }
-
-    $.ajaxSetup({ cache: false });
-
+    // chargement des sous-pages
     $("#entete").load("views/commun/login-entete.php");
     $("#piedpage").load("views/commun/page-pied.php");
 
-    if(jQuery.support.placeholder==false){
+    // gestion des "placeholder" pour les navigateurs compatibles
+    if(jQuery.support.placeholder==false) {
         // No default treatment
-        $('[placeholder]').focus(function(){
+        $('[placeholder]').focus(function() {
             if($(this).val()==$(this).attr('placeholder'))
                 $(this).val('');
             if($(this).data('type')=='password')
                 $(this).get(0).type='password';
         });
-        $('[placeholder]').blur(function(){
+        $('[placeholder]').blur(function() {
             if($(this).val()==''){
-                if($(this).attr('type')=='password'){
+                if($(this).attr('type')=='password') {
                     $(this).data('type','password').get(0).type='text';
                 }
                 $(this).val($(this).attr('placeholder'));
@@ -259,13 +192,44 @@ $(function(){
         }).blur();
     }
     
-    $('#blogin')
+    // associations bouton/callback
+    $('#bchange')
         .button()
-        .click(chgpasswd);
+        .click(wrap_chgpasswd);
+        
     $('#bannuler')
         .button()
         .click(function(){window.location='index.php'});
+
+//
+// fonctions de contrôle de surface
+//
+    function valide_password(password){
+        if(password.length<=8){
+            return 1;
+        }
+    }
+    
+//
+// callbacks
+//
+    function wrap_chgpasswd() {
+        passwd1=$('#passwd1').val();
+        passwd2=$('#passwd2').val();
+        
+        // les controles de surfaces
+        if(valide_password(passwd1)){
+            $(info).text("8 caractères minimum").fadeIn(1000).delay(1000).fadeOut(1000);
+            return 0;
+        }
+        if(passwd1!=passwd2){
+            $(info).text("mot de passe ...").fadeIn(1000).delay(1000).fadeOut(1000);
+            return 0;
+        }
+
+        // accès au contrôleur
+        chgpasswd(passwd1, passwd2, $('#old_passwd').val(), '#info');
+    }
 });
-    </script>
-</body>
+</script>
 </html>

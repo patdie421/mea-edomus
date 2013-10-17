@@ -1,12 +1,18 @@
 <?php
-session_start();
-session_destroy();
+//
+//  PAGE PRINCIPALE (VIEW) : connexion à l'application
+//
+session_start()
 ?>
 <!DOCTYPE html>
 
+<?php include "lib/configs.php"; ?>
+
 <html>
 <head>
-    <title>MEA eDomus</title>
+    <title>
+    <?php echo $TITRE_APPLICATION; ?>
+    </title>
     <meta charset="utf-8">
     <style>
 .form-login {
@@ -16,7 +22,7 @@ session_destroy();
     padding: 20px 20px 20px;
     width: 310px;
 
-    border-color:black;
+    border-color:#a6c9e2;
     border-width:1px;
     border-style:solid;
     }
@@ -31,18 +37,7 @@ session_destroy();
     line-height: 40px;
     font-size: 15px;
     font-weight: bold;
-    color: #555;
     text-align: center;
-    text-shadow: 0 1px white;
-    background: #f3f3f3;
-    border-bottom: 1px solid #cfcfcf;
-    border-radius: 3px 3px 0 0;
-    background-image: -webkit-linear-gradient(top, whiteffd, #eef2f5);
-    background-image: -moz-linear-gradient(top, whiteffd, #eef2f5);
-    background-image: -o-linear-gradient(top, whiteffd, #eef2f5);
-    background-image: linear-gradient(to bottom, whiteffd, #eef2f5);
-    -webkit-box-shadow: 0 1px whitesmoke;
-    box-shadow: 0 1px whitesmoke;
     }
 
 .form-login input[type=text], .form-login input[type=password] {
@@ -94,15 +89,15 @@ session_destroy();
 
     <div id="main">
         <div id='contenu-login' style="font-family: 'Lucida Grande', Tahoma, Verdana, sans-serif; font-size: 14px;">
-            <div class='form-login'>
-                <h1>Login</h1>
+            <div class='form-login ui-corner-all'>
+                <h1 class= 'ui-widget-header' id="login">Login</h1>    
                 <form onSubmit="return false;">
-                    <div>
-                    identifant :
+                    <div id="label_userid">
+                    id :
                     </div>
                     <p><input type="text" name="userid" value="" placeholder="userid" id='userid'></p>
-                    <div>
-                    mot de passe :
+                    <div id="label_passwd">
+                    password :
                     </div>
                     <p><input type="password" name="password" value="" placeholder="Password" id='passwd'></p>
                     <div style="font-size: 12px;
@@ -113,36 +108,21 @@ session_destroy();
             </div>
         </div>
     </div>
-
-    <div id="dialog-confirm" title="Default" style="display:none;">
-        <p><span class="ui-icon ui-icon-alert" style="float: left; margin: 0 7px 20px 0;"></span><div id="dialog-confirm-text">Default<div></p>
-    </div>
     
     <div id="piedpage">
     </div>
+</body>
 
-    <script type="text/javascript">
+<script type="text/javascript" src="lib/js/strings.js"></script>
+<script type="text/javascript">
+jQuery(document).ready(function(){
     $.ajaxSetup({ cache: false });
 
-    $(function(){
-    /*
-    function mea_alert(title, text, fx){
-        $("#dialog-confirm-text").html(text);
-        $( "#dialog-confirm" ).dialog({
-            title: title,
-            resizable: true,
-            height:250,
-            width:500,
-            modal: true,
-            buttons: {
-                Ok: function() {
-                    $( this ).dialog( "close" );
-                    fx();
-                }
-            }
-        });
-    }
-    */
+    $("#login").text(str_title_login.capitalize());
+    $("#label_userid").text(str_label_userid.capitalize());
+    $("#label_passwd").text(str_label_passwd.capitalize());
+    $("#blogin").val(str_connection.capitalize());
+    
     function login(){
         if($("#userid").val()!="")
         {
@@ -152,7 +132,7 @@ session_destroy();
                 function(data){
                     if(data.retour==1){
                         if(data.flag==1){
-                            mea_alert('Première connexion','Le mot de passe doit être changé ...',function(){
+                            mea_alert2(str_first_login,str_passwd_must_be_changed,function(){
                             <?php
                                 echo "window.location = \"change_password.php";
                                 if(isset($_GET['dest'])){
@@ -179,9 +159,9 @@ session_destroy();
                 },
                 "json"
             )
-            .fail(function(){$('#info').text("Connexion impossible avec le serveur").fadeIn(1000).fadeOut(1000);});
+            .fail(function(){$('#info').text(str_not_com).fadeIn(1000).fadeOut(1000);});
         }else{
-            $('#info').text("L'identifiant ne peut pas être vide").fadeIn(1000).delay(1000).fadeOut(1000);
+            $('#info').text(str_id_not_null).fadeIn(1000).delay(1000).fadeOut(1000);
         }
     }
 
@@ -210,7 +190,6 @@ session_destroy();
             .button()
             .click(login);
 
-    });
-    </script>
-</body>
+});
+</script>
 </html>

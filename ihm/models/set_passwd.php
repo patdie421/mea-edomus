@@ -3,6 +3,10 @@ session_start();
 
 include_once('../lib/configs.php');
 
+if($_SESSION['flag']==2) {
+    echo json_encode(array("error"=>1,"error_msg"=>"changement interdit" ));
+}
+
 if(isset($_GET['new_password'])){
     $new_password=$_GET['new_password'];
 }
@@ -24,7 +28,7 @@ header('Content-type: application/json');
 try {
     $file_db = new PDO($PARAMS_DB_PATH);
 }catch (PDOException $e){
-    echo json_encode(array("error"=>1,"error_msg"=>$e->getMessage() ));
+    echo json_encode(array("error"=>2,"error_msg"=>$e->getMessage() ));
     exit(1);
 }
 
@@ -35,7 +39,7 @@ try{
     $stmt = $file_db->prepare($SQL_UPDATE);
     $stmt->execute();
 }catch(PDOException $e){
-    echo json_encode(array("error"=>2,"error_msg"=>$e->getMessage() ));
+    echo json_encode(array("error"=>3,"error_msg"=>$e->getMessage() ));
     $file_db=null;
     exit(1);
 }
