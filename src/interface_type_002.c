@@ -298,6 +298,9 @@ int16_t _interface_type_002_xPL_callback(xPL_ServicePtr theService, xPL_MessageP
    xplBody = xPL_getMessageBody(xplMsg);
    device  = xPL_getNamedValue(xplBody, get_token_by_id(XPL_DEVICE_ID));
    
+   if(!device)
+      return NOERROR;
+   
    char sql[1024];
    sqlite3_stmt * stmt;
    

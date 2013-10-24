@@ -58,6 +58,41 @@ const char *options[15];
 struct mg_context* g_mongooseContext = 0;
 
 
+int create_configs_php(char *gui_home, char *params_db_fullname)
+{
+   FILE *fd;
+   const char *file="lib/configs.php";
+   char *f;
+   
+   f=malloc(strlen(gui_home) + strlen(file) + 2);
+   sprintf(f,"%s/%s",gui_home,file);
+   
+   fd=fopen(f,"w");
+   if(fd)
+   {
+      fprintf(fd,"<?php\n");
+      fprintf(fd,"ini_set('error_reporting', E_ALL);\n");
+      fprintf(fd,"ini_set('log_errors', 'On');\n");
+      fprintf(fd,"ini_set('display_errors', 'Off');\n");
+      fprintf(fd,"ini_set(\"error_log\", \"/Data/mea_log.txt\");\n");
+      fprintf(fd,"$TITRE_APPLICATION='Mea eDomus Admin';\n");
+      fprintf(fd,"$PARAMS_DB_PATH='sqlite:%s';\n",params_db_fullname);
+      fprintf(fd,"$QUERYDB_SQL='sql/querydb.sql';\n");
+   
+      fclose(fd);
+   }
+   else
+   {
+      VERBOSE(1) {
+         fprintf(stderr, "%s (%s) : cannot write %s file - ",ERROR_STR,__func__,f);
+         perror("");
+      }
+      return -1;
+   }
+   return 0;
+}
+
+
 int create_config_default_php(char *home, char *params_db_fullname)
 {
    FILE *fd;

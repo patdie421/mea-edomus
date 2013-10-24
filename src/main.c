@@ -55,6 +55,7 @@ char *phpini_path=NULL;
 
 char *sqlite3_db_file=NULL;
 char *mysql_db_server=NULL;
+char *mysql_db_port=NULL;
 char *mysql_database=NULL;
 char *mysql_user=NULL;
 char *mysql_passwd=NULL;
@@ -68,7 +69,7 @@ void usage(char *cmd)
  * \param     cmd    nom d'appel de mea_edomus (argv[0])
  */
 {
-   fprintf(stderr,"usage : %s -a <sqlite3_db_path>\n",cmd);
+   fprintf(stderr,"usage : %s -i -a <sqlite3_db_path>\n",cmd);
 }
 
 
@@ -109,6 +110,8 @@ int16_t read_all_application_parameters(sqlite3 *sqlite3_param_db)
          else if (strcmp(key,"DBSERVER")==0)
             string_free_malloc_and_copy(&mysql_db_server, value, 1);
          else if (strcmp(key,"DATABASE")==0)
+            string_free_malloc_and_copy(&mysql_db_port, value, 1);
+         else if (strcmp(key,"DBPORT")==0)
             string_free_malloc_and_copy(&mysql_database, value, 1);
          else if (strcmp(key,"USER")==0)
             string_free_malloc_and_copy(&mysql_user, value, 1);
@@ -343,7 +346,6 @@ int main(int argc, const char * argv[])
    }
    
    sqlite3_config(SQLITE_CONFIG_SERIALIZED); // pour le multithreading
-
    
    if(_i)
    {
@@ -424,12 +426,13 @@ int main(int argc, const char * argv[])
    //
    // initialisation du serveur HTTP
    //
-   if(phpcgi_path && phpcgibin && phpini_path)
+   if(phpcgi_path && phpini_path && gui_path && sqlite3_db_param_path)
    {
       phpcgibin=(char *)malloc(strlen(phpcgi_path)+10); // 9 = strlen("/cgi-bin") + 1
       sprintf(phpcgibin, "%s/php-cgi",phpcgi_path);
 
-      if(create_config_default_php(gui_path, sqlite3_db_param_path)==0)
+//      if(create_config_default_php(gui_path, sqlite3_db_param_path)==0)
+      if(create_configs_php(gui_path, sqlite3_db_param_path)==0)
          httpServer(8083, gui_path, phpcgibin, phpini_path);
       else
       {
@@ -588,6 +591,8 @@ int main(int argc, const char * argv[])
    // libération des espaces mémoires globaux inutiles
    free(mysql_db_server);
    mysql_db_server=NULL;
+   free(mysql_db_port);
+   mysql_db_port=NULL;
    free(mysql_database);
    mysql_database=NULL;
    free(mysql_user);

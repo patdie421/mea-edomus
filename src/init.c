@@ -113,6 +113,27 @@ int16_t dropDatabase(char *db_path)
 }
 
 
+int16_t doSqlQueries(sqlite3 *sqlite3_db, char *queries[])
+{
+   int16_t rc=0;
+
+   for(int16_t i=0;queries[i];i++)
+   {
+      char *err = NULL;
+      
+      int16_t ret = sqlite3_exec(sqlite3_db, queries[i], NULL, NULL, &err);
+      if( ret != SQLITE_OK )
+      {
+         VERBOSE(9) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg (sqlite3_db));
+         sqlite3_free(err);
+         rc=1;
+         break;
+      }
+   }
+   return rc;
+}
+
+
 int16_t createMeaTables(sqlite3 *sqlite3_param_db)
 {
    char *sql_createTable[] = {
@@ -120,7 +141,26 @@ int16_t createMeaTables(sqlite3 *sqlite3_param_db)
       "CREATE TABLE interfaces(id INTEGER PRIMARY KEY,id_interface INTEGER,id_type INTEGER,name TEXT,description TEXT,dev TEXT,parameters TEXT,state INTEGER)",
       "CREATE TABLE locations(id INTEGER PRIMARY KEY,id_location INTEGER,name TEXT,description TEXT)",
       "CREATE TABLE sensors_actuators(id INTEGER PRIMARY KEY,id_sensor_actuator INTEGER,id_type INTEGER,id_interface INTERGER,name TEXT,description TEXT,id_location INTEGER,parameters TEXT,state INTEGER)",
-      "CREATE TABLE types(id INTEGER PRIMARY KEY,id_type INTEGER,name TEXT,description TEXT,parameters TEXT)",
+      "CREATE TABLE types(id INTEGER PRIMARY KEY,id_type INTEGER,name TEXT,description TEXT,parameters TEXT,flag INTEGER)",
+      "CREATE TABLE sessions (id INTEGER PRIMARY KEY, userid TEXT, sessionid INTEGER, lastaccess DATETIME)",
+      "CREATE TABLE users (id INTEGER PRIMARY KEY, id_user INTEGER, name TEXT, password TEXT, description TEXT, profil INTEGER, flag INTEGER)",
+      NULL
+   };
+
+   return doSqlQueries(sqlite3_param_db, sql_createTable);
+}
+
+/*
+int16_t createMeaTables(sqlite3 *sqlite3_param_db)
+{
+   char *sql_createTable[] = {
+      "CREATE TABLE application_parameters(id INTEGER PRIMARY KEY,key TEXT,value TEXT,complement TEXT)",
+      "CREATE TABLE interfaces(id INTEGER PRIMARY KEY,id_interface INTEGER,id_type INTEGER,name TEXT,description TEXT,dev TEXT,parameters TEXT,state INTEGER)",
+      "CREATE TABLE locations(id INTEGER PRIMARY KEY,id_location INTEGER,name TEXT,description TEXT)",
+      "CREATE TABLE sensors_actuators(id INTEGER PRIMARY KEY,id_sensor_actuator INTEGER,id_type INTEGER,id_interface INTERGER,name TEXT,description TEXT,id_location INTEGER,parameters TEXT,state INTEGER)",
+      "CREATE TABLE types(id INTEGER PRIMARY KEY,id_type INTEGER,name TEXT,description TEXT,parameters TEXT,flag INTEGER)",
+      "CREATE TABLE sessions (id INTEGER PRIMARY KEY, userid TEXT, sessionid INTEGER, lastaccess DATETIME)",
+      "CREATE TABLE users (id INTEGER PRIMARY KEY, id_user INTEGER, name TEXT, password TEXT, description TEXT, profil INTEGER, flag INTEGER)",
       NULL
    };
 
@@ -142,7 +182,60 @@ int16_t createMeaTables(sqlite3 *sqlite3_param_db)
    }
    return rc;
 }
+*/
 
+int16_t populateMeaUsers(sqlite3 *sqlite3_param_db)
+{
+   char *sql_usersTable[] = {
+      "DELETE FROM 'users' WHERE name='admin'",
+      "INSERT INTO 'users' (name, password, description, profil, flag) VALUES ('admin','admin','Default administrator','1','1')",
+      NULL
+   };
+
+   return doSqlQueries(sqlite3_param_db, sql_usersTable);
+}
+
+
+int16_t populateMeaLocations(sqlite3 *sqlite3_param_db)
+{
+   char *sql_usersTable[] = {
+      "DELETE FROM 'locations' WHERE name='default'",
+      "INSERT INTO 'locations' (id_location, name, description) VALUES ('1','default','')",
+      NULL
+   };
+
+   return doSqlQueries(sqlite3_param_db, sql_usersTable);
+}
+
+/*
+int populateMeaUsers_bak(sqlite3 *sqlite3_param_db)
+{
+
+   char sql[1024];
+   char *err = NULL;
+      int16_t ret;
+
+    sprintf(sql,"DELETE FROM 'users' WHERE name='admin'");
+    ret = sqlite3_exec(sqlite3_param_db, sql, NULL, NULL, &err);
+    if( ret != SQLITE_OK )
+    {
+        VERBOSE(9) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
+        sqlite3_free(err);
+        return 1;
+    }
+      
+    sprintf(sql, "INSERT INTO 'users' (name, password, description, profil, flag) VALUES ('admin','admin','Default administrator','1','1')");
+    ret = sqlite3_exec(sqlite3_param_db, sql, NULL, NULL, &err);
+    if( ret != SQLITE_OK )
+    {
+        VERBOSE(9) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
+        sqlite3_free(err);
+        return 1;
+    }
+    
+    return 0;
+}
+*/
 
 int populateMeaTypes(sqlite3 *sqlite3_param_db)
 {
@@ -152,19 +245,20 @@ int populateMeaTypes(sqlite3 *sqlite3_param_db)
       char *name;
       char *description;
       char *parameters;
+      char *flag;
    };
    
    struct types_value_s types_values[] = {
-      {INTERFACE_TYPE_001,"INTYP01","Interface de type 01",""},
-      {INTERFACE_TYPE_002,"INTYP02","Interface de type 02",""},
-      {201,"XBEECA","Capteurs et actionneurs a interface XBee",""},
-      {1000,"PWRCTR","Capteur de compteur ERDF",""},
-      {1001,"ARDINA","Entree interface type 01",""},
-      {1002,"ARDOUTD","Sortie interface type 02",""},
-      {2000,"XDHT22H","Humidité de DTH22",""},
-      {2001,"XDHT22T","Température de DTH22",""},
-      {2002,"XDHT22P","Pile de DTH22",""},
-      {0,NULL,NULL,NULL}
+      {INTERFACE_TYPE_001,"INTYP01","Interface de type 01","","1"},
+      {INTERFACE_TYPE_002,"INTYP02","Interface de type 02","","1"},
+      {201,"XBEECA","Capteurs et actionneurs a interface XBee","","1"},
+      {1000,"PWRCTR","Capteur de compteur ERDF","","1"},
+      {1001,"ARDINA","Entree interface type 01","","1"},
+      {1002,"ARDOUTD","Sortie interface type 02","","1"},
+      {2000,"XDHT22H","Humidité de DTH22","","2"},
+      {2001,"XDHT22T","Température de DTH22","","2"},
+      {2002,"XDHT22P","Pile de DTH22","","2"},
+      {0,NULL,NULL,NULL,NULL}
    };
    
    char sql[1024];
@@ -184,7 +278,7 @@ int populateMeaTypes(sqlite3 *sqlite3_param_db)
          break;
       }
       
-      sprintf(sql, "INSERT INTO 'types' (id_type,name,description,parameters) VALUES (%d,'%s','%s','%s')",types_values[i].id_type,types_values[i].name,types_values[i].description,types_values[i].parameters);
+      sprintf(sql, "INSERT INTO 'types' (id_type,name,description,parameters,flag) VALUES (%d,'%s','%s','%s', '%s')",types_values[i].id_type,types_values[i].name,types_values[i].description,types_values[i].parameters,types_values[i].flag);
       
       ret = sqlite3_exec(sqlite3_param_db, sql, NULL, NULL, &err);
       if( ret != SQLITE_OK )
@@ -221,7 +315,8 @@ int16_t init(char *sqlite3_db_param_path, char *base_path, char *phpcgi_path, ch
       /* 09 */ {"PHPINIPATH",NULL,NULL},
       /* 10 */ {"PHPCGIPATH",NULL,NULL},
       /* 11 */ {"GUIPATH",NULL,NULL},
-      /* 12 */ {NULL,NULL,NULL}
+      /* 12 */ {"DBPORT",NULL,NULL},
+      /* 13 */ {NULL,NULL,NULL}
    };
    
    sqlite3 *sqlite3_param_db=NULL;
@@ -271,6 +366,12 @@ int16_t init(char *sqlite3_db_param_path, char *base_path, char *phpcgi_path, ch
    if(populateMeaTypes(sqlite3_param_db))
    {
       retcode=4;
+      goto exit_init;
+   }
+   
+   if(populateMeaUsers(sqlite3_param_db))
+   {
+      retcode=6;
       goto exit_init;
    }
    
@@ -356,9 +457,9 @@ int16_t initMeaEdomus(int16_t mode, char *sqlite3_db_param_path, char *base_path
    if(base_path)
       installPathFlag=checkInstallationPaths(base_path);
    
-   if(mode==1)
+   if(mode==1) // mode automatique
    {
-      if(installPathFlag==0)
+      if(installPathFlag==0) // base incorrecte
       {
          return 1;
       }

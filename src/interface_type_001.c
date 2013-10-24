@@ -65,15 +65,17 @@ int16_t interface_type_001_xPL_callback(xPL_ServicePtr theService, xPL_MessagePt
    device             = xPL_getNamedValue(ListNomsValeursPtr, get_token_by_id(XPL_DEVICE_ID));
    type               = xPL_getNamedValue(ListNomsValeursPtr, get_token_by_id(XPL_TYPE_ID));
    
+   if(!device)
+      return 0;
+   if(!type)
+      return 0;
+   
    VERBOSE(9) fprintf(stderr,"%s  (%s) : xPL Message to process : %s.%s\n",INFO_STR,__func__,schema_class,schema_type);
 
    if(strcmplower(schema_class, get_token_by_id(XPL_CONTROL_ID)) == 0 &&
       strcmplower(schema_type, get_token_by_id(XPL_BASIC_ID)) == 0)
    {
-      if(!type)
-         return 0;
-      else
-         return xpl_actuator(i001, ListNomsValeursPtr, device, type);
+      return xpl_actuator(i001, ListNomsValeursPtr, device, type);
    }
    else if(strcmplower(schema_class, get_token_by_id(XPL_SENSOR_ID)) == 0 &&
            strcmplower(schema_type, get_token_by_id(XPL_REQUEST_ID)) == 0)
