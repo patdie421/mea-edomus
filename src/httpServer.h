@@ -11,7 +11,5 @@
 #include "error.h"
 
 mea_error_t httpServer(uint16_t port, char *home, char *php_cgi, char *php_ini_path);
-int create_config_default_php(char *home, char *params_db_fullname);
-int create_configs_php(char *home, char *params_db_fullname);
 
 #endif

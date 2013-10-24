@@ -33,6 +33,7 @@
 		4E76CEA5163F12C800A3EBA9 /* arduino_pins.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E76CEA3163F12C700A3EBA9 /* arduino_pins.c */; };
 		4E76CEAB163F146900A3EBA9 /* parameters_mgr.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E76CEA9163F146900A3EBA9 /* parameters_mgr.c */; };
 		4E76CEB2163F175100A3EBA9 /* token_strings.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E76CEB0163F175100A3EBA9 /* token_strings.c */; };
+		4E8787E61816732800A87FF0 /* sqlite3db.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E8787E51816732800A87FF0 /* sqlite3db.c */; };
 		4E8F781C178B44490099A751 /* string_utils.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E8F781B178B44490099A751 /* string_utils.c */; };
 		4E8F781E178B47C80099A751 /* timer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E8F781D178B47C80099A751 /* timer.c */; };
 		4EFBBC7F1746C85D00090FEE /* error.c in Sources */ = {isa = PBXBuildFile; fileRef = 4EFBBC7E1746C85D00090FEE /* error.c */; };
@@ -110,6 +111,8 @@
 		4E76CEB0163F175100A3EBA9 /* token_strings.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = token_strings.c; path = src/token_strings.c; sourceTree = "<group>"; };
 		4E76CEB1163F175100A3EBA9 /* token_strings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = token_strings.h; path = src/token_strings.h; sourceTree = "<group>"; };
 		4E76CEB4163F17E300A3EBA9 /* mysql_mea-edomus_db.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "mysql_mea-edomus_db.sql"; path = "sql/mysql_mea-edomus_db.sql"; sourceTree = "<group>"; };
+		4E8787E51816732800A87FF0 /* sqlite3db.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = sqlite3db.c; path = src/sqlite3db.c; sourceTree = "<group>"; };
+		4E8787E71816733F00A87FF0 /* sqlite3db.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = sqlite3db.h; path = src/sqlite3db.h; sourceTree = "<group>"; };
 		4E8F781A178B443E0099A751 /* string_utils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = string_utils.h; path = src/string_utils.h; sourceTree = "<group>"; };
 		4E8F781B178B44490099A751 /* string_utils.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = string_utils.c; path = src/string_utils.c; sourceTree = "<group>"; };
 		4E8F781D178B47C80099A751 /* timer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = timer.c; path = src/timer.c; sourceTree = "<group>"; };
@@ -211,6 +214,8 @@
 				4E4A5E9915F003420052ABF4 /* queue.c */,
 				4EFBFCCD175E8BF7007BBFD1 /* python_api_utils.h */,
 				4EFBFCCB175E8BDC007BBFD1 /* python_api_utils.c */,
+				4E8787E51816732800A87FF0 /* sqlite3db.c */,
+				4E8787E71816733F00A87FF0 /* sqlite3db.h */,
 			);
 			name = Utils;
 			sourceTree = "<group>";
@@ -373,7 +378,7 @@
 		08FB7793FE84155DC02AAC07 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0450;
+				LastUpgradeCheck = 0500;
 			};
 			buildConfigurationList = 1DEB928908733DD80010E9CD /* Build configuration list for PBXProject "mea-edomus" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -402,6 +407,7 @@
 				4E4A5EA215F003420052ABF4 /* comio.c in Sources */,
 				4E4A5EA315F003420052ABF4 /* interface_type_001.c in Sources */,
 				4E4A5EA415F003420052ABF4 /* debug.c in Sources */,
+				4E8787E61816732800A87FF0 /* sqlite3db.c in Sources */,
 				4E4A5EA615F003420052ABF4 /* main.c in Sources */,
 				4E4A5EA715F003420052ABF4 /* queue.c in Sources */,
 				4E4A5EA815F003420052ABF4 /* interface_type_002.c in Sources */,
@@ -497,7 +503,6 @@
 		1DEB928A08733DD80010E9CD /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
@@ -518,7 +523,6 @@
 		1DEB928B08733DD80010E9CD /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;

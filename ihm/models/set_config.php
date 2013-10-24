@@ -18,7 +18,7 @@ switch($check){
         exit(1);
 }
 
-$fields=[];
+//$fields=[];
 $fields[0]="VENDORID";
 $fields[1]="DEVICEID";
 $fields[2]="INSTANCEID";

@@ -21,6 +21,8 @@
 #include "string_utils.h"
 #include "types.h"
 
+#include "sqlite3db.h"
+
 
 char *get_and_malloc_path(char *base_path,char *dir,char *question)
 {
@@ -50,87 +52,82 @@ char *get_and_malloc_path(char *base_path,char *dir,char *question)
 }
 
 
-int16_t dropTable(sqlite3 *sqlite3_param_db, char *table)
+int16_t lineToFile(char *file, char *lines[])
 {
-   char sql[1024];
-   char *err = 0;
-   
-   sprintf(sql,"DROP TABLE IF EXISTS '%s'",table);
-   
-   int16_t ret = sqlite3_exec(sqlite3_param_db, sql, NULL, NULL, &err);
-   if( ret != SQLITE_OK )
+   FILE *fd;
+
+   fd=fopen(file,"w");
+   if(fd)
    {
-      VERBOSE(9) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
-      sqlite3_free(err);
-      return 1;
-   }
-   else
-   {
+      for(int16_t i=0;lines[i];i++)
+      {
+         fprintf(fd,"%s\n",lines[i]);
+      }
+      fclose(fd);
       return 0;
    }
-}
-   
-
-int16_t tableExist(sqlite3 *sqlite3_param_db, char *table)
-{
-   sqlite3_stmt * stmt;
-   char sql[1024];
-   int16_t nb=0;
-   
-   sprintf(sql,"SELECT count(*) FROM sqlite_master WHERE type='table' AND name='%s'", table);
-   
-   int16_t ret = sqlite3_prepare_v2(sqlite3_param_db,sql,strlen(sql)+1,&stmt,NULL);
-   if(!ret)
-   {
-      int16_t s = sqlite3_step (stmt);
-      
-      if (s == SQLITE_ROW)
-      {
-         nb = sqlite3_column_int(stmt, 0);
-      }
-      else if (s==SQLITE_ERROR)
-      {
-         VERBOSE(9) fprintf (stderr, "%s (%s) : sqlite3_step - %s\n", DEBUG_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
-      }
-      
-      sqlite3_finalize(stmt);
-   }
    else
-   {
-      VERBOSE(9) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", DEBUG_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
-      return 0;
-   }
-   
-   return nb;
+      return -1;
 }
 
 
-int16_t dropDatabase(char *db_path)
+int16_t create_php_ini(char *phpini_path)
 {
-   unlink(db_path);
+   char *lines[] = {
+      "[Date]\n",
+      "date.timezone = \"Europe/Berlin\"",
+      NULL
+   };
    
-   return 0;
-}
+   char phpini[1024];
+   
+   sprintf(phpini,"%s/php.ini",phpini_path);
 
-
-int16_t doSqlQueries(sqlite3 *sqlite3_db, char *queries[])
-{
-   int16_t rc=0;
-
-   for(int16_t i=0;queries[i];i++)
+   int16_t rc=lineToFile(phpini,lines);
+   
+   if(rc)
    {
-      char *err = NULL;
-      
-      int16_t ret = sqlite3_exec(sqlite3_db, queries[i], NULL, NULL, &err);
-      if( ret != SQLITE_OK )
-      {
-         VERBOSE(9) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg (sqlite3_db));
-         sqlite3_free(err);
-         rc=1;
-         break;
+      VERBOSE(5) {
+         fprintf(stderr, "%s (%s) : cannot write %s file - ",ERROR_STR,__func__,phpini);
+         perror("");
       }
    }
    return rc;
+}
+
+
+int create_configs_php(char *gui_home, char *params_db_fullname)
+{
+   FILE *fd;
+   const char *file="lib/configs.php";
+   char *f;
+   
+   f=malloc(strlen(gui_home) + strlen(file) + 2);
+   sprintf(f,"%s/%s",gui_home,file);
+   
+   fd=fopen(f,"w");
+   if(fd)
+   {
+      fprintf(fd,"<?php\n");
+      fprintf(fd,"ini_set('error_reporting', E_ALL);\n");
+      fprintf(fd,"ini_set('log_errors', 'On');\n");
+      fprintf(fd,"ini_set('display_errors', 'Off');\n");
+      fprintf(fd,"ini_set(\"error_log\", \"/Data/mea_log.txt\");\n");
+      fprintf(fd,"$TITRE_APPLICATION='Mea eDomus Admin';\n");
+      fprintf(fd,"$PARAMS_DB_PATH='sqlite:%s';\n",params_db_fullname);
+      fprintf(fd,"$QUERYDB_SQL='sql/querydb.sql';\n");
+   
+      fclose(fd);
+   }
+   else
+   {
+      VERBOSE(5) {
+         fprintf(stderr, "%s (%s) : cannot write %s file - ",ERROR_STR,__func__,f);
+         perror("");
+      }
+      return -1;
+   }
+   return 0;
 }
 
 
@@ -150,39 +147,6 @@ int16_t createMeaTables(sqlite3 *sqlite3_param_db)
    return doSqlQueries(sqlite3_param_db, sql_createTable);
 }
 
-/*
-int16_t createMeaTables(sqlite3 *sqlite3_param_db)
-{
-   char *sql_createTable[] = {
-      "CREATE TABLE application_parameters(id INTEGER PRIMARY KEY,key TEXT,value TEXT,complement TEXT)",
-      "CREATE TABLE interfaces(id INTEGER PRIMARY KEY,id_interface INTEGER,id_type INTEGER,name TEXT,description TEXT,dev TEXT,parameters TEXT,state INTEGER)",
-      "CREATE TABLE locations(id INTEGER PRIMARY KEY,id_location INTEGER,name TEXT,description TEXT)",
-      "CREATE TABLE sensors_actuators(id INTEGER PRIMARY KEY,id_sensor_actuator INTEGER,id_type INTEGER,id_interface INTERGER,name TEXT,description TEXT,id_location INTEGER,parameters TEXT,state INTEGER)",
-      "CREATE TABLE types(id INTEGER PRIMARY KEY,id_type INTEGER,name TEXT,description TEXT,parameters TEXT,flag INTEGER)",
-      "CREATE TABLE sessions (id INTEGER PRIMARY KEY, userid TEXT, sessionid INTEGER, lastaccess DATETIME)",
-      "CREATE TABLE users (id INTEGER PRIMARY KEY, id_user INTEGER, name TEXT, password TEXT, description TEXT, profil INTEGER, flag INTEGER)",
-      NULL
-   };
-
-   int16_t rc=0;
-
-   
-   for(int16_t i=0;sql_createTable[i];i++)
-   {
-      char *err = NULL;
-      
-      int16_t ret = sqlite3_exec(sqlite3_param_db, sql_createTable[i], NULL, NULL, &err);
-      if( ret != SQLITE_OK )
-      {
-         VERBOSE(9) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
-         sqlite3_free(err);
-         rc=1;
-         break;
-      }
-   }
-   return rc;
-}
-*/
 
 int16_t populateMeaUsers(sqlite3 *sqlite3_param_db)
 {
@@ -207,35 +171,6 @@ int16_t populateMeaLocations(sqlite3 *sqlite3_param_db)
    return doSqlQueries(sqlite3_param_db, sql_usersTable);
 }
 
-/*
-int populateMeaUsers_bak(sqlite3 *sqlite3_param_db)
-{
-
-   char sql[1024];
-   char *err = NULL;
-      int16_t ret;
-
-    sprintf(sql,"DELETE FROM 'users' WHERE name='admin'");
-    ret = sqlite3_exec(sqlite3_param_db, sql, NULL, NULL, &err);
-    if( ret != SQLITE_OK )
-    {
-        VERBOSE(9) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
-        sqlite3_free(err);
-        return 1;
-    }
-      
-    sprintf(sql, "INSERT INTO 'users' (name, password, description, profil, flag) VALUES ('admin','admin','Default administrator','1','1')");
-    ret = sqlite3_exec(sqlite3_param_db, sql, NULL, NULL, &err);
-    if( ret != SQLITE_OK )
-    {
-        VERBOSE(9) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
-        sqlite3_free(err);
-        return 1;
-    }
-    
-    return 0;
-}
-*/
 
 int populateMeaTypes(sqlite3 *sqlite3_param_db)
 {
@@ -369,6 +304,12 @@ int16_t init(char *sqlite3_db_param_path, char *base_path, char *phpcgi_path, ch
       goto exit_init;
    }
    
+   if(populateMeaLocations(sqlite3_param_db))
+   {
+      retcode=5;
+      goto exit_init;
+   }
+
    if(populateMeaUsers(sqlite3_param_db))
    {
       retcode=6;
@@ -425,16 +366,32 @@ int16_t interactiveInit(char *sqlite3_db_param_path, char *base_path)
    char *phpcgi_path=NULL;
    char *phpini_path=NULL;
    char *gui_path=NULL;
+   char pathToCheck[1024];
    
    phpcgi_path=get_and_malloc_path(base_path,"bin","PATH to 'cgi-bin' directory");
    phpini_path=get_and_malloc_path(base_path,"etc","PATH to 'php.ini' directory");
    gui_path=get_and_malloc_path(base_path,"gui","PATH to gui directory");
    
-   // contrôler cgi-bin, php.ini et gui (presence index.cgi)
-   // si php.ini absent, proposition d'en creer 1
-   // si cgi-bin absent => informer que l'interface graphique ne peut pas fonctionner
-   // si gui/index.cgi absent => informer que l'interface ne peut pas fonctionner
    
+   sprintf(pathToCheck,"%s/cgi-bin",phpcgi_path);
+   if( access(pathToCheck, R_OK | W_OK | X_OK) == -1 )
+   {
+      VERBOSE(9) fprintf(stderr,"%s (%s) : %s/cgi-bin - ",INFO_STR,__func__,phpcgi_path);
+      VERBOSE(9) perror("");
+   // si cgi-bin absent => informer que l'interface graphique ne peut pas fonctionner
+      VERBOSE(1) fprintf(stderr,"%s : no 'cgi-bin', gui will not start",WARNING_STR);
+   }
+   
+   sprintf(pathToCheck,"%s/php.ini",phpini_path);
+   if( access(pathToCheck, R_OK ) == -1 )
+   {
+      VERBOSE(9) fprintf(stderr,"%s (%s) : %s/php.ini - ",INFO_STR,__func__,phpcgi_path);
+      VERBOSE(9) perror("");
+      VERBOSE(1) fprintf(stderr,"%s : no 'php.ini' exist, create one",WARNING_STR);
+      create_php_ini(phpini_path);
+      // si php.ini absent, proposition d'en creer 1
+   }
+
    init(sqlite3_db_param_path, base_path, phpcgi_path, phpini_path, gui_path);
    
    if(phpcgi_path)
@@ -550,5 +507,3 @@ int16_t checkInstallationPaths(char *base_path)
    
    return flag;
 }
-
-

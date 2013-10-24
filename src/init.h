@@ -16,4 +16,6 @@ int16_t checkParamsDb(char *sqlite3_db_param_path, int16_t *cause);
 
 int16_t initMeaEdomus(int16_t mode, char *sqlite3_db_param_path, char *base_path);
 
+int create_configs_php(char *home, char *params_db_fullname);
+
 #endif
