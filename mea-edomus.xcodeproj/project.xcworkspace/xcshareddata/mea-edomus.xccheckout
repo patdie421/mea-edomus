@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>F3F0196A-6EB3-4994-AD29-546DFA9D61A3</string>
+	<key>IDESourceControlProjectName</key>
+	<string>mea-edomus</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>AE43D921-6053-4D79-B629-C8E538DCA51E</key>
+		<string>https://code.google.com/p/mea-edomus/</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>mea-edomus.xcodeproj/project.xcworkspace</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>AE43D921-6053-4D79-B629-C8E538DCA51E</key>
+		<string>../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>https://code.google.com/p/mea-edomus/</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>110</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>AE43D921-6053-4D79-B629-C8E538DCA51E</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>AE43D921-6053-4D79-B629-C8E538DCA51E</string>
+			<key>IDESourceControlWCCName</key>
+			<string>mea-edomus</string>
+		</dict>
+	</array>
+</dict>
+</plist>

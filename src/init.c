@@ -23,7 +23,7 @@
 
 #include "sqlite3db.h"
 
-
+//
 char *get_and_malloc_path(char *base_path,char *dir,char *question)
 {
    char tmpStr[1024];
