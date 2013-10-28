@@ -12,9 +12,9 @@
 #include <inttypes.h>
 #include <sqlite3.h>
 
-int16_t dropTable(sqlite3 *sqlite3_param_db, char *table);
-int16_t tableExist(sqlite3 *sqlite3_param_db, char *table);
-int16_t dropDatabase(char *db_path);
-int16_t doSqlQueries(sqlite3 *sqlite3_db, char *queries[]);
+int16_t sqlite3_dropTable(sqlite3 *sqlite3_param_db, char *table);
+int16_t sqlite3_tableExist(sqlite3 *sqlite3_param_db, char *table);
+int16_t sqlite3_dropDatabase(char *db_path);
+int16_t sqlite3_doSqlQueries(sqlite3 *sqlite3_db, char *queries[]);
 
 #endif

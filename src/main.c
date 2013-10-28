@@ -317,9 +317,11 @@ int main(int argc, const char * argv[])
    }
    free(buff);
    
+   sqlite3_config(SQLITE_CONFIG_SERIALIZED); // pour le multithreading
+
    // récupération des paramètres de la ligne de commande
-   int _a=0,_i=0;
-   while ((c = getopt (argc, (char **)argv, "ia:")) != -1)
+   int _a=0,_i=0, _I=0 ;
+   while ((c = getopt (argc, (char **)argv, "iIp:a:")) != -1)
    {
       switch (c)
       {
@@ -333,10 +335,25 @@ int main(int argc, const char * argv[])
             _i=1;
             break;
             
+         case 'I':
+            _I=1;
+            break;
+            
+         case 'p':
+            string_free_malloc_and_copy(&mea_path, optarg, 1);
+            IF_NULL_EXIT(mea_path,1);
+            break;
+            
          default:
             VERBOSE(1) fprintf(stderr,"%s (%s) : Paramètre \"%s\" inconnu.\n",ERROR_STR,__func__,optarg);
             exit(1);
       }
+   }
+
+   if(_i==1 && _I==1)
+   {
+      VERBOSE(1) fprintf(stderr,"%s (%s) : -i et -I incompatible\n",ERROR_STR,__func__);
+      exit(1);
    }
    
    if(!_a) // si pas de db en parametre on construit un chemin vers le nom "théorique" de la db
@@ -345,11 +362,15 @@ int main(int argc, const char * argv[])
       sprintf(sqlite3_db_param_path,"%s/var/db/params.db",mea_path);
    }
    
-   sqlite3_config(SQLITE_CONFIG_SERIALIZED); // pour le multithreading
-   
    if(_i)
    {
       initMeaEdomus(0,sqlite3_db_param_path, mea_path);
+      exit(0);
+   }
+   
+   if(_I)
+   {
+      initMeaEdomus(1,sqlite3_db_param_path, mea_path);
       exit(0);
    }
    
