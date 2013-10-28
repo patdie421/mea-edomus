@@ -5,19 +5,19 @@
 	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
 	<false/>
 	<key>IDESourceControlProjectIdentifier</key>
-	<string>BBE41BD0-6AB1-4B0E-AF51-F9D1FEE84EC5</string>
+	<string>44FF907E-A297-4E21-9615-DA38AC16086F</string>
 	<key>IDESourceControlProjectName</key>
 	<string>mea-edomus</string>
 	<key>IDESourceControlProjectOriginsDictionary</key>
 	<dict>
-		<key>4054457F-CA32-4E2D-A642-53DC533C6DB5</key>
+		<key>70C63B70-3231-4764-BBCD-0F422C623D2C</key>
 		<string>https://code.google.com/p/mea-edomus/</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
 	<string>mea-edomus.xcodeproj/project.xcworkspace</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
-		<key>4054457F-CA32-4E2D-A642-53DC533C6DB5</key>
+		<key>70C63B70-3231-4764-BBCD-0F422C623D2C</key>
 		<string>../..</string>
 	</dict>
 	<key>IDESourceControlProjectURL</key>
@@ -25,14 +25,14 @@
 	<key>IDESourceControlProjectVersion</key>
 	<integer>110</integer>
 	<key>IDESourceControlProjectWCCIdentifier</key>
-	<string>4054457F-CA32-4E2D-A642-53DC533C6DB5</string>
+	<string>70C63B70-3231-4764-BBCD-0F422C623D2C</string>
 	<key>IDESourceControlProjectWCConfigurations</key>
 	<array>
 		<dict>
 			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
 			<string>public.vcs.git</string>
 			<key>IDESourceControlWCCIdentifierKey</key>
-			<string>4054457F-CA32-4E2D-A642-53DC533C6DB5</string>
+			<string>70C63B70-3231-4764-BBCD-0F422C623D2C</string>
 			<key>IDESourceControlWCCName</key>
 			<string>mea-edomus</string>
 		</dict>

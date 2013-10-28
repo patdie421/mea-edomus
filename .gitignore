@@ -2,3 +2,5 @@
 *.o
 *.swp
 xcuserdata/
+mea-edomus
+*.xccheckout
