@@ -47,21 +47,9 @@ pthread_t *xPLServer_thread=NULL;
 pthread_t *pythonPluginServer_thread=NULL;
 // pthread_t *counters_thread=NULL;
 
-char *mea_path=NULL;
-char *gui_path=NULL;
-char *phpcgi_path=NULL;
+char *params_list[MAX_LIST_SIZE];
+
 char *phpcgibin=NULL;
-char *phpini_path=NULL;
-
-char *sqlite3_db_file=NULL;
-char *mysql_db_server=NULL;
-char *mysql_db_port=NULL;
-char *mysql_database=NULL;
-char *mysql_user=NULL;
-char *mysql_passwd=NULL;
-char *sqlite3_db_buff_path=NULL; // old name : sqlite3_db_file
-char *sqlite3_db_param_path=NULL; // path to parameters db file
-
 
 void usage(char *cmd)
 /**
@@ -106,17 +94,17 @@ int16_t read_all_application_parameters(sqlite3 *sqlite3_param_db)
          strToUpper(key);
          
          if(strcmp(key,"BUFFERDB")==0)
-            string_free_malloc_and_copy(&sqlite3_db_buff_path, value, 1);
+            string_free_malloc_and_copy(&params_list[SQLITE3_DB_BUFF_PATH], value, 1);
          else if (strcmp(key,"DBSERVER")==0)
-            string_free_malloc_and_copy(&mysql_db_server, value, 1);
+            string_free_malloc_and_copy(&params_list[MYSQL_DB_SERVER], value, 1);
          else if (strcmp(key,"DATABASE")==0)
-            string_free_malloc_and_copy(&mysql_db_port, value, 1);
+            string_free_malloc_and_copy(&params_list[MYSQL_DATABASE], value, 1);
          else if (strcmp(key,"DBPORT")==0)
-            string_free_malloc_and_copy(&mysql_database, value, 1);
+            string_free_malloc_and_copy(&params_list[MYSQL_DB_PORT], value, 1);
          else if (strcmp(key,"USER")==0)
-            string_free_malloc_and_copy(&mysql_user, value, 1);
+            string_free_malloc_and_copy(&params_list[MYSQL_USER], value, 1);
          else if (strcmp(key,"PASSWORD")==0)
-            string_free_malloc_and_copy(&mysql_passwd, value, 1);
+            string_free_malloc_and_copy(&params_list[MYSQL_PASSWD], value, 1);
          else if (strcmp(key,"VENDORID")==0)
             set_xPL_vendorID(value);
          else if (strcmp(key,"DEVICEID")==0)
@@ -128,11 +116,15 @@ int16_t read_all_application_parameters(sqlite3 *sqlite3_param_db)
          else if (strcmp(key,"VERBOSELEVEL")==0)
             set_verbose_level(atoi(value));
          else if (strcmp(key,"PHPCGIPATH")==0)
-            string_free_malloc_and_copy(&phpcgi_path, value, 1);
+            string_free_malloc_and_copy(&params_list[PHPCGI_PATH], value, 1);
          else if (strcmp(key,"PHPINIPATH")==0)
-            string_free_malloc_and_copy(&phpini_path, value, 1);
+            string_free_malloc_and_copy(&params_list[PHPINI_PATH], value, 1);
          else if (strcmp(key,"GUIPATH")==0)
-            string_free_malloc_and_copy(&gui_path, value, 1);
+            string_free_malloc_and_copy(&params_list[GUI_PATH], value, 1);
+         else if (strcmp(key,"LOGPATH")==0)
+            string_free_malloc_and_copy(&params_list[LOG_PATH], value, 1);
+         else if (strcmp(key,"BUFFDBPATH")==0)
+            string_free_malloc_and_copy(&params_list[SQLITE3_DB_BUFF_PATH], value, 1);
       }
       else if (s == SQLITE_DONE)
       {
@@ -202,16 +194,14 @@ static void _signal_STOP(int signal_number)
    tomysqldb_release(myd);
    VERBOSE(5) fprintf(stderr,"done\n");
    
-   if(mea_path)
-      free(mea_path);
-   if(gui_path)
-      free(gui_path);
-   if(phpcgi_path)
-      free(phpcgi_path);
-   if(phpcgi_path)
-      free(phpcgi_path);
-   if(phpini_path)
-      free(phpini_path);
+   for(int i=0;i<MAX_LIST_SIZE;i++)
+   {
+      if(params_list[i])
+      {
+        free(params_list[i]);
+        params_list[i]=NULL;
+      }
+   }
 
    exit(0);
 }
@@ -279,7 +269,6 @@ static void _signal_HUP(int signal_number)
    return;
 }
 
-
 int main(int argc, const char * argv[])
 /**
  * \brief     Point d'entrée du mea_edomus
@@ -293,6 +282,32 @@ int main(int argc, const char * argv[])
    int ret;
    char *buff;
    
+   // toutes les options possibles
+   static struct option long_options[] = {
+      {"init",        no_argument,       0,  'i'                  },
+      {"autoinit",    no_argument,       0,  'a'                  },
+      {"update",      no_argument,       0,  'u'                  },
+      {"basepath",    required_argument, 0,  MEA_PATH             }, // 'p'
+      {"paramsdb",    required_argument, 0,  SQLITE3_DB_PARAM_PATH}, // 'd'
+      {"configfile",  required_argument, 0,  CONFIG_FILE          }, // 'c'
+      {"phpcgipath",  required_argument, 0,  PHPCGI_PATH          }, // 'C'
+      {"phpinipath",  required_argument, 0,  PHPINI_PATH          }, // 'H'
+      {"guipath",     required_argument, 0,  GUI_PATH             }, // 'G'
+      {"logpath",     required_argument, 0,  LOG_PATH             }, // 'L'
+      {"pluginspath", required_argument, 0,  PLUGINS_PATH         }, // 'A'
+      {"bufferdbpath",required_argument, 0,  SQLITE3_DB_BUFF_PATH }, // 'B'
+      {"bufferdbname",required_argument, 0,  SQLITE3_DB_BUFF_NAME }, // 'F'
+      {"dbserver",    required_argument, 0,  MYSQL_DB_SERVER      }, // 'D'
+      {"dbport",      required_argument, 0,  MYSQL_DB_PORT        }, // 'P'
+      {"dbname",      required_argument, 0,  MYSQL_DATABASE       }, // 'N'
+      {"dbuser",      required_argument, 0,  MYSQL_USER           }, // 'U'
+      {"dbpassword",  required_argument, 0,  MYSQL_PASSWD         }, // 'W'
+      {"vendorid",    required_argument, 0,  VENDOR_ID            }, // 'V'
+      {"deviceid",    required_argument, 0,  DEVICE_ID            }, // 'E'
+      {"instanceid",  required_argument, 0,  INSTANCE_ID          }, // 'S'
+      {0,             0,                 0,  0                    }
+   };
+
 #ifdef __DEBUG_ON__
    debug_on();
    set_verbose_level(9);
@@ -301,7 +316,13 @@ int main(int argc, const char * argv[])
 #endif
    
    DEBUG_SECTION fprintf(stderr,"Starting MEA-EDOMUS %s\n",__MEA_EDOMUS_VERSION__);
-   
+
+   sqlite3_config(SQLITE_CONFIG_SERIALIZED); // pour le multithreading
+
+   // initialisation de la liste des parametres à NULL
+   for(int i=0;i<MAX_LIST_SIZE;i++)
+      params_list[i]=NULL;
+
    // chemin "théorique" de l'installation mea-domus (si les recommendations ont été respectées)
    buff=(char *)malloc(strlen(argv[0])+1);
    if(realpath(argv[0], buff))
@@ -311,79 +332,177 @@ int main(int argc, const char * argv[])
       path=malloc(strlen(dirname(buff))+1);
       strcpy(path,dirname(buff));
       
-      mea_path=(char *)malloc(strlen(dirname(path))+1);
-      strcpy(mea_path,dirname(path));
+      params_list[MEA_PATH]=(char *)malloc(strlen(dirname(path))+1);
+      strcpy(params_list[MEA_PATH],dirname(path));
       free(path);
    }
    free(buff);
-   
-   sqlite3_config(SQLITE_CONFIG_SERIALIZED); // pour le multithreading
 
    // récupération des paramètres de la ligne de commande
-   int _a=0,_i=0, _I=0 ;
-   while ((c = getopt (argc, (char **)argv, "iIp:a:")) != -1)
+   int _d=0, _i=0, _a=0, _c, _u=0, _o=0;
+   int option_index = 0;
+   
+   while ((c = getopt_long(argc, (char * const *)argv, "iaup:d:c:C:H:G:L:A:B:F:D:P:N:U:W:V:E:S:", long_options, &option_index)) != -1)
    {
       switch (c)
       {
-         case 'a':
-            string_free_malloc_and_copy(&sqlite3_db_param_path, optarg, 1);
-            IF_NULL_EXIT(sqlite3_db_param_path,1);
-            _a=1;
+         case 'p':
+            c=MEA_PATH;
+            break;
+            
+         case 'd':
+         case SQLITE3_DB_PARAM_PATH:
+            string_free_malloc_and_copy(&params_list[SQLITE3_DB_PARAM_PATH], optarg, 1);
+            IF_NULL_EXIT(&params_list[SQLITE3_DB_PARAM_PATH], 1);
+            c=-1;
+            _d=1;
             break;
          
+         case 'c': // fichier de configuration (mea-edomus.ini qui contient basepath et paramsdb)
+         case CONFIG_FILE:
+            string_free_malloc_and_copy(&params_list[CONFIG_FILE], optarg, 1);
+            IF_NULL_EXIT(&params_list[CONFIG_FILE], 1);
+            c=-1;
+            _c=1;
+            break;
+
          case 'i':
+            c=-1;
             _i=1;
             break;
             
-         case 'I':
-            _I=1;
+         case 'a':
+            c=-1;
+            _a=1;
+            break;
+         
+         case 'u':
+            c=-1;
+            _u=1;
+            break;
+
+         case 'C':
+            c=PHPCGI_PATH;
             break;
             
-         case 'p':
-            string_free_malloc_and_copy(&mea_path, optarg, 1);
-            IF_NULL_EXIT(mea_path,1);
+         case 'H':
+            c=PHPINI_PATH;
             break;
             
-         default:
-            VERBOSE(1) fprintf(stderr,"%s (%s) : Paramètre \"%s\" inconnu.\n",ERROR_STR,__func__,optarg);
-            exit(1);
+         case 'G':
+            c=GUI_PATH;
+            break;
+            
+         case 'L':
+            c=LOG_PATH;
+            break;
+            
+         case 'A':
+            c=PLUGINS_PATH;
+            break;
+            
+         case 'B':
+            c=SQLITE3_DB_BUFF_PATH;
+            break;
+            
+         case 'F':
+            c=SQLITE3_DB_BUFF_NAME;
+            break;
+
+         case 'D':
+            c=MYSQL_DB_SERVER;
+            break;
+
+         case 'P':
+            c=MYSQL_DB_PORT;
+            break;
+
+         case 'N':
+            c=MYSQL_DATABASE;
+            break;
+
+         case 'U':
+            c=MYSQL_USER;
+            break;
+
+         case 'W':
+            c=MYSQL_PASSWD;
+            break;
+
+         case 'V':
+            c=VENDOR_ID;
+            break;
+            
+         case 'E':
+            c=DEVICE_ID;
+            break;
+
+         case 'S':
+            c=INSTANCE_ID;
+            break;
+      }
+
+      if(c>'!') // parametre non attendu trouvé (! = premier caractère imprimable).
+      {
+         VERBOSE(1) fprintf(stderr,"%s (%s) : Paramètre \"%s\" inconnu.\n",ERROR_STR,__func__,optarg);
+         exit(1);
+      }
+      
+      if(c!=-1 && c!=0)
+      {
+         if(c!=MEA_PATH && c!=LOG_PATH && c!=SQLITE3_DB_PARAM_PATH)
+            _o=1;
+         string_free_malloc_and_copy(&params_list[c], optarg, 1);
       }
    }
 
-   if(_i==1 && _I==1)
+   
+   if((_i+_a+_u)>1)
    {
-      VERBOSE(1) fprintf(stderr,"%s (%s) : -i et -I incompatible\n",ERROR_STR,__func__);
+      VERBOSE(1) fprintf(stderr,"%s (%s) : -i, -a et -u incompatible\n",ERROR_STR,__func__);
       exit(1);
    }
    
-   if(!_a) // si pas de db en parametre on construit un chemin vers le nom "théorique" de la db
+   if(!_d) // si pas de db en parametre on construit un chemin vers le nom "théorique" de la db
    {
-      sqlite3_db_param_path=(char *)malloc(strlen(mea_path)+1 + 17); // lenght("/var/db/params.db") = 17
-      sprintf(sqlite3_db_param_path,"%s/var/db/params.db",mea_path);
+      params_list[SQLITE3_DB_PARAM_PATH]=(char *)malloc(strlen(params_list[MEA_PATH])+1 + 17); // lenght("/var/db/params.db") = 17
+      sprintf(params_list[SQLITE3_DB_PARAM_PATH],"%s/var/db/params.db",params_list[MEA_PATH]);
    }
    
    if(_i)
    {
-      initMeaEdomus(0,sqlite3_db_param_path, mea_path);
+      initMeaEdomus(0, params_list);
       exit(0);
    }
    
-   if(_I)
+   if(_a)
    {
-      initMeaEdomus(1,sqlite3_db_param_path, mea_path);
+      initMeaEdomus(1, params_list);
       exit(0);
    }
    
+   if(_u)
+   {
+      // à faire
+      updateMeaEdomus(params_list);
+      exit(0);
+   }
+
+   if(_o)
+   {
+      VERBOSE(1) fprintf(stderr,"%s (%s) : options complémentaires uniquement utilisable avec -i, -a et -u\n",ERROR_STR,__func__);
+      exit(1);
+   }
    
    int16_t cause;
-   if(!checkParamsDb(sqlite3_db_param_path, &cause))
+   if(checkParamsDb(params_list[SQLITE3_DB_PARAM_PATH], &cause))
    {
       exit(1);
    }
 
       
    // ouverture de la base de paramétrage
-   ret = sqlite3_open_v2(sqlite3_db_param_path, &sqlite3_param_db, SQLITE_OPEN_READWRITE, NULL);
+   ret = sqlite3_open_v2(params_list[SQLITE3_DB_PARAM_PATH], &sqlite3_param_db, SQLITE_OPEN_READWRITE, NULL);
    if(ret)
    {
       VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_open - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
@@ -422,7 +541,8 @@ int main(int argc, const char * argv[])
       exit(1);
    }
    memset(myd,0,sizeof(struct tomysqldb_md_s));
-   ret=tomysqldb_init(myd,mysql_db_server,mysql_database,mysql_user,mysql_passwd,sqlite3_db_buff_path);
+   
+   ret=tomysqldb_init(myd,params_list[MYSQL_DB_SERVER], params_list[MYSQL_DATABASE], params_list[MYSQL_USER], params_list[MYSQL_PASSWD], params_list[SQLITE3_DB_BUFF_PATH]);
    if(ret==-1)
    {
       VERBOSE(1) fprintf(stderr,"%s (%s) : impossible d'initialiser la gestion de la base de données.\n",ERROR_STR,__func__);
@@ -446,15 +566,14 @@ int main(int argc, const char * argv[])
    
    //
    // initialisation du serveur HTTP
-   //
-   if(phpcgi_path && phpini_path && gui_path && sqlite3_db_param_path)
+   //GUI_PATH
+   if(params_list[PHPCGI_PATH] && params_list[PHPINI_PATH] && params_list[GUI_PATH] && params_list[SQLITE3_DB_PARAM_PATH])
    {
-      phpcgibin=(char *)malloc(strlen(phpcgi_path)+10); // 9 = strlen("/cgi-bin") + 1
-      sprintf(phpcgibin, "%s/php-cgi",phpcgi_path);
+      phpcgibin=(char *)malloc(strlen(params_list[PHPCGI_PATH])+10); // 9 = strlen("/cgi-bin") + 1
+      sprintf(phpcgibin, "%s/php-cgi",params_list[PHPCGI_PATH]);
 
-//      if(create_config_default_php(gui_path, sqlite3_db_param_path)==0)
-      if(create_configs_php(gui_path, sqlite3_db_param_path)==0)
-         httpServer(8083, gui_path, phpcgibin, phpini_path);
+      if(create_configs_php(params_list[GUI_PATH], params_list[SQLITE3_DB_PARAM_PATH], params_list[LOG_PATH])==0)
+         httpServer(8083, params_list[GUI_PATH], phpcgibin, params_list[PHPINI_PATH]);
       else
       {
          VERBOSE(1) fprintf(stderr,"%s (%s) : can't start gui Server.\n",ERROR_STR,__func__);
@@ -608,18 +727,6 @@ int main(int argc, const char * argv[])
       exit(1);
    }
    
-   
-   // libération des espaces mémoires globaux inutiles
-   free(mysql_db_server);
-   mysql_db_server=NULL;
-   free(mysql_db_port);
-   mysql_db_port=NULL;
-   free(mysql_database);
-   mysql_database=NULL;
-   free(mysql_user);
-   mysql_user=NULL;
-   free(mysql_passwd);
-   mysql_passwd=NULL;
    
    DEBUG_SECTION fprintf(stderr,"MEA-EDOMUS %s starded\n",__MEA_EDOMUS_VERSION__);
 

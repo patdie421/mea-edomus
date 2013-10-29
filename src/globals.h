@@ -15,10 +15,25 @@
 
 #define __MEA_EDOMUS_VERSION__ "0.1aplha2-ondev"
 
-extern char *mysql_db_server;
-extern char *mysql_database;
-extern char *mysql_user;
-extern char *mysql_passwd;
+#define MEA_PATH               1
+#define SQLITE3_DB_PARAM_PATH  2
+#define CONFIG_FILE            3
+#define PHPCGI_PATH            4
+#define PHPINI_PATH            5
+#define GUI_PATH               6
+#define LOG_PATH               7
+#define PLUGINS_PATH           8
+#define SQLITE3_DB_BUFF_PATH   9
+#define SQLITE3_DB_BUFF_NAME  10
+#define MYSQL_DB_SERVER       11
+#define MYSQL_DB_PORT         12
+#define MYSQL_DATABASE        13
+#define MYSQL_USER            14
+#define MYSQL_PASSWD          15
+#define VENDOR_ID             16
+#define DEVICE_ID             17
+#define INSTANCE_ID           18
+#define MAX_LIST_SIZE         19
 
 //extern tomysqldb_md_t md;
 extern tomysqldb_md_t *myd;
