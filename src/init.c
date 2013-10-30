@@ -5,7 +5,6 @@
 //  Created by Patrice Dietsch on 18/08/13.
 //
 //
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -28,88 +27,10 @@
 
 char const *usr_str="/usr";
 
-char *get_and_malloc_path(char *base_path,char *dir_name,char *question_str)
- /**
-  * \brief     Demande un chemin de fichier ou de répertoire depuis l'entrée standard et retourne la valeur dans une chaine allouée (malloc).
-  * \details   Une question est affichée et une propostion de répertoire est faite (validée par ENTER sans saisir de caractères).
-  * \param     base_path    chemin de base (basename) pour la proposition de fichier/répertoire
-  * \param     dir_name     nom dur fichier/répertoire "final"
-  * \param     question_str la question à poser
-  * \return    le chemain complet dans une chaine qui a été allouée ou NULL en cas d'erreur
-  */
-{
-   char proposed_path_str[1024];
-   char read_path_str[1024];
-   char *path_to_return_str=NULL;
-
-   if(base_path)
-   {
-      int16_t n=snprintf(proposed_path_str,sizeof(proposed_path_str), "%s/%s", base_path, dir_name);
-      if(n<0 || n==sizeof(proposed_path_str))
-         return NULL;
-   }
-   else
-      proposed_path_str[0]=0;
-   do
-   {
-      printf("%s [%s] : ", question_str, proposed_path_str);
-      if(fgets(read_path_str,sizeof(read_path_str), stdin))
-      {
-         read_path_str[strlen(read_path_str)-1]=0; // retire le \n à la fin de la ligne
-         if(strlen(read_path_str)) // appuie sur Enter sans saisir de caractères
-            strcpy(proposed_path_str,read_path_str); // on prend la valeur qu'on a prosee
-      }
-      else
-         return NULL;
-   } while (strlen(proposed_path_str)==0);
-    
-   path_to_return_str=(char *)malloc(strlen(proposed_path_str)+1);
-   strcpy(path_to_return_str, proposed_path_str);
-    
-   return path_to_return_str;
-}
-
-
-char *get_and_malloc_string(char *default_value, char *question_str)
- /**
-  * \brief     Demande une chaine de caractères depuis l'entrée standard et retourne la valeur dans une chaine allouée (malloc).
-  * \details   Une question est affichée et une propostion de valeur est faite (validée par ENTER sans saisir de caractères).
-  * \param     default_value  valeur proposée
-  * \param     question_str   la question à poser
-  * \return    une chaine qui a été allouée ou NULL en cas d'erreur
-  */
-{
-   char read_str[1024];
-   char *to_return_str=NULL;
-
-   if(!default_value)
-   {
-      default_value="";
-   }
-
-   do
-   {
-      printf("%s [%s] : ", question_str, default_value);
-      if(fgets(read_str,sizeof(read_str), stdin))
-      {
-         read_str[strlen(read_str)-1]=0; // retire le \n à la fin de la ligne
-         if(!strlen(read_str)) // appuie sur Enter sans saisir de caractères
-            strcpy(read_str,default_value); // on prend la valeur qu'on a prosee
-      }
-      else
-         return NULL;
-   } while (strlen(read_str)==0);
-    
-   to_return_str=(char *)malloc(strlen(read_str)+1);
-   strcpy(to_return_str, read_str);
-    
-   return to_return_str;
-}
-
 
 int16_t lineToFile(char *file, char *lines[])
  /**
-  * \brief     Création d'un fichier (texte) avec les lignes passées en parametres (tableau de chaine).
+  * \brief     Création d'un fichier (texte) avec les lignes passées en paramètres (tableau de chaine).
   * \details   Le dernier élément du tableau de lignes doit être NULL.
   * \param     file    nom et chemin (complet) du fichier à créer.
   * \param     lines   tableau de pointeur sur les chaines à intégrer au fichier.
@@ -122,7 +43,6 @@ int16_t lineToFile(char *file, char *lines[])
    if(fd)
    {
       int error_flag=0;
-      
       for(int16_t i=0;lines[i];i++)
       {
          if(fprintf(fd,"%s\n",lines[i])<0)
@@ -137,6 +57,275 @@ int16_t lineToFile(char *file, char *lines[])
    }
    else
       return -1;
+}
+
+
+char *get_and_malloc_string(char *default_value, char *question_str)
+ /**
+  * \brief     Demande une chaine de caractères depuis l'entrée standard et retourne la valeur dans une chaine allouée (malloc).
+  * \details   Une question est affichée et une propostion de valeur est faite (validée par ENTER sans saisir de caractères pour accepter la proposition).
+  * \param     default_value  valeur proposée par défaut
+  * \param     question_str   la question à poser
+  * \return    une chaine qui a été allouée ou NULL en cas d'erreur (voir aussi errno)
+  */
+{
+   char read_str[1024];
+   char *read_str_trimed;
+   char *to_return_str=NULL;
+
+   if(!default_value)
+      default_value="";
+
+   do
+   {
+      printf("%s [%s] : ", question_str, default_value);
+      if(fgets(read_str,sizeof(read_str), stdin))
+      {
+         read_str[strlen(read_str)-1]=0; // retire le \n à la fin de la ligne
+         read_str_trimed=trim(read_str); // retire les blanc en début et fin de chaine
+         if(!strlen(read_str_trimed)) // appuie sur Enter sans saisir de caractères
+         {
+            strcpy(read_str, default_value); // on prend la valeur qu'on a prosée
+            read_str_trimed=read_str;
+         }
+      }
+      else
+      {
+         VERBOSE(9) {
+            fprintf (stderr, "%s (%s) : fgets - ", DEBUG_STR,__func__);
+            perror("");
+         }
+         return NULL; // en cas d'erreur sur fgets
+      }
+   } while (strlen(read_str_trimed)==0);
+    
+   to_return_str=(char *)malloc(strlen(read_str_trimed)+1);
+   strcpy(to_return_str, read_str_trimed);
+    
+   return to_return_str;
+}
+
+
+char *get_and_malloc_path(char *base_path,char *dir_name,char *question_str)
+ /**
+  * \brief     Demande la saisie d'un chemin de fichier ou de répertoire depuis l'entrée standard et retourne la valeur dans une chaine allouée (malloc).
+  * \details   Une question est affichée et une propostion de répertoire est faite (validée par ENTER sans saisir de caractères).
+  * \param     base_path    chemin de base (basename) pour la proposition de fichier/répertoire  (ie : première partie du chemin)
+  * \param     dir_name     nom (ou fin de chemin) du fichier/répertoire "final" (ie : deuxième partie du chemin)
+  * \param     question_str la question à poser
+  * \return    le chemain complet dans une chaine qui a été allouée ou NULL en cas d'erreur
+  */
+{
+   char proposed_path_str[1024];
+
+   if(base_path)
+   {
+      int16_t n=snprintf(proposed_path_str,sizeof(proposed_path_str), "%s/%s", base_path, dir_name);
+      if(n<0 || n==sizeof(proposed_path_str))
+      {
+         VERBOSE(9) {
+            fprintf (stderr, "%s (%s) : snprintf - ", DEBUG_STR,__func__);
+            perror("");
+         }
+         return NULL;
+      }
+   }
+   else // si pas de base path, pas de proposition à faire
+      proposed_path_str[0]=0;
+      
+   return get_and_malloc_string(proposed_path_str, question_str);
+}
+
+   
+char *get_and_malloc_integer(int16_t default_value, char *question_str)
+ /**
+  * \brief     Demande un entier depuis l'entrée standard et retourne la valeur sous forme d'une chaine allouée (malloc).
+  * \details   Une question est affichée et une propostion de valeur par défaut est faite (validée par ENTER sans saisir de caractères).
+  * \param     default_value  valeur proposée
+  * \param     question_str   la question à poser
+  * \return    une chaine qui a été allouée ou NULL en cas d'erreur
+  */
+{
+   char *value_str;
+   long value;
+   char *end;
+   char default_value_str[16];
+   
+   int16_t n=snprintf(default_value_str,sizeof(default_value_str),"%d",default_value);
+   if(n<0 || n==sizeof(default_value_str))
+   {
+      VERBOSE(9) {
+         fprintf (stderr, "%s (%s) : snprintf - ", DEBUG_STR,__func__);
+         perror("");
+      }
+      return NULL;
+   }
+
+   while(1)
+   {
+      value_str=get_and_malloc_string(default_value_str, question_str);
+      if(!value_str)
+         return NULL;
+      value=strtol(value_str,&end,10);
+      if(*end!=0 || errno==ERANGE)
+      {
+         free(value_str);
+      }
+      else
+      {
+         break;
+      }
+   }
+   
+   return value_str;
+}
+
+
+int16_t checkParamsDb(char *sqlite3_db_param_path, int16_t *cause)
+ /**
+  * \brief     Contrôle l'état de la base de parametrage.
+  * \details   pour l'instant contrôle de la présence et de l'accessibilité en lecture/écriture uniquement
+  * \param     sqlite3_db_param_path  chemin complet vers le fichier de la base
+  * \param     cause                  en cas d'erreur contient le code de l'erreur
+  * \return    0 si OK, -1 en cas d'erreur.
+  */
+{
+   sqlite3 *sqlite3_param_db;
+
+   if( access( sqlite3_db_param_path, F_OK) == -1 ) // file exist ?
+   {
+      VERBOSE(1) fprintf(stderr,"%s (%s) : \"%s\" n'existe pas ou n'est pas accessible.\n",ERROR_STR,__func__,sqlite3_db_param_path);
+      *cause=1;
+      return -1;
+   }
+   
+   if( access( sqlite3_db_param_path, R_OK | W_OK) == -1 )
+   {
+      VERBOSE(1) fprintf(stderr,"%s (%s) : \"%s\" doit être accessible en lecture/ecriture.\n",ERROR_STR,__func__,sqlite3_db_param_path);
+      *cause=2;
+      return -1;
+   }
+
+   int16_t ret = sqlite3_open_v2(sqlite3_db_param_path, &sqlite3_param_db, SQLITE_OPEN_READONLY, NULL);
+   if(ret)
+   {
+      VERBOSE(5) fprintf (stderr, "%s (%s) : sqlite3_open - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
+      *cause=3;
+      return -1;
+   }
+
+   // contrôler le contenu de la base ... à faire ???
+   //printf("Existe : %d\n",tableExist(sqlite3_param_db, "toto"));
+   //printf("Existe : %d\n",tableExist(sqlite3_param_db, "interfaces"));
+   
+   sqlite3_close(sqlite3_param_db);
+   
+   return 0;
+}
+
+
+int16_t checkInstallationPaths(char *base_path, int16_t try_to_create_flag)
+ /**
+  * \brief     Vérifie que l'installation est conforme aux recommendations.
+  * \details   Les répertoires suivants doivent exister et être accessibles en lecture/écriture :
+  *    Si BASEPATH != /usr
+  *            BASEPATH/bin
+  *            BASEPATH/etc
+  *            BASEPATH/lib
+  *            BASEPATH/lib/plugins
+  *            BASEPATH/var
+  *            BASEPATH/var/db
+  *            BASEPATH/var/log
+  *            BASEPATH/gui
+  *   Si BASEPATH == /usr (installation traditionnelle des distributions linux)
+  *            /usr/bin
+  *            /etc
+  *            /usr/lib
+  *            /usr/lib/mea-plugins
+  *            /var
+  *            /var/db
+  *            /var/log
+  *            /usr/lib/mea-gui
+  *   Mes recommendations :
+  *      BASEPATH=/usr/local/mea-edomus ou /opt/mea-edomus ou /apps/mea-edomus
+  * \param     basepath            chemin vers le répertoire de base de l'installation
+  * \param     try_to_create_flag  création ou non des répertoires s'il n'existe pas (0 = pas de création, 1 = création).
+  * \return    0 si l'installation est ok, -1 = erreur bloquante, -2 = au moins un répertoire n'existe pas
+  */
+{
+    const char *default_paths_list[]={NULL,"bin","etc","lib","lib/mea-plugins","var","var/db","var/log","lib/mea-gui",NULL};
+    const char *usr_paths_list[]={"/etc","/usr/lib/mea-plugins","/var/db","/var/log","/usr/lib/mea-gui",NULL};
+    
+    char **paths_list;
+    
+    char path_to_check[1024];
+    int16_t flag=0;
+    int16_t is_usr_flag;
+    int16_t n;
+    
+    if(strcmp("/",base_path)==0 || base_path[0]==0) // root et pas de base_path interdit !!!
+    {
+        VERBOSE(2) fprintf(stderr,"%s (%s) : root (\"/\") and empty string (\"\") not allowed for base path\n",ERROR_STR,__func__);
+        return -1;
+    }
+
+    if(strcmp(usr_str,base_path)==0) // l'installation dans /usr n'a pas la même configuration de répertoire
+    {
+        paths_list=(char **)usr_paths_list;
+        is_usr_flag=1;
+    }
+    else
+    {
+        paths_list=(char **)default_paths_list;
+        paths_list[0]=base_path; // on ajoute basepath pas dans la liste pour éventuellement pouvoir le créer.
+        is_usr_flag=0;
+    }
+        
+    for(int16_t i=0;paths_list[i];i++)
+    {
+        if(is_usr_flag || i==0) // si i==0 c'est basepath
+            n=snprintf(path_to_check,sizeof(path_to_check),"%s",paths_list[i]);
+       else
+            n=snprintf(path_to_check, sizeof(path_to_check), "%s/%s", base_path, paths_list[i]);
+        if(n<0 || n==sizeof(path_to_check))
+        {
+            VERBOSE(9) {
+               fprintf (stderr, "%s (%s) : snprintf - ", DEBUG_STR,__func__);
+               perror("");
+            }
+            return -1;
+        }
+        int16_t func_ret=access(path_to_check, R_OK | W_OK | X_OK);
+        if( func_ret == -1 ) // pas d'acces ou pas lecture/ecriture
+        {
+            if(errno == ENOENT) // le repertoire n'existe pas
+            {
+                // si option de creation on essaye
+                if(try_to_create_flag && mkdir(path_to_check, S_IRWXU | // xwr pour user
+                                                              S_IRGRP | S_IXGRP | // x_r pour group
+                                                              S_IROTH | S_IXOTH)) // x_r pour other
+                {
+                    VERBOSE(2) {
+                        fprintf(stderr,"%s (%s) : %s - ",INFO_STR,__func__,path_to_check);
+                        perror("");
+                    }
+                    flag=-1; // pas les droits en écriture nécessaire
+                }
+                else
+                    if(flag!=-1)
+                        flag=-2; // repertoire n'existe pas. 1 (erreur de droit irattapable a priorité sur 2 ...)
+            }
+            else
+            {
+                VERBOSE(2) {
+                    fprintf(stderr,"%s (%s) : %s - ",INFO_STR,__func__,path_to_check);
+                    perror("");
+                }
+                flag=-1; // pas droit en écriture
+            }
+        }
+    }
+    return flag;
 }
 
 
@@ -156,10 +345,17 @@ int16_t create_php_ini(char *phpini_path)
    
    char phpini[1024];
    
-   sprintf(phpini,"%s/php.ini",phpini_path);
+   int16_t n=snprintf(phpini,sizeof(phpini),"%s/php.ini",phpini_path);
+   if(n<0 || n==sizeof(phpini))
+   {
+      VERBOSE(9) {
+         fprintf (stderr, "%s (%s) : snprintf - ", DEBUG_STR,__func__);
+         perror("");
+      }
+      return 1;
+   }
 
    int16_t rc=lineToFile(phpini,lines);
-   
    if(rc)
    {
       VERBOSE(5) {
@@ -313,17 +509,37 @@ int populateMeaTypes(sqlite3 *sqlite3_param_db)
    {
       int16_t ret;
       
-      sprintf(sql,"DELETE FROM 'types' WHERE name='%s'",types_values[i].name);
+      int16_t n=snprintf(sql,sizeof(sql),"DELETE FROM 'types' WHERE name='%s'",types_values[i].name);
+      if(n<0 || n==sizeof(sql))
+      {
+         VERBOSE(9) {
+            fprintf (stderr, "%s (%s) : snprintf - ", DEBUG_STR,__func__);
+            perror("");
+         }
+         rc=1;
+         break;
+      }
+
       ret = sqlite3_exec(sqlite3_param_db, sql, NULL, NULL, &err);
       if( ret != SQLITE_OK )
       {
          VERBOSE(9) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
          sqlite3_free(err);
+         rc=1;
          break;
       }
       
-      sprintf(sql, "INSERT INTO 'types' (id_type,name,description,parameters,flag) VALUES (%d,'%s','%s','%s', '%s')",types_values[i].id_type,types_values[i].name,types_values[i].description,types_values[i].parameters,types_values[i].flag);
-      
+      n=snprintf(sql, sizeof(sql), "INSERT INTO 'types' (id_type,name,description,parameters,flag) VALUES (%d,'%s','%s','%s', '%s')",types_values[i].id_type,types_values[i].name,types_values[i].description,types_values[i].parameters,types_values[i].flag);
+      if(n<0 || n==sizeof(sql))
+      {
+         VERBOSE(9) {
+            fprintf (stderr, "%s (%s) : snprintf - ", DEBUG_STR,__func__);
+            perror("");
+         }
+         rc=1;
+         break;
+      }
+
       ret = sqlite3_exec(sqlite3_param_db, sql, NULL, NULL, &err);
       if( ret != SQLITE_OK )
       {
@@ -337,173 +553,125 @@ int populateMeaTypes(sqlite3 *sqlite3_param_db)
 }
 
 
-int16_t init_db(char *sqlite3_db_param_path,
-                char *base_path,
-                char *phpcgi_path,
-                char *phpini_path,
-                char *gui_path,
-                char *plugins_path,
-                char *log_path)
+int16_t init_db(char **params_list, char **keys)
  /**
   * \brief     initialisation de la table "application_parameters".
-  * \details   Les différents paramètres nécessaires au lancement de l'application sont insérés dans la base
-  * \param     sqlite3_db_param_path  chemin vers la base
-  * \param     base_path              chemin de base de l'installation
-  * \param     phpcgi_path            chemin vers le répertoire contenant le "php-cgi"
-  * \param     phpini_path            chemin vers le répertoire contenant le "php.ini"
-  * \param     gui_path               chemin vers le répertoire racine de l'arboressance de l'interface graphique
-  * \param     plugins_path           chemin vers le répertoire contenant les plugins python
-  * \param     log_path               chemin vers le répertoire des logs
+  * \details   Les différents paramètres nécessaires au lancement de l'application sont insérés dans la base. La base en complétement initialisée. Si elle existe deja elle est supprimer et recréé.
+  * \param     params_list  liste de parametres à mettre dans la base
   * \return    0 si OK, un code de 1 à 10 en cas d'erreur.
   */
 {
-   struct key_value_complement_s {
-      char *key;
-      char *value;
-      char *complement;
-   };
-   struct key_value_complement_s keys_values_complement[] = {
-      /* 00 */ {"BUFFERDB",NULL,NULL},
-      /* 01 */ {"DBSERVER",NULL,NULL},
-      /* 02 */ {"DATABASE",NULL,NULL},
-      /* 03 */ {"USER",NULL,NULL},
-      /* 04 */ {"PASSWORD",NULL,NULL},
-      /* 05 */ {"VENDORID","mea",NULL},
-      /* 06 */ {"DEVICEID","edomus",NULL},
-      /* 07 */ {"INSTANCEID","demo",NULL},
-      /* 08 */ {"PLUGINPATH",NULL,NULL},
-      /* 09 */ {"PHPINIPATH",NULL,NULL},
-      /* 10 */ {"PHPCGIPATH",NULL,NULL},
-      /* 11 */ {"GUIPATH",NULL,NULL},
-      /* 12 */ {"DBPORT",NULL,NULL},
-      /* 13 */ {"LOGPATH",NULL,NULL},
-      /* 14 */ {NULL,NULL,NULL}
-   };
-    
-   char *queries_db_end_path="var/db/mea-queries.db";
-    
    sqlite3 *sqlite3_param_db=NULL;
    int16_t retcode=0;
-   char *queries_db_path=NULL;
-
-   if(phpini_path)
-      keys_values_complement[9].value=phpini_path;
-   if(phpcgi_path)
-      keys_values_complement[10].value=phpcgi_path;
-   if(gui_path)
-      keys_values_complement[11].value=gui_path;
-   if(plugins_path)
-      keys_values_complement[8].value=plugins_path;
-   if(log_path)
-      keys_values_complement[13].value=log_path;
-
-   if(base_path)
-   {
-      int16_t l=strlen(base_path);
-        
-      // queries db
-      queries_db_path=malloc(l+strlen(queries_db_end_path)+1);
-      if(strcmp(usr_str,base_path)==0)
-         sprintf(queries_db_path,"/%s",queries_db_end_path);
-      else
-         sprintf(queries_db_path,"%s/%s",base_path,queries_db_end_path);
-      keys_values_complement[0].value=queries_db_path;
-   }
-   else
-   {
-      retcode=1;
-      goto exit_init;
-   }
-    
-   // suppression de la base si elle existe déjà
    int16_t func_ret;
-   func_ret = sqlite3_dropDatabase(sqlite3_db_param_path);
+   char sql_query[1024];
+   char *errmsg = NULL;    
+
+   // suppression de la base si elle existe déjà
+   func_ret = sqlite3_dropDatabase(params_list[SQLITE3_DB_PARAM_PATH]);
    if(func_ret!=0 && errno!=ENOENT)
    {
-      retcode=2;
-      goto exit_init;
+      retcode=1;
+      goto exit_init_db;
    }
     
    // création de la base
-   int16_t nerr = sqlite3_open(sqlite3_db_param_path, &sqlite3_param_db);
+   int16_t nerr = sqlite3_open(params_list[SQLITE3_DB_PARAM_PATH], &sqlite3_param_db);
    if(nerr)
    {
       VERBOSE(5) fprintf (stderr, "%s (%s) : sqlite3_open - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
-      retcode=3;
-      goto exit_init;
+      retcode=2;
+      goto exit_init_db;
    }
     
    // création des tables
    if(createMeaTables(sqlite3_param_db))
    {
-      retcode=4;
-      goto exit_init;
+      retcode=3;
+      goto exit_init_db;
    }
     
    // Chargement des types standards
    if(populateMeaTypes(sqlite3_param_db))
    {
-      retcode=5;
-      goto exit_init;
+      retcode=4;
+      goto exit_init_db;
    }
    
    if(populateMeaLocations(sqlite3_param_db))
    {
-      retcode=6;
-      goto exit_init;
+      retcode=5;
+      goto exit_init_db;
    }
 
    if(populateMeaUsers(sqlite3_param_db))
    {
-      retcode=7;
-      goto exit_init;
+      retcode=6;
+      goto exit_init_db;
    }
 
-    
-    // initialisation des paramètres de l'application
-    char sql_query[1024];
-    char *errmsg = NULL;
-    
-    for(int16_t i=0;keys_values_complement[i].key;i++)
-    {
-        int16_t func_ret;
-        int16_t n=snprintf(sql_query,sizeof(sql_query),"DELETE FROM 'application_parameters' WHERE key='%s'",keys_values_complement[i].key);
-        if(n<0 || n==sizeof(sql_query))
-        {
-            retcode=8;
-            goto exit_init;
-        }
-        func_ret = sqlite3_exec(sqlite3_param_db, sql_query, NULL, NULL, &errmsg);
-        if( func_ret != SQLITE_OK )
-        {
+   // initialisation des paramètres de l'application
+   char *value;
+   for(int16_t i=0;i<MAX_LIST_SIZE;i++)
+   {
+      if(keys[i])
+      {
+         int16_t n=snprintf(sql_query,sizeof(sql_query),"DELETE FROM 'application_parameters' WHERE key='%s'",keys[i]);
+         if(n<0 || n==sizeof(sql_query))
+         {
+            VERBOSE(9) {
+               fprintf (stderr, "%s (%s) : snprintf - ", DEBUG_STR,__func__);
+               perror("");
+            }
+            retcode=7;
+            goto exit_init_db;
+         }
+         func_ret = sqlite3_exec(sqlite3_param_db, sql_query, NULL, NULL, &errmsg);
+         if( func_ret != SQLITE_OK )
+         {
             VERBOSE(9) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__, errmsg);
             sqlite3_free(errmsg);
-        }
+         }
         
-        n=sprintf(sql_query, "INSERT INTO 'application_parameters' (key,value,complement) VALUES ('%s','%s','%s')",keys_values_complement[i].key, keys_values_complement[i].value, keys_values_complement[i].complement);
-        if(n<0 || n==sizeof(sql_query))
-        {
-            retcode=9;
-            goto exit_init;
-        }
-        func_ret = sqlite3_exec(sqlite3_param_db, sql_query, NULL, NULL, &errmsg);
-        if( func_ret != SQLITE_OK )
-        {
+         value=params_list[i];
+         if(!value)
+            value="";
+         n=snprintf(sql_query, sizeof(sql_query), "INSERT INTO 'application_parameters' (id,key,value,complement) VALUES (%d,'%s','%s','%s')",i,keys[i], value, "");
+         if(n<0 || n==sizeof(sql_query))
+         {
+            VERBOSE(9) {
+               fprintf (stderr, "%s (%s) : snprintf - ", DEBUG_STR,__func__);
+               perror("");
+            }
+            retcode=8;
+            goto exit_init_db;
+         }
+         func_ret = sqlite3_exec(sqlite3_param_db, sql_query, NULL, NULL, &errmsg);
+         if( func_ret != SQLITE_OK )
+         {
             VERBOSE(9) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__, errmsg);
             sqlite3_free(errmsg);
-            retcode=10;
+            retcode=9;
             break;
-        }
-    }
-exit_init:
+         }
+      }
+   }
+exit_init_db:
     if(sqlite3_param_db)
         sqlite3_close(sqlite3_param_db);
-    if(queries_db_path)
-        free(queries_db_path);
     return retcode;
 }
 
 
+ /**
+  * \brief     construit un chemin à partir de critère et insere le résultat dans la liste des parametres. Si une valeur existe déjà elle n'est pas modifiée.
+  * \details   Cette fonction est utilisée par autoInit() pour simplifier le code. Elle n'a pas vocation a être utilisée par d'autres fonctions.
+  * \param     params_list  liste de tous les parametres
+  * \param     index        index dans params_list de la valeur à modifier.
+  * \param     path         "début" du chemin à construire.
+  * \param     end_path     deuxième partie du path à construire.
+  * \return    0 si OK, -1 en cas d'erreur.
+  */
 int _construct_path(char **params_list, int16_t index, char *path, char *end_path)
 {
    char tmp_str[1024];
@@ -511,7 +679,11 @@ int _construct_path(char **params_list, int16_t index, char *path, char *end_pat
    {
       int16_t n=snprintf(tmp_str,sizeof(tmp_str), "%s/%s", path, end_path);
       if(n<0 || n==sizeof(tmp_str)) {
-         return -1;
+         VERBOSE(9) {
+            fprintf (stderr, "%s (%s) : snprintf - ", DEBUG_STR,__func__);
+            perror("");
+         }
+        return -1;
       }
       params_list[index]=malloc(n+1);
       if(!params_list[index]) {
@@ -523,6 +695,14 @@ int _construct_path(char **params_list, int16_t index, char *path, char *end_pat
 }
 
 
+ /**
+  * \brief     construit une chaine et insere le résultat dans la liste des parametres. Si une valeur existe déjà elle n'est pas modifiée.
+  * \details   Cette fonction est utilisée par autoInit() pour simplifier le code. Elle n'a pas vocation a être utilisée par d'autres fonctions.
+  * \param     params_list  liste de tous les parametres
+  * \param     index        index dans params_list de la valeur à modifier.
+  * \param     value        chaine à insérer.
+  * \return    0 si OK, -1 en cas d'erreur.
+  */
 int _construct_string(char **params_list, int16_t index, char *value)
 {
    if(!params_list[index])
@@ -534,6 +714,16 @@ int _construct_string(char **params_list, int16_t index, char *value)
 }
 
 
+ /**
+  * \brief     lit un chemin depuis l'entrée standard et insere le résultat dans la liste. Si une valeur existe déjà dans la list, elle est proposé comme valeur par défaut.
+  * \details   Cette fonction est utilisée par interactiveInit() pour simplifier le code. Elle n'a pas vocation a être utilisée par d'autres fonctions.
+  * \param     params_list  liste de tous les parametres
+  * \param     index        index dans params_list de la valeur à modifier.
+  * \param     base_path    "début" du chemin à proposer.
+  * \param     dir_name     deuxième partie du chemin à proposer.
+  * \param     question     question à poser.
+  * \return    0 si OK, -1 en cas d'erreur.
+  */
 int _read_path(char **params_list, uint16_t index, char *base_path, char *dir_name, char *question)
 {
    char tmp_str[1024];
@@ -554,8 +744,44 @@ int _read_path(char **params_list, uint16_t index, char *base_path, char *dir_na
 
 
 int _read_string(char **params_list, uint16_t index, char *default_value, char *question)
+ /**
+  * \brief     lit une chaine sur l'entrée standard et insere le résultat dans la liste des parametres. Si une valeur existe déjà elle proposée comme valeur par defaut.
+  * \details   Cette fonction est utilisée par interactiveInit() pour simplifier le code. Elle n'a pas vocation a être utilisée par d'autres fonctions.
+  * \param     params_list    liste de tous les parametres
+  * \param     index          index dans params_list de la valeur à modifier.
+  * \param     default_value  chaine à proposer si params_list[index]==NULL.
+  * \param     question       question à poser.
+  * \return    0 si OK, -1 en cas d'erreur.
+  */
 {
    char tmp_str[1024];
+   if(params_list[index])
+   {
+      strncpy(tmp_str, params_list[index],sizeof(tmp_str));
+      free(params_list[index]);
+      params_list[index]=NULL;
+   }
+   else
+      strncpy(tmp_str,default_value,sizeof(tmp_str));
+   params_list[index]=get_and_malloc_string(tmp_str, question);
+   
+   return 0;
+}
+
+
+int _read_integer(char **params_list, uint16_t index, int16_t default_value, char *question)
+ /**
+  * \brief     lit un entier sur l'entrée standard et insere le résultat dans la liste des parametres. Si une valeur existe déjà elle proposée comme valeur par defaut.
+  * \details   Cette fonction est utilisée par interactiveInit() pour simplifier le code. Elle n'a pas vocation a être utilisée par d'autres fonctions.
+  * \param     params_list    liste de tous les parametres
+  * \param     index          index dans params_list de la valeur à modifier.
+  * \param     default_value  chaine à proposer si params_list[index]==NULL.
+  * \param     question       question à poser.
+  * \return    0 si OK, -1 en cas d'erreur.
+  */
+{
+   char tmp_str[80];
+   
    if(params_list[index])
    {
       strcpy(tmp_str, params_list[index]);
@@ -564,19 +790,20 @@ int _read_string(char **params_list, uint16_t index, char *default_value, char *
    }
    else
    {
-      strncpy(tmp_str,default_value,sizeof(tmp_str));
+      snprintf(tmp_str,sizeof(tmp_str),"%d",default_value);
    }
+   
    params_list[index]=get_and_malloc_string(tmp_str, question);
    
    return 0;
 }
 
 
-int16_t autoInit(char **params_list)
+int16_t autoInit(char **params_list, char **keys)
  /**
   * \brief     réalise une configuration initiale automatique de l'application.
   * \details   contrôle installation, création des répertoires (si absent), création des bases et tables, alimentation des tables 
-  * \param     params_list  chemin complet vers le fichier de la base
+  * \param     params_list  liste des paramètres
   * \return    0 si OK, code > 0 en cas d'erreur.
   */
 {
@@ -590,7 +817,9 @@ int16_t autoInit(char **params_list)
    else
       p_str=params_list[MEA_PATH];
 
-
+   //
+   // Mise à jour de params_list avec les valeurs par defaut pour les entrées "vide" (NULL)
+   //
    _construct_string(params_list, VENDOR_ID,   "mea");
    _construct_string(params_list, DEVICE_ID,   "domus");
    _construct_string(params_list, INSTANCE_ID, "home");
@@ -607,12 +836,16 @@ int16_t autoInit(char **params_list)
    _construct_string(params_list, MYSQL_USER,      "meaedomus");
    _construct_string(params_list, MYSQL_PASSWD,    "meaedomus");
    
-   _construct_path(params_list,   SQLITE3_DB_BUFF_PATH, p_str, "var/db");
-   _construct_string(params_list, SQLITE3_DB_BUFF_NAME, "queries.db");
+   _construct_path(params_list, SQLITE3_DB_BUFF_PATH, p_str, "var/db/queries.db");
    
    _construct_path(params_list, LOG_PATH, p_str, "var/log");
 
-
+   _construct_string(params_list, VERBOSELEVEL, "1");
+   _construct_string(params_list, GUIPORT,      "8083");
+   
+   //
+   // Contrôles et créations de fichiers
+   //
    snprintf(to_check,sizeof(to_check),"%s/php.ini",params_list[PHPINI_PATH]);
    if( access(to_check, R_OK) == -1 )
    {
@@ -632,14 +865,17 @@ int16_t autoInit(char **params_list)
       VERBOSE(1) fprintf(stderr,"%s : no 'cgi-bin', gui will not start.\n",WARNING_STR);
    }
 
-   retcode=init_db(params_list[SQLITE3_DB_PARAM_PATH], params_list[MEA_PATH], params_list[PHPCGI_PATH], params_list[PHPINI_PATH], params_list[GUI_PATH], params_list[PLUGINS_PATH], params_list[LOG_PATH])+11;
+   //
+   // mise à jour de la base (table application_parameters
+   //
+   retcode=init_db(params_list, keys)+11;
 
 autoInit_exit:
    return retcode;
 }
 
 
-int16_t interactiveInit(char **params_list)
+int16_t interactiveInit(char **params_list, char **keys)
  /**
   * \brief     réalise une configuration initiale interactive de l'application.
   * \details   création des répertoires, création des bases et tables, alimentation des tables à partir de données saisies par l'utilisateur
@@ -672,10 +908,12 @@ int16_t interactiveInit(char **params_list)
    _read_string(params_list, MYSQL_USER,      "meaedomus", "mysql user name");
    _read_string(params_list, MYSQL_PASSWD,    "meaedomus", "mysql user password");
 
-   _read_path(params_list,   SQLITE3_DB_BUFF_PATH, p_str,        "var/db", "PATH to sqlite3 buffer db");
-   _read_string(params_list, SQLITE3_DB_BUFF_NAME, "queries.db", "sqlite3 buffer name");
+   _read_path(params_list,   SQLITE3_DB_BUFF_PATH, p_str,        "var/db/queries.db", "PATH to sqlite3 buffer db");
 
    _read_path(params_list,   LOG_PATH,        p_str, "var/log", "PATH to logs directory");
+
+   _read_integer(params_list, VERBOSELEVEL, 1, "Verbose level");
+   _read_integer(params_list, GUIPORT, 8083, "web interface port");
 
    // contrôle des données
    snprintf(to_check,sizeof(to_check), "%s/php-cgi", params_list[PHPCGI_PATH]);
@@ -683,7 +921,7 @@ int16_t interactiveInit(char **params_list)
    {
       VERBOSE(9) fprintf(stderr, "%s (%s) : %s/php-cgi - ", INFO_STR, __func__, params_list[PHPCGI_PATH]);
       VERBOSE(9) perror("");
-      VERBOSE(1) fprintf(stderr,"%s : no 'php-cgi', gui will not start.\n",WARNING_STR);
+      VERBOSE(1) fprintf(stderr,"%s (%s) : no 'php-cgi', gui will not start.\n",WARNING_STR,__func__);
    }
 
    snprintf(to_check,sizeof(to_check),"%s/php.ini",params_list[PHPINI_PATH]);
@@ -691,21 +929,21 @@ int16_t interactiveInit(char **params_list)
    {
       VERBOSE(9) fprintf(stderr,"%s (%s) : %s/php.ini - ",INFO_STR,__func__,params_list[PHPINI_PATH]);
       VERBOSE(9) perror("");
-      VERBOSE(1) fprintf(stderr,"%s : no 'php.ini' exist, create one.\n",WARNING_STR);
+      VERBOSE(1) fprintf(stderr,"%s (%s) : no 'php.ini' exist, create one.\n",WARNING_STR,__func__);
       create_php_ini(params_list[PHPINI_PATH]);
    }
 
    // insertion des données dans la base
-   retcode=init_db(params_list[SQLITE3_DB_PARAM_PATH], params_list[MEA_PATH], params_list[PHPCGI_PATH], params_list[PHPINI_PATH], params_list[GUI_PATH], params_list[PLUGINS_PATH], params_list[LOG_PATH])+11;
+   retcode=init_db(params_list, keys)+11;
 
    return retcode;
 }
 
 
-int16_t initMeaEdomus(int16_t mode, char **params_list)
+int16_t initMeaEdomus(int16_t mode, char **params_list, char **keys)
  /**
-  * \brief     prépare et choisi le type d'initialisation à réaliser.
-  * \details   c'est dans cette fonction que la création des répertoires peut être réalisées
+  * \brief     Initialisation (ou réinitialisation) de la base de paramétrage de l'application
+  * \details   Prépare et choisi le type d'initialisation à réaliser. C'est dans cette fonction que la création des répertoires peut être réalisées
   * \param     mode         mode d'initialisation : 0 = interactif, 1 = automatique
   * \param     params_list  liste de tous les parametres
   * \return    0 si OK, -1 en cas d'erreur.
@@ -725,7 +963,7 @@ int16_t initMeaEdomus(int16_t mode, char **params_list)
         {
             return 1; // les répertoires n'existent pas et n'ont pas pu être créés, installation automatique impossible
         }
-        func_ret=autoInit(params_list);
+        func_ret=autoInit(params_list, keys);
     }
     else // interactif
     {
@@ -745,7 +983,7 @@ int16_t initMeaEdomus(int16_t mode, char **params_list)
         }
         if(installPathFlag==-1)
             printf("Certains répertoire recommandés ne sont pas accessible en lecture/écriture ou sont absents. Vous devrez choisir d'autres chemins pour l'installation\n");
-        func_ret=interactiveInit(params_list);
+        func_ret=interactiveInit(params_list, keys);
     }
     if(func_ret)
         return -1;
@@ -754,150 +992,57 @@ int16_t initMeaEdomus(int16_t mode, char **params_list)
 }
 
 
-int16_t updateMeaEdomus(char **params_list)
-{
-   return 0;
-}
-
-
-int16_t checkParamsDb(char *sqlite3_db_param_path, int16_t *cause)
+int16_t updateMeaEdomus(char **params_list, char **keys)
  /**
-  * \brief     Contrôle l'état de la base de parametrage.
-  * \details   pour l'instant contrôle de la présence et de l'accessibilité en lecture/écriture uniquement
-  * \param     sqlite3_db_param_path  chemin complet vers le fichier de la base
-  * \param     cause                  en cas d'erreur contient le code de l'erreur
+  * \brief     mise à jour d'un ou plusieurs paramètres de l'application.
+  * \details   les paramètres à mettre à jour se trouve dans params_list (uniquement entrées non null prises en compte)
+  * \param     params_list  liste de tous les parametres
   * \return    0 si OK, -1 en cas d'erreur.
   */
 {
-   sqlite3 *sqlite3_param_db;
-
-   if( access( sqlite3_db_param_path, F_OK) == -1 ) // file exist ?
-   {
-      VERBOSE(1) fprintf(stderr,"%s (%s) : \"%s\" n'existe pas ou n'est pas accessible.\n",ERROR_STR,__func__,sqlite3_db_param_path);
-      *cause=1;
-      return -1;
-   }
+   sqlite3 *sqlite3_param_db=NULL;
+   char sql_query[1024];
+   int16_t retcode=0;
+   char *errmsg = NULL;    
+   int16_t func_ret;
    
-   if( access( sqlite3_db_param_path, R_OK | W_OK) == -1 )
-   {
-      VERBOSE(1) fprintf(stderr,"%s (%s) : \"%s\" doit etre accessible en lecture/ecriture.\n",ERROR_STR,__func__,sqlite3_db_param_path);
-      *cause=2;
-      return -1;
-   }
-
-   int16_t ret = sqlite3_open_v2(sqlite3_db_param_path, &sqlite3_param_db, SQLITE_OPEN_READONLY, NULL);
-   if(ret)
+   int16_t nerr = sqlite3_open(params_list[SQLITE3_DB_PARAM_PATH], &sqlite3_param_db);
+   if(nerr)
    {
       VERBOSE(5) fprintf (stderr, "%s (%s) : sqlite3_open - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
-      *cause=3;
-      return -1;
+      retcode=1;
+      goto exit_updateMeaEdomus;
    }
 
-   // contrôler le contenu de la base ... à faire ???
-   //printf("Existe : %d\n",tableExist(sqlite3_param_db, "toto"));
-   //printf("Existe : %d\n",tableExist(sqlite3_param_db, "interfaces"));
-   
-   sqlite3_close(sqlite3_param_db);
-   
-   return 0;
+   for(int16_t i=0;i<MAX_LIST_SIZE;i++)
+   {
+      if(params_list[i] && keys[i])
+      {
+         int16_t n=snprintf(sql_query, sizeof(sql_query), "REPLACE INTO 'application_parameters' (id,key,value,complement) VALUES ('%d','%s','%s','%s')",i,keys[i], params_list[i], "");
+         if(n<0 || n==sizeof(sql_query))
+         {
+            VERBOSE(9) {
+               fprintf (stderr, "%s (%s) : snprintf - ", DEBUG_STR,__func__);
+               perror("");
+            }
+            retcode=2;
+            goto exit_updateMeaEdomus;
+         }
+         func_ret = sqlite3_exec(sqlite3_param_db, sql_query, NULL, NULL, &errmsg);
+         if( func_ret != SQLITE_OK )
+         {
+            VERBOSE(9) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__, errmsg);
+            sqlite3_free(errmsg);
+            retcode=3;
+            break;
+         }
+      }
+   }
+
+exit_updateMeaEdomus:
+   if(sqlite3_param_db)
+        sqlite3_close(sqlite3_param_db);
+   return retcode;
 }
 
 
-int16_t checkInstallationPaths(char *base_path, int16_t try_to_create_flag)
- /**
-  * \brief     Verifie que l'installation est conforme aux recommendations.
-  * \details   Les répertoires suivants doivent exister et etre accessibles en lecture/écriture :
-  *    Si BASEPATH != /usr
-  *            BASEPATH/bin
-  *            BASEPATH/etc
-  *            BASEPATH/lib
-  *            BASEPATH/lib/plugins
-  *            BASEPATH/var
-  *            BASEPATH/var/db
-  *            BASEPATH/var/log
-  *            BASEPATH/gui
-  *   Si BASEPATH == /usr (installation traditionnelle des distributions linux)
-  *            /usr/bin
-  *            /etc
-  *            /usr/lib
-  *            /usr/lib/mea-plugins
-  *            /var
-  *            /var/db
-  *            /var/log
-  *            /usr/lib/mea-gui
-  *   Mes recommendations :
-  *      BASEPATH=/usr/local/mea-edomus ou /opt/mea-edomus ou /apps/mea-edomus
-  * \param     basepath            chemin vers le répertoire de base de l'installation
-  * \param     try_to_create_flag  création ou non des répertoires s'il n'existe pas (0 = pas de création, 1 = création).
-  * \return    0 si l'installation est ok, -1 = erreur bloquante, -2 = au moins un répertoire n'existe pas
-  */
-{
-    const char *default_paths_list[]={NULL,"bin","etc","lib","lib/mea-plugins","var","var/db","var/log","lib/mea-gui",NULL};
-    const char *usr_paths_list[]={"/etc","/usr/lib/mea-plugins","/var/db","/var/log","/usr/lib/mea-gui",NULL};
-    
-    char **paths_list;
-    
-    char path_to_check[1024];
-    int16_t flag=0;
-    int16_t is_usr_flag;
-    int16_t n;
-    
-    if(strcmp("/",base_path)==0 || base_path[0]==0) // root et pas de base_path interdit !!!
-    {
-        VERBOSE(2) fprintf(stderr,"%s (%s) : root (\"/\") and empty string (\"\") not allowed for base path\n",ERROR_STR,__func__);
-        return -1;
-    }
-
-    if(strcmp(usr_str,base_path)==0) // l'installation dans /usr n'a pas la même configuration de répertoire
-    {
-        paths_list=(char **)usr_paths_list;
-        is_usr_flag=1;
-    }
-    else
-    {
-        paths_list=(char **)default_paths_list;
-        paths_list[0]=base_path; // on ajoute basepath pas dans la liste pour éventuellement pouvoir le créer.
-        is_usr_flag=0;
-    }
-        
-    for(int16_t i=0;paths_list[i];i++)
-    {
-        if(is_usr_flag || i==0) // si i==0 c'est basepath
-            n=snprintf(path_to_check,sizeof(path_to_check),"%s",paths_list[i]);
-       else
-            n=snprintf(path_to_check, sizeof(path_to_check), "%s/%s", base_path, paths_list[i]);
-        if(n<0 || n==sizeof(path_to_check))
-            return -1;
-        
-        int16_t func_ret=access(path_to_check, R_OK | W_OK | X_OK);
-        if( func_ret == -1 ) // pas d'acces ou pas lecture/ecriture
-        {
-            if(errno == ENOENT) // le repertoire n'existe pas
-            {
-                // si option de creation on essaye
-                if(try_to_create_flag && mkdir(path_to_check, S_IRWXU | // xwr pour user
-                                                              S_IRGRP | S_IXGRP | // x_r pour group
-                                                              S_IROTH | S_IXOTH)) // x_r pour other
-                {
-                    VERBOSE(2) {
-                        fprintf(stderr,"%s (%s) : %s - ",INFO_STR,__func__,path_to_check);
-                        perror("");
-                    }
-                    flag=-1; // pas les droits en écriture nécessaire
-                }
-                else
-                    if(flag!=-1)
-                        flag=-2; // repertoire n'existe pas. 1 (erreur de droit irattapable a priorité sur 2 ...)
-            }
-            else
-            {
-                VERBOSE(2) {
-                    fprintf(stderr,"%s (%s) : %s - ",INFO_STR,__func__,path_to_check);
-                    perror("");
-                }
-                flag=-1; // pas droit en écriture
-            }
-        }
-    }
-    return flag;
-}

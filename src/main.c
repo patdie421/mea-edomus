@@ -4,7 +4,6 @@
 //  Created by Patrice DIETSCH on 08/07/12.
 //  Copyright (c) 2012 -. All rights reserved.
 //
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -40,38 +39,124 @@
 
 
 tomysqldb_md_t *myd;
-sqlite3 *sqlite3_param_db; // descritpteur SQLITE
-queue_t *interfaces;
+//sqlite3 *sqlite3_param_db; // descritpteur SQLITE
+queue_t *interfaces; // globale car doit être accessible par les gestionnaires de signaux
+sqlite3 *sqlite3_param_db; // globale car doit être accessible par les gestionnaires de signaux
 
 pthread_t *xPLServer_thread=NULL;
 pthread_t *pythonPluginServer_thread=NULL;
 // pthread_t *counters_thread=NULL;
 
-char *params_list[MAX_LIST_SIZE];
-
-char *phpcgibin=NULL;
+char *param_names[MAX_LIST_SIZE]; // liste des noms de paramètres dans la base
+char *params_list[MAX_LIST_SIZE]; // liste des valeurs de paramètres
 
 void usage(char *cmd)
 /**
- * \brief     Affiche les "usages" de mea_edomus
- * \param     cmd    nom d'appel de mea_edomus (argv[0])
+ * \brief     Affiche les "usages" de mea-edomus
+ * \param     cmd    nom d'appel de mea-edomus (argv[0])
  */
 {
-   fprintf(stderr,"usage : %s -i -a <sqlite3_db_path>\n",cmd);
+   char *usage_text[]={
+      "",
+      "gestion de capteurs/actionneurs (xbee, arduino, ...) commandés par des messages xPL",
+      "",
+      "Option de lancement de l'application : ",
+      "  --basepath, -p      : chemin de l'installation",
+      "  --paramsdb, -d      : chemin et nom la base de paramétrage",
+      "  --config, -c        : fichier de configuration (mea-edomus.ini peut contenir contient basepath, paramsdb et guiport). Les options de la ligne de commandes sont prioritaires sur le fichier de config.",
+      "  --guiport, -g       : port tcp de l'ihm",
+      "  --verboselevel, -v  : niveau de détail des messages d'erreur (1 à 9)",
+      "  --help, -h          : ce message",
+      "",
+      "Option d'initialisation et de modification : "
+      "  --init     (-i)     : initialisation interactive.",
+      "  --autoinit (-a)     : intialisation automatique.",
+      "  --update   (-u)     : modification d'un ou plusieurs parametre de la base.",
+      "Remarque : --init, --autoinit et --update sont incompatibles."
+      "",
+      "Parametres pour --init, --autoinit ou --update uniquement : ",
+      "  --basepath, -p      (défaut : chemin de l'exécutable (moins 'bin'). Ex : si /usr/bin/mea-edomus => basepath=/usr)",
+      "  --paramsdb, -d      (défaut : basepath/var/db/params.db ou /var/db/mea-params.db si basepath=/usr)",
+      "  --phpcgipath, -C    (défaut : basepath/bin)",
+      "  --phpinipath, -H    (défaut : basepath/etc ou /etc si basepath=/usr)",
+      "  --guipath, -G       (défaut : basepath/lib/mea-gui)",
+      "  --logpath, -L       (défaut : basepath/var/log ou /var/log si basepath=/usr)",
+      "  --pluginspath, -A   (défaut : basepath/lib/mea-plugins)",
+      "  --bufferdb, -B      (défaut : basepath/var/db/queries.db ou /var/db/mea-queries.db si basepath=/usr)",
+      "  --dbserver, -D      (défaut : 127.0.0.1)",
+      "  --dbport, -P        (défaut : 3306)",
+      "  --dbname, -N        (défaut : meaedomusdb)",
+      "  --dbuser, -U        (défaut : meaedomus)",
+      "  --dbpassword, -W    (défaut : meaedomus)",
+      "  --vendorid, -V      (défaut : mea)",
+      "  --deviceid, -E      (défaut : edomus)",
+      "  --instanceid, -S    (défaut : home)",
+      "",
+      NULL
+   };
+   
+   if(!cmd)
+      cmd="mea-edomus";
+   printf("usage : %s [options de lancememnt] [options d'intialisation]\n", cmd);
+   for(int16_t i;usage_text[i];i++)
+      printf("%s\n",usage_text[i]);
+}
+
+
+void init_param_names(char *param_names[])
+/**
+ * \brief     initialisation de la table de correspondance nom (chaine, dans sqlite) avec un ID de paramètre numérique (index du tableau)
+ * \param     table à initialiser.
+ */
+{
+   param_names[0]                    = NULL;
+   param_names[MEA_PATH]             = NULL;
+   param_names[SQLITE3_DB_PARAM_PATH]= NULL;
+   param_names[CONFIG_FILE]          = NULL;
+   param_names[PHPCGI_PATH]          = "PHPCGIPATH";
+   param_names[PHPINI_PATH]          = "PHPINIPATH";
+   param_names[GUI_PATH]             = "GUIPATH";
+   param_names[LOG_PATH]             = "LOGPATH";
+   param_names[PLUGINS_PATH]         = "PLUGINPATH";
+   param_names[SQLITE3_DB_BUFF_PATH] = "BUFFERDB";
+   param_names[MYSQL_DB_SERVER]      = "DBSERVER";
+   param_names[MYSQL_DB_PORT]        = "DBPORT";
+   param_names[MYSQL_DATABASE]       = "DATABASE";
+   param_names[MYSQL_USER]           = "USER";
+   param_names[MYSQL_PASSWD]         = "PASSWORD";
+   param_names[VENDOR_ID]            = "VENDORID";
+   param_names[DEVICE_ID]            = "DEVICEID";
+   param_names[INSTANCE_ID]          = "INSTANCEID";
+   param_names[VERBOSELEVEL]         = "VERBOSELEVEL";
+   param_names[GUIPORT]              = "GUIPORT";
+}
+
+
+int16_t set_xpl_address(char **params_list)
+/**
+ * \brief     initialise les données pour l'adresse xPL
+ * \details   positionne vendorID, deviceID et instanceID pour xPLServer
+ * \param     params_liste  liste des parametres.
+ * \return   -1 en cas d'erreur, 0 sinon
+ */
+{
+   set_xPL_vendorID(params_list[VENDOR_ID]);
+   set_xPL_deviceID(params_list[DEVICE_ID]);
+   set_xPL_instanceID(params_list[INSTANCE_ID]);
+   
+   return 0;
 }
 
 
 int16_t read_all_application_parameters(sqlite3 *sqlite3_param_db)
 /**
- * \brief     Chargement de tous les parametres nécessaires au démarrage de l'application depuis la base de parametres
+ * \brief     Chargement de tous les paramètres nécessaires au démarrage de l'application depuis la base de paramètres
  * \param     sqlite3_param_db descripteur initialisé (ouvert) d'accès à la base.
  * \return   -1 en cas d'erreur, 0 sinon
  */
 {
    sqlite3_stmt * stmt;
    
-   //char sql[41];
-   //sprintf(sql,"SELECT * FROM application_parameters");
    char *sql="SELECT * FROM application_parameters";
    int ret = sqlite3_prepare_v2(sqlite3_param_db,sql,strlen(sql)+1,&stmt,NULL);
    if(ret)
@@ -83,7 +168,6 @@ int16_t read_all_application_parameters(sqlite3 *sqlite3_param_db)
    while (1)
    {
       int s = sqlite3_step (stmt);
-      
       if (s == SQLITE_ROW)
       {
          // uint32_t id = sqlite3_column_int(stmt, 0);
@@ -92,39 +176,14 @@ int16_t read_all_application_parameters(sqlite3 *sqlite3_param_db)
          // char *complement = (char *)sqlite3_column_text(stmt, 3);
          
          strToUpper(key);
-         
-         if(strcmp(key,"BUFFERDB")==0)
-            string_free_malloc_and_copy(&params_list[SQLITE3_DB_BUFF_PATH], value, 1);
-         else if (strcmp(key,"DBSERVER")==0)
-            string_free_malloc_and_copy(&params_list[MYSQL_DB_SERVER], value, 1);
-         else if (strcmp(key,"DATABASE")==0)
-            string_free_malloc_and_copy(&params_list[MYSQL_DATABASE], value, 1);
-         else if (strcmp(key,"DBPORT")==0)
-            string_free_malloc_and_copy(&params_list[MYSQL_DB_PORT], value, 1);
-         else if (strcmp(key,"USER")==0)
-            string_free_malloc_and_copy(&params_list[MYSQL_USER], value, 1);
-         else if (strcmp(key,"PASSWORD")==0)
-            string_free_malloc_and_copy(&params_list[MYSQL_PASSWD], value, 1);
-         else if (strcmp(key,"VENDORID")==0)
-            set_xPL_vendorID(value);
-         else if (strcmp(key,"DEVICEID")==0)
-            set_xPL_deviceID(value);
-         else if (strcmp(key,"INSTANCEID")==0)
-            set_xPL_instanceID(value);
-         else if (strcmp(key,"PLUGINPATH")==0)
-            setPythonPluginPath(value);
-         else if (strcmp(key,"VERBOSELEVEL")==0)
-            set_verbose_level(atoi(value));
-         else if (strcmp(key,"PHPCGIPATH")==0)
-            string_free_malloc_and_copy(&params_list[PHPCGI_PATH], value, 1);
-         else if (strcmp(key,"PHPINIPATH")==0)
-            string_free_malloc_and_copy(&params_list[PHPINI_PATH], value, 1);
-         else if (strcmp(key,"GUIPATH")==0)
-            string_free_malloc_and_copy(&params_list[GUI_PATH], value, 1);
-         else if (strcmp(key,"LOGPATH")==0)
-            string_free_malloc_and_copy(&params_list[LOG_PATH], value, 1);
-         else if (strcmp(key,"BUFFDBPATH")==0)
-            string_free_malloc_and_copy(&params_list[SQLITE3_DB_BUFF_PATH], value, 1);
+         for(int i=0;i<MAX_LIST_SIZE;i++)
+         {
+            if(param_names[i] && strcmp(param_names[i],key)==0)
+            {
+               string_free_malloc_and_copy(&params_list[i], value, 1);
+               break;
+            }
+         }
       }
       else if (s == SQLITE_DONE)
       {
@@ -141,7 +200,7 @@ int16_t read_all_application_parameters(sqlite3 *sqlite3_param_db)
 static void _signal_STOP(int signal_number)
 /**
  * \brief     Traitement des signaux d'arrêt (SIGINT, SIGQUIT, SIGTERM)
- * \details   L'arrêt de l'application se déclanche par l'émission d'un signal d'arrêt. A l'a reception de l'un de ces signaux
+ * \details   L'arrêt de l'application se déclanche par l'émission d'un signal d'arrêt. A la réception de l'un de ces signaux
  *            Les différents process de mea_edomus doivent être arrêtés.
  * \param     signal_number  numéro du signal (pas utilisé mais nécessaire pour la déclaration du handler).
  */
@@ -210,8 +269,8 @@ static void _signal_STOP(int signal_number)
 static void _signal_HUP(int signal_number)
 /**
  * \brief     Traitement des signaux HUP
- * \details   Un signal HUP peut être est levé par les threads de gestion des interfaces lorsqu'elles détectent une anomalie bloquante.
- *            Le gestionnaire de signal lorsqu'il est déclanché doit determiner quelle interface a émis le signal et forcer un arrêt/relance de cette l'interface.
+ * \details   Un signal HUP peut être est émis par les threads de gestion des interfaces lorsqu'ils détectent une anomalie bloquante.
+ *            Le gestionnaire de signal, lorsqu'il est appelé, doit déterminer quelle interface à émis le signal et forcer un arrêt/relance de cette l'interface.
  * \param     signal_number  numéro du signal (pas utilisé mais nécessaire pour la déclaration du handler).
  */
 {
@@ -271,9 +330,9 @@ static void _signal_HUP(int signal_number)
 
 int main(int argc, const char * argv[])
 /**
- * \brief     Point d'entrée du mea_edomus
+ * \brief     Point d'entrée du mea-edomus
  * \details   Intitialisation des structures de données et lancement des différents "process" (threads) de l'application
- * \param     argc   parametres de lancement de l'application. Un seul paramètre attendu (-a parameters.db).
+ * \param     argc   paramètres de lancement de l'application.
  * \param     argv   nombre de paramètres.
  * \return    1 en cas d'erreur, 0 sinon
  */
@@ -281,6 +340,7 @@ int main(int argc, const char * argv[])
    int c;
    int ret;
    char *buff;
+   sqlite3 *sqlite3_param_db; // descritpteur SQLITE
    
    // toutes les options possibles
    static struct option long_options[] = {
@@ -296,7 +356,6 @@ int main(int argc, const char * argv[])
       {"logpath",     required_argument, 0,  LOG_PATH             }, // 'L'
       {"pluginspath", required_argument, 0,  PLUGINS_PATH         }, // 'A'
       {"bufferdbpath",required_argument, 0,  SQLITE3_DB_BUFF_PATH }, // 'B'
-      {"bufferdbname",required_argument, 0,  SQLITE3_DB_BUFF_NAME }, // 'F'
       {"dbserver",    required_argument, 0,  MYSQL_DB_SERVER      }, // 'D'
       {"dbport",      required_argument, 0,  MYSQL_DB_PORT        }, // 'P'
       {"dbname",      required_argument, 0,  MYSQL_DATABASE       }, // 'N'
@@ -305,6 +364,9 @@ int main(int argc, const char * argv[])
       {"vendorid",    required_argument, 0,  VENDOR_ID            }, // 'V'
       {"deviceid",    required_argument, 0,  DEVICE_ID            }, // 'E'
       {"instanceid",  required_argument, 0,  INSTANCE_ID          }, // 'S'
+      {"verboselevel",required_argument, 0,  VERBOSELEVEL         }, // 'v'
+      {"guiport",     required_argument, 0,  GUIPORT              }, // 'g'
+      {"help",        no_argument,       0,  'h'                  }, // 'h'
       {0,             0,                 0,  0                    }
    };
 
@@ -317,8 +379,12 @@ int main(int argc, const char * argv[])
    
    DEBUG_SECTION fprintf(stderr,"Starting MEA-EDOMUS %s\n",__MEA_EDOMUS_VERSION__);
 
+   //
+   // initialisation
+   //
    sqlite3_config(SQLITE_CONFIG_SERIALIZED); // pour le multithreading
-
+   // initialisation des noms des parametres dans la base
+   init_param_names(param_names);
    // initialisation de la liste des parametres à NULL
    for(int i=0;i<MAX_LIST_SIZE;i++)
       params_list[i]=NULL;
@@ -338,14 +404,21 @@ int main(int argc, const char * argv[])
    }
    free(buff);
 
+   //
    // récupération des paramètres de la ligne de commande
-   int _d=0, _i=0, _a=0, _c, _u=0, _o=0;
+   //
+   int _d=0, _i=0, _a=0, _c, _u=0, _o=0, _v=-1;
    int option_index = 0;
    
-   while ((c = getopt_long(argc, (char * const *)argv, "iaup:d:c:C:H:G:L:A:B:F:D:P:N:U:W:V:E:S:", long_options, &option_index)) != -1)
+   while ((c = getopt_long(argc, (char * const *)argv, "hiaup:d:c:C:H:G:L:A:B:D:P:N:U:W:V:E:S:v:g:", long_options, &option_index)) != -1)
    {
       switch (c)
       {
+         case 'h':
+            usage((char *)argv[0]);
+            exit(0);
+            break;
+            
          case 'p':
             c=MEA_PATH;
             break;
@@ -360,12 +433,16 @@ int main(int argc, const char * argv[])
          
          case 'c': // fichier de configuration (mea-edomus.ini qui contient basepath et paramsdb)
          case CONFIG_FILE:
-            string_free_malloc_and_copy(&params_list[CONFIG_FILE], optarg, 1);
-            IF_NULL_EXIT(&params_list[CONFIG_FILE], 1);
-            c=-1;
+            c=CONFIG_FILE;
             _c=1;
             break;
 
+         case 'v':
+         case VERBOSELEVEL:
+            _v=atoi(optarg);
+            c=VERBOSELEVEL;
+            break;
+            
          case 'i':
             c=-1;
             _i=1;
@@ -380,7 +457,11 @@ int main(int argc, const char * argv[])
             c=-1;
             _u=1;
             break;
-
+            
+         case 'g':
+            c=GUIPORT;
+            break;
+            
          case 'C':
             c=PHPCGI_PATH;
             break;
@@ -405,10 +486,6 @@ int main(int argc, const char * argv[])
             c=SQLITE3_DB_BUFF_PATH;
             break;
             
-         case 'F':
-            c=SQLITE3_DB_BUFF_NAME;
-            break;
-
          case 'D':
             c=MYSQL_DB_SERVER;
             break;
@@ -445,62 +522,81 @@ int main(int argc, const char * argv[])
       if(c>'!') // parametre non attendu trouvé (! = premier caractère imprimable).
       {
          VERBOSE(1) fprintf(stderr,"%s (%s) : Paramètre \"%s\" inconnu.\n",ERROR_STR,__func__,optarg);
+         usage((char *)argv[0]);
          exit(1);
       }
       
       if(c!=-1 && c!=0)
       {
-         if(c!=MEA_PATH && c!=LOG_PATH && c!=SQLITE3_DB_PARAM_PATH)
+         if(c!=MEA_PATH)
             _o=1;
          string_free_malloc_and_copy(&params_list[c], optarg, 1);
+         IF_NULL_EXIT(&params_list[c], 1);
       }
    }
 
-   
+   //
+   // Contrôle des parametres
+   //
    if((_i+_a+_u)>1)
    {
       VERBOSE(1) fprintf(stderr,"%s (%s) : -i, -a et -u incompatible\n",ERROR_STR,__func__);
+      usage((char *)argv[0]);
       exit(1);
    }
    
+   if(_v > 0 && _v < 10)
+         set_verbose_level(_v);
+
    if(!_d) // si pas de db en parametre on construit un chemin vers le nom "théorique" de la db
    {
       params_list[SQLITE3_DB_PARAM_PATH]=(char *)malloc(strlen(params_list[MEA_PATH])+1 + 17); // lenght("/var/db/params.db") = 17
       sprintf(params_list[SQLITE3_DB_PARAM_PATH],"%s/var/db/params.db",params_list[MEA_PATH]);
    }
    
+   //
+   // traitement des paramateres
+   //
+   if(_c)
+   {
+      // chargement des options si non présente dans params_list
+   }
+   
    if(_i)
    {
-      initMeaEdomus(0, params_list);
+      initMeaEdomus(0, params_list, param_names);
       exit(0);
    }
    
    if(_a)
    {
-      initMeaEdomus(1, params_list);
+      initMeaEdomus(1, params_list, param_names);
       exit(0);
    }
    
    if(_u)
    {
       // à faire
-      updateMeaEdomus(params_list);
+      updateMeaEdomus(params_list, param_names);
       exit(0);
    }
 
    if(_o)
    {
-      VERBOSE(1) fprintf(stderr,"%s (%s) : options complémentaires uniquement utilisable avec -i, -a et -u\n",ERROR_STR,__func__);
+      VERBOSE(1) fprintf(stderr,"%s (%s) : options complémentaires uniquement utilisable avec --init (-i), --autoinit (-a), et --update (-u)\n",ERROR_STR,__func__);
+      usage((char *)argv[0]);
       exit(1);
    }
    
+   //
+   // Contrôle et ouverture de la base de paramétrage
+   //
    int16_t cause;
    if(checkParamsDb(params_list[SQLITE3_DB_PARAM_PATH], &cause))
    {
       exit(1);
    }
-
-      
+   
    // ouverture de la base de paramétrage
    ret = sqlite3_open_v2(params_list[SQLITE3_DB_PARAM_PATH], &sqlite3_param_db, SQLITE_OPEN_READWRITE, NULL);
    if(ret)
@@ -508,7 +604,6 @@ int main(int argc, const char * argv[])
       VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_open - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
       exit(1);
    }
-
 
    // lecture de tous les paramètres de l'application
    ret = read_all_application_parameters(sqlite3_param_db);
@@ -520,15 +615,18 @@ int main(int argc, const char * argv[])
       exit(1);
    }
 
-   
+   //   
    // initialisation gestions des signaux (arrêt de l'appli et réinitialisation
+   //
    signal(SIGINT,  _signal_STOP);
    signal(SIGQUIT, _signal_STOP);
    signal(SIGTERM, _signal_STOP);
    signal(SIGHUP,  _signal_HUP);
    
 
+   //
    // initialisation de la communication avec la base MySQL
+   //
    myd=NULL;
 #ifndef __NO_TOMYSQL__
    myd=(struct tomysqldb_md_s *)malloc(sizeof(struct tomysqldb_md_s));
@@ -545,19 +643,31 @@ int main(int argc, const char * argv[])
    ret=tomysqldb_init(myd,params_list[MYSQL_DB_SERVER], params_list[MYSQL_DATABASE], params_list[MYSQL_USER], params_list[MYSQL_PASSWD], params_list[SQLITE3_DB_BUFF_PATH]);
    if(ret==-1)
    {
-      VERBOSE(1) fprintf(stderr,"%s (%s) : impossible d'initialiser la gestion de la base de données.\n",ERROR_STR,__func__);
+      VERBOSE(1) fprintf(stderr,"%s (%s) : Can not init data base communication.\n",ERROR_STR,__func__);
 //      exit(1);
    }
 #else
    VERBOSE(9) fprintf(stderr,"%s  (%s) : dbServer not started.\n",INFO_STR,__func__);
 #endif
    
-   
+   //
    // initialisation du serveur de plugin python
-   pythonPluginServer_thread=pythonPluginServer(NULL);
-   if(pythonPluginServer_thread==NULL)
+   //
+   if(params_list[PLUGINS_PATH])
    {
-      VERBOSE(1) fprintf(stderr,"%s (%s) : can't start Python Plugin Server.\n",ERROR_STR,__func__);
+      setPythonPluginPath(params_list[PLUGINS_PATH]);
+      pythonPluginServer_thread=pythonPluginServer(NULL);
+      if(pythonPluginServer_thread==NULL)
+      {
+         VERBOSE(1) fprintf(stderr,"%s (%s) : can't start Python Plugin Server (thread error).\n",ERROR_STR,__func__);
+         sqlite3_close(sqlite3_param_db);
+
+         exit(1);
+      }
+   }
+   else
+   {
+      VERBOSE(1) fprintf(stderr,"%s (%s) : can't start Python Plugin Server (incorrect plugin path).\n",ERROR_STR,__func__);
       sqlite3_close(sqlite3_param_db);
 
       exit(1);
@@ -566,23 +676,41 @@ int main(int argc, const char * argv[])
    
    //
    // initialisation du serveur HTTP
-   //GUI_PATH
+   //
+   char *phpcgibin=NULL;
    if(params_list[PHPCGI_PATH] && params_list[PHPINI_PATH] && params_list[GUI_PATH] && params_list[SQLITE3_DB_PARAM_PATH])
    {
       phpcgibin=(char *)malloc(strlen(params_list[PHPCGI_PATH])+10); // 9 = strlen("/cgi-bin") + 1
       sprintf(phpcgibin, "%s/php-cgi",params_list[PHPCGI_PATH]);
 
-      if(create_configs_php(params_list[GUI_PATH], params_list[SQLITE3_DB_PARAM_PATH], params_list[LOG_PATH])==0)
-         httpServer(8083, params_list[GUI_PATH], phpcgibin, params_list[PHPINI_PATH]);
+      long guiport;
+      if(params_list[GUIPORT][0])
+      {
+         char *end;
+         guiport=strtol(params_list[GUIPORT],&end,10);
+         if(*end!=0 || errno==ERANGE)
+         {
+            VERBOSE(5) fprintf(stderr,"%s (%s) : GUI port (%s), not a number, use 8083.\n",INFO_STR,__func__,params_list[GUIPORT]);
+            guiport=8083;
+         }
+      }
       else
       {
-         VERBOSE(1) fprintf(stderr,"%s (%s) : can't start gui Server.\n",ERROR_STR,__func__);
+         VERBOSE(5) fprintf(stderr,"%s (%s) : can't get GUI port, use 8083.\n",INFO_STR,__func__);
+         guiport=8083;
+      }
+      
+      if(create_configs_php(params_list[GUI_PATH], params_list[SQLITE3_DB_PARAM_PATH], params_list[LOG_PATH])==0)
+         httpServer(guiport, params_list[GUI_PATH], phpcgibin, params_list[PHPINI_PATH]);
+      else
+      {
+         VERBOSE(1) fprintf(stderr,"%s (%s) : can't start GUI Server (can't create configs.php).\n",ERROR_STR,__func__);
          // on continu sans ihm
       }
    }
    else
    {
-      VERBOSE(1) fprintf(stderr,"%s (%s) : can't start gui Server.\n",ERROR_STR,__func__);
+      VERBOSE(1) fprintf(stderr,"%s (%s) : can't start GUI Server (parameters errors).\n",ERROR_STR,__func__);
       // on continu sans ihm
    }
    
@@ -718,18 +846,25 @@ int main(int argc, const char * argv[])
    
    sqlite3_close(sqlite3_param_db);
    
-   
+   //
    // initialisation du serveur xPL
-   xPLServer_thread=xPLServer(interfaces);
-   if(xPLServer_thread==NULL)
+   //
+   if(!set_xpl_address(params_list))
    {
-      VERBOSE(1) fprintf(stderr,"%s (%s) : can't start xpl server.\n",ERROR_STR,__func__);
+      xPLServer_thread=xPLServer(interfaces);
+      if(xPLServer_thread==NULL)
+      {
+         VERBOSE(1) fprintf(stderr,"%s (%s) : can't start xpl server.\n",ERROR_STR,__func__);
+         exit(1);
+      }
+   }
+   else
+   {
+      VERBOSE(1) fprintf(stderr,"%s (%s) : can't start xpl server (incorrect xPL address).\n",ERROR_STR,__func__);
       exit(1);
    }
    
-   
    DEBUG_SECTION fprintf(stderr,"MEA-EDOMUS %s starded\n",__MEA_EDOMUS_VERSION__);
-
 
    // boucle sans fin.
    while(1)

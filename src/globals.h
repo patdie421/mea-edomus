@@ -24,16 +24,17 @@
 #define LOG_PATH               7
 #define PLUGINS_PATH           8
 #define SQLITE3_DB_BUFF_PATH   9
-#define SQLITE3_DB_BUFF_NAME  10
-#define MYSQL_DB_SERVER       11
-#define MYSQL_DB_PORT         12
-#define MYSQL_DATABASE        13
-#define MYSQL_USER            14
-#define MYSQL_PASSWD          15
-#define VENDOR_ID             16
-#define DEVICE_ID             17
-#define INSTANCE_ID           18
-#define MAX_LIST_SIZE         19
+#define MYSQL_DB_SERVER       10
+#define MYSQL_DB_PORT         11
+#define MYSQL_DATABASE        12
+#define MYSQL_USER            13
+#define MYSQL_PASSWD          14
+#define VENDOR_ID             15
+#define DEVICE_ID             16
+#define INSTANCE_ID           17
+#define VERBOSELEVEL          18
+#define GUIPORT               19
+#define MAX_LIST_SIZE         20
 
 //extern tomysqldb_md_t md;
 extern tomysqldb_md_t *myd;
