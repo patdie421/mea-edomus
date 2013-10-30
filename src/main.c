@@ -50,6 +50,7 @@ pthread_t *pythonPluginServer_thread=NULL;
 char *param_names[MAX_LIST_SIZE]; // liste des noms de paramètres dans la base
 char *params_list[MAX_LIST_SIZE]; // liste des valeurs de paramètres
 
+
 void usage(char *cmd)
 /**
  * \brief     Affiche les "usages" de mea-edomus
@@ -57,32 +58,37 @@ void usage(char *cmd)
  */
 {
    char *usage_text[]={
+    //12345678901234567890123456789012345678901234567890123456789012345678901234567890
       "",
-      "gestion de capteurs/actionneurs (xbee, arduino, ...) commandés par des messages xPL",
+      "gestion de capteurs/actionneurs (xbee, arduino, ...) commandés par des messages",
+      "xPL",
       "",
-      "Option de lancement de l'application : ",
+      "Options de lancement de l'application : ",
       "  --basepath, -p      : chemin de l'installation",
       "  --paramsdb, -d      : chemin et nom la base de paramétrage",
-      "  --config, -c        : fichier de configuration (mea-edomus.ini peut contenir contient basepath, paramsdb et guiport). Les options de la ligne de commandes sont prioritaires sur le fichier de config.",
+//      "  --config, -c        : fichier de configuration (mea-edomus.ini peut contenir contient basepath, paramsdb et guiport). Les options de la ligne de commandes sont prioritaires sur le fichier de config.",
       "  --guiport, -g       : port tcp de l'ihm",
       "  --verboselevel, -v  : niveau de détail des messages d'erreur (1 à 9)",
       "  --help, -h          : ce message",
       "",
-      "Option d'initialisation et de modification : "
+      "Options d'initialisation et de modification : ",
       "  --init     (-i)     : initialisation interactive.",
       "  --autoinit (-a)     : intialisation automatique.",
       "  --update   (-u)     : modification d'un ou plusieurs parametre de la base.",
-      "Remarque : --init, --autoinit et --update sont incompatibles."
+      "Remarque : --init, --autoinit et --update sont incompatibles.",
       "",
       "Parametres pour --init, --autoinit ou --update uniquement : ",
-      "  --basepath, -p      (défaut : chemin de l'exécutable (moins 'bin'). Ex : si /usr/bin/mea-edomus => basepath=/usr)",
-      "  --paramsdb, -d      (défaut : basepath/var/db/params.db ou /var/db/mea-params.db si basepath=/usr)",
+      "  --basepath, -p      (défaut : chemin de l'exécutable (moins 'bin'.",
+      "                       Ex : si /usr/bin/mea-edomus => basepath=/usr)",
+      "  --paramsdb, -d      (défaut : basepath/var/db/params.db ou ",
+      "                                /var/db/mea-params.db si basepath=/usr)",
       "  --phpcgipath, -C    (défaut : basepath/bin)",
       "  --phpinipath, -H    (défaut : basepath/etc ou /etc si basepath=/usr)",
       "  --guipath, -G       (défaut : basepath/lib/mea-gui)",
       "  --logpath, -L       (défaut : basepath/var/log ou /var/log si basepath=/usr)",
       "  --pluginspath, -A   (défaut : basepath/lib/mea-plugins)",
-      "  --bufferdb, -B      (défaut : basepath/var/db/queries.db ou /var/db/mea-queries.db si basepath=/usr)",
+      "  --bufferdb, -B      (défaut : basepath/var/db/queries.db ou",
+      "                                /var/db/mea-queries.db si basepath=/usr)",
       "  --dbserver, -D      (défaut : 127.0.0.1)",
       "  --dbport, -P        (défaut : 3306)",
       "  --dbname, -N        (défaut : meaedomusdb)",
@@ -97,7 +103,7 @@ void usage(char *cmd)
    
    if(!cmd)
       cmd="mea-edomus";
-   printf("usage : %s [options de lancememnt] [options d'intialisation]\n", cmd);
+   printf("\nusage : %s [options de lancememnt] [options d'intialisation]\n", cmd);
    for(int16_t i;usage_text[i];i++)
       printf("%s\n",usage_text[i]);
 }
@@ -349,7 +355,7 @@ int main(int argc, const char * argv[])
       {"update",      no_argument,       0,  'u'                  },
       {"basepath",    required_argument, 0,  MEA_PATH             }, // 'p'
       {"paramsdb",    required_argument, 0,  SQLITE3_DB_PARAM_PATH}, // 'd'
-      {"configfile",  required_argument, 0,  CONFIG_FILE          }, // 'c'
+//      {"configfile",  required_argument, 0,  CONFIG_FILE          }, // 'c'
       {"phpcgipath",  required_argument, 0,  PHPCGI_PATH          }, // 'C'
       {"phpinipath",  required_argument, 0,  PHPINI_PATH          }, // 'H'
       {"guipath",     required_argument, 0,  GUI_PATH             }, // 'G'
@@ -407,10 +413,11 @@ int main(int argc, const char * argv[])
    //
    // récupération des paramètres de la ligne de commande
    //
-   int _d=0, _i=0, _a=0, _c, _u=0, _o=0, _v=-1;
+   int _d=0, _i=0, _a=0, /* _c ,*/ _u=0, _o=0, _v=-1;
    int option_index = 0;
    
-   while ((c = getopt_long(argc, (char * const *)argv, "hiaup:d:c:C:H:G:L:A:B:D:P:N:U:W:V:E:S:v:g:", long_options, &option_index)) != -1)
+//   while ((c = getopt_long(argc, (char * const *)argv, "hiaup:d:c:C:H:G:L:A:B:D:P:N:U:W:V:E:S:v:g:", long_options, &option_index)) != -1)
+   while ((c = getopt_long(argc, (char * const *)argv, "hiaup:d:C:H:G:L:A:B:D:P:N:U:W:V:E:S:v:g:", long_options, &option_index)) != -1)
    {
       switch (c)
       {
@@ -430,13 +437,13 @@ int main(int argc, const char * argv[])
             c=-1;
             _d=1;
             break;
-         
+/*
          case 'c': // fichier de configuration (mea-edomus.ini qui contient basepath et paramsdb)
          case CONFIG_FILE:
             c=CONFIG_FILE;
             _c=1;
             break;
-
+*/
          case 'v':
          case VERBOSELEVEL:
             _v=atoi(optarg);
@@ -557,11 +564,12 @@ int main(int argc, const char * argv[])
    //
    // traitement des paramateres
    //
+/*
    if(_c)
    {
       // chargement des options si non présente dans params_list
    }
-   
+*/   
    if(_i)
    {
       initMeaEdomus(0, params_list, param_names);

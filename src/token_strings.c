@@ -70,6 +70,11 @@ struct token_s tokens_list[]={
 
 
 char *get_token_by_id(int id)
+/**
+ * \brief     recherche un token par son id
+ * \param     id  identifiant du token.
+ * \return    pointeur sur le token ou NULL s'il n'existe pas.
+ */
 {
    for(int i=0;tokens_list[i].str;i++)
    {
@@ -81,6 +86,11 @@ char *get_token_by_id(int id)
 
 
 int16_t get_id_by_string(char *str)
+/**
+ * \brief     recherche l'id un token
+ * \param     token (chaine) à trouver.
+ * \return    id du token
+ */
 {
    if(!str)
       return -1;
@@ -95,6 +105,13 @@ int16_t get_id_by_string(char *str)
 
 
 int16_t int_isin(int val, int list[])
+/**
+ * \brief     recherche une valeur dans un liste (un table) d'entiers
+ * \details   les valeurs de la liste doivent être différentes de 0. 0 indique une fin de liste
+ * \param     val  valeur à rechercher.
+ * \param     list  liste des valeurs.
+ * \return    1 si la valeur est trouvée, 0 sinon.
+ */
 {
    for(int i=0; list[i]!=-1; i++)
       if(val==list[i])

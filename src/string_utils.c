@@ -4,6 +4,7 @@
 //  Created by Patrice DIETSCH on 08/07/2013.
 //
 //
+
 #include <ctype.h>
 #include <string.h>
 
@@ -49,6 +50,7 @@ char *trim(char *s)
     return rtrim(ltrim(s)); 
 }
 
+
 void strToUpper(char *str)
 /**
  * \brief     convertit tous les caractères d'une chaine en majuscule
@@ -61,6 +63,7 @@ void strToUpper(char *str)
 	   str[i]=toupper(str[i]);
 }
 
+
 int16_t strcmplower(char *str1, char *str2)
 /**
  * \brief     comparaison de deux chaines sur la base de "caractères en mimuscules"
@@ -68,7 +71,6 @@ int16_t strcmplower(char *str1, char *str2)
  * \param     str1   premiere chaine à comparer.
  * \param     str2   deuxième chaine à comparer.
  * \return    0 chaines égales, 1 chaines différentes
-
  */
 {
    int i;

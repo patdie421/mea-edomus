@@ -18,7 +18,6 @@ typedef struct timer_s
    time_t start_time;
    uint32_t delay; // timer delay
    uint16_t autorestart; // (0 = no, 1=yes)
-   
 } timer_t;
 
 

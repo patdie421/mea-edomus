@@ -38,6 +38,6 @@
 
 //extern tomysqldb_md_t md;
 extern tomysqldb_md_t *myd;
-extern char *plugin_path;
+//extern char *plugin_path;
 
 #endif
