@@ -411,7 +411,7 @@ mea_error_t _inteface_type_002_xbeedata_callback(int id, unsigned char *cmd, uin
 mea_error_t _interface_type_002_commissionning_callback(int id, unsigned char *cmd, uint16_t l_cmd, void *data, char *addr_h, char *addr_l)
 {
    struct xbee_node_identification_response_s *nd_resp;
-   struct xbee_node_identification_nd_data_s *nd_data;
+//   struct xbee_node_identification_nd_data_s *nd_data;
    int rval=0;
    int err;
    
@@ -419,7 +419,7 @@ mea_error_t _interface_type_002_commissionning_callback(int id, unsigned char *c
    sqlite3 *params_db=callback_commissionning->param_db;
    
    nd_resp=(struct xbee_node_identification_response_s *)cmd;
-   nd_data=(struct xbee_node_identification_nd_data_s *)(nd_resp->nd_data+strlen((char *)nd_resp->nd_data)+1);
+//   nd_data=(struct xbee_node_identification_nd_data_s *)(nd_resp->nd_data+strlen((char *)nd_resp->nd_data)+1);
    
    char addr[18];
    sprintf(addr,
@@ -809,17 +809,18 @@ pthread_t *start_interface_type_002_xbeedata_thread(interface_type_002_t *i002, 
 clean_exit:
    FREE(thread);
    FREE(callback_xbeedata);
-   if(params->queue && params->queue->nb_elem>0) // on vide s'il y a quelque chose avant de partir
+   if(params && params->queue && params->queue->nb_elem>0) // on vide s'il y a quelque chose avant de partir
       clear_queue(params->queue, _iodata_free_queue_elem);
-   FREE(params->queue);
+   if(params)
+      FREE(params->queue);
    FREE(params);
    return NULL;
 }
 
 
-mea_error_t stop_interface_type_002(interface_type_002_t *i002, int signal_number)
+mea_error_t stop_interface_type_002(interface_type_002_t *i002)
 {
-   VERBOSE(5) fprintf(stderr,"%s  (%s) : shutdown interface_type_002 thread (signal = %d).\n",INFO_STR, __func__,signal_number);
+   VERBOSE(5) fprintf(stderr,"%s  (%s) : shutdown interface_type_002 thread.\n",INFO_STR, __func__);
 
    FREE(i002->xPL_callback_data);
    if(i002->xPL_callback)
@@ -865,7 +866,7 @@ mea_error_t restart_interface_type_002(interface_type_002_t *i002,sqlite3 *db, t
    
    id_interface=i002->id_interface;
    
-   stop_interface_type_002(i002, 0);
+   stop_interface_type_002(i002);
 
    for(int16_t i=0;i<5;i++)
    {
@@ -960,6 +961,9 @@ mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, in
       uint16_t l_reg_val;
       char addr_l[4];
       char addr_h[4];
+      
+      memset(addr_l,0,4);
+      memset(addr_h,0,4);
       
       // lecture de l'adresse de l'xbee local
       at_cmd[0]='S';at_cmd[1]='H';
@@ -1061,7 +1065,7 @@ clean_exit:
    
    // vider la queue de callback_data_iodata
    if(i002->thread)
-      stop_interface_type_002(i002, 0);
+      stop_interface_type_002(i002);
    
 //   if(xbeedata_callback_params)
 //      free(xbeedata_callback_params);

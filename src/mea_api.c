@@ -182,7 +182,7 @@ static PyObject *mea_xplSendMsg(PyObject *self, PyObject *args)
    // - le schema
    // - les donnees
    
-   xPL_MessagePtr xplMsg;
+   xPL_MessagePtr xplMsg=NULL;
    
    // recuperation du type de message
    item = PyDict_GetItemString(PyXplMsg, "message_xpl_type");
@@ -204,8 +204,7 @@ static PyObject *mea_xplSendMsg(PyObject *self, PyObject *args)
             return NULL;
          }
          
-         xplMsg=NULL;
-         
+//         xplMsg=NULL;
          xPL_ServicePtr servicePtr = get_xPL_ServicePtr();
          if(servicePtr)
             xplMsg = xPL_createBroadcastMessage(servicePtr, message_type);
@@ -232,9 +231,9 @@ static PyObject *mea_xplSendMsg(PyObject *self, PyObject *args)
       if(p)
       {
          char xpl_class[9], xpl_type[9];
-         int n=sscanf(p,"%[^.].%s",xpl_class,xpl_type);
+         int n=sscanf(p,"%[^.].%s", xpl_class, xpl_type);
          if(n==2)
-            xPL_setSchema(xplMsg, xpl_class,xpl_type);
+            xPL_setSchema(xplMsg, xpl_class, xpl_type);
          else
          {
             PyErr_SetString(PyExc_RuntimeError, "ERROR (mea_xplMsgSend) : bad schema");
@@ -497,7 +496,7 @@ static PyObject *mea_sendAtCmd(PyObject *self, PyObject *args)
    unsigned char at_cmd[81];
    uint16_t l_at_cmd;
    
-   int16_t ret;
+//   int16_t ret;
    PyObject *arg;
    
    xbee_host_t *host=NULL;
@@ -576,7 +575,8 @@ static PyObject *mea_sendAtCmd(PyObject *self, PyObject *args)
    }
    
    int16_t nerr;
-   ret=xbee_atCmdSend(xd, host, at_cmd, l_at_cmd, &nerr);
+   // ret=
+   xbee_atCmdSend(xd, host, at_cmd, l_at_cmd, &nerr);
    
    free(host);
    

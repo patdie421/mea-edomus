@@ -10,6 +10,7 @@
 #define _interface_type_001_counters_h
 
 #include <pthread.h>
+#include <inttypes.h>
 
 #include "comio.h"
 #include "dbServer.h"
@@ -42,7 +43,7 @@ void interface_type_001_free_counters_queue_elem(void *d);
 mea_error_t counter_trap(int numTrap, void *args, char *buff);
 
 void counter_to_xpl(struct electricity_counter_s *counter);
-void counter_to_db(tomysqldb_md_t *md, struct electricity_counter_s *counter);
+int16_t counter_to_db(tomysqldb_md_t *md, struct electricity_counter_s *counter);
 void counter_read(comio_ad_t *ad, struct electricity_counter_s *counter);
 
 

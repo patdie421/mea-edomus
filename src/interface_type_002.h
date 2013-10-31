@@ -82,7 +82,7 @@ typedef struct plugin_queue_elem_s
 
 
 mea_error_t start_interface_type_002(interface_type_002_t *it002, sqlite3 *db, int id_interface, const unsigned char *dev, tomysqldb_md_t *md);
-mea_error_t stop_interface_type_002(interface_type_002_t *it002, int signal_number);
+mea_error_t stop_interface_type_002(interface_type_002_t *it002);
 mea_error_t restart_interface_type_002(interface_type_002_t *i002,sqlite3 *db, tomysqldb_md_t *md);
 mea_error_t check_status_interface_type_002(interface_type_002_t *it002);
 

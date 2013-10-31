@@ -35,7 +35,7 @@ typedef float (*compute_f)(unsigned int value);
 
 void counters_stop(pthread_t *counters_thread, comio_ad_t *ad, int signal_number);
 
-mea_error_t stop_interface_type_001(interface_type_001_t *i001, int signal_number);
+mea_error_t stop_interface_type_001(interface_type_001_t *i001);
 mea_error_t start_interface_type_001(interface_type_001_t *itd, sqlite3 *db, int id_interface, const unsigned char *dev, tomysqldb_md_t *md);
 mea_error_t restart_interface_type_001(interface_type_001_t *i001,sqlite3 *db, tomysqldb_md_t *md);
 

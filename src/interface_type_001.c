@@ -141,7 +141,7 @@ int16_t interface_type_001_xPL_callback(xPL_ServicePtr theService, xPL_MessagePt
 }
 
 
-mea_error_t stop_interface_type_001(interface_type_001_t *i001, int signal_number)
+mea_error_t stop_interface_type_001(interface_type_001_t *i001)
 {
 
    comio_remove_all_traps(i001->ad);
@@ -212,7 +212,7 @@ mea_error_t restart_interface_type_001(interface_type_001_t *i001,sqlite3 *db, t
 
    id_interface=i001->id_interface;
    
-   stop_interface_type_001(i001, 0);
+   stop_interface_type_001(i001);
    sleep(1);
    ret=start_interface_type_001(i001, db, id_interface, (const unsigned char *)dev, md);
 

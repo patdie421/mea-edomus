@@ -13,47 +13,35 @@
 #include <semaphore.h>
 #include <time.h>
 #include <sys/time.h>
+#include <inttypes.h>
+
+#include <sqlite3.h>
+#include <mysql.h>
 
 #include "queue.h"
 
-#define TOMYSQLDB_TYPE_PROD        1
-#define TOMYSQLDB_TYPE_CONSO       2
-#define TOMYSQLDB_TYPE_TEMPERATURE 5
-#define TOMYSQLDB_TYPE_PINST       6
-#define TOMYSQLDB_TYPE_EC          7
+#define TOMYSQLDB_TYPE_SENSORS_VALUES 1
 
-//#define TOMYSQLDB_TYPE_P_INST_P    3
-//#define TOMYSQLDB_TYPE_P_INST_C    4
-
-struct electricity_counters_query_s
+/*
+   CREATE TABLE IF NOT EXISTS sensors_values
+   (
+      id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+      sensor_id SMALLINT UNSIGNED,
+      date DATETIME,
+      value FLOAT,
+      unit SMALLINT UNSIGNED,
+      specific VARCHAR(255),
+      PRIMARY KEY(id)
+   );
+*/
+struct sensor_value_s
 {
-   int sensor_id;
-   
+   uint16_t sensor_id;
    struct timeval date_tv;
-   int wh_counter;
-   int kwh_counter;
-   char unsigned flag;
-};
-
-
-struct pinst_query_s
-{
-   int sensor_id;
-
-   struct timeval date_tv;
-   float power;
-   float delta_t;
-   char unsigned flag;
-};
-
-
-struct requete_temperature
-{
-   struct timeval date_tv;
-   float temperature;
-   char unsigned thermometre;
-   char unsigned flag;
-   char addr_source[18];
+   float value1; // valeur principale
+   uint16_t unit; // code unité de mesure (s'applique à la valeur principale)
+   float value2; // valeur secondaire
+   char *specific; // spécifique à un capteur données stocké sous forme de chaine de caractères
 };
 
 
@@ -61,27 +49,35 @@ typedef struct tomysqldb_queue_elem_s
 {
    unsigned char type;
    void *data;
-   
+   void (*freedata)();
 } tomysqldb_queue_elem_t;
 
 
 typedef struct tomysqldb_md_s
 {
-   queue_t *queue;
    pthread_t thread;
    pthread_mutex_t lock;
+   int16_t started;
+   
+   queue_t *queue;
+
    char *db_server;
+   char *db_server_port;
    char *base;
    char *user;
    char *passwd;
    
    char *sqlite3_db_path;
 
+   int16_t opened;
+   
+   sqlite3 *db;
+   MYSQL *conn;
+
 } tomysqldb_md_t;
 
-
-int  tomysqldb_init(tomysqldb_md_t *md, char *db_server, char *base, char *user, char *passwd, char *sqlite3_db_path);
+int  tomysqldb_init(tomysqldb_md_t *md, char *db_server, char *db_server_port, char *base, char *user, char *passwd, char *sqlite3_db_path);
 void tomysqldb_release(tomysqldb_md_t *md);
-
+int16_t tomysqldb_add_data_to_sensors_values(tomysqldb_md_t *md, uint16_t sensor_id, float value1, uint16_t unit, float value2, char *specific);
 
 #endif

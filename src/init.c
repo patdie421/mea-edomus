@@ -147,7 +147,7 @@ char *get_and_malloc_integer(int16_t default_value, char *question_str)
   */
 {
    char *value_str;
-   long value;
+//   long value;
    char *end;
    char default_value_str[16];
    
@@ -166,7 +166,8 @@ char *get_and_malloc_integer(int16_t default_value, char *question_str)
       value_str=get_and_malloc_string(default_value_str, question_str);
       if(!value_str)
          return NULL;
-      value=strtol(value_str,&end,10);
+      // value=
+      strtol(value_str,&end,10);
       if(*end!=0 || errno==ERANGE)
       {
          free(value_str);
