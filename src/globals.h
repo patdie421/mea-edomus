@@ -36,8 +36,10 @@
 #define GUIPORT               19
 #define MAX_LIST_SIZE         20
 
-//extern tomysqldb_md_t md;
 extern tomysqldb_md_t *myd;
-//extern char *plugin_path;
+
+// voir ou mettre
+#define UNIT_WH 1
+#define UNIT_W  2
 
 #endif

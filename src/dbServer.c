@@ -44,41 +44,6 @@ void free_value(void *data)
    free(data);
 }
 
-// voir ou mettre
-#define UNIT_WH 1
-#define UNIT_W  2
-
-
-// DEBUT : A mettre dans main.c
-/*
-tomysqldb_md_t *start_dbServer(char **params_list)
-{
-   tomysqldb_md_t *md=NULL;
-#ifndef __NO_TOMYSQL__
-   md=(struct tomysqldb_md_s *)malloc(sizeof(struct tomysqldb_md_s));
-   if(!md)
-   {
-      VERBOSE(1) {
-         fprintf(stderr,"%s (%s) : %s - ", ERROR_STR, __func__, MALLOC_ERROR_STR);
-         perror("");
-      }
-      exit(1);
-   }
-   memset(md,0,sizeof(struct tomysqldb_md_s));
-   
-   ret=tomysqldb_init(md, params_list[MYSQL_DB_SERVER], params_list[MYSQL_DB_PORT], params_list[MYSQL_DATABASE], params_list[MYSQL_USER], params_list[MYSQL_PASSWD], params_list[SQLITE3_DB_BUFF_PATH]);
-   if(ret==-1)
-   {
-      VERBOSE(1) fprintf(stderr,"%s (%s) : Can not init data base communication.\n",ERROR_STR,__func__);
-   }
-#else
-   VERBOSE(9) fprintf(stderr,"%s  (%s) : dbServer desactivated.\n",INFO_STR,__func__);
-#endif
-   return md;
-}
-*/
-// FIN : A mettre dans main.c
-
 
 int16_t tomysqldb_add_data_to_sensors_values(tomysqldb_md_t *md, uint16_t sensor_id, float value1, uint16_t unit, float value2, char *specific)
 /**
@@ -99,8 +64,8 @@ int16_t tomysqldb_add_data_to_sensors_values(tomysqldb_md_t *md, uint16_t sensor
 
    if(!md)
       return -1;
-    if(!md->opened) // md initialisé mais connexion avec Mysql jamais établie
-      return -1;
+    if(!md->opened) // md initialisé mais connexion avec Mysql jamais établie (peut-être un pb de paramétrage ???)
+      return -1;    // on s'arrête pour ne pas remplir la mémoire
    
    value=(struct sensor_value_s *)malloc(sizeof(struct sensor_value_s));
    if(!value)

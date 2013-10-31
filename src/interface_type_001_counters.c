@@ -59,9 +59,6 @@ void interface_type_001_free_counters_queue_elem(void *d)
    e=NULL;
 }
 
-// voir ou mettre
-#define UNIT_WH 1
-#define UNIT_W  2
 
 // pour la reception d'un trap à chaque changement du compteur
 mea_error_t counter_trap(int numTrap, void *args, char *buff)

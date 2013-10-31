@@ -1,3 +1,12 @@
+/**
+ * \file      init.c
+ * \author    patdie421
+ * \version   0.1
+ * \date      30 octobre 2013
+ * \brief     Ensemble des fonctions qui permettent la gestion de l'initialisation de l'application.
+ * \details   initialisation automatique, initialisation interactive et mise à jour des paramètres de l'application.
+ */
+
 //
 //  init.c
 //  mea-edomus
@@ -368,7 +377,7 @@ int16_t create_php_ini(char *phpini_path)
 }
 
 
-int create_configs_php(char *gui_home, char *params_db_fullname, char *php_log_fullname)
+int16_t create_configs_php(char *gui_home, char *params_db_fullname, char *php_log_fullname)
  /**
   * \brief     Création d'un fichier configs.php cohérent avec l'installation de l'interface graphique et les chemins de fichiers à utiliser.
   * \details   Actuellement positionne fichier de log de php et chemin de la base sqlite3 de parametrage.
@@ -746,7 +755,7 @@ int _read_path(char **params_list, uint16_t index, char *base_path, char *dir_na
 
 int _read_string(char **params_list, uint16_t index, char *default_value, char *question)
  /**
-  * \brief     lit une chaine sur l'entrée standard et insere le résultat dans la liste des parametres. Si une valeur existe déjà elle proposée comme valeur par defaut.
+  * \brief     lit une chaine sur l'entrée standard et insere le résultat dans la liste des paramètres. Si une valeur existe déjà elle proposée comme valeur par défaut.
   * \details   Cette fonction est utilisée par interactiveInit() pour simplifier le code. Elle n'a pas vocation a être utilisée par d'autres fonctions.
   * \param     params_list    liste de tous les parametres
   * \param     index          index dans params_list de la valeur à modifier.
@@ -772,9 +781,9 @@ int _read_string(char **params_list, uint16_t index, char *default_value, char *
 
 int _read_integer(char **params_list, uint16_t index, int16_t default_value, char *question)
  /**
-  * \brief     lit un entier sur l'entrée standard et insere le résultat dans la liste des parametres. Si une valeur existe déjà elle proposée comme valeur par defaut.
+  * \brief     lit un entier sur l'entrée standard et insere le résultat dans la liste des paramètres. Si une valeur existe déjà elle proposée comme valeur par défaut.
   * \details   Cette fonction est utilisée par interactiveInit() pour simplifier le code. Elle n'a pas vocation a être utilisée par d'autres fonctions.
-  * \param     params_list    liste de tous les parametres
+  * \param     params_list    liste de tous les paramètres
   * \param     index          index dans params_list de la valeur à modifier.
   * \param     default_value  chaine à proposer si params_list[index]==NULL.
   * \param     question       question à poser.
@@ -803,7 +812,7 @@ int _read_integer(char **params_list, uint16_t index, int16_t default_value, cha
 int16_t autoInit(char **params_list, char **keys)
  /**
   * \brief     réalise une configuration initiale automatique de l'application.
-  * \details   contrôle installation, création des répertoires (si absent), création des bases et tables, alimentation des tables 
+  * \details   contrôle de l'installation, création des répertoires (si absents), création des bases et tables, alimentation des tables
   * \param     params_list  liste des paramètres
   * \return    0 si OK, code > 0 en cas d'erreur.
   */
@@ -878,9 +887,9 @@ autoInit_exit:
 
 int16_t interactiveInit(char **params_list, char **keys)
  /**
-  * \brief     réalise une configuration initiale interactive de l'application.
-  * \details   création des répertoires, création des bases et tables, alimentation des tables à partir de données saisies par l'utilisateur
-  * \param     params_list  liste de tous les parametres
+  * \brief     réalise une configuration initiale ou une reconfiguration interactive de l'application.
+  * \details   création des répertoires, création des bases et des tables, alimentation des tables à partir de données saisies par l'utilisateur
+  * \param     params_list  liste de tous les paramètres
   * \return    0 si OK, code > 0 en cas d'erreur.
   */
 {
@@ -944,7 +953,7 @@ int16_t interactiveInit(char **params_list, char **keys)
 int16_t initMeaEdomus(int16_t mode, char **params_list, char **keys)
  /**
   * \brief     Initialisation (ou réinitialisation) de la base de paramétrage de l'application
-  * \details   Prépare et choisi le type d'initialisation à réaliser. C'est dans cette fonction que la création des répertoires peut être réalisées
+  * \details   Prépare et choisit le type d'initialisation à réaliser. C'est dans cette fonction que la création des répertoires peut être réalisées
   * \param     mode         mode d'initialisation : 0 = interactif, 1 = automatique
   * \param     params_list  liste de tous les parametres
   * \return    0 si OK, -1 en cas d'erreur.
@@ -959,7 +968,7 @@ int16_t initMeaEdomus(int16_t mode, char **params_list, char **keys)
     
     if(mode==1) // automatique
     {
-        installPathFlag=checkInstallationPaths(params_list[MEA_PATH], 1); // en auto, on essaye de créer les repertoires manquants
+        installPathFlag=checkInstallationPaths(params_list[MEA_PATH], 1); // en auto, on essaye de créer les répertoires manquants
         if(installPathFlag==-1)
         {
             return 1; // les répertoires n'existent pas et n'ont pas pu être créés, installation automatique impossible
@@ -973,17 +982,17 @@ int16_t initMeaEdomus(int16_t mode, char **params_list, char **keys)
         {
             installPathFlag=-1;
             // doit-on essayer de les creer ?
-            printf("Certains repertoires préconisés n'existent pas. Voulez-vous tenter de les créer ? (O/N) : ");
+            printf("Certains répertoires préconisés n'existent pas. Voulez-vous tenter de les créer ? (O/N) : ");
             char c=fgetc(stdin); // a tester
             if(c=='Y' || c=='y' || c=='O' || c=='o')
             {
-                installPathFlag=checkInstallationPaths(params_list[MEA_PATH], 1); // on rebalaye mais cette fois on essaye de créer les repertoires
-                if(!installPathFlag) // pas d'erreur tous les repertoires existent maintenant en lecture écriture.
+                installPathFlag=checkInstallationPaths(params_list[MEA_PATH], 1); // on rebalaye mais cette fois on essaye de créer les répertoires
+                if(!installPathFlag) // pas d'erreur tous les répertoires existent maintenant en lecture/écriture.
                     printf("Les répertoires ont été créés\n");
             }
         }
         if(installPathFlag==-1)
-            printf("Certains répertoire recommandés ne sont pas accessible en lecture/écriture ou sont absents. Vous devrez choisir d'autres chemins pour l'installation\n");
+            printf("Certains répertoires recommandés ne sont pas accessibles en lecture/écriture ou sont absents. Vous devrez choisir d'autres chemins pour l'installation\n");
         func_ret=interactiveInit(params_list, keys);
     }
     if(func_ret)
@@ -996,8 +1005,8 @@ int16_t initMeaEdomus(int16_t mode, char **params_list, char **keys)
 int16_t updateMeaEdomus(char **params_list, char **keys)
  /**
   * \brief     mise à jour d'un ou plusieurs paramètres de l'application.
-  * \details   les paramètres à mettre à jour se trouve dans params_list (uniquement entrées non null prises en compte)
-  * \param     params_list  liste de tous les parametres
+  * \details   les paramètres à mettre à jour se trouvent dans "params_list" (uniquement les entrées non null de la table sont prises en compte)
+  * \param     params_list  liste de tous les paramètres
   * \return    0 si OK, -1 en cas d'erreur.
   */
 {

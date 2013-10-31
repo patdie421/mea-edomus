@@ -38,14 +38,14 @@
 #include "httpServer.h"
 
 
-tomysqldb_md_t *myd; // globale car doit être accessible par les gestionnaires de signaux
-queue_t *interfaces; // globale car doit être accessible par les gestionnaires de signaux
-sqlite3 *sqlite3_param_db; // globale car doit être accessible par les gestionnaires de signaux
-pthread_t *xPLServer_thread=NULL; // globale car doit être accessible par les gestionnaires de signaux
-pthread_t *pythonPluginServer_thread=NULL; // globale car doit être accessible par les gestionnaires de signaux
+tomysqldb_md_t *myd;                       /*!< descripteur mysql. Variable globale car doit être accessible par les gestionnaires de signaux. */
+queue_t *interfaces;                       /*!< liste (file) des interfaces. Variable globale car doit être accessible par les gestionnaires de signaux. */
+sqlite3 *sqlite3_param_db;                 /*!< descripteur pour la base sqlite de paramétrage. Variable globale car doit être accessible par les gestionnaires de signaux. */
+pthread_t *xPLServer_thread=NULL;          /*!< Adresse du thread du serveur xPL. Variable globale car doit être accessible par les gestionnaires de signaux.*/
+pthread_t *pythonPluginServer_thread=NULL; /*!< Adresse du thread Python. Variable globale car doit être accessible par les gestionnaires de signaux.*/
 
-char *param_names[MAX_LIST_SIZE]; // liste des noms de paramètres dans la base
-char *params_list[MAX_LIST_SIZE]; // liste des valeurs de paramètres
+char *params_names[MAX_LIST_SIZE];          /*!< liste des noms (chaines) de paramètres dans la base sqlite3 de paramétrage.*/
+char *params_list[MAX_LIST_SIZE];          /*!< liste des valeurs de paramètres.*/
 
 
 void usage(char *cmd)
@@ -55,7 +55,7 @@ void usage(char *cmd)
  */
 {
    char *usage_text[]={
-    //12345678901234567890123456789012345678901234567890123456789012345678901234567890
+     //12345678901234567890123456789012345678901234567890123456789012345678901234567890
       "",
       "gestion de capteurs/actionneurs (xbee, arduino, ...) commandés par des messages",
       "xPL",
@@ -182,7 +182,7 @@ int16_t read_all_application_parameters(sqlite3 *sqlite3_param_db)
          strToUpper(key);
          for(int i=0;i<MAX_LIST_SIZE;i++)
          {
-            if(param_names[i] && strcmp(param_names[i],key)==0)
+            if(params_names[i] && strcmp(params_names[i],key)==0)
             {
                string_free_malloc_and_copy(&params_list[i], value, 1);
                break;
@@ -356,6 +356,7 @@ static void _signal_HUP(int signal_number)
    
    return;
 }
+
 
 void start_httpServer(char **params_list, sqlite3 *sqlite3_param_db)
 {
@@ -670,7 +671,7 @@ int main(int argc, const char * argv[])
    //
    sqlite3_config(SQLITE_CONFIG_SERIALIZED); // pour le multithreading
    // initialisation des noms des parametres dans la base
-   init_param_names(param_names);
+   init_param_names(params_names);
    // initialisation de la liste des parametres à NULL
    for(int i=0;i<MAX_LIST_SIZE;i++)
       params_list[i]=NULL;
@@ -855,14 +856,14 @@ int main(int argc, const char * argv[])
 */   
    if(_i || _a)
    {
-      initMeaEdomus(_a, params_list, param_names);
+      initMeaEdomus(_a, params_list, params_names);
       exit(0);
    }
    
    if(_u)
    {
       // à faire
-      updateMeaEdomus(params_list, param_names);
+      updateMeaEdomus(params_list, params_names);
       exit(0);
    }
 
