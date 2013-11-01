@@ -35,7 +35,7 @@ struct electricity_counter_s
    int sensor_mem_addr[4]; // sensor data addr
    int trap; // comio trap number
    
-   timer_t timer;
+   mea_timer_t timer;
 };
 
 struct electricity_counter_s *valid_and_malloc_counter(int id_sensor_actuator, char *name, char *parameters);

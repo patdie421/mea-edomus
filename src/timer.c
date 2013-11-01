@@ -4,7 +4,7 @@
 #include "timer.h"
 
 
-uint16_t init_timer(timer_t *aTimer, uint32_t aDelay, uint16_t restartStatus)
+uint16_t init_timer(mea_timer_t *aTimer, uint32_t aDelay, uint16_t restartStatus)
 /**
  * \brief     création (initialisation) d'un timer
  * \details   initialise une structure "timer_t". Le timer est "arrêté" au démarrage (pas de prise de chrono)
@@ -28,7 +28,7 @@ uint16_t init_timer(timer_t *aTimer, uint32_t aDelay, uint16_t restartStatus)
 }
 
 
-void start_timer(timer_t *aTimer)
+void start_timer(mea_timer_t *aTimer)
 /**
  * \brief     lancement d'un timer
  * \details   prise de chrono.
@@ -40,7 +40,7 @@ void start_timer(timer_t *aTimer)
 }
 
 
-void stop_timer(timer_t *aTimer)
+void stop_timer(mea_timer_t *aTimer)
 /**
  * \brief     arrêt du timer
  * \details   Le chrono est remis à 0
@@ -52,7 +52,7 @@ void stop_timer(timer_t *aTimer)
 }
 
 
-uint16_t test_timer(timer_t *aTimer)
+uint16_t test_timer(mea_timer_t *aTimer)
 /**
  * \brief     test le timer
  * \details   teste si le delai est dépassé.
