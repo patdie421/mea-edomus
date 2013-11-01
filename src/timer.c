@@ -7,7 +7,7 @@
 uint16_t init_timer(mea_timer_t *aTimer, uint32_t aDelay, uint16_t restartStatus)
 /**
  * \brief     création (initialisation) d'un timer
- * \details   initialise une structure "timer_t". Le timer est "arrêté" au démarrage (pas de prise de chrono)
+ * \details   initialise une structure "mea_timer_t". Le timer est "arrêté" au démarrage (pas de prise de chrono)
  * \param     aTimer   le timer.
  * \param     aDelay   délai avant expiration du timer.
  * \param     restartStatus   type de rearmement du timer.
