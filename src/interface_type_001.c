@@ -38,7 +38,7 @@
 #include "interface_type_001_actuators.h"
 #include "interface_type_001_counters.h"
 
-#define TEMPO    300 // 5 minutes between 2 read
+#define TEMPO    5 // 5 secondes 2 read
 
 
 // structure contenant les parametres du thread de gestion des capteurs
@@ -220,8 +220,6 @@ mea_error_t restart_interface_type_001(interface_type_001_t *i001,sqlite3 *db, t
 }
 
 
-
-
 void *_thread_interface_type_001(void *args)
 {
    struct thread_interface_type_001_params_s *params=(struct thread_interface_type_001_params_s *)args;
@@ -264,8 +262,8 @@ void *_thread_interface_type_001(void *args)
    unsigned int cntr=0;
    while(1)
    {
-      // sleep(1);
-      sleep(TEMPO);
+      sleep(5);
+      // sleep(TEMPO);
       cntr++;
       
       {
@@ -336,7 +334,7 @@ void *_thread_interface_type_001(void *args)
       for(int i=0; i<counters_list->nb_elem; i++)
       {
          current_queue(counters_list, (void **)&counter);
-         if(test_timer(&(counter->timer)))
+         if(!test_timer(&(counter->timer)))
          {
             pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)(&i001->operation_lock) );
             

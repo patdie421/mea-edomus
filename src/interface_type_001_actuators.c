@@ -262,7 +262,7 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
                }
                   
                case 0: // pas d'action, donc valeur par defaut = ONOFF
-               case XPL_OUTPUT_ID:
+               case ONOFF_ID:
                {
                   int o=0;
                   
@@ -288,6 +288,10 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
                   
                   return NOERROR;
                   break;
+               }
+               default:
+               {
+                  VERBOSE(9) fprintf(stderr,"%s  (%s) : incorrect request for %s (%s)\n",INFO_STR,__func__,device,type);
                }
             }
          }

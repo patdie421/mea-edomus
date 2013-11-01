@@ -623,7 +623,6 @@ int main(int argc, const char * argv[])
 {
    int c;
    int ret;
-   char *buff;
    sqlite3 *sqlite3_param_db; // descritpteur SQLITE
    
    // toutes les options possibles
@@ -676,7 +675,8 @@ int main(int argc, const char * argv[])
    for(int i=0;i<MAX_LIST_SIZE;i++)
       params_list[i]=NULL;
 
-   // chemin "théorique" de l'installation mea-domus (si les recommendations ont été respectées)
+   /*
+   // chemin "théorique" de l'installation mea-domus (si les recommendations ont été respectées) => ne marche pas sur linux
    buff=(char *)malloc(strlen(argv[0])+1);
    if(realpath(argv[0], buff))
    {
@@ -690,6 +690,9 @@ int main(int argc, const char * argv[])
       free(path);
    }
    free(buff);
+   */
+   string_free_malloc_and_copy(&params_list[MEA_PATH], "/usr/local/mea-edomus", 1);
+   IF_NULL_EXIT(&params_list[MEA_PATH], 1);
 
    //
    // récupération des paramètres de la ligne de commande

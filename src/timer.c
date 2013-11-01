@@ -67,7 +67,7 @@ uint16_t test_timer(mea_timer_t *aTimer)
 	  
 	   time(&now);
 	    
-	   diff_time=difftime(aTimer->start_time,now);
+	   diff_time=difftime(now,aTimer->start_time);
       if(diff_time > (double)(aTimer->delay))
 	   {
 	      if(aTimer->autorestart==1)
