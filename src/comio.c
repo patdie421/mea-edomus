@@ -264,11 +264,18 @@ on_error_exit_arduino_read:
    if(data)
       free(data);
 #ifdef COMIO_DEBUG
-   buff[nb_cars++]=0;
-   for(int i=0;i<nb_cars;i++)
-      fprintf(stderr,"%x(%c) ",buff[i],buff[i]);
-   fprintf(stderr,"\n");
-   fprintf(stderr,"nerr=%d\n",*nerr);
+   if(*nerr!=COMIO_ERR_TIMEOUT)
+   {
+      buff[nb_cars++]=0;
+      for(int i=0;i<nb_cars;i++)
+      {
+         char c=buff[i];
+         if(c<'!')
+            c=' ';
+         fprintf(stderr,"%x(%c) ",buff[i],buff[i]);
+      }
+      fprintf(stderr,"nerr=%d\n",*nerr);
+   }
 #endif
    return -1;
 }
