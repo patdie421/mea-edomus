@@ -266,6 +266,7 @@ on_error_exit_arduino_read:
 #ifdef COMIO_DEBUG
    if(*nerr!=COMIO_ERR_TIMEOUT)
    {
+      fprintf(stderr,"%s (%s) : ",DEBUG_STR,__func__);
       buff[nb_cars++]=0;
       for(int i=0;i<nb_cars;i++)
       {
