@@ -402,6 +402,7 @@ int16_t create_configs_php(char *gui_home, char *params_db_fullname, char *php_l
       fprintf(fd,"ini_set('log_errors', 'On');\n");
       fprintf(fd,"ini_set('display_errors', 'Off');\n");
       fprintf(fd,"ini_set(\"error_log\", \"%s\");\n",php_log_fullname);
+//      fprintf(fd,"session_save_path(''"); // mettre dans $basepath/var/sessions
       fprintf(fd,"$TITRE_APPLICATION='Mea eDomus Admin';\n");
       fprintf(fd,"$PARAMS_DB_PATH='sqlite:%s';\n",params_db_fullname);
       fprintf(fd,"$QUERYDB_SQL='sql/querydb.sql';\n");

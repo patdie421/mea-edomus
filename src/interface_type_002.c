@@ -304,7 +304,7 @@ int16_t _interface_type_002_xPL_callback(xPL_ServicePtr theService, xPL_MessageP
    char sql[1024];
    sqlite3_stmt * stmt;
    
-   sprintf(sql,"%s WHERE sensors_actuators.name='%s';", sql_select_device_info, device);
+   sprintf(sql,"%s WHERE sensors_actuators.name='%s' and sensors_actuators.state='1';", sql_select_device_info, device);
    ret = sqlite3_prepare_v2(params_db, sql, strlen(sql)+1, &stmt, NULL);
    if(ret)
    {
@@ -438,7 +438,7 @@ mea_error_t _interface_type_002_commissionning_callback(int id, unsigned char *c
    
    char sql[1024];
    sqlite3_stmt * stmt;
-   sprintf(sql,"%s WHERE interfaces.dev ='MESH://%s';", sql_select_interface_info, addr);
+   sprintf(sql,"%s WHERE interfaces.dev ='MESH://%s' WHERE interfaces.state='2';", sql_select_interface_info, addr);
    
    int ret = sqlite3_prepare_v2(params_db,sql,strlen(sql)+1,&stmt,NULL);
    if(ret)
