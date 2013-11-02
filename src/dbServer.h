@@ -41,7 +41,7 @@ struct sensor_value_s
    float value1; // valeur principale
    uint16_t unit; // code unité de mesure (s'applique à la valeur principale)
    float value2; // valeur secondaire
-   char *specific; // spécifique à un capteur données stocké sous forme de chaine de caractères
+   char *complement; // spécifique à un capteur données stocké sous forme de chaine de caractères
 };
 
 
