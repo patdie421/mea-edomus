@@ -112,7 +112,7 @@ int16_t tomysqldb_add_data_to_sensors_values(tomysqldb_md_t *md, uint16_t sensor
    pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(md->lock));
    if(!pthread_mutex_lock(&(md->lock)))
    {
-      VERBOSE(9) fprintf (stderr, "%s (%s) : data to queue(%ld) (sensor_id=%d, value1=%f)",INFO_STR,__func__,md->queue->nb_elem,sensor_id,value1);
+      VERBOSE(9) fprintf (stderr, "%s (%s) : data to queue(%ld) (sensor_id=%d, value1=%f)\n",INFO_STR,__func__,md->queue->nb_elem,sensor_id,value1);
       in_queue_elem(md->queue,(void *)elem);
       pthread_mutex_unlock(&(md->lock));
    }

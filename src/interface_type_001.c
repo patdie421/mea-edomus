@@ -294,6 +294,8 @@ void *_thread_interface_type_001(void *args)
                   if(sensor->compute==XPL_TEMP_ID)
                   {
                      VERBOSE(9) fprintf(stderr,"%s  (%s) : Temp sensor %s =  %.1f °C (%d) \n",INFO_STR,__func__,sensor->name,sensor->computed_val,sensor->val);
+                     tomysqldb_add_data_to_sensors_values(myd, counter->sensor_id, sensor->computed_val, UNIT_C, sensor->val, "");
+
                   }
                   else if(sensor->compute==XPL_VOLTAGE_ID)
                   {

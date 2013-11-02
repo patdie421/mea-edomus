@@ -83,7 +83,7 @@ mea_error_t counter_trap(int numTrap, void *args, char *buff)
          counter->power=3600/(counter->t-t_old);
          
          /* à revoir */
-         tomysqldb_add_data_to_sensors_values(myd, counter->sensor_id, counter->power, UNIT_W, (float)counter->t-t_old, "");
+         // tomysqldb_add_data_to_sensors_values(myd, counter->sensor_id, counter->power, UNIT_W, (float)counter->t-t_old, "");
 
          char value[20];
          xPL_ServicePtr servicePtr = get_xPL_ServicePtr();

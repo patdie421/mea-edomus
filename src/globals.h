@@ -41,5 +41,6 @@ extern tomysqldb_md_t *myd;
 // voir ou mettre
 #define UNIT_WH 1
 #define UNIT_W  2
+#define UNIT_C  3
 
 #endif
