@@ -48,7 +48,7 @@ typedef struct interface_type_002_s
 
 #define PLUGIN_DATA_MAX_SIZE 80
 
-
+/*
 typedef struct plugin_xbeedata_queue_elem_s
 {
    unsigned char    addr_64_h[4];
@@ -58,7 +58,7 @@ typedef struct plugin_xbeedata_queue_elem_s
    struct timeval   tv;
    
 } plugin_xbeedata_queue_elem_t;
-
+*/
 
 typedef struct plugin_xpl_queue_elem_s
 {

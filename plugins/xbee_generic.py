@@ -245,6 +245,8 @@ def mea_dataFromSensor(data):
    except:
       verbose(9, "ERROR (", fn_name, ") - invalid data")
       return False
+
+   verbose(9, "INFO  (", fn_name, ") - data from ", id_sensor)
    
    mem=mea.getMemory(id_sensor)
    
@@ -282,7 +284,8 @@ def mea_dataFromSensor(data):
                mem[current_key]="LOW"
          else:
             mem[current_key]=val
-         
+
+         verbose(9, "INFO  (", fn_name, ") - data : ", data["device_name"])
          if mem[current_key] != mem[last_key]:
             xplMsg=mea_utils.xplMsgNew(mea.xplGetVendorID(), mea.xplGetDeviceID(), mea.xplGetInstanceID(), "xpl-trig", "sensor", "basic", data["device_name"])
             mea_utils.xplMsgAddValue(xplMsg,"current", mem[current_key])
@@ -290,6 +293,7 @@ def mea_dataFromSensor(data):
             mea_utils.xplMsgAddValue(xplMsg,"last",mem[last_key])
             #            print mea_utils.xplMsgToString(xplMsg)
             mea.xplSendMsg(xplMsg)
+
             return True
    
    return False

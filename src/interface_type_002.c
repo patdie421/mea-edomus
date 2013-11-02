@@ -551,10 +551,16 @@ void *_thread_interface_type_002_xbeedata_cleanup(void *args)
 
 
 void *_thread_interface_type_002_xbeedata(void *args)
+/**
+ * \brief     Gestion des donnŽes asynchrones en provenances d'xbee
+ * \details   Les iodata peuvent arriver n'importe quand, il sagit de pouvoir les traiter ds rŽceptions.
+ *            Le callback associŽ est en charge de poster les donnŽes ˆ traiter dans une file qui seront consommŽes par ce thread.
+ * \param     args   bla bla
+ */
 {
    struct thread_params_s *params=(struct thread_params_s *)args;
 
-   pthread_cleanup_push( (void *)_thread_interface_type_002_xbeedata_cleanup, (void *)params );
+   // pthread_cleanup_push( (void *)_thread_interface_type_002_xbeedata_cleanup, (void *)params );
    
    sqlite3 *params_db=params->param_db;
    data_queue_elem_t *e;
@@ -620,7 +626,7 @@ void *_thread_interface_type_002_xbeedata(void *args)
                  e->addr_64_l[3]);
          VERBOSE(9) fprintf(stderr, "%s  (%s) : data from = %s received\n",INFO_STR, __func__, addr);
          
-         sprintf(sql,"%s WHERE interfaces.dev ='MESH://%s';", sql_select_device_info, addr);
+         sprintf(sql,"%s WHERE interfaces.dev ='MESH://%s' and sensors_actuators.state='1';", sql_select_device_info, addr);
          ret = sqlite3_prepare_v2(params_db,sql,strlen(sql)+1,&(params->stmt),NULL);
          if(ret)
          {
@@ -737,7 +743,7 @@ void *_thread_interface_type_002_xbeedata(void *args)
       pthread_testcancel();
    }
    
-   pthread_cleanup_pop(0);
+//   pthread_cleanup_pop(0);
    
    return NULL;
 }

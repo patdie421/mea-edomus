@@ -85,6 +85,7 @@ def mea_dataFromSensor(data):
     except:
         verbose(2, "ERROR - (mea_dataFromSensor) : data not found")
         return False
+    verbose(9, "INFO  (mea_dataFromSensor) : data from ", id_sensor)
 
     mem=mea.getMemory(id_sensor)
 

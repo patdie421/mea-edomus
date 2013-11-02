@@ -28,8 +28,9 @@
       id INT UNSIGNED NOT NULL AUTO_INCREMENT,
       sensor_id SMALLINT UNSIGNED,
       date DATETIME,
-      value FLOAT,
+      value1 FLOAT,
       unit SMALLINT UNSIGNED,
+      value2 FLOAT,
       specific VARCHAR(255),
       PRIMARY KEY(id)
    );

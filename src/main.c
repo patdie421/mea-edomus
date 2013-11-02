@@ -407,6 +407,7 @@ pthread_t *pythonPluginServer_thread=NULL;
    if(params_list[PLUGINS_PATH])
    {
       setPythonPluginPath(params_list[PLUGINS_PATH]);
+      printf("PLUGINS_PATH=%s\n", params_list[PLUGINS_PATH]);
       pythonPluginServer_thread=pythonPluginServer(NULL);
       if(pythonPluginServer_thread==NULL)
       {
@@ -429,7 +430,6 @@ tomysqldb_md_t *start_dbServer(char **params_list, sqlite3 *sqlite3_param_db)
 {
    tomysqldb_md_t *md=NULL;
    int16_t ret;
-   
 #ifndef __NO_TOMYSQL__
    md=(struct tomysqldb_md_s *)malloc(sizeof(struct tomysqldb_md_s));
    if(!md)

@@ -511,7 +511,7 @@ void *tomysqldb_thread(void *args)
       }
       
       pthread_testcancel();
-      sleep(10);
+      sleep(30);
 //      DEBUG_SECTION {
 //         printf("Boucle tomysqldb\n");
 //      }
