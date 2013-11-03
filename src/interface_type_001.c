@@ -346,7 +346,8 @@ void *_thread_interface_type_001(void *args)
             
             pthread_cleanup_pop(0);
 
-            counter_to_db(md, counter);
+            if(counter->counter!=counter->last_counter)
+               counter_to_db(md, counter);
             
             counter_to_xpl(counter);
             

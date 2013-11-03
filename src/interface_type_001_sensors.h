@@ -30,6 +30,8 @@ struct sensor_s
    compute_f compute_fn;
    
    float computed_val;
+   
+   float last;
 };
 
 

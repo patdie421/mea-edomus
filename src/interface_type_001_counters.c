@@ -80,6 +80,7 @@ mea_error_t counter_trap(int numTrap, void *args, char *buff)
          t_old=counter->t;
          counter->t=(double)tv.tv_sec+(double)tv.tv_usec/1000000.0;
          // calcul de la conso instantannée (enfin une estimation)
+         counter->last_power=counter->power;
          counter->power=3600/(counter->t-t_old);
          
          /* à revoir */
@@ -253,6 +254,7 @@ void counter_read(comio_ad_t *ad, struct electricity_counter_s *counter)
    c=c |  l1;
    
    // debut section critique
+   counter->last_counter=counter->counter;
    counter->wh_counter=c;
    counter->kwh_counter=c / 1000;
    counter->counter=c;

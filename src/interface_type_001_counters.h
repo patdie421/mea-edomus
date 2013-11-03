@@ -30,6 +30,9 @@ struct electricity_counter_s
    double power; // estimation de la puissance instantanée
    double t; // time reférence
    
+   unsigned long last_counter;
+   double last_power;
+   
    pthread_mutex_t lock;
    
    int sensor_mem_addr[4]; // sensor data addr
