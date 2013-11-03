@@ -13,8 +13,9 @@
 #include "xPL.h"
 #include "xPLServer.h"
 #include "token_strings.h"
-
+#include "dbServer.h"
 #include "xbee.h"
+
 #include "mea_api.h"
 
 PyObject *mea_memory;
@@ -27,6 +28,7 @@ static PyMethodDef MeaMethods[] = {
    {"xplGetDeviceID",       mea_xplGetDeviceID,       METH_VARARGS, "DeviceID"},
    {"xplGetInstanceID",     mea_xplGetInstanceID,     METH_VARARGS, "InstanceID"},
    {"xplSendMsg",           mea_xplSendMsg,           METH_VARARGS, "Envoie un message XPL"},
+   {"addDataToSensorsValuesTable",mea_addDataToSensorsValuesTable, METH_VARARGS, "Envoi des donnees dans la table sensors_values"},
    {NULL, NULL, 0, NULL}
 };
 
@@ -593,3 +595,56 @@ mea_atCmdSend_arg_err:
    return NULL;
 }
 
+
+//static PyObject *mea_addDataToSensorsValuesTable(tomysqldb_md_t *md, uint16_t sensor_id, float value1, uint16_t unit, float value2, char *complement)
+static PyObject *mea_addDataToSensorsValuesTable(PyObject *self, PyObject *args)
+{
+   uint16_t sensor_id;
+   float value1, value2;
+   uint16_t unit;
+   char *complement;
+
+   PyObject *arg;
+   
+   
+   // récupération des paramètres et contrôle des types
+   if(PyTuple_Size(args)!=5)
+      goto mea_addDataToSensorsValuesTable_arg_err;
+   
+   arg=PyTuple_GetItem(args, 0);
+   if(PyNumber_Check(arg))
+      sensor_id=(uint16_t)PyLong_AsLong(arg);
+   else
+      goto mea_addDataToSensorsValuesTable_arg_err;
+   
+   arg=PyTuple_GetItem(args, 1);
+   if(PyNumber_Check(arg))
+      value1=(float)PyFloat_AsDouble(arg);
+   else
+      goto mea_addDataToSensorsValuesTable_arg_err;
+
+   arg=PyTuple_GetItem(args, 2);
+   if(PyNumber_Check(arg))
+      unit=(uint16_t)PyLong_AsLong(arg);
+   else
+      goto mea_addDataToSensorsValuesTable_arg_err;
+   
+   arg=PyTuple_GetItem(args, 3);
+   if(PyNumber_Check(arg))
+      value2=(float)PyFloat_AsDouble(arg);
+   else
+      goto mea_addDataToSensorsValuesTable_arg_err;
+   
+   arg=PyTuple_GetItem(args, 4);
+   if(PyString_Check(arg))
+      complement=(char *)PyString_AsString(arg);
+   else
+      goto mea_addDataToSensorsValuesTable_arg_err;
+
+   printf("%d %f %d %f %s\n",sensor_id,value1,unit,value2,complement);
+   
+mea_addDataToSensorsValuesTable_arg_err:
+   VERBOSE(9) fprintf(stderr, "%s (%s) : arguments error\n", ERROR_STR,__func__);
+   PyErr_BadArgument();
+   return NULL;
+}

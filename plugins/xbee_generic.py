@@ -221,9 +221,11 @@ def mea_xplCmndMsg(data):
       if body["type"]=="output":
          if body["current"].lower()=="low":
             mea.sendAtCmd(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], pin, 4);
+            mea.sendAtCmd(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], "AC", "");
             return True
          elif body["current"].lower()=="high":
             mea.sendAtCmd(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], pin, 5);
+            mea.sendAtCmd(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], "AC", "");
             return True
          else:
             return False

@@ -158,6 +158,8 @@ def mea_dataFromSensor(data):
         else:
             continue
 
+        mea.addDataToSensorsValuesTable(id_sensor,current,0,0,"")
+        
         xplMsg=mea_utils.xplMsgNew(mea.xplGetVendorID(), mea.xplGetDeviceID(), mea.xplGetInstanceID(), "xpl-trig", "sensor", "basic", data["device_name"])
         mea_utils.xplMsgAddValue(xplMsg,"current",current)
         mea_utils.xplMsgAddValue(xplMsg,"type",type)

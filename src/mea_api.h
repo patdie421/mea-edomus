@@ -23,6 +23,8 @@ static PyObject *mea_xplGetVendorID();
 static PyObject *mea_xplGetDeviceID();
 static PyObject *mea_xplGetInstanceID();
 
+static PyObject *mea_addDataToSensorsValuesTable(PyObject *self, PyObject *args);
+
 PyObject *xplMsgToPyDict(xPL_MessagePtr xplMsg);
 
 #endif
