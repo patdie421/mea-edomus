@@ -306,7 +306,6 @@ uint16_t build_query_for_sensors_values(char *sql_query, uint16_t l_sql_query, v
               sensor_value->value2, // valeur secondaire
               sensor_value->complement
    );
-   printf("SQL=%s\n",sql_query);
    if(n<0 || n==l_sql_query)
    {
       VERBOSE(2) {

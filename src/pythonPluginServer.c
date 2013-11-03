@@ -204,7 +204,7 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
          
          if (pValue != NULL)
          {
-            DEBUG_SECTION fprintf(stderr, "%s (%s) : Result of call: %ld\n", DEBUG_STR, __func__, PyInt_AsLong(pValue));
+            // DEBUG_SECTION fprintf(stderr, "%s (%s) : Result of call: %ld\n", DEBUG_STR, __func__, PyInt_AsLong(pValue));
          }
          else
          {

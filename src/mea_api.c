@@ -601,7 +601,7 @@ mea_atCmdSend_arg_err:
 static PyObject *mea_addDataToSensorsValuesTable(PyObject *self, PyObject *args)
 {
    uint16_t sensor_id;
-   float value1, value2;
+   double value1, value2;
    uint16_t unit;
    char *complement;
 
@@ -620,7 +620,7 @@ static PyObject *mea_addDataToSensorsValuesTable(PyObject *self, PyObject *args)
    
    arg=PyTuple_GetItem(args, 1);
    if(PyNumber_Check(arg))
-      value1=(float)PyFloat_AsDouble(arg);
+      value1=PyFloat_AsDouble(arg);
    else
       goto mea_addDataToSensorsValuesTable_arg_err;
 
@@ -632,7 +632,7 @@ static PyObject *mea_addDataToSensorsValuesTable(PyObject *self, PyObject *args)
    
    arg=PyTuple_GetItem(args, 3);
    if(PyNumber_Check(arg))
-      value2=(float)PyFloat_AsDouble(arg);
+      value2=PyFloat_AsDouble(arg);
    else
       goto mea_addDataToSensorsValuesTable_arg_err;
    

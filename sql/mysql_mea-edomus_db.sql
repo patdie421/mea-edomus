@@ -17,9 +17,9 @@ CREATE TABLE IF NOT EXISTS sensors_values (
    id INT UNSIGNED NOT NULL AUTO_INCREMENT,
    sensor_id SMALLINT UNSIGNED,
    date DATETIME,
-   value1 FLOAT,
+   value1 FLOAT(13,3),
    unit SMALLINT UNSIGNED,
-   value2 FLOAT,
+   value2 FLOAT(13,3),
    complement VARCHAR(255),
 
    PRIMARY KEY(id)
