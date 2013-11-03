@@ -641,7 +641,9 @@ static PyObject *mea_addDataToSensorsValuesTable(PyObject *self, PyObject *args)
    else
       goto mea_addDataToSensorsValuesTable_arg_err;
 
-   printf("%d %f %d %f %s\n",sensor_id,value1,unit,value2,complement);
+   printf("Params : %d %f %d %f %s\n",sensor_id,value1,unit,value2,complement);
+   
+   return PyLong_FromLong(1L); // True
    
 mea_addDataToSensorsValuesTable_arg_err:
    VERBOSE(9) fprintf(stderr, "%s (%s) : arguments error\n", ERROR_STR,__func__);
