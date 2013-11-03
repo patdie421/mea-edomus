@@ -15,6 +15,7 @@
 #include "token_strings.h"
 #include "dbServer.h"
 #include "xbee.h"
+#include "globals.h"
 
 #include "mea_api.h"
 
@@ -641,8 +642,12 @@ static PyObject *mea_addDataToSensorsValuesTable(PyObject *self, PyObject *args)
    else
       goto mea_addDataToSensorsValuesTable_arg_err;
 
-   printf("Params : %d %f %d %f %s\n",sensor_id,value1,unit,value2,complement);
-   
+   tomysqldb_md_t *md=get_myd();
+   if(md)
+   {
+      tomysqldb_add_data_to_sensors_values(myd, sensor_id, value1, unit, value2, complement);
+   }
+
    return PyLong_FromLong(1L); // True
    
 mea_addDataToSensorsValuesTable_arg_err:

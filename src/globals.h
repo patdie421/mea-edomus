@@ -37,10 +37,13 @@
 #define MAX_LIST_SIZE         20
 
 extern tomysqldb_md_t *myd;
+tomysqldb_md_t *get_myd();
 
 // voir ou mettre
-#define UNIT_WH 1
-#define UNIT_W  2
-#define UNIT_C  3
+#define UNIT_WH 1 // Watt/Heure
+#define UNIT_W  2 // Watt
+#define UNIT_C  3 // degré C
+#define UNIT_V  4 // Volt
+#define UNIT_H  5 // pourcentage humidité
 
 #endif

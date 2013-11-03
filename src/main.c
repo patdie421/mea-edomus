@@ -48,6 +48,13 @@ char *params_names[MAX_LIST_SIZE];          /*!< liste des noms (chaines) de par
 char *params_list[MAX_LIST_SIZE];          /*!< liste des valeurs de paramètres.*/
 
 
+
+tomysqldb_md_t *get_myd()
+{
+   return myd;
+}
+
+
 void usage(char *cmd)
 /**
  * \brief     Affiche les "usages" de mea-edomus

@@ -113,6 +113,7 @@ def mea_dataFromSensor(data):
             if last_h != humidite:
                 current=humidite
                 type="humidity"
+                unit=5
                 last=last_h
             else:
                 return True
@@ -131,6 +132,7 @@ def mea_dataFromSensor(data):
 
             if last_t != temperature:
                 current=temperature
+                unit=3
                 type="temperature"
                 last=last_t
             else:
@@ -150,6 +152,7 @@ def mea_dataFromSensor(data):
 
             if last_p != pile:
                 current=pile
+                unit=4
                 type="volt"
                 last=last_p
             else:
@@ -158,7 +161,7 @@ def mea_dataFromSensor(data):
         else:
             continue
 
-        mea.addDataToSensorsValuesTable(id_sensor,current,0,0,"")
+        mea.addDataToSensorsValuesTable(id_sensor,current,unit,0,"")
         
         xplMsg=mea_utils.xplMsgNew(mea.xplGetVendorID(), mea.xplGetDeviceID(), mea.xplGetInstanceID(), "xpl-trig", "sensor", "basic", data["device_name"])
         mea_utils.xplMsgAddValue(xplMsg,"current",current)
