@@ -216,7 +216,7 @@ void counter_to_xpl(struct electricity_counter_s *counter)
 
 int16_t counter_to_db(tomysqldb_md_t *md, struct electricity_counter_s *counter)
 {
-   return tomysqldb_add_data_to_sensors_values(md, counter->sensor_id, counter->wh_counter, UNIT_WH, counter->kwh_counter, "WH");
+   return tomysqldb_add_data_to_sensors_values(md, counter->sensor_id, (float)counter->wh_counter, UNIT_WH, counter->kwh_counter, "WH");
 }
 
 

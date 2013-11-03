@@ -347,7 +347,10 @@ void *_thread_interface_type_001(void *args)
             pthread_cleanup_pop(0);
 
             if(counter->counter!=counter->last_counter)
+            {
+               printf("Counter : %ld %ld\n", counter->counter, counter->last_counter);
                counter_to_db(md, counter);
+            }
             
             counter_to_xpl(counter);
             
