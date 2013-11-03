@@ -438,7 +438,7 @@ mea_error_t _interface_type_002_commissionning_callback(int id, unsigned char *c
    
    char sql[1024];
    sqlite3_stmt * stmt;
-   sprintf(sql,"%s WHERE interfaces.dev ='MESH://%s' WHERE interfaces.state='2';", sql_select_interface_info, addr);
+   sprintf(sql,"%s WHERE interfaces.dev ='MESH://%s' AND interfaces.state='2';", sql_select_interface_info, addr);
    
    int ret = sqlite3_prepare_v2(params_db,sql,strlen(sql)+1,&stmt,NULL);
    if(ret)
