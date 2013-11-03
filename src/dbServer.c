@@ -45,7 +45,7 @@ void free_value(void *data)
 }
 
 
-int16_t tomysqldb_add_data_to_sensors_values(tomysqldb_md_t *md, uint16_t sensor_id, float value1, uint16_t unit, float value2, char *complement)
+int16_t tomysqldb_add_data_to_sensors_values(tomysqldb_md_t *md, uint16_t sensor_id, double value1, uint16_t unit, double value2, char *complement)
 /**
  * \brief     Récupère les données de type "sensors values" pour stockage dans la table sensors_values de la base mysql.
  * \details   En dehors des données en provenance des capteurs la date courrante est rajoutée par cette fonction.
@@ -306,6 +306,7 @@ uint16_t build_query_for_sensors_values(char *sql_query, uint16_t l_sql_query, v
               sensor_value->value2, // valeur secondaire
               sensor_value->complement
    );
+   printf("SQL=%s\n",sql_query);
    if(n<0 || n==l_sql_query)
    {
       VERBOSE(2) {

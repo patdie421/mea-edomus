@@ -39,9 +39,9 @@ struct sensor_value_s
 {
    uint16_t sensor_id;
    struct timeval date_tv;
-   float value1; // valeur principale
+   double value1; // valeur principale
    uint16_t unit; // code unité de mesure (s'applique à la valeur principale)
-   float value2; // valeur secondaire
+   double value2; // valeur secondaire
    char *complement; // spécifique à un capteur données stocké sous forme de chaine de caractères
 };
 
@@ -79,6 +79,6 @@ typedef struct tomysqldb_md_s
 
 int  tomysqldb_init(tomysqldb_md_t *md, char *db_server, char *db_server_port, char *base, char *user, char *passwd, char *sqlite3_db_path);
 void tomysqldb_release(tomysqldb_md_t *md);
-int16_t tomysqldb_add_data_to_sensors_values(tomysqldb_md_t *md, uint16_t sensor_id, float value1, uint16_t unit, float value2, char *specific);
+int16_t tomysqldb_add_data_to_sensors_values(tomysqldb_md_t *md, uint16_t sensor_id, double value1, uint16_t unit, double value2, char *complement);
 
 #endif
