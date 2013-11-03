@@ -204,7 +204,7 @@ mea_error_t restart_interface_type_001(interface_type_001_t *i001,sqlite3 *db, t
 {
    char full_dev[80];
    char dev[80];
-   int id_interface;
+   uint32_t id_interface;
    int ret;
    
    sscanf(i001->ad->serial_dev_name,"/dev/%s",full_dev);
@@ -213,7 +213,7 @@ mea_error_t restart_interface_type_001(interface_type_001_t *i001,sqlite3 *db, t
    id_interface=i001->id_interface;
    
    stop_interface_type_001(i001);
-   sleep(1);
+   sleep(5);
    ret=start_interface_type_001(i001, db, id_interface, (const unsigned char *)dev, md);
 
    return ret;
@@ -238,7 +238,7 @@ void *_thread_interface_type_001(void *args)
    
    // initialisation des trap compteurs
    first_queue(counters_list);
-   for(int i=0; i<counters_list->nb_elem; i++)
+   for(int16_t i=0; i<counters_list->nb_elem; i++)
    {
       current_queue(counters_list, (void **)&counter);
       comio_set_trap2(ad, counter->trap, counter_trap, (void *)counter);
@@ -249,7 +249,7 @@ void *_thread_interface_type_001(void *args)
    
    // initialisation des trap changement etat entrées logiques
    first_queue(sensors_list);
-   for(int i=0; i<sensors_list->nb_elem; i++)
+   for(int16_t i=0; i<sensors_list->nb_elem; i++)
    {
       current_queue(sensors_list, (void **)&sensor);
       comio_set_trap2(ad,  sensor->arduino_pin+10, digital_in_trap, (void *)sensor);
@@ -259,7 +259,7 @@ void *_thread_interface_type_001(void *args)
    
    // a partir d'ici besoin de mutuex pour l'acces à compteur_prod et compteur_conso, car le trap est généré par un
    // thread s'exécutant en parallele
-   unsigned int cntr=0;
+   uint16_t cntr=0;
    while(1)
    {
       sleep(5);
@@ -270,13 +270,13 @@ void *_thread_interface_type_001(void *args)
          int comio_err;
          
          first_queue(sensors_list);
-         for(int i=0; i<sensors_list->nb_elem; i++)
+         for(int16_t i=0; i<sensors_list->nb_elem; i++)
          {
             current_queue(sensors_list, (void **)&sensor);
             
             if(sensor->arduino_pin_type==ANALOG_ID)
             {
-               int v;
+               int16_t v;
                
                pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)(&i001->operation_lock) );
                pthread_mutex_lock(&i001->operation_lock);
@@ -333,7 +333,7 @@ void *_thread_interface_type_001(void *args)
       }
       
       first_queue(counters_list);
-      for(int i=0; i<counters_list->nb_elem; i++)
+      for(int16_t i=0; i<counters_list->nb_elem; i++)
       {
          current_queue(counters_list, (void **)&counter);
          if(!test_timer(&(counter->timer)))
@@ -348,13 +348,13 @@ void *_thread_interface_type_001(void *args)
 
             if(counter->counter!=counter->last_counter)
             {
-               printf("Counter : %ld %ld\n", counter->counter, counter->last_counter);
+               printf("Counter : %ld %ld\n", (long)counter->counter, (long)counter->last_counter);
                counter_to_db(md, counter);
             }
             
             counter_to_xpl(counter);
             
-            VERBOSE(9) fprintf(stderr,"%s  (%s) : counter %s %ld (WH=%d KWH=%d)\n",INFO_STR,__func__,counter->name, counter->counter, counter->wh_counter,counter->kwh_counter);
+            VERBOSE(9) fprintf(stderr,"%s  (%s) : counter %s %ld (WH=%ld KWH=%ld)\n",INFO_STR,__func__,counter->name, (long)counter->counter, (long)counter->wh_counter,(long)counter->kwh_counter);
                
             next_queue(counters_list);
          }
@@ -375,7 +375,7 @@ int16_t check_status_interface_type_001(interface_type_001_t *i001)
 
 mea_error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, int id_interface, const unsigned char *dev, tomysqldb_md_t *md)
 {
-   int ret;
+   int16_t ret;
    
    char sql_request[255];
    char real_dev[80];
@@ -447,7 +447,7 @@ mea_error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, in
    }
    
    // récupération des parametrages des capteurs dans la base
-   int nb_sensors_actuators=0;
+   int16_t nb_sensors_actuators=0;
    while (1) // boucle de traitement du résultat de la requete
    {
       int s=sqlite3_step(stmt);

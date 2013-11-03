@@ -21,7 +21,7 @@
 
 typedef struct interface_type_001_s
 {
-   int id_interface;
+   uint16_t id_interface;
    pthread_t  *thread; // thread id
    comio_ad_t *ad; // comio descriptor
    pthread_mutex_t operation_lock;

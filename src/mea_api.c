@@ -133,7 +133,7 @@ PyObject *xplMsgToPyDict(xPL_MessagePtr xplMsg)
    PyObject *pyBody=PyDict_New();
    xPL_NameValueListPtr body = xPL_getMessageBody(xplMsg);
    int n = xPL_getNamedValueCount(body);
-   for (int i = 0; i < n; i++)
+   for (int16_t i = 0; i < n; i++)
    {
       xPL_NameValuePairPtr keyValuePtr = xPL_getNamedValuePairAt(body, i);
       if (keyValuePtr->itemValue != NULL)
@@ -234,7 +234,7 @@ static PyObject *mea_xplSendMsg(PyObject *self, PyObject *args)
       if(p)
       {
          char xpl_class[9], xpl_type[9];
-         int n=sscanf(p,"%[^.].%s", xpl_class, xpl_type);
+         int16_t n=sscanf(p,"%[^.].%s", xpl_class, xpl_type);
          if(n==2)
             xPL_setSchema(xplMsg, xpl_class, xpl_type);
          else
@@ -348,7 +348,7 @@ uint32_t indianConvertion(uint32_t val_x86)
    val_xbee_ptr = (char *)&val_xbee;
    
    // conversion little vers big indian
-   for(int i=0,j=3;i<sizeof(uint32_t);i++)
+   for(int16_t i=0,j=3;i<sizeof(uint32_t);i++)
       val_xbee_ptr[i]=val_x86_ptr[j-i];
 
    return val_xbee;
@@ -410,7 +410,7 @@ static PyObject *mea_sendAtCmdAndWaitResp(PyObject *self, PyObject *args)
       uint32_t val_xbee=indianConvertion(val);
       char *val_xbee_ptr=(char *)&val_xbee;
       
-      for(int i=0;i<sizeof(uint32_t);i++)
+      for(int16_t i=0;i<sizeof(uint32_t);i++)
          at_cmd[2+i]=val_xbee_ptr[i];
       l_at_cmd=6;
    }
@@ -546,7 +546,7 @@ static PyObject *mea_sendAtCmd(PyObject *self, PyObject *args)
       uint32_t val_xbee=indianConvertion(val);
       char *val_xbee_ptr=(char *)&val_xbee;
       
-      for(int i=0;i<sizeof(uint32_t);i++)
+      for(int16_t i=0;i<sizeof(uint32_t);i++)
          at_cmd[2+i]=val_xbee_ptr[i];
       l_at_cmd=6;
    }

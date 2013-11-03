@@ -25,12 +25,12 @@ struct electricity_counter_s
    
    uint32_t wh_counter;
    uint32_t kwh_counter;
-   unsigned long counter; // wh total
+   uint32_t counter; // wh total
    
    double power; // estimation de la puissance instantanée
    double t; // time reférence
    
-   unsigned long last_counter;
+   uint32_t last_counter;
    double last_power;
    
    pthread_mutex_t lock;

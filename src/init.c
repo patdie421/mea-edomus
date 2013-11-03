@@ -156,7 +156,6 @@ char *get_and_malloc_integer(int16_t default_value, char *question_str)
   */
 {
    char *value_str;
-//   long value;
    char *end;
    char default_value_str[16];
    

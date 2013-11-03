@@ -105,11 +105,11 @@ int valide_actuator_i001(int token_type_id, int pin_id, int token_action_id, int
 }
 
 
-struct actuator_s *valid_and_malloc_actuator(int id_sensor_actuator, char *name, char *parameters)
+struct actuator_s *valid_and_malloc_actuator(int16_t id_sensor_actuator, char *name, char *parameters)
 {
    unsigned char pin_id;
-   int type_id;
-   int action_id;
+   int16_t type_id;
+   int16_t action_id;
    
    parsed_parameters_t *relay_params=NULL;
    int nb_relay_params;

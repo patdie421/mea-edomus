@@ -141,7 +141,7 @@ struct electricity_counter_s *valid_and_malloc_counter(int id_sensor_actuator, c
       if(num_counter<0 || num_counter>1)
          goto valid_and_malloc_counter_clean_exit;
       
-      for(int i=0;i<4;i++)
+      for(int16_t i=0;i<4;i++)
          counter->sensor_mem_addr[i]=counters_mem[num_counter][i];
       counter->trap=counters_trap[num_counter];
       
@@ -223,7 +223,7 @@ int16_t counter_to_db(tomysqldb_md_t *md, struct electricity_counter_s *counter)
 void counter_read(comio_ad_t *ad, struct electricity_counter_s *counter)
 {
    int l1,l2,l3,l4;
-   unsigned long c;
+   uint32_t c;
    int err=0;
    
    do

@@ -169,7 +169,7 @@ int16_t read_all_application_parameters(sqlite3 *sqlite3_param_db)
    sqlite3_stmt * stmt;
    
    char *sql="SELECT * FROM application_parameters";
-   int ret = sqlite3_prepare_v2(sqlite3_param_db,sql,strlen(sql)+1,&stmt,NULL);
+   int ret = sqlite3_prepare_v2(sqlite3_param_db,sql,strlen(sql)+1,&stmt,NULL); // sqlite function need int
    if(ret)
    {
       VERBOSE(1) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
@@ -178,7 +178,7 @@ int16_t read_all_application_parameters(sqlite3 *sqlite3_param_db)
    
    while (1)
    {
-      int s = sqlite3_step (stmt);
+      int s = sqlite3_step (stmt); // sqlite function need int
       if (s == SQLITE_ROW)
       {
          // uint32_t id = sqlite3_column_int(stmt, 0);
@@ -187,7 +187,7 @@ int16_t read_all_application_parameters(sqlite3 *sqlite3_param_db)
          // char *complement = (char *)sqlite3_column_text(stmt, 3);
          
          strToUpper(key);
-         for(int i=0;i<MAX_LIST_SIZE;i++)
+         for(int16_t i=0;i<MAX_LIST_SIZE;i++)
          {
             if(params_names[i] && strcmp(params_names[i],key)==0)
             {
@@ -274,7 +274,7 @@ void stop_all_services_and_exit()
       VERBOSE(5) fprintf(stderr,"done\n");
    }
    
-   for(int i=0;i<MAX_LIST_SIZE;i++)
+   for(int16_t i=0;i<MAX_LIST_SIZE;i++)
    {
       if(params_list[i])
       {
@@ -311,7 +311,7 @@ static void _signal_HUP(int signal_number)
  */
 {
    interfaces_queue_elem_t *iq;
-   int ret;
+   int16_t ret;
    
    VERBOSE(5) fprintf(stderr,"%s  (%s) : communication error signal (signal = %d).\n", INFO_STR, __func__, signal_number);
    if(!interfaces->nb_elem)
@@ -512,13 +512,13 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
    }
    while (1)
    {
-      int s = sqlite3_step (stmt);
+      int s = sqlite3_step (stmt); // sqlite function need int
       if (s == SQLITE_ROW)
       {
-         int id_interface;
-         int id_type;
+         int16_t id_interface;
+         int16_t id_type;
          const unsigned char *dev;
-         int state;
+         int16_t state;
          
          id_interface = sqlite3_column_int(stmt, 1);
          id_type = sqlite3_column_int(stmt, 2);
@@ -628,8 +628,7 @@ int main(int argc, const char * argv[])
  * \return    1 en cas d'erreur, 0 sinon
  */
 {
-   int c;
-   int ret;
+   int ret; // sqlite function need int
    sqlite3 *sqlite3_param_db; // descritpteur SQLITE
    
    // toutes les options possibles
@@ -679,7 +678,7 @@ int main(int argc, const char * argv[])
    // initialisation des noms des parametres dans la base
    init_param_names(params_names);
    // initialisation de la liste des parametres à NULL
-   for(int i=0;i<MAX_LIST_SIZE;i++)
+   for(int16_t i=0;i<MAX_LIST_SIZE;i++)
       params_list[i]=NULL;
 
    /*
@@ -705,8 +704,9 @@ int main(int argc, const char * argv[])
    // récupération des paramètres de la ligne de commande
    //
    int16_t _d=0, _i=0, _a=0, /* _c ,*/ _u=0, _o=0, _v=-1, _b=0;
-   int option_index = 0;
-   
+
+   int option_index = 0; // getopt_long function need int
+   int c; // getopt_long function need int
 //   while ((c = getopt_long(argc, (char * const *)argv, "bhiaup:d:c:C:H:G:L:A:B:D:P:N:U:W:V:E:S:v:g:", long_options, &option_index)) != -1)
    while ((c = getopt_long(argc, (char * const *)argv, "bhiaup:d:C:H:G:L:A:B:D:P:N:U:W:V:E:S:v:g:", long_options, &option_index)) != -1)
    {
