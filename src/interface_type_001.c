@@ -316,7 +316,7 @@ void *_thread_interface_type_001(void *args)
                      
                      xPL_setSchema(cntrMessageStat, get_token_by_id(XPL_SENSOR_ID), get_token_by_id(XPL_BASIC_ID));
                      xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_DEVICE_ID),sensor->name);
-                     xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_TYPE_ID), get_token_by_id(XPL_ENERGY_ID));
+                     xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_TYPE_ID), get_token_by_id(XPL_TEMP_ID));
                      xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_TEMP_ID),str_value);
                      
                      // Broadcast the message
