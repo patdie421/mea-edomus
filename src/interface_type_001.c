@@ -204,11 +204,10 @@ mea_error_t restart_interface_type_001(interface_type_001_t *i001,sqlite3 *db, t
    char full_dev[80];
    char dev[80];
    uint32_t id_interface;
-   speed_t speed;
    int ret;
    
    sscanf(i001->ad->serial_dev_name,"/dev/%s",full_dev);
-   sprintf(dev,"SERIAL://%s",full_dev);
+   sprintf(dev,"SERIAL://%s:%ld",full_dev,(long)get_speed_from_speed_t(i001->ad->speed));
    
    id_interface=i001->id_interface;
    

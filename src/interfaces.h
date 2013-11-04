@@ -20,5 +20,6 @@ typedef struct interfaces_queue_elem_s
 } interfaces_queue_elem_t;
 
 int16_t get_dev_and_speed(char *device, char *dev, int16_t dev_l, speed_t *speed);
+int32_t get_speed_from_speed_t(speed_t speed);
 
 #endif

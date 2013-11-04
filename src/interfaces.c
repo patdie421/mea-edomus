@@ -29,6 +29,17 @@ uint32_t speeds[][3]={
 };
 
 
+int32_t get_speed_from_speed_t(speed_t speed)
+{
+   for(int16_t i;speeds[i][0];i++)
+   {
+      if(speeds[i][1]==speed)
+         return speeds[i][0];
+   }
+   return -1;
+}
+
+
 int16_t get_dev_and_speed(char *device, char *dev, int16_t dev_l, speed_t *speed)
 {
    *speed=0;
