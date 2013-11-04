@@ -207,8 +207,7 @@ mea_error_t restart_interface_type_001(interface_type_001_t *i001,sqlite3 *db, t
    speed_t speed;
    int ret;
    
-//   sscanf(i001->ad->serial_dev_name,"/dev/%s",full_dev);
-   ret=get_dev_and_speed(dev, full_dev, sizeof(full_dev), &speed);
+   sscanf(i001->ad->serial_dev_name,"/dev/%s",full_dev);
    sprintf(dev,"SERIAL://%s",full_dev);
    
    id_interface=i001->id_interface;
@@ -374,20 +373,6 @@ int16_t check_status_interface_type_001(interface_type_001_t *i001)
 }
 
 
-int16_t get_dev_speed(char *device, char *dev, int16_t dev_l, speed_t speed)
-{
-   char buff[80];
-   
-   int16_t n=scanf(device,"%[^:]%s",dev,buff);
-   if(n==1)
-   {
-      speed=B9600;
-   }
-   
-   return 0;
-}
-
-
 mea_error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, int id_interface, const unsigned char *dev, tomysqldb_md_t *md)
 {
    int16_t ret;
@@ -395,6 +380,7 @@ mea_error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, in
    char sql_request[255];
    char real_dev[80];
    char buff[80];
+   speed_t speed;
    
    sqlite3_stmt * stmt;
    comio_ad_t *ad=NULL;
@@ -407,7 +393,11 @@ mea_error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, in
    i001->id_interface=id_interface;
    i001->xPL_callback=NULL;
    pthread_mutex_init(&i001->operation_lock, NULL);
-   if(sscanf((char *)dev,"SERIAL://%s",buff)==1) // construction du nom de device unix
+
+   // ret=sscanf((char *)dev,"SERIAL://%s",buff);
+   // if(ret==1)
+   ret=get_dev_and_speed((char *)dev, buff, sizeof(buff), &speed);
+   if(!ret)
       sprintf(real_dev,"/dev/%s",buff);
    else
    {
@@ -536,7 +526,7 @@ mea_error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, in
          goto start_interface_type_001_clean_exit;
       }
       
-      int fd = comio_init(ad, real_dev, ad->speed);
+      int fd = comio_init(ad, real_dev, speed);
       if (fd == -1)
       {
          VERBOSE(2) {
