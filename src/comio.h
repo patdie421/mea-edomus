@@ -10,6 +10,7 @@
 #include <pthread.h>
 #include <semaphore.h>
 #include <inttypes.h>
+#include <termios.h>
 
 #include "debug.h"
 #include "queue.h"
@@ -69,6 +70,7 @@ typedef struct comio_ad_s
    pthread_cond_t  sync_cond;
    pthread_mutex_t sync_lock;
    char		       serial_dev_name[255];
+   speed_t         speed;
    queue_t        *queue;
    struct comio_trap_def_s
                    tabTrap[MAX_TRAP];
@@ -77,8 +79,8 @@ typedef struct comio_ad_s
 } comio_ad_t;
 
 
-int16_t comio_open(comio_ad_t *ad,char *dev);
-int16_t comio_init(comio_ad_t *ad, char *dev);
+int16_t comio_open(comio_ad_t *ad, char *dev, speed_t speed);
+int16_t comio_init(comio_ad_t *ad, char *dev, speed_t speed);
 mea_error_t  comio_operation(comio_ad_t *ad, unsigned char op, unsigned char var, unsigned char type, unsigned int val, int *comio_err);
 void comio_close(comio_ad_t *ad);
 

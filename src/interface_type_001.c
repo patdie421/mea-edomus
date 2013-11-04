@@ -19,6 +19,7 @@
 #include <string.h>
 #include <getopt.h>
 #include <sqlite3.h>
+#include <termios.h>
 
 #include "globals.h"
 #include "string_utils.h"
@@ -203,11 +204,13 @@ mea_error_t restart_interface_type_001(interface_type_001_t *i001,sqlite3 *db, t
    char full_dev[80];
    char dev[80];
    uint32_t id_interface;
+   speed_t speed;
    int ret;
    
-   sscanf(i001->ad->serial_dev_name,"/dev/%s",full_dev);
+//   sscanf(i001->ad->serial_dev_name,"/dev/%s",full_dev);
+   ret=get_dev_and_speed(dev, full_dev, sizeof(full_dev), &speed);
    sprintf(dev,"SERIAL://%s",full_dev);
-
+   
    id_interface=i001->id_interface;
    
    stop_interface_type_001(i001);
@@ -371,6 +374,20 @@ int16_t check_status_interface_type_001(interface_type_001_t *i001)
 }
 
 
+int16_t get_dev_speed(char *device, char *dev, int16_t dev_l, speed_t speed)
+{
+   char buff[80];
+   
+   int16_t n=scanf(device,"%[^:]%s",dev,buff);
+   if(n==1)
+   {
+      speed=B9600;
+   }
+   
+   return 0;
+}
+
+
 mea_error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, int id_interface, const unsigned char *dev, tomysqldb_md_t *md)
 {
    int16_t ret;
@@ -519,7 +536,7 @@ mea_error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, in
          goto start_interface_type_001_clean_exit;
       }
       
-      int fd = comio_init(ad, real_dev);
+      int fd = comio_init(ad, real_dev, ad->speed);
       if (fd == -1)
       {
          VERBOSE(2) {

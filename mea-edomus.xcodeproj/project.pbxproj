@@ -36,6 +36,7 @@
 		4E8787E61816732800A87FF0 /* sqlite3db.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E8787E51816732800A87FF0 /* sqlite3db.c */; };
 		4E8F781C178B44490099A751 /* string_utils.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E8F781B178B44490099A751 /* string_utils.c */; };
 		4E8F781E178B47C80099A751 /* timer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E8F781D178B47C80099A751 /* timer.c */; };
+		4EF3F6C31828400F00959B93 /* interfaces.c in Sources */ = {isa = PBXBuildFile; fileRef = 4EF3F6C21828400F00959B93 /* interfaces.c */; };
 		4EFBBC7F1746C85D00090FEE /* error.c in Sources */ = {isa = PBXBuildFile; fileRef = 4EFBBC7E1746C85D00090FEE /* error.c */; };
 		4EFBFCAE175E616E007BBFD1 /* httpServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4EFBFCAD175E616E007BBFD1 /* httpServer.c */; };
 		4EFBFCC9175E6BE7007BBFD1 /* mongoose.c in Sources */ = {isa = PBXBuildFile; fileRef = 4EFBFCC8175E6BE7007BBFD1 /* mongoose.c */; };
@@ -105,7 +106,6 @@
 		4E76CEA3163F12C700A3EBA9 /* arduino_pins.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = arduino_pins.c; path = src/arduino_pins.c; sourceTree = "<group>"; };
 		4E76CEA4163F12C700A3EBA9 /* arduino_pins.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = arduino_pins.h; path = src/arduino_pins.h; sourceTree = "<group>"; };
 		4E76CEA6163F133400A3EBA9 /* sqlite3_params_db.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = sqlite3_params_db.sql; path = sql/sqlite3_params_db.sql; sourceTree = "<group>"; };
-		4E76CEA7163F133400A3EBA9 /* sqlite3_queries_db.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = sqlite3_queries_db.sql; path = sql/sqlite3_queries_db.sql; sourceTree = "<group>"; };
 		4E76CEA9163F146900A3EBA9 /* parameters_mgr.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = parameters_mgr.c; path = src/parameters_mgr.c; sourceTree = "<group>"; };
 		4E76CEAA163F146900A3EBA9 /* parameters_mgr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = parameters_mgr.h; path = src/parameters_mgr.h; sourceTree = "<group>"; };
 		4E76CEB0163F175100A3EBA9 /* token_strings.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = token_strings.c; path = src/token_strings.c; sourceTree = "<group>"; };
@@ -117,6 +117,7 @@
 		4E8F781B178B44490099A751 /* string_utils.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = string_utils.c; path = src/string_utils.c; sourceTree = "<group>"; };
 		4E8F781D178B47C80099A751 /* timer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = timer.c; path = src/timer.c; sourceTree = "<group>"; };
 		4E8F781F178B47F80099A751 /* timer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = timer.h; path = src/timer.h; sourceTree = "<group>"; };
+		4EF3F6C21828400F00959B93 /* interfaces.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = interfaces.c; sourceTree = "<group>"; };
 		4EF7B08D1757F6AA0029ABBC /* mea_simulation.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = mea_simulation.py; path = plugins/mea_simulation.py; sourceTree = "<group>"; };
 		4EF7B08E1757F6AA0029ABBC /* mea_utils.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = mea_utils.py; path = plugins/mea_utils.py; sourceTree = "<group>"; };
 		4EFBBC7D1746C84F00090FEE /* error.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = error.h; path = src/error.h; sourceTree = "<group>"; };
@@ -127,7 +128,6 @@
 		4EFBFCC8175E6BE7007BBFD1 /* mongoose.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mongoose.c; path = src/mongoose.c; sourceTree = "<group>"; };
 		4EFBFCCB175E8BDC007BBFD1 /* python_api_utils.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = python_api_utils.c; path = src/python_api_utils.c; sourceTree = "<group>"; };
 		4EFBFCCD175E8BF7007BBFD1 /* python_api_utils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = python_api_utils.h; path = src/python_api_utils.h; sourceTree = "<group>"; };
-		4EFC89B21778DA28009B6E34 /* init_params_db.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = init_params_db.sql; path = sql/init_params_db.sql; sourceTree = "<group>"; };
 		8DD76FB20486AB0100D96B5E /* mea-eDomus */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "mea-eDomus"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -183,6 +183,7 @@
 				4E4ED05A1668186300820EF8 /* Interface_type_001 */,
 				4E4ED05B1668188400820EF8 /* Interface_type_002 */,
 				4E14ABFC16083B8C000686C3 /* interfaces.h */,
+				4EF3F6C21828400F00959B93 /* interfaces.c */,
 			);
 			name = Interfaces_manager;
 			sourceTree = "<group>";
@@ -345,8 +346,6 @@
 				4E1496FA163F290200E08E6D /* sample_params_data.sql */,
 				4E76CEB4163F17E300A3EBA9 /* mysql_mea-edomus_db.sql */,
 				4E76CEA6163F133400A3EBA9 /* sqlite3_params_db.sql */,
-				4E76CEA7163F133400A3EBA9 /* sqlite3_queries_db.sql */,
-				4EFC89B21778DA28009B6E34 /* init_params_db.sql */,
 			);
 			name = SQL;
 			sourceTree = "<group>";
@@ -409,6 +408,7 @@
 				4E4A5EA415F003420052ABF4 /* debug.c in Sources */,
 				4E8787E61816732800A87FF0 /* sqlite3db.c in Sources */,
 				4E4A5EA615F003420052ABF4 /* main.c in Sources */,
+				4EF3F6C31828400F00959B93 /* interfaces.c in Sources */,
 				4E4A5EA715F003420052ABF4 /* queue.c in Sources */,
 				4E4A5EA815F003420052ABF4 /* interface_type_002.c in Sources */,
 				4E4A5EA915F003420052ABF4 /* dbServer.c in Sources */,

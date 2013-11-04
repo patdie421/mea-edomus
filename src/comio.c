@@ -31,7 +31,7 @@ struct termios comio_options_old;
 void _comio_reprise_err_sys(comio_ad_t *ad)
 {
    comio_close(ad);
-   comio_open(ad, ad->serial_dev_name);
+   comio_open(ad, ad->serial_dev_name, ad->speed);
 }
 
 
@@ -492,7 +492,7 @@ mea_error_t comio_call(comio_ad_t *ad, unsigned char num_function, unsigned int 
 }
 
 
-int16_t comio_open(comio_ad_t *ad, char *dev)
+int16_t comio_open(comio_ad_t *ad, char *dev, speed_t speed)
 {
    struct termios options;
    int fd;
@@ -512,6 +512,7 @@ int16_t comio_open(comio_ad_t *ad, char *dev)
       return -1;
    }
    strcpy(ad->serial_dev_name,dev);
+   ad->speed=speed;
    
    // backup serial port caracteristics
    tcgetattr(fd, &comio_options_old);
@@ -520,9 +521,9 @@ int16_t comio_open(comio_ad_t *ad, char *dev)
    memset(&options, 0, sizeof(struct termios));
    
    // set speed
-   if(cfsetispeed(&options, COMIO_DEBIT_PORT)<0)
+   if(cfsetispeed(&options, speed)<0)
       return -1;
-   if(cfsetospeed(&options, COMIO_DEBIT_PORT)<0)
+   if(cfsetospeed(&options, speed)<0)
       return -1;
    
    // ???
@@ -590,7 +591,7 @@ int16_t comio_open(comio_ad_t *ad, char *dev)
 }
 
 
-int16_t comio_init(comio_ad_t *ad, char *dev)
+int16_t comio_init(comio_ad_t *ad, char *dev, speed_t speed)
 {
    int fd;
    int flag=0;
@@ -600,7 +601,7 @@ int16_t comio_init(comio_ad_t *ad, char *dev)
    //comio_close(ad);
    for(int i=0;i<5;i++) // try 5 times to reopen
    {
-      fd = comio_open(ad, dev);
+      fd = comio_open(ad, dev, speed);
       if (fd == -1)
       {
          VERBOSE(2) {

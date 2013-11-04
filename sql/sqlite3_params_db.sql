@@ -1,5 +1,4 @@
 
-
 CREATE TABLE application_parameters
 (
 id INTEGER PRIMARY KEY,
