@@ -68,6 +68,8 @@ extern struct token_s tokens_list[];
 #define ADDR_L_ID                     48
 #define DIGITAL_ID                    49
 #define ANALOG_ID                     50
+#define XPL_LAST_ID                   51
+
 
 char *get_token_by_id(int id);
 int16_t get_id_by_string(char *str);

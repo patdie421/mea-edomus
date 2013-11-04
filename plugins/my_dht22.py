@@ -133,7 +133,7 @@ def mea_dataFromSensor(data):
             if last_t != temperature:
                 current=temperature
                 unit=3
-                type="temperature"
+                type="temp"
                 last=last_t
             else:
                return True
@@ -143,7 +143,7 @@ def mea_dataFromSensor(data):
             pile = float(l2[1])
             last_p=0
             try:
-                last_t=mem["current_p"]
+                last_p=mem["current_p"]
                 mem["last_p"]=mem["current_p"]
             except:
                 pass

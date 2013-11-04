@@ -287,8 +287,12 @@ void *_thread_interface_type_001(void *args)
                
                if(v>=0 && sensor->val!=v)
                {
+                  int16_t last=sensor->val;
+                  float computed_last;
+                  
                   sensor->val=v;
                   sensor->computed_val=sensor->compute_fn(v);
+                  computed_last=sensor->compute_fn(last);
                   
                   if(sensor->compute==XPL_TEMP_ID)
                   {
@@ -306,6 +310,7 @@ void *_thread_interface_type_001(void *args)
                   }
                   
                   char str_value[20];
+                  char str_last[20];
                   
                   xPL_ServicePtr servicePtr = get_xPL_ServicePtr();
                   if(servicePtr)
@@ -313,11 +318,13 @@ void *_thread_interface_type_001(void *args)
                      xPL_MessagePtr cntrMessageStat = xPL_createBroadcastMessage(servicePtr, xPL_MESSAGE_TRIGGER);
                      
                      sprintf(str_value,"%0.1f",sensor->computed_val);
+                     sprintf(str_last,"%0.1f",computed_last);
                      
                      xPL_setSchema(cntrMessageStat, get_token_by_id(XPL_SENSOR_ID), get_token_by_id(XPL_BASIC_ID));
                      xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_DEVICE_ID),sensor->name);
                      xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_TYPE_ID), get_token_by_id(XPL_TEMP_ID));
-                     xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_TEMP_ID),str_value);
+                     xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_CURRENT_ID),str_value);
+                     xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_CURRENT_ID),str_last);
                      
                      // Broadcast the message
                      xPL_sendMessage(cntrMessageStat);
