@@ -324,7 +324,7 @@ void *_thread_interface_type_001(void *args)
                      xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_DEVICE_ID),sensor->name);
                      xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_TYPE_ID), get_token_by_id(XPL_TEMP_ID));
                      xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_CURRENT_ID),str_value);
-                     xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_CURRENT_ID),str_last);
+                     xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_LAST_ID),str_last);
                      
                      // Broadcast the message
                      xPL_sendMessage(cntrMessageStat);
