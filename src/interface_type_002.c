@@ -434,7 +434,7 @@ mea_error_t _interface_type_002_commissionning_callback(int id, unsigned char *c
            nd_resp->addr_64_l[2],
            nd_resp->addr_64_l[3]);
    
-   VERBOSE(9) printf("%s (%s) : commissionning request received from %s.\n", INFO_STR, __func__, addr);
+   VERBOSE(9) printf("%s (%s)  : commissionning request received from %s.\n", INFO_STR, __func__, addr);
    
    char sql[1024];
    sqlite3_stmt * stmt;
@@ -502,9 +502,9 @@ mea_error_t _interface_type_002_commissionning_callback(int id, unsigned char *c
    
    VERBOSE(9) {
       if(!rval)
-         printf("%s (%s) : commissionning request transmitted.\n", INFO_STR, __func__);
+         printf("%s (%s)  : commissionning request transmitted.\n", INFO_STR, __func__);
       else
-         printf("%s (%s) : can't transmit commissionning request.\n", INFO_STR, __func__);
+         printf("%s (%s)  : can't transmit commissionning request.\n", INFO_STR, __func__);
    }
    return rval;
 }
