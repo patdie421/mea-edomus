@@ -330,7 +330,7 @@ valid_and_malloc_sensor_clean_exit:
 }
 
 
-mea_error_t xpl_sensors(interface_type_001_t *i001, xPL_ServicePtr theService, xPL_NameValueListPtr ListNomsValeursPtr, char *device, char *type)
+mea_error_t sensors_xpl_msg(interface_type_001_t *i001, xPL_ServicePtr theService, xPL_NameValueListPtr ListNomsValeursPtr, char *device, char *type)
 {
    queue_t *sensors_list=i001->sensors_list;
    struct sensor_s *sensor;
@@ -465,6 +465,24 @@ void check_sensors(interface_type_001_t *i001, tomysqldb_md_t *md)
             }
          }
       }
+      next_queue(sensors_list);
+   }
+}
+
+
+void init_sensors_traps(interface_type_001_t *i001)
+{
+   queue_t *sensors_list=i001->sensors_list;
+   struct sensor_s *sensor;
+
+   first_queue(sensors_list);
+   for(int16_t i=0; i<sensors_list->nb_elem; i++)
+   {
+      current_queue(sensors_list, (void **)&sensor);
+      comio_set_trap2(i001->ad, sensor->arduino_pin+10, digital_in_trap, (void *)sensor);
+      
+      start_timer(&(sensor->timer));
+
       next_queue(sensors_list);
    }
 }

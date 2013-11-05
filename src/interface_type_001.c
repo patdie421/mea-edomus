@@ -96,8 +96,8 @@ int16_t interface_type_001_xPL_callback(xPL_ServicePtr theService, xPL_MessagePt
          VERBOSE(5) fprintf(stderr,"%s  (%s) : xPL Message no request!=current\n",INFO_STR,__func__);
          return 0;
       }
-      if(xpl_counters(i001, theService, ListNomsValeursPtr, device, type) == ERROR)
-         xpl_sensors(i001, theService, ListNomsValeursPtr, device, type);
+      if(counters_xpl_msg(i001, theService, ListNomsValeursPtr, device, type) == ERROR)
+         sensors_xpl_msg(i001, theService, ListNomsValeursPtr, device, type);
    }
    
    return 0;
@@ -188,16 +188,16 @@ void *_thread_interface_type_001(void *args)
    struct thread_interface_type_001_params_s *params=(struct thread_interface_type_001_params_s *)args;
    
    interface_type_001_t *i001=params->it001;
-   comio_ad_t *ad=i001->ad;
-   queue_t *counters_list=i001->counters_list;
-   queue_t *sensors_list=i001->sensors_list;
+//   comio_ad_t *ad=i001->ad;
+//   queue_t *counters_list=i001->counters_list;
+//   queue_t *sensors_list=i001->sensors_list;
    tomysqldb_md_t *md=params->md;
    free(params);
    params=NULL;
 
-   struct electricity_counter_s *counter;
-   struct sensor_s *sensor;
-
+//   struct electricity_counter_s *counter;
+//   struct sensor_s *sensor;
+/*
    // initialisation des trap compteurs
    first_queue(counters_list);
    for(int16_t i=0; i<counters_list->nb_elem; i++)
@@ -218,17 +218,17 @@ void *_thread_interface_type_001(void *args)
       
       next_queue(sensors_list);
    }
+*/
 
-   // a partir d'ici besoin de mutuex pour l'acces à compteur_prod et compteur_conso, car le trap est généré par un
-   // thread s'exécutant en parallele
+   init_counters_traps(i001);
+   init_sensors_traps(i001);
+
    uint16_t cntr=0;
    while(1)
    {
       check_sensors(i001, md);
       check_counters(i001, md);
-
       cntr++;
-
       sleep(5);
    }
    pthread_testcancel();

@@ -263,7 +263,7 @@ void counter_read(comio_ad_t *ad, struct electricity_counter_s *counter)
 }
 
 
-mea_error_t xpl_counters(interface_type_001_t *i001, xPL_ServicePtr theService, xPL_NameValueListPtr ListNomsValeursPtr, char *device, char *type)
+mea_error_t counters_xpl_msg(interface_type_001_t *i001, xPL_ServicePtr theService, xPL_NameValueListPtr ListNomsValeursPtr, char *device, char *type)
 {
    queue_t *counters_list=i001->counters_list;
    struct electricity_counter_s *counter;
@@ -341,5 +341,23 @@ void check_counters(interface_type_001_t *i001, tomysqldb_md_t *md)
 
          next_queue(counters_list);
       }
+   }
+}
+
+
+void init_counters_traps(interface_type_001_t *i001)
+{
+   queue_t *counters_list=i001->counters_list;
+   struct electricity_counter_s *counter;
+
+   // initialisation des trap compteurs
+   first_queue(counters_list);
+   for(int16_t i=0; i<counters_list->nb_elem; i++)
+   {
+      current_queue(counters_list, (void **)&counter);
+      comio_set_trap2(i001->ad, counter->trap, counter_trap, (void *)counter);
+      start_timer(&(counter->timer));
+      
+      next_queue(counters_list);
    }
 }
