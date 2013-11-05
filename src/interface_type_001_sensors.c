@@ -27,11 +27,12 @@
 
 
 // parametres valide pour les capteurs ou actionneurs pris en compte par le type 1.
-char *valid_sensor_params[]={"S:PIN","S:TYPE","S:COMPUTE","S:ALGO",NULL};
+char *valid_sensor_params[]={"S:PIN","S:TYPE","S:COMPUTE","S:ALGO","I:POLLING_PERIODE",NULL};
 #define SENSOR_PARAMS_PIN       0
 #define SENSOR_PARAMS_TYPE      1
 #define SENSOR_PARAMS_COMPUTE   2
 #define SENSOR_PARAMS_ALGO      3
+#define SENSOR_PARAMS_POLLING_PERIODE 4
 
 
 struct assoc_s type_pin_assocs_i001_sensors[] = {
@@ -289,6 +290,16 @@ struct sensor_s *valid_and_malloc_sensor(int id_sensor_actuator, char *name, cha
                break;
          }
          
+         if(sensor_params[SENSOR_PARAMS_POLLING_PERIODE].value.i>0)
+         {
+            init_timer(&(sensor->timer),sensor_params[SENSOR_PARAMS_POLLING_PERIODE].value.i,1);
+         }
+         else
+         {
+            init_timer(&(sensor->timer),60,1); // lecture toutes les 5 minutes par défaut
+         }
+         start_timer(&(sensor->timer));
+         
          free_parsed_parameters(sensor_params, nb_sensor_params);
          free(sensor_params);
          
@@ -392,63 +403,65 @@ void check_sensors(interface_type_001_t *i001, tomysqldb_md_t *md)
    for(int16_t i=0; i<sensors_list->nb_elem; i++)
    {
       current_queue(sensors_list, (void **)&sensor);
-
-      if(sensor->arduino_pin_type==ANALOG_ID)
+      if(!test_timer(&(sensor->timer)))
       {
-         int16_t v;
-
-         pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)(&i001->operation_lock) );
-         pthread_mutex_lock(&i001->operation_lock);
-               
-         v=(int16_t)comio_call(i001->ad, sensor->arduino_function, sensor->arduino_pin, &comio_err);
-               
-         pthread_mutex_unlock(&i001->operation_lock);
-         pthread_cleanup_pop(0);
-               
-         if(v>=0 && sensor->val!=v)
+         if(sensor->arduino_pin_type==ANALOG_ID)
          {
-            int16_t last=sensor->val;
-            float computed_last;
-                  
-            sensor->val=v;
-            sensor->computed_val=sensor->compute_fn(v);
-            computed_last=sensor->compute_fn(last);
-                  
-            if(sensor->compute==XPL_TEMP_ID)
-            {
-               VERBOSE(9) fprintf(stderr,"%s  (%s) : temperature sensor %s =  %.1f °C (%d) \n",INFO_STR,__func__,sensor->name,sensor->computed_val,sensor->val);
-               tomysqldb_add_data_to_sensors_values(md, sensor->sensor_id, sensor->computed_val, UNIT_C, sensor->val, "");
-            }
-            else if(sensor->compute==XPL_VOLTAGE_ID)
-            {
-               VERBOSE(9) fprintf(stderr,"%s  (%s) : voltage sensor %s =  %.1f V (%d) \n",INFO_STR,__func__,sensor->name,sensor->computed_val,sensor->val);
-            }
-            else
-            {
-               VERBOSE(9) fprintf(stderr,"%s  (%s) : raw sensor %s = %d\n",INFO_STR,__func__,sensor->name,sensor->val);
-            }
-                  
-            char str_value[20];
-            char str_last[20];
-                  
-            xPL_ServicePtr servicePtr = get_xPL_ServicePtr();
-            if(servicePtr)
-            {
-               xPL_MessagePtr cntrMessageStat = xPL_createBroadcastMessage(servicePtr, xPL_MESSAGE_TRIGGER);
+            int16_t v;
+
+            pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)(&i001->operation_lock) );
+            pthread_mutex_lock(&i001->operation_lock);
                
-               sprintf(str_value,"%0.1f",sensor->computed_val);
-               sprintf(str_last,"%0.1f",computed_last);
+            v=(int16_t)comio_call(i001->ad, sensor->arduino_function, sensor->arduino_pin, &comio_err);
+               
+            pthread_mutex_unlock(&i001->operation_lock);
+            pthread_cleanup_pop(0);
+               
+            if(v>=0 && sensor->val!=v)
+            {
+               int16_t last=sensor->val;
+               float computed_last;
+                  
+               sensor->val=v;
+               sensor->computed_val=sensor->compute_fn(v);
+               computed_last=sensor->compute_fn(last);
+                  
+               if(sensor->compute==XPL_TEMP_ID)
+               {
+                  VERBOSE(9) fprintf(stderr,"%s  (%s) : temperature sensor %s =  %.1f °C (%d) \n",INFO_STR,__func__,sensor->name,sensor->computed_val,sensor->val);
+                  tomysqldb_add_data_to_sensors_values(md, sensor->sensor_id, sensor->computed_val, UNIT_C, sensor->val, "");
+               }
+               else if(sensor->compute==XPL_VOLTAGE_ID)
+               {
+                  VERBOSE(9) fprintf(stderr,"%s  (%s) : voltage sensor %s =  %.1f V (%d) \n",INFO_STR,__func__,sensor->name,sensor->computed_val,sensor->val);
+               }
+               else
+               {
+                  VERBOSE(9) fprintf(stderr,"%s  (%s) : raw sensor %s = %d\n",INFO_STR,__func__,sensor->name,sensor->val);
+               }
+                  
+               char str_value[20];
+               char str_last[20];
+                  
+               xPL_ServicePtr servicePtr = get_xPL_ServicePtr();
+               if(servicePtr)
+               {
+                  xPL_MessagePtr cntrMessageStat = xPL_createBroadcastMessage(servicePtr, xPL_MESSAGE_TRIGGER);
+               
+                  sprintf(str_value,"%0.1f",sensor->computed_val);
+                  sprintf(str_last,"%0.1f",computed_last);
                      
-               xPL_setSchema(cntrMessageStat, get_token_by_id(XPL_SENSOR_ID), get_token_by_id(XPL_BASIC_ID));
-               xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_DEVICE_ID),sensor->name);
-               xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_TYPE_ID), get_token_by_id(XPL_TEMP_ID));
-               xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_CURRENT_ID),str_value);
-               xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_LAST_ID),str_last);
+                  xPL_setSchema(cntrMessageStat, get_token_by_id(XPL_SENSOR_ID), get_token_by_id(XPL_BASIC_ID));
+                  xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_DEVICE_ID),sensor->name);
+                  xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_TYPE_ID), get_token_by_id(XPL_TEMP_ID));
+                  xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_CURRENT_ID),str_value);
+                  xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_LAST_ID),str_last);
                      
-               // Broadcast the message
-               xPL_sendMessage(cntrMessageStat);
+                  // Broadcast the message
+                  xPL_sendMessage(cntrMessageStat);
                      
-               xPL_releaseMessage(cntrMessageStat);
+                  xPL_releaseMessage(cntrMessageStat);
+               }
             }
          }
       }

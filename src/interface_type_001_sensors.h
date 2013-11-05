@@ -10,7 +10,7 @@
 #define _interface_type_001_sensors_h
 
 #include "error.h"
-
+#include "timer.h"
 #include "interface_type_001.h"
 
 struct sensor_s
@@ -32,6 +32,7 @@ struct sensor_s
    
    float computed_val;
    
+   mea_timer_t timer;
 };
 
 

@@ -91,56 +91,11 @@ int16_t interface_type_001_xPL_callback(xPL_ServicePtr theService, xPL_MessagePt
          VERBOSE(5) fprintf(stderr,"%s  (%s) : xPL Message no request\n",INFO_STR,__func__);
          return 0;
       }
-      
       if(strcmplower(request,get_token_by_id(XPL_CURRENT_ID))!=0)
       {
          VERBOSE(5) fprintf(stderr,"%s  (%s) : xPL Message no request!=current\n",INFO_STR,__func__);
          return 0;
       }
-/*
-      queue_t *counters_list=i001->counters_list;
-      struct electricity_counter_s *counter;
-      
-      first_queue(counters_list);
-      for(int i=0; i<counters_list->nb_elem; i++)
-      {
-         current_queue(counters_list, (void **)&counter);
-
-         if(strcmplower(device,counter->name)==0)
-         {
-            xPL_MessagePtr cntrMessageStat ;
-            char value[20];
-            
-            if(strcmplower(type, get_token_by_id(XPL_ENERGY_ID))==0)
-            {
-               sprintf(value,"%d", counter->kwh_counter);
-            }
-            else if(strcmplower(type, get_token_by_id(XPL_POWER_ID))==0)
-            {
-               sprintf(value,"%f", counter->power);
-            }
-            else
-            {
-               return 0;
-            }
-            
-            cntrMessageStat = xPL_createBroadcastMessage(theService, xPL_MESSAGE_STATUS) ;
-            
-            xPL_setSchema(cntrMessageStat,  get_token_by_id(XPL_SENSOR_ID), get_token_by_id(XPL_BASIC_ID));
-            xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_DEVICE_ID),counter->name);
-            xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_TYPE_ID),type);
-            xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_CURRENT_ID),value);
-            
-            // Broadcast the message
-            xPL_sendMessage(cntrMessageStat);
-            
-            xPL_releaseMessage(cntrMessageStat);
-            
-            return 1;
-         }
-         next_queue(counters_list);
-      }
-*/
       if(xpl_counters(i001, theService, ListNomsValeursPtr, device, type) == ERROR)
          xpl_sensors(i001, theService, ListNomsValeursPtr, device, type);
    }
@@ -239,11 +194,10 @@ void *_thread_interface_type_001(void *args)
    tomysqldb_md_t *md=params->md;
    free(params);
    params=NULL;
-   
-   
+
    struct electricity_counter_s *counter;
    struct sensor_s *sensor;
-   
+
    // initialisation des trap compteurs
    first_queue(counters_list);
    for(int16_t i=0; i<counters_list->nb_elem; i++)
@@ -254,7 +208,7 @@ void *_thread_interface_type_001(void *args)
       
       next_queue(counters_list);
    }
-   
+
    // initialisation des trap changement etat entrées logiques
    first_queue(sensors_list);
    for(int16_t i=0; i<sensors_list->nb_elem; i++)
@@ -264,119 +218,18 @@ void *_thread_interface_type_001(void *args)
       
       next_queue(sensors_list);
    }
-   
+
    // a partir d'ici besoin de mutuex pour l'acces à compteur_prod et compteur_conso, car le trap est généré par un
    // thread s'exécutant en parallele
    uint16_t cntr=0;
    while(1)
    {
-      sleep(5);
-      // sleep(TEMPO);
-      cntr++;
-/*
-      {
-         int comio_err;
-         
-         first_queue(sensors_list);
-         for(int16_t i=0; i<sensors_list->nb_elem; i++)
-         {
-            current_queue(sensors_list, (void **)&sensor);
-            
-            if(sensor->arduino_pin_type==ANALOG_ID)
-            {
-               int16_t v;
-               
-               pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)(&i001->operation_lock) );
-               pthread_mutex_lock(&i001->operation_lock);
-               
-               v=(int16_t)comio_call(i001->ad, sensor->arduino_function, sensor->arduino_pin, &comio_err);
-               
-               pthread_mutex_unlock(&i001->operation_lock);
-               pthread_cleanup_pop(0);
-               
-               if(v>=0 && sensor->val!=v)
-               {
-                  int16_t last=sensor->val;
-                  float computed_last;
-                  
-                  sensor->val=v;
-                  sensor->computed_val=sensor->compute_fn(v);
-                  computed_last=sensor->compute_fn(last);
-                  
-                  if(sensor->compute==XPL_TEMP_ID)
-                  {
-                     VERBOSE(9) fprintf(stderr,"%s  (%s) : temperature sensor %s =  %.1f °C (%d) \n",INFO_STR,__func__,sensor->name,sensor->computed_val,sensor->val);
-                     tomysqldb_add_data_to_sensors_values(myd, sensor->sensor_id, sensor->computed_val, UNIT_C, sensor->val, "");
-
-                  }
-                  else if(sensor->compute==XPL_VOLTAGE_ID)
-                  {
-                     VERBOSE(9) fprintf(stderr,"%s  (%s) : voltage sensor %s =  %.1f V (%d) \n",INFO_STR,__func__,sensor->name,sensor->computed_val,sensor->val);
-                  }
-                  else
-                  {
-                     VERBOSE(9) fprintf(stderr,"%s  (%s) : raw sensor %s = %d\n",INFO_STR,__func__,sensor->name,sensor->val);
-                  }
-                  
-                  char str_value[20];
-                  char str_last[20];
-                  
-                  xPL_ServicePtr servicePtr = get_xPL_ServicePtr();
-                  if(servicePtr)
-                  {
-                     xPL_MessagePtr cntrMessageStat = xPL_createBroadcastMessage(servicePtr, xPL_MESSAGE_TRIGGER);
-                     
-                     sprintf(str_value,"%0.1f",sensor->computed_val);
-                     sprintf(str_last,"%0.1f",computed_last);
-                     
-                     xPL_setSchema(cntrMessageStat, get_token_by_id(XPL_SENSOR_ID), get_token_by_id(XPL_BASIC_ID));
-                     xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_DEVICE_ID),sensor->name);
-                     xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_TYPE_ID), get_token_by_id(XPL_TEMP_ID));
-                     xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_CURRENT_ID),str_value);
-                     xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_LAST_ID),str_last);
-                     
-                     // Broadcast the message
-                     xPL_sendMessage(cntrMessageStat);
-                     
-                     xPL_releaseMessage(cntrMessageStat);
-                  }
-               }
-            }
-            next_queue(sensors_list);
-         }
-         
-      }
-      
-      first_queue(counters_list);
-      for(int16_t i=0; i<counters_list->nb_elem; i++)
-      {
-         current_queue(counters_list, (void **)&counter);
-         if(!test_timer(&(counter->timer)))
-         {
-            pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)(&i001->operation_lock) );
-            
-            pthread_mutex_lock(&i001->operation_lock);
-            counter_read(ad, counter);
-            pthread_mutex_unlock(&i001->operation_lock);
-            
-            pthread_cleanup_pop(0);
-
-            if(counter->counter!=counter->last_counter)
-            {
-               printf("Counter : %ld %ld\n", (long)counter->counter, (long)counter->last_counter);
-               counter_to_db(md, counter);
-            }
-            
-            counter_to_xpl(counter);
-            
-            VERBOSE(9) fprintf(stderr,"%s  (%s) : counter %s %ld (WH=%ld KWH=%ld)\n",INFO_STR,__func__,counter->name, (long)counter->counter, (long)counter->wh_counter,(long)counter->kwh_counter);
-               
-            next_queue(counters_list);
-         }
-      }
-      */
       check_sensors(i001, md);
       check_counters(i001, md);
+
+      cntr++;
+
+      sleep(5);
    }
    pthread_testcancel();
 }

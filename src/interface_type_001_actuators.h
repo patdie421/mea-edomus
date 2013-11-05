@@ -9,7 +9,7 @@
 #define _interface_type_001_actuators_h
 
 #include "error.h"
-
+#include "timer.h"
 #include "interface_type_001.h"
 
 // modélisation d'un relai

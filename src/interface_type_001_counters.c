@@ -48,9 +48,9 @@ char *valid_counter_params[]={"I:M1","I:M2","I:M3","I:M4","I:TRAP",NULL};
 #define COUNTER_PARAMS_TRAP     4
 */
 
-char *valid_counter_params[]={"I:COUNTER", "I:FREQUENCY", NULL};
+char *valid_counter_params[]={"I:COUNTER", "I:POLLING_PERIODE", NULL};
 #define COUNTER_PARAMS_COUNTER   0
-#define COUNTER_PARAMS_FREQUENCY 1
+#define COUNTER_PARAMS_POLLING_PERIODE 1
 
 
 void interface_type_001_free_counters_queue_elem(void *d)
@@ -147,9 +147,9 @@ struct electricity_counter_s *valid_and_malloc_counter(int id_sensor_actuator, c
          counter->sensor_mem_addr[i]=counters_mem[num_counter][i];
       counter->trap=counters_trap[num_counter];
       
-      if(counter_params[COUNTER_PARAMS_FREQUENCY].value.i>0)
+      if(counter_params[COUNTER_PARAMS_POLLING_PERIODE].value.i>0)
       {
-         init_timer(&(counter->timer),counter_params[COUNTER_PARAMS_FREQUENCY].value.i,1);
+         init_timer(&(counter->timer),counter_params[COUNTER_PARAMS_POLLING_PERIODE].value.i,1);
       }
       else
       {
@@ -332,7 +332,6 @@ void check_counters(interface_type_001_t *i001, tomysqldb_md_t *md)
 
          if(counter->counter!=counter->last_counter)
          {
-            printf("Counter : %ld %ld\n", (long)counter->counter, (long)counter->last_counter);
             counter_to_db(md, counter);
          }
 
