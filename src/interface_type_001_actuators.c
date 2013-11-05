@@ -173,6 +173,7 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
    if(first_queue(i001->actuators_list)==-1)
       return ERROR;
    
+   printf("type=%s\n",type);
    struct actuator_s *iq;
    while(1)
    {
@@ -181,6 +182,8 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
       if(strcmplower(iq->name,device)==0) // OK, c'est bien pour moi ...
       {
          char *current=xPL_getNamedValue(ListNomsValeursPtr, get_token_by_id(XPL_CURRENT_ID));
+
+         printf("type=%s current=%s\n",type,current);
          if(!current)
             return ERROR;
          int current_id=get_id_by_string(current);
