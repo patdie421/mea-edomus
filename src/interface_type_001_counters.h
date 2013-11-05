@@ -49,4 +49,8 @@ void counter_to_xpl(struct electricity_counter_s *counter);
 int16_t counter_to_db(tomysqldb_md_t *md, struct electricity_counter_s *counter);
 void counter_read(comio_ad_t *ad, struct electricity_counter_s *counter);
 
+mea_error_t xpl_counters(interface_type_001_t *i001, xPL_ServicePtr theService, xPL_NameValueListPtr ListNomsValeursPtr, char *device, char *type);
+void check_counters(interface_type_001_t *i001, tomysqldb_md_t *md);
+
+
 #endif

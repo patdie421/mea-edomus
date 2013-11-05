@@ -5,9 +5,6 @@
  *  Copyright 2012 -. All rights reserved.
  *
  */
-#include "interfaces.h"
-#include "interface_type_001.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -30,11 +27,14 @@
 #include "error.h"
 
 #include "comio.h"
+#include "arduino_pins.h"
+#include "parameters_mgr.h"
+
 #include "dbServer.h"
 #include "xPLServer.h"
 
-#include "arduino_pins.h"
-#include "parameters_mgr.h"
+#include "interfaces.h"
+#include "interface_type_001.h"
 #include "interface_type_001_sensors.h"
 #include "interface_type_001_actuators.h"
 #include "interface_type_001_counters.h"
@@ -65,9 +65,15 @@ int16_t interface_type_001_xPL_callback(xPL_ServicePtr theService, xPL_MessagePt
    type               = xPL_getNamedValue(ListNomsValeursPtr, get_token_by_id(XPL_TYPE_ID));
    
    if(!device)
+   {
+      VERBOSE(5) fprintf(stderr,"%s  (%s) : xPL Message no device\n",INFO_STR,__func__);
       return 0;
+   }
    if(!type)
+   {
+      VERBOSE(5) fprintf(stderr,"%s  (%s) : xPL Message no type\n",INFO_STR,__func__);
       return 0;
+   }
    
    VERBOSE(9) fprintf(stderr,"%s  (%s) : xPL Message to process : %s.%s\n",INFO_STR,__func__,schema_class,schema_type);
 
@@ -82,14 +88,16 @@ int16_t interface_type_001_xPL_callback(xPL_ServicePtr theService, xPL_MessagePt
       char *request = xPL_getNamedValue(ListNomsValeursPtr, get_token_by_id(XPL_REQUEST_ID));
       if(!request)
       {
+         VERBOSE(5) fprintf(stderr,"%s  (%s) : xPL Message no request\n",INFO_STR,__func__);
          return 0;
       }
       
       if(strcmplower(request,get_token_by_id(XPL_CURRENT_ID))!=0)
       {
+         VERBOSE(5) fprintf(stderr,"%s  (%s) : xPL Message no request!=current\n",INFO_STR,__func__);
          return 0;
       }
-
+/*
       queue_t *counters_list=i001->counters_list;
       struct electricity_counter_s *counter;
       
@@ -132,8 +140,9 @@ int16_t interface_type_001_xPL_callback(xPL_ServicePtr theService, xPL_MessagePt
          }
          next_queue(counters_list);
       }
-      
-      xpl_sensor(i001, theService, ListNomsValeursPtr, device, type);
+*/
+      if(xpl_counters(i001, theService, ListNomsValeursPtr, device, type) == ERROR)
+         xpl_sensors(i001, theService, ListNomsValeursPtr, device, type);
    }
    
    return 0;
@@ -264,7 +273,7 @@ void *_thread_interface_type_001(void *args)
       sleep(5);
       // sleep(TEMPO);
       cntr++;
-      
+/*
       {
          int comio_err;
          
@@ -296,17 +305,17 @@ void *_thread_interface_type_001(void *args)
                   
                   if(sensor->compute==XPL_TEMP_ID)
                   {
-                     VERBOSE(9) fprintf(stderr,"%s  (%s) : Temp sensor %s =  %.1f °C (%d) \n",INFO_STR,__func__,sensor->name,sensor->computed_val,sensor->val);
+                     VERBOSE(9) fprintf(stderr,"%s  (%s) : temperature sensor %s =  %.1f °C (%d) \n",INFO_STR,__func__,sensor->name,sensor->computed_val,sensor->val);
                      tomysqldb_add_data_to_sensors_values(myd, sensor->sensor_id, sensor->computed_val, UNIT_C, sensor->val, "");
 
                   }
                   else if(sensor->compute==XPL_VOLTAGE_ID)
                   {
-                     VERBOSE(9) fprintf(stderr,"%s  (%s) : Voltage sensor %s =  %.1f V (%d) \n",INFO_STR,__func__,sensor->name,sensor->computed_val,sensor->val);
+                     VERBOSE(9) fprintf(stderr,"%s  (%s) : voltage sensor %s =  %.1f V (%d) \n",INFO_STR,__func__,sensor->name,sensor->computed_val,sensor->val);
                   }
                   else
                   {
-                     VERBOSE(9) fprintf(stderr,"%s  (%s) : sensor %s = %d\n",INFO_STR,__func__,sensor->name,sensor->val);
+                     VERBOSE(9) fprintf(stderr,"%s  (%s) : raw sensor %s = %d\n",INFO_STR,__func__,sensor->name,sensor->val);
                   }
                   
                   char str_value[20];
@@ -365,6 +374,9 @@ void *_thread_interface_type_001(void *args)
             next_queue(counters_list);
          }
       }
+      */
+      check_sensors(i001, md);
+      check_counters(i001, md);
    }
    pthread_testcancel();
 }
@@ -387,7 +399,7 @@ mea_error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, in
    char real_dev[80];
    char buff[80];
    speed_t speed;
-   
+   int fd = 0;
    sqlite3_stmt * stmt;
    comio_ad_t *ad=NULL;
    
@@ -532,13 +544,14 @@ mea_error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, in
          goto start_interface_type_001_clean_exit;
       }
       
-      int fd = comio_init(ad, real_dev, speed);
+      fd = comio_init(ad, real_dev, speed);
       if (fd == -1)
       {
          VERBOSE(2) {
             fprintf(stderr,"%s (%s) : init_arduino - Unable to open serial port (%s) : ",ERROR_STR,__func__,dev);
             perror("");
          }
+         fd=0;
          goto start_interface_type_001_clean_exit;
       }
    }
@@ -578,11 +591,10 @@ mea_error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, in
 start_interface_type_001_clean_exit:
    FREE(params);
    FREE(counters_thread);
+   if(fd)
+      comio_close(ad);
    if(ad)
-   {
-      FREE(ad->queue); // il n'y a forcement pas d'élément dans la file, un free suffit. Sinon il aurait fallu vider la file d'abord
       free(ad);
-   }
    if(i001)
    {
       if(i001->counters_list)

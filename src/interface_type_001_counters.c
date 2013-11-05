@@ -22,12 +22,14 @@
 #include "globals.h"
 #include "comio.h"
 #include "arduino_pins.h"
+#include "string_utils.h"
 #include "parameters_mgr.h"
 #include "token_strings.h"
 #include "timer.h"
 #include "dbServer.h"
 #include "xPLServer.h"
 
+#include "interface_type_001.h"
 #include "interface_type_001_counters.h"
 
 uint16_t counters_mem[2][4]={
@@ -258,4 +260,87 @@ void counter_read(comio_ad_t *ad, struct electricity_counter_s *counter)
    counter->wh_counter=c;
    counter->kwh_counter=c / 1000;
    counter->counter=c;
+}
+
+
+mea_error_t xpl_counters(interface_type_001_t *i001, xPL_ServicePtr theService, xPL_NameValueListPtr ListNomsValeursPtr, char *device, char *type)
+{
+   queue_t *counters_list=i001->counters_list;
+   struct electricity_counter_s *counter;
+      
+   first_queue(counters_list);
+   for(int i=0; i<counters_list->nb_elem; i++)
+   {
+      current_queue(counters_list, (void **)&counter);
+
+      if(strcmplower(device,counter->name)==0)
+      {
+         xPL_MessagePtr cntrMessageStat ;
+         char value[20];
+            
+         if(strcmplower(type, get_token_by_id(XPL_ENERGY_ID))==0)
+         {
+            sprintf(value,"%d", counter->kwh_counter);
+         }
+         else if(strcmplower(type, get_token_by_id(XPL_POWER_ID))==0)
+         {
+            sprintf(value,"%f", counter->power);
+         }
+         else
+         {
+            return ERROR;
+         }
+            
+         cntrMessageStat = xPL_createBroadcastMessage(theService, xPL_MESSAGE_STATUS) ;
+            
+         xPL_setSchema(cntrMessageStat,  get_token_by_id(XPL_SENSOR_ID), get_token_by_id(XPL_BASIC_ID));
+         xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_DEVICE_ID),counter->name);
+         xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_TYPE_ID),type);
+         xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_CURRENT_ID),value);
+            
+         // Broadcast the message
+         xPL_sendMessage(cntrMessageStat);
+            
+         xPL_releaseMessage(cntrMessageStat);
+            
+         return NOERROR;
+      }
+      next_queue(counters_list);
+   }
+   return ERROR;
+}
+
+
+void check_counters(interface_type_001_t *i001, tomysqldb_md_t *md)
+{
+   queue_t *counters_list=i001->counters_list;
+   struct electricity_counter_s *counter;
+
+   first_queue(counters_list);
+   for(int16_t i=0; i<counters_list->nb_elem; i++)
+   {
+      current_queue(counters_list, (void **)&counter);
+      if(!test_timer(&(counter->timer)))
+      {
+         pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)(&i001->operation_lock) );
+
+         pthread_mutex_lock(&i001->operation_lock);
+         counter_read(i001->ad, counter);
+         pthread_mutex_unlock(&i001->operation_lock);
+
+         pthread_cleanup_pop(0);
+
+         if(counter->counter!=counter->last_counter)
+         {
+            printf("Counter : %ld %ld\n", (long)counter->counter, (long)counter->last_counter);
+            counter_to_db(md, counter);
+         }
+
+         counter_to_xpl(counter);
+
+         VERBOSE(9) fprintf(stderr,"%s  (%s) : counter %s %ld (WH=%ld KWH=%ld)\n",INFO_STR,__func__,counter->name, (long)counter->counter, (long)counter->wh_counter,(long)counter->kwh_counter);
+
+         next_queue(counters_list);
+      }
+   }
 }
