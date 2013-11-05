@@ -248,7 +248,7 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
                   break;
                default:
                {
-                  char inc_dec=0; // +1 = inc ; -1 = dec
+                  int inc_dec=0; // +1 = inc ; -1 = dec
                   char *str;
                   if(current[0]=='-')
                   {
@@ -264,6 +264,8 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
                         
                   int n;
                   ret=sscanf(str,"%d%n",&o,&n);
+                  if(o>255)
+                     o=255;
                         
                   printf("1: o=%d inc_dec=%d n=%d\n",o,inc_dec,n);
                   if(ret==1 && !(strlen(str)-n))
@@ -272,6 +274,10 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
                      {
                         o=iq->old_val+o*inc_dec;
                      }
+                     if(o>255)
+                        o=255;
+                     else if(o<0)
+                        o=0;
                      printf("1: o=%d inc_dec=%d\n",o,inc_dec);
                   }
                   else
