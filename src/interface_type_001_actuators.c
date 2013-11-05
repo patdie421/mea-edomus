@@ -167,7 +167,6 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
    int type_id;
    
    type_id=get_id_by_string(type);
-   printf("type=%s type_id=%d\n",type,type_id);
    if(type_id != XPL_OUTPUT_ID && type_id !=VARIABLE_ID)
       return ERROR;
    
@@ -183,7 +182,6 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
       {
          char *current=xPL_getNamedValue(ListNomsValeursPtr, get_token_by_id(XPL_CURRENT_ID));
 
-         printf("type=%s current=%s\n",type,current);
          if(!current)
             return ERROR;
          int current_id=get_id_by_string(current);
@@ -250,16 +248,16 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
                   break;
                default:
                {
-                  char inc_dec=0; // 1 = inc ; 2 = dec
+                  char inc_dec=0; // +1 = inc ; -1 = dec
                   char *str;
                   if(current[0]=='-')
                   {
-                     inc_dec=-1;
+                     inc_dec=1;
                      str=&current[1];
                   }
                   else if (current[0]=='+')
                   {
-                     inc_dec=1;
+                     inc_dec=-1;
                      str=&current[1];
                   }
                   else str=current;
@@ -267,9 +265,14 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
                   int n;
                   ret=sscanf(str,"%d%n",&o,&n);
                         
+                  printf("1: o=%d inc_dec=%d n=%d\n",o,inc_dec,n);
                   if(ret==1 && !(strlen(str)-n))
                   {
-                     o=iq->old_val+o*inc_dec;
+                     if(inc_dec)
+                     {
+                        o=iq->old_val+o*inc_dec;
+                     }
+                     printf("1: o=%d inc_dec=%d\n",o,inc_dec);
                   }
                   else
                   {
