@@ -188,46 +188,18 @@ void *_thread_interface_type_001(void *args)
    struct thread_interface_type_001_params_s *params=(struct thread_interface_type_001_params_s *)args;
    
    interface_type_001_t *i001=params->it001;
-//   comio_ad_t *ad=i001->ad;
-//   queue_t *counters_list=i001->counters_list;
-//   queue_t *sensors_list=i001->sensors_list;
    tomysqldb_md_t *md=params->md;
    free(params);
    params=NULL;
 
-//   struct electricity_counter_s *counter;
-//   struct sensor_s *sensor;
-/*
-   // initialisation des trap compteurs
-   first_queue(counters_list);
-   for(int16_t i=0; i<counters_list->nb_elem; i++)
-   {
-      current_queue(counters_list, (void **)&counter);
-      comio_set_trap2(ad, counter->trap, counter_trap, (void *)counter);
-      start_timer(&(counter->timer));
-      
-      next_queue(counters_list);
-   }
-
-   // initialisation des trap changement etat entrées logiques
-   first_queue(sensors_list);
-   for(int16_t i=0; i<sensors_list->nb_elem; i++)
-   {
-      current_queue(sensors_list, (void **)&sensor);
-      comio_set_trap2(ad,  sensor->arduino_pin+10, digital_in_trap, (void *)sensor);
-      
-      next_queue(sensors_list);
-   }
-*/
-
    init_counters_traps(i001);
    init_sensors_traps(i001);
 
-   uint16_t cntr=0;
+   uint32_t cntr=0;
    while(1)
    {
-      check_sensors(i001, md);
-      check_counters(i001, md);
+      sensors_check(i001, md);
+      counters_check(i001, md);
       cntr++;
       sleep(5);
    }

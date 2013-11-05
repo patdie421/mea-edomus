@@ -41,8 +41,7 @@ void _interface_type_001_free_sensors_queue_elem(void *d);
 mea_error_t digital_in_trap(int numTrap, void *args, char *buff);
 
 mea_error_t sensors_xpl_msg(interface_type_001_t *i001, xPL_ServicePtr theService, xPL_NameValueListPtr ListNomsValeursPtr, char *device, char *type);
-void check_sensors(interface_type_001_t *i001, tomysqldb_md_t *md);
-
+void sensors_check(interface_type_001_t *i001, tomysqldb_md_t *md);
 void init_sensors_traps(interface_type_001_t *i001);
 
 #endif

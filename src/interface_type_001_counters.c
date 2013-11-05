@@ -311,7 +311,7 @@ mea_error_t counters_xpl_msg(interface_type_001_t *i001, xPL_ServicePtr theServi
 }
 
 
-void check_counters(interface_type_001_t *i001, tomysqldb_md_t *md)
+void counters_check(interface_type_001_t *i001, tomysqldb_md_t *md)
 {
    queue_t *counters_list=i001->counters_list;
    struct electricity_counter_s *counter;

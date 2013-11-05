@@ -392,7 +392,7 @@ mea_error_t sensors_xpl_msg(interface_type_001_t *i001, xPL_ServicePtr theServic
 }
 
 
-void check_sensors(interface_type_001_t *i001, tomysqldb_md_t *md)
+void sensors_check(interface_type_001_t *i001, tomysqldb_md_t *md)
 {
    queue_t *sensors_list=i001->sensors_list;
    struct sensor_s *sensor;
@@ -463,6 +463,10 @@ void check_sensors(interface_type_001_t *i001, tomysqldb_md_t *md)
                   xPL_releaseMessage(cntrMessageStat);
                }
             }
+         }
+         else
+         {
+            // traiter ici les capteurs logiques
          }
       }
       next_queue(sensors_list);
