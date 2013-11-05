@@ -26,12 +26,12 @@ struct sensor_s
    char algo;
    
    unsigned int val;
+   unsigned int last;
 
    compute_f compute_fn;
    
    float computed_val;
    
-   float last;
 };
 
 

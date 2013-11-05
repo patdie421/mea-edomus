@@ -26,10 +26,9 @@
 
 
 // PIN=D5;TYPE=DIGITAL_OUT
-char *valid_relay_params[]={"S:PIN","S:MODE","S:ACTION",NULL};
+char *valid_relay_params[]={"S:PIN","S:TYPE",NULL};
 #define ACTUATOR_PARAMS_PIN        0
 #define ACTUATOR_PARAMS_TYPE       1
-#define ACTUATOR_PARAMS_ACTION     2
 
 
 struct assoc_s type_pin_assocs_i001_actuators[] = {
@@ -41,14 +40,6 @@ struct assoc_s type_pin_assocs_i001_actuators[] = {
    {DIGITAL_ID,ARDUINO_AI2},
    {ANALOG_ID, ARDUINO_D5},
    {ANALOG_ID, ARDUINO_D11},
-   {-1,-1}
-};
-
-
-struct assoc_s type_action_assocs_i001_actuator[] = {
-   {DIGITAL_ID, XPL_PULSE_ID},
-   {DIGITAL_ID, ONOFF_ID},
-   {ANALOG_ID, PWM_ID},
    {-1,-1}
 };
 
@@ -68,15 +59,6 @@ int actuator_pin_type_i001(int token_type_id, int pin_id)
 }
 
 
-int actuator_type_action_i001(int token_type_id, int token_action_id)
-{
-   if(token_action_id==0)
-      return 1;
-   
-   return is_in_assocs_list(type_action_assocs_i001_actuator, token_type_id, token_action_id);
-}
-
-
 int valide_actuator_i001(int token_type_id, int pin_id, int token_action_id, int *err)
 {   
    if(token_type_id==-1)
@@ -92,7 +74,6 @@ int valide_actuator_i001(int token_type_id, int pin_id, int token_action_id, int
    }
    
    int ret=actuator_pin_type_i001(token_type_id, pin_id);
-   
    if(!ret)
    {
       *err=3;
@@ -100,7 +81,6 @@ int valide_actuator_i001(int token_type_id, int pin_id, int token_action_id, int
       return 0;
    }
    
-   ret=actuator_type_action_i001(token_type_id, token_action_id);
    return ret;
 }
 
@@ -129,10 +109,6 @@ struct actuator_s *valid_and_malloc_actuator(int16_t id_sensor_actuator, char *n
    {
       type_id=get_id_by_string(relay_params[ACTUATOR_PARAMS_TYPE].value.s);
       pin_id=get_arduino_pin(relay_params[ACTUATOR_PARAMS_PIN].value.s);
-      if(relay_params[ACTUATOR_PARAMS_ACTION].label) // action set ?
-         action_id=get_id_by_string(relay_params[ACTUATOR_PARAMS_ACTION].value.s);
-      else
-         action_id=0;
       
       if(valide_actuator_i001(type_id,pin_id,action_id,&err))
       {
@@ -140,34 +116,7 @@ struct actuator_s *valid_and_malloc_actuator(int16_t id_sensor_actuator, char *n
          actuator->actuator_id=id_sensor_actuator;
          actuator->arduino_pin=pin_id;
          actuator->arduino_pin_type=type_id;
-         actuator->arduion_pin_option=0;
-         actuator->action=action_id;
          actuator->old_val=0;
-         
-         switch(action_id)
-         {
-            case XPL_PULSE_ID:
-               actuator->arduino_function=0;
-               actuator->arduion_pin_option=25;
-               break;
-            case ONOFF_ID:
-               actuator->arduino_function=1;
-               break;
-            case PWM_ID:
-               actuator->arduino_function=2;
-               break;
-            case 0:
-               switch(type_id)
-               {
-                  case DIGITAL_ID:
-                     actuator->arduino_function=1;
-                     break;
-                  case ANALOG_ID:
-                     actuator->arduino_function=2;
-                     break;
-               }
-               break;
-         }
          
          free_parsed_parameters(relay_params, nb_relay_params);
          free(relay_params);
@@ -199,17 +148,24 @@ valid_and_malloc_relay_clean_exit:
 }
 
 
+void safe_call_comio_fn(interface_type_001_t *i001, char fn, uint16_t val)
+{
+   int comio_err;
+
+   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)(&i001->operation_lock) );
+   pthread_mutex_lock(&i001->operation_lock);
+   comio_call(i001->ad, fn, val, &comio_err); // 1 = fonction on/off
+   pthread_mutex_unlock(&i001->operation_lock);
+   pthread_cleanup_pop(0);
+}
+
+
 mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNomsValeursPtr, char *device, char *type)
 {
    int ret;
-   int comio_err;
    uint16_t val;
    int type_id;
    
-   /*
-    if(strcmplower(type, get_token_by_id(XPL_OUTPUT_ID))!=0)
-    return 0; // on ne sais traiter que output
-    */
    type_id=get_id_by_string(type);
    if(type_id != XPL_OUTPUT_ID && type_id !=VARIABLE_ID)
       return ERROR;
@@ -224,161 +180,115 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
       
       if(strcmplower(iq->name,device)==0) // OK, c'est bien pour moi ...
       {
-         if(type_id==XPL_OUTPUT_ID)
+         char *current=xPL_getNamedValue(ListNomsValeursPtr, get_token_by_id(XPL_CURRENT_ID));
+         if(!current)
+            return ERROR;
+         int current_id=get_id_by_string(current);
+         if(type_id==XPL_OUTPUT_ID && iq->arduino_pin_type==DIGITAL_ID)
          {
-            switch(iq->action)
+            switch(current_id)
             {
                case XPL_PULSE_ID:
                {
-                  if(strcmplower(xPL_getNamedValue(ListNomsValeursPtr, get_token_by_id(XPL_CURRENT_ID)), get_token_by_id(XPL_PULSE_ID))==0)
+                  int pulse_width;
+                  char *data1=xPL_getNamedValue(ListNomsValeursPtr, get_token_by_id(XPL_DATA1_ID));
+                  if(data1)
                   {
-                     int pulse_width;
-                     
-                     char *data1=xPL_getNamedValue(ListNomsValeursPtr, get_token_by_id(XPL_DATA1_ID));
-                     if(data1)
-                     {
-                        pulse_width=atoi(data1);
-                        if(pulse_width<=0)
-                           pulse_width=250;
-                     }
-                     else
+                     pulse_width=atoi(data1);
+                     if(pulse_width<=0)
                         pulse_width=250;
-                     
-                     VERBOSE(9) fprintf(stderr,"%s  (%s) : %s PLUSE %d ms on %d\n",INFO_STR,__func__,device,pulse_width,iq->arduino_pin);
-                     
-                     val=(iq->arduino_pin) << 8;
-                     val=val | ((pulse_width / 100) & 0xFF);
-                     
-                     pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)(&i001->operation_lock) );
-                     pthread_mutex_lock(&i001->operation_lock);
-                     comio_call(i001->ad, iq->arduino_function, val, &comio_err);
-                     pthread_mutex_unlock(&i001->operation_lock);
-                     pthread_cleanup_pop(0);
                   }
                   else
-                     return ERROR;
-                  return NOERROR;
+                     pulse_width=250;
+
+                  VERBOSE(9) fprintf(stderr,"%s  (%s) : %s PLUSE %d ms on %d\n",INFO_STR,__func__,device,pulse_width,iq->arduino_pin);
+                     
+                  val=(iq->arduino_pin) << 8;
+                  val=val | ((pulse_width / 100) & 0xFF);
+                  safe_call_comio_fn(i001, 0, val);
+   
                   break;
                }
-                  
-               case 0: // pas d'action, donc valeur par defaut = ONOFF
-               case ONOFF_ID:
+               
+               case HIGH_ID:
+               case LOW_ID:
                {
                   int o=0;
                   
-                  char *current_value=xPL_getNamedValue(ListNomsValeursPtr, get_token_by_id(XPL_CURRENT_ID));
-                  
-                  if(strcmplower(current_value, "high")==0)
+                  if(current_id==HIGH_ID)
                      o=255;
-                  else if(strcmplower(current_value, "low")==0)
-                     o=0;
-                  else
-                     return ERROR;
                   
                   VERBOSE(9) fprintf(stderr,"%s  (%s) : %s set %d on pin %d\n",INFO_STR,__func__,device,o,iq->arduino_pin);
                   
                   val=(iq->arduino_pin) << 8;
                   val=val | o;
-                  
-                  pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)(&i001->operation_lock) );
-                  pthread_mutex_lock(&i001->operation_lock);
-                  comio_call(i001->ad, iq->arduino_function, val, &comio_err);
-                  pthread_mutex_unlock(&i001->operation_lock);
-                  pthread_cleanup_pop(0);
+                  safe_call_comio_fn(i001, 1, val);
                   
                   return NOERROR;
                   break;
                }
+               
+               default:
+                  VERBOSE(9) fprintf(stderr,"%s  (%s) : incorrect request for %s (%s)\n",INFO_STR,__func__,device,type);
+                  return ERROR;
+            }
+            
+         }
+         else if(type_id==VARIABLE_ID && iq->arduino_pin_type==ANALOG_ID)
+         {
+            int o=0;
+            switch(current_id)
+            {
+               case DEC_ID:
+                  o=iq->old_val-1;
+                  break;
+               case INC_ID:
+                  o=iq->old_val+1;
+                  break;
                default:
                {
-                  VERBOSE(9) fprintf(stderr,"%s  (%s) : incorrect request for %s (%s)\n",INFO_STR,__func__,device,type);
-               }
-            }
-         }
-         else if(type_id==VARIABLE_ID)
-         {
-            switch(iq->action)
-            {
-               case PWM_ID:
-               {
-                  int o=0;
-                  
-                  char *current_value=xPL_getNamedValue(ListNomsValeursPtr, get_token_by_id(XPL_CURRENT_ID));
-                  
-                  int current_id=get_id_by_string(current_value);
-                  
-                  switch(current_id)
+                  char inc_dec=0; // 1 = inc ; 2 = dec
+                  char *str;
+                  if(current[0]=='-')
                   {
-                     case DEC_ID:
-                        o=iq->old_val-1;
-                        break;
-                     case INC_ID:
-                        o=iq->old_val+1;
-                        break;
-                     default:
-                     {
-                        char inc_dec=0; // 1 = inc ; 2 = dec
-                        char *str;
-                        if(current_value[0]=='-')
-                        {
-                           inc_dec=2;
-                           str=&current_value[1];
-                        }
-                        else if (current_value[0]=='+')
-                        {
-                           inc_dec=1;
-                           str=&current_value[1];
-                        }
-                        else str=current_value;
-                        
-                        int n;
-                        ret=sscanf(str,"%d%n",&o,&n);
-                        
-                        if(ret==1 && !(strlen(str)-n))
-                        {
-                           switch(inc_dec)
-                           {
-                              case 0:
-                                 break;
-                              case 1:
-                                 o=iq->old_val+o;
-                                 break;
-                              case 2:
-                                 o=iq->old_val-o;
-                                 break;
-                           }
-                        }
-                        else
-                        {
-                           VERBOSE(9) fprintf(stderr,"%s  (%s) : %s ???\n",INFO_STR,__func__,current_value);
-                           return ERROR; // erreur de syntaxe ...
-                        }
-                     }
-                     break;
+                     inc_dec=-1;
+                     str=&current[1];
                   }
-                  
-                  if(o>255)
-                     o=255;
-                  else if(o<0)
-                     o=0;
-                  iq->old_val=o;
-                  
-                  // fonction à ajouter dans l'arduino
-                  VERBOSE(9) fprintf(stderr,"%s  (%s) : %s set %d on pin %d\n",INFO_STR, __func__,device,o,iq->arduino_pin);
-                  
-                  val=(iq->arduino_pin) << 8;
-                  val=val | o;
-                  
-                  pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)(&i001->operation_lock) );
-                  pthread_mutex_lock(&i001->operation_lock);
-                  comio_call(i001->ad, iq->arduino_function, val, &comio_err);
-                  pthread_mutex_unlock(&i001->operation_lock);
-                  pthread_cleanup_pop(0);
-                  
-                  return NOERROR;
-                  break;
+                  else if (current[0]=='+')
+                  {
+                     inc_dec=1;
+                     str=&current[1];
+                  }
+                  else str=current;
+                        
+                  int n;
+                  ret=sscanf(str,"%d%n",&o,&n);
+                        
+                  if(ret==1 && !(strlen(str)-n))
+                  {
+                     o=iq->old_val+o*inc_dec;
+                  }
+                  else
+                  {
+                     VERBOSE(9) fprintf(stderr,"%s  (%s) : %s ???\n",INFO_STR,__func__,current);
+                     return ERROR; // erreur de syntaxe ...
+                  }
                }
+               break;
             }
+            if(o>255)
+               o=255;
+            else if(o<0)
+               o=0;
+            iq->old_val=o;
+                  
+            VERBOSE(9) fprintf(stderr,"%s  (%s) : %s set %d on pin %d\n",INFO_STR, __func__,device,o,iq->arduino_pin);
+                  
+            val=(iq->arduino_pin) << 8;
+            val=val | o;
+            safe_call_comio_fn(i001, 2, val);
+
+            return NOERROR;
          }
          return ERROR;
       }

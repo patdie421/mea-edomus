@@ -66,6 +66,9 @@ struct token_s tokens_list[]={
    {"digital",                    DIGITAL_ID},
    {"analog",                     ANALOG_ID},
    {"last",                       XPL_LAST_ID},
+   {"raw",                        RAW_ID},
+   {"high",                       HIGH_ID},
+   {"low",                        LOW_ID},
    {NULL,0}
 };
 

@@ -69,6 +69,9 @@ extern struct token_s tokens_list[];
 #define DIGITAL_ID                    49
 #define ANALOG_ID                     50
 #define XPL_LAST_ID                   51
+#define RAW_ID                        52
+#define HIGH_ID                       53
+#define LOW_ID                        54
 
 
 char *get_token_by_id(int id);

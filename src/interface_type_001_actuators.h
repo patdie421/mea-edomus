@@ -20,9 +20,6 @@ struct actuator_s
    
    char arduino_pin;
    char arduino_pin_type;
-   char action;
-   int arduion_pin_option; // ( pulse width )
-   char arduino_function;
    
    int old_val;
 };

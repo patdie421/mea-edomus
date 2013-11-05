@@ -26,9 +26,9 @@
 
 
 // parametres valide pour les capteurs ou actionneurs pris en compte par le type 1.
-char *valid_sensor_params[]={"S:PIN","S:MODE","S:COMPUTE","S:ALGO",NULL};
+char *valid_sensor_params[]={"S:PIN","S:TYPE","S:COMPUTE","S:ALGO",NULL};
 #define SENSOR_PARAMS_PIN       0
-#define SENSOR_PARAMS_MODE      1
+#define SENSOR_PARAMS_TYPE      1
 #define SENSOR_PARAMS_COMPUTE   2
 #define SENSOR_PARAMS_ALGO      3
 
@@ -45,6 +45,7 @@ struct assoc_s type_pin_assocs_i001_sensors[] = {
 struct assoc_s type_compute_assocs_i001_sensors[] = {
    {ANALOG_ID, XPL_TEMP_ID},
    {ANALOG_ID, XPL_VOLTAGE_ID},
+   {ANALOG_ID, RAW_ID},
    {-1,-1}
 };
 
@@ -239,7 +240,7 @@ struct sensor_s *valid_and_malloc_sensor(int id_sensor_actuator, char *name, cha
    
    if(sensor_params)
    {
-      type_id=get_id_by_string(sensor_params[SENSOR_PARAMS_MODE].value.s);
+      type_id=get_id_by_string(sensor_params[SENSOR_PARAMS_TYPE].value.s);
       pin_id=get_arduino_pin(sensor_params[SENSOR_PARAMS_PIN].value.s);
       compute_id=get_id_by_string(sensor_params[SENSOR_PARAMS_COMPUTE].value.s);
       algo_id=get_id_by_string(sensor_params[SENSOR_PARAMS_ALGO].value.s);
@@ -253,7 +254,7 @@ struct sensor_s *valid_and_malloc_sensor(int id_sensor_actuator, char *name, cha
             sensor->arduino_function=6;
             break;
          default:
-            VERBOSE(1) fprintf (stderr, "%s (%s) : bad sensor type (%s)\n",ERROR_STR,__func__,sensor_params[SENSOR_PARAMS_MODE].value.s);
+            VERBOSE(1) fprintf (stderr, "%s (%s) : bad sensor type (%s)\n",ERROR_STR,__func__,sensor_params[SENSOR_PARAMS_TYPE].value.s);
             goto valid_and_malloc_sensor_clean_exit;
             break;
       }
