@@ -167,13 +167,13 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
    int type_id;
    
    type_id=get_id_by_string(type);
+   printf("type=%s type_id=%d\n",type,type_id);
    if(type_id != XPL_OUTPUT_ID && type_id !=VARIABLE_ID)
       return ERROR;
    
    if(first_queue(i001->actuators_list)==-1)
       return ERROR;
    
-   printf("type=%s\n",type);
    struct actuator_s *iq;
    while(1)
    {
