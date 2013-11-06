@@ -36,6 +36,8 @@
 #include "pythonPluginServer.h"
 #include "python_api_utils.h"
 
+#include "interfaces.h"
+
 
 typedef void (*thread_f)(void *);
 
@@ -902,6 +904,8 @@ mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, in
    
    char unix_dev[80];
    char buff[80];
+   speed_t speed;
+
    int fd=0;
    int16_t nerr;
    int ret;
@@ -915,6 +919,16 @@ mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, in
    
    i002->thread=NULL;
    
+   ret=get_dev_and_speed((char *)dev, buff, sizeof(buff), &speed);
+   if(!ret)
+      sprintf(unix_dev,"/dev/%s",buff);
+   else
+   {
+      VERBOSE(2) fprintf (stderr, "%s (%s) : unknow interface device - %s\n", ERROR_STR,__func__,dev);
+      goto clean_exit;
+   }
+
+/*
    if(sscanf((char *)dev,"SERIAL://%s",buff)==1)
       sprintf(unix_dev,"/dev/%s",buff);
    else
@@ -922,7 +936,8 @@ mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, in
       VERBOSE(1) fprintf (stderr, "%s (%s) : unknow device name - %s\n", ERROR_STR, __func__, dev);
       goto clean_exit;
    }
-   
+*/
+
    xd=(xbee_xd_t *)malloc(sizeof(xbee_xd_t));
    if(!xd)
    {
@@ -933,7 +948,7 @@ mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, in
       goto clean_exit;
    }
    
-   fd=xbee_init(xd, unix_dev, B9600); // mettre la vitesse dans les parametres de l'interface
+   fd=xbee_init(xd, unix_dev, speed); // mettre la vitesse dans les parametres de l'interface
    if (fd == -1)
    {
       VERBOSE(1) {
