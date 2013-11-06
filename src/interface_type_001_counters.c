@@ -267,29 +267,39 @@ mea_error_t interface_type_001_counters_process_xpl_msg(interface_type_001_t *i0
 {
    queue_t *counters_list=i001->counters_list;
    struct electricity_counter_s *counter;
-      
+   int type_id;
+
+   if(type)
+      type_id=get_id_by_string(type);
+   else
+   {
+      type_id=XPL_ENERGY_ID; // pas de type précisé => type par défaut compteur kw/h
+      type=get_token_by_id(XPL_ENERGY_ID);
+   }
+
    first_queue(counters_list);
    for(int i=0; i<counters_list->nb_elem; i++)
    {
       current_queue(counters_list, (void **)&counter);
 
-      if(strcmplower(device,counter->name)==0)
+      if(!device || strcmplower(device,counter->name)==0)
       {
          xPL_MessagePtr cntrMessageStat ;
          char value[20];
-            
-         if(strcmplower(type, get_token_by_id(XPL_ENERGY_ID))==0)
+         char *unit;
+         
+         if(type_id==XPL_ENERGY_ID)
          {
             sprintf(value,"%d", counter->kwh_counter);
+            unit="kWh";
          }
-         else if(strcmplower(type, get_token_by_id(XPL_POWER_ID))==0)
+         else if(type_id==XPL_POWER_ID)
          {
             sprintf(value,"%f", counter->power);
+            unit="W";
          }
          else
-         {
-            return ERROR;
-         }
+            break;
             
          cntrMessageStat = xPL_createBroadcastMessage(theService, xPL_MESSAGE_STATUS) ;
             
@@ -297,6 +307,7 @@ mea_error_t interface_type_001_counters_process_xpl_msg(interface_type_001_t *i0
          xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_DEVICE_ID),counter->name);
          xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_TYPE_ID),type);
          xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_CURRENT_ID),value);
+         xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(UNIT_ID),unit);
             
          // Broadcast the message
          xPL_sendMessage(cntrMessageStat);

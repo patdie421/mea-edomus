@@ -367,7 +367,7 @@ mea_error_t interface_type_001_sensors_process_xpl_msg(interface_type_001_t *i00
    }
    else
       no_type=1; // type par defaut, le type est celui du capteur
-      
+   
    first_queue(sensors_list);
    for(int i=0; i<sensors_list->nb_elem; i++)
    {
