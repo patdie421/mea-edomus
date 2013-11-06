@@ -315,7 +315,13 @@ mea_error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, in
                struct electricity_counter_s *counter;
                counter=interface_type_001_sensors_valid_and_malloc_counter(id_sensor_actuator, (char *)name, (char *)parameters);
                if(counter)
+               {
+                  counter->power=0.0;
+                  counter->counter=0;
+                  counter->last_power=0.0;
+                  counter->last_counter=0;
                   in_queue_elem(i001->counters_list, counter);
+               }
                nb_sensors_actuators++;
                break;
             }
