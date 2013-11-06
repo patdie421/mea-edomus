@@ -11,6 +11,7 @@
 
 #include <inttypes.h>
 
+int16_t create_queries_db(char *queries_db_path);
 int16_t checkInstallationPaths(char *base_path, int16_t try_to_create_flag);
 int16_t checkParamsDb(char *sqlite3_db_param_path, int16_t *cause);
 int16_t create_configs_php(char *gui_home, char *params_db_fullname, char *php_log_fullname);

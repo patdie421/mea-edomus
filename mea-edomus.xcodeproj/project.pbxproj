@@ -262,7 +262,6 @@
 		4E5E24C0173C346800B8CEFE /* API */ = {
 			isa = PBXGroup;
 			children = (
-				4E5E24C1173C34A100B8CEFE /* mea_api.h */,
 				4E5E24C2173C34AE00B8CEFE /* mea_api.c */,
 			);
 			name = API;
@@ -273,6 +272,7 @@
 			children = (
 				4E05C665175BC9390022DA3E /* xbee_generic.py */,
 				4EF7B08D1757F6AA0029ABBC /* mea_simulation.py */,
+				4E5E24C1173C34A100B8CEFE /* mea_api.h */,
 				4EF7B08E1757F6AA0029ABBC /* mea_utils.py */,
 				4E5E24C5173D0A1100B8CEFE /* my_dht22.py */,
 			);

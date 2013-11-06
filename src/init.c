@@ -422,6 +422,45 @@ int16_t create_configs_php(char *gui_home, char *params_db_fullname, char *php_l
 }
 
 
+int16_t create_queries_db(char *queries_db_path)
+ /**
+  * \brief     Création de la base et de la table queries.
+  * \param     queries_db_path  chemin vers la base
+  * \return    0 si OK, -1 si KO.
+  */
+{
+   sqlite3 *sqlite3_queries_db;
+   
+   char *sql_createTables[] = {
+      "CREATE TABLE queries ( id INTEGER PRIMARY KEY, request TEXT )",
+      NULL
+   };
+   
+   if(sqlite3_dropDatabase(queries_db_path))
+   {
+      VERBOSE(5) {
+         fprintf (stderr, "%s (%s) : sqlite3_dropDatabase - ", ERROR_STR,__func__);
+         perror("");
+      }
+      return -1;
+      
+   }
+   
+   int16_t nerr = sqlite3_open(queries_db_path, &sqlite3_queries_db);
+   if(nerr)
+   {
+      VERBOSE(5) fprintf (stderr, "%s (%s) : sqlite3_open - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_queries_db));
+   }
+
+   nerr=sqlite3_doSqlQueries(sqlite3_queries_db, sql_createTables);
+
+   if(sqlite3_queries_db)
+        sqlite3_close(sqlite3_queries_db);
+
+   return nerr;
+}
+
+
 int16_t createMeaTables(sqlite3 *sqlite3_param_db)
  /**
   * \brief     Création des tables de l'application dans la base sqlite3 de paramétrage.
@@ -430,7 +469,7 @@ int16_t createMeaTables(sqlite3 *sqlite3_param_db)
   * \return    0 si OK, -1 si KO.
   */
 {
-   char *sql_createTable[] = {
+   char *sql_createTables[] = {
       "CREATE TABLE application_parameters(id INTEGER PRIMARY KEY,key TEXT,value TEXT,complement TEXT)",
       "CREATE TABLE interfaces(id INTEGER PRIMARY KEY,id_interface INTEGER,id_type INTEGER,name TEXT,description TEXT,dev TEXT,parameters TEXT,state INTEGER)",
       "CREATE TABLE locations(id INTEGER PRIMARY KEY,id_location INTEGER,name TEXT,description TEXT)",
@@ -441,7 +480,7 @@ int16_t createMeaTables(sqlite3 *sqlite3_param_db)
       NULL
    };
 
-   return sqlite3_doSqlQueries(sqlite3_param_db, sql_createTable);
+   return sqlite3_doSqlQueries(sqlite3_param_db, sql_createTables);
 }
 
 
@@ -576,6 +615,8 @@ int16_t init_db(char **params_list, char **keys)
    int16_t func_ret;
    char sql_query[1024];
    char *errmsg = NULL;    
+
+   create_queries_db(params_list[SQLITE3_DB_BUFF_PATH]);
 
    // suppression de la base si elle existe déjà
    func_ret = sqlite3_dropDatabase(params_list[SQLITE3_DB_PARAM_PATH]);

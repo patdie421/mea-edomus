@@ -869,9 +869,14 @@ mea_error_t restart_interface_type_002(interface_type_002_t *i002,sqlite3 *db, t
    int id_interface;
    int ret;
    
+   /*
    sscanf(i002->xd->serial_dev_name,"/dev/%s",full_dev);
    sprintf(dev,"SERIAL://%s",full_dev);
+   */
    
+   sscanf(i002->xd->serial_dev_name,"/dev/%s",full_dev);
+   sprintf(dev,"SERIAL://%s:%ld",full_dev,(long)get_speed_from_speed_t(i002->xd->speed));
+
    id_interface=i002->id_interface;
    
    stop_interface_type_002(i002);
@@ -927,16 +932,6 @@ mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, in
       VERBOSE(2) fprintf (stderr, "%s (%s) : unknow interface device - %s\n", ERROR_STR,__func__,dev);
       goto clean_exit;
    }
-
-/*
-   if(sscanf((char *)dev,"SERIAL://%s",buff)==1)
-      sprintf(unix_dev,"/dev/%s",buff);
-   else
-   {
-      VERBOSE(1) fprintf (stderr, "%s (%s) : unknow device name - %s\n", ERROR_STR, __func__, dev);
-      goto clean_exit;
-   }
-*/
 
    xd=(xbee_xd_t *)malloc(sizeof(xbee_xd_t));
    if(!xd)
@@ -995,34 +990,14 @@ mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, in
    }
    VERBOSE(9) fprintf(stderr, "INFO  (%s) : local address is : %02x-%02x\n", fn_name, addr_64_h, addr_64_l);
    xbee_get_host_by_addr_64(xd, local_xbee, addr_64_h, addr_64_l, &nerr);
-   
-   /* a remplacer par l'appel du plugin python associé a l'interface s'il existe
-   int xbee_flag=0;
-   for(int i=0;i<5;i++) // 5 essais
-   {
-      if(at_set_16bits_reg_from_int(xd, local_xbee, "SP", 2000, &nerr))
-      {
-         xbee_perror(nerr);
-      }
-      else
-      {
-         xbee_flag=1;
-         break;
-      }
-      sleep(1);
-   }
-   if(xbee_flag==0)
-   {
-      VERBOSE(1) fprintf(stderr,"%s (%s) : can't ...\n", ERROR_STR, fn_name);
-      goto clean_exit;
-   }
-   */
+
    
    /*
     * parametrage du réseau
     */
+
    // découverte des xbee du réseau
-   xbee_start_network_discovery(xd, &nerr); // lancement de la d√©couverte "asynchrone"
+   xbee_start_network_discovery(xd, &nerr); // lancement de la découverte "asynchrone"
    
    // on attend que la découverte soit terminée (à remplacer par un "evenement")
    sleep(10);
