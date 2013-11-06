@@ -41,16 +41,14 @@ struct electricity_counter_s
    mea_timer_t timer;
 };
 
-struct electricity_counter_s *valid_and_malloc_counter(int id_sensor_actuator, char *name, char *parameters);
-void interface_type_001_free_counters_queue_elem(void *d);
-mea_error_t counter_trap(int numTrap, void *args, char *buff);
+struct electricity_counter_s
+            *interface_type_001_sensors_valid_and_malloc_counter(int id_sensor_actuator, char *name, char *parameters);
+void         interface_type_001_free_counters_queue_elem(void *d);
+mea_error_t  interface_type_001_counters_process_traps(int numTrap, void *args, char *buff);
 
-void counter_to_xpl(struct electricity_counter_s *counter);
-int16_t counter_to_db(tomysqldb_md_t *md, struct electricity_counter_s *counter);
-void counter_read(comio_ad_t *ad, struct electricity_counter_s *counter);
-
-mea_error_t counters_xpl_msg(interface_type_001_t *i001, xPL_ServicePtr theService, xPL_NameValueListPtr ListNomsValeursPtr, char *device, char *type);
-void counters_check(interface_type_001_t *i001, tomysqldb_md_t *md);
-void init_counters_traps(interface_type_001_t *i001);
+mea_error_t  interface_type_001_counters_process_xpl_msg(interface_type_001_t *i001, xPL_ServicePtr theService, xPL_NameValueListPtr ListNomsValeursPtr,
+                                                         char *device, char *type);
+void         interface_type_001_counters_poll_inputs(interface_type_001_t *i001, tomysqldb_md_t *md);
+void         interface_type_001_counters_init(interface_type_001_t *i001);
 
 #endif

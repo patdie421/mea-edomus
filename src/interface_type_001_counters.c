@@ -63,7 +63,7 @@ void interface_type_001_free_counters_queue_elem(void *d)
 
 
 // pour la reception d'un trap à chaque changement du compteur
-mea_error_t counter_trap(int numTrap, void *args, char *buff)
+mea_error_t interface_type_001_counters_process_traps(int numTrap, void *args, char *buff)
  {
    double t_old;
    struct timeval tv;
@@ -116,7 +116,7 @@ mea_error_t counter_trap(int numTrap, void *args, char *buff)
 }  
 
 
-struct electricity_counter_s *valid_and_malloc_counter(int id_sensor_actuator, char *name, char *parameters)
+struct electricity_counter_s *interface_type_001_sensors_valid_and_malloc_counter(int id_sensor_actuator, char *name, char *parameters)
 {
    parsed_parameters_t *counter_params=NULL;
    
@@ -263,7 +263,7 @@ void counter_read(comio_ad_t *ad, struct electricity_counter_s *counter)
 }
 
 
-mea_error_t counters_xpl_msg(interface_type_001_t *i001, xPL_ServicePtr theService, xPL_NameValueListPtr ListNomsValeursPtr, char *device, char *type)
+mea_error_t interface_type_001_counters_process_xpl_msg(interface_type_001_t *i001, xPL_ServicePtr theService, xPL_NameValueListPtr ListNomsValeursPtr, char *device, char *type)
 {
    queue_t *counters_list=i001->counters_list;
    struct electricity_counter_s *counter;
@@ -311,7 +311,7 @@ mea_error_t counters_xpl_msg(interface_type_001_t *i001, xPL_ServicePtr theServi
 }
 
 
-void counters_check(interface_type_001_t *i001, tomysqldb_md_t *md)
+void interface_type_001_counters_poll_inputs(interface_type_001_t *i001, tomysqldb_md_t *md)
 {
    queue_t *counters_list=i001->counters_list;
    struct electricity_counter_s *counter;
@@ -345,7 +345,7 @@ void counters_check(interface_type_001_t *i001, tomysqldb_md_t *md)
 }
 
 
-void init_counters_traps(interface_type_001_t *i001)
+void interface_type_001_counters_init(interface_type_001_t *i001)
 {
    queue_t *counters_list=i001->counters_list;
    struct electricity_counter_s *counter;
@@ -355,7 +355,7 @@ void init_counters_traps(interface_type_001_t *i001)
    for(int16_t i=0; i<counters_list->nb_elem; i++)
    {
       current_queue(counters_list, (void **)&counter);
-      comio_set_trap2(i001->ad, counter->trap, counter_trap, (void *)counter);
+      comio_set_trap2(i001->ad, counter->trap, interface_type_001_counters_process_traps, (void *)counter);
       start_timer(&(counter->timer));
       
       next_queue(counters_list);

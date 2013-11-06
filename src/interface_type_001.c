@@ -64,22 +64,22 @@ int16_t interface_type_001_xPL_callback(xPL_ServicePtr theService, xPL_MessagePt
    device             = xPL_getNamedValue(ListNomsValeursPtr, get_token_by_id(XPL_DEVICE_ID));
    type               = xPL_getNamedValue(ListNomsValeursPtr, get_token_by_id(XPL_TYPE_ID));
    
-   if(!device)
-   {
-      VERBOSE(5) fprintf(stderr,"%s  (%s) : xPL Message no device\n",INFO_STR,__func__);
-      return 0;
-   }
-   if(!type)
-   {
-      VERBOSE(5) fprintf(stderr,"%s  (%s) : xPL Message no type\n",INFO_STR,__func__);
-      return 0;
-   }
    
    VERBOSE(9) fprintf(stderr,"%s  (%s) : xPL Message to process : %s.%s\n",INFO_STR,__func__,schema_class,schema_type);
 
    if(strcmplower(schema_class, get_token_by_id(XPL_CONTROL_ID)) == 0 &&
       strcmplower(schema_type, get_token_by_id(XPL_BASIC_ID)) == 0)
    {
+      if(!device)
+      {
+         VERBOSE(5) fprintf(stderr,"%s  (%s) : xPL message no device\n",INFO_STR,__func__);
+         return 0;
+      }
+      if(!type)
+      {
+         VERBOSE(5) fprintf(stderr,"%s  (%s) : xPL message no type\n",INFO_STR,__func__);
+         return 0;
+      }
       return xpl_actuator(i001, ListNomsValeursPtr, device, type);
    }
    else if(strcmplower(schema_class, get_token_by_id(XPL_SENSOR_ID)) == 0 &&
@@ -88,16 +88,17 @@ int16_t interface_type_001_xPL_callback(xPL_ServicePtr theService, xPL_MessagePt
       char *request = xPL_getNamedValue(ListNomsValeursPtr, get_token_by_id(XPL_REQUEST_ID));
       if(!request)
       {
-         VERBOSE(5) fprintf(stderr,"%s  (%s) : xPL Message no request\n",INFO_STR,__func__);
+         VERBOSE(5) fprintf(stderr,"%s  (%s) : xPL message no request\n",INFO_STR,__func__);
          return 0;
       }
       if(strcmplower(request,get_token_by_id(XPL_CURRENT_ID))!=0)
       {
-         VERBOSE(5) fprintf(stderr,"%s  (%s) : xPL Message no request!=current\n",INFO_STR,__func__);
+         VERBOSE(5) fprintf(stderr,"%s  (%s) : xPL message request!=current\n",INFO_STR,__func__);
          return 0;
       }
-      if(counters_xpl_msg(i001, theService, ListNomsValeursPtr, device, type) == ERROR)
-         sensors_xpl_msg(i001, theService, ListNomsValeursPtr, device, type);
+      
+      interface_type_001_counters_process_xpl_msg(i001, theService, ListNomsValeursPtr, device, type);
+      interface_type_001_sensors_process_xpl_msg(i001, theService, ListNomsValeursPtr, device, type);
    }
    
    return 0;
@@ -192,14 +193,14 @@ void *_thread_interface_type_001(void *args)
    free(params);
    params=NULL;
 
-   init_counters_traps(i001);
-   init_sensors_traps(i001);
+   interface_type_001_counters_init(i001);
+   interface_type_001_sensors_init(i001);
 
    uint32_t cntr=0;
    while(1)
    {
-      sensors_check(i001, md);
-      counters_check(i001, md);
+      interface_type_001_counters_poll_inputs(i001, md);
+      interface_type_001_sensors_poll_inputs(i001, md);
       cntr++;
       sleep(5);
    }
@@ -312,7 +313,7 @@ mea_error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, in
             case 1000: // capteur de type compteur
             {
                struct electricity_counter_s *counter;
-               counter=valid_and_malloc_counter(id_sensor_actuator, (char *)name, (char *)parameters);
+               counter=interface_type_001_sensors_valid_and_malloc_counter(id_sensor_actuator, (char *)name, (char *)parameters);
                if(counter)
                   in_queue_elem(i001->counters_list, counter);
                nb_sensors_actuators++;
@@ -332,7 +333,7 @@ mea_error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, in
             case 1001: // entrées
             {
                struct sensor_s *sensor;
-               sensor=valid_and_malloc_sensor(id_sensor_actuator, (char *)name, (char *)parameters);
+               sensor=interface_type_001_sensors_valid_and_malloc_sensor(id_sensor_actuator, (char *)name, (char *)parameters);
                if(sensor)
                   in_queue_elem(i001->sensors_list, sensor);
                nb_sensors_actuators++;
@@ -434,7 +435,7 @@ start_interface_type_001_clean_exit:
       }
       if(i001->sensors_list)
       {
-         clear_queue(i001->sensors_list,_interface_type_001_free_sensors_queue_elem);
+         clear_queue(i001->sensors_list,interface_type_001_sensors_free_queue_elem);
          FREE(i001->sensors_list);
       }
    }

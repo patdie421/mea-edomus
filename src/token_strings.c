@@ -69,6 +69,8 @@ struct token_s tokens_list[]={
    {"raw",                        RAW_ID},
    {"high",                       HIGH_ID},
    {"low",                        LOW_ID},
+   {"generic",                    GENERIC_ID},
+   {"unit",                       UNIT_ID},
    {NULL,0}
 };
 

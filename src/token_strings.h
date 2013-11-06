@@ -72,6 +72,8 @@ extern struct token_s tokens_list[];
 #define RAW_ID                        52
 #define HIGH_ID                       53
 #define LOW_ID                        54
+#define GENERIC_ID                    55
+#define UNIT_ID                       56
 
 
 char *get_token_by_id(int id);
