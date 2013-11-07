@@ -906,12 +906,12 @@ int16_t autoInit(char **params_list, char **keys)
       }
    }
 
-   snprintf(to_check,sizeof(to_check),"%s/cgi-bin",params_list[PHPCGI_PATH]);
+   snprintf(to_check,sizeof(to_check),"%s/php-cgi",params_list[PHPCGI_PATH]);
    if( access(to_check, R_OK | X_OK) == -1 )
    {
-      VERBOSE(9) fprintf(stderr,"%s (%s) : %s/cgi-bin - ", WARNING_STR, __func__, params_list[PHPCGI_PATH]);
+      VERBOSE(9) fprintf(stderr,"%s (%s) : %s/php-cgi - ", WARNING_STR, __func__, params_list[PHPCGI_PATH]);
       VERBOSE(9) perror("");
-      VERBOSE(1) fprintf(stderr,"%s : no 'cgi-bin', gui will not start.\n",WARNING_STR);
+      VERBOSE(1) fprintf(stderr,"%s : no 'php-cgi', gui will not start.\n",WARNING_STR);
    }
 
    //
