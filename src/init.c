@@ -442,8 +442,6 @@ int16_t create_queries_db(char *queries_db_path)
          fprintf (stderr, "%s (%s) : sqlite3_dropDatabase - ", ERROR_STR,__func__);
          perror("");
       }
-      return -1;
-      
    }
    
    int16_t nerr = sqlite3_open(queries_db_path, &sqlite3_queries_db);
@@ -1095,5 +1093,3 @@ exit_updateMeaEdomus:
         sqlite3_close(sqlite3_param_db);
    return retcode;
 }
-
-
