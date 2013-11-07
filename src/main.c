@@ -618,6 +618,45 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
    return interfaces;
 }
 
+
+int export_electricity_conters()
+{
+   MYSQL *conn = mysql_init(NULL);
+   
+   if (mysql_real_connect(conn, "192.168.0.22", "domotique", "maison", "domotique", 3306, NULL, 0) == NULL)
+   {
+      VERBOSE(1) fprintf(stderr,"%s (%s) : %u - %s\n", ERROR_STR,__func__,mysql_errno(conn), mysql_error(conn));
+      return -1;
+   }
+   
+   if(mysql_query(conn, "SELECT sensor_id, date, wh, kwh FROM electricity_counters"))
+   {
+      VERBOSE(1) fprintf(stderr,"%s (%s) : %u - %s\n", ERROR_STR,__func__,mysql_errno(conn), mysql_error(conn));
+      return 1;
+   }
+  
+   MYSQL_RES *result = mysql_store_result(conn);
+   if(result == NULL)
+   {
+   }
+
+   MYSQL_ROW row;
+   int new_sensor_id;
+   int  sensor;
+   
+   while ((row = mysql_fetch_row(result)))
+   {
+      sensor=atoi(row[0]);
+      new_sensor_id=sensor;
+      
+      printf("INSERT INTO sensors_values (sensor_id,date,value1,unit,value2,complement) VALUES (%d,\"%s\",%s,1,%s,'WH');\n", new_sensor_id, row[1], row[2], row[3]);
+   }
+  
+   mysql_free_result(result);
+  
+   return 1;
+}
+
  
 int main(int argc, const char * argv[])
 /**
@@ -670,7 +709,6 @@ int main(int argc, const char * argv[])
 #endif
    
    DEBUG_SECTION fprintf(stderr,"Starting MEA-EDOMUS %s\n",__MEA_EDOMUS_VERSION__);
-
    //
    // initialisation
    //
