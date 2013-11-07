@@ -973,6 +973,7 @@ int16_t interactiveInit(char **params_list, char **keys)
       VERBOSE(1) fprintf(stderr,"%s (%s) : no 'php-cgi', gui will not start.\n",WARNING_STR,__func__);
    }
 
+
    snprintf(to_check,sizeof(to_check),"%s/php.ini",params_list[PHPINI_PATH]);
    if( access(to_check, R_OK ) == -1 )
    {
