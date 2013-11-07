@@ -442,8 +442,6 @@ int16_t create_queries_db(char *queries_db_path)
          fprintf (stderr, "%s (%s) : sqlite3_dropDatabase - ", ERROR_STR,__func__);
          perror("");
       }
-      return -1;
-      
    }
    
    int16_t nerr = sqlite3_open(queries_db_path, &sqlite3_queries_db);
@@ -908,7 +906,7 @@ int16_t autoInit(char **params_list, char **keys)
       }
    }
 
-   snprintf(to_check,sizeof(to_check),"%s/cgi-bin",params_list[PHPCGI_PATH]);
+   snprintf(to_check,sizeof(to_check),"%s/php-cgi",params_list[PHPCGI_PATH]);
    if( access(to_check, R_OK | X_OK) == -1 )
    {
       VERBOSE(9) fprintf(stderr,"%s (%s) : %s/cgi-bin - ", WARNING_STR, __func__, params_list[PHPCGI_PATH]);
