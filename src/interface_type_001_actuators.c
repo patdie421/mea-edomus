@@ -178,7 +178,7 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
    {
       current_queue(i001->actuators_list, (void **)&iq);
       
-      if(strcmplower(iq->name,device)==0) // OK, c'est bien pour moi ...
+      if(strcmplower(iq->name, device)==0) // OK, c'est bien pour moi ...
       {
          char *current=xPL_getNamedValue(ListNomsValeursPtr, get_token_by_id(XPL_CURRENT_ID));
 

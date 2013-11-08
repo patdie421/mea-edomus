@@ -23,7 +23,7 @@
 #include "interface_type_001.h"
 #include "interface_type_002.h"
 
-#define XPL_VERSION "20121016"
+#define XPL_VERSION "0.1a2"
 
 
 xPL_ServicePtr xPLService = NULL;

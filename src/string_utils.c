@@ -4,7 +4,7 @@
 //  Created by Patrice DIETSCH on 08/07/2013.
 //
 //
-
+#include <stdio.h>
 #include <ctype.h>
 #include <string.h>
 
@@ -74,9 +74,11 @@ int16_t strcmplower(char *str1, char *str2)
  */
 {
    int i;
-   for(i=0;str1[i];i++)
+   for(i=0;str1[i];i++) {
       if(tolower(str1[i])!=tolower(str2[i]))
          return 1;
+      printf("%c %c | %c %c\n",str1[i], tolower(str1[i]), str2[i], tolower(str2[i]));
+   }
    if(str1[i]!=str2[i])
       return 1;
    return 0;
