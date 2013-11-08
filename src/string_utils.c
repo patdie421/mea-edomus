@@ -74,6 +74,7 @@ int16_t strcmplower(char *str1, char *str2)
  */
 {
    int i;
+   print("%s %s\n",str1,str2);
    for(i=0;str1[i];i++) {
       if(tolower(str1[i])!=tolower(str2[i]))
          return 1;
