@@ -306,7 +306,7 @@ int16_t _interface_type_002_xPL_callback(xPL_ServicePtr theService, xPL_MessageP
    char sql[1024];
    sqlite3_stmt * stmt;
    
-   sprintf(sql,"%s WHERE sensors_actuators.name='%s' and sensors_actuators.state='1';", sql_select_device_info, device);
+   sprintf(sql,"%s WHERE sensors_actuators.name COLLATE nocase ='%s' and sensors_actuators.state='1';", sql_select_device_info, device);
    ret = sqlite3_prepare_v2(params_db, sql, strlen(sql)+1, &stmt, NULL);
    if(ret)
    {
@@ -440,7 +440,7 @@ mea_error_t _interface_type_002_commissionning_callback(int id, unsigned char *c
    
    char sql[1024];
    sqlite3_stmt * stmt;
-   sprintf(sql,"%s WHERE interfaces.dev ='MESH://%s' AND interfaces.state='2';", sql_select_interface_info, addr);
+   sprintf(sql,"%s WHERE interfaces.dev COLLATE nocase='MESH://%s' AND interfaces.state='2';", sql_select_interface_info, addr);
    
    int ret = sqlite3_prepare_v2(params_db,sql,strlen(sql)+1,&stmt,NULL);
    if(ret)
@@ -628,7 +628,7 @@ void *_thread_interface_type_002_xbeedata(void *args)
                  e->addr_64_l[3]);
          VERBOSE(9) fprintf(stderr, "%s  (%s) : data from = %s received\n",INFO_STR, __func__, addr);
          
-         sprintf(sql,"%s WHERE interfaces.dev ='MESH://%s' and sensors_actuators.state='1';", sql_select_device_info, addr);
+         sprintf(sql,"%s WHERE interfaces.dev COLLATE nocase='MESH://%s' and sensors_actuators.state='1';", sql_select_device_info, addr);
          ret = sqlite3_prepare_v2(params_db,sql,strlen(sql)+1,&(params->stmt),NULL);
          if(ret)
          {
