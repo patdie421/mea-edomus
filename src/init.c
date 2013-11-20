@@ -509,7 +509,7 @@ int16_t populateMeaLocations(sqlite3 *sqlite3_param_db)
   */
 {
    char *sql_usersTable[] = {
-      "DELETE FROM 'locations' WHERE name='unknown'",
+      "DELETE FROM 'locations' WHERE name COLLATE nocase='unknown'",
       "INSERT INTO 'locations' (id_location, name, description) VALUES ('1','unknown','')",
       NULL
    };
@@ -794,7 +794,7 @@ int _read_path(char **params_list, uint16_t index, char *base_path, char *dir_na
 
 int _read_string(char **params_list, uint16_t index, char *default_value, char *question)
  /**
-  * \brief     lit une chaine sur l'entrée standard et insere le résultat dans la liste des paramètres. Si une valeur existe déjà elle proposée comme valeur par défaut.
+  * \brief     lit une chaine sur l'entrée standard et insère le résultat dans la liste des paramètres. Si une valeur existe déjà elle proposée comme valeur par défaut.
   * \details   Cette fonction est utilisée par interactiveInit() pour simplifier le code. Elle n'a pas vocation a être utilisée par d'autres fonctions.
   * \param     params_list    liste de tous les parametres
   * \param     index          index dans params_list de la valeur à modifier.
@@ -943,8 +943,8 @@ int16_t interactiveInit(char **params_list, char **keys)
 
    // Récupération des données
    _read_string(params_list, VENDOR_ID,       "mea",       "xPL Vendor ID");
-   _read_string(params_list, DEVICE_ID,       "domus",     "xPL Device ID");
-   _read_string(params_list, INSTANCE_ID,     "home",      "xPL Instance ID");
+   _read_string(params_list, DEVICE_ID,       "edomus",     "xPL Device ID");
+   _read_string(params_list, INSTANCE_ID,     "myhome",      "xPL Instance ID");
    
    _read_path(params_list,   GUI_PATH,        params_list[MEA_PATH], "lib/mea-gui",     "PATH to gui directory");
    _read_path(params_list,   PLUGINS_PATH,    params_list[MEA_PATH], "lib/mea-plugins", "PATH to plugins directory");

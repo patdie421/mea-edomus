@@ -25,15 +25,15 @@ def getInternalVarValue(data, var):
 
 def config_IO(data,pin,val,mem):
    if len(pin)!=3:
-      verbose(9, "WARNING - invalid pin :", pin[1:], "not not allowed, skipped")
+      verbose(9, "WARNING (", fn_name, ") - invalid pin :", pin[1:], "not not allowed, skipped")
       return -1
    try:
       pinNum=int(pin[2:3])
       if(pinNum>8):
-         verbose(9, "WARNING - invalid pin :", pin[1:3], "not not allowed, skipped")
+         verbose(9, "WARNING (", fn_name, ") - invalid pin :", pin[1:3], "not not allowed, skipped")
          return -1
    except:
-      verbose(9, "WARNING - invalid pin :", pin[1:3], "not not allowed, skipped")
+      verbose(9, "WARNING (", fn_name, ") - invalid pin :", pin[1:3], "not not allowed, skipped")
       return -1
    
    if val=="digital_in":
@@ -48,12 +48,12 @@ def config_IO(data,pin,val,mem):
       if pinNum==0 or pinNum==1 or pinNum==2 or pinNum==3:
          atVal=2
       else:
-         verbose(9, "WARNING - invalid pin :", pin[1:3], "not not allowed for analog input, skipped")
+         verbose(9, "WARNING (", fn_name, ") - invalid pin :", pin[1:3], "not not allowed for analog input, skipped")
          return -1
    elif val=="none":
       atVal=0
    else:
-      verbose(9, "WARNING - syntaxe error :", i[0], "not an at cmnd, skipped")
+      verbose(9, "WARNING (", fn_name, ") - syntaxe error :", i[0], "not an at cmnd, skipped")
       return -1
    
    ret=mea.sendAtCmd(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], pin[1:3].upper(), atVal);
@@ -66,13 +66,13 @@ def config_IO(data,pin,val,mem):
 def config_DHDL(data,alphaVal):
    vals=alphaVal.split("-")
    if len(vals) != 2:
-      verbose(9, "WARNING - syntaxe error :", alphaVal, "not an xbee address, skipped")
+      verbose(9, "WARNING (", fn_name, ") - syntaxe error :", alphaVal, "not an xbee address, skipped")
       return -1
    try:
       h=int(vals[0],16)
       l=int(vals[1],16)
    except:
-      verbose(9, "WARNING - syntaxe error :", alphaVal, "not an xbee address, skipped")
+      verbose(9, "WARNING (", fn_name, ") - syntaxe error :", alphaVal, "not an xbee address, skipped")
       return -1
    
    ret=mea.sendAtCmd(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], "DH", h)
@@ -174,7 +174,7 @@ def mea_xplCmndMsg(data):
    try:
       id_sensor=data["device_id"]
    except:
-      print "device_id not found"
+      verbose(2, "ERROR (", fn_name, ") - device_id not found")
       return 0
    
    mem=mea.getMemory(id_sensor)
@@ -210,7 +210,7 @@ def mea_xplCmndMsg(data):
          
          mea_utils.xplMsgAddValue(xplMsg,"type",type)
          
-         print mea_utils.xplMsgToString(xplMsg)
+         verbose(9, "INFO (", fn_name, ") - ", mea_utils.xplMsgToString(xplMsg))
          mea.xplSendMsg(xplMsg)
          
          return True
@@ -283,19 +283,32 @@ def mea_dataFromSensor(data):
             else:
                mem[current_key]="LOW"
          else:
-            mem[current_key]=val
+            if "compute" in paramsDict:
+               x=val
+               y=eval(paramsDict["compute"])
+               logval=round(y,2)
+            else:
+               logval=val
+            mem[current_key]=logval
 
-         # verbose(9, "INFO  (", fn_name, ") : data from ", data["device_name"], "(",id_sensor,") = ", mem[current_key])
+         # verbose(9, "INFO  (", fn_name, ") - data from ", data["device_name"], "(",id_sensor,") = ", mem[current_key])
          if mem[current_key] != mem[last_key]:
+            if "log" in paramsDict and paramsDict["log"].lower()=="yes":
+               if "unit" in paramsDict:
+                  unit=int(paramsDict["unit"])
+               else:
+                  unit=0
+               mea.addDataToSensorsValuesTable(id_sensor,logval,unit,val,"")
+
             xplMsg=mea_utils.xplMsgNew(mea.xplGetVendorID(), mea.xplGetDeviceID(), mea.xplGetInstanceID(), "xpl-trig", "sensor", "basic", data["device_name"])
             mea_utils.xplMsgAddValue(xplMsg,"current", mem[current_key])
             mea_utils.xplMsgAddValue(xplMsg,"type", type)
             mea_utils.xplMsgAddValue(xplMsg,"last",mem[last_key])
-            #            print mea_utils.xplMsgToString(xplMsg)
+            # print mea_utils.xplMsgToString(xplMsg)
             mea.xplSendMsg(xplMsg)
 
             return True
-   
+
    return False
 
 
@@ -307,7 +320,7 @@ def mea_commissionningRequest(data):
       try:
          mem=mea.getMemory(data["interface_id"])
       except:
-         verbose(5, "ERROR - can't acces share memory")
+         verbose(5, "ERROR (", fn_name, ") - can't acces share memory")
          return False
       
       sample_set=False
@@ -318,7 +331,7 @@ def mea_commissionningRequest(data):
             alphaVal="";
             
             if i[0][0] != "#" and i[0][0] !="@":
-               print "syntaxe error :", i[0], "not a variable, skipped"
+               verbose (9, "ERROR (", fn_name, ") - syntaxe error :", i[0], "not a variable, skipped")
                continue
             
             if i[1]!=None:
@@ -340,14 +353,14 @@ def mea_commissionningRequest(data):
                      if numVal>=0:
                         ret=mea.sendAtCmd(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], i[0][1:3].upper(), numVal);
                         if ret == 0:
-                           verbose(9, "WARNING - Transmission error for", i[0], "= ", numVal)
+                           verbose(9, "WARNING (", fn_name, ") - Transmission error for", i[0], "= ", numVal)
                      else:
                         ret=mea.sendAtCmd(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], i[0][1:3].upper(), alphaVal);
                         if ret == 0:
-                           verbose(9, "WARNING - Transmission error for", i[0], "= ", alphaVal)
+                           verbose(9, "WARNING (", fn_name, ") - Transmission error for", i[0], "= ", alphaVal)
                            continue
                   else:
-                     verbose(9, "WARNING - syntaxe error :", i[0], "not an at cmnd, skipped")
+                     verbose(9, "WARNING (", fn_name, ") - syntaxe error :", i[0], "not an at cmnd, skip")
                      continue
                
                # commande special ?
@@ -358,7 +371,7 @@ def mea_commissionningRequest(data):
                if i[0] == "#set_dhdl":
                   ret=config_DHDL(data,alphaVal)
                   if ret==-1:
-                     verbose(9, "WARNING - value error :", i[1], "not an xbee adress, skipped")
+                     verbose(9, "WARNING (", fn_name, ") - value error :", i[1], "not an xbee adress, skip")
                   continue
                
                if i[0] == "#set_sleep":
@@ -368,7 +381,7 @@ def mea_commissionningRequest(data):
                if i[0] == "#set_name":
                   ret=config_name(data, alphaVal)
                   if ret==-1:
-                     verbose(9, "WARNING - value error :", i[1], "not an xbee adress, skipped")
+                     verbose(9, "WARNING (", fn_name, ") - value error :", i[1], "not an xbee adress, skip")
                   continue
                
                if i[0] == "#set_sample":
@@ -380,7 +393,7 @@ def mea_commissionningRequest(data):
                if len(i[0])==3:
                   ret=mea.sendAtCmd(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], i[0][1:3].upper(), "");
                   if ret == 0:
-                     verbose(9, "Transmission error for", i[0], "= ", numVal)
+                     verbose(9, "ERROR (", fn_name, ") - Transmission error for", i[0], "= ", numVal)
          enable_change_detection(data,mem)
          if sample_set==False:
             enable_sample(data,mem)

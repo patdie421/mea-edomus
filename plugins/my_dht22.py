@@ -32,8 +32,6 @@ def mea_xplCmndMsg(data):
         verbose(2, "ERROR - (mea_xplCmndMsg) : data not found")
         return False
 
-    print data
-
     mem=mea.getMemory(id_sensor)
 
     if body["request"]=="current":
@@ -85,16 +83,23 @@ def mea_dataFromSensor(data):
     except:
         verbose(2, "ERROR - (mea_dataFromSensor) : data not found")
         return False
+
     verbose(9, "INFO  (mea_dataFromSensor) : data from ", id_sensor)
 
     mem=mea.getMemory(id_sensor)
 
     if debug == 1:
-        print mem
+        verbose(9, "INFO - (mea_dataFromSensor) : ", mem)
 
-    x=re.match("<(\S+)>",cmd[12:-2])
-    t=x.group()[1:-1]
-    list=t.split(';') 
+    # voir http://www.tutorialspoint.com/python/python_reg_expressions.htm pour match
+    x=re.match("^\s*<(.*)>\s*$",cmd[12:-2])
+    if(x!=None):
+        t=x.group(1)
+        list=t.split(';')
+    else:
+        verbose(5, "WARNING - (mea_dataFromSensor) : data error (", cmd[12:-2], ")")
+        return False
+
     for i in list:
         l2=i.split('=')
         
