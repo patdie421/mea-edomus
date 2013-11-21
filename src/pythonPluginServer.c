@@ -148,12 +148,12 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
       pModule = PyImport_Import(pName);
       if(pModule)
          PyDict_SetItem(known_modules, pName, pModule);
-      fprintf(stderr,"ICI\n");
       else
       {
          VERBOSE(5) fprintf(stderr, "%s (%s) : %s not found\n", ERROR_STR, __func__, module);
          return NOERROR;
       }
+      fprintf(stderr,"ICI\n");
    }
    else
    {
