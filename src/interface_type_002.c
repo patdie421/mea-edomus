@@ -1116,10 +1116,15 @@ mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, in
       if(plugin_elem)
       {
          plugin_elem->type_elem=XBEEINIT;
+         
+         pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
+         PyEval_AcquireLock();
          fprintf(stderr,"%s AVANT\n",__func__);
          PyThreadState *mainThreadState=PyThreadState_Get();
          fprintf(stderr,"%s APRES\n",__func__);
          PyThreadState *myThreadState = PyThreadState_New(mainThreadState->interp);
+         PyEval_ReleaseLock();
+         pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 
          { // appel des fonctions Python
             PyEval_AcquireLock();
