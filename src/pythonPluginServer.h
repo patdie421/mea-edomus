@@ -14,7 +14,7 @@
 #include "queue.h"
 
 
-typedef enum {XBEEDATA=1, XPLMSG=2, COMMISSIONNING=3} pythonPlugin_type;
+typedef enum {XBEEDATA=1, XPLMSG=2, COMMISSIONNING=3, XBEEINIT=4} pythonPlugin_type;
 
 typedef struct pythonPlugin_cmd_s
 {

@@ -1219,6 +1219,7 @@ int _xbee_read_cmd(int fd, char unsigned *frame, uint16_t *l_frame, int16_t *ner
             break;
          case 2:
             *l_frame=*l_frame*256+c;
+            i=0;
             step++;
             break;
          case 3:
@@ -1512,6 +1513,8 @@ void *_xbee_thread(void *args)
             {
                struct xbee_receive_packet_s *mcmd=(struct xbee_receive_packet_s *)cmd;
                
+               DEBUG_SECTION fprintf(stderr,"_xbee_thread : cmd=%s, l_cmd=%d\n",cmd,l_cmd);
+
                if(xd->dataflow_callback)
                      xd->dataflow_callback(0,cmd,l_cmd, xd->dataflow_callback_data, (char *)mcmd->addr_64_h, (char *)mcmd->addr_64_l);
                   

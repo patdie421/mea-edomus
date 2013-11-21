@@ -180,21 +180,29 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
    
    if (pModule != NULL)
    {
+      char *fx;
       switch(type)
       {
-         case XBEEDATA: pFunc = PyObject_GetAttrString(pModule, "mea_dataFromSensor");
+         case XBEEDATA:
+            fx="mea_dataFromSensor";
             break;
-         case XPLMSG: pFunc = PyObject_GetAttrString(pModule, "mea_xplCmndMsg");
+         case XPLMSG:
+            fx="mea_xplCmndMsg";
             break;
-         case COMMISSIONNING: pFunc = PyObject_GetAttrString(pModule, "mea_commissionningRequest");
+         case COMMISSIONNING:
+            fx="mea_commissionningRequest";
+            break;
+         case XBEEINIT:
+            fx="mea_init";
             break;
          default:
             return NOERROR;
       }
-      
+      pFunc = PyObject_GetAttrString(pModule, fx);
+
       if (pFunc && PyCallable_Check(pFunc))
       {
-         pArgs = PyTuple_New(1); // on passe 4 argument
+         pArgs = PyTuple_New(1);
          
          // data_dict
          Py_INCREF(data_dict); // incrément car PyTuple_SetItem vole la référence
@@ -204,7 +212,7 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
          
          if (pValue != NULL)
          {
-            // DEBUG_SECTION fprintf(stderr, "%s (%s) : Result of call: %ld\n", DEBUG_STR, __func__, PyInt_AsLong(pValue));
+            DEBUG_SECTION fprintf(stderr, "%s (%s) : Result of call of %s : %ld\n", DEBUG_STR, __func__, fx, PyInt_AsLong(pValue));
          }
          else
          {
@@ -255,7 +263,7 @@ void *_pythonPlugin_thread(void *data)
    myThreadState = PyThreadState_New(mainThreadState->interp);
    PyEval_ReleaseLock();
    
-   // chemin vers les plugins rajoutÈ dans le path de l'interprÈteur Python
+   // chemin vers les plugins rajoutés dans le path de l'interpréteur Python
    PyObject* sysPath = PySys_GetObject((char*)"path");
    PyObject* pluginsDir = PyString_FromString(plugin_path);
    PyList_Append(sysPath, pluginsDir);
@@ -365,14 +373,14 @@ pthread_t *pythonPluginServer(queue_t *plugin_queue)
    
    if(pythonPluginServer_init())
    {
-      VERBOSE(1) fprintf (stderr, "%s (%s) : can't initialize pluginServer\n", FATAL_ERROR_STR, __func__);
+      VERBOSE(2) fprintf (stderr, "%s (%s) : can't initialize pluginServer\n", FATAL_ERROR_STR, __func__);
       return NULL;
    }
    
    pythonPlugin_thread=(pthread_t *)malloc(sizeof(pthread_t));
    if(!pythonPlugin_thread)
    {
-      VERBOSE(1) {
+      VERBOSE(2) {
          fprintf (stderr, "%s (%s) : %s - ",FATAL_ERROR_STR, __func__, MALLOC_ERROR_STR);
          perror("");
       }
@@ -381,7 +389,7 @@ pthread_t *pythonPluginServer(queue_t *plugin_queue)
    
    if(pthread_create (pythonPlugin_thread, NULL, _pythonPlugin_thread, (void *)pythonPluginCmd_queue))
    {
-      VERBOSE(1) fprintf(stderr, "%s (%s) : pthread_create - can't start thread - ", FATAL_ERROR_STR, __func__);
+      VERBOSE(2) fprintf(stderr, "%s (%s) : pthread_create - can't start thread - ", FATAL_ERROR_STR, __func__);
       perror("");
       return NULL;
    }

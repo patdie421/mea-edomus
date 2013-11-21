@@ -518,11 +518,13 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
          int16_t id_interface;
          int16_t id_type;
          const unsigned char *dev;
+         const unsigned char *parameters;
          int16_t state;
          
          id_interface = sqlite3_column_int(stmt, 1);
          id_type = sqlite3_column_int(stmt, 2);
          dev = sqlite3_column_text(stmt, 5);
+         parameters = sqlite3_column_text(stmt, 6);
          state = sqlite3_column_int(stmt, 7);
          
          if(state==1)
@@ -574,7 +576,7 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                      break;
                   }
                   i002->id_interface=id_interface;
-                  ret=start_interface_type_002(i002, sqlite3_param_db, id_interface, dev, myd);
+                  ret=start_interface_type_002(i002, sqlite3_param_db, id_interface, dev, myd, (char *)parameters);
                   if(!ret)
                   {
                      interfaces_queue_elem_t *iq=(interfaces_queue_elem_t *)malloc(sizeof(interfaces_queue_elem_t));

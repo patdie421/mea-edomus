@@ -54,10 +54,10 @@ char *printf_mask_addr="%02x%02x%02x%02x-%02x%02x%02x%02x";
 
 struct callback_data_s // donnee "userdata" pour les callbacks
 {
-   PyThreadState  *mainThreadState;
-   sqlite3        *param_db;
-   xbee_xd_t      *xd;
-   queue_t        *queue;
+   PyThreadState   *mainThreadState;
+   sqlite3         *param_db;
+   xbee_xd_t       *xd;
+   queue_t         *queue;
    pthread_mutex_t *callback_lock;
    pthread_cond_t  *callback_cond;
 };
@@ -83,19 +83,19 @@ struct callback_xpl_data_s
 
 struct thread_params_s
 {
-   xbee_xd_t            *xd;
-   tomysqldb_md_t       *md;
-   sqlite3              *param_db;
-   queue_t              *queue;
+   xbee_xd_t           *xd;
+   tomysqldb_md_t      *md;
+   sqlite3             *param_db;
+   queue_t             *queue;
    pthread_mutex_t      callback_lock;
    pthread_cond_t       callback_cond;
    PyThreadState       *mainThreadState;
    PyThreadState       *myThreadState;
-   parsed_parameters_t  *plugin_params;
+   parsed_parameters_t *plugin_params;
    int                  nb_plugin_params;
    sqlite3_stmt        *stmt;
    data_queue_elem_t   *e;
-   void *               *data;
+   void               **data;
 };
 
 
@@ -136,8 +136,8 @@ int add_16bits_to_at_uchar_cmd_from_int(unsigned char *at_cmd, uint16_t val)
    uint16_t i=2;
    int8_t h,l;
    
-   h=(val/256) & 0xFF;
-   l=val%256;
+   h=(val/0xFF) & 0xFF;
+   l=val%0xFF;
    
    if(h>0)
    {
@@ -156,7 +156,7 @@ int at_set_16bits_reg_from_int(xbee_xd_t *xd, xbee_host_t *host, char at_cmd[2],
 {
    unsigned char resp[254];
    uint16_t l_resp;
-   unsigned char at[16];
+   unsigned char at[5];
    uint16_t l_at;
    int16_t ret;
    
@@ -306,11 +306,11 @@ int16_t _interface_type_002_xPL_callback(xPL_ServicePtr theService, xPL_MessageP
    char sql[1024];
    sqlite3_stmt * stmt;
    
-   sprintf(sql,"%s WHERE sensors_actuators.name COLLATE nocase ='%s' and sensors_actuators.state='1';", sql_select_device_info, device);
+   sprintf(sql,"%s WHERE sensors_actuators.name='%s' and sensors_actuators.state='1';", sql_select_device_info, device);
    ret = sqlite3_prepare_v2(params_db, sql, strlen(sql)+1, &stmt, NULL);
    if(ret)
    {
-      VERBOSE(1) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (params_db));
+      VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (params_db));
       return NOERROR;
    }
    
@@ -384,7 +384,8 @@ mea_error_t _inteface_type_002_xbeedata_callback(int id, unsigned char *cmd, uin
    struct callback_data_s *callback_data;
    data_queue_elem_t *e;
    
-   
+   DEBUG_SECTION fprintf(stderr,"_inteface_type_002_xbeedata_callback : cmd=%s, l_cmd=%d\n",cmd,l_cmd);
+
    callback_data=(struct callback_data_s *)data;
    
    gettimeofday(&tv, NULL);
@@ -424,6 +425,7 @@ mea_error_t _interface_type_002_commissionning_callback(int id, unsigned char *c
 //   nd_data=(struct xbee_node_identification_nd_data_s *)(nd_resp->nd_data+strlen((char *)nd_resp->nd_data)+1);
    
    char addr[18];
+   // pourquoi ne pas utiliser addr_h et addr_l (snprintf(_addr,sizeof(_addr),"%08x-%08x",addr_h,addr_l))
    sprintf(addr,
            //           "%02x%02x%02x%02x-%02x%02x%02x%02x",
            printf_mask_addr,
@@ -437,15 +439,22 @@ mea_error_t _interface_type_002_commissionning_callback(int id, unsigned char *c
            nd_resp->addr_64_l[3]);
    
    VERBOSE(9) printf("%s (%s)  : commissionning request received from %s.\n", INFO_STR, __func__, addr);
+   /*
+   DEBUG_SECTION {
+      char *_addr[18];
+      snprintf(_addr,sizeof(_addr),"%08x-%08x",addr_h,addr_l);
+      VERBOSE(9) printf("%s (%s)  : commissionning request received from %s.\n", INFO_STR, __func__, _addr);
+   }
+   */
    
    char sql[1024];
    sqlite3_stmt * stmt;
-   sprintf(sql,"%s WHERE interfaces.dev COLLATE nocase='MESH://%s' AND interfaces.state='2';", sql_select_interface_info, addr);
+   sprintf(sql,"%s WHERE interfaces.dev ='MESH://%s' AND interfaces.state='2';", sql_select_interface_info, addr);
    
    int ret = sqlite3_prepare_v2(params_db,sql,strlen(sql)+1,&stmt,NULL);
    if(ret)
    {
-      VERBOSE(1) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (params_db));
+      VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (params_db));
       return ERROR;
    }
    
@@ -554,24 +563,23 @@ void *_thread_interface_type_002_xbeedata_cleanup(void *args)
 
 void *_thread_interface_type_002_xbeedata(void *args)
 /**
- * \brief     Gestion des donnŽes asynchrones en provenances d'xbee
- * \details   Les iodata peuvent arriver n'importe quand, il sagit de pouvoir les traiter ds rŽceptions.
- *            Le callback associŽ est en charge de poster les donnŽes ˆ traiter dans une file qui seront consommŽes par ce thread.
- * \param     args   bla bla
+ * \brief     Gestion des données asynchrones en provenances d'xbee
+ * \details   Les iodata peuvent arriver n'importe quand, il sagit de pouvoir les traiter dés réceptions.
+ *            Le callback associé est en charge de poster les données à traiter dans une file qui seront consommées par ce thread.
+ * \param     args   ensemble des parametres nécessaires au thread regroupé dans une structure de données (voir struct thread_params_s)
  */
 {
    struct thread_params_s *params=(struct thread_params_s *)args;
 
-   // pthread_cleanup_push( (void *)_thread_interface_type_002_xbeedata_cleanup, (void *)params );
-   
    sqlite3 *params_db=params->param_db;
    data_queue_elem_t *e;
    int ret;
    
    params->plugin_params=NULL;
    params->nb_plugin_params=0;
-   params->e=NULL;
+   // params->e=NULL;
    params->stmt=NULL;
+   
    pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
    PyEval_AcquireLock();
    params->mainThreadState = PyThreadState_Get();
@@ -601,13 +609,16 @@ void *_thread_interface_type_002_xbeedata(void *args)
             }
             else
             {
-               // autres erreurs ˆ traiter
+               // autres erreurs à traiter
             }
          }
       }
       
       ret=out_queue_elem(params->queue, (void **)&e);
-      params->e=e;
+      
+      DEBUG_SECTION fprintf(stderr, "_thread_interface_type_002_xbeedata : e->cmd = %s, e->l_cmd=%d\n",e->cmd,e->l_cmd);
+
+      // params->e=e;
       pthread_mutex_unlock(&params->callback_lock);
       pthread_cleanup_pop(0);
       
@@ -628,13 +639,13 @@ void *_thread_interface_type_002_xbeedata(void *args)
                  e->addr_64_l[3]);
          VERBOSE(9) fprintf(stderr, "%s  (%s) : data from = %s received\n",INFO_STR, __func__, addr);
          
-         sprintf(sql,"%s WHERE interfaces.dev COLLATE nocase='MESH://%s' and sensors_actuators.state='1';", sql_select_device_info, addr);
+         sprintf(sql,"%s WHERE interfaces.dev ='MESH://%s' and sensors_actuators.state='1';", sql_select_device_info, addr);
          ret = sqlite3_prepare_v2(params_db,sql,strlen(sql)+1,&(params->stmt),NULL);
          if(ret)
          {
             VERBOSE(1) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (params_db));
-            raise(SIGQUIT); // arreur du process
-            sleep(5); // on attend 5 secondes avant de s'arrter seul.
+            raise(SIGQUIT); // erreur du process
+            sleep(5);       // on attend 5 secondes avant de s'arrter seul.
             pthread_exit(NULL);
          }
          
@@ -653,7 +664,7 @@ void *_thread_interface_type_002_xbeedata(void *args)
                      free(params->plugin_params);
                      params->plugin_params=NULL;
                   }
-                  continue; // si pas de parametre (=> pas de plugin) ou pas de fonction ... pas la peine d'aller plus loin
+                  continue; // si pas de paramètre (=> pas de plugin) ou pas de fonction ... pas la peine d'aller plus loin
                }
                
                plugin_queue_elem_t *plugin_elem = (plugin_queue_elem_t *)malloc(sizeof(plugin_queue_elem_t));
@@ -693,23 +704,24 @@ void *_thread_interface_type_002_xbeedata(void *args)
                      
                      PyThreadState_Swap(tempState);
                      PyEval_ReleaseLock();
-                     pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
-                     pthread_testcancel();
+                     pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL); // on réauthorise les arrêts 
+                     pthread_testcancel(); // on test tout de suite pour être sûr qu'on a pas ratté une demande d'arrêt
                   } // fin appel des fonctions Python
-                  
                   pythonPluginServer_add_cmd(params->plugin_params[XBEE_PLUGIN_PARAMS_PLUGIN].value.s, params->plugin_params[XBEE_PLUGIN_PARAMS_PARAMETERS].value.s, (void *)plugin_elem, sizeof(plugin_queue_elem_t));
-                  
-                  pthread_cleanup_pop(0);
                   
                   free(plugin_elem);
                   plugin_elem=NULL;
+                  
+                  pthread_cleanup_pop(0);
                }
                else
                {
-                  VERBOSE(1) {
+                  VERBOSE(2) {
                      fprintf(stderr,"%s (%s) : %s - ", ERROR_STR, __func__, MALLOC_ERROR_STR);
                      perror("");
                   }
+                  raise(SIGQUIT);
+                  sleep(5);
                   pthread_exit(PTHREAD_CANCELED);
                }
                free_parsed_parameters(params->plugin_params, params->nb_plugin_params);
@@ -732,26 +744,34 @@ void *_thread_interface_type_002_xbeedata(void *args)
          
          free(e->cmd);
          free(e);
-         params->e=NULL;
+         // params->e=NULL;
          e=NULL;
          
          pthread_testcancel();
       }
       else
       {
-         // pb d'accs aux donnŽes de la file
-         VERBOSE(9) fprintf(stderr,"%s (%s) : out_queue_elem - no data in queue\n", DEBUG_STR, __func__);
+         // pb d'accès aux données de la file
+         DEBUG_SECTION fprintf(stderr,"%s (%s) : out_queue_elem - no data in queue\n", DEBUG_STR, __func__);
       }
       pthread_testcancel();
    }
-   
-//   pthread_cleanup_pop(0);
    
    return NULL;
 }
 
 
+// xd est déjà dans i002 pourquoi le passer en parametre ...
 pthread_t *start_interface_type_002_xbeedata_thread(interface_type_002_t *i002, xbee_xd_t *xd, sqlite3 *db, tomysqldb_md_t *md,thread_f function)
+/**  
+ * \brief     Demarrage du thread de gestion des données (non solicitées) en provenance des xbee
+ * \param     i002           descripteur de l'interface
+ * \param     xd             descripteur de com. avec l'xbee
+ * \param     db             descripteur ouvert de la base de paramétrage  
+ * \param     md             descripteur ouvert de la base d'historique
+ * \param     function       function principale du thread à démarrer 
+ * \return    ERROR ou NOERROR
+ **/ 
 {
    pthread_t *thread=NULL;
    struct thread_params_s *params=NULL;
@@ -760,7 +780,7 @@ pthread_t *start_interface_type_002_xbeedata_thread(interface_type_002_t *i002, 
    params=malloc(sizeof(struct thread_params_s));
    if(!params)
    {
-      VERBOSE(1) {
+      VERBOSE(2) {
          fprintf(stderr,"%s (%s) : %s - ", ERROR_STR, __func__, MALLOC_ERROR_STR);
          perror("");
       }
@@ -769,7 +789,7 @@ pthread_t *start_interface_type_002_xbeedata_thread(interface_type_002_t *i002, 
    params->queue=(queue_t *)malloc(sizeof(queue_t));
    if(!params->queue)
    {
-      VERBOSE(1) {
+      VERBOSE(2) {
          fprintf(stderr,"%s (%s) : %s - ", ERROR_STR, __func__, MALLOC_ERROR_STR);
          perror("");
       }
@@ -786,11 +806,11 @@ pthread_t *start_interface_type_002_xbeedata_thread(interface_type_002_t *i002, 
    params->mainThreadState = NULL;
    params->myThreadState = NULL;
    
-   // prŽparation des donnŽes pour les callback io_data et data_flow dont les donnŽes sont traitŽes par le mme thread
+   // préparation des données pour les callback io_data et data_flow dont les données sont traitées par le même thread
    callback_xbeedata=(struct callback_data_s *)malloc(sizeof(struct callback_data_s));
    if(!callback_xbeedata)
    {
-      VERBOSE(1) fprintf(stderr,"%s (%s) : %s\n", ERROR_STR, __func__, MALLOC_ERROR_STR);
+      VERBOSE(2) fprintf(stderr,"%s (%s) : %s\n", ERROR_STR, __func__, MALLOC_ERROR_STR);
       goto clean_exit;
    }
    callback_xbeedata->xd=xd;
@@ -805,7 +825,7 @@ pthread_t *start_interface_type_002_xbeedata_thread(interface_type_002_t *i002, 
    thread=(pthread_t *)malloc(sizeof(pthread_t));
    if(!thread)
    {
-      VERBOSE(1) fprintf(stderr,"%s (%s) : %s\n", ERROR_STR, __func__, MALLOC_ERROR_STR);
+      VERBOSE(2) fprintf(stderr,"%s (%s) : %s\n", ERROR_STR, __func__, MALLOC_ERROR_STR);
       goto clean_exit;
    }
    
@@ -827,8 +847,14 @@ clean_exit:
 
 
 mea_error_t stop_interface_type_002(interface_type_002_t *i002)
+/**  
+ * \brief     arrêt d'une interface de type 2
+ * \details   RAZ de tous les structures de données et libération des mémoires allouées
+ * \param     i002           descripteur de l'interface  
+ * \return    ERROR ou NOERROR
+ **/ 
 {
-   VERBOSE(5) fprintf(stderr,"%s  (%s) : shutdown interface_type_002 thread.\n",INFO_STR, __func__);
+   VERBOSE(9) fprintf(stderr,"%s  (%s) : shutdown interface_type_002 thread.\n",INFO_STR, __func__);
 
    FREE(i002->xPL_callback_data);
    if(i002->xPL_callback)
@@ -856,23 +882,26 @@ mea_error_t stop_interface_type_002(interface_type_002_t *i002)
    FREE(i002->xd);
    FREE(i002->local_xbee);
 
-   VERBOSE(5) fprintf(stderr,"%s  (%s) : counter thread is down.\n",INFO_STR, __func__);
+   VERBOSE(9) fprintf(stderr,"%s  (%s) : interface_type_002 thread is down.\n",INFO_STR, __func__);
    
    return NOERROR;
 }
 
 
 mea_error_t restart_interface_type_002(interface_type_002_t *i002,sqlite3 *db, tomysqldb_md_t *md)
+/**  
+ * \brief     Re-demarrage d'une interface de type 2
+ * \details   appel stop_interface_type_002 puis start_interface_type_002 en ayant pris soit de récupérer les différentes données nécessaires.
+ * \param     db             descripteur ouvert de la base de paramétrage  
+ * \param     md             descripteur ouvert de la base d'historique
+ * \return    ERROR ou NOERROR
+ **/ 
 {
    char full_dev[80];
    char dev[80];
    int id_interface;
    int ret;
-   
-   /*
-   sscanf(i002->xd->serial_dev_name,"/dev/%s",full_dev);
-   sprintf(dev,"SERIAL://%s",full_dev);
-   */
+   char *parameters;
    
    sscanf(i002->xd->serial_dev_name,"/dev/%s",full_dev);
    sprintf(dev,"SERIAL://%s:%ld",full_dev,(long)get_speed_from_speed_t(i002->xd->speed));
@@ -881,9 +910,41 @@ mea_error_t restart_interface_type_002(interface_type_002_t *i002,sqlite3 *db, t
    
    stop_interface_type_002(i002);
 
+   // récupération des (nouveaux) paramètres dans la base
+   char sql_request[255];
+   sqlite3_stmt * stmt;
+   snprintf(sql_request,sizeof(sql_request),"SELECT parameters FROM interfaces WHERE id_interface=%d", id_interface);
+   // traiter l'erreur éventuelle snprintf ici
+   ret = sqlite3_prepare_v2(db,sql_request,strlen(sql_request)+1,&stmt,NULL);
+   if(ret)
+   {
+      VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg(db));
+      return ERROR;
+   }
+   parameters=NULL;
+   while(1)
+   {
+      int s=sqlite3_step(stmt);
+      if(s==SQLITE_ROW)
+      {
+         parameters=(char *)sqlite3_column_text(stmt, 0);
+      }
+      else if(s==SQLITE_DONE)
+      {
+         sqlite3_finalize(stmt);
+         break;
+      } 
+      else 
+      {
+         VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg(db));
+         sqlite3_finalize(stmt);
+         return ERROR;
+      }
+   }   
+   
    for(int16_t i=0;i<5;i++)
    {
-      ret=start_interface_type_002(i002, db, id_interface, (const unsigned char *)dev, md);
+      ret=start_interface_type_002(i002, db, id_interface, (const unsigned char *)dev, md, parameters);
       if(ret!=-1)
          break;
       sleep(5);
@@ -894,25 +955,38 @@ mea_error_t restart_interface_type_002(interface_type_002_t *i002,sqlite3 *db, t
 
 
 mea_error_t check_status_interface_type_002(interface_type_002_t *it002)
+/**  
+ * \brief     indique si une anomalie a généré l'emission d'un signal SIGHUP
+ * \param     i002           descripteur de l'interface  
+ * \return    ERROR signal émis ou NOERROR sinon
+ **/ 
 {
    if(it002->xd->signal_flag!=0)
       return ERROR;
-   
    return NOERROR;
 }
 
 
-mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, int id_interface, const unsigned char *dev, tomysqldb_md_t *md)
+mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, int id_interface, const unsigned char *dev_and_speed, tomysqldb_md_t *md, char *parameters)
+/**  
+ * \brief     Demarrage d'une interface de type 2
+ * \details   ouverture de la communication avec l'xbee point d'entrée MESH, démarrage du thread de gestion des données iodata et xbeedata, mise en place des callback xpl et commissionnement
+ * \param     i002           descripteur de l'interface  
+ * \param     db             descripteur ouvert de la base de paramétrage  
+ * \param     id_interface   identifiant de l'interface
+ * \param     dev_and_speed  chemin et vitesse (débit) de l'interface série (sous forme SERIAL://dev:speed
+ * \param     parameters     paramètres associés à l'interface
+ * \param     md             descripteur ouvert de la base d'historique
+ * \return    ERROR ou NOERROR
+ **/ 
 {
-//   static const char *fn_name="start_interface_type_002";
-   const char *fn_name=__func__;
-   
    char unix_dev[80];
    char buff[80];
    speed_t speed;
 
    int fd=0;
    int16_t nerr;
+   int err;
    int ret;
    
    xbee_xd_t *xd=NULL;
@@ -920,33 +994,32 @@ mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, in
    
    struct callback_commissionning_data_s *commissionning_callback_params=NULL;
    struct callback_xpl_data_s *xpl_callback_params=NULL;
-//   struct callback_data_s *xbeedata_callback_params=NULL;
    
    i002->thread=NULL;
    
-   ret=get_dev_and_speed((char *)dev, buff, sizeof(buff), &speed);
+   ret=get_dev_and_speed((char *)dev_and_speed, buff, sizeof(buff), &speed);
    if(!ret)
       sprintf(unix_dev,"/dev/%s",buff);
    else
    {
-      VERBOSE(2) fprintf (stderr, "%s (%s) : unknow interface device - %s\n", ERROR_STR,__func__,dev);
+      VERBOSE(2) fprintf (stderr, "%s (%s) : incorrect device/speed interface - %s\n", ERROR_STR,__func__,dev_and_speed);
       goto clean_exit;
    }
 
    xd=(xbee_xd_t *)malloc(sizeof(xbee_xd_t));
    if(!xd)
    {
-      VERBOSE(1) {
+      VERBOSE(2) {
          fprintf(stderr,"%s (%s) : %s - ", ERROR_STR, __func__, MALLOC_ERROR_STR);
          perror("");
       }
       goto clean_exit;
    }
    
-   fd=xbee_init(xd, unix_dev, speed); // mettre la vitesse dans les parametres de l'interface
+   fd=xbee_init(xd, unix_dev, speed);
    if (fd == -1)
    {
-      VERBOSE(1) {
+      VERBOSE(2) {
          fprintf(stderr,"%s (%s) : init_xbee - Unable to open serial port (%s) : ", ERROR_STR, __func__, unix_dev);
          perror("");
       }
@@ -955,21 +1028,19 @@ mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, in
    i002->xd=xd;
    
    /*
-    * PrŽparation du rŽseau XBEE
+    * Préparation du réseau XBEE
     */
-   local_xbee=(xbee_host_t *)malloc(sizeof(xbee_host_t)); // description de l'xbee directement connectÃ©
+   local_xbee=(xbee_host_t *)malloc(sizeof(xbee_host_t)); // description de l'xbee directement connecté
    if(!local_xbee)
    {
-      VERBOSE(1) {
+      VERBOSE(2) {
          fprintf(stderr,"%s (%s) : %s - ", ERROR_STR, __func__, MALLOC_ERROR_STR);
          perror("");
       }
       goto clean_exit;
    }
-   i002->local_xbee=local_xbee;
    
-   
-   // rÃ©cupŽration de l'adresse de l'xbee connecter au PC (pas forcement le coordinateur).
+   // récupération de l'adresse de l'xbee connecter au PC (pas forcement le coordinateur).
    uint32_t addr_64_h;
    uint32_t addr_64_l;
    {
@@ -988,24 +1059,73 @@ mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, in
       do { ret=at_get_local_char_array_reg(xd, at_cmd, (char *)addr_l, &l_reg_val, &nerr); } while (ret==-1); // a revoir boucle infinie possible ...
       addr_64_char_array_to_int(addr_h, addr_l, &addr_64_h, &addr_64_l);
    }
-   VERBOSE(9) fprintf(stderr, "INFO  (%s) : local address is : %02x-%02x\n", fn_name, addr_64_h, addr_64_l);
+   VERBOSE(9) fprintf(stderr, "%s  (%s) : local address is : %02x-%02x\n", INFO_STR, __func__, addr_64_h, addr_64_l);
+ 
    xbee_get_host_by_addr_64(xd, local_xbee, addr_64_h, addr_64_l, &nerr);
 
+   i002->local_xbee=local_xbee;
+ 
+   /*
+    * exécution du plugin de paramétrage
+    */   
+   int interface_nb_parameters=0;
+   parsed_parameters_t *interface_parameters=malloc_parsed_parameters(parameters, valid_xbee_plugin_params, &interface_nb_parameters, &err, 0);
+   if(!interface_parameters || !interface_parameters[XBEE_PLUGIN_PARAMS_PLUGIN].value.s)
+   {
+      if(interface_parameters)
+      {
+         // pas de plugin spécifié
+         free(interface_parameters);
+         interface_parameters=NULL;
+         VERBOSE(9) fprintf(stderr, "%s  (%s) : no python plugin specified\n", INFO_STR, __func__);
+      }
+      else
+      {
+         VERBOSE(2) fprintf(stderr, "%s (%s) : parameters invalides (%s)\n", ERROR_STR, __func__, parameters);
+         goto clean_exit;
+      }
+   }
+   else
+   {
+      plugin_queue_elem_t *plugin_elem = (plugin_queue_elem_t *)malloc(sizeof(plugin_queue_elem_t));
+      if(plugin_elem)
+      {
+         plugin_elem->type_elem=XBEEINIT;
+         
+         PyThreadState *mainThreadState=PyThreadState_Get();
+         PyThreadState *myThreadState = PyThreadState_New(mainThreadState->interp);
+         
+         { // appel des fonctions Python
+            PyEval_AcquireLock();
+            PyThreadState *tempState = PyThreadState_Swap(myThreadState);
+            
+            addLong_to_pydict(plugin_elem->aDict, get_token_by_id(ID_XBEE_ID), xd);
+            addLong_to_pydict(plugin_elem->aDict, get_token_by_id(INTERFACE_ID_ID), id_interface);
+            if(interface_parameters[XBEE_PLUGIN_PARAMS_PARAMETERS].value.s)
+               addString_to_pydict(plugin_elem->aDict, get_token_by_id(INTERFACE_PARAMETERS_ID), interface_parameters[XBEE_PLUGIN_PARAMS_PARAMETERS].value.s);
+            
+            PyThreadState_Swap(tempState);
+            PyEval_ReleaseLock();
+            PyThreadState_Clear(myThreadState);
+            PyThreadState_Delete(myThreadState);
+         } // fin appel des fonctions Python
+         
+         pythonPluginServer_add_cmd(interface_parameters[XBEE_PLUGIN_PARAMS_PLUGIN].value.s, interface_parameters[XBEE_PLUGIN_PARAMS_PARAMETERS].value.s, (void *)plugin_elem, sizeof(plugin_queue_elem_t));
+         
+         FREE(plugin_elem);
+         free_parsed_parameters(interface_parameters, interface_nb_parameters);
+         FREE(interface_parameters);
+         interface_parameters=NULL;
+         interface_nb_parameters=0;
+      }
+   }
    
    /*
-    * parametrage du rŽseau
+    * parametrage du réseau
     */
-
-   // dŽcouverte des xbee du rŽseau
-   xbee_start_network_discovery(xd, &nerr); // lancement de la dŽcouverte "asynchrone"
-   
-   // on attend que la dŽcouverte soit terminŽe (ˆ remplacer par un "evenement")
-   sleep(10);
-   
-   
-   // on positionne certain parametre sur tous les routeurs/coordinateur
-   //   all_known_routers_setup(xd);
-   
+   // déouverte des xbee du réseau
+   xbee_start_network_discovery(xd, &nerr); // lancement de la découverte "asynchrone"
+      
    /*
     * Gestion des sous-interfaces
     */
@@ -1017,7 +1137,7 @@ mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, in
    commissionning_callback_params=(struct callback_commissionning_data_s *)malloc(sizeof(struct callback_commissionning_data_s));
    if(!commissionning_callback_params)
    {
-      VERBOSE(1) {
+      VERBOSE(2) {
          fprintf(stderr,"%s (%s) : %s - ", ERROR_STR, __func__, MALLOC_ERROR_STR);
          perror("");
       }
@@ -1036,7 +1156,7 @@ mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, in
    xpl_callback_params=(struct callback_xpl_data_s *)malloc(sizeof(struct callback_xpl_data_s));
    if(!xpl_callback_params)
    {
-      VERBOSE(1) {
+      VERBOSE(2) {
          fprintf(stderr,"%s (%s) : %s - ", ERROR_STR, __func__, MALLOC_ERROR_STR);
          perror("");
       }
@@ -1059,25 +1179,40 @@ clean_exit:
       xbee_remove_dataflow_callback(xd);
    }
    
-   // vider la queue de callback_data_iodata
    if(i002->thread)
+   {
       stop_interface_type_002(i002);
+   }
    
-//   if(xbeedata_callback_params)
-//      free(xbeedata_callback_params);
+   if(interface_parameters)
+   {
+      free_parsed_parameters(interface_parameters, interface_nb_parameters);
+      FREE(interface_parameters);
+      interface_parameters=NULL;
+      interface_nb_parameters=0;
+
+   }
    
    if(commissionning_callback_params)
+   {
       free(commissionning_callback_params);
+      commissionning_callback_params=NULL;
+   }
    
    if(xpl_callback_params)
+   {
       free(xpl_callback_params);
+      xpl_callback_params=NULL;
+   }
    
    FREE(local_xbee);
+   
    if(xd)
    {
       if(fd)
          xbee_close(xd);
       xbee_free_xd(xd);
+      xd=NULL;
    }
    
    return ERROR;

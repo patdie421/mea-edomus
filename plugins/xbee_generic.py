@@ -283,6 +283,7 @@ def mea_dataFromSensor(data):
                mem[current_key]="HIGH"
             else:
                mem[current_key]="LOW"
+            logval=val
          else:
             if "compute" in paramsDict:
                x=val
@@ -384,7 +385,7 @@ def mea_commissionningRequest(data):
                   if ret==-1:
                      verbose(9, "WARNING (", fn_name, ") - value error :", i[1], "not an xbee adress, skip")
                   continue
-                  
+               
                
                if i[0] == "#set_sample":
                   sample_set=True
