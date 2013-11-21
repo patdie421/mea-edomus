@@ -215,7 +215,7 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
          }
          else
          {
-            VERBOSE(5) fprintf(stderr, "%s (%s) : python error - (%s,%s)", __func__, ERROR_STR,module,fx);
+            VERBOSE(5) fprintf(stderr, "%s (%s) : python error - ", __func__, ERROR_STR);
             PyErr_Print();
             return_code=ERROR;
             goto call_pythonPlugin_clean_exit;
@@ -230,14 +230,14 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
             VERBOSE(5) fprintf(stderr, "%s (%s) : python error - ", ERROR_STR, __func__);
             PyErr_Print();
          }
-         VERBOSE(5) fprintf(stderr, "%s (%s) : python error - (%s,%s)", __func__, ERROR_STR,module,fx);
+         VERBOSE(5) fprintf(stderr, "%s (%s) : python error - ", __func__, ERROR_STR);
          return_code=ERROR;
          goto call_pythonPlugin_clean_exit;
       }
    }
    else
    {
-      VERBOSE(5) fprintf(stderr, "%s (%s) : python error - (%s,%s)", __func__, ERROR_STR,module,fx);
+      VERBOSE(5) fprintf(stderr, "%s (%s) : python error - ", __func__, ERROR_STR);
       PyErr_Print();
       return ERROR;
    }
