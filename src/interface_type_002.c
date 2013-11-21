@@ -628,7 +628,10 @@ void *_thread_interface_type_002_xbeedata(void *args)
       
       ret=out_queue_elem(params->queue, (void **)&e);
       
-      DEBUG_SECTION fprintf(stderr, "_thread_interface_type_002_xbeedata : e->cmd = %s, e->l_cmd=%d\n",e->cmd,e->l_cmd);
+      DEBUG_SECTION {
+         fprintf(stderr,"_thread_interface_type_002_xbeedata : ");
+         print_frame(1, e->cmd, e->l_cmd);
+      }
 
       // params->e=e;
       pthread_mutex_unlock(&params->callback_lock);
