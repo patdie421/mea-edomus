@@ -215,7 +215,7 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
          }
          else
          {
-            VERBOSE(5) fprintf(stderr, "%s (%s) : python error - (%s)", __func__, ERROR_STR,fx);
+            VERBOSE(5) fprintf(stderr, "%s (%s) : python error - (%s,%s)", __func__, ERROR_STR,module,fx);
             PyErr_Print();
             return_code=ERROR;
             goto call_pythonPlugin_clean_exit;
