@@ -1102,6 +1102,8 @@ mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, in
    }
    else
    {
+      sleep(10);
+
       plugin_queue_elem_t *plugin_elem = (plugin_queue_elem_t *)malloc(sizeof(plugin_queue_elem_t));
       if(plugin_elem)
       {
@@ -1138,7 +1140,7 @@ mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, in
          interface_nb_parameters=0;
       }
    }
-   
+
    /*
     * parametrage du réseau
     */
