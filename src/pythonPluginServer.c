@@ -192,7 +192,7 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
             fx="mea_commissionningRequest";
             break;
          case XBEEINIT:
-            fx="mea_commissionningRequest";
+            fx="mea_init";
             break;
          default:
             return NOERROR;
