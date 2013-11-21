@@ -411,6 +411,7 @@ pthread_t *pythonPluginServer(queue_t *plugin_queue)
       return NULL;
    }
    
+   sleep(10);
    return pythonPlugin_thread;
 }
 
