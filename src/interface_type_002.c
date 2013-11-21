@@ -1112,7 +1112,12 @@ mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, in
          { // appel des fonctions Python
             PyEval_AcquireLock();
             PyThreadState *tempState = PyThreadState_Swap(myThreadState);
-            
+            plugin_elem->aDict=PyDict_New();
+            if(!plugin_elem->aDict)
+            {
+               VERBOSE(2) fprintf(stderr, "%s (%s) : PyDict_New error\n", ERROR_STR, __func__);
+               goto clean_exit;
+            }
             addLong_to_pydict(plugin_elem->aDict, get_token_by_id(ID_XBEE_ID), (long)xd);
             fprintf(stderr, "1\n");
             addLong_to_pydict(plugin_elem->aDict, get_token_by_id(INTERFACE_ID_ID), id_interface);
