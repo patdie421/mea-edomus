@@ -86,10 +86,6 @@ mea_error_t pythonPluginServer_add_cmd(char *module, char *module_parameters, vo
 {
    pythonPlugin_cmd_t *e=NULL;
    
-   DEBUG_SECTION {
-      fprintf(stderr,"%s %s\n",module,module_parameters);
-   }
-   
    e=(pythonPlugin_cmd_t *)malloc(sizeof(pythonPlugin_cmd_t));
    if(!e)
       return ERROR;
@@ -180,10 +176,6 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
    
    Py_DECREF(pName);
 
-   DEBUG_SECTION {
-      fprintf(stderr,"OK %s\n",module);
-   }
-
    int return_code = 0;
    if (pModule != NULL)
    {
@@ -201,9 +193,6 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
             break;
          case XBEEINIT:
             fx="mea_init";
-            DEBUG_SECTION {
-               fprintf(stderr,"OK1\n");
-            }
             break;
          default:
             return NOERROR;
@@ -226,7 +215,7 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
          }
          else
          {
-            VERBOSE(5) fprintf(stderr, "%s (%s) : python error - ", __func__, ERROR_STR);
+            VERBOSE(5) fprintf(stderr, "%s (%s) : python error - (%s)", __func__, ERROR_STR,fx);
             PyErr_Print();
             return_code=ERROR;
             goto call_pythonPlugin_clean_exit;
