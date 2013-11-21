@@ -629,7 +629,7 @@ void *_thread_interface_type_002_xbeedata(void *args)
       ret=out_queue_elem(params->queue, (void **)&e);
       
       DEBUG_SECTION {
-         fprintf(stderr,"_thread_interface_type_002_xbeedata : ");
+         fprintf(stderr,"_thread_interface_type_002_xbeedata  : ");
          print_frame(1, e->cmd, e->l_cmd);
       }
 
@@ -1106,10 +1106,12 @@ mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, in
       if(plugin_elem)
       {
          plugin_elem->type_elem=XBEEINIT;
-         
+         fprintf(stderr, "1\n");
          PyThreadState *mainThreadState=PyThreadState_Get();
+         fprintf(stderr, "2\n");
          PyThreadState *myThreadState = PyThreadState_New(mainThreadState->interp);
-         
+         fprintf(stderr, "3\n");
+
          { // appel des fonctions Python
             PyEval_AcquireLock();
             PyThreadState *tempState = PyThreadState_Swap(myThreadState);
@@ -1125,7 +1127,7 @@ mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, in
             PyThreadState_Delete(myThreadState);
          } // fin appel des fonctions Python
          
-         pythonPluginServer_add_cmd(interface_parameters[XBEE_PLUGIN_PARAMS_PLUGIN].value.s, interface_parameters[XBEE_PLUGIN_PARAMS_PARAMETERS].value.s, (void *)plugin_elem, sizeof(plugin_queue_elem_t));
+//         pythonPluginServer_add_cmd(interface_parameters[XBEE_PLUGIN_PARAMS_PLUGIN].value.s, interface_parameters[XBEE_PLUGIN_PARAMS_PARAMETERS].value.s, (void *)plugin_elem, sizeof(plugin_queue_elem_t));
          
          FREE(plugin_elem);
          free_parsed_parameters(interface_parameters, interface_nb_parameters);
