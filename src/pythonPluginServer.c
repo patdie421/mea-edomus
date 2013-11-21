@@ -177,9 +177,9 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
    Py_DECREF(pName);
 
    int return_code = 0;
+   char *fx;
    if (pModule != NULL)
    {
-      char *fx;
       switch(type)
       {
          case XBEEDATA:
@@ -237,7 +237,7 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
    }
    else
    {
-      VERBOSE(5) fprintf(stderr, "%s (%s) : python error - ", ERROR_STR, __func__);
+      VERBOSE(5) fprintf(stderr, "%s (%s) : python error - (%s,%s)", __func__, ERROR_STR,module,fx);
       PyErr_Print();
       return ERROR;
    }
