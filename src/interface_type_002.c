@@ -302,7 +302,11 @@ int16_t _interface_type_002_xPL_callback(xPL_ServicePtr theService, xPL_MessageP
    sqlite3 *params_db = params->param_db;
    
    if(!params->mainThreadState)
+   {
+      fprintf(stderr,"%s AVANT\n",__func__);
       params->mainThreadState=PyThreadState_Get();
+      fprintf(stderr,"%s APRES\n",__func__);
+   }
    if(!params->myThreadState)
       params->myThreadState = PyThreadState_New(params->mainThreadState->interp);
    
@@ -494,7 +498,11 @@ mea_error_t _interface_type_002_commissionning_callback(int id, unsigned char *c
          plugin_elem->type_elem=COMMISSIONNING;
          
          if(!callback_commissionning->mainThreadState)
+         {
+            fprintf(stderr,"%s AVANT\n",__func__);
             callback_commissionning->mainThreadState=PyThreadState_Get();
+            fprintf(stderr,"%s AVANT\n",__func__);
+         }
          if(!callback_commissionning->myThreadState)
             callback_commissionning->myThreadState = PyThreadState_New(callback_commissionning->mainThreadState->interp);
          
@@ -594,7 +602,9 @@ void *_thread_interface_type_002_xbeedata(void *args)
    
    pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
    PyEval_AcquireLock();
+   fprintf(stderr,"%s AVANT\n",__func__);
    params->mainThreadState = PyThreadState_Get();
+   fprintf(stderr,"%s APRES\n",__func__);
    params->myThreadState = PyThreadState_New(params->mainThreadState->interp);
    PyEval_ReleaseLock();
    pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
@@ -1106,7 +1116,9 @@ mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, in
       if(plugin_elem)
       {
          plugin_elem->type_elem=XBEEINIT;
+         fprintf(stderr,"%s AVANT\n",__func__);
          PyThreadState *mainThreadState=PyThreadState_Get();
+         fprintf(stderr,"%s APRES\n",__func__);
          PyThreadState *myThreadState = PyThreadState_New(mainThreadState->interp);
 
          { // appel des fonctions Python

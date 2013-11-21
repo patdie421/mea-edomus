@@ -275,7 +275,9 @@ void *_pythonPlugin_thread(void *data)
    
    Py_Initialize();
    PyEval_InitThreads(); // voir ici http://www.codeproject.com/Articles/11805/Embedding-Python-in-C-C-Part-I
+   fprintf(stderr,"%s AVANT\n",__func__);
    mainThreadState = PyThreadState_Get();
+   fprintf(stderr,"%s APRES\n",__func__);
    myThreadState = PyThreadState_New(mainThreadState->interp);
    PyEval_ReleaseLock();
    
