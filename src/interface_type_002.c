@@ -1138,6 +1138,7 @@ mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, in
          interface_nb_parameters=0;
       }
    }
+   sleep(10);
    exit(1);
    /*
     * parametrage du réseau
