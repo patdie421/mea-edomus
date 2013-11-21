@@ -230,7 +230,7 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
             VERBOSE(5) fprintf(stderr, "%s (%s) : python error - ", ERROR_STR, __func__);
             PyErr_Print();
          }
-         VERBOSE(5) fprintf(stderr, "%s (%s) : mea_edomus_plugin not found\n", ERROR_STR, __func__);
+         VERBOSE(5) fprintf(stderr, "%s (%s) : python error - (%s,%s)", __func__, ERROR_STR,module,fx);
          return_code=ERROR;
          goto call_pythonPlugin_clean_exit;
       }
