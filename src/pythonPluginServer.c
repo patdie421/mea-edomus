@@ -138,15 +138,17 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
 
    PyErr_Clear();
    
-   fprintf(stderr,"Module : %s\n",module);
+   fprintf(stderr,"Module1 : %s\n",module);
    pName = PyString_FromString(module);
    
    pModule = PyDict_GetItem(known_modules, pName);
+   fprintf(stderr,"Module2 : %s\n",module);
    if(!pModule)
    {
       pModule = PyImport_Import(pName);
       if(pModule)
          PyDict_SetItem(known_modules, pName, pModule);
+      fprintf(stderr,"ICI\n");
       else
       {
          VERBOSE(5) fprintf(stderr, "%s (%s) : %s not found\n", ERROR_STR, __func__, module);
@@ -175,7 +177,7 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
             PyErr_Print();
       }
    }
-   fprintf(stderr,"Module2 : %s\n",module);
+   fprintf(stderr,"Module3 : %s\n",module);
    
    Py_DECREF(pName);
 
