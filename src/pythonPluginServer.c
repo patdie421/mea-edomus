@@ -135,6 +135,8 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
 {
    PyObject *pName, *pModule, *pFunc;
    PyObject *pArgs, *pValue;
+
+   PyErr_Clear();
    
    pName = PyString_FromString(module);
    
@@ -147,7 +149,6 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
       else
       {
          VERBOSE(5) fprintf(stderr, "%s (%s) : %s not found\n", ERROR_STR, __func__, module);
-         PyErr_Clear();
          return NOERROR;
       }
    }
