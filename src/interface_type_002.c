@@ -112,6 +112,15 @@ mea_error_t display_frame(int ret, unsigned char *resp, uint16_t l_resp)
    return NOERROR;
 }
 
+mea_error_t print_frame(int ret, unsigned char *resp, uint16_t l_resp)
+{
+   DEBUG_SECTION {
+      for(int i=0;i<l_resp;i++)
+         fprintf(stderr,"[%03x]",resp[i]);
+      printf("\n");
+   }
+   return NOERROR;
+}
 
 void display_addr(char *a)
 {
@@ -384,8 +393,11 @@ mea_error_t _inteface_type_002_xbeedata_callback(int id, unsigned char *cmd, uin
    struct callback_data_s *callback_data;
    data_queue_elem_t *e;
    
-   DEBUG_SECTION fprintf(stderr,"_inteface_type_002_xbeedata_callback : cmd=%s, l_cmd=%d\n",cmd,l_cmd);
-
+   DEBUG_SECTION {
+      fprintf(stderr,"_inteface_type_002_xbeedata_callback : ");
+      print_frame(1, cmd, l_cmd);
+   }
+   
    callback_data=(struct callback_data_s *)data;
    
    gettimeofday(&tv, NULL);
