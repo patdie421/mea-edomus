@@ -1129,7 +1129,7 @@ mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, in
             PyThreadState_Delete(myThreadState);
          } // fin appel des fonctions Python
          
-//         pythonPluginServer_add_cmd(interface_parameters[XBEE_PLUGIN_PARAMS_PLUGIN].value.s, interface_parameters[XBEE_PLUGIN_PARAMS_PARAMETERS].value.s, (void *)plugin_elem, sizeof(plugin_queue_elem_t));
+         pythonPluginServer_add_cmd(interface_parameters[XBEE_PLUGIN_PARAMS_PLUGIN].value.s, interface_parameters[XBEE_PLUGIN_PARAMS_PARAMETERS].value.s, (void *)plugin_elem, sizeof(plugin_queue_elem_t));
          
          FREE(plugin_elem);
          free_parsed_parameters(interface_parameters, interface_nb_parameters);
