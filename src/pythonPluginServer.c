@@ -138,6 +138,7 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
 
    PyErr_Clear();
    
+   fprintf(stderr,"Module : %s\n",module);
    pName = PyString_FromString(module);
    
    pModule = PyDict_GetItem(known_modules, pName);
@@ -174,6 +175,7 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
             PyErr_Print();
       }
    }
+   fprintf(stderr,"Module2 : %s\n",module);
    
    Py_DECREF(pName);
 
