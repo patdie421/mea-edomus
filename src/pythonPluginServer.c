@@ -86,6 +86,10 @@ mea_error_t pythonPluginServer_add_cmd(char *module, char *module_parameters, vo
 {
    pythonPlugin_cmd_t *e=NULL;
    
+   DEBUG_SECTION {
+      fprintf(stderr,"%s %s\n",module,module_parameters);
+   }
+   
    e=(pythonPlugin_cmd_t *)malloc(sizeof(pythonPlugin_cmd_t));
    if(!e)
       return ERROR;
