@@ -205,10 +205,12 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
          pArgs = PyTuple_New(1);
          
          // data_dict
+         DEBUG_SECTION fprintf(stderr,"AVANT\n");
          Py_INCREF(data_dict); // incrément car PyTuple_SetItem vole la référence
          PyTuple_SetItem(pArgs, 0, data_dict);
          pValue = PyObject_CallObject(pFunc, pArgs);
          Py_DECREF(pArgs);
+         DEBUG_SECTION fprintf(stderr,"AVANT\n");
          
          if (pValue != NULL)
          {
