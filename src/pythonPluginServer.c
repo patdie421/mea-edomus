@@ -176,8 +176,11 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
    
    Py_DECREF(pName);
 
+   DEBUG_SECTION {
+      fprintf(stderr,"OK %s\n",module);
+   }
+
    int return_code = 0;
-   
    if (pModule != NULL)
    {
       char *fx;
@@ -194,6 +197,9 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
             break;
          case XBEEINIT:
             fx="mea_init";
+            DEBUG_SECTION {
+               fprintf(stderr,"OK1\n");
+            }
             break;
          default:
             return NOERROR;
