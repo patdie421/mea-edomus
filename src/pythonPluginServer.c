@@ -176,7 +176,6 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
             PyErr_Print();
       }
    }
-   fprintf(stderr,"Module3 : %s\n",module);
    
    Py_DECREF(pName);
 

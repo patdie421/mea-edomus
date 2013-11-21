@@ -1147,7 +1147,6 @@ mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, in
          interface_nb_parameters=0;
       }
    }
-   VERBOSE(2) fprintf(stderr, "%s  (%s) : Après ...\n", INFO_STR, __func__);
 
    /*
     * parametrage du rÈseau
