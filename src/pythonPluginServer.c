@@ -138,16 +138,14 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
 
    PyErr_Clear();
    
-   fprintf(stderr,"Module1 : %s\n",module);
    pName = PyString_FromString(module);
    
    pModule = PyDict_GetItem(known_modules, pName);
-   fprintf(stderr,"Module2 : %s\n",module);
    if(!pModule)
    {
-      fprintf(stderr,"AVANT ICI\n");
+      fprintf(stderr,"DEBUG1\n");
       pModule = PyImport_Import(pName);
-      fprintf(stderr,"APRES AVANT ICI\n");
+      fprintf(stderr,"DEBUG2\n");
       if(pModule)
          PyDict_SetItem(known_modules, pName, pModule);
       else
@@ -155,7 +153,6 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
          VERBOSE(5) fprintf(stderr, "%s (%s) : %s not found\n", ERROR_STR, __func__, module);
          return NOERROR;
       }
-      fprintf(stderr,"ICI\n");
    }
    else
    {
@@ -208,17 +205,12 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
 
       if (pFunc && PyCallable_Check(pFunc))
       {
-         DEBUG_SECTION fprintf(stderr,"AVANT1\n");
-         sleep(1);
          pArgs = PyTuple_New(1);
          // data_dict
-         DEBUG_SECTION fprintf(stderr,"AVANT2\n");
-         sleep(1);
          Py_INCREF(data_dict); // incrément car PyTuple_SetItem vole la référence
          PyTuple_SetItem(pArgs, 0, data_dict);
          pValue = PyObject_CallObject(pFunc, pArgs);
          Py_DECREF(pArgs);
-         DEBUG_SECTION fprintf(stderr,"AVANT\n");
          
          if (pValue != NULL)
          {
@@ -285,9 +277,7 @@ void *_pythonPlugin_thread(void *data)
    
    Py_Initialize();
    PyEval_InitThreads(); // voir ici http://www.codeproject.com/Articles/11805/Embedding-Python-in-C-C-Part-I
-   fprintf(stderr,"%s AVANT\n",__func__);
    mainThreadState = PyThreadState_Get();
-   fprintf(stderr,"%s APRES\n",__func__);
    myThreadState = PyThreadState_New(mainThreadState->interp);
    PyEval_ReleaseLock();
    
