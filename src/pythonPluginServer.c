@@ -145,6 +145,7 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
    fprintf(stderr,"Module2 : %s\n",module);
    if(!pModule)
    {
+      fprintf(stderr,"AVANT ICI\n");
       pModule = PyImport_Import(pName);
       if(pModule)
          PyDict_SetItem(known_modules, pName, pModule);
