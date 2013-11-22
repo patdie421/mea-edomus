@@ -347,8 +347,9 @@ void *_pythonPlugin_thread(void *data)
          tempState = PyThreadState_Swap(myThreadState);
          
          PyObject *pydict_data=data->aDict;
-         
+
          call_pythonPlugin(e->python_module, data->type_elem, pydict_data);
+         
          Py_DECREF(pydict_data);
          
          PyThreadState_Swap(tempState);
@@ -411,7 +412,6 @@ pthread_t *pythonPluginServer(queue_t *plugin_queue)
       return NULL;
    }
    
-   sleep(10);
    return pythonPlugin_thread;
 }
 
