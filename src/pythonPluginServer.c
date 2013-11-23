@@ -274,8 +274,9 @@ void *_pythonPlugin_thread(void *data)
    pythonPlugin_cmd_t *e;
    PyThreadState *mainThreadState, *myThreadState;
    
-   Py_Initialize();
-   PyEval_InitThreads(); // voir ici http://www.codeproject.com/Articles/11805/Embedding-Python-in-C-C-Part-I
+//   Py_Initialize();
+//   PyEval_InitThreads(); // voir ici http://www.codeproject.com/Articles/11805/Embedding-Python-in-C-C-Part-I
+   PyEval_AcquireLock(); // DEBUG_PyEval_AcquireLock(fn_name, &local_last_time);
    mainThreadState = PyThreadState_Get();
    myThreadState = PyThreadState_New(mainThreadState->interp);
    PyEval_ReleaseLock();
@@ -405,6 +406,10 @@ pthread_t *pythonPluginServer(queue_t *plugin_queue)
       return NULL;
    }
    
+   Py_Initialize();
+   PyEval_InitThreads(); // voir ici http://www.codeproject.com/Articles/11805/Embedding-Python-in-C-C-Part-I
+   PyEval_ReleaseLock();
+
    if(pthread_create (pythonPlugin_thread, NULL, _pythonPlugin_thread, (void *)pythonPluginCmd_queue))
    {
       VERBOSE(2) fprintf(stderr, "%s (%s) : pthread_create - can't start thread - ", FATAL_ERROR_STR, __func__);
