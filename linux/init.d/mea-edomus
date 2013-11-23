@@ -13,9 +13,12 @@ PATH=/sbin:/bin:/usr/sbin:/usr/bin
 
 . /lib/lsb/init-functions
 
-DAEMON=/data/rec/mea-edomus/0.1alpha2/bin/mea-edomus
+MEAEDOMUS_BASEPATH="/data/rec/mea-edomus/0.1alpha2"
+
+DAEMON="$MEAEDOMUS_BASEPATH/bin/mea-edomus"
+MEAEDOMUS_OPT="--basepath=$MEAEDOMUS_BASEPATH"
+
 PIDFILE=/var/run/mea-edomus.pid
-MEAEDOMUS_OPT="--basepath=/data/rec/mea-edomus/0.1alpha2/"
 test -x $DAEMON || exit 5
 
 #if [ -r /etc/default/ntp ]; then
