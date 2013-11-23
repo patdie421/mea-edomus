@@ -143,9 +143,7 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
    pModule = PyDict_GetItem(known_modules, pName);
    if(!pModule)
    {
-      fprintf(stderr,"DEBUG1\n");
       pModule = PyImport_Import(pName);
-      fprintf(stderr,"DEBUG2\n");
       if(pModule)
          PyDict_SetItem(known_modules, pName, pModule);
       else
@@ -193,9 +191,6 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
             break;
          case COMMISSIONNING:
             fx="mea_commissionningRequest";
-            break;
-         case XBEEINIT:
-            fx="mea_init";
             break;
          default:
             return NOERROR;

@@ -322,7 +322,7 @@ def mea_commissionningRequest(data):
       try:
          mem=mea.getMemory(data["interface_id"])
       except:
-         verbose(5, "ERROR (", fn_name, ") - can't acces share memory")
+         verbose(2, "ERROR (", fn_name, ") - can't acces share memory")
          return False
       
       sample_set=False
@@ -333,7 +333,7 @@ def mea_commissionningRequest(data):
             alphaVal="";
             
             if i[0][0] != "#" and i[0][0] !="@":
-               verbose (9, "ERROR (", fn_name, ") - syntaxe error :", i[0], "not a variable, skipped")
+               verbose (3, "ERROR (", fn_name, ") - syntaxe error :", i[0], "not a variable, skipped")
                continue
             
             if i[1]!=None:
@@ -355,11 +355,11 @@ def mea_commissionningRequest(data):
                      if numVal>=0:
                         ret=mea.sendAtCmd(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], i[0][1:3].upper(), numVal);
                         if ret == 0:
-                           verbose(9, "WARNING (", fn_name, ") - Transmission error for", i[0], "= ", numVal)
+                           verbose(5, "WARNING (", fn_name, ") - Transmission error for", i[0], "= ", numVal)
                      else:
                         ret=mea.sendAtCmd(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], i[0][1:3].upper(), alphaVal);
                         if ret == 0:
-                           verbose(9, "WARNING (", fn_name, ") - Transmission error for", i[0], "= ", alphaVal)
+                           verbose(5, "WARNING (", fn_name, ") - Transmission error for", i[0], "= ", alphaVal)
                            continue
                   else:
                      verbose(9, "WARNING (", fn_name, ") - syntaxe error :", i[0], "not an at cmnd, skip")
@@ -373,7 +373,7 @@ def mea_commissionningRequest(data):
                if i[0] == "#set_dhdl":
                   ret=config_DHDL(data,alphaVal)
                   if ret==-1:
-                     verbose(9, "WARNING (", fn_name, ") - value error :", i[1], "not an xbee adress, skip")
+                     verbose(5, "WARNING (", fn_name, ") - value error :", i[1], "not an xbee adress, skip")
                   continue
                
                if i[0] == "#set_sleep":
@@ -383,7 +383,7 @@ def mea_commissionningRequest(data):
                if i[0] == "#set_name":
                   ret=config_name(data, alphaVal)
                   if ret==-1:
-                     verbose(9, "WARNING (", fn_name, ") - value error :", i[1], "not an xbee adress, skip")
+                     verbose(5, "WARNING (", fn_name, ") - value error :", i[1], "not an xbee adress, skip")
                   continue
                
                
@@ -396,10 +396,74 @@ def mea_commissionningRequest(data):
                if len(i[0])==3:
                   ret=mea.sendAtCmd(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], i[0][1:3].upper(), "");
                   if ret == 0:
-                     verbose(9, "ERROR (", fn_name, ") - Transmission error for", i[0], "= ", numVal)
+                     verbose(3, "ERROR (", fn_name, ") - Transmission error for", i[0], "= ", numVal)
          enable_change_detection(data,mem)
          if sample_set==False:
             enable_sample(data,mem)
+         return True
+      
+      else:
+         return False
+   else:
+      return False
+
+
+def mea_init(data):
+   fn_name=sys._getframe().f_code.co_name
+   
+   verbose(9,"INFO  (",fn_name,") - lancement mea_init")
+   
+   if "interface_parameters" in data:
+      mem={}
+      try:
+         mem=mea.getMemory(data["interface_id"])
+      except:
+         verbose(2, "ERROR (", fn_name, ") - can't acces share memory")
+         return False
+      
+      paramsList=mea_utils.parseKeyValueDatasToList(data["interface_parameters"], ",", ":")
+      if paramsList != None:
+         for i in paramsList:
+            numVal=-1;
+            alphaVal="";
+            
+            if i[0][0] !="@":
+               verbose (3, "ERROR (", fn_name, ") - syntaxe error :", i[0], "not a variable, skipped")
+               continue
+            
+            if i[1]!=None:
+               if i[1][0:2]=="0x":
+                  try:
+                     numVal=int(i[1],16)
+                  except:
+                     alphaVal=i[1]
+               else:
+                  try:
+                     numVal=int(i[1],10)
+                  except:
+                     alphaVal=i[1]
+               # commande AT ?
+               if i[0][0] == "@":
+                  if len(i[0])==3:
+                     if numVal>=0:
+                        ret=mea.sendAtCmd(data["ID_XBEE"], -1, -1, i[0][1:3].upper(), numVal);
+                        if ret == 0:
+                           verbose(5, "WARNING (", fn_name, ") - Transmission error for", i[0], "= ", numVal)
+                     else:
+                        ret=mea.sendAtCmd(data["ID_XBEE"], -1, -1, i[0][1:3].upper(), alphaVal);
+                        if ret == 0:
+                           verbose(5, "WARNING (", fn_name, ") - Transmission error for", i[0], "= ", alphaVal)
+                           continue
+                  else:
+                     verbose(5, "WARNING (", fn_name, ") - syntaxe error :", i[0], "not an at cmnd, skip")
+                     continue
+               
+               # commande special ?
+            else:
+               if len(i[0])==3:
+                  ret=mea.sendAtCmd(data["ID_XBEE"], -1, -1, i[0][1:3].upper(), "");
+                  if ret == 0:
+                     verbose(3, "ERROR (", fn_name, ") - Transmission error for", i[0], "= ", numVal)
          return True
       
       else:
