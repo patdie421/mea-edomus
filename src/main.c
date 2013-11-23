@@ -969,7 +969,7 @@ int main(int argc, const char * argv[])
    else
       snprintf(log_file,sizeof(log_file),"/var/log/mea-edomus.log");
    
-   int fd=open(log_file, O_CREAT | O_APPEND | O_RDWR,  S_IRWXU);
+   int fd=open(log_file, O_CREAT | O_APPEND | O_RDWR,  S_IWUSR | S_IRUSR);
    if(fd<0)
    {
       VERBOSE(1) fprintf (stderr, "%s (%s) : can't open log file - \n",ERROR_STR,__func__);
