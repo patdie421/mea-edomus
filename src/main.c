@@ -949,7 +949,7 @@ int main(int argc, const char * argv[])
    ret = sqlite3_open_v2(params_list[SQLITE3_DB_PARAM_PATH], &sqlite3_param_db, SQLITE_OPEN_READWRITE, NULL);
    if(ret)
    {
-      VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_open - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
+      VERBOSE(1) fprintf (stderr, "%s (%s) : sqlite3_open - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
       exit(1);
    }
    
@@ -957,7 +957,7 @@ int main(int argc, const char * argv[])
    ret = read_all_application_parameters(sqlite3_param_db);
    if(ret)
    {
-      VERBOSE(2) fprintf (stderr, "%s (%s) : can't load parameters\n",ERROR_STR,__func__);
+      VERBOSE(1) fprintf (stderr, "%s (%s) : can't load parameters\n",ERROR_STR,__func__);
       sqlite3_close(sqlite3_param_db);
       
       exit(1);
@@ -970,6 +970,13 @@ int main(int argc, const char * argv[])
       snprintf(log_file,sizeof(log_file),"/var/log/mea-edomus.log");
    
    int fd=open(log_file, O_CREAT | O_APPEND | O_RDWR,  S_IRWXU);
+   if(fd<0)
+   {
+      VERBOSE(1) fprintf (stderr, "%s (%s) : can't open log file - \n",ERROR_STR,__func__);
+      perror("");
+      exit(1);
+   }
+   
    dup2(fd, 1);
    dup2(fd, 2);
    close(fd);
