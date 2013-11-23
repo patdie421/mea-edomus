@@ -1100,52 +1100,75 @@ mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, in
       }
       else
       {
-         VERBOSE(2) fprintf(stderr, "%s (%s) : parameters invalides (%s)\n", ERROR_STR, __func__, parameters);
+         VERBOSE(2) fprintf(stderr, "%s (%s) : invalid python plugin parameters (%s)\n", ERROR_STR, __func__, parameters);
          goto clean_exit;
       }
    }
    else
    {
-      plugin_queue_elem_t *plugin_elem = (plugin_queue_elem_t *)malloc(sizeof(plugin_queue_elem_t));
-      if(plugin_elem)
-      {
-         plugin_elem->type_elem=XBEEINIT;
-         
-         pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
-         PyEval_AcquireLock();
-         PyThreadState *mainThreadState=PyThreadState_Get();
-         PyThreadState *myThreadState = PyThreadState_New(mainThreadState->interp);
-         PyEval_ReleaseLock();
-         pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+      PyObject *plugin_params_dict=NULL;
+      PyObject *pName, *pModule, *pFunc;
+      PyObject *pArgs, *pValue;
+      
+      pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
+      PyEval_AcquireLock();
+      PyThreadState *mainThreadState=PyThreadState_Get();
+      PyThreadState *myThreadState = PyThreadState_New(mainThreadState->interp);
+      
+      PyThreadState *tempState = PyThreadState_Swap(myThreadState);
 
-         { // appel des fonctions Python
-            PyEval_AcquireLock();
-            PyThreadState *tempState = PyThreadState_Swap(myThreadState);
-            plugin_elem->aDict=PyDict_New();
-            if(!plugin_elem->aDict)
-            {
-               VERBOSE(2) fprintf(stderr, "%s (%s) : PyDict_New error\n", ERROR_STR, __func__);
-               goto clean_exit;
-            }
-            addLong_to_pydict(plugin_elem->aDict, get_token_by_id(ID_XBEE_ID), (long)xd);
-            addLong_to_pydict(plugin_elem->aDict, get_token_by_id(INTERFACE_ID_ID), id_interface);
-            if(interface_parameters[XBEE_PLUGIN_PARAMS_PARAMETERS].value.s)
-               addString_to_pydict(plugin_elem->aDict, get_token_by_id(INTERFACE_PARAMETERS_ID), interface_parameters[XBEE_PLUGIN_PARAMS_PARAMETERS].value.s);
-	            
-            PyThreadState_Swap(tempState);
-            PyEval_ReleaseLock();
-//            PyThreadState_Clear(myThreadState);
-//            PyThreadState_Delete(myThreadState);
-         } // fin appel des fonctions Python
-         
-         pythonPluginServer_add_cmd(interface_parameters[XBEE_PLUGIN_PARAMS_PLUGIN].value.s, interface_parameters[XBEE_PLUGIN_PARAMS_PARAMETERS].value.s, (void *)plugin_elem, sizeof(plugin_queue_elem_t));
-         
-         FREE(plugin_elem);
-         free_parsed_parameters(interface_parameters, interface_nb_parameters);
-         FREE(interface_parameters);
-         interface_parameters=NULL;
-         interface_nb_parameters=0;
+      PyErr_Clear();
+      pName = PyString_FromString(interface_parameters[XBEE_PLUGIN_PARAMS_PLUGIN].value.s);
+      pModule = PyImport_Import(pName);
+      if(!pModule)
+      {
+         VERBOSE(5) fprintf(stderr, "%s (%s) : %s not found\n", ERROR_STR, __func__, interface_parameters[XBEE_PLUGIN_PARAMS_PLUGIN].value.s);
       }
+      else
+      {
+         pFunc = PyObject_GetAttrString(pModule, "mea_init");
+         if (pFunc && PyCallable_Check(pFunc))
+         {
+            // préparation du parametre du module
+            plugin_params_dict=PyDict_New();
+            addLong_to_pydict(plugin_params_dict, get_token_by_id(ID_XBEE_ID), (long)xd);
+            addLong_to_pydict(plugin_params_dict, get_token_by_id(INTERFACE_ID_ID), id_interface);
+            if(interface_parameters[XBEE_PLUGIN_PARAMS_PARAMETERS].value.s)
+               addString_to_pydict(plugin_params_dict, get_token_by_id(INTERFACE_PARAMETERS_ID), interface_parameters[XBEE_PLUGIN_PARAMS_PARAMETERS].value.s);
+
+            pArgs = PyTuple_New(1);
+            Py_INCREF(plugin_params_dict); // PyTuple_SetItem va voler la référence, on en rajoute une pour pouvoir ensuite faire un Py_DECREF
+            PyTuple_SetItem(pArgs, 0, plugin_params_dict);
+         
+            pValue = PyObject_CallObject(pFunc, pArgs); // appel du plugin
+            if (pValue != NULL)
+            {
+               DEBUG_SECTION fprintf(stderr, "%s (%s) : Result of call of mea_init : %ld\n", DEBUG_STR, __func__, PyInt_AsLong(pValue));
+            }
+            Py_DECREF(pValue);
+            Py_DECREF(pArgs);
+            Py_DECREF(plugin_params_dict);
+         }
+         else
+         {
+            VERBOSE(5) fprintf(stderr, "%s (%s) : mea_init not fount in %s module\n", ERROR_STR, __func__, interface_parameters[XBEE_PLUGIN_PARAMS_PLUGIN].value.s);
+         }
+      }
+      Py_XDECREF(pFunc);
+      Py_XDECREF(pModule);
+      Py_DECREF(pName);
+      PyErr_Clear();
+      
+      PyThreadState_Swap(tempState);
+      PyThreadState_Clear(myThreadState);
+      PyThreadState_Delete(myThreadState);
+      PyEval_ReleaseLock();
+      pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+
+      free_parsed_parameters(interface_parameters, interface_nb_parameters);
+      FREE(interface_parameters);
+      interface_parameters=NULL;
+      interface_nb_parameters=0;
    }
 
    /*
