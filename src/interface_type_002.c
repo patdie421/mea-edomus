@@ -395,10 +395,10 @@ mea_error_t _inteface_type_002_xbeedata_callback(int id, unsigned char *cmd, uin
    struct callback_data_s *callback_data;
    data_queue_elem_t *e;
    
-   DEBUG_SECTION {
+/*   DEBUG_SECTION {
       fprintf(stderr,"_inteface_type_002_xbeedata_callback : ");
       print_frame(1, cmd, l_cmd);
-   }
+   } */
    
    callback_data=(struct callback_data_s *)data;
    
@@ -632,10 +632,10 @@ void *_thread_interface_type_002_xbeedata(void *args)
       
       ret=out_queue_elem(params->queue, (void **)&e);
       
-      DEBUG_SECTION {
+/*      DEBUG_SECTION {
          fprintf(stderr,"_thread_interface_type_002_xbeedata  : ");
          print_frame(1, e->cmd, e->l_cmd);
-      }
+      } */
 
       // params->e=e;
       pthread_mutex_unlock(&params->callback_lock);

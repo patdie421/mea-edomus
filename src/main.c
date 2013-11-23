@@ -709,7 +709,7 @@ int main(int argc, const char * argv[])
 #else
    debug_off();
 #endif
-   
+
    DEBUG_SECTION fprintf(stderr,"Starting MEA-EDOMUS %s\n",__MEA_EDOMUS_VERSION__);
    //
    // initialisation
@@ -959,6 +959,17 @@ int main(int argc, const char * argv[])
       
       exit(1);
    }
+   
+   char log_file[255];
+   if(strlen(params_list[LOG_PATH]))
+      snprintf(log_file,sizeof(log_file),"%s/mea-edomus.log", params_list[LOG_PATH]);
+   else
+      snprintf(log_file,sizeof(log_file),"/var/log/mea-edomus.log");
+   
+   int fd=open(log_file, O_CREAT | O_APPEND | O_RDWR,  S_IRWXU);
+   dup2(fd, 1);
+   dup2(fd, 2);
+   close(fd);
 
    // démarrage des "services" (les services "majeurs" arrêtent (exit) si non démarrage
    if(!_b)

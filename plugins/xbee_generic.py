@@ -26,15 +26,15 @@ def getInternalVarValue(data, var):
 
 def config_IO(data,pin,val,mem):
    if len(pin)!=3:
-      verbose(9, "WARNING (", fn_name, ") - invalid pin :", pin[1:], "not not allowed, skipped")
+      verbose(5, "WARNING (", fn_name, ") - invalid pin :", pin[1:], "not not allowed, skipped")
       return -1
    try:
       pinNum=int(pin[2:3])
       if(pinNum>8):
-         verbose(9, "WARNING (", fn_name, ") - invalid pin :", pin[1:3], "not not allowed, skipped")
+         verbose(5, "WARNING (", fn_name, ") - invalid pin :", pin[1:3], "not not allowed, skipped")
          return -1
    except:
-      verbose(9, "WARNING (", fn_name, ") - invalid pin :", pin[1:3], "not not allowed, skipped")
+      verbose(5, "WARNING (", fn_name, ") - invalid pin :", pin[1:3], "not not allowed, skipped")
       return -1
    
    if val=="digital_in":
@@ -49,12 +49,12 @@ def config_IO(data,pin,val,mem):
       if pinNum==0 or pinNum==1 or pinNum==2 or pinNum==3:
          atVal=2
       else:
-         verbose(9, "WARNING (", fn_name, ") - invalid pin :", pin[1:3], "not not allowed for analog input, skipped")
+         verbose(5, "WARNING (", fn_name, ") - invalid pin :", pin[1:3], "not not allowed for analog input, skipped")
          return -1
    elif val=="none":
       atVal=0
    else:
-      verbose(9, "WARNING (", fn_name, ") - syntaxe error :", i[0], "not an at cmnd, skipped")
+      verbose(5, "WARNING (", fn_name, ") - syntaxe error :", i[0], "not an at cmnd, skipped")
       return -1
    
    ret=mea.sendAtCmd(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], pin[1:3].upper(), atVal);
@@ -67,13 +67,13 @@ def config_IO(data,pin,val,mem):
 def config_DHDL(data,alphaVal):
    vals=alphaVal.split("-")
    if len(vals) != 2:
-      verbose(9, "WARNING (", fn_name, ") - syntaxe error :", alphaVal, "not an xbee address, skipped")
+      verbose(5, "WARNING (", fn_name, ") - syntaxe error :", alphaVal, "not an xbee address, skipped")
       return -1
    try:
       h=int(vals[0],16)
       l=int(vals[1],16)
    except:
-      verbose(9, "WARNING (", fn_name, ") - syntaxe error :", alphaVal, "not an xbee address, skipped")
+      verbose(5, "WARNING (", fn_name, ") - syntaxe error :", alphaVal, "not an xbee address, skipped")
       return -1
    
    ret=mea.sendAtCmd(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], "DH", h)
@@ -246,7 +246,7 @@ def mea_dataFromSensor(data):
       l_cmd_data=data["l_cmd_data"]
       data_type=data["data_type"]
    except:
-      verbose(9, "ERROR (", fn_name, ") - invalid data")
+      verbose(2, "ERROR (", fn_name, ") - invalid data")
       return False
    
    mem=mea.getMemory(id_sensor)
@@ -428,7 +428,7 @@ def mea_init(data):
             alphaVal="";
             
             if i[0][0] !="@":
-               verbose (3, "ERROR (", fn_name, ") - syntaxe error :", i[0], "not a variable, skipped")
+               verbose (3, "ERROR (", fn_name, ") - syntaxe error :", i[0], "not an AT command, skipped")
                continue
             
             if i[1]!=None:
