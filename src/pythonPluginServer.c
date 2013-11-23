@@ -82,7 +82,7 @@ mea_error_t pythonPluginServer_init()
 }
 
 
-mea_error_t pythonPluginServer_add_cmd(char *module, char *module_parameters, void *data, int l_data)
+mea_error_t pythonPluginServer_add_cmd(char *module, void *data, int l_data)
 {
    pythonPlugin_cmd_t *e=NULL;
    
