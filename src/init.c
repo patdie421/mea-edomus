@@ -839,7 +839,15 @@ int _read_integer(char **params_list, uint16_t index, int16_t default_value, cha
    }
    else
    {
-      snprintf(tmp_str,sizeof(tmp_str),"%d",default_value);
+      int16_t n=snprintf(tmp_str,sizeof(tmp_str),"%d",default_value);
+      if(n<0 || n==sizeof(tmp_str))
+      {
+         VERBOSE(2) {
+            fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);
+            perror("");
+         }
+         return -1;
+      }
    }
    
    params_list[index]=get_and_malloc_string(tmp_str, question);

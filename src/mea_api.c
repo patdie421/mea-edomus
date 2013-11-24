@@ -566,7 +566,7 @@ static PyObject *mea_sendAtCmd(PyObject *self, PyObject *args)
    
    int16_t err;
    
-   if(addr_l == -1 && addr_h == -1)
+   if(addr_l == 0xFFFFFFFF && addr_h == 0xFFFFFFFF)
    {
       host=(xbee_host_t *)malloc(sizeof(xbee_host_t)); // description de l'xbee directement connecté
       xbee_get_host_by_addr_64(xd, host, addr_h, addr_l, &err);

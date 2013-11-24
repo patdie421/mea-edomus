@@ -175,7 +175,7 @@ int16_t read_all_application_parameters(sqlite3 *sqlite3_param_db)
    int ret = sqlite3_prepare_v2(sqlite3_param_db,sql,strlen(sql)+1,&stmt,NULL); // sqlite function need int
    if(ret)
    {
-      VERBOSE(1) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
+      VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
       return -1;
    }
    
@@ -217,15 +217,15 @@ void stop_all_services_and_exit()
    
    if(xPLServer_thread)
    {
-      VERBOSE(5) fprintf(stderr,"%s  (%s) : Stopping xPLServer... ",INFO_STR,__func__);
+      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping xPLServer... ",INFO_STR,__func__);
       pthread_cancel(*xPLServer_thread);
       pthread_join(*xPLServer_thread, NULL);
-      VERBOSE(5) fprintf(stderr,"done\n");
+      VERBOSE(9) fprintf(stderr,"done\n");
    }
    
    if(interfaces)
    {
-      VERBOSE(5) fprintf(stderr,"%s  (%s) : Stopping interfaces... (",INFO_STR,__func__);
+      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping interfaces... (",INFO_STR,__func__);
       first_queue(interfaces);
       while(interfaces->nb_elem)
       {
@@ -259,22 +259,22 @@ void stop_all_services_and_exit()
          free(iq);
          iq=NULL;
       }
-      VERBOSE(5) fprintf(stderr,") done\n");
+      VERBOSE(9) fprintf(stderr,") done\n");
    }
    
    if(pythonPluginServer_thread)
    {
-      VERBOSE(5) fprintf(stderr,"%s  (%s) : Stopping pythonPluginServer... ",INFO_STR,__func__);
+      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping pythonPluginServer... ",INFO_STR,__func__);
       pthread_cancel(*pythonPluginServer_thread);
       pthread_join(*pythonPluginServer_thread, NULL);
-      VERBOSE(5) fprintf(stderr,"done\n");
+      VERBOSE(9) fprintf(stderr,"done\n");
    }
 
    if(myd)
    {
-      VERBOSE(5) fprintf(stderr,"%s  (%s) : Stopping dbServer... ",INFO_STR,__func__);
+      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping dbServer... ",INFO_STR,__func__);
       tomysqldb_release(myd);
-      VERBOSE(5) fprintf(stderr,"done\n");
+      VERBOSE(9) fprintf(stderr,"done\n");
    }
    
    for(int16_t i=0;i<MAX_LIST_SIZE;i++)
@@ -286,7 +286,7 @@ void stop_all_services_and_exit()
       }
    }
    
-   VERBOSE(5) fprintf(stderr,"%s  (%s) : mea-edomus gone ...\n",INFO_STR,__func__);
+   VERBOSE(9) fprintf(stderr,"%s  (%s) : mea-edomus gone ...\n",INFO_STR,__func__);
 
    exit(0);
 }
@@ -300,7 +300,7 @@ static void _signal_STOP(int signal_number)
  * \param     signal_number  numéro du signal (pas utilisé mais nécessaire pour la déclaration du handler).
  */
 {
-   VERBOSE(5) fprintf(stderr,"%s  (%s) : Stopping mea-edomus requested (signal = %d).\n",INFO_STR,__func__,signal_number);
+   VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping mea-edomus requested (signal = %d).\n",INFO_STR,__func__,signal_number);
    stop_all_services_and_exit();
 }
 
@@ -316,7 +316,7 @@ static void _signal_HUP(int signal_number)
    interfaces_queue_elem_t *iq;
    int16_t ret;
    
-   VERBOSE(5) fprintf(stderr,"%s  (%s) : communication error signal (signal = %d).\n", INFO_STR, __func__, signal_number);
+   VERBOSE(9) fprintf(stderr,"%s  (%s) : communication error signal (signal = %d).\n", INFO_STR, __func__, signal_number);
    if(!interfaces->nb_elem)
       return;
    
@@ -336,7 +336,7 @@ static void _signal_HUP(int signal_number)
                if(i001->xPL_callback)
                   i001->xPL_callback=NULL;
                sleep(1);
-               VERBOSE(5) fprintf(stderr,"%s  (%s) : restart interface type_001 (interface_id=%d).\n", INFO_STR, __func__, i001->id_interface);
+               VERBOSE(9) fprintf(stderr,"%s  (%s) : restart interface type_001 (interface_id=%d).\n", INFO_STR, __func__, i001->id_interface);
                restart_interface_type_001(i001, sqlite3_param_db, myd);
             }
             break;
@@ -350,7 +350,7 @@ static void _signal_HUP(int signal_number)
                if(i002->xPL_callback)
                   i002->xPL_callback=NULL;
                sleep(1);
-               VERBOSE(5) fprintf(stderr,"%s  (%s) : restart interface type_002 (interface_id=%d).\n", INFO_STR, __func__, i002->id_interface);
+               VERBOSE(9) fprintf(stderr,"%s  (%s) : restart interface type_002 (interface_id=%d).\n", INFO_STR, __func__, i002->id_interface);
                restart_interface_type_002(i002, sqlite3_param_db, myd);
             }
             break;
@@ -383,13 +383,13 @@ void start_httpServer(char **params_list, sqlite3 *sqlite3_param_db)
          guiport=strtol(params_list[GUIPORT],&end,10);
          if(*end!=0 || errno==ERANGE)
          {
-            VERBOSE(5) fprintf(stderr,"%s (%s) : GUI port (%s), not a number, 8083 will be used.\n",INFO_STR,__func__,params_list[GUIPORT]);
+            VERBOSE(9) fprintf(stderr,"%s (%s) : GUI port (%s), not a number, 8083 will be used.\n",INFO_STR,__func__,params_list[GUIPORT]);
             guiport=8083;
          }
       }
       else
       {
-         VERBOSE(5) fprintf(stderr,"%s (%s) : can't get GUI port, 8083 will be used.\n",INFO_STR,__func__);
+         VERBOSE(9) fprintf(stderr,"%s (%s) : can't get GUI port, 8083 will be used.\n",INFO_STR,__func__);
          guiport=8083;
       }
       
@@ -397,14 +397,14 @@ void start_httpServer(char **params_list, sqlite3 *sqlite3_param_db)
          httpServer(guiport, params_list[GUI_PATH], phpcgibin, params_list[PHPINI_PATH]);
       else
       {
-         VERBOSE(1) fprintf(stderr,"%s (%s) : can't start GUI Server (can't create configs.php).\n",ERROR_STR,__func__);
+         VERBOSE(3) fprintf(stderr,"%s (%s) : can't start GUI Server (can't create configs.php).\n",ERROR_STR,__func__);
          // on continu sans ihm
       }
       free(phpcgibin);
    }
    else
    {
-      VERBOSE(1) fprintf(stderr,"%s (%s) : can't start GUI Server (parameters errors).\n",ERROR_STR,__func__);
+      VERBOSE(3) fprintf(stderr,"%s (%s) : can't start GUI Server (parameters errors).\n",ERROR_STR,__func__);
       // on continu sans ihm
    }
 }
@@ -422,14 +422,14 @@ pthread_t *pythonPluginServer_thread=NULL;
       if(pythonPluginServer_thread==NULL)
       {
          sqlite3_close(sqlite3_param_db);
-         VERBOSE(1) fprintf(stderr,"%s (%s) : can't start Python Plugin Server (thread error).\n",ERROR_STR,__func__);
+         VERBOSE(2) fprintf(stderr,"%s (%s) : can't start Python Plugin Server (thread error).\n",ERROR_STR,__func__);
          stop_all_services_and_exit();
       }
    }
    else
    {
       sqlite3_close(sqlite3_param_db);
-      VERBOSE(1) fprintf(stderr,"%s (%s) : can't start Python Plugin Server (incorrect plugin path).\n",ERROR_STR,__func__);
+      VERBOSE(2) fprintf(stderr,"%s (%s) : can't start Python Plugin Server (incorrect plugin path).\n",ERROR_STR,__func__);
       stop_all_services_and_exit();
    }
    return pythonPluginServer_thread;
@@ -445,7 +445,7 @@ tomysqldb_md_t *start_dbServer(char **params_list, sqlite3 *sqlite3_param_db)
    if(!md)
    {
       sqlite3_close(sqlite3_param_db);
-      VERBOSE(1) {
+      VERBOSE(2) {
          fprintf(stderr,"%s (%s) : %s - ", ERROR_STR, __func__, MALLOC_ERROR_STR);
          perror("");
       }
@@ -456,7 +456,7 @@ tomysqldb_md_t *start_dbServer(char **params_list, sqlite3 *sqlite3_param_db)
    ret=tomysqldb_init(md, params_list[MYSQL_DB_SERVER], params_list[MYSQL_DB_PORT], params_list[MYSQL_DATABASE], params_list[MYSQL_USER], params_list[MYSQL_PASSWD], params_list[SQLITE3_DB_BUFF_PATH]);
    if(ret==-1)
    {
-      VERBOSE(1) fprintf(stderr,"%s (%s) : Can not init data base communication.\n",ERROR_STR,__func__);
+      VERBOSE(2) fprintf(stderr,"%s (%s) : Can not init data base communication.\n",ERROR_STR,__func__);
    }
 #else
    VERBOSE(9) fprintf(stderr,"%s  (%s) : dbServer desactivated.\n",INFO_STR,__func__);
@@ -474,14 +474,14 @@ pthread_t *start_xPLServer(char **params_list, queue_t *interfaces, sqlite3 *sql
       if(xPLServer_thread==NULL)
       {
          sqlite3_close(sqlite3_param_db);
-         VERBOSE(1) fprintf(stderr,"%s (%s) : can't start xpl server.\n",ERROR_STR,__func__);
+         VERBOSE(2) fprintf(stderr,"%s (%s) : can't start xpl server.\n",ERROR_STR,__func__);
          stop_all_services_and_exit();
       }
    }
    else
    {
       sqlite3_close(sqlite3_param_db);
-      VERBOSE(1) fprintf(stderr,"%s (%s) : can't start xpl server (incorrect xPL address).\n",ERROR_STR,__func__);
+      VERBOSE(2) fprintf(stderr,"%s (%s) : can't start xpl server (incorrect xPL address).\n",ERROR_STR,__func__);
       stop_all_services_and_exit();
    }
    return xPLServer_thread;
@@ -510,7 +510,7 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
    if(ret)
    {
       sqlite3_close(sqlite3_param_db);
-      VERBOSE(1) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
+      VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
       stop_all_services_and_exit();
    }
    while (1)
@@ -541,7 +541,7 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                   i001=(interface_type_001_t *)malloc(sizeof(interface_type_001_t));
                   if(!i001)
                   {
-                     VERBOSE(1) {
+                     VERBOSE(2) {
                         fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
                         perror(""); }
                      break;
@@ -557,7 +557,7 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                   }
                   else
                   {
-                     VERBOSE(1) {
+                     VERBOSE(2) {
                         fprintf (stderr, "%s (%s) : start_interface_type_001 - can't start interface (%d).\n",ERROR_STR,__func__,id_interface);
                      }
                      free(i001);
@@ -573,7 +573,7 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                   i002=(interface_type_002_t *)malloc(sizeof(interface_type_002_t));
                   if(!i002)
                   {
-                     VERBOSE(1) {
+                     VERBOSE(2) {
                         fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
                         perror(""); }
                      break;
@@ -589,7 +589,7 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                   }
                   else
                   {
-                     VERBOSE(1) {
+                     VERBOSE(2) {
                         fprintf (stderr, "%s (%s) : start_interface_type_002 - can't start interface (%d).\n",ERROR_STR,__func__,id_interface);
                      }
                      free(i002);
@@ -614,7 +614,7 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
       }
       else
       {
-         VERBOSE(1) fprintf (stderr, "%s (%s) : sqlite3_step - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
+         VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_step - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
          sqlite3_finalize(stmt);
          sqlite3_close(sqlite3_param_db);
          stop_all_services_and_exit();
@@ -630,13 +630,13 @@ int export_electricity_conters()
    
    if (mysql_real_connect(conn, "192.168.0.22", "domotique", "maison", "domotique", 3306, NULL, 0) == NULL)
    {
-      VERBOSE(1) fprintf(stderr,"%s (%s) : %u - %s\n", ERROR_STR,__func__,mysql_errno(conn), mysql_error(conn));
+      VERBOSE(2) fprintf(stderr,"%s (%s) : %u - %s\n", ERROR_STR,__func__,mysql_errno(conn), mysql_error(conn));
       return -1;
    }
    
    if(mysql_query(conn, "SELECT sensor_id, date, wh, kwh FROM electricity_counters"))
    {
-      VERBOSE(1) fprintf(stderr,"%s (%s) : %u - %s\n", ERROR_STR,__func__,mysql_errno(conn), mysql_error(conn));
+      VERBOSE(2) fprintf(stderr,"%s (%s) : %u - %s\n", ERROR_STR,__func__,mysql_errno(conn), mysql_error(conn));
       return 1;
    }
   
@@ -964,11 +964,21 @@ int main(int argc, const char * argv[])
    }
    
    char log_file[255];
-   if(strlen(params_list[LOG_PATH]))
-      snprintf(log_file,sizeof(log_file),"%s/mea-edomus.log", params_list[LOG_PATH]);
-   else
-      snprintf(log_file,sizeof(log_file),"/var/log/mea-edomus.log");
+   int16_t n;
    
+   if(strlen(params_list[LOG_PATH]))
+      n=snprintf(log_file,sizeof(log_file),"%s/mea-edomus.log", params_list[LOG_PATH]);
+   else
+      n=snprintf(log_file,sizeof(log_file),"/var/log/mea-edomus.log");
+   if(n<0 || n==sizeof(log_file))
+   {
+      VERBOSE(1) {
+         fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);
+         perror("");
+      }
+      exit(1);
+   }
+
    int fd=open(log_file, O_CREAT | O_APPEND | O_RDWR,  S_IWUSR | S_IRUSR);
    if(fd<0)
    {
