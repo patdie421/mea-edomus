@@ -566,15 +566,11 @@ static PyObject *mea_sendAtCmd(PyObject *self, PyObject *args)
    
    int16_t err;
    
-   fprintf(stderr,"addr_l=%d, addr_h=%d\n",addr_l, addr_h);
    if(addr_l != 0xFFFFFFFF && addr_h != 0xFFFFFFFF)
    {
       host=(xbee_host_t *)malloc(sizeof(xbee_host_t)); // description de l'xbee directement connecté
       xbee_get_host_by_addr_64(xd, host, addr_h, addr_l, &err);
-      if(err==XBEE_ERR_NOERR)
-      {
-      }
-      else
+      if(err!=XBEE_ERR_NOERR)
       {
          VERBOSE(9) fprintf(stderr, "%s (%s) : host not found\n", ERROR_STR,__func__);
          goto mea_atCmdSend_arg_err;

@@ -39,7 +39,7 @@
 #include "xPLServer.h"
 #include "pythonPluginServer.h"
 #include "httpServer.h"
-
+#include "automatorServer.h"
 
 tomysqldb_md_t *myd;                       /*!< descripteur mysql. Variable globale car doit être accessible par les gestionnaires de signaux. */
 queue_t *interfaces;                       /*!< liste (file) des interfaces. Variable globale car doit être accessible par les gestionnaires de signaux. */
@@ -50,6 +50,7 @@ pthread_t *pythonPluginServer_thread=NULL; /*!< Adresse du thread Python. Variab
 char *params_names[MAX_LIST_SIZE];          /*!< liste des noms (chaines) de paramètres dans la base sqlite3 de paramétrage.*/
 char *params_list[MAX_LIST_SIZE];          /*!< liste des valeurs de paramètres.*/
 
+pid_t automator_pid = -1;
 
 
 tomysqldb_md_t *get_myd()
@@ -277,6 +278,16 @@ void stop_all_services_and_exit()
       VERBOSE(9) fprintf(stderr,"done\n");
    }
    
+   if(automator_pid>0)
+   {
+      int status;
+      
+      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping automatorServer... ",INFO_STR,__func__);
+      kill(automator_pid, SIGTERM);
+      waitpid(automator_pid, &status, 0);
+      VERBOSE(9) fprintf(stderr,"done\n");
+   }
+   
    for(int16_t i=0;i<MAX_LIST_SIZE;i++)
    {
       if(params_list[i])
@@ -286,7 +297,7 @@ void stop_all_services_and_exit()
       }
    }
    
-   VERBOSE(9) fprintf(stderr,"%s  (%s) : mea-edomus gone ...\n",INFO_STR,__func__);
+   VERBOSE(9) fprintf(stderr,"%s  (%s) : mea-edomus done ...\n",INFO_STR,__func__);
 
    exit(0);
 }
@@ -928,14 +939,6 @@ int main(int argc, const char * argv[])
    }
 
    
-   //   
-   // initialisation gestions des signaux (arrêt de l'appli et réinitialisation
-   //
-   signal(SIGINT,  _signal_STOP);
-   signal(SIGQUIT, _signal_STOP);
-   signal(SIGTERM, _signal_STOP);
-   signal(SIGHUP,  _signal_HUP);
-
    //
    // Contrôle et ouverture de la base de paramétrage
    //
@@ -944,6 +947,7 @@ int main(int argc, const char * argv[])
    {
       exit(1);
    }
+
  
    // ouverture de la base de paramétrage
    ret = sqlite3_open_v2(params_list[SQLITE3_DB_PARAM_PATH], &sqlite3_param_db, SQLITE_OPEN_READWRITE, NULL);
@@ -952,6 +956,7 @@ int main(int argc, const char * argv[])
       VERBOSE(1) fprintf (stderr, "%s (%s) : sqlite3_open - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
       exit(1);
    }
+
    
    // lecture de tous les paramètres de l'application
    ret = read_all_application_parameters(sqlite3_param_db);
@@ -962,7 +967,11 @@ int main(int argc, const char * argv[])
       
       exit(1);
    }
-   
+
+
+   //
+   // strout et stderr vers fichier log
+   //
    char log_file[255];
    int16_t n;
    
@@ -991,7 +1000,23 @@ int main(int argc, const char * argv[])
    dup2(fd, 2);
    close(fd);
 
-   // démarrage des "services" (les services "majeurs" arrêtent (exit) si non démarrage
+
+   //   
+   // demarrage du processus de l'automate
+   //
+   automator_pid = start_automatorServer();
+
+
+   //
+   // initialisation gestions des signaux (arrêt de l'appli et réinitialisation
+   //
+   signal(SIGINT,  _signal_STOP);
+   signal(SIGQUIT, _signal_STOP);
+   signal(SIGTERM, _signal_STOP);
+   signal(SIGHUP,  _signal_HUP);
+
+
+   // démarrage des "services" (les services "majeurs" arrêtent tout (exit) si non démarrage
    if(!_b)
       myd=start_dbServer(params_list, sqlite3_param_db); // initialisation de la communication avec la base MySQL
    pythonPluginServer_thread=start_pythonPluginServer(params_list, sqlite3_param_db); // initialisation du serveur de plugin python
