@@ -18,6 +18,7 @@
 #include <string.h>
 #include <getopt.h>
 #include <libgen.h>
+#include <sys/wait.h>
 
 #include <sqlite3.h>
 
