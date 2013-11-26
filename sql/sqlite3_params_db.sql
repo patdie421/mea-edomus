@@ -63,8 +63,10 @@ source TEXT,
 schema TEXT,
 input_type INTEGER,
 input_index INTEGER,
-input_value TEXT
+input_value TEXT,
+nb_conditions INTEGER
 );
+
 
 CREATE TABLE conditions
 (
@@ -77,54 +79,126 @@ value TEXT,
 op INTEGER
 );
 
-// rule1 : 1, 1, "rule1", "mea-edomus.myhome", "sensor.basic", 1, 1, "TRUE" (device = "push1", data1 = "HIGH")
-// rule2 : 2, 2, "rule2", "mea-edomus.myhome", "sensor.basic", 1, 1, "FALSE" (device = "push1", data1 = "LOW")
-// rule3 : 3, 3, "rule3", "mea-edomus.myhome", "sensor.basic", 1, 2, "TRUE" (device = "humi1", unit = "%", data1 > 80)
 
-INSERT INTO "rules" VALUES(1,1,"rule1","mea-edomus.myhome","sensor.basic", 1, 1, "TRUE");
-INSERT INTO "rules" VALUES(2,2,"rule2","mea-edomus.myhome","sensor.basic", 1, 1, "FALSE");
-INSERT INTO "rules" VALUES(3,3,"rule3","mea-edomus.myhome","sensor.basic", 1, 2, "TRUE");
+// rule1 : 1, 1, "rule1", "mea-edomus.home", "sensor.basic", 1, 1, "TRUE" (device = "push1", data1 = "HIGH")
+// rule2 : 2, 2, "rule2", "mea-edomus.home", "sensor.basic", 1, 1, "FALSE" (device = "push1", data1 = "LOW")
+// rule3 : 3, 3, "rule3", "mea-edomus.home", "sensor.basic", 1, 2, "TRUE" (device = "humi1", unit = "%", data1 > 80)
+// rule4 : 4, 4, "rule4", "mea-edomus.home", "sensor.basic", 1, 2, "FALSE" (device = "humi1", unit = "%", data1 <= 50)
+
+INSERT INTO "rules" VALUES(1,1,"rule1","mea-edomus.home","sensor.basic", 1, 1, "TRUE", 2);
+INSERT INTO "rules" VALUES(2,2,"rule2","mea-edomus.home","sensor.basic", 1, 1, "FALSE", 2);
+INSERT INTO "rules" VALUES(3,3,"rule3","mea-edomus.home","sensor.basic", 1, 2, "TRUE", 3);
+INSERT INTO "rules" VALUES(4,4,"rule4","mea-edomus.home","sensor.basic", 1, 2, "FALSE", 3);
 
 INSERT INTO "conditions" VALUES (1, 1, 1, "C1", "device", "push1", 1);
-INSERT INTO "conditions" VALUES (2, 2, 1, "C2", "data1", "HIGH", 1);
+INSERT INTO "conditions" VALUES (2, 2, 1, "C2", "current", "HIGH", 1);
 
 INSERT INTO "conditions" VALUES (3, 3, 2, "C3", "device", "push1", 1);
-INSERT INTO "conditions" VALUES (4, 4, 2, "C4", "data1", "LOW", 1);
+INSERT INTO "conditions" VALUES (4, 4, 2, "C4", "current", "LOW", 1);
 
 INSERT INTO "conditions" VALUES (5, 5, 3, "C5", "device", "humi1", 1);
 INSERT INTO "conditions" VALUES (6, 6, 3, "C6", "unit", "%", 1);
-INSERT INTO "conditions" VALUES (7, 7, 3, "C7", "data1", "80", 2);
+INSERT INTO "conditions" VALUES (7, 7, 3, "C7", "current", "80", 2);
 
+INSERT INTO "conditions" VALUES (8, 8, 4, "C8", "device", "humi1", 1);
+INSERT INTO "conditions" VALUES (9, 9, 4, "C9", "unit", "%", 1);
+INSERT INTO "conditions" VALUES (10, 10, 4, "C10", "current", "50", 2);
 
-SELECT id_rules FROM
-   (SELECT id_rules,COUNT(id_rules) AS C
-      FROM conditions
-      JOIN rules ON id_rules = rules.id_rule
-      WHERE    (key="device")
-            OR (key="unit")
-            OR (key="data1")
-      GROUP BY id_rules
-    )
-    WHERE c=3 ;
-
--- resultat : 3
-
-SELECT key, op, value,id_condition FROM conditions WHERE id_rule=3 and op<>1 ;
-
+SELECT
+   conditions.id_rule,
+   rules.name,
+   rules.input_type,
+   rules.input_index,
+   rules.input_value
+   FROM conditions
+   JOIN rules ON conditions.id_rule = rules.id_rule
+      WHERE ((key="device") OR (key="data1"))
+      AND rules.source="mea-edomus.myhome"
+      AND rules.schema="sensor.basic"
+   GROUP BY conditions.id_rule
+   HAVING COUNT(conditions.id_rule) = rules.nb_conditions;
+   
 -- resultat :
---
--- device|1|humi1|5
--- unit|1|%|6
--- data1|2|80|7
+-- 1|rule1|1|1|TRUE
+-- 2|rule2|1|1|FALSE
+
+SELECT name, key, op, value FROM conditions WHERE id_rule=1 ;
+-- resultat :
+-- C1|device|1|push1
+-- C2|data1|1|HIGH
+
+SELECT name, key, op, value FROM conditions WHERE id_rule=2 ;
+-- C3|device|1|push1
+-- C4|data1|1|LOW
 
 
-SELECT id_rules FROM
-   (SELECT id_rules,COUNT(id_rules) AS C
-      FROM conditions
-      JOIN rules ON id_rules = rules.id_rule
-      WHERE    (key="device")
-            OR (key="data1")
-      GROUP BY id_rules
-    )
-    WHERE c=2 ;
+SELECT
+   conditions.id_rule,
+   rules.name,
+   rules.input_type,
+   rules.input_index,
+   rules.input_value
+   FROM conditions
+   JOIN rules ON conditions.id_rule = rules.id_rule
+      WHERE ((key="device" AND value="humi1") OR (key="unit" AND value="%") OR (key="data1"))
+      AND rules.source="mea-edomus.myhome"
+      AND rules.schema="sensor.basic"
+   GROUP BY conditions.id_rule
+   HAVING COUNT(conditions.id_rule) = rules.nb_conditions;
+   
+-- resultat :
+-- 3|rule3|1|2|TRUE
+-- 4|rule4|1|2|FALSE
 
+
+SELECT
+   conditions.id_rule,
+   rules.name,
+   rules.input_type,
+   rules.input_index,
+   rules.input_value
+   FROM conditions
+   JOIN rules ON conditions.id_rule = rules.id_rule
+   WHERE ((key="device") OR (key="data1") OR (key="unitE") OR (key="null"))
+      AND rules.source="mea-edomus.myhome"
+      AND rules.schema="sensor.basic"
+   GROUP BY conditions.id_rule
+   HAVING COUNT(conditions.id_rule) = rules.nb_conditions
+
+/*
+char *get_rules_sql="\
+SELECT\
+   conditions.id_rule,\
+   rules.name,\
+   input_type,\
+   input_index,\
+   input_value\
+   FROM conditions\
+   JOIN rules ON conditions.id_rule = rules.id_rule\
+   WHERE (%s)\
+      AND rules.source='%s'\
+      AND rules.schema='%s'\
+   GROUP BY conditions.id_rule\
+   HAVING COUNT(conditions.id_rule) = rules.nb_conditions;";
+   
+char conditions_keys[1024];
+char condition_key[256];
+
+xPL_NameValueListPtr body = xPL_getMessageBody(theMessage);
+int n = xPL_getNamedValueCount(body);
+for (int16_t i = 0; i < n; i++)
+{
+   xPL_NameValuePairPtr keyValuePtr = xPL_getNamedValuePairAt(body, i);
+   if(!isnumber(keyValuePtr->itemValue)) // pour les valeurs non numérique seul l'égalité est possible, on peut donc améliorer la recherche
+      snprintf(condition_key,sizeof(condition_key),"(key = %s AND value = %s), keyValuePtr->itemName, keyValuePtr->itemValue);
+   else
+      snprintf(condition_key,sizeof(condition_key),"(key = %s), keyValuePtr->itemName);
+   if(i)
+      strcat(conditions_keys," OR ");
+   strcat(condition_keys, condition_key);
+   
+   // executer la requete SQL
+}
+
+snprintf(sql,sizeof(sql),get_rules_sql,conditions_keys,source,schema);
+*/
