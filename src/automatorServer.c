@@ -21,7 +21,7 @@
 #include "error.h"
 #include "macros.h"
 #include "memory.h"
-//#include "string_utils.h"
+#include "string_utils.h"
 
 #define XPL_VERSION "0.1a2"
 
@@ -42,8 +42,17 @@ AND rules.schema='%s' \
 GROUP BY conditions.id_rule \
 HAVING COUNT(conditions.id_rule)=rules.nb_conditions;";
 
+char *get_conditions_sql="\
+SELECT \
+name, \
+key, \
+op, \
+value \
+FROM conditions \
+WHERE id_rule=%d;";
 
-int16_t isnumeric(char *s)
+
+int16_t isnumeric3(char *s)
 {
    float f;
    char *end;
@@ -55,14 +64,224 @@ int16_t isnumeric(char *s)
       return 1;
 }
 
+int16_t isnumeric2(char *s, float *v)
+{
+   char *end;
+   float f;
+   
+   f=strtof(s,&end);
+   if(*end!=0 || errno==ERANGE || end==s)
+      return 0;
+   else
+   {
+      if(v)
+         *v=f;
+      return 1;
+   }
+}
 
 static void _automator_stop(int signal_number)
 {
    exit(0);
 }
 
+uint16_t digital_inputs[255];
+float analog_inputs[255];
+int n;
 
-uint16_t find_rules(xPL_MessagePtr theMessage)
+
+int16_t set_input(int input_type, int input_index, char *input_value, xPL_NameValueListPtr xpl_body)
+{
+   char value[128];
+   char key[128];
+   char *value_ptr;
+   
+   if(input_value[0]=='#') // traitement d'une fonction
+   {
+      if(sscanf(input_value,"#valueof(%s)%n", key, &n) == 1 && n == strlen(input_value))
+      {
+         value_ptr = xPL_getNamedValue(xpl_body, key);
+         if(value_ptr)
+            strcpy(value,value_ptr);
+         else
+            return -1;
+      }
+      else
+         return -1; // erreur
+   }
+   else
+      strcpy(value, input_value);
+      strToUpper(value);
+   
+   if(input_type==1) // digital
+   {
+      int v;
+      float fvalue;
+
+      if(strcmp(value,"high")==0)
+         v=255;
+      else if(strcmp(value,"low")==0)
+         v=0;
+      else if(isnumeric2(value,&fvalue))
+      {
+         if(fvalue==0)
+            v=0;
+         else
+            v=255;
+      }
+      else
+         return -1;
+      
+      // lock la table
+      // update_digital_inputs(input_index,v);
+      digital_inputs[input_index]=v;
+      // delock la table
+      return 0;
+   }
+   else
+   {
+      float fvalue;
+
+      if(isnumeric2(value,&fvalue))
+      {
+         // lock la table
+         // update_analog_inputs(input_index,v);
+         analog_inputs[input_index]=fvalue;
+         // delock la table
+         return 0;
+      }
+      else
+         return -1;
+   }
+   
+   return 0;
+}
+
+               
+int16_t check_conditions(int conditions_id_rule, xPL_NameValueListPtr xpl_body)
+{
+   char sql_query[1024];
+
+   snprintf(sql_query,sizeof(sql_query),get_conditions_sql,conditions_id_rule);
+   sqlite3_stmt * stmt;
+   int ret = sqlite3_prepare_v2(db, sql_query, strlen(sql_query)+1, &stmt, NULL);
+   if(ret)
+   {
+      VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg (db));
+      return -1;
+   }
+   else
+   {
+      int16_t ret=0;
+      while (1)
+      {
+         int s = sqlite3_step (stmt); // sqlite function need int
+         if (s == SQLITE_ROW)
+         {
+            char *name;
+            char *key;
+            int op;
+            char value[128];
+            char xpl_value[128];
+            
+            float fvalue, fxpl_value;
+            
+            name = (char *)sqlite3_column_text(stmt, 0);
+            key = (char *)sqlite3_column_text(stmt, 1);
+            op = sqlite3_column_int(stmt, 2);
+            strncpy(value,(char *)sqlite3_column_text(stmt, 3),sizeof(value));
+            strToUpper(value);
+            
+            char *xpl_value_ptr = xPL_getNamedValue(xpl_body, key);
+            if(!xpl_value_ptr)
+            {
+               sqlite3_finalize(stmt);
+               return -1;
+            }
+            strncpy(xpl_value,xpl_value_ptr,sizeof(xpl_value));
+            strToUpper(xpl_value);
+            
+            int16_t isnum=isnumeric2(value,&fvalue) && isnumeric2(xpl_value,&fxpl_value);
+            
+            switch(op)
+            {
+               case 1: // '=' égal
+                  if(isnum)
+                     if(fxpl_value == fvalue)
+                        break;
+                     else
+                        ret=1;
+                  else
+                     if(strcmp(value,xpl_value)==0)
+                        break;
+                     else
+                        ret=1;
+                  break;
+               case 2: // '<>' différent
+                  if(isnum)
+                     if(fxpl_value == fvalue)
+                        break;
+                     else
+                        ret=1;
+                  else
+                     if(strcmp(value,xpl_value)!=0)
+                        break;
+                     else
+                        ret=1;
+                  break;
+               case 3: // '<'
+                  if(isnum && (fxpl_value < fvalue))
+                     break;
+                  else
+                     ret=1;
+                  break;
+               case 4: // '<='
+                  if(isnum && (fxpl_value <= fvalue))
+                     break;
+                  else
+                     ret=1;
+                  break;
+               case 5: // '>'
+                  if(isnum && (fxpl_value > fvalue))
+                     break;
+                  else
+                     ret=1;
+                  break;
+               case 6: // '>='
+                  if(isnum && (fxpl_value >= fvalue))
+                     break;
+                  else
+                     ret=1;
+                  break;
+               default:
+                  ret=1;
+                  break;
+            }
+            
+            if(ret==1)
+            {
+               sqlite3_finalize(stmt);
+               return -1;
+            }
+         }
+         else if (s == SQLITE_DONE)
+         {
+            sqlite3_finalize(stmt);
+            return 0;
+            break;
+         }
+         else
+         {
+            VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_step - %s\n", ERROR_STR,__func__,sqlite3_errmsg (db));
+            sqlite3_finalize(stmt);
+            return -1;
+         }
+      }
+   }
+}
+
+
+int16_t find_and_process_rules(sqlite3 *db, xPL_MessagePtr theMessage)
 {
    char xpl_source[48];
    char xpl_schema[48];
@@ -81,7 +300,7 @@ uint16_t find_rules(xPL_MessagePtr theMessage)
    {
       xPL_NameValuePairPtr keyValuePtr = xPL_getNamedValuePairAt(xpl_body, i);
 
-      if(!isnumeric(keyValuePtr->itemValue)) // pour les valeurs non numérique seul l'égalité est possible, on peut donc améliorer la recherche
+      if(!isnumeric2(keyValuePtr->itemValue,NULL)) // pour les valeurs non numérique seul l'égalité ou l'inégalité est possible, on peut donc améliorer la 1ere recherche
          snprintf(condition_key,sizeof(condition_key),"(key = '%s' AND value = '%s')", keyValuePtr->itemName, keyValuePtr->itemValue);
       else
          snprintf(condition_key,sizeof(condition_key),"(key = '%s')", keyValuePtr->itemName);
@@ -102,7 +321,7 @@ uint16_t find_rules(xPL_MessagePtr theMessage)
    }
    else
    {
-      fprintf(stderr,"CONDITION : %s\n",conditions_keys);
+      VERBOSE(9) fprintf(stderr,"%s (%s) : RULE CONDITION - %s\n",INFO_STR,__func__,conditions_keys);
       while (1)
       {
          int s = sqlite3_step (stmt); // sqlite function need int
@@ -120,7 +339,16 @@ uint16_t find_rules(xPL_MessagePtr theMessage)
             input_index = sqlite3_column_int(stmt, 3);
             input_value = (char *)sqlite3_column_text(stmt, 1);
             
-            fprintf(stderr,"%d %s %d %d %s\n",conditions_id_rule, rules_name, input_type, input_index, input_value);
+            if(check_conditions(conditions_id_rule, xpl_body)==0)
+            {
+               VERBOSE(9) fprintf (stderr, "%s (%s) : RULE %s MATCH :-)\n", INFO_STR,__func__,rules_name);
+               // ret=set_input(input_type, input_index, input_value, xpl_body);
+               // si ret==0 déclenchement de l'automate (synchro a définir : signal, condition, ...)
+            }
+            else
+            {
+               VERBOSE(9) fprintf (stderr, "%s (%s) : RULE %s NOT MATCH :-(\n", INFO_STR,__func__,rules_name);
+            }
          }
          else if (s == SQLITE_DONE)
          {
@@ -139,55 +367,45 @@ uint16_t find_rules(xPL_MessagePtr theMessage)
 }
 
 
-void printXPLMessage(xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
+void acquireInput(xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
 {
-   find_rules(theMessage);
+   find_and_process_rules(db, theMessage);
 }
 
 
-// 1 thread d'acquisition : trapper en continue les messages xpl
-   // Les règles d'acquisition : quelles données utilisées ?
-// 1 thread de mise à jour de la table
-   // 1 tableau "mémoire de travail" mis à jour par le thread
-// une file entre les deux thread
-
-// 1 thread de gestion des timers
-
-// 1 tableau des étapes
-
-
-void automator()
+void automator(char *db_path)
 {
    signal(SIGINT,  _automator_stop);
    signal(SIGQUIT, _automator_stop);
    signal(SIGTERM, _automator_stop);
 
-/*
-   while(1)
+   int ret = sqlite3_open_v2(db_path, &db, SQLITE_OPEN_READWRITE, NULL);
+   if(ret)
    {
-      // attendre déclenchement : traitement uniquement si changement de données
-      
-      // acquisition des entrées
-         // copie de données collectées dans la mémoire de traitement (les entrées sont figées)
-      
-      // traitements
-      
-      // affectation des sorties
-      
-      sleep(5);
-   }
-*/
-   if ( !xPL_initialize(xPL_getParsedConnectionType()) )
-   {
+      VERBOSE(1) fprintf (stderr, "%s (%s) : sqlite3_open - %s\n", ERROR_STR,__func__, sqlite3_errmsg (db));
       exit(1);
    }
+
+   /*
+   // cinématique des flux et traitements
+   messges xPL --> (Thread d'acquisition des entrées) --[entrée]--> | file tampon asynchrone | --[entrée]--> (thread gestion table entrées) -X-> { table entrées }
+      --> (thread automate) --> { table des sorties } -X-> ( thread emission des sorties ) --> messages xPL
+
+   THREAD automate :
+      - copie de la table des entrées
+      - copie de la table des sorties
+      - évaluation des instructions
+      - mise à jour de la table des sorties
+   */
+   if ( !xPL_initialize(xPL_getParsedConnectionType()) )
+      exit(1);
    
    xPL_ServicePtr xPLService = NULL;
    
    xPLService = xPL_createService("mea", "edomus", "cheznousdeva");
    xPL_setServiceVersion(xPLService, XPL_VERSION);
    xPL_setRespondingToBroadcasts(xPLService, TRUE);
-   xPL_addMessageListener(printXPLMessage, NULL);
+   xPL_addMessageListener(acquireInput, NULL);
 
    xPL_setServiceEnabled(xPLService, TRUE);
 
@@ -198,7 +416,7 @@ void automator()
          if(compteur>59)
          {
             compteur=0;
-            fprintf(stderr,"%s  (%s) : xPLServer thread actif\n",INFO_STR,__func__);
+            fprintf(stderr,"%s  (%s) : automatorServer thread actif\n",INFO_STR,__func__);
          }
          else
             compteur++;
@@ -208,7 +426,8 @@ void automator()
       pthread_testcancel();
    }
    while (1);
-
+   
+   sqlite3_close(db);
 }
 
 
@@ -221,25 +440,13 @@ pid_t start_automatorServer(char *db_path)
    if (automator_pid == 0) // child
    {
       // Code only executed by child process
-      int ret = sqlite3_open_v2(db_path, &db, SQLITE_OPEN_READWRITE, NULL);
-      if(ret)
-      {
-         VERBOSE(1) fprintf (stderr, "%s (%s) : sqlite3_open - %s\n", ERROR_STR,__func__, sqlite3_errmsg (db));
-         exit(1);
-      }
-
-      automator();
-     sqlite3_close(db);
+      automator(db_path);
 
       exit(1);
    }
    else if (automator_pid < 0) // failed to fork
-   {
       return -1;
-   }
 
    // Code only executed by parent process
    return automator_pid;
 }
-
-

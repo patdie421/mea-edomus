@@ -1028,6 +1028,8 @@ int main(int argc, const char * argv[])
    
    DEBUG_SECTION fprintf(stderr,"MEA-EDOMUS %s starded\n",__MEA_EDOMUS_VERSION__);
 
+   // automator(params_list[SQLITE3_DB_PARAM_PATH]);
+   
    // boucle sans fin.
    while(1)
    {

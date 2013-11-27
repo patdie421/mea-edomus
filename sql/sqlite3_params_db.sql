@@ -84,11 +84,17 @@ op INTEGER
 // rule2 : 2, 2, "rule2", "mea-edomus.home", "sensor.basic", 1, 1, "FALSE" (device = "push1", data1 = "LOW")
 // rule3 : 3, 3, "rule3", "mea-edomus.home", "sensor.basic", 1, 2, "TRUE" (device = "humi1", unit = "%", data1 > 80)
 // rule4 : 4, 4, "rule4", "mea-edomus.home", "sensor.basic", 1, 2, "FALSE" (device = "humi1", unit = "%", data1 <= 50)
+// rule5 : 5, 5, "rule5", "mea-edomus.home", "sensor.basic", 1, 3, "TRUE" (device = "XHUMI01", type = "humidity", current > 70)
+// rule5 : 6, 6, "rule6", "mea-edomus.home", "sensor.basic", 1, 3, "FALSE" (device = "XHUMI01", type = "humidity", current < 50)
 
-INSERT INTO "rules" VALUES(1,1,"rule1","mea-edomus.home","sensor.basic", 1, 1, "TRUE", 2);
+INSERT INTO "rules" VALUES(1,1,"rule1","mea-edomus.home","sensor.basic", 1, 1, "TRUE",  2);
 INSERT INTO "rules" VALUES(2,2,"rule2","mea-edomus.home","sensor.basic", 1, 1, "FALSE", 2);
-INSERT INTO "rules" VALUES(3,3,"rule3","mea-edomus.home","sensor.basic", 1, 2, "TRUE", 3);
+INSERT INTO "rules" VALUES(3,3,"rule3","mea-edomus.home","sensor.basic", 1, 2, "TRUE",  3);
 INSERT INTO "rules" VALUES(4,4,"rule4","mea-edomus.home","sensor.basic", 1, 2, "FALSE", 3);
+INSERT INTO "rules" VALUES(5,5,"rule5","mea-edomus.home","sensor.basic", 1, 3, "FALSE", 3);
+INSERT INTO "rules" VALUES(6,6,"rule6","mea-edomus.home","sensor.basic", 1, 3, "TRUE",  3);
+
+
 
 INSERT INTO "conditions" VALUES (1, 1, 1, "C1", "device", "push1", 1);
 INSERT INTO "conditions" VALUES (2, 2, 1, "C2", "current", "HIGH", 1);
@@ -104,6 +110,14 @@ INSERT INTO "conditions" VALUES (8, 8, 4, "C8", "device", "humi1", 1);
 INSERT INTO "conditions" VALUES (9, 9, 4, "C9", "unit", "%", 1);
 INSERT INTO "conditions" VALUES (10, 10, 4, "C10", "current", "50", 2);
 
+INSERT INTO "conditions" VALUES (11, 11, 5, "C11", "device", "XHUMI01", 1);
+INSERT INTO "conditions" VALUES (12, 12, 5, "C12", "type", "humidity", 1);
+INSERT INTO "conditions" VALUES (13, 13, 5, "C13", "current", "70", 5);
+
+INSERT INTO "conditions" VALUES (14, 12, 6, "C14", "device", "XHUMI01", 1);
+INSERT INTO "conditions" VALUES (15, 13, 6, "C15", "type", "humidity", 1);
+INSERT INTO "conditions" VALUES (16, 14, 6, "C16", "current", "50", 3);
+
 SELECT
    conditions.id_rule,
    rules.name,
@@ -112,12 +126,21 @@ SELECT
    rules.input_value
    FROM conditions
    JOIN rules ON conditions.id_rule = rules.id_rule
-      WHERE ((key="device") OR (key="data1"))
-      AND rules.source="mea-edomus.myhome"
+      WHERE ((key = 'device' AND value = 'XHUMI01') OR (key = 'current') OR (key = 'type' AND value = 'humidity') OR (key = 'last'))
+      AND rules.source="mea-edomus.home"
       AND rules.schema="sensor.basic"
    GROUP BY conditions.id_rule
    HAVING COUNT(conditions.id_rule) = rules.nb_conditions;
+
+select
+   count(conditions.id_rule),
+   conditions.id_rule
+   from conditions
+   join rules on conditions.id_rule = rules.id_rule
+   where (key='device' AND value="XHUMI01") OR (key="current") OR (key='type' AND value='humidity') OR (key = 'last')
+   GROUP BY conditions.id_rule HAVING rules.nb_conditions = count(conditions.id_rule);
    
+
 -- resultat :
 -- 1|rule1|1|1|TRUE
 -- 2|rule2|1|1|FALSE

@@ -10,5 +10,6 @@
 #define mea_edomus_automatorServer_h
 
 pid_t start_automatorServer(char *db_path);
+void automator(char *db_path);
 
 #endif
