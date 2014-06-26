@@ -93,6 +93,46 @@ var_t vars[]={
 };
 
 
+/* pour un clignotement de led synchronisé */
+class BlinkLeds
+{  
+public:
+  BlinkLeds(unsigned int i);
+  void run();
+  int getLedState() {
+    return ledState;
+  }
+private:
+  int interval;
+  int ledState;
+  unsigned long previousMillis;
+};
+
+
+/*
+ * Création d'un clignotement de led
+ */
+BlinkLeds::BlinkLeds(unsigned int i)
+{
+  interval = i;
+  ledState = LOW;
+  previousMillis = 0;
+}
+ 
+ 
+/*
+ * mis à jour de l'état d'un clignotement en fonction du temps passé
+ */
+void BlinkLeds::run()
+{
+  unsigned long currentMillis = millis();
+  if(my_diff_millis(previousMillis, currentMillis) > interval) {
+    previousMillis = currentMillis;
+    ledState = !ledState;
+  }
+}
+
+
 /******************************************************************************************/
 /* Fonctions "utilitaires"                                                                */
 /******************************************************************************************/
@@ -486,6 +526,9 @@ void setup()
   analogReference(INTERNAL); // rÃ©fÃ©rence 1,1 V interne pour plus de prÃ©cision sur TMP36
   analogRead(A3); // activation du convertisseur analogique / numérique
 
+  // signalisation
+  pinMode(13, OUTPUT);
+
   // initialisation du gestionnaire d'impulsions
   init_pulses();
 
@@ -523,8 +566,13 @@ void setup()
   attachInterrupt(INT1,counter1_inter, CHANGE);
 }
 
+BlinkLeds myBlinkLeds_500ms(500);
+
 void loop()
 {
+  myBlinkLeds_500ms.run();
+  digitalWrite(13, myBlinkLeds_500ms.getLedState()); // clignotement de la led "activité" (D13) de l'ATmega
+
   comio();
   pulses();
   compteurs.run();
