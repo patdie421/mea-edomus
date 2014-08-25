@@ -106,16 +106,12 @@ void *_xPL_server_thread(void *data)
 {
    if ( !xPL_initialize(xPL_getParsedConnectionType()) ) return 0 ;
    
-   // myService = xPL_createService(myVendor, myDevice, myInstance);
-   // xPLService = xPL_createService("mnntamoi", hostname, "default");
-   // xPLService = xPL_createService("mea", "edomus", "cheznousdev")
    xPLService = xPL_createService(xpl_vendorID, xpl_deviceID, xpl_instanceID);
    xPL_setServiceVersion(xPLService, XPL_VERSION);
    
    xPL_setRespondingToBroadcasts(xPLService, TRUE);
    
-   // xPL_setHeartbeatInterval(xPLService, 5000); // en milliseconde ?
-   
+   xPL_setHeartbeatInterval(xPLService, 5000); // en milliseconde    
    // xPL_MESSAGE_ANY, xPL_MESSAGE_COMMAND, xPL_MESSAGE_STATUS, xPL_MESSAGE_TRIGGER
    xPL_addServiceListener(xPLService, cmndMsgHandler, xPL_MESSAGE_COMMAND, "control", "basic", (xPL_ObjectPtr)data) ;
    xPL_addServiceListener(xPLService, cmndMsgHandler, xPL_MESSAGE_COMMAND, "sensor", "request", (xPL_ObjectPtr)data) ;
