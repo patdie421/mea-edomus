@@ -10,8 +10,7 @@
 #define XBEE_CTS_PIN      9
 #define LOCK_AWAKE_PIN    2
 
-#define SLEEP_DURATION   64 / 4 // 64 secondes
-
+#define SLEEP_DURATION   60
 // #define DEBUG             0
 
 DHT22 dht22(DHT22_PIN);
@@ -27,34 +26,40 @@ void inter() // interruption pin 2
 }
 
 
-unsigned int getInternal_1v1(void)
+/*
+ * Mesure la référence interne à 1v1 de l'ATmega
+ */
+unsigned int get_1v1_vs_vcc()
 {
-  ADMUX = 0x4E;                // Sélectionne la référence interne à 1v1 comme point de mesure, avec comme limite haute VCC
-  ADCSRA |= (1 << ADEN);       // Active le convertisseur analogique -> numérique
-  ADCSRA |= (1 << ADSC);       // Lance une conversion analogique -> numérique
+  ADMUX = B00001100; // Vcc comme référence de tension et 1v1 (Vbg) comme entrée de l'ADC
+  ADCSRA |= (1 << ADEN); // Active le convertisseur analogique -> numérique
+  delay(2); // attendre le bon démarrage 
+  ADCSRA |= (1 << ADSC); // Lance une conversion analogique -> numérique
   while(ADCSRA & (1 << ADSC)); // Attend la fin de la conversion
-  return ADCL | (ADCH << 8);   // Récupère le résultat de la conversion
-}
+  return ADCL | (ADCH << 8); // Récupère le résultat de la conversion
+}  
+
 
 
 void setup()
 {
+  ACSR |= _BV(ACD);     // disable the analog comparator => pour économiser un peu
+
   Serial.begin(57600);
 
-   pinMode(DHT22_PIN,INPUT);
-   digitalWrite(DHT22_PIN,HIGH); // activation résistance de pullup
+  pinMode(DHT22_PIN,INPUT);
+  digitalWrite(DHT22_PIN,HIGH); // activation résistance de pullup
    
-   pinMode(LOCK_AWAKE_PIN,INPUT);
-   digitalWrite(LOCK_AWAKE_PIN,HIGH); // pullup ON
+  pinMode(LOCK_AWAKE_PIN,INPUT);
+  digitalWrite(LOCK_AWAKE_PIN,HIGH); // pullup ON
    
+  pinMode(XBEE_SLEEP_PIN,OUTPUT);
+  pinMode(XBEE_CTS_PIN,INPUT);
    
-   pinMode(XBEE_SLEEP_PIN,OUTPUT);
-   pinMode(XBEE_CTS_PIN,INPUT);
+  pinMode(ACTIVITY_LED_PIN,OUTPUT);
+  pinMode(ERROR_LED_PIN,OUTPUT); // erreur
    
-   pinMode(ACTIVITY_LED_PIN,OUTPUT);
-   pinMode(ERROR_LED_PIN,OUTPUT); // erreur
-   
-   pinMode(A0,INPUT);
+  pinMode(A0,INPUT);
 }
 
 
@@ -72,9 +77,6 @@ void blink_led(char pin, int nb_blink, int duration)
 
 void loop()
 {
-#ifdef DEBUG
-   unsigned long chrono = millis();
-#endif
    digitalWrite(XBEE_SLEEP_PIN,LOW); // activation du XBEE
    digitalWrite(ACTIVITY_LED_PIN,HIGH); // activation LED "en fonction"
    
@@ -87,26 +89,31 @@ void loop()
          char err=0;
          float pile_v=0; // tension des piles
 
-         // moyen de 20 lectures pour avoir une valeur "stable" de la tension des piles
-         for(int i=0;i<20;i++)
-         {
-            pile_v=pile_v+analogRead(A0)*3.3/1023;
-         }
-         pile_v=pile_v/20;
+         sbi(PRR, PRADC); // horloge ADC réactivée
+         int vp = get_1v1_vs_vcc(); // pour la référence de mesure de la tension des piles
+         // real_vcc = (1023 * 1.1) / vp;
 
          while(digitalRead(XBEE_CTS_PIN)) // on attend que le XBEE soit dispo
          {
-            if(i>1000) // une seconde max pour que l'XBEE soit dispo
+            if(i>1000) // environ une seconde max pour que l'XBEE soit dispo
             {
-                err=1;
-                break;
+               err=1;
+               break;
             }
             delay(1);
             i++;
          } // attendre CTS
-      
+
          if(!err) // CTS OK dans les temps ?
          {
+            // moyen de 10 lectures pour avoir une valeur "stable" de la tension des piles
+            for(int i=0;i<10;i++)
+            {
+               // pile_v=pile_v+analogRead(A0)*real_vcc/1023;
+               pile_v=pile_v+analogRead(A0)*1.1/vp;
+            }
+            pile_v=pile_v/10;
+
             Serial.print("<SN=");
             Serial.print(sn);
             Serial.print(";H=");
@@ -138,7 +145,7 @@ void loop()
       attachInterrupt(0, inter, LOW);
       for(int i=0; i<SLEEP_DURATION; i++)
       {
-         LowPower.powerDown(SLEEP_4S, ADC_OFF, BOD_OFF);
+         LowPower.powerDown(SLEEP_1S, ADC_OFF, BOD_OFF);
          if(interrupt_flag)
             break;
       }
