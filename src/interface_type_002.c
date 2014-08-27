@@ -116,7 +116,7 @@ mea_error_t print_frame(int ret, unsigned char *resp, uint16_t l_resp)
 {
    DEBUG_SECTION {
       for(int i=0;i<l_resp;i++)
-         fprintf(stderr,"[%03x]",resp[i]);
+         fprintf(stderr,"[%03x - %c]",resp[i],resp[i]);
       printf("\n");
    }
    return NOERROR;
@@ -279,7 +279,7 @@ PyObject *stmt_to_pydict_interface(sqlite3_stmt * stmt)
    uint32_t addr_h, addr_l;
    
    if(sscanf((char *)sqlite3_column_text(stmt, 5), "MESH://%x-%x", &addr_h, &addr_l)==2)
-   {
+  {
       addLong_to_pydict(data_dict, get_token_by_id(ADDR_H_ID), (long)addr_h);
       addLong_to_pydict(data_dict, get_token_by_id(ADDR_L_ID), (long)addr_l);
    }
@@ -394,11 +394,6 @@ mea_error_t _inteface_type_002_xbeedata_callback(int id, unsigned char *cmd, uin
    struct timeval tv;
    struct callback_data_s *callback_data;
    data_queue_elem_t *e;
-   
-   DEBUG_SECTION {
-      fprintf(stderr,"_inteface_type_002_xbeedata_callback : ");
-      print_frame(1, cmd, l_cmd);
-   }
    
    callback_data=(struct callback_data_s *)data;
    
@@ -632,11 +627,6 @@ void *_thread_interface_type_002_xbeedata(void *args)
       
       ret=out_queue_elem(params->queue, (void **)&e);
       
-      DEBUG_SECTION {
-         fprintf(stderr,"_thread_interface_type_002_xbeedata  : ");
-         print_frame(1, e->cmd, e->l_cmd);
-      }
-
       // params->e=e;
       pthread_mutex_unlock(&params->callback_lock);
       pthread_cleanup_pop(0);
@@ -692,7 +682,7 @@ void *_thread_interface_type_002_xbeedata(void *args)
                   pthread_cleanup_push( (void *)free, (void *)plugin_elem );
 
                   plugin_elem->type_elem=XBEEDATA;
-                  
+                 
                   memcpy(plugin_elem->buff, e->cmd, e->l_cmd);
                   plugin_elem->l_buff=e->l_cmd;
                   
@@ -706,15 +696,29 @@ void *_thread_interface_type_002_xbeedata(void *args)
                      plugin_elem->aDict=stmt_to_pydict_device(params->stmt);
                      
                      PyObject *value;
-                     value = PyBuffer_FromMemory(plugin_elem->buff, plugin_elem->l_buff);
+
+                     value = PyByteArray_FromStringAndSize(plugin_elem->buff, (long)plugin_elem->l_buff);
                      PyDict_SetItemString(plugin_elem->aDict, "cmd", value);
                      Py_DECREF(value);
+                     addLong_to_pydict(plugin_elem->aDict, "l_cmd", (long)plugin_elem->l_buff);
+
+                     value = PyByteArray_FromStringAndSize(&(plugin_elem->buff[12]), (long)plugin_elem->l_buff-12);
+                     PyDict_SetItemString(plugin_elem->aDict, "cmd_data", value);
+                     Py_DECREF(value);
                      addLong_to_pydict(plugin_elem->aDict, "l_cmd_data", (long)plugin_elem->l_buff-12);
-                     
+
+/*
                      value = PyBuffer_FromMemory(&(plugin_elem->buff[12]), plugin_elem->l_buff-12);
                      PyDict_SetItemString(plugin_elem->aDict, "cmd_data", value);
                      Py_DECREF(value);
                      addLong_to_pydict(plugin_elem->aDict, "l_cmd_data", (long)plugin_elem->l_buff-12);
+
+                     value = PyBuffer_FromMemory(plugin_elem->buff, plugin_elem->l_buff);
+                     PyDict_SetItemString(plugin_elem->aDict, "cmd", value);
+                     Py_DECREF(value);
+                     addLong_to_pydict(plugin_elem->aDict, "l_cmd", (long)plugin_elem->l_buff);
+*/
+
                      addLong_to_pydict(plugin_elem->aDict, "data_type", (long)data_type);
                      addLong_to_pydict(plugin_elem->aDict, get_token_by_id(ID_XBEE_ID), (long)params->xd);
                      

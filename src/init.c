@@ -475,6 +475,8 @@ int16_t createMeaTables(sqlite3 *sqlite3_param_db)
       "CREATE TABLE types(id INTEGER PRIMARY KEY,id_type INTEGER,name TEXT,description TEXT,parameters TEXT,flag INTEGER)",
       "CREATE TABLE sessions (id INTEGER PRIMARY KEY, userid TEXT, sessionid INTEGER, lastaccess DATETIME)",
       "CREATE TABLE users (id INTEGER PRIMARY KEY, id_user INTEGER, name TEXT, password TEXT, description TEXT, profil INTEGER, flag INTEGER)",
+      "CREATE TABLE conditions (id INTEGER PRIMARY KEY, id_condition INTEGER, id_rule INTEGER, name TEXT, key TEXT, value TEXT, op INTEGER)",
+      "CREATE TABLE rules (id INTEGER PRIMARY KEY, id_rule INTEGER, name TEXT, source TEXT, schema TEXT, input_type INTEGER, input_index INTEGER, input_value TEXT, nb_conditions INTEGER)",
       NULL
    };
 

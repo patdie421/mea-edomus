@@ -1005,7 +1005,7 @@ int main(int argc, const char * argv[])
    //   
    // demarrage du processus de l'automate
    //
-   automator_pid = start_automatorServer(params_list[SQLITE3_DB_PARAM_PATH]);
+//   automator_pid = start_automatorServer(params_list[SQLITE3_DB_PARAM_PATH]);
 
 
    //
