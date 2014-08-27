@@ -1235,6 +1235,10 @@ int _xbee_read_cmd(int fd, char unsigned *frame, uint16_t *l_frame, int16_t *ner
             }
             if(((checksum+c) & 0xFF) == 0xFF)
             {
+                DEBUG_SECTION {
+                fprintf(stderr,"%s (%s) : Frame recept\n", DEBUG_STR,__func__);
+                 _xbee_display_frame(0, frame, l_frame);
+               }
                return 0;
             }
             else
