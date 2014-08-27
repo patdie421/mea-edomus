@@ -395,10 +395,10 @@ mea_error_t _inteface_type_002_xbeedata_callback(int id, unsigned char *cmd, uin
    struct callback_data_s *callback_data;
    data_queue_elem_t *e;
    
-/*   DEBUG_SECTION {
+   DEBUG_SECTION {
       fprintf(stderr,"_inteface_type_002_xbeedata_callback : ");
       print_frame(1, cmd, l_cmd);
-   } */
+   }
    
    callback_data=(struct callback_data_s *)data;
    
@@ -579,10 +579,10 @@ void *_thread_interface_type_002_xbeedata_cleanup(void *args)
 
 void *_thread_interface_type_002_xbeedata(void *args)
 /**
- * \brief     Gestion des données asynchrones en provenances d'xbee
- * \details   Les iodata peuvent arriver n'importe quand, il sagit de pouvoir les traiter dés réceptions.
- *            Le callback associé est en charge de poster les données à traiter dans une file qui seront consommées par ce thread.
- * \param     args   ensemble des parametres nécessaires au thread regroupé dans une structure de données (voir struct thread_params_s)
+ * \brief     Gestion des donnÃ©es asynchrones en provenances d'xbee
+ * \details   Les iodata peuvent arriver n'importe quand, il sagit de pouvoir les traiter dÂÃ©s rÃ©ceptions.
+ *            Le callback associÃ© est en charge de poster les donnÃ©es Ã  traiter dans une file qui seront consommÃ©es par ce thread.
+ * \param     args   ensemble des parametres nÃ©cessaires au thread regroupÃ© dans une structure de donnÃ©es (voir struct thread_params_s)
  */
 {
    struct thread_params_s *params=(struct thread_params_s *)args;
@@ -625,17 +625,17 @@ void *_thread_interface_type_002_xbeedata(void *args)
             }
             else
             {
-               // autres erreurs à traiter
+               // autres erreurs Ã  traiter
             }
          }
       }
       
       ret=out_queue_elem(params->queue, (void **)&e);
       
-/*      DEBUG_SECTION {
+      DEBUG_SECTION {
          fprintf(stderr,"_thread_interface_type_002_xbeedata  : ");
          print_frame(1, e->cmd, e->l_cmd);
-      } */
+      }
 
       // params->e=e;
       pthread_mutex_unlock(&params->callback_lock);
@@ -664,7 +664,7 @@ void *_thread_interface_type_002_xbeedata(void *args)
          {
             VERBOSE(1) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (params_db));
             raise(SIGQUIT); // erreur du process
-            sleep(5);       // on attend 5 secondes avant de s'arrter seul.
+            sleep(5);       // on attend 5 secondes avant de s'arrÂter seul.
             pthread_exit(NULL);
          }
          
@@ -683,7 +683,7 @@ void *_thread_interface_type_002_xbeedata(void *args)
                      free(params->plugin_params);
                      params->plugin_params=NULL;
                   }
-                  continue; // si pas de paramètre (=> pas de plugin) ou pas de fonction ... pas la peine d'aller plus loin
+                  continue; // si pas de paramÃ¨tre (=> pas de plugin) ou pas de fonction ... pas la peine d'aller plus loin
                }
                
                plugin_queue_elem_t *plugin_elem = (plugin_queue_elem_t *)malloc(sizeof(plugin_queue_elem_t));
@@ -700,7 +700,7 @@ void *_thread_interface_type_002_xbeedata(void *args)
                   
                   { // appel des fonctions Python
                      PyEval_AcquireLock();
-                     pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL); // trop compliquer de traiter avec pthread_cleanup => on interdit les arrts lors des commandes python
+                     pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL); // trop compliquer de traiter avec pthread_cleanup => on interdit les arrÂets lors des commandes python
                      PyThreadState *tempState = PyThreadState_Swap(params->myThreadState);
                      
                      plugin_elem->aDict=stmt_to_pydict_device(params->stmt);
@@ -723,8 +723,8 @@ void *_thread_interface_type_002_xbeedata(void *args)
                      
                      PyThreadState_Swap(tempState);
                      PyEval_ReleaseLock();
-                     pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL); // on réauthorise les arrêts 
-                     pthread_testcancel(); // on test tout de suite pour être sûr qu'on a pas ratté une demande d'arrêt
+                     pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL); // on rÃ©authorise les arrÃªts 
+                     pthread_testcancel(); // on test tout de suite pour Ãªtre sÃ»r qu'on a pas rattÃ© une demande d'arrÃªt
                   } // fin appel des fonctions Python
                   pythonPluginServer_add_cmd(params->plugin_params[XBEE_PLUGIN_PARAMS_PLUGIN].value.s, (void *)plugin_elem, sizeof(plugin_queue_elem_t));
                   
@@ -757,7 +757,7 @@ void *_thread_interface_type_002_xbeedata(void *args)
             {
                sqlite3_finalize(params->stmt);
                params->stmt=NULL;
-               break; // traitement des erreurs Ã  affiner avant break ...
+               break; // traitement des erreurs Ãƒ  affiner avant break ...
             }
          }
          
@@ -770,7 +770,7 @@ void *_thread_interface_type_002_xbeedata(void *args)
       }
       else
       {
-         // pb d'accès aux données de la file
+         // pb d'accÃ¨Âs aux donnÃ©es de la file
          DEBUG_SECTION fprintf(stderr,"%s (%s) : out_queue_elem - no data in queue\n", DEBUG_STR, __func__);
       }
       pthread_testcancel();
@@ -780,15 +780,15 @@ void *_thread_interface_type_002_xbeedata(void *args)
 }
 
 
-// xd est déjà dans i002 pourquoi le passer en parametre ...
+// xd est dÃ©jÃ  dans i002 pourquoi le passer en parametre ...
 pthread_t *start_interface_type_002_xbeedata_thread(interface_type_002_t *i002, xbee_xd_t *xd, sqlite3 *db, tomysqldb_md_t *md,thread_f function)
 /**  
- * \brief     Demarrage du thread de gestion des données (non solicitées) en provenance des xbee
+ * \brief     Demarrage du thread de gestion des donnÃ©es (non solicitÃ©es) en provenance des xbee
  * \param     i002           descripteur de l'interface
  * \param     xd             descripteur de com. avec l'xbee
- * \param     db             descripteur ouvert de la base de paramétrage  
+ * \param     db             descripteur ouvert de la base de paramÃ©trage  
  * \param     md             descripteur ouvert de la base d'historique
- * \param     function       function principale du thread à démarrer 
+ * \param     function       function principale du thread Ã  dÃ©marrer 
  * \return    ERROR ou NOERROR
  **/ 
 {
@@ -825,7 +825,7 @@ pthread_t *start_interface_type_002_xbeedata_thread(interface_type_002_t *i002, 
    params->mainThreadState = NULL;
    params->myThreadState = NULL;
    
-   // préparation des données pour les callback io_data et data_flow dont les données sont traitées par le même thread
+   // prÃ©paration des donnÃ©es pour les callback io_data et data_flow dont les donnÃ©es sont traitÃ©es par le mÂÃªme thread
    callback_xbeedata=(struct callback_data_s *)malloc(sizeof(struct callback_data_s));
    if(!callback_xbeedata)
    {
@@ -867,8 +867,8 @@ clean_exit:
 
 mea_error_t stop_interface_type_002(interface_type_002_t *i002)
 /**  
- * \brief     arrêt d'une interface de type 2
- * \details   RAZ de tous les structures de données et libération des mémoires allouées
+ * \brief     arrÃªt d'une interface de type 2
+ * \details   RAZ de tous les structures de donnÃ©es et libÃ©ration des mÃ©moires allouÃ©es
  * \param     i002           descripteur de l'interface  
  * \return    ERROR ou NOERROR
  **/ 
@@ -910,8 +910,8 @@ mea_error_t stop_interface_type_002(interface_type_002_t *i002)
 mea_error_t restart_interface_type_002(interface_type_002_t *i002,sqlite3 *db, tomysqldb_md_t *md)
 /**  
  * \brief     Re-demarrage d'une interface de type 2
- * \details   appel stop_interface_type_002 puis start_interface_type_002 en ayant pris soit de récupérer les différentes données nécessaires.
- * \param     db             descripteur ouvert de la base de paramétrage  
+ * \details   appel stop_interface_type_002 puis start_interface_type_002 en ayant pris soit de rÃ©cupÃ©rer les diffÃ©rentes donnÃ©es nÃ©cessaires.
+ * \param     db             descripteur ouvert de la base de paramÃ©trage  
  * \param     md             descripteur ouvert de la base d'historique
  * \return    ERROR ou NOERROR
  **/ 
@@ -929,11 +929,11 @@ mea_error_t restart_interface_type_002(interface_type_002_t *i002,sqlite3 *db, t
    
    stop_interface_type_002(i002);
 
-   // récupération des (nouveaux) paramètres dans la base
+   // rÃ©cupÃ©ration des (nouveaux) paramÃ¨tres dans la base
    char sql_request[255];
    sqlite3_stmt * stmt;
    snprintf(sql_request,sizeof(sql_request),"SELECT parameters FROM interfaces WHERE id_interface=%d", id_interface);
-   // traiter l'erreur éventuelle snprintf ici
+   // traiter l'erreur Ã©ventuelle snprintf ici
    ret = sqlite3_prepare_v2(db,sql_request,strlen(sql_request)+1,&stmt,NULL);
    if(ret)
    {
@@ -975,9 +975,9 @@ mea_error_t restart_interface_type_002(interface_type_002_t *i002,sqlite3 *db, t
 
 mea_error_t check_status_interface_type_002(interface_type_002_t *it002)
 /**  
- * \brief     indique si une anomalie a généré l'emission d'un signal SIGHUP
+ * \brief     indique si une anomalie a gÃ©nÃ©rÃ© l'emission d'un signal SIGHUP
  * \param     i002           descripteur de l'interface  
- * \return    ERROR signal émis ou NOERROR sinon
+ * \return    ERROR signal Ã©mis ou NOERROR sinon
  **/ 
 {
    if(it002->xd->signal_flag!=0)
@@ -989,12 +989,12 @@ mea_error_t check_status_interface_type_002(interface_type_002_t *it002)
 mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, int id_interface, const unsigned char *dev_and_speed, tomysqldb_md_t *md, char *parameters)
 /**  
  * \brief     Demarrage d'une interface de type 2
- * \details   ouverture de la communication avec l'xbee point d'entrée MESH, démarrage du thread de gestion des données iodata et xbeedata, mise en place des callback xpl et commissionnement
+ * \details   ouverture de la communication avec l'xbee point d'entrÃ©e MESH, dÃ©marrage du thread de gestion des donnÃ©es iodata et xbeedata, mise en place des callback xpl et commissionnement
  * \param     i002           descripteur de l'interface  
- * \param     db             descripteur ouvert de la base de paramétrage  
+ * \param     db             descripteur ouvert de la base de paramÃ©trage  
  * \param     id_interface   identifiant de l'interface
- * \param     dev_and_speed  chemin et vitesse (débit) de l'interface série (sous forme SERIAL://dev:speed
- * \param     parameters     paramètres associés à l'interface
+ * \param     dev_and_speed  chemin et vitesse (dÃ©bit) de l'interface sÃ©rie (sous forme SERIAL://dev:speed
+ * \param     parameters     paramÃ¨tres associÃ©s Ã  l'interface
  * \param     md             descripteur ouvert de la base d'historique
  * \return    ERROR ou NOERROR
  **/ 
@@ -1047,9 +1047,9 @@ mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, in
    i002->xd=xd;
    
    /*
-    * Préparation du réseau XBEE
+    * PrÃ©paration du rÃ©seau XBEE
     */
-   local_xbee=(xbee_host_t *)malloc(sizeof(xbee_host_t)); // description de l'xbee directement connecté
+   local_xbee=(xbee_host_t *)malloc(sizeof(xbee_host_t)); // description de l'xbee directement connectÃ©
    if(!local_xbee)
    {
       VERBOSE(2) {
@@ -1059,7 +1059,7 @@ mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, in
       goto clean_exit;
    }
    
-   // récupération de l'adresse de l'xbee connecter au PC (pas forcement le coordinateur).
+   // rÃ©cupÃ©ration de l'adresse de l'xbee connecter au PC (pas forcement le coordinateur).
    uint32_t addr_64_h;
    uint32_t addr_64_l;
    {
@@ -1085,7 +1085,7 @@ mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, in
    i002->local_xbee=local_xbee;
  
    /*
-    * exécution du plugin de paramétrage
+    * exÃ©cution du plugin de paramÃ©trage
     */   
    int interface_nb_parameters=0;
    parsed_parameters_t *interface_parameters=malloc_parsed_parameters(parameters, valid_xbee_plugin_params, &interface_nb_parameters, &err, 0);
@@ -1093,7 +1093,7 @@ mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, in
    {
       if(interface_parameters)
       {
-         // pas de plugin spécifié
+         // pas de plugin spÃ©cifiÃ©
          free(interface_parameters);
          interface_parameters=NULL;
          VERBOSE(9) fprintf(stderr, "%s  (%s) : no python plugin specified\n", INFO_STR, __func__);
@@ -1129,7 +1129,7 @@ mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, in
          pFunc = PyObject_GetAttrString(pModule, "mea_init");
          if (pFunc && PyCallable_Check(pFunc))
          {
-            // préparation du parametre du module
+            // prÃ©paration du parametre du module
             plugin_params_dict=PyDict_New();
             addLong_to_pydict(plugin_params_dict, get_token_by_id(ID_XBEE_ID), (long)xd);
             addLong_to_pydict(plugin_params_dict, get_token_by_id(INTERFACE_ID_ID), id_interface);
@@ -1137,7 +1137,7 @@ mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, in
                addString_to_pydict(plugin_params_dict, get_token_by_id(INTERFACE_PARAMETERS_ID), interface_parameters[XBEE_PLUGIN_PARAMS_PARAMETERS].value.s);
 
             pArgs = PyTuple_New(1);
-            Py_INCREF(plugin_params_dict); // PyTuple_SetItem va voler la référence, on en rajoute une pour pouvoir ensuite faire un Py_DECREF
+            Py_INCREF(plugin_params_dict); // PyTuple_SetItem va voler la rÃ©fÃ©rence, on en rajoute une pour pouvoir ensuite faire un Py_DECREF
             PyTuple_SetItem(pArgs, 0, plugin_params_dict);
          
             pValue = PyObject_CallObject(pFunc, pArgs); // appel du plugin
@@ -1172,10 +1172,10 @@ mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, in
    }
 
    /*
-    * parametrage du réseau
+    * parametrage du rÃ©seau
     */
-   // déouverte des xbee du réseau
-   xbee_start_network_discovery(xd, &nerr); // lancement de la découverte "asynchrone"
+   // dÃ©ouverte des xbee du rÃ©seau
+   xbee_start_network_discovery(xd, &nerr); // lancement de la dÃ©couverte "asynchrone"
       
    /*
     * Gestion des sous-interfaces
