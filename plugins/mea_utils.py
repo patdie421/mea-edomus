@@ -128,23 +128,23 @@ def xplMsgSetValues(xplMsg, aDict):
 
 def xplMsgPrint(xplMsg):
    try:
-      print xplMsg["message_xpl_type"]
-      print "{"
-      print "hop=" + xplMsg["hop"]
-      print "source=" + xplMsg["source"]
-      print "target=" + xplMsg["target"]
-      print "}"
-      print xplMsg["schema"]
-      print "{"
+      sys.stderr.write(xplMsg["message_xpl_type"])
+      sys.stderr.write("{")
+      sys.stderr.write("hop=" + xplMsg["hop"])
+      sys.stderr.write("source=" + xplMsg["source"])
+      sys.stderr.write("target=" + xplMsg["target"])
+      sys.stderr.write("}")
+      sys.stderr.write(xplMsg["schema"])
+      sys.stderr.write("{");
       try:
          body=xplMsg["xpl-body"]
          for i in body:
-            print i+"="+body[i]
+            sys.stderr.write(i+"="+body[i])
       except:
-         print "<probably no body now !!!>"
-      print "}"
+         sys.stderr.write("<probably no body now !!!>")
+      sys.stderr.write("}")
    except:
-      print "not a xpl message"
+      sys.stderr.write("not a xpl message")
 
 
 def xplMsgToString(xplMsg):
