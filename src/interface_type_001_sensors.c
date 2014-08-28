@@ -171,14 +171,16 @@ void interface_type_001_sensors_free_queue_elem(void *d)
    e=NULL;
 }
 
-
-mea_error_t interface_type_001_sensors_process_traps(int numTrap, void *args, char *buff)
+//typedef int16_t (*trap_f)(int16_t, char *, int16_t, void *);
+int16_t interface_type_001_sensors_process_traps(int16_t numTrap, char *data, int16_t l_data, void *userdata)
 {
    struct sensor_s *sensor;
    
-   sensor=(struct sensor_s *)args;
+//   sensor=(struct sensor_s *)args;
+   sensor=(struct sensor_s *)userdata;
    
-   sensor->val=(unsigned char)buff[0];
+//   sensor->val=(unsigned char)buff[0];
+   sensor->val=(unsigned char)data[0];
    
    {
       char value[20];
@@ -190,7 +192,7 @@ mea_error_t interface_type_001_sensors_process_traps(int numTrap, void *args, ch
       
       xPL_MessagePtr cntrMessageStat = xPL_createBroadcastMessage(servicePtr, xPL_MESSAGE_TRIGGER);
       
-      if(buff[0]==0)
+      if(data[0]==0)
       {
          sensor->val=0;
          sprintf(value,"low");
@@ -496,7 +498,7 @@ void interface_type_001_sensors_poll_inputs(interface_type_001_t *i001, tomysqld
    queue_t *sensors_list=i001->sensors_list;
    struct sensor_s *sensor;
 
-   int comio_err;
+   int comio2_err;
          
    first_queue(sensors_list);
    for(int16_t i=0; i<sensors_list->nb_elem; i++)
@@ -510,9 +512,11 @@ void interface_type_001_sensors_poll_inputs(interface_type_001_t *i001, tomysqld
 
             pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)(&i001->operation_lock) );
             pthread_mutex_lock(&i001->operation_lock);
-               
+/* a convertir               
             v=(int16_t)comio_call(i001->ad, sensor->arduino_function, sensor->arduino_pin, &comio_err);
-               
+*/
+            v=(int16_t)safe_call_comio2_fn(i001, sensor->arduino_function, sensor->arduino_pin);
+
             pthread_mutex_unlock(&i001->operation_lock);
             pthread_cleanup_pop(0);
                
@@ -582,8 +586,11 @@ void interface_type_001_sensors_init(interface_type_001_t *i001)
    for(int16_t i=0; i<sensors_list->nb_elem; i++)
    {
       current_queue(sensors_list, (void **)&sensor);
+/* a convertir
       comio_set_trap2(i001->ad, sensor->arduino_pin+10, interface_type_001_sensors_process_traps, (void *)sensor);
-      
+*/
+      comio2_setTrap(i001->ad, sensor->arduino_pin+10, interface_type_001_sensors_process_traps, (void *)sensor);
+
       start_timer(&(sensor->timer));
 
       next_queue(sensors_list);

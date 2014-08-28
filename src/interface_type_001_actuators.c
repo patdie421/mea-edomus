@@ -22,6 +22,7 @@
 #include "token_strings.h"
 #include "string_utils.h"
 
+#include "interface_type_001.h"
 #include "interface_type_001_actuators.h"
 
 
@@ -147,18 +148,31 @@ valid_and_malloc_relay_clean_exit:
    return NULL;
 }
 
-
-void safe_call_comio_fn(interface_type_001_t *i001, char fn, uint16_t val)
+/*
+void safe_call_comio2_fn(interface_type_001_t *i001, char fn, uint16_t val)
 {
-   int comio_err;
+   uint16_t comio2_err;
+   char fndata[COMIO2_MAX_FRAME_SIZE];
+
+   unsigned char pfort=(unsigned char)(val/256);
+   unsigned char pfaible=(unsigned char)(val-(unsigned int)(pfort*256));
+
+   fndata[0]=fn;
+   fndata[1]=pfort;
+   fndata[2]=pfaible;
 
    pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)(&i001->operation_lock) );
    pthread_mutex_lock(&i001->operation_lock);
-   comio_call(i001->ad, fn, val, &comio_err); // 1 = fonction on/off
+
+// a convertir
+//   comio_call(i001->ad, fn, val, &comio_err); // 1 = fonction on/off
+//
+   comio2_cmdSend(i001->ad, COMIO2_CMD_CALLFUNCTION, fndata, 3, &comio2_err);
+
    pthread_mutex_unlock(&i001->operation_lock);
    pthread_cleanup_pop(0);
 }
-
+*/
 
 mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNomsValeursPtr, char *device, char *type)
 {
@@ -205,7 +219,7 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
                      
                   val=(iq->arduino_pin) << 8;
                   val=val | ((pulse_width / 100) & 0xFF);
-                  safe_call_comio_fn(i001, 0, val);
+                  safe_call_comio2_fn(i001, 0, val);
    
                   break;
                }
@@ -222,7 +236,7 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
                   
                   val=(iq->arduino_pin) << 8;
                   val=val | o;
-                  safe_call_comio_fn(i001, 1, val);
+                  safe_call_comio2_fn(i001, 1, val);
                   
                   return NOERROR;
                   break;
@@ -292,7 +306,7 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
                   
             val=(iq->arduino_pin) << 8;
             val=val | o;
-            safe_call_comio_fn(i001, 2, val);
+            safe_call_comio2_fn(i001, 2, val);
 
             return NOERROR;
          }

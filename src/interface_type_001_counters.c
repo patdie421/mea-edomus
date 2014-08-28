@@ -20,7 +20,7 @@
 #include "error.h"
 #include "debug.h"
 #include "globals.h"
-#include "comio.h"
+#include "comio2.h"
 #include "arduino_pins.h"
 #include "string_utils.h"
 #include "parameters_mgr.h"
@@ -222,7 +222,7 @@ int16_t counter_to_db(tomysqldb_md_t *md, struct electricity_counter_s *counter)
 }
 
 
-void counter_read(comio_ad_t *ad, struct electricity_counter_s *counter)
+void counter_read(comio2_ad_t *ad, struct electricity_counter_s *counter)
 {
    int l1,l2,l3,l4;
    uint32_t c;
@@ -230,19 +230,20 @@ void counter_read(comio_ad_t *ad, struct electricity_counter_s *counter)
    
    do
    {
-      /* l1=0; */l2=0;l3=0;l4=0;
+/* a convertir
+      l1=0;l2=0;l3=0;l4=0;
       // lecture des compteurs stockés dans les variables partagées
-      l1=comio_operation(ad, OP_LECTURE, counter->sensor_mem_addr[0], TYPE_MEMOIRE, 0, &err);
+      l1=comio2_operation(ad, OP_LECTURE, counter->sensor_mem_addr[0], TYPE_MEMOIRE, 0, &err);
       if(l1<0)
          goto _thread_interface_type_001_operation_abord;
-      l2=comio_operation(ad, OP_LECTURE, counter->sensor_mem_addr[1], TYPE_MEMOIRE, 0, &err);
+      l2=comio2_operation(ad, OP_LECTURE, counter->sensor_mem_addr[1], TYPE_MEMOIRE, 0, &err);
       if(l2<0)
          goto _thread_interface_type_001_operation_abord;
-      l3=comio_operation(ad, OP_LECTURE, counter->sensor_mem_addr[2], TYPE_MEMOIRE, 0, &err);
+      l3=comio2_operation(ad, OP_LECTURE, counter->sensor_mem_addr[2], TYPE_MEMOIRE, 0, &err);
       if(l3<0)
          goto _thread_interface_type_001_operation_abord;
-      l4=comio_operation(ad, OP_LECTURE, counter->sensor_mem_addr[3], TYPE_MEMOIRE, 0, &err);
-      
+      l4=comio2_operation(ad, OP_LECTURE, counter->sensor_mem_addr[3], TYPE_MEMOIRE, 0, &err);
+*/      
    _thread_interface_type_001_operation_abord:
       continue;
    }
@@ -364,7 +365,9 @@ void interface_type_001_counters_init(interface_type_001_t *i001)
    for(int16_t i=0; i<counters_list->nb_elem; i++)
    {
       current_queue(counters_list, (void **)&counter);
-      comio_set_trap2(i001->ad, counter->trap, interface_type_001_counters_process_traps, (void *)counter);
+/* a convertir
+      comio2_set_trap2(i001->ad, counter->trap, interface_type_001_counters_process_traps, (void *)counter);
+*/
       start_timer(&(counter->timer));
       
       next_queue(counters_list);

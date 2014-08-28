@@ -26,7 +26,9 @@
 #include "macros.h"
 #include "error.h"
 
-#include "comio.h"
+//#include "comio.h"
+#include "comio2.h"
+
 #include "arduino_pins.h"
 #include "parameters_mgr.h"
 
@@ -48,6 +50,43 @@ struct thread_interface_type_001_params_s
    interface_type_001_t *it001;
    tomysqldb_md_t *md;
 };
+
+uint16_t safe_call_comio2_fn(interface_type_001_t *i001, char fn, uint16_t val)
+{
+   uint16_t comio2_err;
+   char fndata[COMIO2_MAX_FRAME_SIZE];
+   char fnret[COMIO2_MAX_FRAME_SIZE];
+   uint16_t l_fnret;
+   uint16_t ret;
+
+   unsigned char pfort=(unsigned char)(val/256);
+   unsigned char pfaible=(unsigned char)(val-(unsigned int)(pfort*256));
+
+   fndata[0]=fn;
+   fndata[1]=pfort;
+   fndata[2]=pfaible;
+
+   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)(&i001->operation_lock) );
+   pthread_mutex_lock(&i001->operation_lock);
+
+/* a convertir
+   comio_call(i001->ad, fn, val, &comio_err); // 1 = fonction on/off
+*/
+//   ret=comio2_cmdSend(i001->ad, COMIO2_CMD_CALLFUNCTION, fndata, 3, &comio2_err);
+
+   ret=comio2_cmdSendAndWaitResp(i001->ad,
+                         COMIO2_CMD_CALLFUNCTION,
+                         fndata,
+                         3,
+                         fnret,
+                         &l_fnret,
+                         &comio2_err);
+
+   pthread_mutex_unlock(&i001->operation_lock);
+   pthread_cleanup_pop(0);
+
+   return ret;
+}
 
 // xPLSend -c control.basic -m cmnd device=RELAY1 type=output current=pulse data1=125
 // xPLSend -c sensor.request -m cmnd request=current device=CONSO type=POWER => dernière puissance instantannée
@@ -108,7 +147,7 @@ int16_t interface_type_001_xPL_callback(xPL_ServicePtr theService, xPL_MessagePt
 mea_error_t stop_interface_type_001(interface_type_001_t *i001)
 {
 
-   comio_remove_all_traps(i001->ad);
+//   comio2_remove_all_traps(i001->ad);
 
    queue_t *counters_list=i001->counters_list;
    struct electricity_counter_s *counter;
@@ -153,7 +192,7 @@ mea_error_t stop_interface_type_001(interface_type_001_t *i001)
       i001->thread=NULL;
    }
    
-   comio_close(i001->ad);
+   comio2_close(i001->ad);
 
    FREE(i001->ad);
    FREE(i001->counters_list);
@@ -227,7 +266,7 @@ mea_error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, in
    speed_t speed;
    int fd = 0;
    sqlite3_stmt * stmt;
-   comio_ad_t *ad=NULL;
+   comio2_ad_t *ad=NULL;
    
    pthread_t *counters_thread=NULL; // descripteur du thread
    struct thread_interface_type_001_params_s *params=NULL; // parametre à transmettre au thread
@@ -366,7 +405,7 @@ mea_error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, in
    // si on a trouvé une config
    if(nb_sensors_actuators)
    {
-      ad=(comio_ad_t *)malloc(sizeof(comio_ad_t));
+      ad=(comio2_ad_t *)malloc(sizeof(comio2_ad_t));
       if(!ad)
       {
          VERBOSE(2) {
@@ -376,7 +415,7 @@ mea_error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, in
          goto start_interface_type_001_clean_exit;
       }
       
-      fd = comio_init(ad, real_dev, speed);
+      fd = comio2_init(ad, real_dev, speed);
       if (fd == -1)
       {
          VERBOSE(2) {
@@ -424,7 +463,7 @@ start_interface_type_001_clean_exit:
    FREE(params);
    FREE(counters_thread);
    if(fd)
-      comio_close(ad);
+      comio2_close(ad);
    if(ad)
       free(ad);
    if(i001)

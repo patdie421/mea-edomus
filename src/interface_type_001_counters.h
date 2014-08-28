@@ -12,7 +12,7 @@
 #include <pthread.h>
 #include <inttypes.h>
 
-#include "comio.h"
+#include "comio2.h"
 #include "dbServer.h"
 #include "error.h"
 #include "timer.h"
