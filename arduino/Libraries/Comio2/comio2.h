@@ -79,7 +79,7 @@
 #ifdef _COMIO1_COMPATIBLITY_MODE_
 typedef int (*callback_f)(int);
 #endif
-typedef int (*callback2_f)(int, char *, int, void *);
+typedef int (*callback2_f)(int, char *, int, void *, int *, void *);
 
 class Comio2
 {
