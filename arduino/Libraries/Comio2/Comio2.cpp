@@ -524,12 +524,12 @@ int Comio2::_comio_do_operationV2(unsigned char id, unsigned char cmd, char *dat
     if(comio_functionsV2[(int)data[0]])
     {
       int l_buffer = 0;
-      int retval=comio_functionsV2[(int)data[0]](id, &(data[1]), l_data-1, buffer, &l_buff, userdata);
+      int retval=comio_functionsV2[(int)data[0]](id, &(data[1]), l_data-1, buffer, &l_buffer, userdata);
       if(id)
       {
         uint8_t r=0;
         
-        _comio_debut_trameV2(id, COMIO2_CMD_CALLFUNCTION, 2+l_buff, &cchecksum);
+        _comio_debut_trameV2(id, COMIO2_CMD_CALLFUNCTION, 2+l_buffer, &cchecksum);
 
         // retour fonction sur les deux premiers caractères de la réponse
         r=retval & 0xFF;
@@ -540,10 +540,10 @@ int Comio2::_comio_do_operationV2(unsigned char id, unsigned char cmd, char *dat
         writeF(r);
 
         // données retournées par le callback
-        for(int i=0;i<l_buff;i++)
+        for(int i=0;i<l_buffer;i++)
         {
-           cchecksum+=buff[i];
-           writeF(buff[i]);
+           cchecksum+=buffer[i];
+           writeF(buffer[i]);
         }
 
         _comio_fin_trameV2(&cchecksum);

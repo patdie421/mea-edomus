@@ -100,7 +100,7 @@ public:
   void setFunction(unsigned char num_function, callback2_f function);
   int  setMemory(unsigned int addr, unsigned char value);
   int  getMemory(unsigned int addr);
-  int  getMemoryPtr() { return comio_memory; };
+  unsigned char *getMemoryPtr() { return comio_memory; };
   void setReadF(int (*f)(void)) { 
     readF=f; 
   };
