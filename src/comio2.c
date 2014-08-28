@@ -239,11 +239,11 @@ void comio2_close(comio2_ad_t *ad)
 }
 
 
-int16_t comio2_atCmdSend(comio2_ad_t *ad,
-                         char cmd,
-                         char *data, // zone donnee d'une trame
-                         uint16_t l_data, // longueur zone donnee
-                         int16_t *comio2_err)
+int16_t comio2_cmdSend(comio2_ad_t *ad,
+                       char cmd,
+                       char *data, // zone donnee d'une trame
+                       uint16_t l_data, // longueur zone donnee
+                       int16_t *comio2_err)
 {
    int16_t nerr;
    
@@ -277,13 +277,13 @@ int16_t comio2_atCmdSend(comio2_ad_t *ad,
 }
 
 
-int16_t comio2_atCmdSendAndWaitResp(comio2_ad_t *ad,
-                                    char cmd,
-                                    char *data, // zone donnee d'une trame
-                                    uint16_t l_data, // longueur zone donnee
-                                    char *resp,
-                                    uint16_t *l_resp,
-                                    int16_t *comio2_err)
+int16_t comio2_cmdSendAndWaitResp(comio2_ad_t *ad,
+                                  char cmd,
+                                  char *data, // zone donnee d'une trame
+                                  uint16_t l_data, // longueur zone donnee
+                                  char *resp,
+                                  uint16_t *l_resp,
+                                  int16_t *comio2_err)
 /**
  * \brief     Transmet une commande
  * \details
