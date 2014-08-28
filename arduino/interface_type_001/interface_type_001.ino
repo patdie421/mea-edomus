@@ -2,7 +2,7 @@
 #include <AltSoftSerial.h>
 
 #include <InterfaceCompteurERDF.h>
-#include <Comio.h>
+#include <Comio2.h>
 #include <Pulses.h>
 
 // utilisation des ports (ARDUINO UNO) Dans ce sketch
