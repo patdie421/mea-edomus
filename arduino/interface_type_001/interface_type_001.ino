@@ -52,13 +52,11 @@
 #define CNTR0_DATA1   1
 #define CNTR0_DATA2   2
 #define CNTR0_DATA3   3
-#define CNTR0_FLAG    4
 
 #define CNTR1_DATA0  10
 #define CNTR1_DATA1  11
 #define CNTR1_DATA2  12
 #define CNTR1_DATA3  13
-#define CNTR1_FLAG   14
 
 #define TMP36_DATA0  6
 #define TMP36_DATA1  7
@@ -70,6 +68,7 @@
 
 
 Comio2 comio2;
+char *comio_mem=NULL; // pour accès direct à la mémoire comio2
 
 // spécifique pour TMP36
 #define TMP36_NB_READ 10000
@@ -258,7 +257,6 @@ void read_counters()
   static unsigned long chrono = 0;
   static unsigned char current_counter=0;
 
-  //  if(millis()>(chrono+1000*INTERVAL))
   if(my_diff_millis(chrono, millis())>COUNTERS_READ_INTERVAL)
   {
     if(compteurs.isIdle())
@@ -281,7 +279,7 @@ void read_counters()
       }
       compteurs.reset(); // préparation pour une nouvelle lecture
 
-      if(++current_counter == NB_VARS) // passage au compteur suivant
+      if(++current_counter == NB_VARS) // passage au compteur suivant si nécessaire
       { // on à traiter les deux compteurs
         current_counter=0; // au recommencera au début
         chrono=millis(); // on réinitialise le chrono, prochaine lecture dans COUNTERS_READ_INTERVAL milli-secondes
@@ -555,6 +553,8 @@ void setup()
   comio2.setFunction(6,comio2_fn_return_digital_in); // lecture entrées logiques
   comio2.setFunction(7,comio2_fn_return_analog_in); // lecture entrées analogiques
   comio2.setFunction(5,comio2_fn_return_tmp36); // lecture TMP36  
+
+  comio_mem=comio.getMemoryPtr();
 
   // initialisation du gestionnaire d'interruption du compteur 0
   long_to_array(0, &(comio_mem[CNTR0_DATA0])); // ou memset(&(comio_mem[CNTR0_DATA0]),0,4);
