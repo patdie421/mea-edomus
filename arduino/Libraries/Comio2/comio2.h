@@ -12,23 +12,23 @@
 #if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__) || defined(__AVR_ATmega1284P__)
 // un MEGA
 #define COMIO_MAX_D            54 // nombre max d' E/S logiques
-#define COMIO_MAX_A            16 // nombre max d' EntrÃ©es analogiques
-#define COMIO_MAX_M            64 // nombre d'octet rÃ©servÃ© pour le partage avec le PC
+#define COMIO_MAX_A            16 // nombre max d' Entrées analogiques
+#define COMIO_MAX_M            64 // nombre d'octet réservé pour le partage avec le PC
 #elif defined(__AVR_ATmega32u4__)
-// un Leonardo ou Ã©quivalant ?
+// un Leonardo ou équivalant ?
 #define COMIO_MAX_D            20
 #define COMIO_MAX_A             6
 #define COMIO_MAX_M            32
 #else
-// un UNO ou Ã©quivalant (tous les autres en fait ...)
+// un UNO ou équivalant (tous les autres en fait ...)
 #define COMIO_MAX_D            14
 #define COMIO_MAX_A             6
 #define COMIO_MAX_M            32
 #endif
 
-#define COMIO_MAX_FX            8 // nombre maximum de fonctions dÃ©clarables
+#define COMIO_MAX_FX            8 // nombre maximum de fonctions déclarables
 
-// code opÃ©ration
+// code opération
 #define OP_READ                 0
 #define OP_WRITE                1
 #define OP_FUNCTION             2
@@ -74,12 +74,12 @@
 #endif
 
 //
-// DÃ©finition des objets de type comio2
+// Définition des objets de type comio2
 //
 #ifdef _COMIO1_COMPATIBLITY_MODE_
 typedef int (*callback_f)(int);
 #endif
-typedef int (*callback2_f)(int, char *, int, void *, int *, void *);
+typedef int (*callback2_f)(int, char *, int, char *, int *, void *);
 
 class Comio2
 {
@@ -123,7 +123,7 @@ private:
   unsigned char comio_digitals[COMIO_MAX_D];
   unsigned char comio_analogs[COMIO_MAX_A];
 #endif
-  // memoire "partagÃ©e"
+  // memoire "partagée"
   unsigned char comio_memory[COMIO_MAX_M];
 
 #ifdef _COMIO1_COMPATIBLITY_MODE_
@@ -155,5 +155,3 @@ private:
 };
 
 #endif
-
-
