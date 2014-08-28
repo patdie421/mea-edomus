@@ -134,6 +134,27 @@ void BlinkLeds::run()
   }
 }
 
+int comio2_serial_read()
+{
+   return Serial.read();
+}
+
+int comio2_serial_write(char car)
+{
+   Serial.write(car);
+   return 0;
+}
+
+int comio2_serial_available()
+{
+   return Serial.available();
+}
+
+int comio2_serial_flush()
+{
+   Serial.flush();
+   return 0;
+}
 
 /******************************************************************************************/
 /* Fonctions "utilitaires"                                                                */
