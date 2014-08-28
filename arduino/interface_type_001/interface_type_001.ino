@@ -68,6 +68,9 @@
 
 #define LED_DELAY    200
 
+
+Comio2 comio2;
+
 // spécifique pour TMP36
 #define TMP36_NB_READ 10000
 int _tmp36=-1;
@@ -321,11 +324,10 @@ void process_counters()
 // cette fonction test la pertinance de la demande.
 // Sortie disponible : 5, 11, 13, A0, A1, A2
 //
-int comio_fn_output_onoff(int val)
+int comio2_fn_output_onoff(int id, char *data, int l_data, char *res, int *l_res, void *userdata)
 {
-  // le paramètre de la fonction contient 2 informations : numéro de sortie / état logique de la sortie. On extrait les deux valeurs
-  unsigned char state = val & (0xFF);
-  unsigned char pin = (val & 0xFF00) >> 8;
+  unsigned char pin=(unsigned char)data[0];
+  unsigned char state=(unsigned char)data[1];
 
   // controler ici si pin OK en fonction de l'arduino courant
   switch(pin)
@@ -351,10 +353,10 @@ int comio_fn_output_onoff(int val)
 // cette fonction test la pertinance de la demande.
 // Sortie disponible : 5, 11, 13, A0, A1, A2
 //
-int comio_fn_output_pulse_csec(int val) // val en centieme(s) de seconde
+int comio2_fn_output_pulse_csec(int id, char *data, int l_data, char *res, int *l_res, void *userdata)
 {
-  unsigned char nb_msec = val & (0xFF);
-  unsigned char pin = (val & 0xFF00) >> 8;
+  unsigned char pin=(unsigned char)data[0];
+  unsigned char nb_msec=(unsigned char)data[1];
 
   // controler ici si pin OK en fonction de l'arduino courant
   switch(pin)
@@ -378,10 +380,10 @@ int comio_fn_output_pulse_csec(int val) // val en centieme(s) de seconde
 // cette fonction test la pertinance de la demande.
 // Sortie disponible : 5, 11
 //
-int comio_fn_output_pwm(int val)
+int comio2_fn_output_pwm(int id, char *data, int l_data, char *res, int *l_res, void *userdata)
 {
-  unsigned char pwm_val = val & (0xFF);
-  unsigned char pin = (val & 0xFF00) >> 8;
+  unsigned char pin=(unsigned char)data[0];
+  unsigned char pwm_val=(unsigned char)data[1];
 
   // controler ici si pin OK en fonction de l'arduino courant
   switch(pin)
@@ -405,14 +407,16 @@ int comio_fn_output_pwm(int val)
 // cette fonction test la pertinance de la demande.
 // Sortie disponible : 4, 10, 12
 //
-int comio_fn_return_digital_in(int val)
+int comio_fn_return_digital_in(int id, char *data, int l_data, char *res, int *l_res, void *userdata)
 {
-  switch(val)
+  unsigned char pin=(unsigned char)data[0];
+
+  switch(pin)
   {
   case 4:
   case 10:
   case 12:
-    return digitalRead(val);
+    return digitalRead(pin);
   default:
     return -1;
   }
@@ -424,12 +428,14 @@ int comio_fn_return_digital_in(int val)
 // cette fonction test la pertinance de la demande.
 // Sortie disponible : A3
 //
-int comio_fn_return_analog_in(int val)
+int comio_fn_return_analog_in(int id, char *data, int l_data, char *res, int *l_res, void *userdata)
 {
-  switch(val)
+  unsigned char pin=(unsigned char)data[0];
+
+  switch(pin)
   {
   case A3:
-    return analogRead(A3);
+    return analogRead(pin);
   default:
     return -1;
   }
@@ -439,9 +445,11 @@ int comio_fn_return_analog_in(int val)
 //
 // fonction COMIO : traitement spécifique d'un capteur TMP36 connecté sur A3
 //
-int comio_fn_return_tmp36(int val)
+int comio_fn_return_tmp36(int id, char *data, int l_data, char *res, int *l_res, void *userdata)
 {
-  switch(val)
+  unsigned char pin=(unsigned char)data[0];
+
+  switch(pin)
   {
   case A3:
     return _tmp36;
@@ -534,16 +542,21 @@ void setup()
 
   // initialisation COMIO
   // Serial.begin(57600);
-  Serial.begin(9600);  
-  comio_setup(NULL); // initialisation de COMIO sans accès direct aux I/O. Les I/O sont gérés par les fonctions COMIO si dessous : 
-  comio_set_function(0,comio_fn_output_pulse_csec); // impulsion 'ON' de x centiemes de seconde
-  comio_set_function(1,comio_fn_output_onoff); // sorties logiques
-  comio_set_function(2,comio_fn_output_pwm); // sorties analogiques
-  comio_set_function(6,comio_fn_return_digital_in); // lecture entrées logiques
-  comio_set_function(7,comio_fn_return_analog_in); // lecture entrées analogiques
-  comio_set_function(5,comio_fn_return_tmp36); // lecture TMP36
+  Serial.begin(9600);
 
-    // initialisation du gestionnaire d'interruption du compteur 0
+  comio2.setReadF(comio2_serial_read);
+  comio2.setWriteF(comio2_serial_write);
+  comio2.setAvailableF(comio2_serial_available);
+  comio2.setFlushF(comio2_serial_flush);
+
+  comio2->setFunction(0,comio2_fn_output_pulse_csec); // impulsion 'ON' de x centiemes de seconde
+  comio2->setFunction(1,comio2_fn_output_onoff); // sorties logiques
+  comio2->setFunction(2,comio2_fn_output_pwm); // sorties analogiques
+  comio2->setFunction(6,comio2_fn_return_digital_in); // lecture entrées logiques
+  comio2->setFunction(7,comio2_fn_return_analog_in); // lecture entrées analogiques
+  comio2->setFunction(5,comio2_fn_return_tmp36); // lecture TMP36  
+
+  // initialisation du gestionnaire d'interruption du compteur 0
   long_to_array(0, &(comio_mem[CNTR0_DATA0])); // ou memset(&(comio_mem[CNTR0_DATA0]),0,4);
   prev_chrono0=0;
   pinMode(COUNTER_PIN0, INPUT);
@@ -573,7 +586,7 @@ void loop()
   myBlinkLeds_500ms.run();
   digitalWrite(13, myBlinkLeds_500ms.getLedState()); // clignotement de la led "activité" (D13) de l'ATmega
 
-  comio();
+  comio.run();
   pulses();
   compteurs.run();
 
