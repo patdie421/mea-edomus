@@ -549,12 +549,12 @@ void setup()
   comio2.setAvailableF(comio2_serial_available);
   comio2.setFlushF(comio2_serial_flush);
 
-  comio2->setFunction(0,comio2_fn_output_pulse_csec); // impulsion 'ON' de x centiemes de seconde
-  comio2->setFunction(1,comio2_fn_output_onoff); // sorties logiques
-  comio2->setFunction(2,comio2_fn_output_pwm); // sorties analogiques
-  comio2->setFunction(6,comio2_fn_return_digital_in); // lecture entrées logiques
-  comio2->setFunction(7,comio2_fn_return_analog_in); // lecture entrées analogiques
-  comio2->setFunction(5,comio2_fn_return_tmp36); // lecture TMP36  
+  comio2.setFunction(0,comio2_fn_output_pulse_csec); // impulsion 'ON' de x centiemes de seconde
+  comio2.setFunction(1,comio2_fn_output_onoff); // sorties logiques
+  comio2.setFunction(2,comio2_fn_output_pwm); // sorties analogiques
+  comio2.setFunction(6,comio2_fn_return_digital_in); // lecture entrées logiques
+  comio2.setFunction(7,comio2_fn_return_analog_in); // lecture entrées analogiques
+  comio2.setFunction(5,comio2_fn_return_tmp36); // lecture TMP36  
 
   // initialisation du gestionnaire d'interruption du compteur 0
   long_to_array(0, &(comio_mem[CNTR0_DATA0])); // ou memset(&(comio_mem[CNTR0_DATA0]),0,4);
