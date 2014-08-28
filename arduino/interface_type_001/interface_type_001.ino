@@ -301,14 +301,14 @@ void process_counters()
   counter_flag0=0; // quelque soit la valeur on remet à 0. Ca coute moins cher en CPU que de faire un test et en fonction de mettre à 0.
   ENABLE_INT0_D2;
   if(flag) // une interruption pour le compteur 0
-    comio_envoyer_trap(1); // Emission d'un TRAP pour un traitement "temps rÃ©el" Ã©ventuel par le PC
+  comio2->sendTrap(NCNTR0_TRAP, NULL, 0); // Emission d'un TRAP pour un traitement "temps rÃ©el" Ã©ventuel par le PC
 
   DISABLE_INT1_D3;
   flag=counter_flag1; // on récupère le flag
   counter_flag1=0; // quelque soit la valeur on remet à 0. Ca coute moins cher en CPU que de faire un test et en fonction de mettre à 0.
   ENABLE_INT1_D3;
   if(flag) // une interruption pour le compteur 1
-    comio_envoyer_trap(2); // Emission d'un TRAP pour un traitement "temps rÃ©el" Ã©ventuel par le PC
+  comio2->sendTrap(CNTR1_TRAP, NULL, 0);
 
   // lecture des info du compteur ERDF
   read_counters();
@@ -499,7 +499,7 @@ void process_digital_in_change_dectection()
     char pin_state=digitalRead(pin_num[i]);
 
     if(pin_prev_state[i]!=pin_state)
-      comio_send_long_trap(pin_num[i]+10, &pin_state, 1);
+       comio2->sendTrap(pin_num[i]+10, &pin_state, 1);
 
     pin_prev_state[i]=pin_state;
   }
