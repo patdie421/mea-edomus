@@ -586,7 +586,7 @@ void loop()
   myBlinkLeds_500ms.run();
   digitalWrite(13, myBlinkLeds_500ms.getLedState()); // clignotement de la led "activité" (D13) de l'ATmega
 
-  comio.run();
+  comio2.run();
   pulses();
   compteurs.run();
 
