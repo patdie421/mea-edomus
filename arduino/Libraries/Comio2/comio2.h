@@ -137,6 +137,8 @@ private:
   int (* flushF)(void);
   void *userdata;
 
+  char buffer[COMIO2_MAX_DATA];
+
   void _comio_debut_trameV2(unsigned char id, unsigned char cmd, int l_data, int *ccheksum);
   void _comio_fin_trameV2(int *cchecksum);
   void _comio_send_errorV2(unsigned char id, unsigned char error);
