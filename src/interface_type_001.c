@@ -85,7 +85,7 @@ uint16_t safe_call_comio2_fn(interface_type_001_t *i001, char fn, uint16_t val)
 //   pthread_mutex_unlock(&i001->operation_lock);
 //   pthread_cleanup_pop(0);
 
-   return ret;
+   return fnret[0]*256+fnret[1];
 }
 
 // xPLSend -c control.basic -m cmnd device=RELAY1 type=output current=pulse data1=125
