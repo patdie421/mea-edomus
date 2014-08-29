@@ -245,11 +245,11 @@ int16_t comio2_cmdSend(comio2_ad_t *ad,
                        uint16_t l_data, // longueur zone donnee
                        int16_t *comio2_err)
 {
-   int16_t nerr;
+//   int16_t nerr;
    
    if(pthread_self()==ad->read_thread) // risque de dead lock si appeler par un call back => on interdit
    {
-      nerr=COMIO2_ERR_IN_CALLBACK;
+      *comio2_err=COMIO2_ERR_IN_CALLBACK;
       return -1;
    }
    
@@ -265,7 +265,7 @@ int16_t comio2_cmdSend(comio2_ad_t *ad,
    int ret;
    pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(ad->write_lock) );
    pthread_mutex_lock(&ad->write_lock);
-   ret=_comio2_write_frame(ad->fd, frame_data_id, cmd_data, l_cmd_data, &nerr);
+   ret=_comio2_write_frame(ad->fd, frame_data_id, cmd_data, l_cmd_data, comio2_err);
    pthread_mutex_unlock(&ad->write_lock);
    pthread_cleanup_pop(0);
 
@@ -297,12 +297,12 @@ int16_t comio2_cmdSendAndWaitResp(comio2_ad_t *ad,
  */
 {
    comio2_queue_elem_t *e;
-   int16_t nerr;
+//   int16_t nerr;
    int16_t return_val=1;
    
    if(pthread_self()==ad->read_thread) // risque de dead lock si appeler par un call back => on interdit
    {
-      nerr=COMIO2_ERR_IN_CALLBACK;
+      *comio2_err=COMIO2_ERR_IN_CALLBACK;
       return -1;
    }
    
@@ -322,7 +322,7 @@ int16_t comio2_cmdSendAndWaitResp(comio2_ad_t *ad,
    int ret;
    pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(ad->write_lock) );
    pthread_mutex_lock(&ad->write_lock);
-   ret=_comio2_write_frame(ad->fd, frame_data_id, cmd_data, l_cmd_data, &nerr);
+   ret=_comio2_write_frame(ad->fd, frame_data_id, cmd_data, l_cmd_data, comio2_err);
    pthread_mutex_unlock(&ad->write_lock);
    pthread_cleanup_pop(0);
 
