@@ -199,7 +199,7 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
 //                  safe_call_comio2_fn(i001, 0, val);
 
                   sval[0]=iq->arduino_pin;
-                  sval[1]=o;
+                  sval[1]=((pulse_width / 100) & 0xFF);
                   ret=comio2_call_proc(i001->ad, 0, sval, 2, &comio2_err);
                   
                   return NOERROR;
