@@ -219,7 +219,7 @@ int16_t check_conditions(int conditions_id_rule, xPL_NameValueListPtr xpl_body)
                   break;
                case 2: // '<>' différent
                   if(isnum)
-                     if(fxpl_value == fvalue)
+                     if(fxpl_value != fvalue)
                         break;
                      else
                         ret=1;
