@@ -66,8 +66,8 @@ uint16_t safe_call_comio2_fn(interface_type_001_t *i001, char fn, uint16_t val)
    fndata[1]=pfort;
    fndata[2]=pfaible;
 
-   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)(&i001->operation_lock) );
-   pthread_mutex_lock(&i001->operation_lock);
+//   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)(&i001->operation_lock) );
+//   pthread_mutex_lock(&i001->operation_lock);
 
 /* a convertir
    comio_call(i001->ad, fn, val, &comio_err); // 1 = fonction on/off
@@ -82,8 +82,8 @@ uint16_t safe_call_comio2_fn(interface_type_001_t *i001, char fn, uint16_t val)
                          &l_fnret,
                          &comio2_err);
 
-   pthread_mutex_unlock(&i001->operation_lock);
-   pthread_cleanup_pop(0);
+//   pthread_mutex_unlock(&i001->operation_lock);
+//   pthread_cleanup_pop(0);
 
    return ret;
 }
