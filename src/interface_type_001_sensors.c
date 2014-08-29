@@ -68,13 +68,13 @@ float _compute_tmp36(unsigned int value)
 
 float _compute_aref5(unsigned int value)
 {
-   return value * 1.1/1024.0;
+   return value * 5/1024.0;
 }
 
 
 float _compute_aref11(unsigned int value)
 {
-   return value * 5/1024.0;
+   return value * 1.1/1024.0;
 }
 
 
