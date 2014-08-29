@@ -378,6 +378,20 @@ void automator(char *db_path)
    signal(SIGINT,  _automator_stop);
    signal(SIGQUIT, _automator_stop);
    signal(SIGTERM, _automator_stop);
+/*
+Chargement de tables en mémoires avec SQLITE3 depuis une autre db (pour les perfs de l’automate par exemple).
+
+1.Création d’une base en mémoire ( utiliser à la place du nom du fichier « :memory: » )
+2.Attacher la base à copier
+  ATTACH « fic.db » AS sourcedb ;
+3.Copier les tables
+  CREATE TABLE main._table_à_copier_ AS SELECT * FROM sourcedb._table_à_copier_ ;
+  (creation des index et contrainte éventuels, pas possible de les copier)
+4.Libération de la base source
+  DETACH sourcedb ;
+
+Voir aussi comment prendre en compte les changements sur la table source. Par exemple sur reception d'un signal, l'automate se bloque et on recharge les tables.
+*/
 
    int ret = sqlite3_open_v2(db_path, &db, SQLITE_OPEN_READWRITE, NULL);
    if(ret)
