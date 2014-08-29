@@ -786,7 +786,7 @@ void *_comio2_thread(void *args)
 
 int comio2_call_fn(comio2_ad_t *ad, int fn, unsigned char *data, int l_data, int *retval, char *resp, int *l_resp, int16_t *comio2_err)
 {
-   unsigned char buffer[];
+   unsigned char buffer[COMIO2_MAX_FRAME_SIZE];
    int l_buffer;
    int ret;
 
