@@ -782,3 +782,48 @@ void *_comio2_thread(void *args)
    }
    pthread_exit(NULL);
 }
+
+
+int comio2_call_fn(comio2_ad_t *ad, int fn, unsigned char *data, int l_data, int *retval, char *resp, int *l_resp, int16_t *comio2_err)
+{
+   unsigned char buffer[];
+   int l_buffer;
+   int ret;
+
+   ret=comio2_cmdSendAndWaitResp(ad,
+                                 COMIO2_CMD_CALLFUNCTION,
+                                 data,
+                                 l_data,
+                                 buffer,
+                                 l_buffer,
+                                 comio2_err);
+   if(ret<0)
+      return -1;
+
+   *retval=buffer[0]*256+buffer[1];
+
+   int i,j;
+   for(i=2,j=0;i<l_buffer;i++,j++)
+      resp[j]=buffer[i];
+   l_resp=l_buffer-2;
+   
+   return 0;
+}
+
+
+int comio2_call_proc(comio2_ad_t *ad, int fn, unsigned char *data, int l_data, int16_t *comio2_err)
+{
+   unsigned char buffer[COMIO2_MAX_FRAME_SIZE];
+   int l_buffer;
+   int ret;
+
+   ret=comio2_cmdSend(ad,
+                      COMIO2_CMD_CALLFUNCTION,
+                      data,
+                      l_data,
+                      comio2_err);
+
+   return ret;
+}
+
+
