@@ -269,7 +269,7 @@ mea_error_t interface_type_001_counters_process_xpl_msg(interface_type_001_t *i0
    queue_t *counters_list=i001->counters_list;
    struct electricity_counter_s *counter;
    int type_id;
-
+fprintf(stderr,"XPL\n");
    if(type)
       type_id=get_id_by_string(type);
    else
@@ -332,13 +332,13 @@ void interface_type_001_counters_poll_inputs(interface_type_001_t *i001, tomysql
       current_queue(counters_list, (void **)&counter);
       if(!test_timer(&(counter->timer)))
       {
-         pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)(&i001->operation_lock) );
+         //pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)(&i001->operation_lock) );
 
-         pthread_mutex_lock(&i001->operation_lock);
+         //pthread_mutex_lock(&i001->operation_lock);
          counter_read(i001->ad, counter);
-         pthread_mutex_unlock(&i001->operation_lock);
+         //pthread_mutex_unlock(&i001->operation_lock);
 
-         pthread_cleanup_pop(0);
+         //pthread_cleanup_pop(0);
 
          if(counter->counter!=counter->last_counter)
          {

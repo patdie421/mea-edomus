@@ -498,7 +498,7 @@ void interface_type_001_sensors_poll_inputs(interface_type_001_t *i001, tomysqld
    queue_t *sensors_list=i001->sensors_list;
    struct sensor_s *sensor;
 
-   int comio2_err;
+   uint16_t comio2_err;
          
    first_queue(sensors_list);
    for(int16_t i=0; i<sensors_list->nb_elem; i++)
@@ -508,17 +508,22 @@ void interface_type_001_sensors_poll_inputs(interface_type_001_t *i001, tomysqld
       {
          if(sensor->arduino_pin_type==ANALOG_ID)
          {
-            int16_t v;
+            int v;
 
-            pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)(&i001->operation_lock) );
-            pthread_mutex_lock(&i001->operation_lock);
+            //pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)(&i001->operation_lock) );
+            //pthread_mutex_lock(&i001->operation_lock);
 /* a convertir               
             v=(int16_t)comio_call(i001->ad, sensor->arduino_function, sensor->arduino_pin, &comio_err);
 */
-            v=(int16_t)safe_call_comio2_fn(i001, sensor->arduino_function, sensor->arduino_pin);
 
-            pthread_mutex_unlock(&i001->operation_lock);
-            pthread_cleanup_pop(0);
+            unsigned char buffer[8], resp[8];
+            uint16_t l_resp;
+            buffer[0]=sensor->arduino_pin;
+
+            comio2_call_fn(i001->ad, (uint16_t)sensor->arduino_function, buffer, 1, &v, resp, &l_resp, &comio2_err);
+
+            //pthread_mutex_unlock(&i001->operation_lock);
+            //pthread_cleanup_pop(0);
                
             if(v>=0 && sensor->val!=v)
             {

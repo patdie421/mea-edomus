@@ -718,6 +718,7 @@ int main(int argc, const char * argv[])
       
    };
 
+#define __DEBUG_ON__ 1
 #ifdef __DEBUG_ON__
    debug_on();
    set_verbose_level(9);
@@ -1005,8 +1006,7 @@ int main(int argc, const char * argv[])
    //   
    // demarrage du processus de l'automate
    //
-//   automator_pid = start_automatorServer(params_list[SQLITE3_DB_PARAM_PATH]);
-
+   //automator_pid = start_automatorServer(params_list[SQLITE3_DB_PARAM_PATH]);
 
    //
    // initialisation gestions des signaux (arrêt de l'appli et réinitialisation
@@ -1025,11 +1025,8 @@ int main(int argc, const char * argv[])
    interfaces=start_interfaces(params_list, sqlite3_param_db); // démarrage des interfaces
    xPLServer_thread=start_xPLServer(params_list, interfaces, sqlite3_param_db); // initialisation du serveur xPL
    
-   
    DEBUG_SECTION fprintf(stderr,"MEA-EDOMUS %s starded\n",__MEA_EDOMUS_VERSION__);
 
-   // automator(params_list[SQLITE3_DB_PARAM_PATH]);
-   
    // boucle sans fin.
    while(1)
    {

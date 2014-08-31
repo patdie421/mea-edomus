@@ -41,6 +41,6 @@ mea_error_t restart_interface_type_001(interface_type_001_t *i001,sqlite3 *db, t
 
 int16_t check_status_interface_type_001(interface_type_001_t *i001);
 
-uint16_t safe_call_comio2_fn(interface_type_001_t *i001, char fn, uint16_t val);
+//uint16_t safe_call_comio2_fn(interface_type_001_t *i001, char fn, uint16_t val);
 
 #endif

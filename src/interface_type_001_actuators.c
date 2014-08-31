@@ -155,7 +155,7 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
 //   uint16_t val;
    int type_id;
    unsigned char sval[2];
-   unsigned int comio2_err;
+   uint16_t comio2_err;
 
    type_id=get_id_by_string(type);
    if(type_id != XPL_OUTPUT_ID && type_id !=VARIABLE_ID)

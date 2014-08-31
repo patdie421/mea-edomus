@@ -50,7 +50,7 @@ struct thread_interface_type_001_params_s
    interface_type_001_t *it001;
    tomysqldb_md_t *md;
 };
-
+/*
 uint16_t safe_call_comio2_fn(interface_type_001_t *i001, char fn, uint16_t val)
 {
    uint16_t comio2_err;
@@ -69,9 +69,9 @@ uint16_t safe_call_comio2_fn(interface_type_001_t *i001, char fn, uint16_t val)
 //   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)(&i001->operation_lock) );
 //   pthread_mutex_lock(&i001->operation_lock);
 
-/* a convertir
-   comio_call(i001->ad, fn, val, &comio_err); // 1 = fonction on/off
-*/
+// a convertir
+//   comio_call(i001->ad, fn, val, &comio_err); // 1 = fonction on/off
+
 //   ret=comio2_cmdSend(i001->ad, COMIO2_CMD_CALLFUNCTION, fndata, 3, &comio2_err);
 
    ret=comio2_cmdSendAndWaitResp(i001->ad,
@@ -87,6 +87,7 @@ uint16_t safe_call_comio2_fn(interface_type_001_t *i001, char fn, uint16_t val)
 
    return fnret[0]*256+fnret[1];
 }
+*/
 
 // xPLSend -c control.basic -m cmnd device=RELAY1 type=output current=pulse data1=125
 // xPLSend -c sensor.request -m cmnd request=current device=CONSO type=POWER => dernière puissance instantannée
@@ -232,7 +233,7 @@ void *_thread_interface_type_001(void *args)
    free(params);
    params=NULL;
 
-   interface_type_001_counters_init(i001);
+   interface_type_001_counters_init(i001); // <<= segmentation fault ici
    interface_type_001_sensors_init(i001);
 
    uint32_t cntr=0;
@@ -275,7 +276,7 @@ mea_error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, in
    // préparation des éléments de contexte de l'interface
    i001->id_interface=id_interface;
    i001->xPL_callback=NULL;
-   pthread_mutex_init(&i001->operation_lock, NULL);
+   // pthread_mutex_init(&i001->operation_lock, NULL);
 
    // ret=sscanf((char *)dev,"SERIAL://%s",buff);
    // if(ret==1)
@@ -432,9 +433,7 @@ mea_error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, in
       return ERROR; // pas de capteur on s'arrête
    }
    
-   
    i001->ad=ad;
-   
    
    params=malloc(sizeof(struct thread_interface_type_001_params_s));
    if(!params)
@@ -448,7 +447,7 @@ mea_error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, in
       goto start_interface_type_001_clean_exit;
    
    i001->xPL_callback=interface_type_001_xPL_callback;
-   
+
    if(pthread_create (counters_thread, NULL, _thread_interface_type_001, (void *)params))
    {
       VERBOSE(2) fprintf(stderr, "%s (%s) : pthread_create - can't start thread\n",ERROR_STR,__func__);
