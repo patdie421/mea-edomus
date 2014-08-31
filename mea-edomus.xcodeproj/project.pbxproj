@@ -37,6 +37,7 @@
 		4E8E533818429724006FB9D3 /* automatorServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E8E533718429724006FB9D3 /* automatorServer.c */; };
 		4E8F781C178B44490099A751 /* string_utils.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E8F781B178B44490099A751 /* string_utils.c */; };
 		4E8F781E178B47C80099A751 /* timer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E8F781D178B47C80099A751 /* timer.c */; };
+		4EF3D8FC19B3C02200892F29 /* comio2.c in Sources */ = {isa = PBXBuildFile; fileRef = 4EF3D8FA19B3C02200892F29 /* comio2.c */; };
 		4EF3F6C31828400F00959B93 /* interfaces.c in Sources */ = {isa = PBXBuildFile; fileRef = 4EF3F6C21828400F00959B93 /* interfaces.c */; };
 		4EFBBC7F1746C85D00090FEE /* error.c in Sources */ = {isa = PBXBuildFile; fileRef = 4EFBBC7E1746C85D00090FEE /* error.c */; };
 		4EFBFCAE175E616E007BBFD1 /* httpServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4EFBFCAD175E616E007BBFD1 /* httpServer.c */; };
@@ -120,6 +121,8 @@
 		4E8F781B178B44490099A751 /* string_utils.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = string_utils.c; path = src/string_utils.c; sourceTree = "<group>"; };
 		4E8F781D178B47C80099A751 /* timer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = timer.c; path = src/timer.c; sourceTree = "<group>"; };
 		4E8F781F178B47F80099A751 /* timer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = timer.h; path = src/timer.h; sourceTree = "<group>"; };
+		4EF3D8FA19B3C02200892F29 /* comio2.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = comio2.c; path = src/comio2.c; sourceTree = "<group>"; };
+		4EF3D8FB19B3C02200892F29 /* comio2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = comio2.h; path = src/comio2.h; sourceTree = "<group>"; };
 		4EF3F6C21828400F00959B93 /* interfaces.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = interfaces.c; path = src/interfaces.c; sourceTree = "<group>"; };
 		4EF7B08D1757F6AA0029ABBC /* mea_simulation.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = mea_simulation.py; path = plugins/mea_simulation.py; sourceTree = "<group>"; };
 		4EF7B08E1757F6AA0029ABBC /* mea_utils.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = mea_utils.py; path = plugins/mea_utils.py; sourceTree = "<group>"; };
@@ -235,6 +238,8 @@
 				4E4A5EA115F003420052ABF4 /* xbee.h */,
 				4E4A5E8F15F003420052ABF4 /* comio.c */,
 				4E4A5E9015F003420052ABF4 /* comio.h */,
+				4EF3D8FA19B3C02200892F29 /* comio2.c */,
+				4EF3D8FB19B3C02200892F29 /* comio2.h */,
 			);
 			name = Libs;
 			sourceTree = "<group>";
@@ -434,6 +439,7 @@
 				4E76CE9D163F120C00A3EBA9 /* xPL-service.c in Sources */,
 				4E76CE9E163F120C00A3EBA9 /* xPL-store.c in Sources */,
 				4E8E533818429724006FB9D3 /* automatorServer.c in Sources */,
+				4EF3D8FC19B3C02200892F29 /* comio2.c in Sources */,
 				4E76CE9F163F120C00A3EBA9 /* xPL-utils.c in Sources */,
 				4E76CEA2163F124200A3EBA9 /* xPLServer.c in Sources */,
 				4E76CEA5163F12C800A3EBA9 /* arduino_pins.c in Sources */,
