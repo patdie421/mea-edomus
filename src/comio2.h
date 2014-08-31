@@ -86,7 +86,7 @@ comio2_ad_t *comio2_new_ad();
 int16_t      comio2_setTrap(comio2_ad_t *ad, int16_t numTrap, trap_f trap, void *userdata);
 int16_t      comio2_removeTrap(comio2_ad_t *ad, uint16_t numTrap);
 void         comio2_removeAllTraps(comio2_ad_t *ad);
-int          comio2_call_fn(comio2_ad_t *ad, uint16_t fn, unsigned char *data, uint16_t l_data, int *retval, unsigned char *resp, uint16_t *l_resp, int16_t *comio2_err);
-int          comio2_call_proc(comio2_ad_t *ad, uint16_t fn, unsigned char *data, uint16_t l_data, int16_t *comio2_err);
+int          comio2_call_fn(comio2_ad_t *ad, uint16_t fn, char *data, uint16_t l_data, int *retval, unsigned char *resp, uint16_t *l_resp, int16_t *comio2_err);
+int          comio2_call_proc(comio2_ad_t *ad, uint16_t fn, char *data, uint16_t l_data, int16_t *comio2_err);
 
 #endif

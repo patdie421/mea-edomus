@@ -784,7 +784,7 @@ void *_comio2_thread(void *args)
 }
 
 
-int comio2_call_fn(comio2_ad_t *ad, uint16_t fn, unsigned char *data, uint16_t l_data, int *retval, unsigned char *resp, uint16_t *l_resp, int16_t *comio2_err)
+int comio2_call_fn(comio2_ad_t *ad, uint16_t fn, char *data, uint16_t l_data, int *retval, unsigned char *resp, uint16_t *l_resp, int16_t *comio2_err)
 {
    unsigned char buffer[COMIO2_MAX_FRAME_SIZE];
    uint16_t l_buffer;
@@ -794,7 +794,7 @@ int comio2_call_fn(comio2_ad_t *ad, uint16_t fn, unsigned char *data, uint16_t l
                                  COMIO2_CMD_CALLFUNCTION,
                                  data,
                                  l_data,
-                                 buffer,
+                                 (char *)buffer,
                                  &l_buffer,
                                  comio2_err);
    if(ret<0)
@@ -811,10 +811,10 @@ int comio2_call_fn(comio2_ad_t *ad, uint16_t fn, unsigned char *data, uint16_t l
 }
 
 
-int comio2_call_proc(comio2_ad_t *ad, uint16_t fn, unsigned char *data, uint16_t l_data, int16_t *comio2_err)
+int comio2_call_proc(comio2_ad_t *ad, uint16_t fn, char *data, uint16_t l_data, int16_t *comio2_err)
 {
-   unsigned char buffer[COMIO2_MAX_FRAME_SIZE];
-   int l_buffer;
+//   unsigned char buffer[COMIO2_MAX_FRAME_SIZE];
+//   int l_buffer;
    int ret;
 
    ret=comio2_cmdSend(ad,

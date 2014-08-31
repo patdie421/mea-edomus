@@ -155,7 +155,7 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
 //   uint16_t val;
    int type_id;
    unsigned char sval[2];
-   uint16_t comio2_err;
+   int16_t comio2_err;
 
    type_id=get_id_by_string(type);
    if(type_id != XPL_OUTPUT_ID && type_id !=VARIABLE_ID)
@@ -200,7 +200,7 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
 
                   sval[0]=iq->arduino_pin;
                   sval[1]=((pulse_width / 100) & 0xFF);
-                  ret=comio2_call_proc(i001->ad, 0, sval, 2, &comio2_err);
+                  ret=comio2_call_proc(i001->ad, 0, (char *)sval, 2, &comio2_err);
                   if(ret!=0)
                   {
                      VERBOSE(9) fprintf(stderr,"%s  (%s) : comio2_call_proc error (comio2_err=%d)\n",INFO_STR, __func__,comio2_err);
@@ -226,7 +226,7 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
                   
                   sval[0]=iq->arduino_pin;
                   sval[1]=o;
-                  ret=comio2_call_proc(i001->ad, 1, sval, 2, &comio2_err);
+                  ret=comio2_call_proc(i001->ad, 1, (char *)sval, 2, &comio2_err);
                   if(ret!=0)
                   {
                      VERBOSE(9) fprintf(stderr,"%s  (%s) : comio2_call_proc error (comio2_err=%d)\n",INFO_STR, __func__,comio2_err);
@@ -304,7 +304,7 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
 
               sval[0]=iq->arduino_pin;
               sval[1]=o;
-              ret=comio2_call_proc(i001->ad, 2, sval, 2, &comio2_err);
+              ret=comio2_call_proc(i001->ad, 2, (char *)sval, 2, &comio2_err);
               if(ret!=0)
               {
                  VERBOSE(9) fprintf(stderr,"%s  (%s) : comio2_call_proc error (comio2_err=%d)\n",INFO_STR, __func__,comio2_err);

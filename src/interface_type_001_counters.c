@@ -226,7 +226,7 @@ void counter_read(comio2_ad_t *ad, struct electricity_counter_s *counter)
 {
    int l1,l2,l3,l4;
    uint32_t c;
-   int err=0;
+//   int err=0;
    
    do
    {
