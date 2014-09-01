@@ -53,9 +53,9 @@
 #endif
 
 // COMIO2 : version 2 du protocole
-#define COMIO2_MAX_FX           8 // nombre maximum de fonctions dÃ©clarables
+#define COMIO2_MAX_FX          16 // nombre maximum de fonctions déclarables
 #define COMIO2_MAX_MEMORY      32
-#define COMIO2_MAX_DATA        40 // taille maximum d'une trame de donnÃ©es interractive
+#define COMIO2_MAX_DATA        40 // taille maximum d'une trame de données interractive
 
 #define COMIO2_CMD_ERROR        0
 #define COMIO2_CMD_READMEMORY   1
@@ -93,7 +93,7 @@ public:
   int run();
 
 #ifdef _COMIO1_COMPATIBLITY_MODE_
-  void setFunction(unsigned char num_function, callback_f function);
+  int setFunction(unsigned char num_function, callback_f function);
   void sendTrap(unsigned char num_trap);
   void sendLongTrap(unsigned char num_trap, char *value, char l_value);
 #endif
