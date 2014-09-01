@@ -26,7 +26,7 @@
 
 typedef struct comio2_queue_elem_s
 {
-   char frame[COMIO2_MAX_FRAM_SIZE]
+   char frame[COMIO2_MAX_FRAME_SIZE];
    uint16_t l_frame;
    uint32_t tsp;
    int16_t comio2_err;

@@ -44,8 +44,8 @@ struct electricity_counter_s
 struct electricity_counter_s
             *interface_type_001_sensors_valid_and_malloc_counter(int id_sensor_actuator, char *name, char *parameters);
 void         interface_type_001_free_counters_queue_elem(void *d);
-mea_error_t  interface_type_001_counters_process_traps(int numTrap, void *args, char *buff);
-
+//mea_error_t  interface_type_001_counters_process_traps(int numTrap, void *args, char *buff);
+int16_t      interface_type_001_counters_process_traps(int16_t numTrap, char *buff, int16_t l_buff, void * args);
 mea_error_t  interface_type_001_counters_process_xpl_msg(interface_type_001_t *i001, xPL_ServicePtr theService, xPL_NameValueListPtr ListNomsValeursPtr,
                                                          char *device, char *type);
 void         interface_type_001_counters_poll_inputs(interface_type_001_t *i001, tomysqldb_md_t *md);

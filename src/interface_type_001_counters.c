@@ -65,11 +65,11 @@ void interface_type_001_free_counters_queue_elem(void *d)
 // pour la reception d'un trap à chaque changement du compteur
 
 
-int16_t (*trap_f)(int16_t, char *, int16_t, void *);
+// int16_t (*trap_f)(int16_t, char *, int16_t, void *);
 
 
 
-int16_t interface_type_001_counters_process_traps(int numTrap, char *buff, int16_t l_buff, void * args)
+int16_t interface_type_001_counters_process_traps(int16_t numTrap, char *buff, int16_t l_buff, void * args)
  {
    double t_old;
    struct timeval tv;
@@ -233,11 +233,12 @@ void counter_read(comio2_ad_t *ad, struct electricity_counter_s *counter)
 //   int l1,l2,l3,l4;
    uint32_t c;
 //   int err=0;
-   unsigned char buffer[4];
-   uint16_t l_buffer=0;
-   unsigned char resp[4];
-   uint16_t l_resp[4];
+   char buffer[4];
+//   uint16_t l_buffer=0;
+   char resp[4];
+   uint16_t l_resp;
    int16_t comio2_err;
+   int ret=0;
 
 /* a convertir
    do
@@ -265,7 +266,7 @@ void counter_read(comio2_ad_t *ad, struct electricity_counter_s *counter)
       buffer[i]=counter->sensor_mem_addr[i];
    do
    {
-      ret=comio2_cmdSendAndWaitResp(ad, COMIO2_CMD_READMEMORY, data, 4, resp, &l_resp, &comio2_err);
+      ret=comio2_cmdSendAndWaitResp(ad, COMIO2_CMD_READMEMORY, buffer, 4, resp, &l_resp, &comio2_err);
       if(ret==0)
       {
          c=     resp[3];
