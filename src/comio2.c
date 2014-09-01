@@ -26,7 +26,7 @@
 
 typedef struct comio2_queue_elem_s
 {
-   char frame[255];
+   char frame[COMIO2_MAX_FRAM_SIZE]
    uint16_t l_frame;
    uint32_t tsp;
    int16_t comio2_err;
@@ -245,8 +245,12 @@ int16_t comio2_cmdSend(comio2_ad_t *ad,
                        uint16_t l_data, // longueur zone donnee
                        int16_t *comio2_err)
 {
-//   int16_t nerr;
-   
+   if(l_data >= COMIO2_MAX_DATA_SIZE)
+   {
+      comio2_err=COMIO2_ERR_LDATA;
+      return -1;
+   }
+
    if(pthread_self()==ad->read_thread) // risque de dead lock si appeler par un call back => on interdit
    {
       *comio2_err=COMIO2_ERR_IN_CALLBACK;
@@ -269,11 +273,7 @@ int16_t comio2_cmdSend(comio2_ad_t *ad,
    pthread_mutex_unlock(&ad->write_lock);
    pthread_cleanup_pop(0);
 
-   if(ret==0) // envoie de l'ordre
-   {
-      return 0;
-   }
-   return 1;
+   return ret;
 }
 
 
@@ -299,7 +299,13 @@ int16_t comio2_cmdSendAndWaitResp(comio2_ad_t *ad,
    comio2_queue_elem_t *e;
 //   int16_t nerr;
    int16_t return_val=1;
-   
+
+   if(l_data >= COMIO2_MAX_DATA_SIZE)
+   {
+      comio2_err=COMIO2_ERR_LDATA;
+      return -1;
+   }
+
    if(pthread_self()==ad->read_thread) // risque de dead lock si appeler par un call back => on interdit
    {
       *comio2_err=COMIO2_ERR_IN_CALLBACK;
@@ -547,7 +553,7 @@ int16_t _comio2_read_frame(int fd, char *cmd_data, uint16_t *l_cmd_data, int16_t
             checksum+=(unsigned char)c;
             i++; // maj du reste à lire
             if(i>=*l_cmd_data)
-            step++; // read checksum
+               step++; // read checksum
             break;
             
          case 3:
@@ -790,7 +796,7 @@ int comio2_call_fn(comio2_ad_t *ad, uint16_t fn, char *data, uint16_t l_data, in
    uint16_t l_buffer;
    int ret;
 
-   if(l_data >= COMIO2_MAX_DATA)
+   if(l_data >= COMIO2_MAX_DATA_SIZE)
    {
       *comio2_err=COMIO2_ERR_LDATA;
       return -1;
@@ -821,7 +827,7 @@ int comio2_call_proc(comio2_ad_t *ad, uint16_t fn, char *data, uint16_t l_data, 
 {
    int ret;
 
-   if(l_data >= COMIO2_MAX_DATA)
+   if(l_data >= COMIO2_MAX_DATA_SIZE)
    {
       *comio2_err=COMIO2_ERR_LDATA;
       return -1;
