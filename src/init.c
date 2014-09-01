@@ -401,7 +401,10 @@ int16_t create_configs_php(char *gui_home, char *params_db_fullname, char *php_l
       fprintf(fd,"ini_set('log_errors', 'On');\n");
       fprintf(fd,"ini_set('display_errors', 'Off');\n");
       fprintf(fd,"ini_set(\"error_log\", \"%s\");\n",php_log_fullname);
-//      fprintf(fd,"session_save_path(''"); // mettre dans $basepath/var/sessions
+
+//      fprintf(fd,"ini_set(session.save_path, '$basepath/var/sessions'")); // mettre le chemin par l'intermédiaire d'une variable
+// s'assurer ici que php peut écrire dans le répertoire de session, mais y a pas de raison car php est lancé avec le même user que mea-edomus
+
       fprintf(fd,"$TITRE_APPLICATION='Mea eDomus Admin';\n");
       fprintf(fd,"$PARAMS_DB_PATH='sqlite:%s';\n",params_db_fullname);
       fprintf(fd,"$QUERYDB_SQL='sql/querydb.sql';\n");
