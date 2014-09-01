@@ -227,10 +227,15 @@ void counter_read(comio2_ad_t *ad, struct electricity_counter_s *counter)
    int l1,l2,l3,l4;
    uint32_t c;
 //   int err=0;
-   
+   unsigned char buffer[4];
+   uint16_t l_buffer=0;
+   unsigned char resp[4];
+   uint16_t l_resp[4];
+   int16_t comio2_err;
+
+/* a convertir
    do
    {
-/* a convertir
       l1=0;l2=0;l3=0;l4=0;
       // lecture des compteurs stockés dans les variables partagées
       l1=comio2_operation(ad, OP_LECTURE, counter->sensor_mem_addr[0], TYPE_MEMOIRE, 0, &err);
@@ -243,24 +248,41 @@ void counter_read(comio2_ad_t *ad, struct electricity_counter_s *counter)
       if(l3<0)
          goto _thread_interface_type_001_operation_abord;
       l4=comio2_operation(ad, OP_LECTURE, counter->sensor_mem_addr[3], TYPE_MEMOIRE, 0, &err);
-*/      
+   
    _thread_interface_type_001_operation_abord:
       continue;
    }
    while(l1<0 || l2<0 || l3<0 || l4<0);
-   c=     l4;
-   c=c <<  8;
-   c=c |  l3;
-   c=c <<  8;
-   c=c |  l2;
-   c=c <<  8;
-   c=c |  l1;
-   
-   // debut section critique
-   counter->last_counter=counter->counter;
-   counter->wh_counter=c;
-   counter->kwh_counter=c / 1000;
-   counter->counter=c;
+*/
+   int retry = 0;
+   for(int i=0;i<4;i++)
+      buffer[i]=counter->sensor_mem_addr[i];
+   do
+   {
+      ret=comio2_cmdSendAndWaitResp(ad, COMIO2_CMD_READMEMORY, data, 4, resp, &l_resp, &comio2_err);
+      if(ret==0)
+      {
+         c=     resp[3];
+         c=c <<  8;
+         c=c |  resp[2];
+         c=c <<  8;
+         c=c |  resp[1];
+         c=c <<  8;
+         c=c |  resp[0];
+      }
+      else
+         retry++;
+
+   }
+   while(ret && retry<5);
+
+   if(ret==0)
+   {
+      counter->last_counter=counter->counter;
+      counter->wh_counter=c;
+      counter->kwh_counter=c / 1000;
+      counter->counter=c;
+   }
 }
 
 
