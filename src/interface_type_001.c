@@ -233,7 +233,7 @@ void *_thread_interface_type_001(void *args)
    free(params);
    params=NULL;
 
-   interface_type_001_counters_init(i001); // <<= segmentation fault ici
+   interface_type_001_counters_init(i001);
    interface_type_001_sensors_init(i001);
 
    uint32_t cntr=0;
