@@ -247,7 +247,7 @@ int16_t comio2_cmdSend(comio2_ad_t *ad,
 {
    if(l_data >= COMIO2_MAX_DATA_SIZE)
    {
-      comio2_err=COMIO2_ERR_LDATA;
+      *comio2_err=COMIO2_ERR_LDATA;
       return -1;
    }
 
@@ -302,7 +302,7 @@ int16_t comio2_cmdSendAndWaitResp(comio2_ad_t *ad,
 
    if(l_data >= COMIO2_MAX_DATA_SIZE)
    {
-      comio2_err=COMIO2_ERR_LDATA;
+      *comio2_err=COMIO2_ERR_LDATA;
       return -1;
    }
 
