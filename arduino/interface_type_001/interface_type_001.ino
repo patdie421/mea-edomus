@@ -69,7 +69,7 @@
 
 
 Comio2 comio2;
-char *comio_mem=NULL; // pour accès direct à la mémoire comio2
+unsigned char *comio_mem=NULL; // pour accès direct à la mémoire comio2
 
 // spécifique pour TMP36
 #define TMP36_NB_READ 10000
@@ -292,7 +292,7 @@ void read_counters()
 
         memset(buff,0,sizeof(buff));
         compteurs.getStrVal(buff,sizeof(buff));
-        long_to_array(atol(buff), &(comio_mem[vars[current_counter].addr]));
+        long_to_array(atol(buff), (unsigned char *)&(comio_mem[vars[current_counter].addr]));
         // Serial.println(buff);
       }
       else
@@ -321,14 +321,14 @@ void process_counters()
   counter_flag0=0; // quelque soit la valeur on remet à 0. Ca coute moins cher en CPU que de faire un test et en fonction de mettre à 0.
   ENABLE_INT0_D2;
   if(flag) // une interruption pour le compteur 0
-  comio2->sendTrap(NCNTR0_TRAP, NULL, 0); // Emission d'un TRAP pour un traitement "temps rÃ©el" Ã©ventuel par le PC
+  comio2.sendTrap(CNTR0_TRAP, NULL, 0); // Emission d'un TRAP pour un traitement "temps rÃ©el" Ã©ventuel par le PC
 
   DISABLE_INT1_D3;
   flag=counter_flag1; // on récupère le flag
   counter_flag1=0; // quelque soit la valeur on remet à 0. Ca coute moins cher en CPU que de faire un test et en fonction de mettre à 0.
   ENABLE_INT1_D3;
   if(flag) // une interruption pour le compteur 1
-  comio2->sendTrap(CNTR1_TRAP, NULL, 0);
+  comio2.sendTrap(CNTR1_TRAP, NULL, 0);
 
   // lecture des info du compteur ERDF
   read_counters();
@@ -427,7 +427,7 @@ int comio2_fn_output_pwm(int id, char *data, int l_data, char *res, int *l_res, 
 // cette fonction test la pertinance de la demande.
 // Sortie disponible : 4, 10, 12
 //
-int comio_fn_return_digital_in(int id, char *data, int l_data, char *res, int *l_res, void *userdata)
+int comio2_fn_return_digital_in(int id, char *data, int l_data, char *res, int *l_res, void *userdata)
 {
   unsigned char pin=(unsigned char)data[0];
 
@@ -448,7 +448,7 @@ int comio_fn_return_digital_in(int id, char *data, int l_data, char *res, int *l
 // cette fonction test la pertinance de la demande.
 // Sortie disponible : A3
 //
-int comio_fn_return_analog_in(int id, char *data, int l_data, char *res, int *l_res, void *userdata)
+int comio2_fn_return_analog_in(int id, char *data, int l_data, char *res, int *l_res, void *userdata)
 {
   unsigned char pin=(unsigned char)data[0];
 
@@ -465,7 +465,7 @@ int comio_fn_return_analog_in(int id, char *data, int l_data, char *res, int *l_
 //
 // fonction COMIO : traitement spécifique d'un capteur TMP36 connecté sur A3
 //
-int comio_fn_return_tmp36(int id, char *data, int l_data, char *res, int *l_res, void *userdata)
+int comio2_fn_return_tmp36(int id, char *data, int l_data, char *res, int *l_res, void *userdata)
 {
   unsigned char pin=(unsigned char)data[0];
 
@@ -519,7 +519,7 @@ void process_digital_in_change_dectection()
     char pin_state=digitalRead(pin_num[i]);
 
     if(pin_prev_state[i]!=pin_state)
-       comio2->sendTrap(pin_num[i]+10, &pin_state, 1);
+       comio2.sendTrap(pin_num[i]+10, &pin_state, 1);
 
     pin_prev_state[i]=pin_state;
   }
@@ -573,10 +573,10 @@ void setup()
   comio2.setFunction(1,comio2_fn_output_onoff); // sorties logiques
   comio2.setFunction(2,comio2_fn_output_pwm); // sorties analogiques
   comio2.setFunction(6,comio2_fn_return_digital_in); // lecture entrées logiques
-  comio2.setFunction(7,comio2_fn_return_analog_in); // lecture entrées analogiques
+  comio2.setFunction(7,comio2_fn_return_digital_in); // lecture entrées analogiques
   comio2.setFunction(5,comio2_fn_return_tmp36); // lecture TMP36  
 
-  comio_mem=comio.getMemoryPtr();
+  comio_mem=comio2.getMemoryPtr();
 
   // initialisation du gestionnaire d'interruption du compteur 0
   long_to_array(0, &(comio_mem[CNTR0_DATA0])); // ou memset(&(comio_mem[CNTR0_DATA0]),0,4);
