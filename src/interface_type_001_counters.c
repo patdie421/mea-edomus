@@ -235,7 +235,7 @@ void counter_read(comio2_ad_t *ad, struct electricity_counter_s *counter)
 //   int err=0;
    char buffer[4];
 //   uint16_t l_buffer=0;
-   char resp[4];
+   char resp[5];
    uint16_t l_resp;
    int16_t comio2_err;
    int ret=0;
@@ -267,15 +267,16 @@ void counter_read(comio2_ad_t *ad, struct electricity_counter_s *counter)
    do
    {
       ret=comio2_cmdSendAndWaitResp(ad, COMIO2_CMD_READMEMORY, buffer, 4, resp, &l_resp, &comio2_err);
+
       if(ret==0)
       {
-         c=     resp[3];
+         c=     resp[4];
+         c=c <<  8;
+         c=c |  resp[3];
          c=c <<  8;
          c=c |  resp[2];
          c=c <<  8;
          c=c |  resp[1];
-         c=c <<  8;
-         c=c |  resp[0];
       }
       else
          retry++;

@@ -174,7 +174,7 @@ int16_t comio2_init(comio2_ad_t *ad, char *dev, speed_t speed)
    return -1;
    
    init_queue(ad->queue); // initialisation de la file
-   
+
    ad->frame_id=1;
    ad->signal_flag=0;
    
@@ -392,6 +392,7 @@ int16_t comio2_cmdSendAndWaitResp(comio2_ad_t *ad,
                         // recuperation des donnees
                         memcpy(resp,&(e->frame[1]),e->l_frame-1); // on retire juste l'id
                         *l_resp=e->l_frame-1;
+
                         *comio2_err=e->comio2_err;
                         
                         // et on fait le menage avant de sortir
@@ -528,16 +529,17 @@ int16_t _comio2_read_frame(int fd, char *cmd_data, uint16_t *l_cmd_data, int16_t
          ntry++;
          continue; // attention, si aucun caractère lu on boucle
       }
-      VERBOSE(9) fprintf(stderr, "%02x ",c & 0xFF);
       ntry=0;
       switch(step)
       {
          case 0:
             if(c=='{')
-         {
-            step++;
-            break;
-         }
+            {
+               DEBUG_SECTION fprintf(stderr,"%s  (%s) : recept new frame :",INFO_STR,__func__);
+
+               step++;
+               break;
+            }
             *nerr=COMIO2_ERR_STARTFRAME;
             goto on_error_exit_comio2_read;
             
@@ -573,12 +575,13 @@ int16_t _comio2_read_frame(int fd, char *cmd_data, uint16_t *l_cmd_data, int16_t
          case 4:
             if(c=='}')
             {
-               VERBOSE(9) fprintf(stderr, "\n");
+               DEBUG_SECTION fprintf(stderr, "%02x\n", c & 0xFF);
               return 0;
             }
             *nerr=COMIO2_ERR_STOPFRAME;
             goto on_error_exit_comio2_read;
       }
+      DEBUG_SECTION fprintf(stderr, "%02x ", c & 0xFF);
    }
    *nerr=COMIO2_ERR_UNKNOWN; // ne devrait jamais se produire ...
    
@@ -641,7 +644,10 @@ int16_t _comio2_write_frame(int fd, char id, char *cmd_data, uint16_t l_cmd_data
    }
    
    l_frame=_comio2_build_frame(id,frame,cmd_data,l_cmd_data);
-   
+
+   for(int i=0;i<l_frame;i++)
+      fprintf(stderr,"%02x ",frame[i]);
+   fprintf(stderr,"\n"); 
    ret=(int16_t)write(fd,frame,l_frame);
 
    free(frame);
@@ -739,7 +745,6 @@ void *_comio2_thread(void *args)
       _comio2_flush_old_responses_queue(ad); // a chaque passage on fait le ménage
       
       ret=_comio2_read_frame(ad->fd, (char *)frame, &l_frame, &nerr);
-      
       if(ret==0)
       {
          if(frame[0]>COMIO2_MAX_USER_FRAME_ID) // la requete est interne elle ne sera pas retransmise
@@ -747,10 +752,16 @@ void *_comio2_thread(void *args)
             switch(frame[0])
             {
                case COMIO2_TRAP_ID:
-                  VERBOSE(9) printf("%s  (%s) : Trap #%d catched\n",INFO_STR,__func__,frame[1]);
-                  if(ad->tabTraps[frame[1]-1].trap != NULL)
-                  ad->tabTraps[frame[1]-1].trap(frame[1]-1, (char *)&(frame[2]), l_frame-2, ad->tabTraps[frame[1]-1].userdata);
-                  VERBOSE(5) printf("%s  (%s) : no callback defined for trap %d\n",INFO_STR,__func__,frame[1]);
+                  if( (frame[1]-1) < COMIO2_MAX_TRAP )
+                  {
+                     VERBOSE(9) fprintf(stderr,"%s  (%s) : Trap #%d catched\n",INFO_STR,__func__,frame[1]);
+                     if(ad->tabTraps[frame[1]-1].trap != NULL)
+                        ad->tabTraps[frame[1]-1].trap(frame[1]-1, (char *)&(frame[2]), l_frame-2, ad->tabTraps[frame[1]-1].userdata);
+                     else
+                        VERBOSE(5) fprintf(stderr,"%s  (%s) : no callback defined for trap %d\n",INFO_STR,__func__,frame[1]);
+                  }
+                  else
+                     VERBOSE(5) fprintf(stderr,"%s  (%s) : trap#(%d) > COMIO2_MAX_TRAP %d\n",INFO_STR,__func__,frame[1]);
                   break;
             }
          }
