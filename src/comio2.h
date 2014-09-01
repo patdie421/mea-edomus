@@ -24,7 +24,8 @@
 #define COMIO2_ERR_SYS             9 // erreur systeme
 #define COMIO2_ERR_IN_CALLBACK    10
 #define COMIO2_ERR_STOPFRAME      11
-#define COMIO2_MAX_NB_ERROR       12
+#define COMIO2_ERR_LDATA          12
+#define COMIO2_MAX_NB_ERROR       13
  
 #define COMIO2_MAX_USER_FRAME_ID 200
 #define COMIO2_TRAP_ID           254
