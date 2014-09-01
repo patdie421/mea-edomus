@@ -528,16 +528,17 @@ int16_t _comio2_read_frame(int fd, char *cmd_data, uint16_t *l_cmd_data, int16_t
          ntry++;
          continue; // attention, si aucun caractère lu on boucle
       }
-      VERBOSE(9) fprintf(stderr, "%02x ",c & 0xFF);
       ntry=0;
       switch(step)
       {
          case 0:
             if(c=='{')
-         {
-            step++;
-            break;
-         }
+            {
+               DEBUG_SECTION fprintf(stderr,"%s  (%s) : recept new frame :",INFO_STR,__func__);
+
+               step++;
+               break;
+            }
             *nerr=COMIO2_ERR_STARTFRAME;
             goto on_error_exit_comio2_read;
             
@@ -573,12 +574,13 @@ int16_t _comio2_read_frame(int fd, char *cmd_data, uint16_t *l_cmd_data, int16_t
          case 4:
             if(c=='}')
             {
-               VERBOSE(9) fprintf(stderr, "\n");
+               DEBUG_SECTION fprintf(stderr, "\n");
               return 0;
             }
             *nerr=COMIO2_ERR_STOPFRAME;
             goto on_error_exit_comio2_read;
       }
+      DEBUG_SECTION fprintf(stderr, "%02x ",c & 0xFF);
    }
    *nerr=COMIO2_ERR_UNKNOWN; // ne devrait jamais se produire ...
    
@@ -739,7 +741,6 @@ void *_comio2_thread(void *args)
       _comio2_flush_old_responses_queue(ad); // a chaque passage on fait le ménage
       
       ret=_comio2_read_frame(ad->fd, (char *)frame, &l_frame, &nerr);
-      
       if(ret==0)
       {
          if(frame[0]>COMIO2_MAX_USER_FRAME_ID) // la requete est interne elle ne sera pas retransmise
@@ -747,10 +748,10 @@ void *_comio2_thread(void *args)
             switch(frame[0])
             {
                case COMIO2_TRAP_ID:
-                  VERBOSE(9) printf("%s  (%s) : Trap #%d catched\n",INFO_STR,__func__,frame[1]);
+                  VERBOSE(9) fprintf(stderr,"%s  (%s) : Trap #%d catched\n",INFO_STR,__func__,frame[1]);
                   if(ad->tabTraps[frame[1]-1].trap != NULL)
                   ad->tabTraps[frame[1]-1].trap(frame[1]-1, (char *)&(frame[2]), l_frame-2, ad->tabTraps[frame[1]-1].userdata);
-                  VERBOSE(5) printf("%s  (%s) : no callback defined for trap %d\n",INFO_STR,__func__,frame[1]);
+                  VERBOSE(5) fprintf(stderr,"%s  (%s) : no callback defined for trap %d\n",INFO_STR,__func__,frame[1]);
                   break;
             }
          }
