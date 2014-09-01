@@ -485,35 +485,51 @@ int Comio2::_comio_do_operationV2(unsigned char id, unsigned char cmd, char *dat
     if(!id)
       return 0;
 
+    if(l_data < 1)
+    {
+      if(id)
+        _comio_send_errorV2(id, COMIO2_ERR_PARAMS);
+        return 0;
+    } 
+
+    int m=0;
     _comio_debut_trameV2(id, COMIO2_CMD_READMEMORY, l_data, &cchecksum);
     for(int i=0;i<l_data;i++)
     {
-      cchecksum+=comio_memory[(int)data[i]];
-      writeF(comio_memory[(int)data[i]]);
+      if((int)data[i]>=COMIO2_MAX_M)
+        m=255;
+      else
+        m=comio_memory[(int)data[i]];
+
+      cchecksum+=m;
+      writeF(m);
     }
     _comio_fin_trameV2(&cchecksum);
     return -1;
     break;
 
   case COMIO2_CMD_WRITEMEMORY: // memory write - data contient la liste des couples Adresse/valeur
-    if((l_data % 2) != 0) // parametre impair => erreur
+    if(l_data < 1 || l_data % 2) != 0)
     {
       if(id)
         _comio_send_errorV2(id, COMIO2_ERR_PARAMS);
-      return 0;
-    }
+        return 0;
+    } 
 
     for(int i=0; i<l_data; i+=2)
     {
-      comio_memory[(int)data[i]]=data[i+1];
-      j++;
+      if((int)data[i]<COMIO2_MAX_M)
+      {
+        comio_memory[(int)data[i]]=data[i+1];
+        j++;
+      }
     }
 
     if(id)
     {
       _comio_debut_trameV2(id, COMIO2_CMD_WRITEMEMORY, 1, &cchecksum);
       cchecksum+=j;
-      writeF(j); // nombre d'octets Ã©crit
+      writeF(j); // nombre d'octets écrit
       _comio_fin_trameV2(&cchecksum);
     }
     return -1;
