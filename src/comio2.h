@@ -9,9 +9,14 @@
  
 //#include "error.h"
 #include "queue.h"
- 
+
+// valeurs max
 #define COMIO2_MAX_TRAP           16
- 
+#define COMIO2_MAX_USER_FRAME_ID 200 // plus grand id disponible pour les trames "standard"
+#define COMIO2_MAX_DATA_SIZE      40 // taille maximum de la zone data d'une trame
+#define COMIO2_MAX_FRAME_SIZE     80 // taille maximum d'une trame
+
+// numéros d'erreur 
 #define COMIO2_ERR_NOERR           0
 #define COMIO2_ERR_TIMEOUT         1 // sortie en timeout du sémaphore de synchro
 #define COMIO2_ERR_SELECT          2
@@ -26,15 +31,15 @@
 #define COMIO2_ERR_STOPFRAME      11
 #define COMIO2_ERR_LDATA          12
 #define COMIO2_MAX_NB_ERROR       13
- 
-#define COMIO2_MAX_USER_FRAME_ID 200
+
+// id reservé 
 #define COMIO2_TRAP_ID           254
- 
-#define COMIO2_MAX_FRAME_SIZE     80
- 
+
+// gestion des reprises 
 #define COMIO2_TIMEOUT_DELAY       1
 #define COMIO2_NB_RETRY            5
- 
+
+// ensemble des commandes disponibles
 #define COMIO2_CMD_ERROR           0
 #define COMIO2_CMD_READMEMORY      1
 #define COMIO2_CMD_WRITEMEMORY     2
