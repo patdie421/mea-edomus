@@ -45,7 +45,7 @@ void Comio2::init(unsigned char io_defs[][3])
 }
 
 
-void Comio2::setFunction(unsigned char num_function, callback_f function)
+int Comio2::setFunction(unsigned char num_function, callback_f function)
 /**
  * \brief     Association d'une fonction à  un "port" (numéro de fonction).
  * \details  
@@ -54,7 +54,12 @@ void Comio2::setFunction(unsigned char num_function, callback_f function)
  */
 {
   if(num_function<COMIO_MAX_FX)
+  {
     comio_functions[num_function]=function;
+    return 0;
+  }
+  else
+    return -1;
 }
 
 
