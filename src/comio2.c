@@ -535,7 +535,7 @@ int16_t _comio2_read_frame(int fd, char *cmd_data, uint16_t *l_cmd_data, int16_t
          case 0:
             if(c=='{')
             {
-               DEBUG_SECTION fprintf(stderr,"%s  (%s) : recept new frame :",INFO_STR,__func__);
+//               DEBUG_SECTION fprintf(stderr,"%s  (%s) : recept new frame :",INFO_STR,__func__);
 
                step++;
                break;
@@ -575,13 +575,13 @@ int16_t _comio2_read_frame(int fd, char *cmd_data, uint16_t *l_cmd_data, int16_t
          case 4:
             if(c=='}')
             {
-               DEBUG_SECTION fprintf(stderr, "%02x\n", c & 0xFF);
+//               DEBUG_SECTION fprintf(stderr, "%02x\n", c & 0xFF);
               return 0;
             }
             *nerr=COMIO2_ERR_STOPFRAME;
             goto on_error_exit_comio2_read;
       }
-      DEBUG_SECTION fprintf(stderr, "%02x ", c & 0xFF);
+//      DEBUG_SECTION fprintf(stderr, "%02x ", c & 0xFF);
    }
    *nerr=COMIO2_ERR_UNKNOWN; // ne devrait jamais se produire ...
    
@@ -645,9 +645,6 @@ int16_t _comio2_write_frame(int fd, char id, char *cmd_data, uint16_t l_cmd_data
    
    l_frame=_comio2_build_frame(id,frame,cmd_data,l_cmd_data);
 
-   for(int i=0;i<l_frame;i++)
-      fprintf(stderr,"%02x ",frame[i]);
-   fprintf(stderr,"\n"); 
    ret=(int16_t)write(fd,frame,l_frame);
 
    free(frame);
@@ -843,8 +840,8 @@ int comio2_call_fn(comio2_ad_t *ad, uint16_t fn, char *data, uint16_t l_data, in
 
    if(buffer[0] == COMIO2_CMD_CALLFUNCTION)
    {
-      *retval=buffer[1]*256+buffer[2];
-       for(int i=3,int j=0;i<l_buffer;i++,j++)
+      *retval=buffer[1]+buffer[2]*256;
+       for(int i=3,j=0;i<l_buffer;i++,j++)
          resp[j]=buffer[i];
       *l_resp=l_buffer-2;
       return 0;
