@@ -24,7 +24,6 @@ typedef struct interface_type_001_s
    uint16_t id_interface;
    pthread_t  *thread; // thread id
    comio2_ad_t *ad; // comio descriptor
-//   pthread_mutex_t operation_lock;
    queue_t *counters_list; // counter sensors attach to interface
    queue_t *actuators_list;
    queue_t *sensors_list;

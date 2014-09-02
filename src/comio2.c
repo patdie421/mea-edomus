@@ -234,7 +234,6 @@ void comio2_close(comio2_ad_t *ad)
     */
    pthread_cancel(ad->read_thread);
    pthread_join(ad->read_thread, NULL);
-   comio2_free_ad(ad);
    close(ad->fd);
 }
 

@@ -224,10 +224,10 @@ void stop_all_services_and_exit()
       pthread_join(*xPLServer_thread, NULL);
       VERBOSE(9) fprintf(stderr,"done\n");
    }
-   
+
    if(interfaces)
    {
-      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping interfaces... (",INFO_STR,__func__);
+      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping interfaces...\n",INFO_STR,__func__);
       first_queue(interfaces);
       while(interfaces->nb_elem)
       {
@@ -237,21 +237,19 @@ void stop_all_services_and_exit()
             case INTERFACE_TYPE_001:
             {
                interface_type_001_t *i001=(interface_type_001_t *)(iq->context);
-               VERBOSE(5) fprintf(stderr,"(%d:",i001->id_interface);
+               VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping #%d\n",INFO_STR,__func__,i001->id_interface);
                if(i001->xPL_callback)
                   i001->xPL_callback=NULL;
                stop_interface_type_001(i001);
-               VERBOSE(5) fprintf(stderr,"done)");
                break;
             }
             case INTERFACE_TYPE_002:
             {
                interface_type_002_t *i002=(interface_type_002_t *)(iq->context);
-               VERBOSE(5) fprintf(stderr,"(%d:",i002->id_interface);
+               VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping #%d\n",INFO_STR,__func__,i002->id_interface);
                if(i002->xPL_callback)
                   i002->xPL_callback=NULL;
                stop_interface_type_002(i002);
-               VERBOSE(5) fprintf(stderr,"done)");
                break;
             }
             
@@ -261,7 +259,7 @@ void stop_all_services_and_exit()
          free(iq);
          iq=NULL;
       }
-      VERBOSE(9) fprintf(stderr,") done\n");
+      VERBOSE(9) fprintf(stderr,"%s  (%s) : done\n",INFO_STR,__func__);
    }
    
    if(pythonPluginServer_thread)
