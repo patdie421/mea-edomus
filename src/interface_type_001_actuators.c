@@ -152,7 +152,6 @@ valid_and_malloc_relay_clean_exit:
 mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNomsValeursPtr, char *device, char *type)
 {
    int ret;
-//   uint16_t val;
    int type_id;
    unsigned char sval[2];
    int16_t comio2_err;
@@ -194,10 +193,6 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
 
                   VERBOSE(9) fprintf(stderr,"%s  (%s) : %s PLUSE %d ms on %d\n",INFO_STR,__func__,device,pulse_width,iq->arduino_pin);
                      
-//                  val=(iq->arduino_pin) << 8;
-//                  val=val | ((pulse_width / 100) & 0xFF);
-//                  safe_call_comio2_fn(i001, 0, val);
-
                   sval[0]=iq->arduino_pin;
                   sval[1]=((pulse_width / 100) & 0xFF);
                   ret=comio2_call_proc(i001->ad, 0, (char *)sval, 2, &comio2_err);
@@ -219,10 +214,6 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
                      o=255;
                   
                   VERBOSE(9) fprintf(stderr,"%s  (%s) : %s set %d on pin %d\n",INFO_STR,__func__,device,o,iq->arduino_pin);
-                  
-//                  val=(iq->arduino_pin) << 8;
-//                  val=val | o;
-//                  safe_call_comio2_fn(i001, 1, val);
                   
                   sval[0]=iq->arduino_pin;
                   sval[1]=o;
@@ -298,19 +289,15 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
                   
             VERBOSE(9) fprintf(stderr,"%s  (%s) : %s set %d on pin %d\n",INFO_STR, __func__,device,o,iq->arduino_pin);
                   
-//            val=(iq->arduino_pin) << 8;
-//            val=val | o;
-//            safe_call_comio2_fn(i001, 2, val);
-
-              sval[0]=iq->arduino_pin;
-              sval[1]=o;
-              ret=comio2_call_proc(i001->ad, 2, (char *)sval, 2, &comio2_err);
-              if(ret!=0)
-              {
-                 VERBOSE(9) fprintf(stderr,"%s  (%s) : comio2_call_proc error (comio2_err=%d)\n",INFO_STR, __func__,comio2_err);
-                 return ERROR;
-              }
-              return NOERROR;
+            sval[0]=iq->arduino_pin;
+            sval[1]=o;
+            ret=comio2_call_proc(i001->ad, 2, (char *)sval, 2, &comio2_err);
+            if(ret!=0)
+            {
+               VERBOSE(9) fprintf(stderr,"%s  (%s) : comio2_call_proc error (comio2_err=%d)\n",INFO_STR, __func__,comio2_err);
+               return ERROR;
+            }
+            return NOERROR;
          }
          return ERROR;
       }
