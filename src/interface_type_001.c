@@ -234,15 +234,15 @@ mea_error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, in
    
    pthread_t *counters_thread=NULL; // descripteur du thread
    struct thread_interface_type_001_params_s *params=NULL; // parametre à transmettre au thread
-
    
    // préparation des éléments de contexte de l'interface
    i001->id_interface=id_interface;
    i001->xPL_callback=NULL;
-   // pthread_mutex_init(&i001->operation_lock, NULL);
+   i001->counters_list=NULL;
+   i001->sensors_list=NULL;
+   i001->actuators_list=NULL;
 
-   // ret=sscanf((char *)dev,"SERIAL://%s",buff);
-   // if(ret==1)
+
    ret=get_dev_and_speed((char *)dev, buff, sizeof(buff), &speed);
    if(!ret)
       sprintf(real_dev,"/dev/%s",buff);
@@ -259,8 +259,9 @@ mea_error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, in
    {
       VERBOSE(2) {
          fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
-         perror(""); }
-      return ERROR;
+         perror("");
+      }
+      goto start_interface_type_001_clean_exit;
    }
    init_queue(i001->counters_list);
    
@@ -272,7 +273,7 @@ mea_error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, in
       VERBOSE(2) {
          fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
          perror(""); }
-      return ERROR;
+      goto start_interface_type_001_clean_exit;
    }
    init_queue(i001->actuators_list);
 
@@ -284,7 +285,7 @@ mea_error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, in
       VERBOSE(2) {
          fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
          perror(""); }
-      return ERROR;
+      goto start_interface_type_001_clean_exit;
    }
    init_queue(i001->sensors_list);
 
@@ -295,7 +296,7 @@ mea_error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, in
    if(ret)
    {
       VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg (db));
-      return ERROR;
+      goto start_interface_type_001_clean_exit;
    }
    
    // récupération des parametrages des capteurs dans la base
@@ -362,7 +363,7 @@ mea_error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, in
       {
          // traitement d'erreur à faire ici
          sqlite3_finalize(stmt);
-         return ERROR;
+         goto start_interface_type_001_clean_exit;
       }
    }
    
@@ -393,7 +394,7 @@ mea_error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, in
    else
    {
       VERBOSE(5) fprintf(stderr,"%s (%s) : no sensor/actuator active for this interface (%d) : ",ERROR_STR,__func__,id_interface);
-      return ERROR; // pas de capteur on s'arrête
+      goto start_interface_type_001_clean_exit;
    }
    
    i001->ad=ad;
