@@ -51,7 +51,7 @@ pthread_t *pythonPluginServer_thread=NULL; /*!< Adresse du thread Python. Variab
 char *params_names[MAX_LIST_SIZE];          /*!< liste des noms (chaines) de paramètres dans la base sqlite3 de paramétrage.*/
 char *params_list[MAX_LIST_SIZE];          /*!< liste des valeurs de paramètres.*/
 
-pid_t automator_pid = -1;
+pid_t automator_pid = 0;
 
 
 tomysqldb_md_t *get_myd()
