@@ -517,11 +517,23 @@ void interface_type_001_sensors_poll_inputs(interface_type_001_t *i001, tomysqld
             uint16_t l_resp;
             buffer[0]=sensor->arduino_pin;
 
-            comio2_call_fn(i001->ad, (uint16_t)sensor->arduino_function, (char *)buffer, 1, &v, resp, &l_resp, &comio2_err);
-            //pthread_mutex_unlock(&i001->operation_lock);
-            //pthread_cleanup_pop(0);
-               
-            if(v>=0 && sensor->val!=v)
+            int ret=comio2_call_fn(i001->ad, (uint16_t)sensor->arduino_function, (char *)buffer, 1, &v, resp, &l_resp, &comio2_err);
+            if(ret<0)
+            {
+               VERBOSE(5) {
+                  fprintf(stderr,"%s (%s) : comio2 error = %d.\n", ERROR_STR, __func__, comio2_err);
+               }
+               continue;
+            }
+            else if (ret>0)
+            {
+               VERBOSE(5) {
+                  fprintf(stderr,"%s (%s) : function %d return error = %d.\n", ERROR_STR, __func__, sensor->arduino_function, comio2_err);
+               }
+               continue;
+            }
+            
+            if(sensor->val!=v)
             {
                int16_t last=sensor->val;
                float computed_last;
@@ -587,9 +599,7 @@ void interface_type_001_sensors_init(interface_type_001_t *i001)
    for(int16_t i=0; i<sensors_list->nb_elem; i++)
    {
       current_queue(sensors_list, (void **)&sensor);
-/* a convertir
-      comio_set_trap2(i001->ad, sensor->arduino_pin+10, interface_type_001_sensors_process_traps, (void *)sensor);
-*/
+
       comio2_setTrap(i001->ad, sensor->arduino_pin+10, interface_type_001_sensors_process_traps, (void *)sensor);
 
       start_timer(&(sensor->timer));
