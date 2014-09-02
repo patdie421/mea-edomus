@@ -50,44 +50,7 @@ struct thread_interface_type_001_params_s
    interface_type_001_t *it001;
    tomysqldb_md_t *md;
 };
-/*
-uint16_t safe_call_comio2_fn(interface_type_001_t *i001, char fn, uint16_t val)
-{
-   uint16_t comio2_err;
-   char fndata[COMIO2_MAX_FRAME_SIZE];
-   char fnret[COMIO2_MAX_FRAME_SIZE];
-   uint16_t l_fnret;
-   uint16_t ret;
 
-   unsigned char pfort=(unsigned char)(val/256);
-   unsigned char pfaible=(unsigned char)(val-(unsigned int)(pfort*256));
-
-   fndata[0]=fn;
-   fndata[1]=pfort;
-   fndata[2]=pfaible;
-
-//   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)(&i001->operation_lock) );
-//   pthread_mutex_lock(&i001->operation_lock);
-
-// a convertir
-//   comio_call(i001->ad, fn, val, &comio_err); // 1 = fonction on/off
-
-//   ret=comio2_cmdSend(i001->ad, COMIO2_CMD_CALLFUNCTION, fndata, 3, &comio2_err);
-
-   ret=comio2_cmdSendAndWaitResp(i001->ad,
-                         COMIO2_CMD_CALLFUNCTION,
-                         fndata,
-                         3,
-                         fnret,
-                         &l_fnret,
-                         &comio2_err);
-
-//   pthread_mutex_unlock(&i001->operation_lock);
-//   pthread_cleanup_pop(0);
-
-   return fnret[0]*256+fnret[1];
-}
-*/
 
 // xPLSend -c control.basic -m cmnd device=RELAY1 type=output current=pulse data1=125
 // xPLSend -c sensor.request -m cmnd request=current device=CONSO type=POWER => dernière puissance instantannée
