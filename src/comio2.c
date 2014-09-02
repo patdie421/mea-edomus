@@ -826,16 +826,22 @@ int comio2_call_fn(comio2_ad_t *ad, uint16_t fn, char *data, uint16_t l_data, in
                                  &l_buffer,
                                  comio2_err);
    if(ret<0)
-      return -1;
+      return -1; // erreur technique voir comio2_err;
 
-   *retval=buffer[0]*256+buffer[1];
-
-   int i,j;
-   for(i=2,j=0;i<l_buffer;i++,j++)
-      resp[j]=buffer[i];
-   *l_resp=l_buffer-2;
-   
-   return 0;
+   if(buffer[0] == COMIO2_CMD_CALLFUNCTION)
+   {
+      *retval=buffer[1]*256+buffer[2];
+       for(int i=3,int j=0;i<l_buffer;i++,j++)
+         resp[j]=buffer[i];
+      *l_resp=l_buffer-2;
+      return 0;
+   }
+   else // erreur retournée par la fonction
+   {
+      *retval=buffer[1];
+      *l_resp=0;
+      return 1;
+   }
 }
 
 
