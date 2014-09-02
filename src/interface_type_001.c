@@ -160,6 +160,8 @@ mea_error_t stop_interface_type_001(interface_type_001_t *i001)
 
    FREE(i001->ad);
    FREE(i001->counters_list);
+   FREE(i001->sensors_list);
+   FREE(i001->actuators_list);
    
    VERBOSE(9) fprintf(stderr,"done.\n");
    
