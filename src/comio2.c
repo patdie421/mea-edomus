@@ -758,7 +758,7 @@ void *_comio2_thread(void *args)
                         VERBOSE(5) fprintf(stderr,"%s  (%s) : no callback defined for trap %d\n",INFO_STR,__func__,frame[1]);
                   }
                   else
-                     VERBOSE(5) fprintf(stderr,"%s  (%s) : trap#(%d) > COMIO2_MAX_TRAP %d\n",INFO_STR,__func__,frame[1]);
+                     VERBOSE(5) fprintf(stderr,"%s  (%s) : trap#(%d) > COMIO2_MAX_TRAP\n",INFO_STR,__func__,frame[1]);
                   break;
             }
          }

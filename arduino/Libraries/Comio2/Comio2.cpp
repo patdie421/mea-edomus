@@ -9,57 +9,57 @@
 
 void Comio2::init(unsigned char io_defs[][3])
 {
-  if(!io_defs)
-    return;
-
-  // initialisation des entrées/sorties
-  for(int i=0;io_defs[i][0]!=255;i++)
-  {
-    switch(io_defs[i][2])
-    {
-    case TYPE_DIGITAL:
-      comio_digitals[io_defs[i][0]]=io_defs[i][1];
-      if(io_defs[i][1]==OP_WRITE)
-        pinMode((int)io_defs[i][0],OUTPUT);
-      else if(io_defs[i][1]==OP_READ)
-        pinMode((int)io_defs[i][0],INPUT);
-      break;
-
-    case TYPE_ANALOG:
-      if(io_defs[i][1]==OP_READ)
+   if(!io_defs)
+      return;
+   
+   // initialisation des entrées/sorties
+   for(int i=0;io_defs[i][0]!=255;i++)
+   {
+      switch(io_defs[i][2])
       {
-        comio_analogs[io_defs[i][0]]=io_defs[i][1];
-        pinMode((int)io_defs[i][0],INPUT);
+         case TYPE_DIGITAL:
+            comio_digitals[io_defs[i][0]]=io_defs[i][1];
+            if(io_defs[i][1]==OP_WRITE)
+               pinMode((int)io_defs[i][0],OUTPUT);
+            else if(io_defs[i][1]==OP_READ)
+               pinMode((int)io_defs[i][0],INPUT);
+            break;
+            
+         case TYPE_ANALOG:
+            if(io_defs[i][1]==OP_READ)
+            {
+               comio_analogs[io_defs[i][0]]=io_defs[i][1];
+               pinMode((int)io_defs[i][0],INPUT);
+            }
+            break;
+            
+         case TYPE_DIGITAL_PWM:
+            if(io_defs[i][1]==OP_WRITE)
+            {
+               comio_digitals[io_defs[i][0]]=io_defs[i][1];
+               analogWrite((int)io_defs[i][0],0);
+            }
+            break;
       }
-      break;
-
-    case TYPE_DIGITAL_PWM:
-      if(io_defs[i][1]==OP_WRITE)
-      {
-        comio_digitals[io_defs[i][0]]=io_defs[i][1];
-        analogWrite((int)io_defs[i][0],0);
-      }
-      break;
-    }
-  }
+   }
 }
 
 
 int Comio2::setFunction(unsigned char num_function, callback_f function)
 /**
  * \brief     Association d'une fonction à  un "port" (numéro de fonction).
- * \details  
+ * \details
  * \param     num_function  numéro de fonction
  * \param     function      fonction associée au numéro / mettre NULL pour desalouer une fonction
  */
 {
-  if(num_function<COMIO_MAX_FX)
-  {
-    comio_functions[num_function]=function;
-    return 0;
-  }
-  else
-    return -1;
+   if(num_function<COMIO_MAX_FX)
+   {
+      comio_functions[num_function]=function;
+      return 0;
+   }
+   else
+      return -1;
 }
 
 
@@ -72,10 +72,10 @@ void Comio2::sendTrap(unsigned char num_trap)
  * \param     l_value   nombre de données dans le champ valeur
  */
 {
-  writeF('*');
-  writeF(num_trap);
-  writeF('$');
-  flushF();
+   writeF('*');
+   writeF(num_trap);
+   writeF('$');
+   flushF();
 }
 
 
@@ -88,13 +88,13 @@ void Comio2::sendLongTrap(unsigned char num_trap, char *value, char l_value)
  * \param     l_value   nombre de données dans le champ valeur
  */
 {
-  writeF('#');
-  writeF(num_trap);
-  writeF(l_value);
-  for(int i=0;i<l_value;i++)
-    writeF(value[i]);
-  writeF('$');
-  flushF();
+   writeF('#');
+   writeF(num_trap);
+   writeF(l_value);
+   for(int i=0;i<l_value;i++)
+      writeF(value[i]);
+   writeF('$');
+   flushF();
 }
 
 
@@ -108,21 +108,21 @@ void Comio2::_comio_send_frame(unsigned char op, unsigned char var, unsigned cha
  * \param     val   valeur numÃ©rique sur 16 bits Ã  retourner (donnÃ©e de l'adresse, valeur de la PIN, ...)
  */
 {
-  unsigned char op_type;
-
-  op_type=(op & 0x0F) << 4;
-  op_type=op_type | (type & 0x0F); 
-
-  unsigned char phigh=(unsigned char)(val/256);
-  unsigned char plow=(unsigned char)(val-(unsigned int)(phigh*256));
-
-  writeF('&');
-  writeF(op_type);
-  writeF(var);
-  writeF(phigh);
-  writeF(plow);
-  writeF('$');
-  flushF();
+   unsigned char op_type;
+   
+   op_type=(op & 0x0F) << 4;
+   op_type=op_type | (type & 0x0F);
+   
+   unsigned char phigh=(unsigned char)(val/256);
+   unsigned char plow=(unsigned char)(val-(unsigned int)(phigh*256));
+   
+   writeF('&');
+   writeF(op_type);
+   writeF(var);
+   writeF(phigh);
+   writeF(plow);
+   writeF('$');
+   flushF();
 }
 
 
@@ -133,9 +133,9 @@ void Comio2::_comio_send_error_frame(unsigned char nerr)
  * \param     nerr   numéro d'erreur Ã  retourner sur 8 bits.
  */
 {
-  writeF('!');
-  writeF(nerr);
-  writeF('$');
+   writeF('!');
+   writeF(nerr);
+   writeF('$');
 }
 
 
@@ -150,51 +150,51 @@ int Comio2::_comio_read_frame(unsigned char *op, unsigned char *var, unsigned ch
  * \return    0 = pas de trame correcte, 1 = ok données disponibles
  */
 {
-  int c;
-  unsigned char stat=0;
-
-  while(stat<5)
-  {
-    // 5 essais pour obtenir des données
-    for(int i=0;i<5;i++)
-    {
-      c=readF();
-      if(c>=0)
-        break;
-      delay(1); // 1 milliseconde entre 2 lectures
-    }
-
-    if(c<0)
-      return 0; // pas de données => sortie direct "sans rien dire"
-
-    // automate à états pour traiter les différents champs de la trame
-    switch(stat)
-    {
-    case 0: // lecture de l'opération et du type
-      *op=(((unsigned char)c) & 0xF0) >> 4;
-      *type=(((unsigned char)c) & 0x0F);
-      stat++; // étape suivante à la prochaine itération
-      break;
-    case 1: // lecturde de l'adresse de la variable
-      *var=(unsigned char)c;
-      stat++;
-      break;
-    case 2: // lecture data poid fort
-      *val=c*256;
-      stat++;
-      break;
-    case 3: // lecture data poid faible
-      *val=*val+c;
-      stat++;
-      break;
-    case 4: // lecture fin de trame
-      if(c!='$')
-        return 0; // pas de fin de trame correct ... on oubli tout et on sort
-      stat++;
-      break;
-    }
-  }
-  return 1;
+   int c;
+   unsigned char stat=0;
+   
+   while(stat<5)
+   {
+      // 5 essais pour obtenir des données
+      for(int i=0;i<5;i++)
+      {
+         c=readF();
+         if(c>=0)
+            break;
+         delay(1); // 1 milliseconde entre 2 lectures
+      }
+      
+      if(c<0)
+         return 0; // pas de données => sortie direct "sans rien dire"
+      
+      // automate à états pour traiter les différents champs de la trame
+      switch(stat)
+      {
+         case 0: // lecture de l'opération et du type
+            *op=(((unsigned char)c) & 0xF0) >> 4;
+            *type=(((unsigned char)c) & 0x0F);
+            stat++; // étape suivante à la prochaine itération
+            break;
+         case 1: // lecturde de l'adresse de la variable
+            *var=(unsigned char)c;
+            stat++;
+            break;
+         case 2: // lecture data poid fort
+            *val=c*256;
+            stat++;
+            break;
+         case 3: // lecture data poid faible
+            *val=*val+c;
+            stat++;
+            break;
+         case 4: // lecture fin de trame
+            if(c!='$')
+               return 0; // pas de fin de trame correct ... on oubli tout et on sort
+            stat++;
+            break;
+      }
+   }
+   return 1;
 }
 
 
@@ -209,32 +209,32 @@ int Comio2::_comio_valid_operation(unsigned char op, unsigned char var, unsigned
  * \return    0 = ok, autre valeur = code d'erreur
  */
 {
-  switch(type)
-  {
-  case TYPE_DIGITAL:
-    if(comio_digitals[var]!=op)
-      return 10;
-    break;
-  case TYPE_DIGITAL_PWM:
-    if(comio_digitals[var]!=op)
-      return 11;
-    break;
-  case TYPE_ANALOG:
-    if(comio_analogs[var]!=op)
-      return 12;
-    break;
-  case TYPE_MEMORY:
-    if(var>=COMIO_MAX_M)
-      return 13;
-    break;
-  case TYPE_FUNCTION:
-    if(var>=COMIO_MAX_FX)
-      return 14;
-    break;
-  default:
-    return COMIO_ERR_UNKNOWN; // type inconnu
-  }   
-  return 0;
+   switch(type)
+   {
+      case TYPE_DIGITAL:
+         if(comio_digitals[var]!=op)
+            return 10;
+         break;
+      case TYPE_DIGITAL_PWM:
+         if(comio_digitals[var]!=op)
+            return 11;
+         break;
+      case TYPE_ANALOG:
+         if(comio_analogs[var]!=op)
+            return 12;
+         break;
+      case TYPE_MEMORY:
+         if(var>=COMIO_MAX_M)
+            return 13;
+         break;
+      case TYPE_FUNCTION:
+         if(var>=COMIO_MAX_FX)
+            return 14;
+         break;
+      default:
+         return COMIO_ERR_UNKNOWN; // type inconnu
+   }
+   return 0;
 }
 
 
@@ -249,58 +249,58 @@ boolean Comio2::_comio_do_operation(unsigned char op, unsigned char var, unsigne
  * \return    true = ok, false = ko
  */
 {
-  unsigned int retval=0;
-
-  if(op==OP_WRITE)
-  {
-    switch(type)
-    {
-    case TYPE_DIGITAL:
-      if(!val)
-        digitalWrite(var,LOW);
-      else
-        digitalWrite(var,HIGH);
-      break;
-    case TYPE_DIGITAL_PWM:
-      analogWrite(var,val);
-      break;
-    case TYPE_MEMORY:
-      comio_memory[var]=(unsigned char)val;
-      break;
-    default:
-      return false;
-    }
-    retval=val;
-  }
-  else if (op==OP_READ)
-  {
-    switch(type)
-    {
-    case TYPE_ANALOG:
-      retval=analogRead(var);
-      break;
-    case TYPE_DIGITAL:
-      retval=digitalRead(var);
-      break;
-    case TYPE_MEMORY:
-      retval=comio_memory[var];
-      break;
-    default:
-      return false;
-    }
-  }
-  else if (op==OP_FUNCTION)
-  {
-    if(var<COMIO_MAX_FX)
-    {
-      if(comio_functions[var])
-        retval=comio_functions[var](val);
-    }
-  }
-
-  _comio_send_frame(op,var,type,retval);
-
-  return true;
+   unsigned int retval=0;
+   
+   if(op==OP_WRITE)
+   {
+      switch(type)
+      {
+         case TYPE_DIGITAL:
+            if(!val)
+               digitalWrite(var,LOW);
+            else
+               digitalWrite(var,HIGH);
+            break;
+         case TYPE_DIGITAL_PWM:
+            analogWrite(var,val);
+            break;
+         case TYPE_MEMORY:
+            comio_memory[var]=(unsigned char)val;
+            break;
+         default:
+            return false;
+      }
+      retval=val;
+   }
+   else if (op==OP_READ)
+   {
+      switch(type)
+      {
+         case TYPE_ANALOG:
+            retval=analogRead(var);
+            break;
+         case TYPE_DIGITAL:
+            retval=digitalRead(var);
+            break;
+         case TYPE_MEMORY:
+            retval=comio_memory[var];
+            break;
+         default:
+            return false;
+      }
+   }
+   else if (op==OP_FUNCTION)
+   {
+      if(var<COMIO_MAX_FX)
+      {
+         if(comio_functions[var])
+            retval=comio_functions[var](val);
+      }
+   }
+   
+   _comio_send_frame(op,var,type,retval);
+   
+   return true;
 }
 
 #endif
@@ -315,17 +315,17 @@ boolean Comio2::_comio_do_operation(unsigned char op, unsigned char var, unsigne
 void Comio2::_comio_send_errorV2(unsigned char id, unsigned char error)
 /**
  * \brief     envoie une réponse signalant une erreur.
- * \details  
+ * \details
  * \param     id    identifiant de la demande qui a provoqué une erreur
  * \param     error numéro de l'erreur
  */
 {
-  int cchecksum=0;
-
-  _comio_debut_trameV2(id, COMIO2_CMD_ERROR, 1, &cchecksum);
-  cchecksum+=error;
-  writeF(error);
-  _comio_fin_trameV2(&cchecksum);
+   int cchecksum=0;
+   
+   _comio_debut_trameV2(id, COMIO2_CMD_ERROR, 1, &cchecksum);
+   cchecksum+=error;
+   writeF(error);
+   _comio_fin_trameV2(&cchecksum);
 }
 
 
@@ -339,86 +339,86 @@ int Comio2::_comio_read_frameV2(unsigned char *id, unsigned char *cmd, char *dat
  * \return    0 => trame correcte,  < 0 => erreur
  */
 {
-  /*
-   Structure d'une trame "question" de type "Comio2"
+   /*
+    Structure d'une trame "question" de type "Comio2"
+    
+    Start(1)[[] : octet de début de trame. Permet d'identifier le type de trame
+    Longueur(1) : nombre d'octet de la trame (inclus start et fin de trame)
+    Id_trame(1) : numéro de trame question (0 = pas de réponse attendu, sauf erreur)
+    Commande(1) : opération à réaliser
+    Data(x)     : données de l'opération (0<=x<80)
+    CheckSum(1) : checksum calculer sur la trame hors start et end (0xFF - (somme_de_tous_les_octets & 0xFF)).
+    End(1)[]]   : octet de fin de trame.
+    */
+   int c=0;
+   int16_t j=0;
+   uint8_t stat=0;
+   int cchecksum=0;
    
-   Start(1)[[] : octet de début de trame. Permet d'identifier le type de trame
-   Longueur(1) : nombre d'octet de la trame (inclus start et fin de trame)
-   Id_trame(1) : numéro de trame question (0 = pas de réponse attendu, sauf erreur)
-   Commande(1) : opération à réaliser
-   Data(x)     : données de l'opération (0<=x<80)
-   CheckSum(1) : checksum calculer sur la trame hors start et end (0xFF - (somme_de_tous_les_octets & 0xFF)).
-   End(1)[]]   : octet de fin de trame.
-   */
-  int c=0;
-  int16_t j=0;
-  uint8_t stat=0;
-  int cchecksum=0;
-
-  while(stat<6)
-  {
-    // 5 ms max pour obtenir une données
-    for(int i=0;i<5;i++)
-    {
-      c=readF();
-      if(c>=0)
-        break;
-      delay(1); // 5 millisecondes max entre 2 lectures
-    }
-
-    if(c<0)
-      return 0; // pas de données => sortie direct "sans rien dire"
-
-    // automate à états pour traiter les différents champs de la trame
-    switch(stat)
-    {
-    case 0: // lecture de la longueur de trame
-      *l_data=c-5;
-      cchecksum+=c;
-      stat++; // étape suivante à la prochaine itération
-      break;
-
-    case 1: // lecturde de l'id de trame
-      *id=c;
-      cchecksum+=c;
-      stat++;
-      break;
-
-    case 2: // lecture de la commande
-      *cmd=c;
-      cchecksum+=c;
-      j=0;
-      stat++;
-      break;
-
-    case 3: // lecture des données
-      if(j<COMIO2_MAX_DATA)
+   while(stat<6)
+   {
+      // 5 ms max pour obtenir une données
+      for(int i=0;i<5;i++)
       {
-        data[j]=c;
-        cchecksum+=c;
-        j++;
-        if(j>=*l_data)
-          stat++;
+         c=readF();
+         if(c>=0)
+            break;
+         delay(1); // 5 millisecondes max entre 2 lectures
       }
-      else
-        return 0; // overflow ...
-      break;
-
-    case 4: // lecture checksum
-      cchecksum+=(unsigned char)c;
-      stat++;
-      break;
-
-    case 5:
-      if(c!=']')
-        return 0; // pas de fin de trame correct ... on oubli tout et on sort
-      if((cchecksum & 0xFF) != 0xFF)
-        return 0; // checksum incorrect ... on oubli tout et on sort
-      stat++;
-      break;
-    }
-  }
-  return -1;
+      
+      if(c<0)
+         return 0; // pas de données => sortie direct "sans rien dire"
+      
+      // automate à états pour traiter les différents champs de la trame
+      switch(stat)
+      {
+         case 0: // lecture de la longueur de trame
+            *l_data=c-6;
+            cchecksum+=c;
+            stat++; // étape suivante à la prochaine itération
+            break;
+            
+         case 1: // lecturde de l'id de trame
+            *id=c;
+            cchecksum+=c;
+            stat++;
+            break;
+            
+         case 2: // lecture de la commande
+            *cmd=c;
+            cchecksum+=c;
+            j=0;
+            stat++;
+            break;
+            
+         case 3: // lecture des données
+            if(j<COMIO2_MAX_DATA)
+            {
+               data[j]=c;
+               cchecksum+=c;
+               j++;
+               if(j>=*l_data)
+                  stat++;
+            }
+            else
+               return 0; // overflow ...
+            break;
+            
+         case 4: // lecture checksum
+            cchecksum+=(unsigned char)c;
+            stat++;
+            break;
+            
+         case 5:
+            if(c!=']')
+               return 0; // pas de fin de trame correct ... on oubli tout et on sort
+            if((cchecksum & 0xFF) != 0xFF)
+               return 0; // checksum incorrect ... on oubli tout et on sort
+            stat++;
+            break;
+      }
+   }
+   return -1;
 }
 
 
@@ -430,16 +430,16 @@ void Comio2::_comio_debut_trameV2(unsigned char id, unsigned char cmd, int l_dat
  * \param  l_data  nombre d'octet de la partie données de la trame
  */
 {
-  writeF('{');
-
-  *cchecksum=6+l_data;
-  writeF(6+l_data);
-
-  *cchecksum+=id;
-  writeF(id);
-
-  *cchecksum+=cmd;
-  writeF(cmd);
+   writeF('{');
+   
+   *cchecksum=6+l_data;
+   writeF(6+l_data);
+   
+   *cchecksum+=id;
+   writeF(id);
+   
+   *cchecksum+=cmd;
+   writeF(cmd);
 }
 
 
@@ -449,11 +449,11 @@ void Comio2::_comio_fin_trameV2(int *cchecksum)
  * \param     cchecksum  état du checksum jusqu'à présent
  */
 {
-  *cchecksum=0xFF - (*cchecksum & 0xFF);
-  writeF(*cchecksum);
-
-  writeF('}');
-  flushF();
+   *cchecksum=0xFF - (*cchecksum & 0xFF);
+   writeF(*cchecksum);
+   
+   writeF('}');
+   flushF();
 }
 
 
@@ -467,121 +467,121 @@ int Comio2::_comio_do_operationV2(unsigned char id, unsigned char cmd, char *dat
  * \return    0 => trame correcte,  < 0 => erreur
  */
 {
-  /*                                       
-   Start(1)[{] : octet de début de trame. Permet d'identifier le type de trame
-   Longueur(1) : longueur de la réponse (start et end compris)
-   Id_trame(1) : réponse à la question id_trame
-   Response(1) : type de la réponse
-   Data(x)     : données de la réponse
-   CheckSum(1) : checksum calculé sur la trame hors start et end.
-   End(1)[}]   : octet de fin de trame.
-   */
-  int cchecksum = 0;
-  int j=0; // compteur du nombre d'octet écrit
+   /*
+    Start(1)[{] : octet de début de trame. Permet d'identifier le type de trame
+    Longueur(1) : longueur de la réponse (start et end compris)
+    Id_trame(1) : réponse à la question id_trame
+    Response(1) : type de la réponse
+    Data(x)     : données de la réponse
+    CheckSum(1) : checksum calculé sur la trame hors start et end.
+    End(1)[}]   : octet de fin de trame.
+    */
+   int cchecksum = 0;
+   int j=0; // compteur du nombre d'octet écrit
+   int m=0;
+   
+   switch(cmd)
+   {
+      case COMIO2_CMD_READMEMORY: // memory read - data contient la liste des cases mémoires à lire
+         if(!id)
+            return 0;
+         
+         if(l_data < 1)
+         {
+            if(id)
+               _comio_send_errorV2(id, COMIO2_ERR_PARAMS);
+            return 0;
+         }
+         
+         _comio_debut_trameV2(id, COMIO2_CMD_READMEMORY, l_data, &cchecksum);
+         for(int i=0;i<l_data;i++)
+         {
+            if((int)data[i]>=COMIO2_MAX_MEMORY)
+               m=255;
+            else
+               m=comio_memory[(int)data[i]];
+            
+            cchecksum+=m;
+            writeF(m);
+         }
+         _comio_fin_trameV2(&cchecksum);
+         return -1;
+         break;
 
-  switch(cmd)
-  {
-  case COMIO2_CMD_READMEMORY: // memory read - data contient la liste des cases mémoires à lire
-    if(!id)
-      return 0;
-
-    if(l_data < 1)
-    {
-      if(id)
-        _comio_send_errorV2(id, COMIO2_ERR_PARAMS);
-        return 0;
-    } 
-
-    int m=0;
-    _comio_debut_trameV2(id, COMIO2_CMD_READMEMORY, l_data, &cchecksum);
-    for(int i=0;i<l_data;i++)
-    {
-      if((int)data[i]>=COMIO2_MAX_M)
-        m=255;
-      else
-        m=comio_memory[(int)data[i]];
-
-      cchecksum+=m;
-      writeF(m);
-    }
-    _comio_fin_trameV2(&cchecksum);
-    return -1;
-    break;
-
-  case COMIO2_CMD_WRITEMEMORY: // memory write - data contient la liste des couples Adresse/valeur
-    if(l_data < 1 || l_data % 2) != 0)
-    {
-      if(id)
-        _comio_send_errorV2(id, COMIO2_ERR_PARAMS);
-        return 0;
-    } 
-
-    for(int i=0; i<l_data; i+=2)
-    {
-      if((int)data[i]<COMIO2_MAX_M)
-      {
-        comio_memory[(int)data[i]]=data[i+1];
-        j++;
-      }
-    }
-
-    if(id)
-    {
-      _comio_debut_trameV2(id, COMIO2_CMD_WRITEMEMORY, 1, &cchecksum);
-      cchecksum+=j;
-      writeF(j); // nombre d'octets écrit
-      _comio_fin_trameV2(&cchecksum);
-    }
-    return -1;
-    break;
-
-  case COMIO2_CMD_CALLFUNCTION: 
-    if(l_data < 1 || data[0]>=COMIO2_MAX_FX) // il faut un code fonction valide
-    {
-      if(id)
-        _comio_send_errorV2(id, COMIO2_ERR_PARAMS);
-      return 0;
-    }
-    if(comio_functionsV2[(int)data[0]])
-    {
-      int l_buffer = 0;
-      int retval=comio_functionsV2[(int)data[0]](id, &(data[1]), l_data-1, buffer, &l_buffer, userdata);
-      if(id)
-      {
-        uint8_t r=0;
-        
-        _comio_debut_trameV2(id, COMIO2_CMD_CALLFUNCTION, 2+l_buffer, &cchecksum);
-
-        // retour fonction sur les deux premiers caractères de la réponse
-        r=retval & 0xFF;
-        cchecksum+=r;
-        writeF(r);
-        r=(retval >> 8) & 0xFF;
-        cchecksum+=r;
-        writeF(r);
-
-        // données retournées par le callback
-        for(int i=0;i<l_buffer;i++)
-        {
-           cchecksum+=buffer[i];
-           writeF(buffer[i]);
-        }
-
-        _comio_fin_trameV2(&cchecksum);
-      }
-    }
-    else
-    {
-      if(id)
-        _comio_send_errorV2(id, COMIO2_ERR_UNKNOWN_FUNC);
-      return 0;
-    }
-    return -1;
-    break;
-
-  default:
-    return 0;
-  }
+      case COMIO2_CMD_WRITEMEMORY: // memory write - data contient la liste des couples Adresse/valeur
+         if(l_data < 1 || l_data % 2 != 0)
+         {
+            if(id)
+               _comio_send_errorV2(id, COMIO2_ERR_PARAMS);
+            return 0;
+         }
+         
+         for(int i=0; i<l_data; i+=2)
+         {
+            if((int)data[i]<COMIO2_MAX_MEMORY)
+            {
+               comio_memory[(int)data[i]]=data[i+1];
+               j++;
+            }
+         }
+         
+         if(id)
+         {
+            _comio_debut_trameV2(id, COMIO2_CMD_WRITEMEMORY, 1, &cchecksum);
+            cchecksum+=j;
+            writeF(j); // nombre d'octets écrit
+            _comio_fin_trameV2(&cchecksum);
+         }
+         return -1;
+         break;
+         
+      case COMIO2_CMD_CALLFUNCTION:
+         if(l_data < 1 || data[0] >= COMIO2_MAX_FX) // il faut un code fonction valide
+         {
+            if(id)
+               _comio_send_errorV2(id, COMIO2_ERR_PARAMS);
+            return 0;
+         }
+         if(comio_functionsV2[(int)data[0]])
+         {
+            int l_buffer = 0;
+            int retval=comio_functionsV2[(int)data[0]](id, &(data[1]), l_data-1, buffer, &l_buffer, userdata);
+            if(id)
+            {
+               uint8_t r=0;
+               
+               _comio_debut_trameV2(id, COMIO2_CMD_CALLFUNCTION, 2+l_buffer, &cchecksum);
+               
+               // retour fonction sur les deux premiers caractères de la réponse
+               r=retval & 0xFF;
+               cchecksum+=r;
+               writeF(r);
+               r=(retval >> 8) & 0xFF;
+               cchecksum+=r;
+               writeF(r);
+               
+               // données retournées par le callback
+               for(int i=0;i<l_buffer;i++)
+               {
+                  cchecksum+=buffer[i];
+                  writeF(buffer[i]);
+               }
+               
+               _comio_fin_trameV2(&cchecksum);
+            }
+         }
+         else
+         {
+            if(id)
+               _comio_send_errorV2(id, COMIO2_ERR_UNKNOWN_FUNC);
+            return 0;
+         }
+         return -1;
+         break;
+         
+      default:
+         return 0;
+   }
 }
 
 
@@ -594,15 +594,15 @@ void Comio2::sendTrap(unsigned char num_trap, char *data, char l_data)
  * \param     l_value   nombre de données dans le champ valeur
  */
 {
-  int cchecksum=0;
-
-  _comio_debut_trameV2(COMIO2_TRAP_ID, num_trap, l_data, &cchecksum);
-  for(int i=0;i<l_data;i++)
-  {
-    cchecksum+=data[i];
-    writeF(data[i]);
-  }
-  _comio_fin_trameV2(&cchecksum);
+   int cchecksum=0;
+   
+   _comio_debut_trameV2(COMIO2_TRAP_ID, num_trap, l_data, &cchecksum);
+   for(int i=0;i<l_data;i++)
+   {
+      cchecksum+=data[i];
+      writeF(data[i]);
+   }
+   _comio_fin_trameV2(&cchecksum);
 }
 
 
@@ -613,12 +613,12 @@ int Comio2::setMemory(unsigned int addr, unsigned char value)
  * \return    0 si OK ou -1 si addr hors scope
  */
 {
-  if(addr >= 0 || addr <  COMIO_MAX_M)
-  {
-    comio_memory[addr]=value;
-    return 0;
-  }
-  return -1;
+   if(addr >= 0 || addr <  COMIO_MAX_M)
+   {
+      comio_memory[addr]=value;
+      return 0;
+   }
+   return -1;
 }
 
 
@@ -629,24 +629,24 @@ int Comio2::getMemory(unsigned int addr)
  * \return    la valeur de la case ou -1 si addr hors scope
  */
 {
-  if(addr >= 0 || addr <  COMIO_MAX_M)
-  {
-    return (int)comio_memory[addr];
-  }
-  return -1;
+   if(addr >= 0 || addr <  COMIO_MAX_M)
+   {
+      return (int)comio_memory[addr];
+   }
+   return -1;
 }
 
 
 void Comio2::setFunction(unsigned char num_function, callback2_f function)
 /**
  * \brief     Association d'une fonction à un "port" (numéro de fonction).
- * \details  
+ * \details
  * \param     num_function  numéro de fonction
  * \param     function      fonction associée au numéro / mettre NULL pour desalouer une fonction
  */
 {
-  if(num_function<COMIO2_MAX_FX)
-    comio_functionsV2[num_function]=function;
+   if(num_function<COMIO2_MAX_FX)
+      comio_functionsV2[num_function]=function;
 }
 
 
@@ -661,7 +661,7 @@ void Comio2::init(void)
  */
 {
 #ifdef _COMIO1_COMPATIBLITY_MODE_
-  init(NULL);
+   init(NULL);
 #endif
 }
 
@@ -673,7 +673,7 @@ inline int _comio2_serial_read()
  * \return    < 0 (-1) si pas de données disponible, le caractère lu sinon.
  */
 {
-  return Serial.read();
+   return Serial.read();
 }
 
 
@@ -685,8 +685,8 @@ inline int _comio2_serial_write(char car)
  * \return    toujours 0
  */
 {
-  Serial.write(car);
-  return 0;
+   Serial.write(car);
+   return 0;
 }
 
 
@@ -697,7 +697,7 @@ inline int _comio2_serial_available()
  * \return    nombre de caractères disponibles
  */
 {
-  return Serial.available();
+   return Serial.available();
 }
 
 
@@ -708,8 +708,8 @@ inline int _comio2_serial_flush()
  * \return    toujours 0
  */
 {
-  Serial.flush();
-  return 0;
+   Serial.flush();
+   return 0;
 }
 
 
@@ -720,19 +720,19 @@ Comio2::Comio2()
  */
 {
 #ifdef _COMIO1_COMPATIBLITY_MODE_
-  memset(comio_digitals,-1,sizeof(comio_digitals));
-  memset(comio_analogs,-1,sizeof(comio_analogs));
-  memset(comio_functions,0,sizeof(comio_functions));
+   memset(comio_digitals,-1,sizeof(comio_digitals));
+   memset(comio_analogs,-1,sizeof(comio_analogs));
+   memset(comio_functions,0,sizeof(comio_functions));
 #endif
-  memset(comio_functionsV2,0,sizeof(comio_functionsV2));
-  memset(comio_memory,0,sizeof(comio_memory));
-
-  writeF=_comio2_serial_write;
-  readF=_comio2_serial_read;
-  availableF=_comio2_serial_available;
-  flushF=_comio2_serial_flush;
-
-  userdata = NULL;
+   memset(comio_functionsV2,0,sizeof(comio_functionsV2));
+   memset(comio_memory,0,sizeof(comio_memory));
+   
+   writeF=_comio2_serial_write;
+   readF=_comio2_serial_read;
+   availableF=_comio2_serial_available;
+   flushF=_comio2_serial_flush;
+   
+   userdata = NULL;
 }
 
 
@@ -745,68 +745,68 @@ int Comio2::run()
  * \return    0 = pas de trames traitées ou données incorrectes / <> 0 code de traitement (> 0 Comio1 < 0 Comio2).
  */
 {
-  if(!availableF())
-    return 0;
-
-  unsigned char cptr=0;
-  boolean flag;
+   if(!availableF())
+      return 0;
+   
+   unsigned char cptr=0;
+   boolean flag;
 #ifdef _COMIO1_COMPATIBLITY_MODE_
-  boolean new_frame=true;
+   boolean new_frame=true;
 #endif
-
-  flag=false;
-  while(availableF() && cptr<10) // lecture jusqu'à 10 caractères pour détecter un début de trame
-  {
-    int c=readF();
+   
+   flag=false;
+   while(availableF() && cptr<10) // lecture jusqu'à 10 caractères pour détecter un début de trame
+   {
+      int c=readF();
 #ifdef _COMIO1_COMPATIBLITY_MODE_
-    if(c=='?') // un début de trame "type 1" est détecté
-    {
-      flag=true;
-      new_frame=false;
-      break;
-    }
-#endif
-    if(c=='[') // nouveau format de trame
-    {
-      flag=true;
-      break;
-    }
-    cptr++;
-  }
-  if(!flag)
-    return 0; // pas de début de trame, on rend la main pour ne pas trop bloquer la boucle principale
-
-#ifdef _COMIO1_COMPATIBLITY_MODE_
-  if(new_frame)               // format de trame COMIO2
-  {
-#endif
-    char data[COMIO2_MAX_DATA];
-    unsigned char id;
-    unsigned char cmd;
-    int l_data;
-    int ret=_comio_read_frameV2(&id, &cmd, data, &l_data);
-    if(ret)
-      ret=_comio_do_operationV2(id, cmd, data, l_data);
-#ifdef _COMIO1_COMPATIBLITY_MODE_
-    return ret;
-  }
-  else
-  {           
-    unsigned char op, var, type;
-    unsigned int val;
-    if(_comio_read_frame(&op,&var,&type,&val)) // si on obtient pas une trame on rend la main "sans rien dire"
-    {
-      int ret=_comio_valid_operation(op,var,type,val);
-      if(!ret)
-        ret=_comio_do_operation(op,var,type,val);
-      else
+      if(c=='?') // un début de trame "type 1" est détecté
       {
-        _comio_send_error_frame(ret);
-        return 0;
+         flag=true;
+         new_frame=false;
+         break;
       }
-      return ret;
-    }
-  }
 #endif
-  return 0;
+      if(c=='[') // nouveau format de trame
+      {
+         flag=true;
+         break;
+      }
+      cptr++;
+   }
+   if(!flag)
+      return 0; // pas de début de trame, on rend la main pour ne pas trop bloquer la boucle principale
+   
+#ifdef _COMIO1_COMPATIBLITY_MODE_
+   if(new_frame)               // format de trame COMIO2
+   {
+#endif
+      char data[COMIO2_MAX_DATA];
+      unsigned char id;
+      unsigned char cmd;
+      int l_data;
+      int ret=_comio_read_frameV2(&id, &cmd, data, &l_data);
+      if(ret)
+         ret=_comio_do_operationV2(id, cmd, data, l_data);
+#ifdef _COMIO1_COMPATIBLITY_MODE_
+      return ret;
+   }
+   else
+   {           
+      unsigned char op, var, type;
+      unsigned int val;
+      if(_comio_read_frame(&op,&var,&type,&val)) // si on obtient pas une trame on rend la main "sans rien dire"
+      {
+         int ret=_comio_valid_operation(op,var,type,val);
+         if(!ret)
+            ret=_comio_do_operation(op,var,type,val);
+         else
+         {
+            _comio_send_error_frame(ret);
+            return 0;
+         }
+         return ret;
+      }
+   }
+#endif
+   return 0;
 }
