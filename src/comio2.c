@@ -807,7 +807,7 @@ int comio2_call_fn(comio2_ad_t *ad, uint16_t fn, char *data, uint16_t l_data, in
    uint16_t l_buffer;
    int ret;
 
-   if(l_data >= COMIO2_MAX_DATA_SIZE)
+   if((l_data+1) >= COMIO2_MAX_DATA_SIZE-6)
    {
       *comio2_err=COMIO2_ERR_LDATA;
       return -1;
@@ -851,7 +851,7 @@ int comio2_call_proc(comio2_ad_t *ad, uint16_t fn, char *data, uint16_t l_data, 
    uint16_t l_buffer;
    int ret;
 
-   if(l_data >= COMIO2_MAX_DATA_SIZE)
+   if(l_data+1 >= COMIO2_MAX_DATA_SIZE)
    {
       *comio2_err=COMIO2_ERR_LDATA;
       return -1;
