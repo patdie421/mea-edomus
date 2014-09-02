@@ -802,6 +802,19 @@ void *_comio2_thread(void *args)
 
 
 int comio2_call_fn(comio2_ad_t *ad, uint16_t fn, char *data, uint16_t l_data, int *retval, unsigned char *resp, uint16_t *l_resp, int16_t *comio2_err)
+/**
+ * \brief     déclenche une fonction Comio2 sur l'esclave
+ * \details   Retourne le resultat de la fonction et des données sous forme d'un tableau de caractères.
+ * \param     ad     descripteur comio.
+ * \param     fn     numéro de la fonction à appeler
+ * \param     data   données à transmettre à la fonction
+ * \param     l_data nombre d'octet à transmettre
+ * \param     retval valeur du retour de la fonction ou numéro d'erreur
+ * \param     resp   données retournées par la fonction
+ * \param     l_resp nombre d'octete de la réponse
+ * \param     comio2_err code d'erreur en cas de pb technique comio2
+ * \return    0 = fonction appeler et retour sans erreur, -1 erreur technique comio2, 1 retour d'erreur de la fonction.
+ */
 {
    unsigned char buffer[COMIO2_MAX_FRAME_SIZE];
    uint16_t l_buffer;
