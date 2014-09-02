@@ -606,8 +606,8 @@ int16_t _comio2_build_frame(char id, char *frame, char *cmd_data, uint16_t l_cmd
    
    frame[0]='[';
    
-   cchecksum=4+l_cmd_data;
-   frame[1]=4+l_cmd_data;
+   cchecksum=5+l_cmd_data;
+   frame[1]=5+l_cmd_data;
    
    cchecksum+=id;
    frame[2]=id;
@@ -813,10 +813,15 @@ int comio2_call_fn(comio2_ad_t *ad, uint16_t fn, char *data, uint16_t l_data, in
       return -1;
    }
 
+   buffer[0]=fn;
+   for(int i=0,j=1;i<l_data;i++,j++)
+      buffer[j]=data[i];
+   l_buffer=l_data+1;
+   
    ret=comio2_cmdSendAndWaitResp(ad,
                                  COMIO2_CMD_CALLFUNCTION,
-                                 data,
-                                 l_data,
+                                 (char *)buffer,
+                                 l_buffer,
                                  (char *)buffer,
                                  &l_buffer,
                                  comio2_err);
@@ -836,6 +841,8 @@ int comio2_call_fn(comio2_ad_t *ad, uint16_t fn, char *data, uint16_t l_data, in
 
 int comio2_call_proc(comio2_ad_t *ad, uint16_t fn, char *data, uint16_t l_data, int16_t *comio2_err)
 {
+   unsigned char buffer[COMIO2_MAX_FRAME_SIZE];
+   uint16_t l_buffer;
    int ret;
 
    if(l_data >= COMIO2_MAX_DATA_SIZE)
@@ -844,10 +851,15 @@ int comio2_call_proc(comio2_ad_t *ad, uint16_t fn, char *data, uint16_t l_data, 
       return -1;
    }
 
+   buffer[0]=fn;
+   for(int i=0,j=1;i<l_data;i++,j++)
+      buffer[j]=data[i];
+   l_buffer=l_data+1;
+
    ret=comio2_cmdSend(ad,
                       COMIO2_CMD_CALLFUNCTION,
-                      data,
-                      l_data,
+                      (char *)buffer,
+                      l_buffer,
                       comio2_err);
 
    return ret;
