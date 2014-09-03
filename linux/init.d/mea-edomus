@@ -13,7 +13,7 @@ PATH=/sbin:/bin:/usr/sbin:/usr/bin
 
 . /lib/lsb/init-functions
 
-MEAEDOMUS_BASEPATH="/data/rec/mea-edomus/0.1alpha2"
+MEAEDOMUS_BASEPATH="<BASEPATH>"
 
 DAEMON="$MEAEDOMUS_BASEPATH/bin/mea-edomus"
 MEAEDOMUS_OPT="--basepath=$MEAEDOMUS_BASEPATH"
