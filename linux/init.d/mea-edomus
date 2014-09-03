@@ -55,9 +55,6 @@ case $1 in
 			exit 0
 		fi
 		;;
-	reload)
-		exit 3
-		;;
 	status)
 		status_of_proc $DAEMON "mea-edomus"
 		;;
