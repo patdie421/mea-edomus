@@ -3,6 +3,8 @@
 *.swp
 xcuserdata/
 xcsharedata/
-mea-edomus
 *.xccheckout
 tmp/
+download/
+downloads/
+mea-edomus
