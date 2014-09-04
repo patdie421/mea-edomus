@@ -5,7 +5,6 @@ endif
 PHPCGI=$(SOURCE)/complements/php-cgi
 PHPSOURCE=$(PHPCGI)/src
 DOWNLOAD=$(SOURCE)/complements/downloads
-BUILD=$(SOURCE)/build
 
 all: $(PHPSOURCE)/php-5.5.16/sapi/cgi/php-cgi
 
