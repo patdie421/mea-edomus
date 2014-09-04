@@ -987,7 +987,7 @@ int main(int argc, const char * argv[])
       }
       exit(1);
    }
-/*
+
    int fd=open(log_file, O_CREAT | O_APPEND | O_RDWR,  S_IWUSR | S_IRUSR);
    if(fd<0)
    {
@@ -999,7 +999,6 @@ int main(int argc, const char * argv[])
    dup2(fd, 1);
    dup2(fd, 2);
    close(fd);
-*/
 
    //   
    // demarrage du processus de l'automate

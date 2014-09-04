@@ -48,8 +48,8 @@ MEAUSER='mea-edomus'
 MEAGROUP='mea-edomus'
 
 sudo groupadd -f "$MEAUSER" > /dev/null 2>&1
-sudo useradd -r -N -g "$MEAGROUP" -M -d '' -s /dev/false > /dev/null 2>&1
-
+sudo useradd -r -N -g "$MEAGROUP" -M -d "$BASEPATH/var/log" -s /dev/false "$MEAUSER" > /dev/null 2>&1
+sudo usermod -a -G dialout "$MEAUSER"
 
 CURRENTPATH=`pwd`;
 cd "$BASEPATH"
@@ -59,15 +59,18 @@ cd "$BASEPATH"
 # préparer les permissions avant le tar (mettre un g+s sur var/log et var/db
 # mettre root/root au repertoires/fichiers pendant le tar
 
-sudo tar --owner "$MEUSER" --group="MEAGROUP" xfp "CURRENTPATH"/mea-edomus.tar
+sudo tar --owner="$MEAUSER" --group="$MEAGROUP" -xpf "$CURRENTPATH"/mea-edomus.tar
 
 # recherche un PHP-CGI dans le PATH si non fourni
 OPTIONS=""
-if [! -f ./bin/php-cgi ]
+if [ ! -f ./bin/php-cgi ]
 then
    PHPCGI=`which php-cgi`
-   PHPCGI=`basepath $PHPCIG`
-   OPTIONS="--phpcgipath=\"$PHPCGI\""
+   PHPCGI=`dirname $PHPCIG`
+   if [ ! -z $PHPCGI ]
+   then
+      OPTIONS="--phpcgipath=\"$PHPCGI\""
+   fi
 fi
 
 if [ -z OPTIONS ]
@@ -77,16 +80,16 @@ then
 fi
 sudo ./bin/mea-edomus --autoinit --basepath="$BASEPATH" "$OPTIONS"
 
-#sudo chown -R "$MEAUSER":"$MEAGROUP" "$BASEPATH"/lib/mea-gui
-#sudo chmod -R 775 "$MEAUSER":"$MEAGROUP" "$BASEPATH"/lib/mea-gui
-#sudo chown -R "$MEAUSER":"$MEAGROUP" "$BASEPATH"/lib/mea-plugin
-#sudo chmod -R 775 "$MEAUSER":"$MEAGROUP" "$BASEPATH"/lib/mea-plugin
-#sudo chown -R "$MEAUSER":"$MEAGROUP" "$BASEPATH"/var/log
-#sudo chmod -R 775 "$MEAUSER":"$MEAGROUP" "$BASEPATH"/var/log
-#sudo chown -R "$MEAUSER":"$MEAGROUP" "$BASEPATH"/var/db
-#sudo chmod -R 775 "$MEAUSER":"$MEAGROUP" "$BASEPATH"/var/db
-#sudo chown -R "$MEAUSER":"$MEAGROUP" "$BASEPATH"/etc
-#sudo chmod -R 775 "$MEAUSER":"$MEAGROUP" "$BASEPATH"/etc
+sudo chown -R "$MEAUSER":"$MEAGROUP" "$BASEPATH"/lib/mea-gui
+sudo chmod -R 775 "$BASEPATH"/lib/mea-gui
+sudo chown -R "$MEAUSER":"$MEAGROUP" "$BASEPATH"/lib/mea-plugins
+sudo chmod -R 775 "$BASEPATH"/lib/mea-plugins
+sudo chown -R "$MEAUSER":"$MEAGROUP" "$BASEPATH"/var/log
+sudo chmod -R 775 "$BASEPATH"/var/log
+sudo chown -R "$MEAUSER":"$MEAGROUP" "$BASEPATH"/var/db
+sudo chmod -R 775 "$BASEPATH"/var/db
+sudo chown -R "$MEAUSER":"$MEAGROUP" "$BASEPATH"/etc
+sudo chmod -R 775 "$BASEPATH"/etc
 
 # déclaration du service
 BASEPATH4SED=`echo "$BASEPATH" | sed -e 's/\\//\\\\\\//g'`
@@ -97,6 +100,7 @@ BASEPATH4SED=`echo "$BASEPATH" | sed -e 's/\\//\\\\\\//g'`
 
 # déclaration du service
 sudo sed -e 's/<BASEPATH>/'"$BASEPATH4SED"'/g' -e 's/<USER>/'"$MEAUSER"'/g' ./etc/init.d/mea-edomus > /etc/init.d/mea-edomus
+chmod +x /etc/init.d/mea-edomus
 
 # activation du service
 sudo update-rc.d mea-edomus defaults
