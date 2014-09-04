@@ -23,10 +23,6 @@ $(DOWNLOAD)/php5.tar.bz2:
 	@mkdir -p $(DOWNLOAD)
 	curl -L http://fr2.php.net/get/php-5.5.16.tar.bz2/from/this/mirror -o $(DOWNLOAD)/php5.tar.bz2
 
-install: $(PHPSOURCE)/php-5.5.16/sapi/cgi/php-cgi
-	@mkdir -p $(BUILD)/bin
-	cp $(PHPSOURCE)/php-5.5.16/sapi/cgi/php-cgi $(BUILD)/bin
-
 clean:
 	cd $(PHPSOURCE)/php-5.5.16
 	make clean

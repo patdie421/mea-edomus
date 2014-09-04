@@ -12,7 +12,7 @@ fi
 # recupération des parametres
 BASEPATH="$1"
 
-if [ "$BASEPATH" == "/usr" || "$BASEPATH" == "/" ]
+if [ "$BASEPATH" == "/usr" ] || [ "$BASEPATH" == "/" ]
 then
    echo "ERROR : can't actualy install in $BASEPATH. Choose an other directory, or install manualy !"
    exit 0

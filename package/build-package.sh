@@ -33,25 +33,26 @@ chmod -R 775 $SOURCE/package/tmp/*
 chmod -R g+x $SOURCE/package/tmp/*
 
 cd $SOURCE/gui
-tar cf - . | ( cd $SOURCE/package/tmp/lib/mea-gui ; tar xvf - )
+tar cf - . | ( cd $SOURCE/package/tmp/lib/mea-gui ; tar xf - )
 
 cd $SOURCE/plugins
-tar cf - . | ( cd $SOURCE/package/tmp/lib/mea-plugins ; tar xvf - )
+tar cf - . | ( cd $SOURCE/package/tmp/lib/mea-plugins ; tar xf - )
 
 cp $SOURCE/linux/init.d/* $SOURCE/package/tmp/etc/init.d
 
 cp $SOURCE/mea-edomus $SOURCE/package/tmp/bin
-if [ -f $SOURCE/complements/php-cgi/php-5.x.x/sapi/cgi/php-cgi ]
+
+if [ -f $SOURCE/complements/php-cgi/src/php-5.5.16/sapi/cgi/php-cgi ]
 then
-   cp $SOURCE/complements/php-cgi/php-5.x.x/sapi/cgi/php-cgi $SOURCE/package/tmp/bin
+   cp $SOURCE/complements/php-cgi/src/php-5.5.16/sapi/cgi/php-cgi $SOURCE/package/tmp/bin
 fi
 strip $SOURCE/package/tmp/bin/*
 
 cd $SOURCE/package/tmp
-tar cvf $SOURCE/package/mea-edomus.tar *
+tar cf $SOURCE/package/mea-edomus.tar *
 
 cd $SOURCE/package
-tar cvf $SOURCE/package/mea-edomus.tar.pkg mea-edomus.tar install.sh
+tar cjf $SOURCE/package/mea-edomus.tar.pkg.bz2 mea-edomus.tar install.sh
 
 rm mea-edomus.tar > /dev/null 2>&1
 rm -r $SOURCE/package/tmp > /dev/null 2>&1
