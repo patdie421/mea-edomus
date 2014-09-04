@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # à lancer de préférence en sudo
 
 if [ $# -ne 1 ]
