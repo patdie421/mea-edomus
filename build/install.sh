@@ -56,9 +56,23 @@ cd "$BASEPATH"
 
 sudo tar xf "$CURRENTPATH"/mea-edomus.tar
 
-sudo strip ./bin/*
+# sudo strip ./bin/* # faire le strip avant de faire le tar dans le make file
 
-sudo ./bin/mea-edomus --autoinit --basepath="$BASEPATH"
+# recherche un PHP-CGI dans le PATH si non fourni
+OPTIONS=""
+if [! -f ./bin/php-cgi ]
+then
+   PHPCGI=`which php-cgi`
+   PHPCGI=`basepath $PHPCIG`
+   OPTIONS="--phpcgipath=\"$PHPCGI\""
+fi
+
+if [ -z OPTIONS ]
+then
+   echo "No php-cgi provided or found."
+   echo "install one if you need the mea-edomus gui and excute $0 --basepath=\""$BASEPATH"\" --update --phpcgipath=\"<PATH_TO_CGI_BIN>\""
+fi
+sudo ./bin/mea-edomus --autoinit --basepath="$BASEPATH" "$OPTIONS"
 
 sudo chown -R "$MEAUSER":"$MEAGROUP" "$BASEPATH"/lib/mea-gui
 sudo chmod -R 775 "$MEAUSER":"$MEAGROUP" "$BASEPATH"/lib/mea-gui
@@ -72,9 +86,9 @@ sudo chown -R "$MEAUSER":"$MEAGROUP" "$BASEPATH"/etc
 sudo chmod -R 775 "$MEAUSER":"$MEAGROUP" "$BASEPATH"/etc
 
 # déclaration du service
-# les slashs sont transformés en \/ pour sed
 BASEPATH4SED=`echo "$BASEPATH" | sed -e 's/\\//\\\\\\//g'`
 # Pour mémoire :
+# les slash doivent être transformés en \/ pour le sed suivant
 # echo $BASEPATH | sed -e 's/\//\\\//g' donne le résultat attendu
 # mais pour utilisation avec les `` il faut remplacer en plus les \ par des \\
 
@@ -85,6 +99,6 @@ sudo sed -e 's/<BASEPATH>/'"$BASEPATH4SED"'/g' -e 's/<USER>/'"$MEAUSER"'/g' ./et
 sudo update-rc.d mea-edomus defaults
 
 # lancement du service
-sudo service mea-edomus start
+sudo service mea-edomus restart
 
 cd "$CURRENTPATH"
