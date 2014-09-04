@@ -10,4 +10,6 @@ downloads/
 build/bin/
 build/lib/
 build/etc/
+complements/php-cgi/src/
 mea-edomus
+xPLLib/

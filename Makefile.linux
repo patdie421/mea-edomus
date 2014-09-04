@@ -17,6 +17,8 @@ LDFLAGS     = -lmysqlclient \
               -lsqlite3 \
               -lpython2.7
 
+MYPATH=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
+
 SOURCES=$(shell echo src/*.c)
 OBJECTS=$(SOURCES:.c=.o)
 EXECUTABLE=mea-edomus
@@ -28,3 +30,6 @@ $(EXECUTABLE): $(OBJECTS)
 
 clean:
 	-rm -f $(OBJECTS)
+
+build-php-cgi:
+	make -C complements/php-cgi -f php-cgi.mk SOURCE=$(MYPATH)

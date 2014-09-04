@@ -2,37 +2,35 @@ ifndef SOURCE
 $(error "SOURCE not set, can't make php-cgi binary")
 endif 
 
-PHPCGI=$SOURCE/complements/php-cgi
-PHPSOURCE=$PHPCGI/src
-DOWNLOADS=$SOURCE/complements/downloads
+PHPCGI=$(SOURCE)/complements/php-cgi
+PHPSOURCE=$(PHPCGI)/src
+DOWNLOAD=$(SOURCE)/complements/downloads
+BUILD=$(SOURCE)/build
 
-all: $PHPSOURCE/php-5.5.16/sapi/cgi/php-cgi
+all: $(PHPSOURCE)/php-5.5.16/sapi/cgi/php-cgi
 
-$PHPSOURCE/php-5.5.16/sapi/cgi/php-cgi: $PHP/Makefile
-   cd $PHP/php-5.5.16
-   make
+$(PHPSOURCE)/php-5.5.16/sapi/cgi/php-cgi: $(PHPSOURCE)/php-5.5.16/Makefile
+	cd $(PHPSOURCE)/php-5.5.16 ; make
 
-$PHPSOURCE/Makefile: $PHPSOURCE/php-5.5.16
-   cd $PHPSOURCE/php-5.5.16
-   ./configure --prefix=/usr/local/php --disable-all --enable-session --enable-pdo --with-sqlite3 --with-pdo-sqlite --enable-json
+$(PHPSOURCE)/php-5.5.16/Makefile: $(PHPSOURCE)/php-5.5.16/extract.ok
+	cd $(PHPSOURCE)/php-5.5.16 ; ./configure --prefix=/usr/local/php --disable-all --enable-session --enable-pdo --with-sqlite3 --with-pdo-sqlite --enable-json
 
-$PHPSOURCE/php-5.5.16: $DOWNLOAD/php5.tar.bz
-   @mkdir -p $PHPSOURCE
-   cd $PHPSOURCE
-   bzip2 -dc $DOWNLOADS/php5.tar.bz | tar xvf -
+$(PHPSOURCE)/php-5.5.16/extract.ok: $(DOWNLOAD)/php5.tar.bz2
+	@mkdir -p $(PHPSOURCE)
+	cd $(PHPSOURCE) ; tar xvjf $(DOWNLOAD)/php5.tar.bz2 ; touch $(PHPSOURCE)/php-5.5.16/extract.ok
 
-$DOWNLOAD/php5.tar.bz2:
-   @mkdir -p $DOWNLOADS
-   curl -silent -L http://fr2.php.net/get/php-5.5.16.tar.bz2/from/this/mirror -o $DOWNLOADS/php5.tar.bz2
+$(DOWNLOAD)/php5.tar.bz2:
+	@mkdir -p $(DOWNLOAD)
+	curl -L http://fr2.php.net/get/php-5.5.16.tar.bz2/from/this/mirror -o $(DOWNLOAD)/php5.tar.bz2
 
-install: $PHPSOURCE/php-5.5.16/sapi/cgi/php-cgi
-   @mkdir -p $BUILD/bin
-   cp $PHPSOURCE/php-5.5.16/sapi/cgi/php-cgi $BUILD/bin
+install: $(PHPSOURCE)/php-5.5.16/sapi/cgi/php-cgi
+	@mkdir -p $(BUILD)/bin
+	cp $(PHPSOURCE)/php-5.5.16/sapi/cgi/php-cgi $(BUILD)/bin
 
 clean:
-   cd $PHPSOURCE/php-5.5.16
-   make clean
+	cd $(PHPSOURCE)/php-5.5.16
+	make clean
 
 fullclean:
-   rm -r $PHPSOURCE
-   rm $DOWNLOADS/php5.tar.bz2
+	rm -r $(PHPSOURCE)
+	rm $(DOWNLOAD)/php5.tar.bz2
