@@ -54,9 +54,12 @@ sudo useradd -r -N -g "$MEAGROUP" -M -d '' -s /dev/false > /dev/null 2>&1
 CURRENTPATH=`pwd`;
 cd "$BASEPATH"
 
-sudo tar xf "$CURRENTPATH"/mea-edomus.tar
+# Pour la création du package
+# sudo strip ./bin/* # faire un strip des executables avant de faire le tar dans le makefile
+# préparer les permissions avant le tar (mettre un g+s sur var/log et var/db
+# mettre root/root au repertoires/fichiers pendant le tar
 
-# sudo strip ./bin/* # faire le strip avant de faire le tar dans le make file
+sudo tar --owner "$MEUSER" --group="MEAGROUP" xfp "CURRENTPATH"/mea-edomus.tar
 
 # recherche un PHP-CGI dans le PATH si non fourni
 OPTIONS=""
@@ -74,16 +77,16 @@ then
 fi
 sudo ./bin/mea-edomus --autoinit --basepath="$BASEPATH" "$OPTIONS"
 
-sudo chown -R "$MEAUSER":"$MEAGROUP" "$BASEPATH"/lib/mea-gui
-sudo chmod -R 775 "$MEAUSER":"$MEAGROUP" "$BASEPATH"/lib/mea-gui
-sudo chown -R "$MEAUSER":"$MEAGROUP" "$BASEPATH"/lib/mea-plugin
-sudo chmod -R 775 "$MEAUSER":"$MEAGROUP" "$BASEPATH"/lib/mea-plugin
-sudo chown -R "$MEAUSER":"$MEAGROUP" "$BASEPATH"/var/log
-sudo chmod -R 775 "$MEAUSER":"$MEAGROUP" "$BASEPATH"/var/log
-sudo chown -R "$MEAUSER":"$MEAGROUP" "$BASEPATH"/var/db
-sudo chmod -R 775 "$MEAUSER":"$MEAGROUP" "$BASEPATH"/var/db
-sudo chown -R "$MEAUSER":"$MEAGROUP" "$BASEPATH"/etc
-sudo chmod -R 775 "$MEAUSER":"$MEAGROUP" "$BASEPATH"/etc
+#sudo chown -R "$MEAUSER":"$MEAGROUP" "$BASEPATH"/lib/mea-gui
+#sudo chmod -R 775 "$MEAUSER":"$MEAGROUP" "$BASEPATH"/lib/mea-gui
+#sudo chown -R "$MEAUSER":"$MEAGROUP" "$BASEPATH"/lib/mea-plugin
+#sudo chmod -R 775 "$MEAUSER":"$MEAGROUP" "$BASEPATH"/lib/mea-plugin
+#sudo chown -R "$MEAUSER":"$MEAGROUP" "$BASEPATH"/var/log
+#sudo chmod -R 775 "$MEAUSER":"$MEAGROUP" "$BASEPATH"/var/log
+#sudo chown -R "$MEAUSER":"$MEAGROUP" "$BASEPATH"/var/db
+#sudo chmod -R 775 "$MEAUSER":"$MEAGROUP" "$BASEPATH"/var/db
+#sudo chown -R "$MEAUSER":"$MEAGROUP" "$BASEPATH"/etc
+#sudo chmod -R 775 "$MEAUSER":"$MEAGROUP" "$BASEPATH"/etc
 
 # déclaration du service
 BASEPATH4SED=`echo "$BASEPATH" | sed -e 's/\\//\\\\\\//g'`
