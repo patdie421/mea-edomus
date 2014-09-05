@@ -16,7 +16,7 @@ PATH=/sbin:/bin:/usr/sbin:/usr/bin
 MEAEDOMUS_BASEPATH="<BASEPATH>"
 
 DAEMON="$MEAEDOMUS_BASEPATH/bin/mea-edomus"
-MEAEDOMUS_OPT="--basepath=$MEAEDOMUS_BASEPATH"
+MEAEDOMUS_OPT="--basepath=$MEAEDOMUS_BASEPATH --nodatabase"
 
 PIDFILE=/var/run/mea-edomus.pid
 test -x $DAEMON || exit 5
