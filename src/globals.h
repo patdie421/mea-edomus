@@ -13,7 +13,7 @@
 
 #include "dbServer.h"
 
-#define __MEA_EDOMUS_VERSION__ "0.1aplha2-ondev"
+#define __MEA_EDOMUS_VERSION__ "0.1aplha3"
 
 #define MEA_PATH               1
 #define SQLITE3_DB_PARAM_PATH  2
