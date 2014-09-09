@@ -11,10 +11,12 @@
 #include <inttypes.h>
 
 void strToUpper(char *str);
+void strToLower(char *str);
 int16_t strcmplower(char *str1, char *str2);
 char *ltrim(char *s);
 char *rtrim(char *s);
 char *trim(char *s);
+int splitStr(char str[], char separator, char *tokens[], char l_tokens);
 
 #endif
 

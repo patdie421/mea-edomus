@@ -378,7 +378,7 @@ static void _signal_HUP(int signal_number)
 }
 
 
-void start_httpServer(char **params_list, sqlite3 *sqlite3_param_db)
+void start_httpServer(char **params_list, sqlite3 *sqlite3_param_db, queue_t *interfaces)
 {
    char *phpcgibin=NULL;
    if(params_list[PHPCGI_PATH] && params_list[PHPINI_PATH] && params_list[GUI_PATH] && params_list[SQLITE3_DB_PARAM_PATH])
@@ -404,7 +404,7 @@ void start_httpServer(char **params_list, sqlite3 *sqlite3_param_db)
       }
       
       if(create_configs_php(params_list[GUI_PATH], params_list[SQLITE3_DB_PARAM_PATH], params_list[LOG_PATH])==0)
-         httpServer(guiport, params_list[GUI_PATH], phpcgibin, params_list[PHPINI_PATH]);
+         httpServer(guiport, params_list[GUI_PATH], phpcgibin, params_list[PHPINI_PATH], interfaces);
       else
       {
          VERBOSE(3) fprintf(stderr,"%s (%s) : can't start GUI Server (can't create configs.php).\n",ERROR_STR,__func__);
@@ -972,6 +972,7 @@ int main(int argc, const char * argv[])
    //
    // strout et stderr vers fichier log
    //
+/*
    char log_file[255];
    int16_t n;
    
@@ -999,7 +1000,7 @@ int main(int argc, const char * argv[])
    dup2(fd, 1);
    dup2(fd, 2);
    close(fd);
-
+*/
    //   
    // demarrage du processus de l'automate
    //
@@ -1018,9 +1019,9 @@ int main(int argc, const char * argv[])
    if(!_b)
       myd=start_dbServer(params_list, sqlite3_param_db); // initialisation de la communication avec la base MySQL
    pythonPluginServer_thread=start_pythonPluginServer(params_list, sqlite3_param_db); // initialisation du serveur de plugin python
-   start_httpServer(params_list, sqlite3_param_db); // initialisation du serveur HTTP
    interfaces=start_interfaces(params_list, sqlite3_param_db); // démarrage des interfaces
    xPLServer_thread=start_xPLServer(params_list, interfaces, sqlite3_param_db); // initialisation du serveur xPL
+   start_httpServer(params_list, sqlite3_param_db, interfaces); // initialisation du serveur HTTP
    
    DEBUG_SECTION fprintf(stderr,"MEA-EDOMUS %s starded\n",__MEA_EDOMUS_VERSION__);
 

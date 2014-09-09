@@ -64,6 +64,19 @@ void strToUpper(char *str)
 }
 
 
+void strToLower(char *str)
+/**
+ * \brief     convertit tous les caractères d'une chaine en minuscules
+ * \details   La chaine en paramètre est modifiée : les majuscules sont remplacées par des minuscules.
+ * \param     str  chaine à modifier.
+ * \return    pas de retour.
+ */
+{
+   for(uint16_t i=0;i<strlen(str);i++)
+	   str[i]=tolower(str[i]);
+}
+
+
 int16_t strcmplower(char *str1, char *str2)
 /**
  * \brief     comparaison de deux chaines sur la base de "caractères en mimuscules"
@@ -83,4 +96,23 @@ int16_t strcmplower(char *str1, char *str2)
    return 0;
 }
 
+
+int splitStr(char str[], char separator, char *tokens[], char l_tokens)
+{
+   int j=0;
+   tokens[j]=str;
+   for(int i=0;str[i];i++)
+   {
+      if(str[i]==separator)
+      {
+         str[i]=0;
+         j++;
+         if(j<l_tokens)
+            tokens[j]=&(str[i+1]);
+         else
+            return -1;
+      }
+   }
+   return j+1;
+}
 

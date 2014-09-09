@@ -9,7 +9,8 @@
 #define mea_eDomus_httpServer_h
 
 #include "error.h"
+#include "queue.h"
 
-mea_error_t httpServer(uint16_t port, char *home, char *php_cgi, char *php_ini_path);
+mea_error_t httpServer(uint16_t port, char *home, char *php_cgi, char *php_ini_path, queue_t *interfaces);
 
 #endif

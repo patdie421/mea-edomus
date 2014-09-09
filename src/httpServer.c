@@ -15,6 +15,8 @@
 #include "error.h"
 #include "httpServer.h"
 #include "mongoose.h"
+#include "string_utils.h"
+#include "queue.h"
 
 //
 // pour compilation php-cgi :
@@ -64,7 +66,10 @@ static const char *open_file_handler(const struct mg_connection *conn, const cha
    // ne peut pas marcher avec les cgi car le cgi-php va chercher sur disque le fichier ... utile néanmoins pour fournir des pages statiques ...
    char *content = "<html><head><title>Test PHP</title></head><body><p>Bonjour le monde</p></body></html>";
 
-   if (!strcmp(path, "/Data/www/test.html"))
+   int i;
+   for(i=0; path[i]==val_document_root[i]; i++);
+
+   if(strcmp(&path[i],"/test.html")==0)
    {
       *size = strlen(content);
       return content;
@@ -73,17 +78,80 @@ static const char *open_file_handler(const struct mg_connection *conn, const cha
 }
 
 
+#define MAX_BUFFER_SIZE 80
+#define MAX_TOKEN 10
 static int begin_request_handler(struct mg_connection *conn)
 {
-// pour diffuser des pages dynamique
+// API REST ...
    
-//   const struct mg_request_info *request_info = mg_get_request_info(conn);
+   const struct mg_request_info *request_info = mg_get_request_info(conn);
 
+   char *tokens[MAX_TOKEN]; // 10 tokens maximum
+   char buffer[MAX_BUFFER_SIZE];
+
+   if(strncmp("/API/",request_info->uri,5)==0)
+   {
+      // traiter ici l'URL
+      char reponse[255];
+      reponse[0]=0;
+      
+      if(strlen(&(request_info->uri[5]))>(sizeof(buffer)-1))
+         return NULL;
+      
+      strcpy(buffer, &(request_info->uri[5]));
+      int ret=splitStr(buffer, '/', tokens, 10);
+      if(ret>2)
+      {
+         if(strcmp("XPL-INTERNAL",tokens[0])==0)
+         {
+            if(strcmp("ACTUATOR",tokens[1])==0)
+            {
+               for(int i=2; i<ret; i++)
+               {
+                  char keyval_buff[MAX_BUFFER_SIZE];
+                  char *keyval[2];
+                  strcpy(keyval_buff,tokens[i]);
+                  int r=splitStr(keyval_buff, '=', keyval, 2);
+                  if(r==1)
+                  {
+                     strToLower(keyval[0]);
+                     fprintf(stderr, "key=%s\n",keyval[0]);
+                  }
+                  else if(r==2)
+                  {
+                     strToLower(keyval[0]);
+                     strToLower(keyval[1]);
+                     fprintf(stderr, "key=%s value=%s\n",keyval[0],keyval[1]);
+                  }
+                  else
+                     return NULL;
+               }
+            }
+            else
+               return NULL;
+         }
+         else
+            return NULL;
+      }
+      else
+         return NULL;
+      
+      mg_printf(conn,
+         "HTTP/1.1 200 OK\r\n"
+         "Content-Type: text/plain\r\n"
+         "Content-Length: %d\r\n"        // Always set Content-Length
+         "\r\n"
+         "%s",
+         (int)strlen(reponse), reponse);
+      return "";
+   }
+
+   // pas une api
    return 0;
 }
 
 
-mea_error_t httpServer(uint16_t port, char *home, char *php_cgi, char *php_ini_path)
+mea_error_t httpServer(uint16_t port, char *home, char *php_cgi, char *php_ini_path, queue_t *interfaces)
 {
    if(port==0)
       port=8083;
@@ -121,8 +189,8 @@ mea_error_t httpServer(uint16_t port, char *home, char *php_cgi, char *php_ini_p
    
    struct mg_callbacks callbacks;
    memset(&callbacks,0,sizeof(struct mg_callbacks));
-//   callbacks.begin_request = begin_request_handler;
-   callbacks.open_file = open_file_handler;
+   callbacks.begin_request = begin_request_handler;
+//   callbacks.open_file = open_file_handler;
    
    g_mongooseContext = mg_start(&callbacks, NULL, options);
    if (g_mongooseContext == NULL)
