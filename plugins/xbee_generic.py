@@ -1,4 +1,3 @@
-
 import re
 import string
 import sys
@@ -150,9 +149,9 @@ def parseIOData(cmd_data, l_cmd_data):
    io_data={}
    xplMsg={}
    
-   digital_mask = ord(cmd_data[2])
-   analog_mask = ord(cmd_data[3])
-   digital_states = ord(cmd_data[5])
+   digital_mask = cmd_data[2]
+   analog_mask = cmd_data[3]
+   digital_states = cmd_data[5]
    
    for i in range(0,7):
       if digital_mask & 0x01:
@@ -165,7 +164,7 @@ def parseIOData(cmd_data, l_cmd_data):
    for i in range(0,3):
       if analog_mask & 0x01:
          key="A"+str(i)
-         io_data[key]=ord(cmd_data[j])*256+ord(cmd_data[j+1])
+         io_data[key]=cmd_data[j]*256+cmd_data[j+1]
          j=j+2
       analog_mask=analog_mask>>1
    return io_data
