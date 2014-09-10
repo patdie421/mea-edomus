@@ -111,7 +111,7 @@ static int begin_request_handler(struct mg_connection *conn)
                   char keyval_buff[MAX_BUFFER_SIZE];
                   char *keyval[2];
                   strcpy(keyval_buff,tokens[i]);
-                  int ret2=splitStr(keyval_buff, '=', keyval, 2);
+                  int ret2=splitStr(keyval_buff, '_', keyval, 2);
                   if(ret2==1)
                   {
                      strToLower(keyval[0]);
