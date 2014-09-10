@@ -66,10 +66,10 @@ OPTIONS=""
 if [ ! -f ./bin/php-cgi ]
 then
    PHPCGI=`which php-cgi`
-   PHPCGI=`dirname $PHPCIG`
-   if [ ! -z $PHPCGI ]
+   PHPCGIPATH=`dirname $PHPCGI`
+   if [ ! -z $PHPCGIPATH ]
    then
-      OPTIONS="--phpcgipath=\"$PHPCGI\""
+      OPTIONS="--phpcgipath=\"$PHPCGIPATH\""
    fi
 fi
 
