@@ -97,6 +97,30 @@ int16_t strcmplower(char *str1, char *str2)
 }
 
 
+int16_t strncmplower(char *str1, char *str2, int n)
+/**
+ * \brief     comparaison des n premiers caracteres de deux chaines sur la base de "caractères en mimuscules"
+ * \details   chaque caractère des deux chaines est converti en minuscule avant de les comparer
+ * \param     str1   premiere chaine à comparer.
+ * \param     str2   deuxième chaine à comparer.
+ * \param     n      nombre max de caracteres à comparer
+ * \return    0 chaines égales, 1 chaines différentes
+ */
+{
+   int i;
+   if(n<1)
+      return 1;
+   for(i=0;str1[i] && i<n;i++) {
+      if(tolower(str1[i])!=tolower(str2[i]))
+         return 1;
+   }
+   if(str1[i]!=str2[i])
+      return 1;
+   return 0;
+}
+
+
+
 int splitStr(char str[], char separator, char *tokens[], char l_tokens)
 {
    int j=0;
