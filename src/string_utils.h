@@ -13,6 +13,7 @@
 void strToUpper(char *str);
 void strToLower(char *str);
 int16_t strcmplower(char *str1, char *str2);
+int16_t strncmplower(char *str1, char *str2, int n);
 char *ltrim(char *s);
 char *rtrim(char *s);
 char *trim(char *s);
