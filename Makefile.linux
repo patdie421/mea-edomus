@@ -31,7 +31,7 @@ $(EXECUTABLE): $(OBJECTS)
 clean:
 	-rm -f $(OBJECTS)
 
-build-php-cgi:
+build-phpcgi:
 	make -C complements/php-cgi -f php-cgi.mk SOURCE=$(MYPATH)
 
 build-package: $(EXECUTABLE)
