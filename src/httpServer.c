@@ -89,7 +89,7 @@ static int begin_request_handler(struct mg_connection *conn)
    char *tokens[MAX_TOKEN]; // 10 tokens maximum
    char buffer[MAX_BUFFER_SIZE];
 
-   if(strncmp("/API/",request_info->uri,5)==0)
+   if(strncmplower("/API/",request_info->uri,5))
    {
       // traiter ici l'URL
       char reponse[255];
@@ -102,22 +102,22 @@ static int begin_request_handler(struct mg_connection *conn)
       int ret=splitStr(buffer, '/', tokens, 10);
       if(ret>2)
       {
-         if(strcmp("XPL-INTERNAL",tokens[0])==0)
+         if(strcmplower("XPL-INTERNAL",tokens[0]))
          {
-            if(strcmp("ACTUATOR",tokens[1])==0)
+            if(strcmplower("ACTUATOR",tokens[1]))
             {
                for(int i=2; i<ret; i++)
                {
                   char keyval_buff[MAX_BUFFER_SIZE];
                   char *keyval[2];
                   strcpy(keyval_buff,tokens[i]);
-                  int r=splitStr(keyval_buff, '=', keyval, 2);
-                  if(r==1)
+                  int ret2=splitStr(keyval_buff, '=', keyval, 2);
+                  if(ret2==1)
                   {
                      strToLower(keyval[0]);
                      fprintf(stderr, "key=%s\n",keyval[0]);
                   }
-                  else if(r==2)
+                  else if(ret2==2)
                   {
                      strToLower(keyval[0]);
                      strToLower(keyval[1]);
