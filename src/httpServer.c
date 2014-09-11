@@ -126,6 +126,23 @@ static int begin_request_handler(struct mg_connection *conn)
                   else
                      return NULL;
                }
+               // zone de test 
+               xPL_ServicePtr servicePtr = get_xPL_ServicePtr();
+               if(servicePtr) 
+               {
+                  xPL_MessagePtr msg = xPL_createBroadcastMessage(servicePtr, xPL_MESSAGE_CMND);
+                  xPL_setBroadcastMessage(msg, false);
+                  xPL_setTarget(msg, "mea", "internal", "1234");
+                  sprintf(value,"high");
+                  xPL_setSchema(msg, get_token_by_id(XPL_CONTROL_ID), get_token_by_id(XPL_BASIC_ID));
+                  xPL_setMessageNamedValue(msg, get_token_by_id(XPL_DEVICE_ID), "R1");
+                  xPL_setMessageNamedValue(msg, get_token_by_id(XPL_TYPE_ID), get_token_by_id(XPL_OUTPUT_ID));
+                  xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_CURRENT_ID), value);
+
+                  sendXplMessage(cntrMessageStat);
+                  xPL_releaseMessage(cntrMessageStat);
+               }
+               // fin zone de test
             }
             else
                return NULL;
