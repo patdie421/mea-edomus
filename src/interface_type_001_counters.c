@@ -298,11 +298,13 @@ void counter_read(comio2_ad_t *ad, struct electricity_counter_s *counter)
 }
 
 
-mea_error_t interface_type_001_counters_process_xpl_msg(interface_type_001_t *i001, xPL_ServicePtr theService, xPL_NameValueListPtr ListNomsValeursPtr, char *device, char *type)
+mea_error_t interface_type_001_counters_process_xpl_msg(interface_type_001_t *i001, xPL_ServicePtr theService, xPL_MessagePtr msg, char *device, char *type)
 {
    queue_t *counters_list=i001->counters_list;
    struct electricity_counter_s *counter;
    int type_id;
+
+   xPL_NameValueListPtr ListNomsValeursPtr = xPL_getMessageBody(msg);
 
    if(type)
       type_id=get_id_by_string(type);
@@ -337,13 +339,15 @@ mea_error_t interface_type_001_counters_process_xpl_msg(interface_type_001_t *i0
             break;
             
          cntrMessageStat = xPL_createBroadcastMessage(theService, xPL_MESSAGE_STATUS) ;
-            
+         xPL_setBroadcastMessage(cntrMessageStat, false);
+
          xPL_setSchema(cntrMessageStat,  get_token_by_id(XPL_SENSOR_ID), get_token_by_id(XPL_BASIC_ID));
          xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_DEVICE_ID),counter->name);
          xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_TYPE_ID),type);
          xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_CURRENT_ID),value);
          xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(UNIT_ID),unit);
-            
+         xPL_setTarget(cntrMessageStat, xPL_getSourceVendor(msg), xPL_getSourceDeviceID(msg), xPL_getSourceInstanceID(msg))
+   
          // Broadcast the message
          //xPL_sendMessage(cntrMessageStat);
          sendXplMessage(xplcntrMessageStat);
