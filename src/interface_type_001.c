@@ -102,7 +102,7 @@ int16_t interface_type_001_xPL_callback(xPL_ServicePtr theService, xPL_MessagePt
       
 //      interface_type_001_counters_process_xpl_msg(i001, theService, ListNomsValeursPtr, device, type);
       interface_type_001_counters_process_xpl_msg(i001, theService, theMessage, device, type);
-      interface_type_001_sensors_process_xpl_msg(i001, theService, ListNomsValeursPtr, device, type);
+      return interface_type_001_sensors_process_xpl_msg(i001, theService, ListNomsValeursPtr, device, type);
    }
    
    return 0;
