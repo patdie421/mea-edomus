@@ -12,6 +12,7 @@
 #include <sqlite3.h>
 
 #include "dbServer.h"
+#include "queue.h"
 
 #define __MEA_EDOMUS_VERSION__ "0.1aplha2-ondev"
 
@@ -38,6 +39,8 @@
 
 extern tomysqldb_md_t *myd;
 tomysqldb_md_t *get_myd();
+queue_t * get_interfaces();
+
 
 // voir ou mettre
 #define UNIT_WH 1 // Watt/Heure
