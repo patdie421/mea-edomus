@@ -62,7 +62,7 @@ tomysqldb_md_t *get_myd()
 
 queue_t * get_interfaces()
 {
-   return interfaces();
+   return interfaces;
 }
 
 
