@@ -255,7 +255,27 @@ static PyObject *mea_xplSendMsg(PyObject *self, PyObject *args)
       goto mea_xplSendMsg_exit;
    }
    
-   
+   item = PyDict_GetItemString(PyXplMsg, "target");
+   if(item)
+   {
+      char *p=PyString_AsString(item);
+      if(strcmp(p,'*')!=0)
+      {
+         // spliter correctement d'adresse et faire le xPL_setMessageTarget qui va bien
+         int16_t n=sscanf(p,"%[^-]-%[^.].%s", vendor_id, device_id, instance_id);
+         if(n==3)
+         {
+            // valider le format ici et si OK
+
+            xPL_setMessageTarget(xPLMsg, vendor_id, device_id, instance_id);
+
+            // si target exist et est conforme => ce n'est plus un message broadcast
+            xPL_setBroadcastMessage(cntrMessageStat, false);
+         }
+
+      }
+   }
+ 
    body = PyDict_GetItemString(PyXplMsg, "xpl-body");
    if(body)
    {
