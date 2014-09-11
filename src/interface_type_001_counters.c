@@ -105,7 +105,10 @@ int16_t interface_type_001_counters_process_traps(int16_t numTrap, char *buff, i
             xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_TYPE_ID), get_token_by_id(XPL_POWER_ID));
             xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_CURRENT_ID), value);
             // Broadcast the message
-            xPL_sendMessage(cntrMessageStat);
+
+            //xPL_sendMessage(cntrMessageStat);
+            sendXplMessage(cntrMessageStat);
+
             xPL_releaseMessage(cntrMessageStat);
          }
          VERBOSE(9) {
@@ -215,8 +218,9 @@ void counter_to_xpl(struct electricity_counter_s *counter)
       xPL_setMessageNamedValue(cntrMessageStat,  get_token_by_id(XPL_CURRENT_ID),value);
       
       // Broadcast the message
-      xPL_sendMessage(cntrMessageStat);
-      
+      //xPL_sendMessage(cntrMessageStat);
+      sendXplMessage(cntrMessageStat);
+
       xPL_releaseMessage(cntrMessageStat);
    }
 }
@@ -341,8 +345,9 @@ mea_error_t interface_type_001_counters_process_xpl_msg(interface_type_001_t *i0
          xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(UNIT_ID),unit);
             
          // Broadcast the message
-         xPL_sendMessage(cntrMessageStat);
-            
+         //xPL_sendMessage(cntrMessageStat);
+         sendXplMessage(xplcntrMessageStat);
+ 
          xPL_releaseMessage(cntrMessageStat);
       }
       next_queue(counters_list);
