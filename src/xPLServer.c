@@ -122,9 +122,14 @@ void dispatchXplMessage(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xP
 
 uint16_t sendXplMessage(xplxPL_MessagePtr xPLMsg)
 {
-   if(strcmp(xPL_getTargetDeviceID(xPLMsg),"internal")==0)
+   if(strcmp(xPL_getSourceDeviceID(xPLMsg),"internal")==0) // source interne => dispatching sans passer par le réseau
    {
       dispatchXplMessage(xPLxPLService, xPLMsg, (xPL_ObjectPtr)get_interfaces());
+      return 0;
+   }
+   else if(strcmp(xPL_getTargetDeviceID(xPLMsg),"internal")==0) // destination interne, retour à mettre dans une file (avec timestamp) ...
+   {
+      fprintf(stderr,"retour de demande interne à mettre dans une file (id = %s)\n",xPL_getTargetInstanceID(xPLMsg));
       return 0;
    }
    else
