@@ -73,7 +73,7 @@ then
    fi
 fi
 
-if [ -z OPTIONS ]
+if [ -z "$OPTIONS" ]
 then
    echo "No php-cgi provided or found."
    echo "install one if you need the mea-edomus gui and excute $0 --basepath=\""$BASEPATH"\" --update --phpcgipath=\"<PATH_TO_CGI_BIN>\""
