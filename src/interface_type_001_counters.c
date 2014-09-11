@@ -356,7 +356,7 @@ mea_error_t interface_type_001_counters_process_xpl_msg(interface_type_001_t *i0
       }
       next_queue(counters_list);
    }
-   return ERROR;
+   return NOERROR;
 }
 
 
