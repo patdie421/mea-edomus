@@ -211,7 +211,9 @@ int16_t interface_type_001_sensors_process_traps(int16_t numTrap, char *data, in
       xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_CURRENT_ID),value);
       
       // Broadcast the message
-      xPL_sendMessage(cntrMessageStat);
+      //xPL_sendMessage(cntrMessageStat);
+      sendXplMessage(xplcntrMessageStat);
+
       
       xPL_releaseMessage(cntrMessageStat);
    }
@@ -335,7 +337,7 @@ interface_type_001_sensors_valid_and_malloc_sensor_clean_exit:
 }
 
 
-mea_error_t interface_type_001_sensors_process_xpl_msg(interface_type_001_t *i001, xPL_ServicePtr theService, xPL_NameValueListPtr ListNomsValeursPtr, char *device, char *type)
+mea_error_t interface_type_001_sensors_process_xpl_msg(interface_type_001_t *i001, xPL_ServicePtr theService, xPL_MessagePtr msg, char *device, char *type)
 /**
   * \brief     Traite les demandes xpl de retransmission de la valeur courrante ("sensor.request/request=current") pour interface_type_001
   * \details   La demande sensor.request peut être de la forme est de la forme :
@@ -360,7 +362,9 @@ mea_error_t interface_type_001_sensors_process_xpl_msg(interface_type_001_t *i00
    int type_id;
    uint16_t send_xpl_flag=0;
    int16_t no_type=0;
-   
+
+   xPL_NameValueListPtr ListNomsValeursPtr = xPL_getMessageBody(msg);
+
    if(type)
    {
       type_id=get_id_by_string(type);
@@ -471,16 +475,20 @@ mea_error_t interface_type_001_sensors_process_xpl_msg(interface_type_001_t *i00
          {
             VERBOSE(9) fprintf(stderr,"%s  (%s) : sensor %s = %s\n",INFO_STR,__func__,sensor->name,value);
             cntrMessageStat = xPL_createBroadcastMessage(theService, xPL_MESSAGE_STATUS) ;
-         
+            xPL_setBroadcastMessage(cntrMessageStat, false);
+
             xPL_setSchema(cntrMessageStat, get_token_by_id(XPL_SENSOR_ID), get_token_by_id(XPL_BASIC_ID));
             xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_DEVICE_ID),sensor->name);
             xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_TYPE_ID),type);
             xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_CURRENT_ID),value);
             if(unit)
                xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(UNIT_ID),unit);
-         
-            xPL_sendMessage(cntrMessageStat);
-         
+
+            xPL_setTarget(cntrMessageStat, xPL_getSourceVendor(msg), xPL_getSourceDeviceID(msg), xPL_getSourceInstanceID(msg))
+
+            ///xPL_sendMessage(cntrMessageStat);
+            sendXplMessage(xplcntrMessageStat);
+
             xPL_releaseMessage(cntrMessageStat);
          }
          
@@ -574,7 +582,8 @@ void interface_type_001_sensors_poll_inputs(interface_type_001_t *i001, tomysqld
                   xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_LAST_ID),str_last);
                      
                   // Broadcast the message
-                  xPL_sendMessage(cntrMessageStat);
+                  //xPL_sendMessage(cntrMessageStat);
+                  sendXplMessage(xplcntrMessageStat);
                      
                   xPL_releaseMessage(cntrMessageStat);
                }

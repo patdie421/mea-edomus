@@ -52,13 +52,31 @@ char *set_xPL_instanceID(char *value)
 }
 
 
+char *get_xPL_instanceID()
+{
+   return xpl_instanceID;
+}
+
+
+char *get_xPL_deviceID()
+{
+   return xpl_deviceID;
+}
+
+
+char *get_xPL_vendorID()
+{
+   return xpl_vendorID;
+}
+
+
 xPL_ServicePtr get_xPL_ServicePtr()
 {
    return xPLService;
 }
 
 
-void cmndMsgHandler(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
+void dispatchXplMessage(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
 {
    int ret;
 
@@ -99,6 +117,32 @@ void cmndMsgHandler(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xPL_Ob
       if(ret<0)
          break;
    }
+}
+
+
+uint16_t sendXplMessage(xplxPL_MessagePtr xPLMsg)
+{
+   if(strcmp(xPL_getSourceDeviceID(xPLMsg),"internal")==0) // source interne => dispatching sans passer par le réseau
+   {
+      dispatchXplMessage(xPLxPLService, xPLMsg, (xPL_ObjectPtr)get_interfaces());
+      return 0;
+   }
+   else if(strcmp(xPL_getTargetDeviceID(xPLMsg),"internal")==0) // destination interne, retour à mettre dans une file (avec timestamp) ...
+   {
+      fprintf(stderr,"retour de demande interne à mettre dans une file (id = %s)\n",xPL_getTargetInstanceID(xPLMsg));
+      return 0;
+   }
+   else
+   {
+      xPL_SendMessage(xPLMsg);
+      return 0;
+   }
+}
+
+
+void cmndMsgHandler(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
+{
+   dispatchXplMessage(theService, theMessage, userValue);
 }
 
 

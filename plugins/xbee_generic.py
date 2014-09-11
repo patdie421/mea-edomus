@@ -193,14 +193,20 @@ def mea_xplCmndMsg(data):
    
    x=data["xplmsg"]
    body=x["body"]
-   
+
+   if("source" in x:
+      target=x["source"];
+   else
+      target="*";
+
    if x["schema"]=="sensor.request":
       current_key=pin+"_current"
       last_key=pin+"_last"
       
       try:
          xplMsg=mea_utils.xplMsgNew(mea.xplGetVendorID(), mea.xplGetDeviceID(), mea.xplGetInstanceID(), "xpl-stat", "sensor", "basic", data["device_name"])
-         
+         xplMsg["target"]=target;
+
          if body["request"]=="current":
             mea_utils.xplMsgAddValue(xplMsg,"current",mem[current_key])
          elif body["request"]=="last":

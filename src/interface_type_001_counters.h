@@ -46,8 +46,11 @@ struct electricity_counter_s
 void         interface_type_001_free_counters_queue_elem(void *d);
 //mea_error_t  interface_type_001_counters_process_traps(int numTrap, void *args, char *buff);
 int16_t      interface_type_001_counters_process_traps(int16_t numTrap, char *buff, int16_t l_buff, void * args);
-mea_error_t  interface_type_001_counters_process_xpl_msg(interface_type_001_t *i001, xPL_ServicePtr theService, xPL_NameValueListPtr ListNomsValeursPtr,
-                                                         char *device, char *type);
+//mea_error_t  interface_type_001_counters_process_xpl_msg(interface_type_001_t *i001, xPL_ServicePtr theService, xPL_NameValueListPtr ListNomsValeursPtr,
+//                                                         char *device, char *type);
+mea_error_t interface_type_001_counters_process_xpl_msg(interface_type_001_t *i001, xPL_ServicePtr theService, xPL_MessagePtr msg, char *device, char *type);
+
+
 void         interface_type_001_counters_poll_inputs(interface_type_001_t *i001, tomysqldb_md_t *md);
 void         interface_type_001_counters_init(interface_type_001_t *i001);
 
