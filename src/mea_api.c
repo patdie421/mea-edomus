@@ -287,7 +287,9 @@ static PyObject *mea_xplSendMsg(PyObject *self, PyObject *args)
       goto mea_xplSendMsg_exit;
    }
    
-   xPL_sendMessage(xplMsg);
+   //xPL_sendMessage(xplMsg);
+   sendXplMessage(xplMsg);
+
    xPL_releaseMessage(xplMsg);
    
    return PyLong_FromLong(1L); // return True
