@@ -211,7 +211,9 @@ int16_t interface_type_001_sensors_process_traps(int16_t numTrap, char *data, in
       xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_CURRENT_ID),value);
       
       // Broadcast the message
-      xPL_sendMessage(cntrMessageStat);
+      //xPL_sendMessage(cntrMessageStat);
+      sendXplMessage(xplcntrMessageStat);
+
       
       xPL_releaseMessage(cntrMessageStat);
    }
@@ -479,8 +481,9 @@ mea_error_t interface_type_001_sensors_process_xpl_msg(interface_type_001_t *i00
             if(unit)
                xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(UNIT_ID),unit);
          
-            xPL_sendMessage(cntrMessageStat);
-         
+            ///xPL_sendMessage(cntrMessageStat);
+            sendXplMessage(xplcntrMessageStat);
+
             xPL_releaseMessage(cntrMessageStat);
          }
          
@@ -574,7 +577,8 @@ void interface_type_001_sensors_poll_inputs(interface_type_001_t *i001, tomysqld
                   xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_LAST_ID),str_last);
                      
                   // Broadcast the message
-                  xPL_sendMessage(cntrMessageStat);
+                  //xPL_sendMessage(cntrMessageStat);
+                  sendXplMessage(xplcntrMessageStat);
                      
                   xPL_releaseMessage(cntrMessageStat);
                }
