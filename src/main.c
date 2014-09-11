@@ -60,6 +60,12 @@ tomysqldb_md_t *get_myd()
 }
 
 
+queue_t * get_interfaces()
+{
+   return interfaces();
+}
+
+
 void usage(char *cmd)
 /**
  * \brief     Affiche les "usages" de mea-edomus
