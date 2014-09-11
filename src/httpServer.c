@@ -17,6 +17,7 @@
 #include "mongoose.h"
 #include "string_utils.h"
 #include "queue.h"
+#include "xPLServer.h"
 
 //
 // pour compilation php-cgi :
