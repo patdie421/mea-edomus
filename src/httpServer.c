@@ -18,6 +18,7 @@
 #include "string_utils.h"
 #include "queue.h"
 #include "xPLServer.h"
+#include "token_strings.h"
 
 //
 // pour compilation php-cgi :
@@ -105,65 +106,83 @@ static int begin_request_handler(struct mg_connection *conn)
       {
          if(strcmplower("XPL-INTERNAL",tokens[0])==0)
          {
+            xPL_ServicePtr servicePtr = get_xPL_ServicePtr();
+            if(!servicePtr)
+               return NULL;
+            xPL_MessagePtr msg = xPL_createBroadcastMessage(servicePtr, xPL_MESSAGE_COMMAND);
+            msg->receivedMessage=TRUE;
+            xPL_setSource(msg, "mea", "internal", "00000000");
+            msg->receivedMessage=FALSE;
+            
+            int waitResp;
             if(strcmplower("ACTUATOR",tokens[1])==0)
             {
-               for(int i=2; i<ret; i++)
-               {
-                  char keyval_buff[MAX_BUFFER_SIZE];
-                  char *keyval[2];
-                  strcpy(keyval_buff,tokens[i]);
-                  int ret2=splitStr(keyval_buff, '_', keyval, 2);
-                  if(ret2==1)
-                  {
-                     strToLower(keyval[0]);
-                     fprintf(stderr, "key=%s\n",keyval[0]);
-                  }
-                  else if(ret2==2)
-                  {
-                     strToLower(keyval[0]);
-                     strToLower(keyval[1]);
-                     fprintf(stderr, "key=%s value=%s\n",keyval[0],keyval[1]);
-                  }
-                  else
-                     return NULL;
-               }
-               // zone de test 
-               xPL_ServicePtr servicePtr = get_xPL_ServicePtr();
-               if(servicePtr) 
-               {
-                  xPL_MessagePtr msg = xPL_createBroadcastMessage(servicePtr, xPL_MESSAGE_CMND);
-                  xPL_setBroadcastMessage(msg, false);
-                  xPL_setTarget(msg, "mea", "internal", "1234");
-                  sprintf(value,"high");
-                  xPL_setSchema(msg, get_token_by_id(XPL_CONTROL_ID), get_token_by_id(XPL_BASIC_ID));
-                  xPL_setMessageNamedValue(msg, get_token_by_id(XPL_DEVICE_ID), "R1");
-                  xPL_setMessageNamedValue(msg, get_token_by_id(XPL_TYPE_ID), get_token_by_id(XPL_OUTPUT_ID));
-                  xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_CURRENT_ID), value);
+               xPL_setSchema(msg, get_token_by_id(XPL_CONTROL_ID), get_token_by_id(XPL_BASIC_ID));
+               waitResp=FALSE;
+            }
+            else if(strcmplower("SENSOR",tokens[1])==0)
+            {
+               xPL_setSchema(msg, get_token_by_id(XPL_SENSOR_ID), get_token_by_id(XPL_REQUEST_ID));
+               msg->receivedMessage=TRUE;
+               xPL_setSourceInstanceID(msg, "00001234");
+               msg->receivedMessage=FALSE;
 
-                  sendXplMessage(cntrMessageStat);
-                  xPL_releaseMessage(cntrMessageStat);
-               }
-               // fin zone de test
+               waitResp=TRUE;
             }
             else
+            {
+               xPL_releaseMessage(msg);
                return NULL;
+            }
+            
+            for(int i=2; i<ret; i++)
+            {
+               char keyval_buff[MAX_BUFFER_SIZE];
+               char *keyval[2];
+               strcpy(keyval_buff,tokens[i]);
+               
+               int ret2=splitStr(keyval_buff, '_', keyval, 2);
+               if(ret2==2)
+               {
+                  strToLower(keyval[0]);
+                  strToLower(keyval[1]);
+                  xPL_setMessageNamedValue(msg, keyval[0], keyval[1]);
+
+                  DEBUG_SECTION fprintf(stderr, "key=%s value=%s\n",keyval[0],keyval[1]);
+               }
+               else
+               {
+                  xPL_releaseMessage(msg);
+                  return NULL;
+               }
+            }
+
+            sendXplMessage(msg);
+            xPL_releaseMessage(msg);
+            
+            if(waitResp==FALSE)
+            {
+               strcpy(reponse,"OK");
+            }
+            else
+            {
+               DEBUG_SECTION fprintf(stderr,"En attente de reponse\n");
+            }
+            mg_printf(conn,
+                      "HTTP/1.1 200 OK\r\n"
+                      "Content-Type: text/plain\r\n"
+                      "Content-Length: %d\r\n"        // Always set Content-Length
+                      "\r\n"
+                      "%s",
+                      (int)strlen(reponse), reponse);
+            return "done";
          }
          else
             return NULL;
       }
       else
          return NULL;
-      
-      mg_printf(conn,
-         "HTTP/1.1 200 OK\r\n"
-         "Content-Type: text/plain\r\n"
-         "Content-Length: %d\r\n"        // Always set Content-Length
-         "\r\n"
-         "%s",
-         (int)strlen(reponse), reponse);
-      return "";
    }
-
    // pas une api
    return 0;
 }

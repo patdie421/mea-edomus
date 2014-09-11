@@ -14,6 +14,8 @@
 #include <string.h>
 #include <pthread.h>
 
+#include "globals.h"
+
 #include "xPL.h"
 #include "debug.h"
 #include "queue.h"
@@ -32,6 +34,10 @@ xPL_ServicePtr xPLService = NULL;
 char *xpl_vendorID=NULL;
 char *xpl_deviceID=NULL;
 char *xpl_instanceID=NULL;
+
+pthread_cond_t  xplRespQueue_sync_cond;
+pthread_mutex_t xplRespQueue_sync_lock;
+queue_t         *xplRespQueue;
 
 
 char *set_xPL_vendorID(char *value)
@@ -120,21 +126,76 @@ void dispatchXplMessage(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xP
 }
 
 
-uint16_t sendXplMessage(xplxPL_MessagePtr xPLMsg)
+uint16_t sendXplMessage(xPL_MessagePtr xPLMsg)
 {
-   if(strcmp(xPL_getSourceDeviceID(xPLMsg),"internal")==0) // source interne => dispatching sans passer par le réseau
+   char *addr;
+   
+   addr = xPL_getSourceDeviceID(xPLMsg);
+   if(strcmp(addr,"internal")==0) // source interne => dispatching sans passer par le réseau
    {
-      dispatchXplMessage(xPLxPLService, xPLMsg, (xPL_ObjectPtr)get_interfaces());
+      dispatchXplMessage(xPLService, xPLMsg, (xPL_ObjectPtr)get_interfaces());
       return 0;
    }
-   else if(strcmp(xPL_getTargetDeviceID(xPLMsg),"internal")==0) // destination interne, retour à mettre dans une file (avec timestamp) ...
+   
+   addr = xPL_getTargetDeviceID(xPLMsg);
+   if(addr && strcmp(addr,"internal")==0) // destination interne, retour à mettre dans une file (avec timestamp) ...
    {
-      fprintf(stderr,"retour de demande interne à mettre dans une file (id = %s)\n",xPL_getTargetInstanceID(xPLMsg));
+      int id;
+      
+      sscanf(xPL_getTargetInstanceID(xPLMsg), "%d", &id);
+
+      fprintf(stderr,"retour de demande interne à mettre dans une file (id = %d)\n",id);
+      // duplication du message xPL
+      xPL_MessagePtr newXPLMsg = xPL_createBroadcastMessage(xPLService, xPL_getMessageType(xPLMsg));
+
+// Pourquoi cela ne marche pas ?!!?
+//      xPL_setSchema(newXPLMsg, xPL_getSchemaClass(xPLMsg), xPL_getSchemaType(xPLMsg));
+      char schemaClass[41], schemaType[41];
+      schemaClass[40]=0;
+      schemaType[40]=0;
+      strncpy(schemaClass, xPL_getSchemaClass(xPLMsg),40);
+      strncpy(schemaType, xPL_getSchemaType(xPLMsg),40);
+      xPL_setSchema(newXPLMsg, schemaClass, schemaType);
+
+      xPL_setTarget(newXPLMsg, xPL_getTargetVendor(xPLMsg), xPL_getTargetDeviceID(xPLMsg), xPL_getTargetInstanceID(xPLMsg));
+
+      xPL_NameValueListPtr body = xPL_getMessageBody(xPLMsg);
+      int n = xPL_getNamedValueCount(body);
+      for (int i=0; i<n; i++)
+      {
+         char key[41],value[81];
+         key[40]=0;
+         value[80]=0;
+         xPL_NameValuePairPtr keyValuePtr = xPL_getNamedValuePairAt(body, i);
+         strncpy(key, keyValuePtr->itemName,40);
+         strncpy(value, keyValuePtr->itemValue,80);
+         
+         xPL_setMessageNamedValue(newXPLMsg, key, value);
+//         xPL_setMessageNamedValue(newXPLMsg, keyValuePtr->itemName, keyValuePtr->itemValue);
+      }
+
+      // ajout des éléments dans la file
+      xplRespQueue_elem_t *e = malloc(sizeof(xplRespQueue_elem_t));
+      e->msg = newXPLMsg;
+      e->id = id;
+      e->tsp = (uint32_t)time(NULL);
+      
+      pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(xplRespQueue_sync_lock) );
+      pthread_mutex_lock(&xplRespQueue_sync_lock);
+      
+      in_queue_elem(xplRespQueue, e);
+      
+      if(xplRespQueue->nb_elem>=1)
+         pthread_cond_broadcast(&xplRespQueue_sync_cond);
+      
+      pthread_mutex_unlock(&xplRespQueue_sync_lock);
+      pthread_cleanup_pop(0);
+
       return 0;
    }
    else
    {
-      xPL_SendMessage(xPLMsg);
+      xPL_sendMessage(xPLMsg);
       return 0;
    }
 }
@@ -143,6 +204,40 @@ uint16_t sendXplMessage(xplxPL_MessagePtr xPLMsg)
 void cmndMsgHandler(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
 {
    dispatchXplMessage(theService, theMessage, userValue);
+}
+
+
+void _xPL_server_flush_old_responses_queue()
+{
+   xplRespQueue_elem_t *e;
+   uint32_t tsp=(uint32_t)time(NULL);
+   
+   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(xplRespQueue_sync_lock) );
+   pthread_mutex_lock(&xplRespQueue_sync_lock);
+   
+   if(first_queue(xplRespQueue)==0)
+   {
+      while(1)
+      {
+         if(current_queue(xplRespQueue, (void **)&e)==0)
+         {
+            if((tsp - e->tsp) > 5)
+            {
+               xPL_releaseMessage(e->msg);
+               fprintf(stderr,"Je flush\n");
+               free(e);
+               remove_current_queue(xplRespQueue); // remove current passe sur le suivant
+            }
+            else
+            next_queue(xplRespQueue);
+         }
+         else
+            break;
+      }
+   }
+   
+   pthread_mutex_unlock(&xplRespQueue_sync_lock);
+   pthread_cleanup_pop(0);
 }
 
 
@@ -174,8 +269,10 @@ void *_xPL_server_thread(void *data)
          else
             compteur++;
       }
-      
       xPL_processMessages(500);
+      
+      _xPL_server_flush_old_responses_queue();
+      
       pthread_testcancel();
    }
    while (1);
@@ -190,6 +287,21 @@ pthread_t *xPLServer(queue_t *interfaces)
    {
       return NULL;
    }
+   
+   // initialisation
+      // préparation synchro consommateur / producteur
+   pthread_cond_init(&xplRespQueue_sync_cond, NULL);
+   pthread_mutex_init(&xplRespQueue_sync_lock, NULL);
+   xplRespQueue=(queue_t *)malloc(sizeof(queue_t));
+   if(!xplRespQueue)
+   {
+      VERBOSE(1) {
+         fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
+         perror("");
+      }
+      return NULL;
+   }
+   init_queue(xplRespQueue); // initialisation de la file
 
    xPL_thread=(pthread_t *)malloc(sizeof(pthread_t));
    if(!xPL_thread)

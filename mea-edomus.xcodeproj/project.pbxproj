@@ -316,7 +316,6 @@
 				4E76CE91163F120C00A3EBA9 /* xPL-io.c */,
 				4E76CE92163F120C00A3EBA9 /* xPL-listeners.c */,
 				4E76CE93163F120C00A3EBA9 /* xPL-message.c */,
-				4E76CEA0163F124200A3EBA9 /* xPLServer.c */,
 				4E76CE94163F120C00A3EBA9 /* xPL-service.c */,
 				4E76CE95163F120C00A3EBA9 /* xPL-store.c */,
 				4E76CE96163F120C00A3EBA9 /* xPL-utils.c */,
@@ -330,6 +329,7 @@
 			children = (
 				4EE28E95162F4A550090B5B3 /* xPLLib */,
 				4E76CEA1163F124200A3EBA9 /* xPLServer.h */,
+				4E76CEA0163F124200A3EBA9 /* xPLServer.c */,
 			);
 			name = "xPL manager";
 			sourceTree = "<group>";

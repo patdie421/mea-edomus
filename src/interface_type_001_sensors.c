@@ -212,7 +212,7 @@ int16_t interface_type_001_sensors_process_traps(int16_t numTrap, char *data, in
       
       // Broadcast the message
       //xPL_sendMessage(cntrMessageStat);
-      sendXplMessage(xplcntrMessageStat);
+      sendXplMessage(cntrMessageStat);
 
       
       xPL_releaseMessage(cntrMessageStat);
@@ -363,7 +363,7 @@ mea_error_t interface_type_001_sensors_process_xpl_msg(interface_type_001_t *i00
    uint16_t send_xpl_flag=0;
    int16_t no_type=0;
 
-   xPL_NameValueListPtr ListNomsValeursPtr = xPL_getMessageBody(msg);
+//   xPL_NameValueListPtr ListNomsValeursPtr = xPL_getMessageBody(msg);
 
    if(type)
    {
@@ -475,7 +475,7 @@ mea_error_t interface_type_001_sensors_process_xpl_msg(interface_type_001_t *i00
          {
             VERBOSE(9) fprintf(stderr,"%s  (%s) : sensor %s = %s\n",INFO_STR,__func__,sensor->name,value);
             cntrMessageStat = xPL_createBroadcastMessage(theService, xPL_MESSAGE_STATUS) ;
-            xPL_setBroadcastMessage(cntrMessageStat, false);
+            xPL_setBroadcastMessage(cntrMessageStat, FALSE);
 
             xPL_setSchema(cntrMessageStat, get_token_by_id(XPL_SENSOR_ID), get_token_by_id(XPL_BASIC_ID));
             xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_DEVICE_ID),sensor->name);
@@ -484,10 +484,10 @@ mea_error_t interface_type_001_sensors_process_xpl_msg(interface_type_001_t *i00
             if(unit)
                xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(UNIT_ID),unit);
 
-            xPL_setTarget(cntrMessageStat, xPL_getSourceVendor(msg), xPL_getSourceDeviceID(msg), xPL_getSourceInstanceID(msg))
+            xPL_setTarget(cntrMessageStat, xPL_getSourceVendor(msg), xPL_getSourceDeviceID(msg), xPL_getSourceInstanceID(msg));
 
             ///xPL_sendMessage(cntrMessageStat);
-            sendXplMessage(xplcntrMessageStat);
+            sendXplMessage(cntrMessageStat);
 
             xPL_releaseMessage(cntrMessageStat);
          }
@@ -583,7 +583,7 @@ void interface_type_001_sensors_poll_inputs(interface_type_001_t *i001, tomysqld
                      
                   // Broadcast the message
                   //xPL_sendMessage(cntrMessageStat);
-                  sendXplMessage(xplcntrMessageStat);
+                  sendXplMessage(cntrMessageStat);
                      
                   xPL_releaseMessage(cntrMessageStat);
                }

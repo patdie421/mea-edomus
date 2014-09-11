@@ -304,7 +304,7 @@ mea_error_t interface_type_001_counters_process_xpl_msg(interface_type_001_t *i0
    struct electricity_counter_s *counter;
    int type_id;
 
-   xPL_NameValueListPtr ListNomsValeursPtr = xPL_getMessageBody(msg);
+//   xPL_NameValueListPtr ListNomsValeursPtr = xPL_getMessageBody(msg);
 
    if(type)
       type_id=get_id_by_string(type);
@@ -339,18 +339,18 @@ mea_error_t interface_type_001_counters_process_xpl_msg(interface_type_001_t *i0
             break;
             
          cntrMessageStat = xPL_createBroadcastMessage(theService, xPL_MESSAGE_STATUS) ;
-         xPL_setBroadcastMessage(cntrMessageStat, false);
+         xPL_setBroadcastMessage(cntrMessageStat, FALSE);
 
          xPL_setSchema(cntrMessageStat,  get_token_by_id(XPL_SENSOR_ID), get_token_by_id(XPL_BASIC_ID));
          xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_DEVICE_ID),counter->name);
          xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_TYPE_ID),type);
          xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_CURRENT_ID),value);
          xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(UNIT_ID),unit);
-         xPL_setTarget(cntrMessageStat, xPL_getSourceVendor(msg), xPL_getSourceDeviceID(msg), xPL_getSourceInstanceID(msg))
+         xPL_setTarget(cntrMessageStat, xPL_getSourceVendor(msg), xPL_getSourceDeviceID(msg), xPL_getSourceInstanceID(msg));
    
          // Broadcast the message
          //xPL_sendMessage(cntrMessageStat);
-         sendXplMessage(xplcntrMessageStat);
+         sendXplMessage(cntrMessageStat);
  
          xPL_releaseMessage(cntrMessageStat);
       }

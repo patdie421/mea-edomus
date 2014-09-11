@@ -261,16 +261,20 @@ static PyObject *mea_xplSendMsg(PyObject *self, PyObject *args)
       char *p=PyString_AsString(item);
       if(strcmp(p,'*')!=0)
       {
+         char vendor_id[40];
+         char device_id[40];
+         char instance_id[40];
+         
          // spliter correctement d'adresse et faire le xPL_setMessageTarget qui va bien
          int16_t n=sscanf(p,"%[^-]-%[^.].%s", vendor_id, device_id, instance_id);
          if(n==3)
          {
             // valider le format ici et si OK
 
-            xPL_setMessageTarget(xPLMsg, vendor_id, device_id, instance_id);
+            xPL_setTarget(xplMsg, vendor_id, device_id, instance_id);
 
             // si target exist et est conforme => ce n'est plus un message broadcast
-            xPL_setBroadcastMessage(cntrMessageStat, false);
+            xPL_setBroadcastMessage(xplMsg, FALSE);
          }
 
       }

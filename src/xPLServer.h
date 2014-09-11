@@ -17,6 +17,14 @@ extern char *xpl_vendorID;
 extern char *xpl_deviceID;
 extern char *xpl_instanceID;
 
+
+typedef struct xplRespQueue_elem_s
+{
+   int id;
+   xPL_MessagePtr msg;
+   uint32_t tsp;
+} xplRespQueue_elem_t;
+
 typedef int16_t (*xpl_f)(xPL_ServicePtr,xPL_MessagePtr theMessage, xPL_ObjectPtr userValue);
 
 pthread_t *xPLServer(queue_t *interfaces);
@@ -30,7 +38,7 @@ char *get_xPL_instanceID();
 char *get_xPL_deviceID();
 char *get_xPL_vendorID();
 
-uint16_t sendXplMessage(xplxPL_MessagePtr xPLMsg);
+uint16_t sendXplMessage(xPL_MessagePtr xPLMsg);
 
 int is_started();
 
