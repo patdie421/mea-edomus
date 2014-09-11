@@ -52,6 +52,24 @@ char *set_xPL_instanceID(char *value)
 }
 
 
+char *get_xPL_instanceID()
+{
+   return xpl_instanceID;
+}
+
+
+char *get_xPL_deviceID()
+{
+   return xpl_deviceID;
+}
+
+
+char *get_xPL_vendorID()
+{
+   return xpl_vendorID;
+}
+
+
 xPL_ServicePtr get_xPL_ServicePtr()
 {
    return xPLService;
