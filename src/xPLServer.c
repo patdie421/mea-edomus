@@ -58,7 +58,7 @@ xPL_ServicePtr get_xPL_ServicePtr()
 }
 
 
-void cmndMsgHandler(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
+void dispatchXplMessage(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
 {
    int ret;
 
@@ -99,6 +99,27 @@ void cmndMsgHandler(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xPL_Ob
       if(ret<0)
          break;
    }
+}
+
+
+uint16_t sendXplMessage(xplxPL_MessagePtr xPLMsg)
+{
+   if(strcmp(xPL_getTargetDeviceID(xPLMsg),"internal")==0)
+   {
+      dispatchXplMessage(xPLxPLService, xPLMsg, (xPL_ObjectPtr)get_interfaces());
+      return 0;
+   }
+   else
+   {
+      xPL_SendMessage(xPLMsg);
+      return 0;
+   }
+}
+
+
+void cmndMsgHandler(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
+{
+   dispatchXplMessage(theService, theMessage, userValue);
 }
 
 
