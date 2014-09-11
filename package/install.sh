@@ -100,7 +100,7 @@ BASEPATH4SED=`echo "$BASEPATH" | sed -e 's/\\//\\\\\\//g'`
 
 # déclaration du service
 sudo sed -e 's/<BASEPATH>/'"$BASEPATH4SED"'/g' -e 's/<USER>/'"$MEAUSER"'/g' ./etc/init.d/mea-edomus > /etc/init.d/mea-edomus
-chmod +x /etc/init.d/mea-edomus
+sudo chmod +x /etc/init.d/mea-edomus
 
 # activation du service
 sudo update-rc.d mea-edomus defaults
