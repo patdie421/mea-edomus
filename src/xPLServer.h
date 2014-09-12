@@ -25,22 +25,25 @@ typedef struct xplRespQueue_elem_s
    uint32_t tsp;
 } xplRespQueue_elem_t;
 
-typedef int16_t (*xpl_f)(xPL_ServicePtr,xPL_MessagePtr theMessage, xPL_ObjectPtr userValue);
+typedef int16_t (*xpl_f)(xPL_ServicePtr, xPL_MessagePtr theMessage, xPL_ObjectPtr userValue);
+
 
 pthread_t *xPLServer(queue_t *interfaces);
-xPL_ServicePtr get_xPL_ServicePtr();
 
-char *set_xPL_vendorID(char *value);
-char *set_xPL_deviceID(char *value);
-char *set_xPL_instanceID(char *value);
 
-char *get_xPL_instanceID();
-char *get_xPL_deviceID();
-char *get_xPL_vendorID();
+xPL_ServicePtr mea_getXPLServicePtr();
 
-uint16_t sendXplMessage(xPL_MessagePtr xPLMsg);
-xPL_MessagePtr readResponseFromQueue(int id);
+char          *mea_setXPLVendorID(char *value);
+char          *mea_setXPLDeviceID(char *value);
+char          *mea_setXPLInstanceID(char *value);
 
-int is_started();
+char          *mea_getXPLInstanceID();
+char          *mea_getXPLDeviceID();
+char          *mea_getXPLVendorID();
+
+uint16_t       mea_sendXPLMessage(xPL_MessagePtr xPLMsg);
+xPL_MessagePtr mea_readXPLResponse(int id);
+
+// int is_started();
 
 #endif
