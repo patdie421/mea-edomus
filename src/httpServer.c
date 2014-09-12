@@ -159,7 +159,7 @@ static int begin_request_handler(struct mg_connection *conn)
             
             if(waitResp==FALSE)
             {
-               strcpy(reponse,"OK");
+               strcpy(reponse,"{ errno : 0 }");
             }
             else
             {
@@ -176,23 +176,23 @@ static int begin_request_handler(struct mg_connection *conn)
                   strcat(reponse, keyValuePtr->itemName);
                   strcat(reponse, " : ");
                   strcat(reponse, keyValuePtr->itemValue);
-                  if(i<(n-1)) // pas le dernier item de la liste
-                     strcat(reponse,","); // on rajoute une virgule
+                  strcat(reponse,","); // on rajoute une virgule
                }
-               strcat(reponse,"}");
+               strcat(reponse,"errno : 0 }");
 
                // réponse traitée, on libère
                xPL_releaseMessage(respMsg);
                }
                else
                {
-                  strcpy(reponse,"KO");
+                  strcpy(reponse,"{ errno : 1 }");
                }
             }
             mg_printf(conn,
                       "HTTP/1.1 200 OK\r\n"
-                      "Content-Type: text/plain\r\n"
-                      "Content-Length: %d\r\n"        // Always set Content-Length
+                      "Content-Type: application/json\r\n" 
+                      "Content-Length: %d\r\n" // Always set Content-Length
+                      "Cache: no-cache\r\n"
                       "\r\n"
                       "%s",
                       (int)strlen(reponse), reponse);
