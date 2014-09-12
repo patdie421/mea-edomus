@@ -192,7 +192,10 @@ static int begin_request_handler(struct mg_connection *conn)
                       "HTTP/1.1 200 OK\r\n"
                       "Content-Type: application/json\r\n" 
                       "Content-Length: %d\r\n" // Always set Content-Length
-                      "Cache: no-cache\r\n"
+                      "Cache-Control: no-cache, no-store, must-revalidate\r\n"
+                      "Pragma: no-cache\r\n"
+                      "Expires: -1\r\n"
+                      "Vary: *\r\n"
                       "\r\n"
                       "%s",
                       (int)strlen(reponse), reponse);
