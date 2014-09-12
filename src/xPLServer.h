@@ -39,6 +39,7 @@ char *get_xPL_deviceID();
 char *get_xPL_vendorID();
 
 uint16_t sendXplMessage(xPL_MessagePtr xPLMsg);
+xPL_MessagePtr readResponseFromQueue(int id);
 
 int is_started();
 
