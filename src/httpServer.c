@@ -165,7 +165,8 @@ static int begin_request_handler(struct mg_connection *conn)
             {
                DEBUG_SECTION fprintf(stderr,"En attente de reponse\n");
                xPL_MessagePtr respMsg=readResponseFromQueue(id);
-
+               if(respMsg)
+               {
                xPL_NameValueListPtr body = xPL_getMessageBody(xPLMsg);
                int n = xPL_getNamedValueCount(body);
                strcpy(reponse,"{");
@@ -182,6 +183,11 @@ static int begin_request_handler(struct mg_connection *conn)
 
                // réponse traitée, on libère
                xPL_releaseMessage(respMsg);
+               }
+               else
+               {
+                  strcpy(reponse,"KO");
+               }
             }
             mg_printf(conn,
                       "HTTP/1.1 200 OK\r\n"
