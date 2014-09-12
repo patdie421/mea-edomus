@@ -39,7 +39,28 @@ pthread_cond_t  xplRespQueue_sync_cond;
 pthread_mutex_t xplRespQueue_sync_lock;
 queue_t         *xplRespQueue;
 pthread_mutex_t xplRespSend_lock;
+pthread_mutex_t requestId_lock;
 
+uint32_t requestId = 1;
+
+uint32_t getRequestId() // rajouter un verrou ...
+{
+   uint32_t id=0;
+
+   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(requestId_lock) );
+   pthread_mutex_lock(&requestId_lock);
+
+   id=requestId;
+
+   requestId++;
+   if(requestId>20000)
+   requestID=1;
+
+   pthread_mutex_unlock(&requestId_lock);
+   pthread_cleanup_pop(0);
+ 
+   return id;
+}
 
 char *set_xPL_vendorID(char *value)
 {
@@ -198,7 +219,7 @@ uint16_t sendXplMessage(xPL_MessagePtr xPLMsg)
 }
 
 
-xPL_MessagePtr readFromQueue(int id)
+xPL_MessagePtr readResponseFromQueue(int id)
 {
    int16_t ret;
    int16_t boucle=5; // 5 tentatives de 1 secondes
@@ -362,6 +383,8 @@ pthread_t *xPLServer(queue_t *interfaces)
       // préparation synchro consommateur / producteur
    pthread_cond_init(&xplRespQueue_sync_cond, NULL);
    pthread_mutex_init(&xplRespQueue_sync_lock, NULL);
+   pthread_mutex_init(&requestId_lock, NULL);
+
    xplRespQueue=(queue_t *)malloc(sizeof(queue_t));
    if(!xplRespQueue)
    {
