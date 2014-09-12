@@ -147,6 +147,7 @@ uint16_t sendXplMessage(xPL_MessagePtr xPLMsg)
       fprintf(stderr,"retour de demande interne à mettre dans une file (id = %d)\n",id);
       // duplication du message xPL
       xPL_MessagePtr newXPLMsg = xPL_createBroadcastMessage(xPLService, xPL_getMessageType(xPLMsg));
+/*
 
 // Pourquoi cela ne marche pas ?!!?
 //      xPL_setSchema(newXPLMsg, xPL_getSchemaClass(xPLMsg), xPL_getSchemaType(xPLMsg));
@@ -173,7 +174,7 @@ uint16_t sendXplMessage(xPL_MessagePtr xPLMsg)
          xPL_setMessageNamedValue(newXPLMsg, key, value);
 //         xPL_setMessageNamedValue(newXPLMsg, keyValuePtr->itemName, keyValuePtr->itemValue);
       }
-
+*/
       // ajout des éléments dans la file
       xplRespQueue_elem_t *e = malloc(sizeof(xplRespQueue_elem_t));
       e->msg = newXPLMsg;

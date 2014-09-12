@@ -158,6 +158,7 @@ static int begin_request_handler(struct mg_connection *conn)
             }
 
             sendXplMessage(msg);
+            //msg->receivedMessage=TRUE;
             xPL_releaseMessage(msg);
             
             if(waitResp==FALSE)
