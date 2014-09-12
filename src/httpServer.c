@@ -91,7 +91,7 @@ static int begin_request_handler(struct mg_connection *conn)
    char *tokens[MAX_TOKEN]; // 10 tokens maximum
    char buffer[MAX_BUFFER_SIZE];
 
-   if(strncmplower("/API/",(char *)request_info->uri,5)==0)
+   if(mea_strncmplower("/API/",(char *)request_info->uri,5)==0)
    {
       // traiter ici l'URL
       char reponse[255];
@@ -104,19 +104,19 @@ static int begin_request_handler(struct mg_connection *conn)
       int ret=splitStr(buffer, '/', tokens, MAX_TOKEN);
       if(ret>2)
       {
-         if(strcmplower("XPL-INTERNAL",tokens[0])==0)
+         if(mea_strcmplower("XPL-INTERNAL",tokens[0])==0)
          {
-            xPL_MessagePtr msg = createReceivedMessage(xPL_MESSAGE_COMMAND);
+            xPL_MessagePtr msg = xPL_createReceivedMessage(xPL_MESSAGE_COMMAND);
             xPL_setBroadcastMessage(msg, TRUE); // pas de destinataire spécifié (pas nécessaire, on sait que c'est pour nous
             int waitResp = FALSE;
 
-            if(strcmplower("ACTUATOR",tokens[1])==0)
+            if(mea_strcmplower("ACTUATOR",tokens[1])==0)
             {
                xPL_setSchema(msg, get_token_by_id(XPL_CONTROL_ID), get_token_by_id(XPL_BASIC_ID));
                xPL_setSource(msg, "mea", "internal", "00000000"); // 00000000 = message sans réponse attendue
                waitResp=FALSE;
             }
-            else if(strcmplower("SENSOR",tokens[1])==0)
+            else if(mea_strcmplower("SENSOR",tokens[1])==0)
             {
                xPL_setSchema(msg, get_token_by_id(XPL_SENSOR_ID), get_token_by_id(XPL_REQUEST_ID));
                char requestId[9];
@@ -138,11 +138,11 @@ static int begin_request_handler(struct mg_connection *conn)
                char *keyval[2];
                strcpy(keyval_buff,tokens[i]);
                
-               int ret2=splitStr(keyval_buff, '_', keyval, 2);
+               int ret2=mea_strsplit(keyval_buff, '_', keyval, 2);
                if(ret2==2)
                {
-                  strToLower(keyval[0]);
-                  strToLower(keyval[1]);
+                  mea_strtolower(keyval[0]);
+                  mea_strtolower(keyval[1]);
                   xPL_setMessageNamedValue(msg, keyval[0], keyval[1]);
 
                   DEBUG_SECTION fprintf(stderr, "key=%s value=%s\n",keyval[0],keyval[1]);
