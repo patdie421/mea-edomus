@@ -130,7 +130,8 @@ void dispatchXplMessage(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xP
 uint16_t sendXplMessage(xPL_MessagePtr xPLMsg)
 {
    char *addr;
-   
+   xPL_MessagePtr newXPLMsg = NULL;
+
    addr = xPL_getSourceDeviceID(xPLMsg);
    if(strcmp(addr,"internal")==0) // source interne => dispatching sans passer par le réseau
    {
@@ -145,9 +146,11 @@ uint16_t sendXplMessage(xPL_MessagePtr xPLMsg)
       
       sscanf(xPL_getTargetInstanceID(xPLMsg), "%d", &id);
 
-      fprintf(stderr,"retour de demande interne à mettre dans une file (id = %d)\n",id);
+      DEBUG_SECTION fprintf(stderr,"Retour de la demande interne à mettre dans la file (id demande = %d)\n",id);
+
       // duplication du message xPL
-      xPL_MessagePtr newXPLMsg = xPL_createBroadcastMessage(xPLService, xPL_getMessageType(xPLMsg));
+      newXPLMsg = xPL_createBroadcastMessage(xPLService, xPL_getMessageType(xPLMsg));
+
       xPL_setSchema(newXPLMsg, xPL_getSchemaClass(xPLMsg), xPL_getSchemaType(xPLMsg));
       xPL_setTarget(newXPLMsg, xPL_getTargetVendor(xPLMsg), xPL_getTargetDeviceID(xPLMsg), xPL_getTargetInstanceID(xPLMsg));
       xPL_NameValueListPtr body = xPL_getMessageBody(xPLMsg);
@@ -168,7 +171,7 @@ uint16_t sendXplMessage(xPL_MessagePtr xPLMsg)
          xPL_setMessageNamedValue(newXPLMsg, keyValuePtr->itemName, keyValuePtr->itemValue);
       }
 
-      // ajout des éléments dans la file
+      // ajout de la copie du message dans la file
       xplRespQueue_elem_t *e = malloc(sizeof(xplRespQueue_elem_t));
       e->msg = newXPLMsg;
       e->id = id;
