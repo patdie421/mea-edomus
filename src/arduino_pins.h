@@ -74,6 +74,6 @@
 #define ARDUINO_AI6 20
 #define ARDUINO_AI7 21
 
-int16_t get_arduino_pin(char *spin);
+int16_t mea_getArduinoPin(char *spin);
 
 #endif
