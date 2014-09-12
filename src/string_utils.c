@@ -11,7 +11,7 @@
 #include "string_utils.h"
 
 
-char *ltrim(char *s)
+char *mea_strltrim(char *s)
  /**
   * \brief     trim (suppression de blanc) à gauche d'une chaine.
   * \details   la chaine n'est pas modifiée. un pointeur est retourné sur le premier caractère "non blanc" de la chaine. Attention à ne pas perdre le pointeur d'origine pour les chaines allouées. Eviter 'absolument s=ltrim(s)', préférez 's_trimed=ltrim(s)'.
@@ -24,7 +24,7 @@ char *ltrim(char *s)
 }
 
 
-char *rtrim(char *s)
+char *mea_strrtrim(char *s)
  /**
   * \brief     trim (suppression de blanc) à droite d'une chaine.
   * \details   la chaine est modifiée. un '\0' est positionné à la place de chaque caractère "blanc" en fin de chaine. s=rtrim() est équivalant à rtrim(s).
@@ -39,7 +39,7 @@ char *rtrim(char *s)
 }
 
 
-char *trim(char *s)
+char *mea_strtrim(char *s)
  /**
   * \brief     trim (suppression de blanc) à gauche et à droite d'une chaine.
   * \details   la chaine est modifiée, un '\0' est positionné à la place de chaque caractère "blanc" en fin de chaine. s=rtrim() est équivalant à rtrim(s) et un pointeur est retourné sur le premier caractère "non blanc" de la chaine. Voir aussi ltrim et rtrim.
@@ -51,7 +51,7 @@ char *trim(char *s)
 }
 
 
-void strToUpper(char *str)
+void mea_strtoupper(char *str)
 /**
  * \brief     convertit tous les caractères d'une chaine en majuscule
  * \details   La chaine en paramètre est modifiée : les minuscules sont remplacées par des majuscules.
@@ -64,7 +64,7 @@ void strToUpper(char *str)
 }
 
 
-void strToLower(char *str)
+void mea_strtolower(char *str)
 /**
  * \brief     convertit tous les caractères d'une chaine en minuscules
  * \details   La chaine en paramètre est modifiée : les majuscules sont remplacées par des minuscules.
@@ -77,7 +77,7 @@ void strToLower(char *str)
 }
 
 
-int16_t strcmplower(char *str1, char *str2)
+int16_t mea_strcmplower(char *str1, char *str2)
 /**
  * \brief     comparaison de deux chaines sur la base de "caractères en mimuscules"
  * \details   chaque caractère des deux chaines est converti en minuscule avant de les comparer
@@ -97,7 +97,7 @@ int16_t strcmplower(char *str1, char *str2)
 }
 
 
-int16_t strncmplower(char *str1, char *str2, int n)
+int16_t mea_strncmplower(char *str1, char *str2, int n)
 /**
  * \brief     comparaison des n premiers caracteres de deux chaines sur la base de "caractères en mimuscules"
  * \details   chaque caractère des deux chaines est converti en minuscule avant de les comparer
@@ -122,7 +122,7 @@ int16_t strncmplower(char *str1, char *str2, int n)
 
 
 
-int splitStr(char str[], char separator, char *tokens[], char l_tokens)
+int mea_strsplit(char str[], char separator, char *tokens[], char l_tokens)
 {
    int j=0;
    tokens[j]=str;
