@@ -43,7 +43,7 @@ pthread_mutex_t requestId_lock;
 
 uint32_t requestId = 1;
 
-uint32_t getRequestId() // rajouter un verrou ...
+uint32_t mea_getXplRequestId() // rajouter un verrou ...
 {
    uint32_t id=0;
 
@@ -62,49 +62,49 @@ uint32_t getRequestId() // rajouter un verrou ...
    return id;
 }
 
-char *set_xPL_vendorID(char *value)
+char *mea_setXPLVendorID(char *value)
 {
    return string_free_malloc_and_copy(&xpl_vendorID, value, 1);
 }
 
 
-char *set_xPL_deviceID(char *value)
+char *mea_setXPLDeviceID(char *value)
 {
    return string_free_malloc_and_copy(&xpl_deviceID, value, 1);
 }
 
 
-char *set_xPL_instanceID(char *value)
+char *mea_setXPLInstanceID(char *value)
 {
    return string_free_malloc_and_copy(&xpl_instanceID, value, 1);
 }
 
 
-char *get_xPL_instanceID()
+char *mea_getXPLInstanceID()
 {
    return xpl_instanceID;
 }
 
 
-char *get_xPL_deviceID()
+char *mea_getXPLDeviceID()
 {
    return xpl_deviceID;
 }
 
 
-char *get_xPL_vendorID()
+char *mea_getXPLVendorID()
 {
    return xpl_vendorID;
 }
 
 
-xPL_ServicePtr get_xPL_ServicePtr()
+xPL_ServicePtr geXPLServicePtr()
 {
    return xPLService;
 }
 
 
-void dispatchXplMessage(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
+void _dispatchXPLMessage(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
 {
    int ret;
 
@@ -148,7 +148,7 @@ void dispatchXplMessage(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xP
 }
 
 
-uint16_t sendXplMessage(xPL_MessagePtr xPLMsg)
+uint16_t mea_sendXPLMessage(xPL_MessagePtr xPLMsg)
 {
    char *addr;
    xPL_MessagePtr newXPLMsg = NULL;
@@ -219,7 +219,7 @@ uint16_t sendXplMessage(xPL_MessagePtr xPLMsg)
 }
 
 
-xPL_MessagePtr readResponseFromQueue(int id)
+xPL_MessagePtr mea_readXPLResponse(int id)
 {
    int16_t ret;
    int16_t boucle=5; // 5 tentatives de 1 secondes
@@ -288,13 +288,13 @@ readFromQueue_return:
 }
 
 
-void cmndMsgHandler(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
+void _cmndXPLMessageHandler(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
 {
    dispatchXplMessage(theService, theMessage, userValue);
 }
 
 
-void _xPL_server_flush_old_responses_queue()
+void _flushExpiredXPLResponses()
 {
    xplRespQueue_elem_t *e;
    uint32_t tsp=(uint32_t)time(NULL);
@@ -328,7 +328,7 @@ void _xPL_server_flush_old_responses_queue()
 }
 
 
-void *_xPL_server_thread(void *data)
+void *_xPLServer_thread(void *data)
 {
    xPL_setDebugging(TRUE); // xPL en mode debug
 
@@ -341,8 +341,8 @@ void *_xPL_server_thread(void *data)
    
    xPL_setHeartbeatInterval(xPLService, 5000); // en milliseconde    
    // xPL_MESSAGE_ANY, xPL_MESSAGE_COMMAND, xPL_MESSAGE_STATUS, xPL_MESSAGE_TRIGGER
-   xPL_addServiceListener(xPLService, cmndMsgHandler, xPL_MESSAGE_COMMAND, "control", "basic", (xPL_ObjectPtr)data) ;
-   xPL_addServiceListener(xPLService, cmndMsgHandler, xPL_MESSAGE_COMMAND, "sensor", "request", (xPL_ObjectPtr)data) ;
+   xPL_addServiceListener(xPLService, _cmndXPLMessageHandler, xPL_MESSAGE_COMMAND, "control", "basic", (xPL_ObjectPtr)data) ;
+   xPL_addServiceListener(xPLService, _cmndXPLMessagegHandler, xPL_MESSAGE_COMMAND, "sensor", "request", (xPL_ObjectPtr)data) ;
    
    xPL_setServiceEnabled(xPLService, TRUE);
 
@@ -360,7 +360,7 @@ void *_xPL_server_thread(void *data)
       }
       xPL_processMessages(500);
       
-      _xPL_server_flush_old_responses_queue();
+      _flushExpiredXPLResponses();
       
       pthread_testcancel();
    }
@@ -406,7 +406,7 @@ pthread_t *xPLServer(queue_t *interfaces)
       return NULL;
    }
 
-   if(pthread_create (xPL_thread, NULL, _xPL_server_thread, (void *)interfaces))
+   if(pthread_create (xPL_thread, NULL, _xPLServer_thread, (void *)interfaces))
    {
       VERBOSE(1) fprintf(stderr, "%s (%s) : pthread_create - can't start thread\n",ERROR_STR,__func__);
       return NULL;
