@@ -237,6 +237,8 @@ void _xPL_server_flush_old_responses_queue()
 
 void *_xPL_server_thread(void *data)
 {
+   xPL_setDebugging(TRUE); // xPL en mode debug
+
    if ( !xPL_initialize(xPL_getParsedConnectionType()) ) return 0 ;
    
    xPLService = xPL_createService(xpl_vendorID, xpl_deviceID, xpl_instanceID);
