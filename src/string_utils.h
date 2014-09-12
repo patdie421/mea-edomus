@@ -10,14 +10,14 @@
 
 #include <inttypes.h>
 
-void strToUpper(char *str);
-void strToLower(char *str);
-int16_t strcmplower(char *str1, char *str2);
-int16_t strncmplower(char *str1, char *str2, int n);
-char *ltrim(char *s);
-char *rtrim(char *s);
-char *trim(char *s);
-int splitStr(char str[], char separator, char *tokens[], char l_tokens);
+void mea_strtoupper(char *str);
+void mea_strtolower(char *str);
+int16_t mea_strcmplower(char *str1, char *str2);
+int16_t mea_strncmplower(char *str1, char *str2, int n);
+char *mea_strltrim(char *s);
+char *mea_strrtrim(char *s);
+char *mea_strtrim(char *s);
+int16_t mea_strsplit(char str[], char separator, char *tokens[], char l_tokens);
 
 #endif
 
