@@ -165,9 +165,20 @@ static int begin_request_handler(struct mg_connection *conn)
             {
                DEBUG_SECTION fprintf(stderr,"En attente de reponse\n");
                xPL_MessagePtr respMsg=readResponseFromQueue(id);
-               // traiter la réponse ici
 
-
+               xPL_NameValueListPtr body = xPL_getMessageBody(xPLMsg);
+               int n = xPL_getNamedValueCount(body);
+               strcpy(reponse,"{");
+               for (int i=0; i<n; i++)
+               {
+                  xPL_NameValuePairPtr keyValuePtr = xPL_getNamedValuePairAt(body, i);
+                  strcat(reponse, keyValuePtr->itemName);
+                  strcat(reponse, " : ");
+                  strcat(reponse, keyValuePtr->itemValue);
+                  if(i<(n-1)) // pas le dernier item de la liste
+                     strcat(reponse,","); // on rajoute une virgule
+               }
+               strcat(reponse,"}");
 
                // réponse traitée, on libère
                xPL_releaseMessage(respMsg);
