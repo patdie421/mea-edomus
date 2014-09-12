@@ -81,7 +81,7 @@ static const char *open_file_handler(const struct mg_connection *conn, const cha
 
 
 #define MAX_BUFFER_SIZE 80
-#define MAX_TOKEN 10
+#define MAX_TOKEN 20
 static int begin_request_handler(struct mg_connection *conn)
 {
 // API REST ...
@@ -101,32 +101,25 @@ static int begin_request_handler(struct mg_connection *conn)
          return NULL;
       
       strcpy(buffer, &(request_info->uri[5]));
-      int ret=splitStr(buffer, '/', tokens, 10);
+      int ret=splitStr(buffer, '/', tokens, MAX_TOKEN);
       if(ret>2)
       {
          if(strcmplower("XPL-INTERNAL",tokens[0])==0)
          {
-            xPL_ServicePtr servicePtr = get_xPL_ServicePtr();
-            if(!servicePtr)
-               return NULL;
-            xPL_MessagePtr msg = xPL_createBroadcastMessage(servicePtr, xPL_MESSAGE_COMMAND);
-            msg->receivedMessage=TRUE;
-            xPL_setSource(msg, "mea", "internal", "00000000");
-            msg->receivedMessage=FALSE;
-            
-            int waitResp;
+            xPL_MessagePtr msg = createReceivedMessage(xPL_MESSAGE_COMMAND);
+            xPL_setBroadcastMessage(msg, TRUE); // pas de destinataire spécifié (pas nécessaire, on sait que c'est pour nous
+            int waitResp = FALSE;
+
             if(strcmplower("ACTUATOR",tokens[1])==0)
             {
                xPL_setSchema(msg, get_token_by_id(XPL_CONTROL_ID), get_token_by_id(XPL_BASIC_ID));
+               xPL_setSource(msg, "mea", "internal", "00000000"); // 00000000 = message sans réponse attendue
                waitResp=FALSE;
             }
             else if(strcmplower("SENSOR",tokens[1])==0)
             {
                xPL_setSchema(msg, get_token_by_id(XPL_SENSOR_ID), get_token_by_id(XPL_REQUEST_ID));
-               msg->receivedMessage=TRUE;
-               xPL_setSourceInstanceID(msg, "00001234");
-               msg->receivedMessage=FALSE;
-
+               xPL_setSourceInstanceID(msg, "00001234"); // 00001234 à remplacer par notre id
                waitResp=TRUE;
             }
             else
@@ -135,6 +128,7 @@ static int begin_request_handler(struct mg_connection *conn)
                return NULL;
             }
             
+            // fabrication du body
             for(int i=2; i<ret; i++)
             {
                char keyval_buff[MAX_BUFFER_SIZE];
@@ -158,7 +152,6 @@ static int begin_request_handler(struct mg_connection *conn)
             }
 
             sendXplMessage(msg);
-            //msg->receivedMessage=TRUE;
             xPL_releaseMessage(msg);
             
             if(waitResp==FALSE)
