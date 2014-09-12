@@ -147,34 +147,34 @@ uint16_t sendXplMessage(xPL_MessagePtr xPLMsg)
       fprintf(stderr,"retour de demande interne à mettre dans une file (id = %d)\n",id);
       // duplication du message xPL
       xPL_MessagePtr newXPLMsg = xPL_createBroadcastMessage(xPLService, xPL_getMessageType(xPLMsg));
+      xPL_setSchema(newXPLMsg, xPL_getSchemaClass(xPLMsg), xPL_getSchemaType(xPLMsg));
 /*
-
-// Pourquoi cela ne marche pas ?!!?
-//      xPL_setSchema(newXPLMsg, xPL_getSchemaClass(xPLMsg), xPL_getSchemaType(xPLMsg));
       char schemaClass[41], schemaType[41];
       schemaClass[40]=0;
       schemaType[40]=0;
       strncpy(schemaClass, xPL_getSchemaClass(xPLMsg),40);
       strncpy(schemaType, xPL_getSchemaType(xPLMsg),40);
       xPL_setSchema(newXPLMsg, schemaClass, schemaType);
-
+*/
       xPL_setTarget(newXPLMsg, xPL_getTargetVendor(xPLMsg), xPL_getTargetDeviceID(xPLMsg), xPL_getTargetInstanceID(xPLMsg));
 
       xPL_NameValueListPtr body = xPL_getMessageBody(xPLMsg);
       int n = xPL_getNamedValueCount(body);
       for (int i=0; i<n; i++)
       {
+         xPL_NameValuePairPtr keyValuePtr = xPL_getNamedValuePairAt(body, i);
+/*
          char key[41],value[81];
          key[40]=0;
          value[80]=0;
          xPL_NameValuePairPtr keyValuePtr = xPL_getNamedValuePairAt(body, i);
          strncpy(key, keyValuePtr->itemName,40);
-         strncpy(value, keyValuePtr->itemValue,80);
-         
+         strncpy(value, keyValuePtr->itemValue,80);         
          xPL_setMessageNamedValue(newXPLMsg, key, value);
-//         xPL_setMessageNamedValue(newXPLMsg, keyValuePtr->itemName, keyValuePtr->itemValue);
-      }
 */
+         xPL_setMessageNamedValue(newXPLMsg, keyValuePtr->itemName, keyValuePtr->itemValue);
+      }
+
       // ajout des éléments dans la file
       xplRespQueue_elem_t *e = malloc(sizeof(xplRespQueue_elem_t));
       e->msg = newXPLMsg;
@@ -225,7 +225,7 @@ void _xPL_server_flush_old_responses_queue()
             if((tsp - e->tsp) > 5)
             {
                xPL_releaseMessage(e->msg);
-               fprintf(stderr,"Je flush\n");
+               DEBUG_SECTION fprintf(stderr,"Je flush\n");
                free(e);
                remove_current_queue(xplRespQueue); // remove current passe sur le suivant
             }
