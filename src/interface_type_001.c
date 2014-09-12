@@ -70,8 +70,8 @@ int16_t interface_type_001_xPL_callback(xPL_ServicePtr theService, xPL_MessagePt
    
    VERBOSE(9) fprintf(stderr,"%s  (%s) : xPL Message to process : %s.%s\n",INFO_STR,__func__,schema_class,schema_type);
 
-   if(strcmplower(schema_class, get_token_by_id(XPL_CONTROL_ID)) == 0 &&
-      strcmplower(schema_type, get_token_by_id(XPL_BASIC_ID)) == 0)
+   if(mea_strcmplower(schema_class, get_token_by_id(XPL_CONTROL_ID)) == 0 &&
+      mea_strcmplower(schema_type, get_token_by_id(XPL_BASIC_ID)) == 0)
    {
       if(!device)
       {
@@ -85,8 +85,8 @@ int16_t interface_type_001_xPL_callback(xPL_ServicePtr theService, xPL_MessagePt
       }
       return xpl_actuator(i001, ListNomsValeursPtr, device, type);
    }
-   else if(strcmplower(schema_class, get_token_by_id(XPL_SENSOR_ID)) == 0 &&
-           strcmplower(schema_type, get_token_by_id(XPL_REQUEST_ID)) == 0)
+   else if(mea_strcmplower(schema_class, get_token_by_id(XPL_SENSOR_ID)) == 0 &&
+           mea_strcmplower(schema_type, get_token_by_id(XPL_REQUEST_ID)) == 0)
    {
       char *request = xPL_getNamedValue(ListNomsValeursPtr, get_token_by_id(XPL_REQUEST_ID));
       if(!request)
@@ -94,7 +94,7 @@ int16_t interface_type_001_xPL_callback(xPL_ServicePtr theService, xPL_MessagePt
          VERBOSE(5) fprintf(stderr,"%s  (%s) : xPL message no request\n",INFO_STR,__func__);
          return 0;
       }
-      if(strcmplower(request,get_token_by_id(XPL_CURRENT_ID))!=0)
+      if(mea_strcmplower(request,get_token_by_id(XPL_CURRENT_ID))!=0)
       {
          VERBOSE(5) fprintf(stderr,"%s  (%s) : xPL message request!=current\n",INFO_STR,__func__);
          return 0;

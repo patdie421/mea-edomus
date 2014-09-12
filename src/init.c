@@ -91,7 +91,7 @@ char *get_and_malloc_string(char *default_value, char *question_str)
       if(fgets(read_str,sizeof(read_str), stdin))
       {
          read_str[strlen(read_str)-1]=0; // retire le \n à la fin de la ligne
-         read_str_trimed=trim(read_str); // retire les blanc en début et fin de chaine
+         read_str_trimed=mea_strtrim(read_str); // retire les blanc en début et fin de chaine
          if(!strlen(read_str_trimed)) // appuie sur Enter sans saisir de caractères
          {
             strcpy(read_str, default_value); // on prend la valeur qu'on a prosée

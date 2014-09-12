@@ -103,12 +103,12 @@ static int begin_request_handler(struct mg_connection *conn)
          return NULL;
       
       strcpy(buffer, &(request_info->uri[5]));
-      int ret=splitStr(buffer, '/', tokens, MAX_TOKEN);
+      int ret=mea_strsplit(buffer, '/', tokens, MAX_TOKEN);
       if(ret>2)
       {
          if(mea_strcmplower("XPL-INTERNAL",tokens[0])==0)
          {
-            xPL_MessagePtr msg = xPL_createReceivedMessage(xPL_MESSAGE_COMMAND);
+            xPL_MessagePtr msg = mea_createReceivedMessage(xPL_MESSAGE_COMMAND);
             xPL_setBroadcastMessage(msg, TRUE); // pas de destinataire spécifié (pas nécessaire, on sait que c'est pour nous
             int waitResp = FALSE;
 
@@ -122,9 +122,11 @@ static int begin_request_handler(struct mg_connection *conn)
             {
                xPL_setSchema(msg, get_token_by_id(XPL_SENSOR_ID), get_token_by_id(XPL_REQUEST_ID));
                char requestId[9];
-               id=getRequestId();
+
+               id=mea_getXplRequestId();
                sprintf(requestId,"%08d",id);
-               xPL_setSourceInstanceID(msg, requestId);
+               xPL_setSource(msg, "mea", "internal", requestId); // 00000000 = message sans réponse attendue
+
                waitResp=TRUE;
             }
             else
@@ -147,7 +149,7 @@ static int begin_request_handler(struct mg_connection *conn)
                   mea_strtolower(keyval[1]);
                   xPL_setMessageNamedValue(msg, keyval[0], keyval[1]);
 
-                  DEBUG_SECTION fprintf(stderr, "key=%s value=%s\n",keyval[0],keyval[1]);
+//                  DEBUG_SECTION fprintf(stderr, "key=%s value=%s\n",keyval[0],keyval[1]);
                }
                else
                {
@@ -156,7 +158,7 @@ static int begin_request_handler(struct mg_connection *conn)
                }
             }
 
-            sendXplMessage(msg);
+            mea_sendXPLMessage(msg);
             xPL_releaseMessage(msg);
             
             if(waitResp==FALSE)
@@ -165,25 +167,25 @@ static int begin_request_handler(struct mg_connection *conn)
             }
             else
             {
-               DEBUG_SECTION fprintf(stderr,"En attente de reponse\n");
-               xPL_MessagePtr respMsg=readResponseFromQueue(id);
+//               DEBUG_SECTION fprintf(stderr,"En attente de reponse\n");
+               xPL_MessagePtr respMsg=mea_readXPLResponse(id);
                if(respMsg)
                {
-               xPL_NameValueListPtr body = xPL_getMessageBody(xPLMsg);
-               int n = xPL_getNamedValueCount(body);
-               strcpy(reponse,"{");
-               for (int i=0; i<n; i++)
-               {
-                  xPL_NameValuePairPtr keyValuePtr = xPL_getNamedValuePairAt(body, i);
-                  strcat(reponse, keyValuePtr->itemName);
-                  strcat(reponse, " : ");
-                  strcat(reponse, keyValuePtr->itemValue);
-                  strcat(reponse,","); // on rajoute une virgule
-               }
-               strcat(reponse,"errno : 0 }");
+                  xPL_NameValueListPtr body = xPL_getMessageBody(respMsg);
+                  int n = xPL_getNamedValueCount(body);
+                  strcpy(reponse,"{");
+                  for (int i=0; i<n; i++)
+                  {
+                     xPL_NameValuePairPtr keyValuePtr = xPL_getNamedValuePairAt(body, i);
+                     strcat(reponse, keyValuePtr->itemName);
+                     strcat(reponse, " : ");
+                     strcat(reponse, keyValuePtr->itemValue);
+                     strcat(reponse,", "); // on rajoute une virgule
+                  }
+                  strcat(reponse,"errno : 0 }");
 
-               // réponse traitée, on libère
-               xPL_releaseMessage(respMsg);
+                  // réponse traitée, on libère
+                  xPL_releaseMessage(respMsg);
                }
                else
                {
@@ -199,8 +201,8 @@ static int begin_request_handler(struct mg_connection *conn)
                       "Expires: -1\r\n"
                       "Vary: *\r\n"
                       "\r\n"
-                      "%s",
-                      (int)strlen(reponse), reponse);
+                      "%s\r\n",
+                      (int)strlen(reponse)+2, reponse);
             return "done";
          }
          else

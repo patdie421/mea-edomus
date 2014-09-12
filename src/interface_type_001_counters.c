@@ -95,7 +95,7 @@ int16_t interface_type_001_counters_process_traps(int16_t numTrap, char *buff, i
          // tomysqldb_add_data_to_sensors_values(myd, counter->sensor_id, counter->power, UNIT_W, (float)counter->t-t_old, "");
 
          char value[20];
-         xPL_ServicePtr servicePtr = get_xPL_ServicePtr();
+         xPL_ServicePtr servicePtr = mea_getXPLServicePtr();
          if(servicePtr)
          {
             xPL_MessagePtr cntrMessageStat = xPL_createBroadcastMessage(servicePtr, xPL_MESSAGE_TRIGGER);
@@ -107,7 +107,7 @@ int16_t interface_type_001_counters_process_traps(int16_t numTrap, char *buff, i
             // Broadcast the message
 
             //xPL_sendMessage(cntrMessageStat);
-            sendXplMessage(cntrMessageStat);
+            mea_sendXPLMessage(cntrMessageStat);
 
             xPL_releaseMessage(cntrMessageStat);
          }
@@ -205,7 +205,7 @@ void counter_to_xpl(struct electricity_counter_s *counter)
 {
    char value[20];
    
-   xPL_ServicePtr servicePtr = get_xPL_ServicePtr();
+   xPL_ServicePtr servicePtr = mea_getXPLServicePtr();
    if(servicePtr)
    {
       xPL_MessagePtr cntrMessageStat = xPL_createBroadcastMessage(servicePtr, xPL_MESSAGE_TRIGGER);
@@ -219,7 +219,7 @@ void counter_to_xpl(struct electricity_counter_s *counter)
       
       // Broadcast the message
       //xPL_sendMessage(cntrMessageStat);
-      sendXplMessage(cntrMessageStat);
+      mea_sendXPLMessage(cntrMessageStat);
 
       xPL_releaseMessage(cntrMessageStat);
    }
@@ -319,7 +319,7 @@ mea_error_t interface_type_001_counters_process_xpl_msg(interface_type_001_t *i0
    {
       current_queue(counters_list, (void **)&counter);
 
-      if(!device || strcmplower(device,counter->name)==0)
+      if(!device || mea_strcmplower(device,counter->name)==0)
       {
          xPL_MessagePtr cntrMessageStat ;
          char value[20];
@@ -350,7 +350,7 @@ mea_error_t interface_type_001_counters_process_xpl_msg(interface_type_001_t *i0
    
          // Broadcast the message
          //xPL_sendMessage(cntrMessageStat);
-         sendXplMessage(cntrMessageStat);
+         mea_sendXPLMessage(cntrMessageStat);
  
          xPL_releaseMessage(cntrMessageStat);
       }

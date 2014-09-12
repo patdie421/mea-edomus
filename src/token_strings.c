@@ -103,7 +103,7 @@ int16_t get_id_by_string(char *str)
    
    for(int i=0;tokens_list[i].str;i++)
    {
-      if(strcmplower(tokens_list[i].str, str) == 0)
+      if(mea_strcmplower(tokens_list[i].str, str) == 0)
          return tokens_list[i].id;
    }
    return -1;

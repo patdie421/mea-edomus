@@ -186,7 +186,7 @@ int16_t interface_type_001_sensors_process_traps(int16_t numTrap, char *data, in
       char value[20];
       xPL_ServicePtr servicePtr;
       
-      servicePtr=get_xPL_ServicePtr();
+      servicePtr=mea_getXPLServicePtr();
       if(!servicePtr)
          return 1;
       
@@ -212,7 +212,7 @@ int16_t interface_type_001_sensors_process_traps(int16_t numTrap, char *data, in
       
       // Broadcast the message
       //xPL_sendMessage(cntrMessageStat);
-      sendXplMessage(cntrMessageStat);
+      mea_sendXPLMessage(cntrMessageStat);
 
       
       xPL_releaseMessage(cntrMessageStat);
@@ -250,7 +250,7 @@ struct sensor_s *interface_type_001_sensors_valid_and_malloc_sensor(int id_senso
    if(sensor_params)
    {
       type_id=get_id_by_string(sensor_params[SENSOR_PARAMS_TYPE].value.s);
-      pin_id=get_arduino_pin(sensor_params[SENSOR_PARAMS_PIN].value.s);
+      pin_id=mea_getArduinoPin(sensor_params[SENSOR_PARAMS_PIN].value.s);
       compute_id=get_id_by_string(sensor_params[SENSOR_PARAMS_COMPUTE].value.s);
       algo_id=get_id_by_string(sensor_params[SENSOR_PARAMS_ALGO].value.s);
       
@@ -378,7 +378,7 @@ mea_error_t interface_type_001_sensors_process_xpl_msg(interface_type_001_t *i00
    for(int i=0; i<sensors_list->nb_elem; i++)
    {
       current_queue(sensors_list, (void **)&sensor);
-      if(!device || strcmplower(device,sensor->name)==0) // pas de device, on transmettra le statut de tous les capteurs du type demandé (si précisé)
+      if(!device || mea_strcmplower(device,sensor->name)==0) // pas de device, on transmettra le statut de tous les capteurs du type demandé (si précisé)
       {
          xPL_MessagePtr cntrMessageStat ;
          char value[20];
@@ -487,7 +487,7 @@ mea_error_t interface_type_001_sensors_process_xpl_msg(interface_type_001_t *i00
             xPL_setTarget(cntrMessageStat, xPL_getSourceVendor(msg), xPL_getSourceDeviceID(msg), xPL_getSourceInstanceID(msg));
 
             ///xPL_sendMessage(cntrMessageStat);
-            sendXplMessage(cntrMessageStat);
+            mea_sendXPLMessage(cntrMessageStat);
 
             xPL_releaseMessage(cntrMessageStat);
          }
@@ -567,7 +567,7 @@ void interface_type_001_sensors_poll_inputs(interface_type_001_t *i001, tomysqld
                char str_value[20];
                char str_last[20];
                   
-               xPL_ServicePtr servicePtr = get_xPL_ServicePtr();
+               xPL_ServicePtr servicePtr = mea_getXPLServicePtr();
                if(servicePtr)
                {
                   xPL_MessagePtr cntrMessageStat = xPL_createBroadcastMessage(servicePtr, xPL_MESSAGE_TRIGGER);
@@ -583,7 +583,7 @@ void interface_type_001_sensors_poll_inputs(interface_type_001_t *i001, tomysqld
                      
                   // Broadcast the message
                   //xPL_sendMessage(cntrMessageStat);
-                  sendXplMessage(cntrMessageStat);
+                  mea_sendXPLMessage(cntrMessageStat);
                      
                   xPL_releaseMessage(cntrMessageStat);
                }

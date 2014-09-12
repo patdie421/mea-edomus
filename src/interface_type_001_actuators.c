@@ -109,7 +109,7 @@ struct actuator_s *valid_and_malloc_actuator(int16_t id_sensor_actuator, char *n
    if(relay_params)
    {
       type_id=get_id_by_string(relay_params[ACTUATOR_PARAMS_TYPE].value.s);
-      pin_id=get_arduino_pin(relay_params[ACTUATOR_PARAMS_PIN].value.s);
+      pin_id=mea_getArduinoPin(relay_params[ACTUATOR_PARAMS_PIN].value.s);
       
       if(valide_actuator_i001(type_id,pin_id,action_id,&err))
       {
@@ -167,7 +167,7 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
    while(1)
    {
       current_queue(i001->actuators_list, (void **)&iq);
-      if(strcmplower(iq->name, device)==0) // OK, c'est bien pour moi ...
+      if(mea_strcmplower(iq->name, device)==0) // OK, c'est bien pour moi ...
       {
          char *current=xPL_getNamedValue(ListNomsValeursPtr, get_token_by_id(XPL_CURRENT_ID));
 

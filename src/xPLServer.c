@@ -43,6 +43,32 @@ pthread_mutex_t requestId_lock;
 
 uint32_t requestId = 1;
 
+// declaration des fonctions xPL non exporté par la librairies
+extern xPL_MessagePtr xPL_AllocMessage();
+extern xPL_NameValueListPtr xPL_AllocNVList();
+
+// duplication de createReceivedMessage de la lib xPL qui est déclarée en static et ne peut donc
+// pas normalement être utilisée. On a besoin de cette fonction pour pouvoir utiliser mettre
+// une adresse source différente de l'adresse normale du soft.
+xPL_MessagePtr mea_createReceivedMessage(xPL_MessageType messageType)
+{
+  xPL_MessagePtr theMessage;
+  
+  /* Allocate the message */
+  theMessage = xPL_AllocMessage();
+
+  /* Set the version (NOT DYNAMIC) */
+  theMessage->messageType = messageType;
+  theMessage->receivedMessage = TRUE;
+
+  /* Allocate a name/value list, if needed */
+  if (theMessage->messageBody == NULL) theMessage->messageBody = xPL_AllocNVList();
+
+  /* And we are done */
+  return theMessage;
+}
+
+
 uint32_t mea_getXplRequestId() // rajouter un verrou ...
 {
    uint32_t id=0;
@@ -54,7 +80,7 @@ uint32_t mea_getXplRequestId() // rajouter un verrou ...
 
    requestId++;
    if(requestId>20000)
-   requestID=1;
+   requestId=1;
 
    pthread_mutex_unlock(&requestId_lock);
    pthread_cleanup_pop(0);
@@ -98,7 +124,7 @@ char *mea_getXPLVendorID()
 }
 
 
-xPL_ServicePtr geXPLServicePtr()
+xPL_ServicePtr mea_getXPLServicePtr()
 {
    return xPLService;
 }
@@ -154,9 +180,9 @@ uint16_t mea_sendXPLMessage(xPL_MessagePtr xPLMsg)
    xPL_MessagePtr newXPLMsg = NULL;
 
    addr = xPL_getSourceDeviceID(xPLMsg);
-   if(strcmp(addr,"internal")==0) // source interne => dispatching sans passer par le réseau
+   if(addr && strcmp(addr,"internal")==0) // source interne => dispatching sans passer par le réseau
    {
-      dispatchXplMessage(xPLService, xPLMsg, (xPL_ObjectPtr)get_interfaces());
+      _dispatchXPLMessage(xPLService, xPLMsg, (xPL_ObjectPtr)get_interfaces());
       return 0;
    }
    
@@ -167,7 +193,7 @@ uint16_t mea_sendXPLMessage(xPL_MessagePtr xPLMsg)
       
       sscanf(xPL_getTargetInstanceID(xPLMsg), "%d", &id);
 
-      DEBUG_SECTION fprintf(stderr,"Retour de la demande interne à mettre dans la file (id demande = %d)\n",id);
+//      DEBUG_SECTION fprintf(stderr,"Retour de la demande interne à mettre dans la file (id demande = %d)\n",id);
 
       // duplication du message xPL
       newXPLMsg = xPL_createBroadcastMessage(xPLService, xPL_getMessageType(xPLMsg));
@@ -222,7 +248,7 @@ uint16_t mea_sendXPLMessage(xPL_MessagePtr xPLMsg)
 xPL_MessagePtr mea_readXPLResponse(int id)
 {
    int16_t ret;
-   int16_t boucle=5; // 5 tentatives de 1 secondes
+//   int16_t boucle=5; // 5 tentatives de 1 secondes
    uint16_t notfound=0;
    xPL_MessagePtr msg=NULL;
 
@@ -249,6 +275,7 @@ xPL_MessagePtr mea_readXPLResponse(int id)
    // a ce point il devrait y avoir quelque chose dans la file.
    if(first_queue(xplRespQueue)==0)
    {
+      xplRespQueue_elem_t *e;
       do // parcours de la liste jusqu'a trouver une reponse pour nous
       {
          if(current_queue(xplRespQueue, (void **)&e)==0)
@@ -290,7 +317,7 @@ readFromQueue_return:
 
 void _cmndXPLMessageHandler(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
 {
-   dispatchXplMessage(theService, theMessage, userValue);
+   _dispatchXPLMessage(theService, theMessage, userValue);
 }
 
 
@@ -330,7 +357,7 @@ void _flushExpiredXPLResponses()
 
 void *_xPLServer_thread(void *data)
 {
-   xPL_setDebugging(TRUE); // xPL en mode debug
+//   xPL_setDebugging(TRUE); // xPL en mode debug
 
    if ( !xPL_initialize(xPL_getParsedConnectionType()) ) return 0 ;
    
@@ -342,7 +369,7 @@ void *_xPLServer_thread(void *data)
    xPL_setHeartbeatInterval(xPLService, 5000); // en milliseconde    
    // xPL_MESSAGE_ANY, xPL_MESSAGE_COMMAND, xPL_MESSAGE_STATUS, xPL_MESSAGE_TRIGGER
    xPL_addServiceListener(xPLService, _cmndXPLMessageHandler, xPL_MESSAGE_COMMAND, "control", "basic", (xPL_ObjectPtr)data) ;
-   xPL_addServiceListener(xPLService, _cmndXPLMessagegHandler, xPL_MESSAGE_COMMAND, "sensor", "request", (xPL_ObjectPtr)data) ;
+   xPL_addServiceListener(xPLService, _cmndXPLMessageHandler, xPL_MESSAGE_COMMAND, "sensor", "request", (xPL_ObjectPtr)data) ;
    
    xPL_setServiceEnabled(xPLService, TRUE);
 
@@ -378,7 +405,7 @@ pthread_t *xPLServer(queue_t *interfaces)
    }
    
    // initialisation
-   xplpthread_cond_init(&RespSend_lock, NULL);
+   pthread_mutex_init(&xplRespSend_lock, NULL);
 
       // préparation synchro consommateur / producteur
    pthread_cond_init(&xplRespQueue_sync_cond, NULL);

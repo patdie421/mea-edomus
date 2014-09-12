@@ -43,6 +43,9 @@ char          *mea_getXPLVendorID();
 
 uint16_t       mea_sendXPLMessage(xPL_MessagePtr xPLMsg);
 xPL_MessagePtr mea_readXPLResponse(int id);
+uint32_t       mea_getXplRequestId();
+
+xPL_MessagePtr mea_createReceivedMessage(xPL_MessageType messageType);
 
 // int is_started();
 

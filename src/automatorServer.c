@@ -111,7 +111,7 @@ int16_t set_input(int input_type, int input_index, char *input_value, xPL_NameVa
    }
    else
       strcpy(value, input_value);
-      strToUpper(value);
+      mea_strtoupper(value);
    
    if(input_type==1) // digital
    {
@@ -190,7 +190,7 @@ int16_t check_conditions(int conditions_id_rule, xPL_NameValueListPtr xpl_body)
             key = (char *)sqlite3_column_text(stmt, 1);
             op = sqlite3_column_int(stmt, 2);
             strncpy(value,(char *)sqlite3_column_text(stmt, 3),sizeof(value));
-            strToUpper(value);
+            mea_strtoupper(value);
             
             char *xpl_value_ptr = xPL_getNamedValue(xpl_body, key);
             if(!xpl_value_ptr)
@@ -199,7 +199,7 @@ int16_t check_conditions(int conditions_id_rule, xPL_NameValueListPtr xpl_body)
                return -1;
             }
             strncpy(xpl_value,xpl_value_ptr,sizeof(xpl_value));
-            strToUpper(xpl_value);
+            mea_strtoupper(xpl_value);
             
             int16_t isnum=isnumeric2(value,&fvalue) && isnumeric2(xpl_value,&fxpl_value);
             

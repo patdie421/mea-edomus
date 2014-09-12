@@ -208,7 +208,7 @@ static PyObject *mea_xplSendMsg(PyObject *self, PyObject *args)
          }
          
 //         xplMsg=NULL;
-         xPL_ServicePtr servicePtr = get_xPL_ServicePtr();
+         xPL_ServicePtr servicePtr = mea_getXPLServicePtr();
          if(servicePtr)
             xplMsg = xPL_createBroadcastMessage(servicePtr, message_type);
          if(!xplMsg)
@@ -312,7 +312,7 @@ static PyObject *mea_xplSendMsg(PyObject *self, PyObject *args)
    }
    
    //xPL_sendMessage(xplMsg);
-   sendXplMessage(xplMsg);
+   mea_sendXPLMessage(xplMsg);
 
    xPL_releaseMessage(xplMsg);
    

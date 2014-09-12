@@ -47,7 +47,7 @@ char *mea_strtrim(char *s)
   * \return    pointeur sur le début de la chaine.
   */
 {
-    return rtrim(ltrim(s)); 
+    return mea_strrtrim(mea_strltrim(s));
 }
 
 

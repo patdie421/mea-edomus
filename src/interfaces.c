@@ -56,7 +56,7 @@ int16_t get_dev_and_speed(char *device, char *dev, int16_t dev_l, speed_t *speed
    if(n<=0)
       return -1;
 
-   _dev_ptr=trim(_dev);
+   _dev_ptr=mea_strtrim(_dev);
 
    if(n==1)
    {
@@ -66,12 +66,12 @@ int16_t get_dev_and_speed(char *device, char *dev, int16_t dev_l, speed_t *speed
    {
       uint32_t v;
 
-      reste_ptr=trim(reste);
+      reste_ptr=mea_strtrim(reste);
       n=sscanf(reste,":%40[^/n/r]",vitesse);
       if(n!=1)
          return -1;
 
-      vitesse_ptr=trim(vitesse);
+      vitesse_ptr=mea_strtrim(vitesse);
       v=strtol(vitesse_ptr,&end,10);
       if(end==vitesse || *end!=0 || errno==ERANGE)
          return -1;

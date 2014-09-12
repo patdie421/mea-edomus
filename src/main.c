@@ -162,9 +162,9 @@ int16_t set_xpl_address(char **params_list)
  * \return   -1 en cas d'erreur, 0 sinon
  */
 {
-   set_xPL_vendorID(params_list[VENDOR_ID]);
-   set_xPL_deviceID(params_list[DEVICE_ID]);
-   set_xPL_instanceID(params_list[INSTANCE_ID]);
+   mea_setXPLVendorID(params_list[VENDOR_ID]);
+   mea_setXPLDeviceID(params_list[DEVICE_ID]);
+   mea_setXPLInstanceID(params_list[INSTANCE_ID]);
    
    return 0;
 }
@@ -197,7 +197,7 @@ int16_t read_all_application_parameters(sqlite3 *sqlite3_param_db)
          char *value = (char *)sqlite3_column_text(stmt, 2);
          // char *complement = (char *)sqlite3_column_text(stmt, 3);
          
-         strToUpper(key);
+         mea_strtoupper(key);
          for(int16_t i=0;i<MAX_LIST_SIZE;i++)
          {
             if(params_names[i] && strcmp(params_names[i],key)==0)
