@@ -198,6 +198,75 @@ uint16_t sendXplMessage(xPL_MessagePtr xPLMsg)
 }
 
 
+xPL_MessagePtr readFromQueue(int id)
+{
+   int16_t ret;
+   int16_t boucle=5; // 5 tentatives de 1 secondes
+   uint16_t notfound=0;
+   xPL_MessagePtr msg=NULL;
+
+   // on va attendre le retour dans la file des reponses
+   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(xplRespQueue_sync_lock) );
+
+   pthread_mutex_lock(&(xplRespQueue_sync_lock));
+   if(xplRespQueue->nb_elem==0 || notfound==1)
+   {
+      // rien a lire => on va attendre que quelque chose soit mis dans la file
+      struct timeval tv;
+      struct timespec ts;
+      gettimeofday(&tv, NULL);
+      ts.tv_sec = tv.tv_sec + 1; // timeout de une seconde
+      ts.tv_nsec = 0;
+      ret=pthread_cond_timedwait(&xplRespQueue_sync_cond, &xplRespQueue_sync_lock, &ts);
+      if(ret)
+      {
+         if(ret!=ETIMEDOUT)
+            goto readFromQueue_return;
+      } 
+   }  
+
+   // a ce point il devrait y avoir quelque chose dans la file.
+   if(first_queue(xplRespQueue)==0)
+   {
+      do // parcours de la liste jusqu'a trouver une reponse pour nous
+      {
+         if(current_queue(xplRespQueue, (void **)&e)==0)
+         { 
+            if(e->id==id)
+            {
+               uint32_t tsp=(uint32_t)time(NULL);
+
+               if((tsp - e->tsp)<=10) // la reponse est pour nous et dans les temps (retour dans les 10 secondes)
+               {
+                  // recuperation des donnees
+                  msg=e->msg;
+                  // et on fait le menage avant de sortir
+                  free(e);
+                  xplRespQueue->current->d=NULL; // pour evite le bug
+                  remove_current_queue(xplRespQueue);
+                  e=NULL;
+                  goto readFromQueue_return;
+               }
+               // theoriquement pour nous mais donnees trop vieilles, on supprime ?
+               DEBUG_SECTION fprintf(stderr,"%s (%s) : data too old\n", DEBUG_STR,__func__);
+            }
+            else
+            {
+               DEBUG_SECTION fprintf(stderr,"%s (%s) : not for me (%d != %d)\n", DEBUG_STR,__func__, e->id, id);
+               e=NULL;
+            }
+         }
+      }
+      while(next_queue(xplRespQueue)==0);
+   }
+
+readFromQueue_return:
+   pthread_mutex_unlock(&(xplRespQueue_sync_lock));
+   pthread_cleanup_pop(0);
+   return msg;
+}
+
+
 void cmndMsgHandler(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
 {
    dispatchXplMessage(theService, theMessage, userValue);
