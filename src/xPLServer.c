@@ -38,6 +38,7 @@ char *xpl_instanceID=NULL;
 pthread_cond_t  xplRespQueue_sync_cond;
 pthread_mutex_t xplRespQueue_sync_lock;
 queue_t         *xplRespQueue;
+pthread_mutex_t xplRespSend_lock;
 
 
 char *set_xPL_vendorID(char *value)
@@ -148,17 +149,9 @@ uint16_t sendXplMessage(xPL_MessagePtr xPLMsg)
       // duplication du message xPL
       xPL_MessagePtr newXPLMsg = xPL_createBroadcastMessage(xPLService, xPL_getMessageType(xPLMsg));
       xPL_setSchema(newXPLMsg, xPL_getSchemaClass(xPLMsg), xPL_getSchemaType(xPLMsg));
-/*
-      char schemaClass[41], schemaType[41];
-      schemaClass[40]=0;
-      schemaType[40]=0;
-      strncpy(schemaClass, xPL_getSchemaClass(xPLMsg),40);
-      strncpy(schemaType, xPL_getSchemaType(xPLMsg),40);
-      xPL_setSchema(newXPLMsg, schemaClass, schemaType);
-*/
       xPL_setTarget(newXPLMsg, xPL_getTargetVendor(xPLMsg), xPL_getTargetDeviceID(xPLMsg), xPL_getTargetInstanceID(xPLMsg));
-
       xPL_NameValueListPtr body = xPL_getMessageBody(xPLMsg);
+
       int n = xPL_getNamedValueCount(body);
       for (int i=0; i<n; i++)
       {
@@ -290,6 +283,8 @@ pthread_t *xPLServer(queue_t *interfaces)
    }
    
    // initialisation
+   xplpthread_cond_init(&RespSend_lock, NULL);
+
       // préparation synchro consommateur / producteur
    pthread_cond_init(&xplRespQueue_sync_cond, NULL);
    pthread_mutex_init(&xplRespQueue_sync_lock, NULL);
@@ -322,5 +317,3 @@ pthread_t *xPLServer(queue_t *interfaces)
       
    return xPL_thread;
 }
-
-
