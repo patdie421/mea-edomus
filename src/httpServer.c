@@ -65,6 +65,7 @@ struct mg_context* g_mongooseContext = 0;
 // fichier "mémoire"
 static const char *open_file_handler(const struct mg_connection *conn, const char *path, size_t *size)
 {
+/*
    // ne peut pas marcher avec les cgi car le cgi-php va chercher sur disque le fichier ... utile néanmoins pour fournir des pages statiques ...
    char *content = "<html><head><title>Test PHP</title></head><body><p>Bonjour le monde</p></body></html>";
 
@@ -76,6 +77,7 @@ static const char *open_file_handler(const struct mg_connection *conn, const cha
       *size = strlen(content);
       return content;
    }
+*/
    return NULL;
 }
 
