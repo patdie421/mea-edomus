@@ -122,7 +122,7 @@ int16_t mea_strncmplower(char *str1, char *str2, int n)
 
 
 
-int mea_strsplit(char str[], char separator, char *tokens[], char l_tokens)
+int16_t mea_strsplit(char str[], char separator, char *tokens[], char l_tokens)
 {
    int j=0;
    tokens[j]=str;
