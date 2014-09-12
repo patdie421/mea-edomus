@@ -85,7 +85,7 @@ static const char *open_file_handler(const struct mg_connection *conn, const cha
 static int begin_request_handler(struct mg_connection *conn)
 {
 // API REST ...
-   
+   uint32_t id = 0;
    const struct mg_request_info *request_info = mg_get_request_info(conn);
 
    char *tokens[MAX_TOKEN]; // 10 tokens maximum
@@ -119,7 +119,10 @@ static int begin_request_handler(struct mg_connection *conn)
             else if(strcmplower("SENSOR",tokens[1])==0)
             {
                xPL_setSchema(msg, get_token_by_id(XPL_SENSOR_ID), get_token_by_id(XPL_REQUEST_ID));
-               xPL_setSourceInstanceID(msg, "00001234"); // 00001234 à remplacer par notre id
+               char requestId[9];
+               id=getRequestId();
+               sprintf(requestId,"%08d",id);
+               xPL_setSourceInstanceID(msg, requestId);
                waitResp=TRUE;
             }
             else
@@ -161,6 +164,13 @@ static int begin_request_handler(struct mg_connection *conn)
             else
             {
                DEBUG_SECTION fprintf(stderr,"En attente de reponse\n");
+               xPL_MessagePtr respMsg=readResponseFromQueue(id);
+               // traiter la réponse ici
+
+
+
+               // réponse traitée, on libère
+               xPL_releaseMessage(respMsg);
             }
             mg_printf(conn,
                       "HTTP/1.1 200 OK\r\n"
