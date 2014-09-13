@@ -88,6 +88,7 @@ uint32_t mea_getXplRequestId() // rajouter un verrou ...
    return id;
 }
 
+
 char *mea_setXPLVendorID(char *value)
 {
    return string_free_malloc_and_copy(&xpl_vendorID, value, 1);
@@ -206,15 +207,6 @@ uint16_t mea_sendXPLMessage(xPL_MessagePtr xPLMsg)
       for (int i=0; i<n; i++)
       {
          xPL_NameValuePairPtr keyValuePtr = xPL_getNamedValuePairAt(body, i);
-/*
-         char key[41],value[81];
-         key[40]=0;
-         value[80]=0;
-         xPL_NameValuePairPtr keyValuePtr = xPL_getNamedValuePairAt(body, i);
-         strncpy(key, keyValuePtr->itemName,40);
-         strncpy(value, keyValuePtr->itemValue,80);         
-         xPL_setMessageNamedValue(newXPLMsg, key, value);
-*/
          xPL_setMessageNamedValue(newXPLMsg, keyValuePtr->itemName, keyValuePtr->itemValue);
       }
 
@@ -262,7 +254,7 @@ xPL_MessagePtr mea_readXPLResponse(int id)
       struct timeval tv;
       struct timespec ts;
       gettimeofday(&tv, NULL);
-      ts.tv_sec = tv.tv_sec + 1; // timeout de une seconde
+      ts.tv_sec = tv.tv_sec + 2; // timeout de deux secondes
       ts.tv_nsec = 0;
       ret=pthread_cond_timedwait(&xplRespQueue_sync_cond, &xplRespQueue_sync_lock, &ts);
       if(ret)

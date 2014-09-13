@@ -1,6 +1,7 @@
 from sets import Set
 import string
 import sys
+import re
 
 allowed_chars  = Set(string.ascii_lowercase + string.digits)
 allowed_chars_other = Set(string.ascii_lowercase + string.digits + "-")
@@ -35,44 +36,58 @@ def isXplMessageType(s):
       return False
 
 
-def xplMsgNew(id_vendor, id_device, id_instance, message_xpl_type, xpl_class, xpl_type, device):
-   # car "xpl" autorises : a-z, 0-9 and "-"
-   # controle des parameters :
-   # id_vendor 8 car "xpl" sans "-"
-   # id_device 8 car "xpl" sans "-"
-   # id_instance 16 car "xpl"
-   # device 16 car "xpl"
-   # message_xpl_type = [ "xpl-cmnd" | "xpl-stat" | "xpl-trig" ]
-   # xpl_class 8 car "xpl"
-   # xpl_type 8 car "xpl"
-   
-   if not isXplValidCharacters(id_vendor.lower(),8,False):
+def isXplAddress(addr):
+   if addr=="*":
+      return True
+   if not re.match("^[0-9a-z]*-[0-9a-z]*\.[0-9a-z\-]*$", addr):
+      return 1
+   (vendorIdAndDeviceId, instanceId) = addr.split(".")
+   (vendorId, deviceId) = vendorIdAndDeviceId.split("-")
+   if isXplValidCharacters(vendorId, 8, False) and isXplValidCharacters(deviceId, 8, False) and isXplValidCharacters(instanceId, 16, True):
+      return True
+   else:
+      return False
+
+
+def xplAddressNew(id_vendor, id_device, id_instance)
+   if isXplValidCharacters(id_vendor.lower(),8,False):
       return None
    elif not isXplValidCharacters(id_device.lower(),8, False):
       return None
    elif not isXplValidCharacters(id_instance.lower(),16, True):
       return None
-   elif not isXplValidCharacters(device.lower(),16, True):
+   addr = id_vendor.lower()+ "-" + id_device.lower() + "." + id_instance.lower()
+   return addr
+
+
+def xplMsgNew(source_addr, target_addr, xpl_message_type, xpl_class, xpl_type):
+   # car "xpl" autorises : a-z, 0-9 and "-"
+   # controle des parameters :
+   # source_addr
+   # target_addr
+   # message_xpl_type = [ "xpl-cmnd" | "xpl-stat" | "xpl-trig" ]
+   # xpl_class 8 car "xpl"
+   # xpl_type 8 car "xpl"
+   if isXplAddress(source_addr) == False or isXplAddress(target_addr) == False:
       return None
-   elif not isXplMessageType(message_xpl_type.lower()):
+   if source_addr == "*":
+      return None
+   elif not isXplMessageType(xpl_message_type.lower()):
       return None
    elif not isXplValidCharacters(xpl_class.lower(),8, True):
       return None
    elif not isXplValidCharacters(xpl_type.lower(),8, True):
       return None
-
-# le format des donnees est valide, on peut creer le message
+   # le format des donnees est valide, on peut creer le message
    xplMsg={} # creation du dictionnaire
    xplMsg["xplmsg"]=True # pour des besoins internes (controle)
-   xplMsg["message_xpl_type"]=message_xpl_type.lower()
+   xplMsg["message_xpl_type"]=xpl_message_type.lower()
    xplMsg["hop"]="1"
-   xplMsg["source"]=id_vendor.lower()+ "-" + id_device.lower() + "." + id_instance.lower()
-   xplMsg["target"]= "*"
+   xplMsg["source"]= source_addr
+   xplMsg["target"]= target_addr
    xplMsg["schema"]=xpl_class.lower() + "." + xpl_type.lower()
    body={}
-   body["device"]=device
    xplMsg["xpl-body"]=body
-
    return xplMsg
 
 

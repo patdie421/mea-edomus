@@ -67,6 +67,12 @@
 		4E14ABFD16083B8C000686C3 /* macros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = macros.h; path = src/macros.h; sourceTree = "<group>"; };
 		4E14ABFF16083B8C000686C3 /* memory.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = memory.c; path = src/memory.c; sourceTree = "<group>"; };
 		4E14AC0016083B8C000686C3 /* memory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = memory.h; path = src/memory.h; sourceTree = "<group>"; };
+		4E4811A219C37D43001C5F48 /* mea_simulation.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = mea_simulation.py; path = plugins/mea_simulation.py; sourceTree = "<group>"; };
+		4E4811A319C37D43001C5F48 /* mea_utils.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = mea_utils.py; path = plugins/mea_utils.py; sourceTree = "<group>"; };
+		4E4811A419C37D43001C5F48 /* my_dht22.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = my_dht22.py; path = plugins/my_dht22.py; sourceTree = "<group>"; };
+		4E4811A519C37D43001C5F48 /* xbee_generic.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = xbee_generic.py; path = plugins/xbee_generic.py; sourceTree = "<group>"; };
+		4E4811A619C37D96001C5F48 /* Makefile.linux */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.linux; sourceTree = "<group>"; };
+		4E4811A719C37D96001C5F48 /* Makefile.macosx */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.macosx; sourceTree = "<group>"; };
 		4E4A5E8F15F003420052ABF4 /* comio.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = comio.c; path = src/comio.c; sourceTree = "<group>"; };
 		4E4A5E9015F003420052ABF4 /* comio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = comio.h; path = src/comio.h; sourceTree = "<group>"; };
 		4E4A5E9115F003420052ABF4 /* interface_type_001.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = interface_type_001.c; path = src/interface_type_001.c; sourceTree = "<group>"; };
@@ -153,6 +159,7 @@
 			children = (
 				08FB7795FE84155DC02AAC07 /* Source */,
 				1AB674ADFE9D54B511CA2CBB /* Products */,
+				4E48119F19C37C46001C5F48 /* Plugins */,
 			);
 			name = Comio;
 			sourceTree = "<group>";
@@ -160,6 +167,8 @@
 		08FB7795FE84155DC02AAC07 /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				4E4811A619C37D96001C5F48 /* Makefile.linux */,
+				4E4811A719C37D96001C5F48 /* Makefile.macosx */,
 				4EFBBC801748C9BA00090FEE /* Common */,
 				4E4D4E811601F2930008C14C /* Libs */,
 				4E4D4E7E1601F1510008C14C /* Interfaces_manager */,
@@ -182,6 +191,17 @@
 				8DD76FB20486AB0100D96B5E /* mea-eDomus */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		4E48119F19C37C46001C5F48 /* Plugins */ = {
+			isa = PBXGroup;
+			children = (
+				4E4811A219C37D43001C5F48 /* mea_simulation.py */,
+				4E4811A319C37D43001C5F48 /* mea_utils.py */,
+				4E4811A419C37D43001C5F48 /* my_dht22.py */,
+				4E4811A519C37D43001C5F48 /* xbee_generic.py */,
+			);
+			name = Plugins;
 			sourceTree = "<group>";
 		};
 		4E4D4E7E1601F1510008C14C /* Interfaces_manager */ = {
