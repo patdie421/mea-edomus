@@ -173,7 +173,7 @@ static int begin_request_handler(struct mg_connection *conn)
                {
                   xPL_NameValueListPtr body = xPL_getMessageBody(respMsg);
                   int n = xPL_getNamedValueCount(body);
-                  strcpy(reponse,"{");
+                  strcpy(reponse,"{ ");
                   for (int i=0; i<n; i++)
                   {
                      xPL_NameValuePairPtr keyValuePtr = xPL_getNamedValuePairAt(body, i);
