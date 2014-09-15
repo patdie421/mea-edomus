@@ -195,9 +195,9 @@ def mea_xplCmndMsg(data):
    body=x["body"]
 
    if "source" in x:
-      target=x["source"];
+      target=x["source"]
    else
-      target="*";
+      target="*"
 
    if x["schema"]=="sensor.request":
       current_key=pin+"_current"
