@@ -56,7 +56,7 @@ def config_IO(data,pin,val,mem):
       verbose(5, "WARNING (", fn_name, ") - syntaxe error :", i[0], "not an at cmnd, skipped")
       return -1
    
-   ret=mea.sendAtCmd(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], pin[1:3].upper(), atVal);
+   ret=mea.sendXbeeCmd(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], pin[1:3].upper(), atVal);
    
    if ret == True:
       mem[pin[1:3]]=atVal
@@ -75,8 +75,8 @@ def config_DHDL(data,alphaVal):
       verbose(5, "WARNING (", fn_name, ") - syntaxe error :", alphaVal, "not an xbee address, skipped")
       return -1
    
-   ret=mea.sendAtCmd(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], "DH", h)
-   ret=mea.sendAtCmd(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], "DL", l)
+   ret=mea.sendXbeeCmd(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], "DH", h)
+   ret=mea.sendXbeeCmd(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], "DL", l)
    
    return ret
 
@@ -84,7 +84,7 @@ def config_DHDL(data,alphaVal):
 def config_sleep(data, val):
    if val>=0 and val <= 2800:
       # mettre aussi a jour les autres registres
-      ret=mea.sendAtCmd(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], "ST", val)
+      ret=mea.sendXbeeCmd(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], "ST", val)
       return ret
    else:
       return -1
@@ -92,7 +92,7 @@ def config_sleep(data, val):
 
 def config_name(data, alphaVal):
    if len(alphaVal)>1:
-      ret=mea.sendAtCmd(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], "NI", alphaVal)
+      ret=mea.sendXbeeCmd(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], "NI", alphaVal)
       return ret
    else:
       return -1
@@ -100,7 +100,7 @@ def config_name(data, alphaVal):
 
 def config_sample(data,val):
    if val>=0:
-      ret=mea.sendAtCmd(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], "IR", val)
+      ret=mea.sendXbeeCmd(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], "IR", val)
       return ret
    else:
       return -1
@@ -127,7 +127,7 @@ def enable_change_detection(data,mem):
    
    ret=0
    if mask != 0:
-      ret=mea.sendAtCmd(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], "IC", mask)
+      ret=mea.sendXbeeCmd(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], "IC", mask)
    return ret
 
 
@@ -139,7 +139,7 @@ def enable_sample(data,mem):
             analog_in_enabled=True
             break
    if analog_in_enabled == True:
-      ret=mea.sendAtCmd(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], "IR", 5*1000)
+      ret=mea.sendXbeeCmd(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], "IR", 5*1000)
    else:
       return -1
    return ret
@@ -226,12 +226,12 @@ def mea_xplCmndMsg(data):
    elif x["schema"]=="control.basic":
       if body["type"]=="output":
          if body["current"].lower()=="low":
-            mea.sendAtCmd(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], pin, 4);
-            mea.sendAtCmd(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], "AC", "");
+            mea.sendXbeeCmd(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], pin, 4);
+            mea.sendXbeeCmd(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], "AC", "");
             return True
          elif body["current"].lower()=="high":
-            mea.sendAtCmd(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], pin, 5);
-            mea.sendAtCmd(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], "AC", "");
+            mea.sendXbeeCmd(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], pin, 5);
+            mea.sendXbeeCmd(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], "AC", "");
             return True
          else:
             return False
@@ -358,11 +358,11 @@ def mea_commissionningRequest(data):
                if i[0][0] == "@":
                   if len(i[0])==3:
                      if numVal>=0:
-                        ret=mea.sendAtCmd(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], i[0][1:3].upper(), numVal);
+                        ret=mea.sendXbeeCmd(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], i[0][1:3].upper(), numVal);
                         if ret == 0:
                            verbose(5, "WARNING (", fn_name, ") - Transmission error for", i[0], "= ", numVal)
                      else:
-                        ret=mea.sendAtCmd(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], i[0][1:3].upper(), alphaVal);
+                        ret=mea.sendXbeeCmd(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], i[0][1:3].upper(), alphaVal);
                         if ret == 0:
                            verbose(5, "WARNING (", fn_name, ") - Transmission error for", i[0], "= ", alphaVal)
                            continue
@@ -399,7 +399,7 @@ def mea_commissionningRequest(data):
             
             else:
                if len(i[0])==3:
-                  ret=mea.sendAtCmd(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], i[0][1:3].upper(), "");
+                  ret=mea.sendXbeeCmd(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], i[0][1:3].upper(), "");
                   if ret == 0:
                      verbose(3, "ERROR (", fn_name, ") - Transmission error for", i[0], "= ", numVal)
          enable_change_detection(data,mem)
@@ -451,11 +451,11 @@ def mea_init(data):
                if i[0][0] == "@":
                   if len(i[0])==3:
                      if numVal>=0:
-                        ret=mea.sendAtCmd(data["ID_XBEE"], -1, -1, i[0][1:3].upper(), numVal);
+                        ret=mea.sendXbeeCmd(data["ID_XBEE"], -1, -1, i[0][1:3].upper(), numVal);
                         if ret == 0:
                            verbose(5, "WARNING (", fn_name, ") - Transmission error for", i[0], "= ", numVal)
                      else:
-                        ret=mea.sendAtCmd(data["ID_XBEE"], -1, -1, i[0][1:3].upper(), alphaVal);
+                        ret=mea.sendXbeeCmd(data["ID_XBEE"], -1, -1, i[0][1:3].upper(), alphaVal);
                         if ret == 0:
                            verbose(5, "WARNING (", fn_name, ") - Transmission error for", i[0], "= ", alphaVal)
                            continue
@@ -466,7 +466,7 @@ def mea_init(data):
                # commande special ?
             else:
                if len(i[0])==3:
-                  ret=mea.sendAtCmd(data["ID_XBEE"], -1, -1, i[0][1:3].upper(), "");
+                  ret=mea.sendXbeeCmd(data["ID_XBEE"], -1, -1, i[0][1:3].upper(), "");
                   if ret == 0:
                      verbose(3, "ERROR (", fn_name, ") - Transmission error for", i[0], "= ", numVal)
          return True
