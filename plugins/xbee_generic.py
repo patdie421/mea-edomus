@@ -194,7 +194,7 @@ def mea_xplCmndMsg(data):
    x=data["xplmsg"]
    body=x["body"]
 
-   if("source" in x:
+   if "source" in x:
       target=x["source"];
    else
       target="*";
