@@ -1,12 +1,12 @@
 import re
 
-import mea_utils
-from mea_utils import verbose
-
 try:
     import mea
 except:
     import mea_simulation as mea
+
+import mea_utils
+from mea_utils import verbose
 
 from sets import Set
 import string
@@ -32,6 +32,11 @@ def mea_xplCmndMsg(data):
         verbose(2, "ERROR - (mea_xplCmndMsg) : data not found")
         return False
 
+    if "source" in x:
+        target=x["source"]
+    else
+       target="*"
+
     mem=mea.getMemory(id_sensor)
 
     if body["request"]=="current":
@@ -45,8 +50,11 @@ def mea_xplCmndMsg(data):
             type="voltage"
             current=mem["current_p"]
         else:
-           return False
-        xplMsg=mea_utils.xplMsgNew(mea.xplGetVendorID(), mea.xplGetDeviceID(), mea.xplGetInstanceID(), "xpl-stat", "sensor", "basic", data["device_name"])
+            return False
+
+#        xplMsg=mea_utils.xplMsgNew(mea.xplGetVendorID(), mea.xplGetDeviceID(), mea.xplGetInstanceID(), "xpl-stat", "sensor", "basic", data["device_name"])
+        xplMsg=mea_utils.xplMsgNew("me", target, "xpl-stat", "sensor", "basic")
+        mea_utils.xplMsgAddValue(xplMsg,"device", data["device_name"])
         mea_utils.xplMsgAddValue(xplMsg,"current",current)
         mea_utils.xplMsgAddValue(xplMsg,"type",type)
         mea.xplSendMsg(xplMsg)
@@ -64,7 +72,9 @@ def mea_xplCmndMsg(data):
             last=mem["last_p"]
         else:
             return False
-        xplMsg=mea_utils.xplMsgNew(mea.xplGetVendorID(), mea.xplGetDeviceID(), mea.xplGetInstanceID(), "xpl-stat", "sensor", "basic", data["device_name"])
+#        xplMsg=mea_utils.xplMsgNew(mea.xplGetVendorID(), mea.xplGetDeviceID(), mea.xplGetInstanceID(), "xpl-stat", "sensor", "basic", data["device_name"])
+        xplMsg=mea_utils.xplMsgNew("me", target, "xpl-stat", "sensor", "basic")
+        mea_utils.xplMsgAddValue(xplMsg,"device", data["device_name"])
         mea_utils.xplMsgAddValue(xplMsg,"last",last)
         mea_utils.xplMsgAddValue(xplMsg,"type",type)
         mea.xplSendMsg(xplMsg)
@@ -168,7 +178,9 @@ def mea_dataFromSensor(data):
 
         mea.addDataToSensorsValuesTable(id_sensor,current,unit,0,"")
         
-        xplMsg=mea_utils.xplMsgNew(mea.xplGetVendorID(), mea.xplGetDeviceID(), mea.xplGetInstanceID(), "xpl-trig", "sensor", "basic", data["device_name"])
+#        xplMsg=mea_utils.xplMsgNew(mea.xplGetVendorID(), mea.xplGetDeviceID(), mea.xplGetInstanceID(), "xpl-trig", "sensor", "basic", data["device_name"])
+        xplMsg=mea_utils.xplMsgNew("me", target, "xpl-trig", "sensor", "basic")
+        mea_utils.xplMsgAddValue(xplMsg,"device", data["device_name"])
         mea_utils.xplMsgAddValue(xplMsg,"current",current)
         mea_utils.xplMsgAddValue(xplMsg,"type",type)
         mea_utils.xplMsgAddValue(xplMsg,"last",last)
