@@ -4,7 +4,7 @@ import sys
 import re
 
 allowed_chars  = Set(string.ascii_lowercase + string.digits)
-allowed_chars_other = Set(string.ascii_lowercase + string.digits + "-")
+allowed_chars_other = Set("-")
 
 
 current_verbose_level=9
