@@ -34,7 +34,7 @@ static PyMethodDef MeaMethods[] = {
 };
 
 
-uint32_t indianConvertion(uint32_t val_x86)
+uint32_t _indianConvertion(uint32_t val_x86)
 {
    uint32_t val_xbee;
    char *val_x86_ptr;
@@ -51,7 +51,7 @@ uint32_t indianConvertion(uint32_t val_x86)
 }
 
 
-PyObject *xplMsgToPyDict(xPL_MessagePtr xplMsg)
+PyObject *mea_xplMsgToPyDict(xPL_MessagePtr xplMsg)
 {
    PyObject *pyXplMsg;
    PyObject *s;
@@ -62,7 +62,7 @@ PyObject *xplMsgToPyDict(xPL_MessagePtr xplMsg)
    pyXplMsg = PyDict_New();
    if(!pyXplMsg)
    {
-      PyErr_SetString(PyExc_RuntimeError, "ERROR (xplMSgToPyDict) : PyDict_New error");
+      PyErr_SetString(PyExc_RuntimeError, "ERROR (mea_xplMSgToPyDict) : PyDict_New error");
       return NULL;
    }
    
@@ -433,7 +433,7 @@ static PyObject *mea_sendAtCmdAndWaitResp(PyObject *self, PyObject *args)
    if(PyNumber_Check(arg))
    {
       uint32_t val=(uint32_t)PyLong_AsLong(arg);
-      uint32_t val_xbee=indianConvertion(val);
+      uint32_t val_xbee=_indianConvertion(val);
       char *val_xbee_ptr=(char *)&val_xbee;
       
       for(int16_t i=0;i<sizeof(uint32_t);i++)
@@ -569,7 +569,7 @@ static PyObject *mea_sendAtCmd(PyObject *self, PyObject *args)
    if(PyNumber_Check(arg))
    {
       uint32_t val=(uint32_t)PyLong_AsLong(arg);
-      uint32_t val_xbee=indianConvertion(val);
+      uint32_t val_xbee=_indianConvertion(val);
       char *val_xbee_ptr=(char *)&val_xbee;
       
       for(int16_t i=0;i<sizeof(uint32_t);i++)
