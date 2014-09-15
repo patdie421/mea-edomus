@@ -22,41 +22,32 @@
 PyObject *mea_memory;
 
 static PyMethodDef MeaMethods[] = {
-   {"getMemory",            mea_getMemory,            METH_VARARGS, "Return a dictionary"},
-   {"sendAtCmdAndWaitResp", mea_sendAtCmdAndWaitResp, METH_VARARGS, "Envoie d'une commande AT et recupere la reponse"},
-   {"sendAtCmd",            mea_sendAtCmd,            METH_VARARGS, "Envoie d'une commande AT sans attendre de reponse"},
-   {"xplGetVendorID",       mea_xplGetVendorID,       METH_VARARGS, "VendorID"},
-   {"xplGetDeviceID",       mea_xplGetDeviceID,       METH_VARARGS, "DeviceID"},
-   {"xplGetInstanceID",     mea_xplGetInstanceID,     METH_VARARGS, "InstanceID"},
-   {"xplSendMsg",           mea_xplSendMsg,           METH_VARARGS, "Envoie un message XPL"},
+   {"getMemory",              mea_getMemory,            METH_VARARGS, "Return a dictionary"},
+   {"sendXbeeCmdAndWaitResp", mea_sendAtCmdAndWaitResp, METH_VARARGS, "Envoie d'une commande AT et recupere la reponse"},
+   {"sendXbeeCmd",            mea_sendAtCmd,            METH_VARARGS, "Envoie d'une commande AT sans attendre de reponse"},
+   {"xplGetVendorID",         mea_xplGetVendorID,       METH_VARARGS, "VendorID"},
+   {"xplGetDeviceID",         mea_xplGetDeviceID,       METH_VARARGS, "DeviceID"},
+   {"xplGetInstanceID",       mea_xplGetInstanceID,     METH_VARARGS, "InstanceID"},
+   {"xplSendMsg",             mea_xplSendMsg,           METH_VARARGS, "Envoie un message XPL"},
    {"addDataToSensorsValuesTable",mea_addDataToSensorsValuesTable, METH_VARARGS, "Envoi des donnees dans la table sensors_values"},
    {NULL, NULL, 0, NULL}
 };
 
 
-void mea_api_init()
+uint32_t indianConvertion(uint32_t val_x86)
 {
-   mea_memory=PyDict_New(); // initialisation de la mémoire
+   uint32_t val_xbee;
+   char *val_x86_ptr;
+   char *val_xbee_ptr;
    
-   Py_InitModule("mea", MeaMethods);  
-}
+   val_x86_ptr = (char *)&val_x86;
+   val_xbee_ptr = (char *)&val_xbee;
+   
+   // conversion little vers big indian
+   for(int16_t i=0,j=3;i<sizeof(uint32_t);i++)
+      val_xbee_ptr[i]=val_x86_ptr[j-i];
 
-
-static PyObject *mea_xplGetVendorID()
-{
-   return PyString_FromString("mea");
-}
-
-
-static PyObject *mea_xplGetDeviceID()
-{
-   return  PyString_FromString("edomus");
-}
-
-
-static PyObject *mea_xplGetInstanceID()
-{
-   return PyString_FromString("cheznousdev");
+   return val_xbee;
 }
 
 
@@ -153,6 +144,32 @@ PyObject *xplMsgToPyDict(xPL_MessagePtr xplMsg)
    Py_DECREF(pyBody);
    
    return pyXplMsg;
+}
+
+
+void mea_api_init()
+{
+   mea_memory=PyDict_New(); // initialisation de la mémoire
+   
+   Py_InitModule("mea", MeaMethods);  
+}
+
+
+static PyObject *mea_xplGetVendorID()
+{
+   return PyString_FromString("mea");
+}
+
+
+static PyObject *mea_xplGetDeviceID()
+{
+   return  PyString_FromString("edomus");
+}
+
+
+static PyObject *mea_xplGetInstanceID()
+{
+   return PyString_FromString("cheznousdev");
 }
 
 
@@ -361,23 +378,6 @@ static PyObject *mea_getMemory(PyObject *self, PyObject *args)
    Py_INCREF(mem);
    
    return mem;
-}
-
-
-uint32_t indianConvertion(uint32_t val_x86)
-{
-   uint32_t val_xbee;
-   char *val_x86_ptr;
-   char *val_xbee_ptr;
-   
-   val_x86_ptr = (char *)&val_x86;
-   val_xbee_ptr = (char *)&val_xbee;
-   
-   // conversion little vers big indian
-   for(int16_t i=0,j=3;i<sizeof(uint32_t);i++)
-      val_xbee_ptr[i]=val_x86_ptr[j-i];
-
-   return val_xbee;
 }
 
 
