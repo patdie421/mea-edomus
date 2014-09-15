@@ -978,7 +978,6 @@ int main(int argc, const char * argv[])
    //
    // strout et stderr vers fichier log
    //
-/*
    char log_file[255];
    int16_t n;
    
@@ -1006,7 +1005,7 @@ int main(int argc, const char * argv[])
    dup2(fd, 1);
    dup2(fd, 2);
    close(fd);
-*/
+
    //   
    // demarrage du processus de l'automate
    //
