@@ -204,8 +204,10 @@ def mea_xplCmndMsg(data):
       last_key=pin+"_last"
       
       try:
-         xplMsg=mea_utils.xplMsgNew(mea.xplGetVendorID(), mea.xplGetDeviceID(), mea.xplGetInstanceID(), "xpl-stat", "sensor", "basic", data["device_name"])
-         xplMsg["target"]=target;
+//         xplMsg=mea_utils.xplMsgNew(mea.xplGetVendorID(), mea.xplGetDeviceID(), mea.xplGetInstanceID(), "xpl-stat", "sensor", "basic", data["device_name"])
+//         xplMsg["target"]=target;
+          xplMsg=mea_utils.xplMsgNew("me", target, "xpl-trig", "sensor", "basic")
+          mea_utils.xplMsgAddValue(xplMsg,"device", data["device_name"])
 
          if body["request"]=="current":
             mea_utils.xplMsgAddValue(xplMsg,"current",mem[current_key])
@@ -307,7 +309,9 @@ def mea_dataFromSensor(data):
                   unit=0
                mea.addDataToSensorsValuesTable(id_sensor,logval,unit,val,"")
 
-            xplMsg=mea_utils.xplMsgNew(mea.xplGetVendorID(), mea.xplGetDeviceID(), mea.xplGetInstanceID(), "xpl-trig", "sensor", "basic", data["device_name"])
+#            xplMsg=mea_utils.xplMsgNew(mea.xplGetVendorID(), mea.xplGetDeviceID(), mea.xplGetInstanceID(), "xpl-trig", "sensor", "basic", data["device_name"])
+            xplMsg=mea_utils.xplMsgNew("me", "*", "xpl-trig", "sensor", "basic")
+            mea_utils.xplMsgAddValue(xplMsg,"device", data["device_name"])
             mea_utils.xplMsgAddValue(xplMsg,"current", mem[current_key])
             mea_utils.xplMsgAddValue(xplMsg,"type", type)
             mea_utils.xplMsgAddValue(xplMsg,"last",mem[last_key])
