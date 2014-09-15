@@ -354,7 +354,7 @@ int16_t _interface_type_002_xPL_callback(xPL_ServicePtr theService, xPL_MessageP
                
                plugin_elem->aDict=stmt_to_pydict_device(stmt);
                addLong_to_pydict(plugin_elem->aDict, get_token_by_id(ID_XBEE_ID), (long)interface->xd);
-               PyObject *d=xplMsgToPyDict(xplMsg);
+               PyObject *d=mea_xplMsgToPyDict(xplMsg);
                PyDict_SetItemString(plugin_elem->aDict, "xplmsg", d);
                addLong_to_pydict(plugin_elem->aDict, get_token_by_id(DEVICE_TYPE_ID_ID), sqlite3_column_int(stmt, 5));
                Py_DECREF(d);
