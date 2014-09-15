@@ -206,7 +206,7 @@ def mea_xplCmndMsg(data):
       try:
 //         xplMsg=mea_utils.xplMsgNew(mea.xplGetVendorID(), mea.xplGetDeviceID(), mea.xplGetInstanceID(), "xpl-stat", "sensor", "basic", data["device_name"])
 //         xplMsg["target"]=target;
-          xplMsg=mea_utils.xplMsgNew("me", target, "xpl-trig", "sensor", "basic")
+          xplMsg=mea_utils.xplMsgNew("me", target, "xpl-stat", "sensor", "basic")
           mea_utils.xplMsgAddValue(xplMsg,"device", data["device_name"])
 
          if body["request"]=="current":
