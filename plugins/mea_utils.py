@@ -68,16 +68,21 @@ def xplMsgNew(source_addr, target_addr, xpl_message_type, xpl_class, xpl_type):
    # message_xpl_type = [ "xpl-cmnd" | "xpl-stat" | "xpl-trig" ]
    # xpl_class 8 car "xpl"
    # xpl_type 8 car "xpl"
+
+   if source_addr.lower() == "me":
+      source_addr = mea.xplGetVendorID() + "-" + mea.xplGetDeviceID() + "." + mea.xplGetInstanceID()
+
    if isXplAddress(source_addr) == False or isXplAddress(target_addr) == False:
       return None
    if source_addr == "*":
       return None
-   elif not isXplMessageType(xpl_message_type.lower()):
+   if not isXplMessageType(xpl_message_type.lower()):
       return None
-   elif not isXplValidCharacters(xpl_class.lower(),8, True):
+   if not isXplValidCharacters(xpl_class.lower(),8, True):
       return None
-   elif not isXplValidCharacters(xpl_type.lower(),8, True):
-      return None
+   if not isXplValidCharacters(xpl_type.lower(),8, True):
+   return None
+
    # le format des donnees est valide, on peut creer le message
    xplMsg={} # creation du dictionnaire
    xplMsg["xplmsg"]=True # pour des besoins internes (controle)
@@ -88,6 +93,7 @@ def xplMsgNew(source_addr, target_addr, xpl_message_type, xpl_class, xpl_type):
    xplMsg["schema"]=xpl_class.lower() + "." + xpl_type.lower()
    body={}
    xplMsg["xpl-body"]=body
+
    return xplMsg
 
 
