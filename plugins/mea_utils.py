@@ -2,6 +2,7 @@ from sets import Set
 import string
 import sys
 import re
+import mea
 
 allowed_chars  = Set(string.ascii_lowercase + string.digits)
 allowed_chars_other = Set("-")
