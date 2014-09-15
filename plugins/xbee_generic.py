@@ -2,15 +2,15 @@ import re
 import string
 import sys
 
-import mea_utils
-from mea_utils import verbose
-
 try:
    import mea
 except:
    import mea_simulation as mea
 
 from sets import Set
+
+import mea_utils
+from mea_utils import verbose
 
 
 def getInternalVarValue(data, var):
