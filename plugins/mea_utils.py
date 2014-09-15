@@ -1,8 +1,10 @@
 from sets import Set
 import string
 import sys
-import re
-import mea
+try:
+   import mea
+except:
+   import mea_simulation as mea 
 
 allowed_chars  = Set(string.ascii_lowercase + string.digits)
 allowed_chars_other = Set("-")
