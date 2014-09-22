@@ -316,9 +316,8 @@ int16_t _interface_type_002_xPL_callback(xPL_ServicePtr theService, xPL_MessageP
    
    char sql[1024];
    sqlite3_stmt * stmt;
-   fprintf(stderr,"DEVICE = %s\n",device);
    
-   sprintf(sql,"%s WHERE sensors_actuators.name='%s' and sensors_actuators.state='1';", sql_select_device_info, device);
+   sprintf(sql,"%s WHERE lower(sensors_actuators.name)='%s' and sensors_actuators.state='1';", sql_select_device_info, device);
    ret = sqlite3_prepare_v2(params_db, sql, strlen(sql)+1, &stmt, NULL);
    if(ret)
    {

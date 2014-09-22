@@ -1,6 +1,8 @@
 from sets import Set
 import string
+import re
 import sys
+
 try:
    import mea
 except:
@@ -43,7 +45,7 @@ def isXplAddress(addr):
    if addr=="*":
       return True
    if not re.match("^[0-9a-z]*-[0-9a-z]*\.[0-9a-z\-]*$", addr):
-      return 1
+      return False
    (vendorIdAndDeviceId, instanceId) = addr.split(".")
    (vendorId, deviceId) = vendorIdAndDeviceId.split("-")
    if isXplValidCharacters(vendorId, 8, False) and isXplValidCharacters(deviceId, 8, False) and isXplValidCharacters(instanceId, 16, True):
@@ -52,7 +54,7 @@ def isXplAddress(addr):
       return False
 
 
-def xplAddressNew(id_vendor, id_device, id_instance)
+def xplAddressNew(id_vendor, id_device, id_instance):
    if isXplValidCharacters(id_vendor.lower(),8,False):
       return None
    elif not isXplValidCharacters(id_device.lower(),8, False):
@@ -84,7 +86,7 @@ def xplMsgNew(source_addr, target_addr, xpl_message_type, xpl_class, xpl_type):
    if not isXplValidCharacters(xpl_class.lower(),8, True):
       return None
    if not isXplValidCharacters(xpl_type.lower(),8, True):
-   return None
+      return None
 
    # le format des donnees est valide, on peut creer le message
    xplMsg={} # creation du dictionnaire

@@ -22,8 +22,11 @@ def mea_xplCmndMsg(data):
     except:
         return False
 
-    if x["schema"]!="sensor.request":
-        return Flase
+    try:
+        if x["schema"]!="sensor.request":
+           return Flase
+    except:
+        return False
 
     try:
         id_sensor=data["device_id"]
@@ -32,27 +35,28 @@ def mea_xplCmndMsg(data):
         verbose(2, "ERROR - (mea_xplCmndMsg) : data not found")
         return False
 
+    target="*"
     if "source" in x:
         target=x["source"]
-    else
-       target="*"
 
     mem=mea.getMemory(id_sensor)
 
     if body["request"]=="current":
-        if id_type==2000:
-            type="humidity"
-            current=mem["current_h"]
-        elif id_type==2001:
-            type="temperature"
-            current=mem["current_t"]
-        elif id_type==2002:
-            type="voltage"
-            current=mem["current_p"]
-        else:
+        try:
+            if id_type==2000:
+                type="humidity"
+                current=mem["current_h"]
+            elif id_type==2001:
+                type="temperature"
+                current=mem["current_t"]
+            elif id_type==2002:
+                type="voltage"
+                current=mem["current_p"]
+            else:
+                return False
+        except:
             return False
 
-#        xplMsg=mea_utils.xplMsgNew(mea.xplGetVendorID(), mea.xplGetDeviceID(), mea.xplGetInstanceID(), "xpl-stat", "sensor", "basic", data["device_name"])
         xplMsg=mea_utils.xplMsgNew("me", target, "xpl-stat", "sensor", "basic")
         mea_utils.xplMsgAddValue(xplMsg,"device", data["device_name"])
         mea_utils.xplMsgAddValue(xplMsg,"current",current)
@@ -61,18 +65,21 @@ def mea_xplCmndMsg(data):
         return True
 
     elif body["request"]=="last":
-        if id_type==2000:
-            type="humidity"
-            last=mem["last_h"]
-        elif id_type==2001:
-            type="temperature"
-            last=mem["last_t"]
-        elif id_type==2002:
-            type="voltage"
-            last=mem["last_p"]
-        else:
+        try:
+            if id_type==2000:
+                type="humidity"
+                last=mem["last_h"]
+            elif id_type==2001:
+                type="temperature"
+                last=mem["last_t"]
+            elif id_type==2002:
+                type="voltage"
+                last=mem["last_p"]
+            else:
+                return False
+        except:
             return False
-#        xplMsg=mea_utils.xplMsgNew(mea.xplGetVendorID(), mea.xplGetDeviceID(), mea.xplGetInstanceID(), "xpl-stat", "sensor", "basic", data["device_name"])
+
         xplMsg=mea_utils.xplMsgNew("me", target, "xpl-stat", "sensor", "basic")
         mea_utils.xplMsgAddValue(xplMsg,"device", data["device_name"])
         mea_utils.xplMsgAddValue(xplMsg,"last",last)
@@ -179,7 +186,7 @@ def mea_dataFromSensor(data):
         mea.addDataToSensorsValuesTable(id_sensor,current,unit,0,"")
         
 #        xplMsg=mea_utils.xplMsgNew(mea.xplGetVendorID(), mea.xplGetDeviceID(), mea.xplGetInstanceID(), "xpl-trig", "sensor", "basic", data["device_name"])
-        xplMsg=mea_utils.xplMsgNew("me", target, "xpl-trig", "sensor", "basic")
+        xplMsg=mea_utils.xplMsgNew("me", "*", "xpl-trig", "sensor", "basic")
         mea_utils.xplMsgAddValue(xplMsg,"device", data["device_name"])
         mea_utils.xplMsgAddValue(xplMsg,"current",current)
         mea_utils.xplMsgAddValue(xplMsg,"type",type)
