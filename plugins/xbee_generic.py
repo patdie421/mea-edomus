@@ -171,6 +171,7 @@ def parseIOData(cmd_data, l_cmd_data):
 
 
 def mea_xplCmndMsg(data):
+   fn_name=sys._getframe().f_code.co_name
    try:
       id_sensor=data["device_id"]
    except:
@@ -178,7 +179,7 @@ def mea_xplCmndMsg(data):
       return 0
    
    mem=mea.getMemory(id_sensor)
-   
+  
    paramsDict=mea_utils.parseKeyValueDatasToDictionary(data["device_parameters"], ",", ":")
    
    if "pin" in paramsDict:
@@ -194,34 +195,29 @@ def mea_xplCmndMsg(data):
    x=data["xplmsg"]
    body=x["body"]
 
+   target="*"
    if "source" in x:
       target=x["source"]
-   else
-      target="*"
 
    if x["schema"]=="sensor.request":
       current_key=pin+"_current"
       last_key=pin+"_last"
       
       try:
-//         xplMsg=mea_utils.xplMsgNew(mea.xplGetVendorID(), mea.xplGetDeviceID(), mea.xplGetInstanceID(), "xpl-stat", "sensor", "basic", data["device_name"])
-//         xplMsg["target"]=target;
-          xplMsg=mea_utils.xplMsgNew("me", target, "xpl-stat", "sensor", "basic")
-          mea_utils.xplMsgAddValue(xplMsg,"device", data["device_name"])
-
+         xplMsg=mea_utils.xplMsgNew("me", target, "xpl-stat", "sensor", "basic")
+         mea_utils.xplMsgAddValue(xplMsg,"device", data["device_name"].lower())
          if body["request"]=="current":
             mea_utils.xplMsgAddValue(xplMsg,"current",mem[current_key])
          elif body["request"]=="last":
             mea_utils.xplMsgAddValue(xplMsg,"last",mem[last_key])
          else:
             return False
-         
          mea_utils.xplMsgAddValue(xplMsg,"type",type)
-         
-         verbose(9, "INFO (", fn_name, ") - ", mea_utils.xplMsgToString(xplMsg))
+      
+         #verbose(9, "INFO (", fn_name, ") - ", mea_utils.xplMsgToString(xplMsg))
          mea.xplSendMsg(xplMsg)
-         
          return True
+
       except:
          return False
    
@@ -287,9 +283,9 @@ def mea_dataFromSensor(data):
          strVal=""
          if pin[0].lower()=="d":
             if val==1:
-               mem[current_key]="HIGH"
+               mem[current_key]="high"
             else:
-               mem[current_key]="LOW"
+               mem[current_key]="low"
             logval=val
          else:
             if "compute" in paramsDict:
@@ -311,7 +307,7 @@ def mea_dataFromSensor(data):
 
 #            xplMsg=mea_utils.xplMsgNew(mea.xplGetVendorID(), mea.xplGetDeviceID(), mea.xplGetInstanceID(), "xpl-trig", "sensor", "basic", data["device_name"])
             xplMsg=mea_utils.xplMsgNew("me", "*", "xpl-trig", "sensor", "basic")
-            mea_utils.xplMsgAddValue(xplMsg,"device", data["device_name"])
+            mea_utils.xplMsgAddValue(xplMsg,"device", data["device_name"].lower())
             mea_utils.xplMsgAddValue(xplMsg,"current", mem[current_key])
             mea_utils.xplMsgAddValue(xplMsg,"type", type)
             mea_utils.xplMsgAddValue(xplMsg,"last",mem[last_key])
