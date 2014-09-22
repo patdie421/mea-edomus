@@ -100,7 +100,7 @@ static int begin_request_handler(struct mg_connection *conn)
       reponse[0]=0;
       
       if(strlen(&(request_info->uri[5]))>(sizeof(buffer)-1))
-         return NULL;
+         return 0;
       
       strcpy(buffer, &(request_info->uri[5]));
       int ret=mea_strsplit(buffer, '/', tokens, MAX_TOKEN);
@@ -132,7 +132,7 @@ static int begin_request_handler(struct mg_connection *conn)
             else
             {
                xPL_releaseMessage(msg);
-               return NULL;
+               return 0;
             }
             
             // fabrication du body
@@ -154,7 +154,7 @@ static int begin_request_handler(struct mg_connection *conn)
                else
                {
                   xPL_releaseMessage(msg);
-                  return NULL;
+                  return 0;
                }
             }
 
@@ -206,10 +206,10 @@ static int begin_request_handler(struct mg_connection *conn)
             return "done";
          }
          else
-            return NULL;
+            return 0;
       }
       else
-         return NULL;
+         return 0;
    }
    // pas une api
    return 0;

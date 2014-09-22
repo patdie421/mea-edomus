@@ -276,7 +276,7 @@ static PyObject *mea_xplSendMsg(PyObject *self, PyObject *args)
    if(item)
    {
       char *p=PyString_AsString(item);
-      if(strcmp(p,'*')!=0)
+      if(strcmp(p,"*")!=0)
       {
          char vendor_id[40];
          char device_id[40];
