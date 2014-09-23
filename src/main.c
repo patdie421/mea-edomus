@@ -99,6 +99,8 @@ void usage(char *cmd)
       "  --paramsdb, -d      (défaut : basepath/var/db/params.db ou ",
       "                                /var/db/mea-params.db si basepath=/usr)",
       "  --phpcgipath, -C    (défaut : basepath/bin)",
+      "  --phpsessionspath, -s",
+      "                      (défaut : basepath/log/sessions ou /tmp si basepath=/usr)"
       "  --phpinipath, -H    (défaut : basepath/etc ou /etc si basepath=/usr)",
       "  --guipath, -G       (défaut : basepath/lib/mea-gui)",
       "  --logpath, -L       (défaut : basepath/var/log ou /var/log si basepath=/usr)",
@@ -151,6 +153,7 @@ void init_param_names(char *param_names[])
    param_names[INSTANCE_ID]          = "INSTANCEID";
    param_names[VERBOSELEVEL]         = "VERBOSELEVEL";
    param_names[GUIPORT]              = "GUIPORT";
+   param_names[PHPSESSIONS_PATH]     = "PHPSESSIONSPATH";
 }
 
 
@@ -693,31 +696,32 @@ int main(int argc, const char * argv[])
    
    // toutes les options possibles
    static struct option long_options[] = {
-      {"init",        no_argument,       0,  'i'                  },
-      {"autoinit",    no_argument,       0,  'a'                  },
-      {"update",      no_argument,       0,  'u'                  },
-      {"basepath",    required_argument, 0,  MEA_PATH             }, // 'p'
-      {"paramsdb",    required_argument, 0,  SQLITE3_DB_PARAM_PATH}, // 'd'
-//      {"configfile",  required_argument, 0,  CONFIG_FILE          }, // 'c'
-      {"phpcgipath",  required_argument, 0,  PHPCGI_PATH          }, // 'C'
-      {"phpinipath",  required_argument, 0,  PHPINI_PATH          }, // 'H'
-      {"guipath",     required_argument, 0,  GUI_PATH             }, // 'G'
-      {"logpath",     required_argument, 0,  LOG_PATH             }, // 'L'
-      {"pluginspath", required_argument, 0,  PLUGINS_PATH         }, // 'A'
-      {"bufferdbpath",required_argument, 0,  SQLITE3_DB_BUFF_PATH }, // 'B'
-      {"dbserver",    required_argument, 0,  MYSQL_DB_SERVER      }, // 'D'
-      {"dbport",      required_argument, 0,  MYSQL_DB_PORT        }, // 'P'
-      {"dbname",      required_argument, 0,  MYSQL_DATABASE       }, // 'N'
-      {"dbuser",      required_argument, 0,  MYSQL_USER           }, // 'U'
-      {"dbpassword",  required_argument, 0,  MYSQL_PASSWD         }, // 'W'
-      {"vendorid",    required_argument, 0,  VENDOR_ID            }, // 'V'
-      {"deviceid",    required_argument, 0,  DEVICE_ID            }, // 'E'
-      {"instanceid",  required_argument, 0,  INSTANCE_ID          }, // 'S'
-      {"verboselevel",required_argument, 0,  VERBOSELEVEL         }, // 'v'
-      {"guiport",     required_argument, 0,  GUIPORT              }, // 'g'
-      {"nodatabase",  no_argument,       0,  'b'                  }, // 'b'
-      {"help",        no_argument,       0,  'h'                  }, // 'h'
-      {0,             0,                 0,  0                    }
+      {"init",             no_argument,       0,  'i'                  },
+      {"autoinit",         no_argument,       0,  'a'                  },
+      {"update",           no_argument,       0,  'u'                  },
+      {"basepath",         required_argument, 0,  MEA_PATH             }, // 'p'
+      {"paramsdb",         required_argument, 0,  SQLITE3_DB_PARAM_PATH}, // 'd'
+//      {"configfile",     required_argument, 0,  CONFIG_FILE          }, // 'c'
+      {"phpcgipath",       required_argument, 0,  PHPCGI_PATH          }, // 'C'
+      {"phpinipath",       required_argument, 0,  PHPINI_PATH          }, // 'H'
+      {"phpsessionspath",  required_argument, 0,  PHPSESSIONS_PATH     }, // 's'
+      {"guipath",          required_argument, 0,  GUI_PATH             }, // 'G'
+      {"logpath",          required_argument, 0,  LOG_PATH             }, // 'L'
+      {"pluginspath",      required_argument, 0,  PLUGINS_PATH         }, // 'A'
+      {"bufferdbpath",     required_argument, 0,  SQLITE3_DB_BUFF_PATH }, // 'B'
+      {"dbserver",         required_argument, 0,  MYSQL_DB_SERVER      }, // 'D'
+      {"dbport",           required_argument, 0,  MYSQL_DB_PORT        }, // 'P'
+      {"dbname",           required_argument, 0,  MYSQL_DATABASE       }, // 'N'
+      {"dbuser",           required_argument, 0,  MYSQL_USER           }, // 'U'
+      {"dbpassword",       required_argument, 0,  MYSQL_PASSWD         }, // 'W'
+      {"vendorid",         required_argument, 0,  VENDOR_ID            }, // 'V'
+      {"deviceid",         required_argument, 0,  DEVICE_ID            }, // 'E'
+      {"instanceid",       required_argument, 0,  INSTANCE_ID          }, // 'S'
+      {"verboselevel",     required_argument, 0,  VERBOSELEVEL         }, // 'v'
+      {"guiport",          required_argument, 0,  GUIPORT              }, // 'g'
+      {"nodatabase",       no_argument,       0,  'b'                  }, // 'b'
+      {"help",             no_argument,       0,  'h'                  }, // 'h'
+      {0,             0,                      0,  0                    }
       
       
    };
@@ -767,8 +771,8 @@ int main(int argc, const char * argv[])
 
    int option_index = 0; // getopt_long function need int
    int c; // getopt_long function need int
-//   while ((c = getopt_long(argc, (char * const *)argv, "bhiaup:d:c:C:H:G:L:A:B:D:P:N:U:W:V:E:S:v:g:", long_options, &option_index)) != -1)
-   while ((c = getopt_long(argc, (char * const *)argv, "bhiaup:d:C:H:G:L:A:B:D:P:N:U:W:V:E:S:v:g:", long_options, &option_index)) != -1)
+//   while ((c = getopt_long(argc, (char * const *)argv, "bhiaup:d:c:C:H:s:G:L:A:B:D:P:N:U:W:V:E:S:v:g:", long_options, &option_index)) != -1)
+   while ((c = getopt_long(argc, (char * const *)argv, "bhiaup:d:C:H:s:G:L:A:B:D:P:N:U:W:V:E:S:v:g:", long_options, &option_index)) != -1)
    {
       switch (c)
       {
@@ -831,6 +835,10 @@ int main(int argc, const char * argv[])
             
          case 'H':
             c=PHPINI_PATH;
+            break;
+            
+         case 's':
+            c=PHPSESSIONS_PATH;
             break;
             
          case 'G':
