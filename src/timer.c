@@ -16,7 +16,7 @@ uint16_t init_timer(mea_timer_t *aTimer, uint32_t aDelay, uint16_t restartStatus
 {
    if(aTimer)
    {
-      aTimer->stat=0;
+     aTimer->stat=0;
 	   aTimer->start_time=0;
 	   aTimer->delay=aDelay;
 	   aTimer->autorestart=restartStatus;
