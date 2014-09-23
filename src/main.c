@@ -412,7 +412,7 @@ void start_httpServer(char **params_list, sqlite3 *sqlite3_param_db, queue_t *in
          guiport=8083;
       }
       
-      if(create_configs_php(params_list[GUI_PATH], params_list[SQLITE3_DB_PARAM_PATH], params_list[LOG_PATH])==0)
+      if(create_configs_php(params_list[GUI_PATH], params_list[SQLITE3_DB_PARAM_PATH], params_list[LOG_PATH], params_list[PHPSESSIONS_PATH)==0)
          httpServer(guiport, params_list[GUI_PATH], phpcgibin, params_list[PHPINI_PATH], interfaces);
       else
       {
