@@ -613,6 +613,7 @@ void interface_type_001_sensors_init(interface_type_001_t *i001)
       comio2_setTrap(i001->ad, sensor->arduino_pin+10, interface_type_001_sensors_process_traps, (void *)sensor);
 
       start_timer(&(sensor->timer));
+      start_timer(&(sensor->trap_timer));
 
       next_queue(sensors_list);
    }
