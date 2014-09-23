@@ -202,19 +202,22 @@ def mea_xplCmndMsg(data):
    if x["schema"]=="sensor.request":
       current_key=pin+"_current"
       last_key=pin+"_last"
-      
-      try:
-         xplMsg=mea_utils.xplMsgNew("me", target, "xpl-stat", "sensor", "basic")
-         mea_utils.xplMsgAddValue(xplMsg,"device", data["device_name"].lower())
-         if body["request"]=="current":
-            mea_utils.xplMsgAddValue(xplMsg,"current",mem[current_key])
-         elif body["request"]=="last":
-            mea_utils.xplMsgAddValue(xplMsg,"last",mem[last_key])
-         else:
-            return False
-         mea_utils.xplMsgAddValue(xplMsg,"type",type)
-      
-         #verbose(9, "INFO (", fn_name, ") - ", mea_utils.xplMsgToString(xplMsg))
+      if body["type"]==type:
+         try:
+            xplMsg=mea_utils.xplMsgNew("me", target, "xpl-stat", "sensor", "basic")
+            mea_utils.xplMsgAddValue(xplMsg,"device", data["device_name"].lower())
+            if body["request"]=="current":
+               mea_utils.xplMsgAddValue(xplMsg,"current",mem[current_key])
+            elif body["request"]=="last":
+               mea_utils.xplMsgAddValue(xplMsg,"last",mem[last_key])
+            else:
+               verbose(2, "ERROR (", fn_name, ") - invalid request (", body["request"],")")
+               return False
+            mea_utils.xplMsgAddValue(xplMsg,"type",type)
+      else: 
+         verbose(2, "ERROR (", fn_name, ") - invalid type (", body["type"],")")
+         return False
+
          mea.xplSendMsg(xplMsg)
          return True
 
@@ -234,8 +237,10 @@ def mea_xplCmndMsg(data):
          else:
             return False
       else:
+         verbose(2, "ERROR (", fn_name, ") - invalid request (", body["request"],")")
          return False
    else:
+      verbose(2, "ERROR (", fn_name, ") - invalid schema (", x["schema"],")")
       return False
 
 
@@ -296,7 +301,6 @@ def mea_dataFromSensor(data):
                logval=val
             mem[current_key]=logval
 
-         # verbose(9, "INFO  (", fn_name, ") - data from ", data["device_name"], "(",id_sensor,") = ", mem[current_key])
          if mem[current_key] != mem[last_key]:
             if "log" in paramsDict and paramsDict["log"].lower()=="yes":
                if "unit" in paramsDict:
@@ -305,13 +309,11 @@ def mea_dataFromSensor(data):
                   unit=0
                mea.addDataToSensorsValuesTable(id_sensor,logval,unit,val,"")
 
-#            xplMsg=mea_utils.xplMsgNew(mea.xplGetVendorID(), mea.xplGetDeviceID(), mea.xplGetInstanceID(), "xpl-trig", "sensor", "basic", data["device_name"])
             xplMsg=mea_utils.xplMsgNew("me", "*", "xpl-trig", "sensor", "basic")
             mea_utils.xplMsgAddValue(xplMsg,"device", data["device_name"].lower())
             mea_utils.xplMsgAddValue(xplMsg,"current", mem[current_key])
             mea_utils.xplMsgAddValue(xplMsg,"type", type)
             mea_utils.xplMsgAddValue(xplMsg,"last",mem[last_key])
-            # print mea_utils.xplMsgToString(xplMsg)
             mea.xplSendMsg(xplMsg)
 
             return True
