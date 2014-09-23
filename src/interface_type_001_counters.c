@@ -443,6 +443,8 @@ void interface_type_001_counters_init(interface_type_001_t *i001)
       comio2_setTrap(i001->ad, counter->trap, interface_type_001_counters_process_traps, (void *)counter);
 
       start_timer(&(counter->timer));
+      start_timer(&(counter->trap_timer));
+
       
       next_queue(counters_list);
    }

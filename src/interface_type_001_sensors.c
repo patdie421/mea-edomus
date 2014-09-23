@@ -279,7 +279,7 @@ struct sensor_s *interface_type_001_sensors_valid_and_malloc_sensor(int id_senso
          sensor->algo=algo_id;
          
          strcpy(sensor->name,(char *)name);
-         mea_strtolower(actuator->name);
+         mea_strtolower(sensor->name);
          sensor->sensor_id=id_sensor_actuator;
          
          switch(algo_id)
@@ -613,7 +613,6 @@ void interface_type_001_sensors_init(interface_type_001_t *i001)
       comio2_setTrap(i001->ad, sensor->arduino_pin+10, interface_type_001_sensors_process_traps, (void *)sensor);
 
       start_timer(&(sensor->timer));
-      start_timer(&(sensor->trap_timer));
 
       next_queue(sensors_list);
    }
