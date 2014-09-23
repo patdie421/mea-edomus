@@ -39,6 +39,7 @@ struct electricity_counter_s
    int trap; // comio trap number
    
    mea_timer_t timer;
+   mea_timer_t trap_timer;
 };
 
 struct electricity_counter_s
