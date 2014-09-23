@@ -90,7 +90,8 @@ int16_t interface_type_001_counters_process_traps(int16_t numTrap, char *buff, i
          // calcul de la conso instantannée (enfin une estimation)
          counter->last_power=counter->power;
          counter->power=3600/(counter->t-t_old);
-         
+         start_timer(&(counter->trap_timer)); // réinitialisation du timer à chaque trap
+
          /* à revoir */
          // tomysqldb_add_data_to_sensors_values(myd, counter->sensor_id, counter->power, UNIT_W, (float)counter->t-t_old, "");
 
@@ -164,6 +165,8 @@ struct electricity_counter_s *interface_type_001_sensors_valid_and_malloc_counte
       {
          init_timer(&(counter->timer),300,1); // lecture toutes les 5 minutes par défaut
       }
+      
+      init_timer(&(counter->trap_timer), 600, 1); // 10 mn sans trap
       
       free_parsed_parameters(counter_params, nb_counter_params);
       free(counter_params);
@@ -370,6 +373,35 @@ void interface_type_001_counters_poll_inputs(interface_type_001_t *i001, tomysql
    for(int16_t i=0; i<counters_list->nb_elem; i++)
    {
       current_queue(counters_list, (void **)&counter);
+
+      pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(counter->lock));
+      pthread_mutex_lock(&(counter->lock));
+      if(!test_timer(&(counter->trap_timer)))
+      {
+         struct timeval tv;
+
+         gettimeofday(&tv, NULL);
+         
+         counter->t=(double)tv.tv_sec+(double)tv.tv_usec/1000000.0;
+         counter->last_power=counter->power;
+         counter->power=0;
+
+         // envoyer un message xpl 0W
+         xPL_ServicePtr servicePtr = mea_getXPLServicePtr();
+         if(servicePtr)
+         {
+            xPL_MessagePtr cntrMessageStat = xPL_createBroadcastMessage(servicePtr, xPL_MESSAGE_TRIGGER);
+            xPL_setSchema(cntrMessageStat, get_token_by_id(XPL_SENSOR_ID), get_token_by_id(XPL_BASIC_ID));
+            xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_DEVICE_ID), counter->name);
+            xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_TYPE_ID), get_token_by_id(XPL_POWER_ID));
+            xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_CURRENT_ID), "0");
+            mea_sendXPLMessage(cntrMessageStat);
+            xPL_releaseMessage(cntrMessageStat);
+         }
+      }
+      pthread_mutex_unlock(&(counter->lock));
+      pthread_cleanup_pop(0);
+
       if(!test_timer(&(counter->timer)))
       {
          //pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)(&i001->operation_lock) );
