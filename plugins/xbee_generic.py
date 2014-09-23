@@ -365,10 +365,9 @@ def mea_commissionningRequest(data):
                         ret=mea.sendXbeeCmd(data["ID_XBEE"], data["ADDR_H"], data["ADDR_L"], i[0][1:3].upper(), alphaVal);
                         if ret == 0:
                            verbose(5, "WARNING (", fn_name, ") - Transmission error for", i[0], "= ", alphaVal)
-                           continue
                   else:
                      verbose(9, "WARNING (", fn_name, ") - syntaxe error :", i[0], "not an at cmnd, skip")
-                     continue
+                  continue
                
                # commande special ?
                if i[0][0:2]=="#d":
