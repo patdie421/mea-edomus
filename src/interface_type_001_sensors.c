@@ -279,6 +279,7 @@ struct sensor_s *interface_type_001_sensors_valid_and_malloc_sensor(int id_senso
          sensor->algo=algo_id;
          
          strcpy(sensor->name,(char *)name);
+         mea_strtolower(actuator->name);
          sensor->sensor_id=id_sensor_actuator;
          
          switch(algo_id)
