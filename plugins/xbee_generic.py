@@ -448,20 +448,17 @@ def mea_init(data):
                   except:
                      alphaVal=i[1]
                # commande AT ?
-               if i[0][0] == "@":
-                  if len(i[0])==3:
-                     if numVal>=0:
-                        ret=mea.sendXbeeCmd(data["ID_XBEE"], -1, -1, i[0][1:3].upper(), numVal);
-                        if ret == 0:
-                           verbose(5, "WARNING (", fn_name, ") - Transmission error for", i[0], "= ", numVal)
-                     else:
-                        ret=mea.sendXbeeCmd(data["ID_XBEE"], -1, -1, i[0][1:3].upper(), alphaVal);
-                        if ret == 0:
-                           verbose(5, "WARNING (", fn_name, ") - Transmission error for", i[0], "= ", alphaVal)
-                           continue
+               if len(i[0])==3:
+                  if numVal>=0:
+                     ret=mea.sendXbeeCmd(data["ID_XBEE"], -1, -1, i[0][1:3].upper(), numVal);
+                     if ret == 0:
+                        verbose(5, "WARNING (", fn_name, ") - Transmission error for", i[0], "= ", numVal)
                   else:
-                     verbose(5, "WARNING (", fn_name, ") - syntaxe error :", i[0], "not an at cmnd, skip")
-                     continue
+                     ret=mea.sendXbeeCmd(data["ID_XBEE"], -1, -1, i[0][1:3].upper(), alphaVal);
+                     if ret == 0:
+                        verbose(5, "WARNING (", fn_name, ") - Transmission error for", i[0], "= ", alphaVal)
+               else:
+                  verbose(5, "WARNING (", fn_name, ") - syntaxe error :", i[0], "not an at cmnd, skip")
                
                # commande special ?
             else:
