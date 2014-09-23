@@ -245,6 +245,7 @@ int16_t checkInstallationPaths(char *base_path, int16_t try_to_create_flag)
   *            BASEPATH/var
   *            BASEPATH/var/db
   *            BASEPATH/var/log
+  *            BASEPATH/var/sessions
   *            BASEPATH/gui
   *   Si BASEPATH == /usr (installation traditionnelle des distributions linux)
   *            /usr/bin
@@ -254,6 +255,7 @@ int16_t checkInstallationPaths(char *base_path, int16_t try_to_create_flag)
   *            /var
   *            /var/db
   *            /var/log
+  *            /tmp
   *            /usr/lib/mea-gui
   *   Mes recommendations :
   *      BASEPATH=/usr/local/mea-edomus ou /opt/mea-edomus ou /apps/mea-edomus
@@ -262,8 +264,8 @@ int16_t checkInstallationPaths(char *base_path, int16_t try_to_create_flag)
   * \return    0 si l'installation est ok, -1 = erreur bloquante, -2 = au moins un répertoire n'existe pas
   */
 {
-    const char *default_paths_list[]={NULL,"bin","etc","lib","lib/mea-plugins","var","var/db","var/log","lib/mea-gui",NULL};
-    const char *usr_paths_list[]={"/etc","/usr/lib/mea-plugins","/var/db","/var/log","/usr/lib/mea-gui",NULL};
+    const char *default_paths_list[]={NULL,"bin","etc","lib","lib/mea-plugins","var","var/db","var/log","var/log/sessions","lib/mea-gui",NULL};
+    const char *usr_paths_list[]={"/etc","/usr/lib/mea-plugins","/var/db","/var/log","/tmp","/usr/lib/mea-gui",NULL};
     
     char **paths_list;
     
@@ -318,7 +320,7 @@ int16_t checkInstallationPaths(char *base_path, int16_t try_to_create_flag)
                         fprintf(stderr,"%s (%s) : %s - ",INFO_STR,__func__,path_to_check);
                         perror("");
                     }
-                    flag=-1; // pas les droits en écriture nécessaire
+                    flag=-1; // pas les droits en écriture
                 }
                 else
                     if(flag!=-1)
@@ -376,7 +378,7 @@ int16_t create_php_ini(char *phpini_path)
 }
 
 
-int16_t create_configs_php(char *gui_home, char *params_db_fullname, char *php_log_fullname)
+int16_t create_configs_php(char *gui_home, char *params_db_fullname, char *php_log_fullname, char *php_sessions_fullname)
  /**
   * \brief     Création d'un fichier configs.php cohérent avec l'installation de l'interface graphique et les chemins de fichiers à utiliser.
   * \details   Actuellement positionne fichier de log de php et chemin de la base sqlite3 de parametrage.
@@ -401,9 +403,7 @@ int16_t create_configs_php(char *gui_home, char *params_db_fullname, char *php_l
       fprintf(fd,"ini_set('log_errors', 'On');\n");
       fprintf(fd,"ini_set('display_errors', 'Off');\n");
       fprintf(fd,"ini_set(\"error_log\", \"%s\");\n",php_log_fullname);
-
-//      fprintf(fd,"ini_set(session.save_path, '$basepath/var/sessions'")); // mettre le chemin par l'intermédiaire d'une variable
-// s'assurer ici que php peut écrire dans le répertoire de session, mais y a pas de raison car php est lancé avec le même user que mea-edomus
+      fprintf(fd,"ini_set(session.save_path, \"%s\");\n", php_sessions_fullname);
 
       fprintf(fd,"$TITRE_APPLICATION='Mea eDomus Admin';\n");
       fprintf(fd,"$PARAMS_DB_PATH='sqlite:%s';\n",params_db_fullname);
@@ -872,38 +872,44 @@ int16_t autoInit(char **params_list, char **keys)
    char to_check[1024];
 
    char *p_str; // pointeur sur une chaine
+   char *sessions_str;
    int16_t retcode=0;
    
    if(strcmp(usr_str,params_list[MEA_PATH])==0)
+   {
       p_str="";
+      sessions_str="tmp";
+   }
    else
+   {
       p_str=params_list[MEA_PATH];
+      sessions_str="var/log/sessions";
+   }
 
    //
    // Mise à jour de params_list avec les valeurs par defaut pour les entrées "vide" (NULL)
    //
-   _construct_string(params_list, VENDOR_ID,   "mea");
-   _construct_string(params_list, DEVICE_ID,   "domus");
-   _construct_string(params_list, INSTANCE_ID, "home");
+   _construct_string(params_list, VENDOR_ID,       "mea");
+   _construct_string(params_list, DEVICE_ID,       "domus");
+   _construct_string(params_list, INSTANCE_ID,     "home");
    
-   _construct_path(params_list, PHPCGI_PATH,  params_list[MEA_PATH], "bin");
-   _construct_path(params_list, PHPINI_PATH,  p_str,                 "etc");
-   _construct_path(params_list, GUI_PATH,     params_list[MEA_PATH], "lib/mea-gui");
-   _construct_path(params_list, PLUGINS_PATH, params_list[MEA_PATH], "lib/mea-plugins");
-   _construct_path(params_list, LOG_PATH,     p_str,                 "var/log");
-
    _construct_string(params_list, MYSQL_DB_SERVER, "127.0.0.1");
    _construct_string(params_list, MYSQL_DB_PORT,   "3306");
    _construct_string(params_list, MYSQL_DATABASE,  "meaedomus");
    _construct_string(params_list, MYSQL_USER,      "meaedomus");
    _construct_string(params_list, MYSQL_PASSWD,    "meaedomus");
+   _construct_string(params_list, VERBOSELEVEL,    "1");
+   _construct_string(params_list, GUIPORT,         "8083");
    
+   _construct_path(params_list, PHPCGI_PATH,       params_list[MEA_PATH], "bin");
+   _construct_path(params_list, PHPINI_PATH,       p_str,                 "etc");
+   _construct_path(params_list, PHPSESSIONS_PATH,  p_str,                 sessions_str);
+   _construct_path(params_list, GUI_PATH,          params_list[MEA_PATH], "lib/mea-gui");
+   _construct_path(params_list, PLUGINS_PATH,      params_list[MEA_PATH], "lib/mea-plugins");
+   _construct_path(params_list, LOG_PATH,          p_str,                 "var/log");
    _construct_path(params_list, SQLITE3_DB_BUFF_PATH, p_str, "var/db/queries.db");
-   
-   _construct_path(params_list, LOG_PATH, p_str, "var/log");
+   _construct_path(params_list, LOG_PATH, p_str,   "var/log");
 
-   _construct_string(params_list, VERBOSELEVEL, "1");
-   _construct_string(params_list, GUIPORT,      "8083");
    
    //
    // Contrôles et créations de fichiers
@@ -946,36 +952,45 @@ int16_t interactiveInit(char **params_list, char **keys)
   */
 {
    char *p_str;
+   char *sessions_str;
    char to_check[1024];
    int16_t retcode=0;
 
+
    if(strcmp(usr_str,params_list[MEA_PATH])==0)
+   {
       p_str="";
+      sessions_str="tmp";
+   }
    else
+   {
       p_str=params_list[MEA_PATH];
+      sessions_str="var/log/sessions";
+   }
 
    // Récupération des données
-   _read_string(params_list, VENDOR_ID,       "mea",       "xPL Vendor ID");
-   _read_string(params_list, DEVICE_ID,       "edomus",     "xPL Device ID");
-   _read_string(params_list, INSTANCE_ID,     "myhome",      "xPL Instance ID");
+   _read_string(params_list, VENDOR_ID,        "mea",       "xPL Vendor ID");
+   _read_string(params_list, DEVICE_ID,        "edomus",    "xPL Device ID");
+   _read_string(params_list, INSTANCE_ID,      "myhome",    "xPL Instance ID");
    
-   _read_path(params_list,   GUI_PATH,        params_list[MEA_PATH], "lib/mea-gui",     "PATH to gui directory");
-   _read_path(params_list,   PLUGINS_PATH,    params_list[MEA_PATH], "lib/mea-plugins", "PATH to plugins directory");
-   _read_path(params_list,   PHPCGI_PATH,     params_list[MEA_PATH], "bin",             "PATH to 'php-cgi' directory");
-   _read_path(params_list,   PHPINI_PATH,     p_str,                 "etc",             "PATH to 'php.ini' directory");
+   _read_path(params_list,   GUI_PATH,         params_list[MEA_PATH], "lib/mea-gui",     "PATH to gui directory");
+   _read_path(params_list,   PLUGINS_PATH,     params_list[MEA_PATH], "lib/mea-plugins", "PATH to plugins directory");
+   _read_path(params_list,   PHPCGI_PATH,      params_list[MEA_PATH], "bin",             "PATH to 'php-cgi' directory");
+   _read_path(params_list,   PHPINI_PATH,      p_str,                 "etc",             "PATH to 'php.ini' directory");
+   _read_path(params_list,   PHPSESSIONS_PATH, p_str,                 sessions_str,      "PATH to php sessions directory");
 
-   _read_string(params_list, MYSQL_DB_SERVER, "127.0.0.1", "mysql dbserver name or address");
-   _read_string(params_list, MYSQL_DB_PORT,   "3306",      "mysql dbserver port");
-   _read_string(params_list, MYSQL_DATABASE,  "meaedomus", "mysql database name");
-   _read_string(params_list, MYSQL_USER,      "meaedomus", "mysql user name");
-   _read_string(params_list, MYSQL_PASSWD,    "meaedomus", "mysql user password");
+   _read_string(params_list, MYSQL_DB_SERVER,  "127.0.0.1", "mysql dbserver name or address");
+   _read_string(params_list, MYSQL_DB_PORT,    "3306",      "mysql dbserver port");
+   _read_string(params_list, MYSQL_DATABASE,   "meaedomus", "mysql database name");
+   _read_string(params_list, MYSQL_USER,       "meaedomus", "mysql user name");
+   _read_string(params_list, MYSQL_PASSWD,     "meaedomus", "mysql user password");
 
    _read_path(params_list,   SQLITE3_DB_BUFF_PATH, p_str,        "var/db/queries.db", "PATH to sqlite3 buffer db");
 
-   _read_path(params_list,   LOG_PATH,        p_str, "var/log", "PATH to logs directory");
+   _read_path(params_list,   LOG_PATH,         p_str, "var/log", "PATH to logs directory");
 
    _read_integer(params_list, VERBOSELEVEL, 1, "Verbose level");
-   _read_integer(params_list, GUIPORT, 8083, "web interface port");
+   _read_integer(params_list, GUIPORT, 8083,   "web interface port");
 
    // contrôle des données
    snprintf(to_check,sizeof(to_check), "%s/php-cgi", params_list[PHPCGI_PATH]);
