@@ -1,8 +1,8 @@
 <?php
-session_start();
-
 include_once('../lib/configs.php');
 include_once('../lib/php/auth_utils.php');
+
+session_start();
 
 $check=check_admin();
 error_log($check);

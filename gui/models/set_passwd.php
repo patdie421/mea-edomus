@@ -1,7 +1,6 @@
 <?php
-session_start();
-
 include_once('../lib/configs.php');
+session_start();
 
 if($_SESSION['flag']==2) {
     echo json_encode(array("error"=>1,"error_msg"=>"changement interdit" ));

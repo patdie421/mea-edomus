@@ -1,4 +1,5 @@
 <?php
+include "lib/configs.php";
 //
 //  PAGE PRINCIPALE (VIEW) : configuration de l'application
 //
@@ -6,8 +7,6 @@ session_start();
 ?>
 <!DOCTYPE html>
 <?php
-include "lib/configs.php";
-
 // contrôles (login et habilitation) et redirections
     if(!isset($_SESSION['logged_in']))
     {

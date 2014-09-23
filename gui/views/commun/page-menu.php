@@ -1,4 +1,5 @@
 <?php
+include_once('../../lib/configs.php');
 session_start();
 ?>
 <style>

@@ -1,4 +1,5 @@
 <?php
+include "lib/configs.php";
 //
 //  PAGE PRINCIPALE (VIEW) : home page
 //
@@ -6,7 +7,6 @@ session_start();
 ?>
 <!DOCTYPE html>
 <?php
-include "lib/configs.php";
 
 // contrôle et redirections
 if(!isset($_SESSION['logged_in']))

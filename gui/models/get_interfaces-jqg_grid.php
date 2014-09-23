@@ -1,7 +1,7 @@
 <?php
-session_start();
 include_once('../lib/configs.php');
 include_once('../lib/php/auth_utils.php');
+session_start();
 
 switch(check_admin()){
     case 98:
@@ -100,7 +100,7 @@ echo "<records>".$count."</records>";
 // [parameters] =>
 // [state] => 1
 foreach ($result as $result_elem){
-	echo "<row id='".$result_elem['id']."'>";
+    echo "<row id='".$result_elem['id']."'>";
     echo "<cell>".$result_elem['id']."</cell>";
     echo "<cell>".$result_elem['id_interface']."</cell>";
     echo "<cell><![CDATA[".$result_elem['name']."]]></cell>";

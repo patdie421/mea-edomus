@@ -2,6 +2,7 @@
 //
 //  SOUS-PAGE (SUB-VIEW) de utilisateurs.php : grille des utilisateurs de l'application
 //
+include_once('../lib/configs.php');
 session_start()
 ?>
 

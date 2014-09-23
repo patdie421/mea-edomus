@@ -2,9 +2,9 @@
 //
 //  SOUS-PAGE (SUB-VIEW) de config.php : gestion de la configuration de l'application
 //
-session_start();
-
+include_once('../lib/configs.php');
 include "../lib/php/auth_utils.php";
+session_start();
 
 switch(check_admin()){
     case 98:

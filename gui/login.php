@@ -1,13 +1,11 @@
 <?php
+include "lib/configs.php";
 //
 //  PAGE PRINCIPALE (VIEW) : connexion à l'application
 //
 session_start()
 ?>
 <!DOCTYPE html>
-
-<?php include "lib/configs.php"; ?>
-
 <html>
 <head>
     <title>

@@ -1,6 +1,6 @@
 <?php
-session_start();
 include_once('../lib/configs.php');
+session_start();
 
 if( !isset($_SESSION['userid']) ||
     !isset($_SESSION['logged_in']) ||
