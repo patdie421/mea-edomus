@@ -35,7 +35,7 @@
 #define INSTANCE_ID           17
 #define VERBOSELEVEL          18
 #define GUIPORT               19
-#define PHPSESSIONSPATH       20
+#define PHPSESSIONS_PATH      20
 #define MAX_LIST_SIZE         21
 
 extern tomysqldb_md_t *myd;
