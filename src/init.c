@@ -890,7 +890,7 @@ int16_t autoInit(char **params_list, char **keys)
    // Mise à jour de params_list avec les valeurs par defaut pour les entrées "vide" (NULL)
    //
    _construct_string(params_list, VENDOR_ID,       "mea");
-   _construct_string(params_list, DEVICE_ID,       "domus");
+   _construct_string(params_list, DEVICE_ID,       "edomus");
    _construct_string(params_list, INSTANCE_ID,     "home");
    
    _construct_string(params_list, MYSQL_DB_SERVER, "127.0.0.1");
