@@ -1,3 +1,15 @@
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h> /* close */
+#include <netdb.h> /* gethostbyname */
+
+typedef struct sockaddr_in SOCKADDR_IN;
+typedef struct sockaddr SOCKADDR;
+typedef struct in_addr IN_ADDR;
+
+
 const char *hostname = "localhost";
 #define PORT 4756
 
@@ -5,7 +17,7 @@ const char *hostname = "localhost";
 int connexion(SOCKET *s, char *hostname, uint32 port)
 {
    SOCKET sock = socket(AF_INET, SOCK_STREAM, 0);
-   if(sock == INVALID_SOCKET)
+   if(sock == -1)
    {
       VERBOSE(2) perror("socket()");
       return 1;
@@ -25,7 +37,7 @@ int connexion(SOCKET *s, char *hostname, uint32 port)
    sin.sin_port = htons(PORT); /* on utilise htons pour le port */
    sin.sin_family = AF_INET;
 
-   if(connect(sock,(SOCKADDR *) &sin, sizeof(SOCKADDR)) == SOCKET_ERROR)
+   if(connect(sock,(SOCKADDR *) &sin, sizeof(SOCKADDR)) == -1)
    {
       VERBOSE(2) perror("connect()");
       return 1;
@@ -72,7 +84,7 @@ monitor()
      }
      else
      {
-       VERBOSE(5) fprintf(stderr,"RETRY\n");
+       VERBOSE(5) fprintf(stderr,"Retry next time ...\n");
        sleep(5); // on essayera de se reconnecter dans 5 secondes
      }
    }
