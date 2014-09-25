@@ -693,9 +693,6 @@ int main(int argc, const char * argv[])
  * \return    1 en cas d'erreur, 0 sinon
  */
 {
-   main_test(argc, argv);
-   exit(0);
-   
    int ret; // sqlite function need int
    sqlite3 *sqlite3_param_db; // descritpteur SQLITE
    

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <meta charset="utf-8" />
+      <title>Socket.io</title>
+   </head>
+ 
+   <body>
+      <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+      <script src="http://ried3.local:8000/socket.io/socket.io.js"></script>
+
+      <h1>Communication avec socket.io !</h1>
+      <div id="info"></div>
+      <button id="connexion">connexion</button> 
+      <script>
+         $(document).ready(function() {
+            var socket = io.connect('http://ried3.local:8000');
+
+            socket.on('log', function(message) {
+               $("#info").append("<div>LOG : "+message+"</div>");
+            });
+
+            socket.on('key', function(message) {
+              socket.emit('key','12345678');
+            });
+         }); 
+        </script>
+    </body>
+</html>
+

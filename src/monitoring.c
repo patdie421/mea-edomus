@@ -12,42 +12,37 @@
 #include "debug.h"
 #include "monitoring.h"
 
-typedef struct sockaddr_in SOCKADDR_IN;
-typedef struct sockaddr SOCKADDR;
-typedef struct in_addr IN_ADDR;
-
-
 const char *hostname = "localhost";
 #define PORT 4756
 
-
-int connexion(int *s, char *hostname, uint32_t port)
+int connexion(int *s, char *hostname, int port)
 {
-   int sock = socket(AF_INET, SOCK_STREAM, 0);
-   if(sock == -1)
+   int sock;
+   struct sockaddr_in serv_addr;
+   struct hostent *serv_info = NULL;
+
+   sock = socket(AF_INET, SOCK_STREAM, 0);
+   if(sock < 0)
    {
- 
-      VERBOSE(2) perror("socket()");
+      perror("socket()");
       return 1;
    }
 
-   struct hostent *hostinfo = NULL;
-   SOCKADDR_IN sin = { 0 }; // initialise la structure avec des 0
-
-   hostinfo = gethostbyname(hostname); // on récupère les informations de l'hôte auquel on veut se connecter
-   if (hostinfo == NULL) // l'hôte n'existe pas
+   serv_info = gethostbyname(hostname); // on récupère les informations de l'hôte auquel on veut se connecter
+   if(serv_info == NULL)
    {
-      VERBOSE(2) fprintf (stderr, "Unknown host %s.\n", hostname);
+      perror("gethostbyname()");
       return 1;
    }
 
-   sin.sin_addr = *(IN_ADDR *) hostinfo->h_addr; // l'adresse se trouve dans le champ h_addr de la structure hostinfo
-   sin.sin_port = htons(PORT); // on utilise htons pour le port
-   sin.sin_family = AF_INET;
-
-   if(connect(sock,(SOCKADDR *) &sin, sizeof(SOCKADDR)) == -1)
+   bzero((char *)&serv_addr, sizeof(serv_addr));
+   serv_addr.sin_family = AF_INET;
+   serv_addr.sin_port   = htons(port);
+   bcopy((char *)serv_info->h_addr, (char *)&serv_addr.sin_addr.s_addr, serv_info->h_length);
+   
+   if(connect(sock, (const struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
    {
-      VERBOSE(2) perror("connect()");
+      perror("connect()");
       return 1;
    }
    
@@ -105,15 +100,9 @@ void main_test(int argc, const char *argv[])
 {
  int s;
  
-//   if(argc!=3)
-//   {
-//      exit(1);
-//   }
-   
-//   connexion(&s, (char *)argv[1], PORT);
-   connexion(&s, 192.168.0.51, 8000);
-//   envoie(&s, (char *)argv[2]);
-   envoie(&s, "TEST\n");
-   
-   close(s);
+   if(connexion(&s, "localhost", 5600)==0)
+   {
+      envoie(&s, "TEST");
+      close(s);
+   }
 }
