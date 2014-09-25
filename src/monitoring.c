@@ -105,13 +105,15 @@ void main_test(int argc, const char *argv[])
 {
  int s;
  
-   if(argc!=3)
-   {
-      exit(1);
-   }
+//   if(argc!=3)
+//   {
+//      exit(1);
+//   }
    
-   connexion(&s, (char *)argv[1], PORT);
-   envoie(&s, (char *)argv[2]);
+//   connexion(&s, (char *)argv[1], PORT);
+   connexion(&s, 192.168.0.51, 8000);
+//   envoie(&s, (char *)argv[2]);
+   envoie(&s, "TEST\n");
    
    close(s);
 }
