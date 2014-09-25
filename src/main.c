@@ -42,6 +42,8 @@
 #include "httpServer.h"
 #include "automatorServer.h"
 
+#include "monitoring.h"
+
 tomysqldb_md_t *myd;                       /*!< descripteur mysql. Variable globale car doit être accessible par les gestionnaires de signaux. */
 queue_t *interfaces;                       /*!< liste (file) des interfaces. Variable globale car doit être accessible par les gestionnaires de signaux. */
 sqlite3 *sqlite3_param_db;                 /*!< descripteur pour la base sqlite de paramétrage. Variable globale car doit être accessible par les gestionnaires de signaux. */
@@ -691,6 +693,9 @@ int main(int argc, const char * argv[])
  * \return    1 en cas d'erreur, 0 sinon
  */
 {
+   main_test(argc, argv);
+   exit(0);
+   
    int ret; // sqlite function need int
    sqlite3 *sqlite3_param_db; // descritpteur SQLITE
    

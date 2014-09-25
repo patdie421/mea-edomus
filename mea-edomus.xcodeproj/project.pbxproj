@@ -121,6 +121,7 @@
 		4E76CEB1163F175100A3EBA9 /* token_strings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = token_strings.h; path = src/token_strings.h; sourceTree = "<group>"; };
 		4E76CEB4163F17E300A3EBA9 /* mysql_mea-edomus_db.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "mysql_mea-edomus_db.sql"; path = "sql/mysql_mea-edomus_db.sql"; sourceTree = "<group>"; };
 		4E798FF819D4871400F87593 /* monitoring.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = monitoring.c; path = src/monitoring.c; sourceTree = "<group>"; };
+		4E798FFA19D4890D00F87593 /* monitoring.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = monitoring.h; path = src/monitoring.h; sourceTree = "<group>"; };
 		4E8787E51816732800A87FF0 /* sqlite3db.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = sqlite3db.c; path = src/sqlite3db.c; sourceTree = "<group>"; };
 		4E8787E71816733F00A87FF0 /* sqlite3db.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = sqlite3db.h; path = src/sqlite3db.h; sourceTree = "<group>"; };
 		4E8E5336184296F6006FB9D3 /* automatorServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = automatorServer.h; path = src/automatorServer.h; sourceTree = "<group>"; };
@@ -184,6 +185,7 @@
 				4E09454D17C10FB2003749FE /* init.c */,
 				4E09454F17C1495F003749FE /* types.h */,
 				4E798FF819D4871400F87593 /* monitoring.c */,
+				4E798FFA19D4890D00F87593 /* monitoring.h */,
 			);
 			name = Source;
 			sourceTree = "<group>";

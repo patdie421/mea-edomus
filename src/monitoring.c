@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -9,6 +10,7 @@
 #include <errno.h>
 
 #include "debug.h"
+#include "monitoring.h"
 
 typedef struct sockaddr_in SOCKADDR_IN;
 typedef struct sockaddr SOCKADDR;
@@ -96,4 +98,20 @@ void monitor(void)
      }
    }
    while(exit==0);
+}
+
+
+void main_test(int argc, const char *argv[])
+{
+ int s;
+ 
+   if(argc!=3)
+   {
+      exit(1);
+   }
+   
+   connexion(&s, (char *)argv[1], PORT);
+   envoie(&s, (char *)argv[2]);
+   
+   close(s);
 }
