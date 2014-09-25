@@ -1,9 +1,10 @@
+/*
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <unistd.h> /* close */
-#include <netdb.h> /* gethostbyname */
+#include <unistd.h> // close
+#include <netdb.h> // gethostbyname
 
 typedef struct sockaddr_in SOCKADDR_IN;
 typedef struct sockaddr SOCKADDR;
@@ -24,17 +25,17 @@ int connexion(SOCKET *s, char *hostname, uint32 port)
    }
 
    struct hostent *hostinfo = NULL;
-   SOCKADDR_IN sin = { 0 }; /* initialise la structure avec des 0 */
+   SOCKADDR_IN sin = { 0 }; // initialise la structure avec des 0
 
-   hostinfo = gethostbyname(hostname); /* on récupère les informations de l'hôte auquel on veut se connecter */
-   if (hostinfo == NULL) /* l'hôte n'existe pas */
+   hostinfo = gethostbyname(hostname); // on récupère les informations de l'hôte auquel on veut se connecter
+   if (hostinfo == NULL) // l'hôte n'existe pas
    {
       VERBOSE(2) fprintf (stderr, "Unknown host %s.\n", hostname);
       return 1;
    }
 
-   sin.sin_addr = *(IN_ADDR *) hostinfo->h_addr; /* l'adresse se trouve dans le champ h_addr de la structure hostinfo */
-   sin.sin_port = htons(PORT); /* on utilise htons pour le port */
+   sin.sin_addr = *(IN_ADDR *) hostinfo->h_addr; // l'adresse se trouve dans le champ h_addr de la structure hostinfo
+   sin.sin_port = htons(PORT); // on utilise htons pour le port
    sin.sin_family = AF_INET;
 
    if(connect(sock,(SOCKADDR *) &sin, sizeof(SOCKADDR)) == -1)
@@ -90,5 +91,5 @@ monitor()
    }
    while(exit==0);
 }
-
+*/
 
