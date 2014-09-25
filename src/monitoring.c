@@ -1,10 +1,14 @@
-/*
+#include <stdio.h>
+#include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h> // close
 #include <netdb.h> // gethostbyname
+#include <errno.h>
+
+#include "debug.h"
 
 typedef struct sockaddr_in SOCKADDR_IN;
 typedef struct sockaddr SOCKADDR;
@@ -15,11 +19,12 @@ const char *hostname = "localhost";
 #define PORT 4756
 
 
-int connexion(SOCKET *s, char *hostname, uint32 port)
+int connexion(int *s, char *hostname, uint32_t port)
 {
-   SOCKET sock = socket(AF_INET, SOCK_STREAM, 0);
+   int sock = socket(AF_INET, SOCK_STREAM, 0);
    if(sock == -1)
    {
+ 
       VERBOSE(2) perror("socket()");
       return 1;
    }
@@ -49,9 +54,9 @@ int connexion(SOCKET *s, char *hostname, uint32 port)
 }
 
 
-int envoie(SOCKET *s, char *message)
+int envoie(int *s, char *message)
 {
-   if(send(sock, message, strlen(message), 0) < 0)
+   if(send(*s, message, strlen(message), 0) < 0)
    {
       perror("send()");
       return errno;
@@ -60,16 +65,17 @@ int envoie(SOCKET *s, char *message)
 }
 
 
-monitor()
+void monitor(void)
 {
    int exit=0;
-   SOCKET nodejs_socket=-1;
+   int nodejs_socket=-1;
    char message[1024];
    
    do
    {
-     if(connexion(&nodejs_socket, hostname, PORT)==0)
+     if(connexion(&nodejs_socket, (char *)hostname, PORT)==0)
      {
+       int ret;
        do
        {
          sleep(5); // un check toutes les 5 secondes
@@ -91,5 +97,3 @@ monitor()
    }
    while(exit==0);
 }
-*/
-
