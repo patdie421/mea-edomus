@@ -51,7 +51,7 @@ int connexion(int *s, char *hostname, uint32_t port)
       return 1;
    }
    
-   *s=socket;
+   *s=sock;
    return 0;
 }
 
