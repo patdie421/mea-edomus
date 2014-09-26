@@ -7,13 +7,14 @@
  
    <body>
       <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
-      <script src="http://ried3.local:8000/socket.io/socket.io.js"></script>
 
       <h1>Communication avec socket.io !</h1>
       <div id="info"></div>
       <button id="connexion">connexion</button> 
       <script>
-         $(document).ready(function() {
+
+         function socketio_available() {
+            
             var socket = io.connect('http://ried3.local:8000');
 
             socket.on('log', function(message) {
@@ -23,8 +24,26 @@
             socket.on('key', function(message) {
               socket.emit('key','12345678');
             });
-         }); 
+         }
+
+
+         function socketio_unavailable() {
+            $("#info").append("<div>Pas d'iosocket on va faire sans</div>");
+         }
+
+
+         $(document).ready(function() {
+            var socketio_url=http://ried3.local:8000/socket.io/socket.io.js;
+
+            $.getScript(socketio_url)
+	             .done(function() {
+		              socketio_available();
+	             })
+	             .fail(function() {
+		              socketio_unavailable();
+               });
+         });
+
         </script>
     </body>
 </html>
-
