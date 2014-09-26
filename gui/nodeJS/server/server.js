@@ -1,3 +1,64 @@
+//
+// pour lire la ligne de commande :
+// process.argv.forEach(function (val, index, array) {
+//  console.log(index + ': ' + val);
+//});
+// passer les ports et sessions_path
+//
+
+
+// pour la gestion de l'habilitation
+//io.set('authorization', function (handshake, callback) {
+//
+// // if (handshake.headers.cookie) {
+// //
+// //   handshake.cookie = cookie.parse(handshake.headers.cookie);
+// //
+// //   handshake.sessionID = connect.utils.parseSignedCookie(handshake.cookie['express.sid'], 'secret');
+// //
+// //   if (handshake.cookie['express.sid'] == handshake.sessionID) {
+// //     return callback('Cookie is invalid.', false);
+// //   }
+// //
+// // } else {
+// //   return callback('No cookie transmitted.', false);
+// // }
+//
+//  callback(null, true);
+//});
+
+// voir ici : http://stackoverflow.com/questions/6502031/authenticate-user-for-socket-io-nodejs pour récupérer l'id session PHP dans les cookies
+
+// pour récupérer les info de session
+//function unserialize_session(str){
+//    var sessHash, sessHashEnd, sess = {}, serial = '', i =0;
+//    do {
+//        sessHash = str.match(/(^|;)([a-zA-Z0-9_-]+)\|/i);
+//        if (sessHash) {
+//            str = str.substring(sessHash[0].length);
+//            serial = str;
+//            sessHashEnd = serial.match(/(^|;)([a-zA-Z0-9_-]+)\|/i);
+//
+//            if (sessHashEnd && sessHashEnd[2] && sessHashEnd[2].length > 0) {
+//                serial = serial.substring(serial.search(new RegExp('(^|;)('+sessHashEnd[2]+')\\|')),0);
+//                str = str.substring(str.search(new RegExp('(^|;)('+sessHashEnd[2]+')\\|')))
+//            }
+//
+//            sess[sessHash[2]] = unserialize(serial);
+//        }
+//        if (i++ > 50 ) break;
+//    } while (sessHash);
+//
+//    return sess;
+//}
+
+// pour permettre l'appel côté client à socket.io sans mettre non du serveur ou l'adresse ip construire l'url en javascript avec les éléments suivants :
+// window.location.protocol + '//' + window.location.hostname + ':8080' + ...
+
+// pour lire un fichier (session php par exemple) voir :
+// http://docs.nodejitsu.com/articles/file-system/how-to-read-files-in-nodejs
+
+
 var LOCAL_PORT = 5600;
 var SOKET_IO_PORT = 8000;
 
