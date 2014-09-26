@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+</head>
+<style>
+
+.process
+{
+ height:15px;
+ line-height:15px;
+ margin-top:10px;
+ margin-bottom:10px;
+ font-family: verdena,arial;
+ font-size:12px;
+}
+
+.pastille {
+ float: left;
+ height:15px;
+ width:15px;
+ margin-right:5px;
+ margin-left:5px;
+}
+</style>
+
+<style>
+.cadre
+{
+ border:1px dotted black;
+ height:85px;
+ width:200px;
+}
+
+.console
+{
+ font-family:verdena,arial;
+ font-size:12px;
+ border:1px dotted black;
+ overflow-y:scroll;
+}
+</style>
+
+<body>
+
+<div style="font-family: verdena,arial;">
+Etat mea-edomus :
+</div>
+<div class="cadre">
+<div style="width:100px; float:left; ">
+   <div>
+      <div id="box1" class="pastille" style="background:green;"></div>
+      <div class="process">Titi</div>
+   </div>
+   <div>
+      <div id="box2" class="pastille" style="background:red;"></div>
+      <div  class="process">Toto</div>
+   </div>
+   <div>
+      <div id="box3" class="pastille" style="background:orange;"></div>
+      <div  class="process">Tata</div>
+   </div>
+</div>
+<div style="width:100px; float:left;">
+   <div>
+      <div id="box1" class="pastille" style="background:orange;"></div>
+      <div class="process" id="test">Tete</div>
+   </div>
+   <div>
+      <div id="box2" class="pastille" style="background:orange;"></div>
+      <div  class="process" id="heure">Tutu</div>
+   </div>
+</div>
+</div>
+
+<div id="last" style="font-family: verdena,arial; min-height:30px; line-height:30px;"></div>
+
+<div>
+   <button id="ack">ack</button>
+   <button id="adderror">error</button>
+   <button id="addwarning">warning</button>
+   <button id="addinfo">info</button>
+</div>
+
+<p></p>
+
+<div id="console" class="console" style="width:600px; min-height:200px; height:200px;">
+</div>
+
+<div>
+   <button id="live">live</button>
+   <button id="clear">clear</button>
+</div>
+
+<div id="info">
+</div>
+
+<script>
+
+$(document).ready(function()
+{
+  var old=0;
+
+/*
+ * DEBUT Pour la console
+ */
+  var whoIsScrollingFlag=0;   // 1 = le script, 0 = l'utilisateur
+  var scrollOnOffFlag=1; // 1 = activé par defaut
+
+  // ajoute une ligne dans la console
+  function toLogConsole(line)
+  {
+     // analyse de la ligne
+     var color="black"; // couleur par défaut
+     if(line.indexOf("ERROR:")==0)
+        color="red";
+     else if(line.indexOf("WARNING:")==0)
+        color="orange";
+     else if(line.indexOf("INFO:")==0)
+        color="green";
+     else if(line.indexOf("DEBUG:")==0)
+        color="blue";
+     
+     // ajout de la ligne
+     $('#console').append("<div class='log' style='color:"+color+";'>"+line+"</div>");
+     
+     // on retire une ligne si la limite est atteinte
+     var logLineDivHigh = 0;
+     if($('#console > *').length >= 30)
+     {
+        var toRemove = $("#console div:first-child"); // ligne à retirer
+        whoIsScrollingFlag=1;
+        logLineDivHigh =toRemove.height(); // hauteur de la ligne à retirer
+        toRemove.remove(); // on la retire
+     }
+
+     if(scrollOnOffFlag==1) { // le scroll est actif
+        whoIsScrollingFlag=1; // on dis qu'on va générer un événement de scroll (il faudra ne pas en tenir compte)
+        $('#console').scrollTop($('#console').prop("scrollHeight"));
+     }
+     else
+     {
+        // le scroll n'est pas actif
+        if(logLineDivHigh) // si une ligne a été retirée
+           $("#console").scrollTop($("#console").scrollTop()-logLineDivHigh); // je remonte le slider de la hauteur de la ligne retirée
+     }
+  }
+
+  // scrolling de la console
+  $("#console").scroll(function() {
+     if(scrollOnOffFlag==0 && whoIsScrollingFlag==0) // si scroll inactif
+     {
+        // le slider a-t-il été poussé jusqu'en bas ?
+        if($(this).scrollTop() + $(this).innerHeight() >= this.scrollHeight) {
+           scrollOnOffFlag=1; // on réactive le scroll (live)
+        }
+     }
+     else if(whoIsScrollingFlag==0) // le scroll est activé et c'est l'utilisateur qui à scroller
+     {
+        scrollOnOffFlag=0; // dans ce cas on désactive le scroll
+     }
+     else
+        whoIsScrollingFlag=0; // remise à 0 du flag.
+  });
+
+/*
+ * FIN Pour la console
+ */
+
+  function watchdog() {
+    var date =new Date();
+    var now = date.getTime();
+    if(old==0)
+    {
+       old=now;
+    }
+    if(now > old+2000)
+    {
+       $("#box1").css('background-color', 'red');
+       $("#box2").css('background-color', 'green');
+       $('#last').text("le temps passe : "+date+". Acquittez !");
+
+       toLogConsole("Le "+date+" toujours pas acquitté !!!");
+    }
+  }
+
+
+  //
+  // surveillance des événements
+  //
+
+  // timer
+  setInterval(watchdog, 500);
+
+  $("#ack").click(function(){
+    var date =new Date();
+    old = date.getTime();
+    $("#box1").css('background-color', 'green');
+    $("#box2").css('background-color', 'red');
+    $("#last").text("");
+  });
+
+  // bouton live
+  $("#live").click(function() {
+     scrollOnOffFlag=1;
+  });
+
+  $("#adderror").click(function() {
+       toLogConsole("ERROR: une erreur");
+  });
+
+  $("#addwarning").click(function() {
+       toLogConsole("WARNING: un warning");
+  });
+
+  $("#addinfo").click(function() {
+       toLogConsole("INFO: une info");
+  });
+
+  $("#clear").click(function() {
+     $('.log').remove();
+     whoIsScrollingFlag=1;
+     scrollOnOffFlag=1;
+  });
+});
+</script>
+</body>
+</html>
