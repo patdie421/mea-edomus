@@ -14,15 +14,17 @@
       <script>
 
          function socketio_available() {
-            
-            var socket = io.connect('http://ried3.local:8000');
+
+            var socketio_addr=window.location.protocol + '//' + window.location.hostname + ':8000';
+//            var socket = io.connect('http://ried3.local:8000');
+            var socket = io.connect(socketio_addr);
 
             socket.on('log', function(message) {
                $("#info").append("<div>LOG : "+message+"</div>");
             });
 
             socket.on('key', function(message) {
-              socket.emit('key','12345678');
+               socket.emit('key','12345678');
             });
          }
 
@@ -33,9 +35,10 @@
 
 
          $(document).ready(function() {
-            var socketio_url=http://ried3.local:8000/socket.io/socket.io.js;
+            var socketiojs_url=window.location.protocol + '//' + window.location.hostname + ':8000/socket.io/socket.io.js';
+            // var socketio_url=http://ried3.local:8000/socket.io/socket.io.js;
 
-            $.getScript(socketio_url)
+            $.getScript(socketiojs_url)
 	             .done(function() {
 		              socketio_available();
 	             })
