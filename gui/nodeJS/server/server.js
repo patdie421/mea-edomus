@@ -52,9 +52,6 @@
 //    return sess;
 //}
 
-// pour permettre l'appel côté client à socket.io sans mettre non du serveur ou l'adresse ip construire l'url en javascript avec les éléments suivants :
-// window.location.protocol + '//' + window.location.hostname + ':8080' + ...
-
 // pour lire un fichier (session php par exemple) voir :
 // http://docs.nodejitsu.com/articles/file-system/how-to-read-files-in-nodejs
 
@@ -84,28 +81,16 @@ io.sockets.on('connection', function(socket) {
    clients[socket.id] = [];
    clients[socket.id]['socket'] = socket;
    clients[socket.id]['connected'] = 0;
-   socket.emit('key', '?');
+
+
+   clients[socket.id]['connected'] = 1; // pour les tests
 
    var address = socket.handshake.address;
-//    console.log("New connection from " + address.address + ":" + address.port);
    console.log("Connexion d'un client " + socket.id + " from : "+ address.address);
 
    socket.on('disconnect', function() {
       console.log("Deconnexion d'un client");
       delete clients[socket.id];
-  });
-
-  socket.on('key', function(ckey) {
-     console.log("cle recu de "+this.id);
-     if(ckey == key)
-     {
-        console.log("Comparaison des cles OK : "+ckey+" == "+key);
-        clients[this.id]['connected']=1;
-     }
-     else
-     {
-        console.log("Comparaison des cles KO : "+ckey+" != "+key);
-     }
   });
 });
 
