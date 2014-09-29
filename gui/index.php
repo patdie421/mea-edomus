@@ -59,7 +59,7 @@ jQuery(document).ready(function(){
     $.ajaxSetup({ cache: false });
     $("#entete").load("views/commun/page-entete.php");
     $("#menu").load("views/commun/page-menu.php");
-    //$("#contenu").load("sub-pages/index-contenu.php");
+    $("#contenu").load("views/index-contenu.php");
     $("#piedpage").load("views/commun/page-pied.php");
 });
 </script>
