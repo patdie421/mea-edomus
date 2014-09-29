@@ -15,6 +15,8 @@
 const char *hostname = "localhost";
 #define PORT 4756
 
+pid_t pid_nodejs=0;
+
 int connexion(int *s, char *hostname, int port)
 {
    int sock;
@@ -188,11 +190,25 @@ pid_t start_nodejs(char *nodejs_path, char *eventServer_path, int port_socketio,
 
 void startMonitoringServer(char *nodejs_path, char *eventServer_path, int port_socketio, int port_socketdata);
 {
-   int pid;
+   pid_t pid;
 
    if(pid=start_nodejs(nodejs_path, eventServer_path, port_socketio, port_socketdata))>0)
    {
+      pid_nodejs=pid;
       monitoringServer();
+   }
+}
+
+
+void stop_nodejs()
+{
+   int status;
+
+   if(pid_nodejs>1)
+   {
+      kill(pid_nodejs, SIGTERM);
+      waitpit(stpid_nodej, &satus);
+      pid_nodejs=-1;
    }
 }
 
