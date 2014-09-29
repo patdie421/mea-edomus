@@ -77,10 +77,21 @@ var clients = [];
 
 var io = require('socket.io').listen(SOKET_IO_PORT);
 
+/*
 io.set('authorization', function (handshake, callback) {
    return callback(null, true);
    
    // retourner false si pas authentifié
+});
+*/
+
+io.use(function(socket, next) {
+  var handshakeData = socket.request;
+  // make sure the handshake data looks good as before
+  // if error do this:
+  //    next(new Error('not authorized');
+  // else just call next
+  next();
 });
 
 
