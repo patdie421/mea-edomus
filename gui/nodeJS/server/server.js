@@ -77,6 +77,13 @@ var clients = [];
 
 var io = require('socket.io').listen(SOKET_IO_PORT);
 
+io.set('authorization', function (handshake, callback) {
+   return callback(null, true);
+   
+   // retourner false si pas authentifié
+});
+
+
 io.sockets.on('connection', function(socket) {
    clients[socket.id] = [];
    clients[socket.id]['socket'] = socket;
