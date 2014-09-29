@@ -62,7 +62,7 @@ int envoie(int *s, char *message)
 }
 
 
-void monitor(void)
+void monitoringServer(void)
 {
    int exit=0;
    int nodejs_socket=-1;
@@ -75,12 +75,13 @@ void monitor(void)
        int ret;
        do
        {
-         sleep(5); // un check toutes les 5 secondes
+         sleep(2); // un check toutes les 2 secondes
          
          // récupération des données
          
          // formatage des données
-         
+         sprintf(message,"un message");
+
          ret = envoie(&nodejs_socket, message);
        }
        while(ret==0);
@@ -96,6 +97,53 @@ void monitor(void)
 }
 
 
+pid_t start_nodejs(char *nodejs_path, char *eventServer_path, int port_socketio, int port_socketdata)
+{
+   pid_t nodejs_pid = -1;
+   nodejs_pid = fork();
+
+    if (nodejs_pid == 0) // child
+    {
+       // Code only executed by child process
+       char str_port_socketio[32];
+       char str_port_socketdata[32];
+       char *params[4];
+
+       sprintf(str_port_socketio,"%d",port_socketio);
+       sprintf(str_port_socketdata,"%d",port_socketdata);
+
+       params[0]=eventServer_path;
+       params[1]=port_socketio;
+       params[2]=port_socketio;
+       params[3]=0;
+
+       exevp(nodejs_path, params);
+
+       VERBOSE(1) perror("");
+
+       exit(1);
+    }
+
+    else if (automator_pid < 0)
+    { // failed to fork
+       return -1;
+    }
+    // Code only executed by parent process
+    return nodejs_pid;
+} 
+
+
+void startMonitoringServer(char *nodejs_path, char *eventServer_path, int port_socketio, int port_socketdata);
+{
+   int pid;
+
+   if(pid=start_nodejs(nodejs_path, eventServer_path, port_socketio, port_socketdata))>0)
+   {
+      monitoringServer();
+   }
+}
+
+/*
 void main_test(int argc, const char *argv[])
 {
  int s;
@@ -106,3 +154,4 @@ void main_test(int argc, const char *argv[])
       close(s);
    }
 }
+*/
