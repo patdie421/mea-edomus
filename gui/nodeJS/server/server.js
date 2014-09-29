@@ -7,29 +7,9 @@
 //
 
 
-// pour la gestion de l'habilitation
-//io.set('authorization', function (handshake, callback) {
-//
-// // if (handshake.headers.cookie) {
-// //
-// //   handshake.cookie = cookie.parse(handshake.headers.cookie);
-// //
-// //   handshake.sessionID = connect.utils.parseSignedCookie(handshake.cookie['express.sid'], 'secret');
-// //
-// //   if (handshake.cookie['express.sid'] == handshake.sessionID) {
-// //     return callback('Cookie is invalid.', false);
-// //   }
-// //
-// // } else {
-// //   return callback('No cookie transmitted.', false);
-// // }
-//
-//  callback(null, true);
-//});
-
 // voir ici : http://stackoverflow.com/questions/6502031/authenticate-user-for-socket-io-nodejs pour récupérer l'id session PHP dans les cookies
 
-// pour récupérer les info de session
+// pour récupérer les info d'un fichier php session
 //function unserialize_session(str){
 //    var sessHash, sessHashEnd, sess = {}, serial = '', i =0;
 //    do {
@@ -87,27 +67,32 @@ io.set('authorization', function (handshake, callback) {
 // déclaration d'une fonction qui sera activé lors de la connexion. On traite ici l'authorisation on non (à voir comment)
 io.use(function(socket, next) {
   var handshakeData = socket.request;
+
+  var cookies=handshakeData.headers.['cookie'];
+//  var cookies=handshakeData.headers.cookie;
+
+  console.log(cookies); // pour voir ce qu'il y a dans les cookies à la connexion
+//  console.log(cookies.PHPSESSID); // voir si c'est possible
+
   // make sure the handshake data looks good as before
   // if error do this:
   //    next(new Error('not authorized');
   // else just call next
-  next();
+
+  // next(new Error('not authorized'); // connexion refusée
+  next(); // connexion authorisée
 });
 
 
 io.sockets.on('connection', function(socket) {
    clients[socket.id] = [];
    clients[socket.id]['socket'] = socket;
-   clients[socket.id]['connected'] = 0;
-
-
-   clients[socket.id]['connected'] = 1; // pour les tests
 
    var address = socket.handshake.address;
-   console.log("Connexion d'un client " + socket.id + " from : "+ address.address);
+   console.log("Connexion d'un client " + socket.id + " depuis : "+ address.address);
 
    socket.on('disconnect', function() {
-      console.log("Deconnexion d'un client");
+      console.log("Deconnexion du client : "+addsocket.id); 
       delete clients[socket.id];
   });
 });
@@ -116,12 +101,7 @@ io.sockets.on('connection', function(socket) {
 function sendMessage(message) {
    // emission du message à tous les clients "authentifies"
    for (var i in clients) {
-      if(clients[i]['connected'] == 1)
-      {
-         clients[i].socket.emit('log', message.toString());
-         console.log(message+" emis vers : "+i);
-      }
-      else
-         console.log(i+" pas connecte");
+      clients[i].socket.emit('log', message.toString());
+      console.log(message+" emis vers : "+i);
    }
 }
