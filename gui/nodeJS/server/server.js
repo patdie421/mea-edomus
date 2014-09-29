@@ -59,7 +59,6 @@
 var LOCAL_PORT = 5600;
 var SOKET_IO_PORT = 8000;
 
-var key="12345678";
 
 var server = require('net').createServer(function (socket) {
    socket.on('data', function (msg) {
