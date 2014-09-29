@@ -3,17 +3,21 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <netinet/tcp.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h> // close
 #include <netdb.h> // gethostbyname
 #include <errno.h>
+#include <signal.h>
+#include <sys/wait.h>
+
+#define PORT 5600
 
 #include "debug.h"
 #include "monitoring.h"
 
 const char *hostname = "localhost";
-#define PORT 4756
 
 pid_t pid_nodejs=0;
 
@@ -47,7 +51,7 @@ int connexion(int *s, char *hostname, int port)
       perror("connect()");
       return -1;
    }
-   
+
    *s=sock;
    return 0;
 }
@@ -60,66 +64,67 @@ int envoie(int *s, char *message)
       perror("send()");
       return -1;
    }
+   
    return 0;
 }
 
 
-void readAndSendLine(int nodejs_socket, char *file, long *pos)
+int readAndSendLine(int nodejs_socket, char *file, long *pos)
 {
    FILE *fp=NULL;
    char line[512];
 
-   do
+
+   fp = fopen(file, "r");
+   if(fp == NULL)
    {
-      int ret=0;
+      //perror("");
+      *pos=0; // le fichier n'existe pas. lorsqu'il sera créé on le lira depuis le debut
+      return 0;
+   }
 
-      fp = fopen(file, "r");
-      if(fp<0)
+   fseek(fp,0,SEEK_END);
+   if(*pos>=0)
+   {
+      if(*pos > ftell(fp))
       {
-         VERBOSE(1) perror("");
-         return -1;
-      }
-
-      if(*pos == -1) // premiere execution, on va à la fin du fichier
-      {
-         fseek(fp,0,SEEK_END);
+         fseek(fp, 0, SEEK_SET);
+         *pos=0;
       }
       else
-      { // sinon on va à la dernière position connue
-         if(fseek(fp,*pos,SEEK_SET)==-1)
-         {
-            // le fichier a été racoursi ... à va à la fin du fichier
-            fseek(fp,0,SEEK_END);
-         }
-      }
-
-      while (1)
       {
-         if (fgets(line, sizeof(line), fp) == NULL)
-         {
-            // plus de ligne à lire, on mémorise la dernière position connue
-            *pos=ftell(fp);
-            // et on ferme le fichier
-            fclose(fp);
-            fp=NULL;
-            break; 
-         }
-         else
-         {
-            fprintf(stderr,"LIGNE : %s\n",ligne);
-            ret = envoie(&nodejs_socket, message);
-            if(ret<0)
-               break;
-         }
-         // on retournera un peu plus tard
+         fseek(fp, *pos, SEEK_SET);
       }
-      if(ret<0)
-         break;
-      sleep(1);
+   }
+
+   int ret=0;
+   while (1)
+   {
+      if (fgets(line, sizeof(line), fp) == NULL)
+      {
+         // plus de ligne à lire, on mémorise la dernière position connue
+         *pos=ftell(fp);
+         // et on ferme le fichier
+         break; 
+      }
+      else
+      {
+         char message[512];
+
+         sprintf(message,"LOG:%s",line);
+         fprintf(stderr,"%d %s",*pos,message);
+         int ret = envoie(&nodejs_socket, message);
+         if(ret<0)
+         {
+            ret=-1;
+            break;
+         }
+      }
    }
    if(fp)
-      close(fp);
-   return -1;
+      fclose(fp);
+
+   return ret;
 }
 
 
@@ -128,23 +133,26 @@ void monitoringServer(char *logfile)
    int exit=0;
    int nodejs_socket=-1;
    char message[1024];
+   long pos = -1;
    
    do
    {
      if(connexion(&nodejs_socket, (char *)hostname, PORT)==0)
      {
        int ret;
-       long pos = -1;
        do
        {
-         ret=readAndSendLine(nodejs_socket, logfile, &pos);
+         if(readAndSendLine(nodejs_socket, logfile, &pos)==-1)
+            break;
+         sleep(1);
        }
-       while(ret==0);
+       while(1);
+
        close(nodejs_socket);
      }
      else
      {
-       VERBOSE(5) fprintf(stderr,"Retry next time ...\n");
+       fprintf(stderr,"Retry next time ...\n");
        sleep(5); // on essayera de se reconnecter dans 5 secondes
      }
    }
@@ -157,45 +165,48 @@ pid_t start_nodejs(char *nodejs_path, char *eventServer_path, int port_socketio,
    pid_t nodejs_pid = -1;
    nodejs_pid = fork();
 
-    if (nodejs_pid == 0) // child
-    {
-       // Code only executed by child process
-       char str_port_socketio[32];
-       char str_port_socketdata[32];
-       char *params[4];
+   if (nodejs_pid == 0) // child
+   {
+      // Code only executed by child process
+      char str_port_socketio[16];
+      char str_port_socketdata[16];
+      char *params[5];
 
-       sprintf(str_port_socketio,"%d",port_socketio);
-       sprintf(str_port_socketdata,"%d",port_socketdata);
+      sprintf(str_port_socketio,"%d",port_socketio);
+      sprintf(str_port_socketdata,"%d",port_socketdata);
 
-       params[0]=eventServer_path;
-       params[1]=port_socketio;
-       params[2]=port_socketio;
-       params[3]=0;
+      params[0]="nodejs";
+      params[1]=eventServer_path;
+      params[2]=str_port_socketio;
+      params[3]=str_port_socketio;
+      params[4]=0;
 
-       exevp(nodejs_path, params);
+      execvp(nodejs_path, params);
 
-       VERBOSE(1) perror("");
+      perror("");
 
-       exit(1);
-    }
+      exit(1);
+   }
 
-    else if (automator_pid < 0)
-    { // failed to fork
-       return -1;
-    }
-    // Code only executed by parent process
-    return nodejs_pid;
+   else if (nodejs_pid < 0)
+   { // failed to fork
+      perror("");
+      return -1;
+   }
+   // Code only executed by parent process
+   return nodejs_pid;
 } 
 
 
-void startMonitoringServer(char *nodejs_path, char *eventServer_path, int port_socketio, int port_socketdata);
+void startMonitoringServer(char *nodejs_path, char *eventServer_path, int port_socketio, int port_socketdata, char *log_path)
 {
    pid_t pid;
 
-   if(pid=start_nodejs(nodejs_path, eventServer_path, port_socketio, port_socketdata))>0)
+   pid=start_nodejs(nodejs_path, eventServer_path, port_socketio, port_socketdata);
+   if(pid>0)
    {
       pid_nodejs=pid;
-      monitoringServer();
+      monitoringServer(log_path);
    }
 }
 
@@ -207,21 +218,7 @@ void stop_nodejs()
    if(pid_nodejs>1)
    {
       kill(pid_nodejs, SIGTERM);
-      waitpit(stpid_nodej, &satus);
+      wait(&status);
       pid_nodejs=-1;
    }
 }
-
-
-/*
-void test(int argc, const char *argv[])
-{
- int s;
- 
-   if(connexion(&s, "localhost", 5600)==0)
-   {
-      envoie(&s, "TEST");
-      close(s);
-   }
-}
-*/

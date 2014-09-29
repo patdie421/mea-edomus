@@ -42,8 +42,12 @@ var SOKET_IO_PORT = 8000;
 
 var server = require('net').createServer(function (socket) {
    socket.on('data', function (msg) {
-      console.log("Message recu : " + msg);
-      sendMessage(msg);
+      var t = msg.toString().split(/\r?\n/);
+      for (var i in t)
+      {
+         console.log("Message recu : " + t[i]);
+         sendMessage(i);
+      }
    });
 }).listen(LOCAL_PORT);
 
@@ -68,8 +72,8 @@ io.set('authorization', function (handshake, callback) {
 io.use(function(socket, next) {
   var handshakeData = socket.request;
 
-  var cookies=handshakeData.headers.['cookie'];
-//  var cookies=handshakeData.headers.cookie;
+//  var cookies=handshakeData.headers.['cookie'];
+  var cookies=handshakeData.headers.cookie;
 
   console.log(cookies); // pour voir ce qu'il y a dans les cookies à la connexion
 //  console.log(cookies.PHPSESSID); // voir si c'est possible
@@ -99,6 +103,7 @@ io.sockets.on('connection', function(socket) {
 
 
 function sendMessage(message) {
+   
    // emission du message à tous les clients "authentifies"
    for (var i in clients) {
       clients[i].socket.emit('log', message.toString());

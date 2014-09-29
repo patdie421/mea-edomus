@@ -693,6 +693,9 @@ int main(int argc, const char * argv[])
  * \return    1 en cas d'erreur, 0 sinon
  */
 {
+//   startMonitoringServer("/usr/bin/nodejs", "/data/dev/mea-edomus/gui/nodeJS/server/server.js", 8000, 5600, "/tmp/test");
+//   exit(1);
+
    int ret; // sqlite function need int
    sqlite3 *sqlite3_param_db; // descritpteur SQLITE
    
