@@ -85,6 +85,7 @@ io.set('authorization', function (handshake, callback) {
 });
 */
 
+// déclaration d'une fonction qui sera activé lors de la connexion. On traite ici l'authorisation on non (à voir comment)
 io.use(function(socket, next) {
   var handshakeData = socket.request;
   // make sure the handshake data looks good as before
