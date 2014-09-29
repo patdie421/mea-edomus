@@ -25,14 +25,14 @@ int connexion(int *s, char *hostname, int port)
    if(sock < 0)
    {
       perror("socket()");
-      return 1;
+      return -1;
    }
 
    serv_info = gethostbyname(hostname); // on récupère les informations de l'hôte auquel on veut se connecter
    if(serv_info == NULL)
    {
       perror("gethostbyname()");
-      return 1;
+      return -1;
    }
 
    bzero((char *)&serv_addr, sizeof(serv_addr));
@@ -43,7 +43,7 @@ int connexion(int *s, char *hostname, int port)
    if(connect(sock, (const struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
    {
       perror("connect()");
-      return 1;
+      return -1;
    }
    
    *s=sock;
@@ -56,13 +56,72 @@ int envoie(int *s, char *message)
    if(send(*s, message, strlen(message), 0) < 0)
    {
       perror("send()");
-      return errno;
+      return -1;
    }
    return 0;
 }
 
 
-void monitoringServer(void)
+void readAndSendLine(int nodejs_socket, char *file, long *pos)
+{
+   FILE *fp=NULL;
+   char line[512];
+
+   do
+   {
+      int ret=0;
+
+      fp = fopen(file, "r");
+      if(fp<0)
+      {
+         VERBOSE(1) perror("");
+         return -1;
+      }
+
+      if(*pos == -1) // premiere execution, on va à la fin du fichier
+      {
+         fseek(fp,0,SEEK_END);
+      }
+      else
+      { // sinon on va à la dernière position connue
+         if(fseek(fp,*pos,SEEK_SET)==-1)
+         {
+            // le fichier a été racoursi ... à va à la fin du fichier
+            fseek(fp,0,SEEK_END);
+         }
+      }
+
+      while (1)
+      {
+         if (fgets(line, sizeof(line), fp) == NULL)
+         {
+            // plus de ligne à lire, on mémorise la dernière position connue
+            *pos=ftell(fp);
+            // et on ferme le fichier
+            fclose(fp);
+            fp=NULL;
+            break; 
+         }
+         else
+         {
+            fprintf(stderr,"LIGNE : %s\n",ligne);
+            ret = envoie(&nodejs_socket, message);
+            if(ret<0)
+               break;
+         }
+         // on retournera un peu plus tard
+      }
+      if(ret<0)
+         break;
+      sleep(1);
+   }
+   if(fp)
+      close(fp);
+   return -1;
+}
+
+
+void monitoringServer(char *logfile)
 {
    int exit=0;
    int nodejs_socket=-1;
@@ -73,16 +132,10 @@ void monitoringServer(void)
      if(connexion(&nodejs_socket, (char *)hostname, PORT)==0)
      {
        int ret;
+       long pos = -1;
        do
        {
-         sleep(2); // un check toutes les 2 secondes
-         
-         // récupération des données
-         
-         // formatage des données
-         sprintf(message,"un message");
-
-         ret = envoie(&nodejs_socket, message);
+         ret=readAndSendLine(nodejs_socket, logfile, &pos);
        }
        while(ret==0);
        close(nodejs_socket);
@@ -143,8 +196,9 @@ void startMonitoringServer(char *nodejs_path, char *eventServer_path, int port_s
    }
 }
 
+
 /*
-void main_test(int argc, const char *argv[])
+void test(int argc, const char *argv[])
 {
  int s;
  
