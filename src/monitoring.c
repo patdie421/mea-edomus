@@ -18,7 +18,6 @@
 #include "monitoring.h"
 
 const char *hostname = "localhost";
-
 pid_t pid_nodejs=0;
 
 int connexion(int *s, char *hostname, int port)
@@ -73,27 +72,46 @@ int readAndSendLine(int nodejs_socket, char *file, long *pos)
 {
    FILE *fp=NULL;
    char line[512];
-
+   struct stat fileStat;
+   static time_t st_mtime=0;
 
    fp = fopen(file, "r");
    if(fp == NULL)
    {
       //perror("");
       *pos=0; // le fichier n'existe pas. lorsqu'il sera créé on le lira depuis le debut
+      st_mtime=0;
       return 0;
    }
+
+   fstat(fp, &fileStat);
+   if(fileStat.st_mtime == st_mtime)
+   { // aucun changement
+      fclose(fp);
+      return 0;
+   }
+   st_mtime=fileStat.st_mtime;
+
 
    fseek(fp,0,SEEK_END);
    if(*pos>=0)
    {
-      if(*pos > ftell(fp))
+      long current=ftell(fp);
+
+      if(*pos > current) // le fichier a diminué, on le relie depuis le debut
       {
          fseek(fp, 0, SEEK_SET);
          *pos=0;
       }
-      else
+      else // le fichier a grossie ou est resté identique (en taille).
       {
-         fseek(fp, *pos, SEEK_SET);
+         if(current != *pos) // il a grossie
+            fseek(fp, *pos, SEEK_SET);
+         else // il est identique (en taille), mais il a été modifié.
+         {
+            fseek(fp, 0, SEEK_SET);
+            *pos=0;
+         }
       }
    }
 
@@ -104,7 +122,7 @@ int readAndSendLine(int nodejs_socket, char *file, long *pos)
       {
          // plus de ligne à lire, on mémorise la dernière position connue
          *pos=ftell(fp);
-         // et on ferme le fichier
+         // et on s'arrete pour l'instant
          break; 
       }
       else
