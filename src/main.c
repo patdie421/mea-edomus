@@ -49,6 +49,7 @@ queue_t *interfaces;                       /*!< liste (file) des interfaces. Var
 sqlite3 *sqlite3_param_db;                 /*!< descripteur pour la base sqlite de paramétrage. Variable globale car doit être accessible par les gestionnaires de signaux. */
 pthread_t *xPLServer_thread=NULL;          /*!< Adresse du thread du serveur xPL. Variable globale car doit être accessible par les gestionnaires de signaux.*/
 pthread_t *pythonPluginServer_thread=NULL; /*!< Adresse du thread Python. Variable globale car doit être accessible par les gestionnaires de signaux.*/
+pthread_t *monitoringServer_thread=NULL;   /*!< Adresse du thread de surveillance interne. Variable globale car doit être accessible par les gestionnaires de signaux.*/
 
 char *params_names[MAX_LIST_SIZE];          /*!< liste des noms (chaines) de paramètres dans la base sqlite3 de paramétrage.*/
 char *params_list[MAX_LIST_SIZE];          /*!< liste des valeurs de paramètres.*/
@@ -278,6 +279,15 @@ void stop_all_services_and_exit()
       VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping pythonPluginServer... ",INFO_STR,__func__);
       pthread_cancel(*pythonPluginServer_thread);
       pthread_join(*pythonPluginServer_thread, NULL);
+      VERBOSE(9) fprintf(stderr,"done\n");
+   }
+
+   if(monitoringServer_thread)
+   {
+      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping monitoringServer... ",INFO_STR,__func__);
+      pthread_cancel(*monitoringServer_thread);
+      pthread_join(*monitoringServer_thread, NULL);
+      // ne pas oublier d'arrêter le process nodejs
       VERBOSE(9) fprintf(stderr,"done\n");
    }
 
@@ -693,9 +703,6 @@ int main(int argc, const char * argv[])
  * \return    1 en cas d'erreur, 0 sinon
  */
 {
-//   startMonitoringServer("/usr/bin/nodejs", "/data/dev/mea-edomus/gui/nodeJS/server/server.js", 8000, 5600, "/tmp/test");
-//   exit(1);
-
    int ret; // sqlite function need int
    sqlite3 *sqlite3_param_db; // descritpteur SQLITE
    
@@ -1039,8 +1046,10 @@ int main(int argc, const char * argv[])
    pythonPluginServer_thread=start_pythonPluginServer(params_list, sqlite3_param_db); // initialisation du serveur de plugin python
    interfaces=start_interfaces(params_list, sqlite3_param_db); // démarrage des interfaces
    xPLServer_thread=start_xPLServer(params_list, interfaces, sqlite3_param_db); // initialisation du serveur xPL
+
    start_httpServer(params_list, sqlite3_param_db, interfaces); // initialisation du serveur HTTP
-   
+   monitoringServer_thread=monitoringServer("/usr/bin/nodejs", "/data/dev/mea-edomus/gui/nodeJS/server/server.js", 8000, 5600, "/tmp/test");
+
    DEBUG_SECTION fprintf(stderr,"MEA-EDOMUS %s starded\n",__MEA_EDOMUS_VERSION__);
 
    // boucle sans fin.

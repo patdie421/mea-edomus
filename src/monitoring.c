@@ -17,8 +17,16 @@
 #include "debug.h"
 #include "monitoring.h"
 
-const char *hostname = "localhost";
 
+struct monitoring_thread_data_s
+{
+   char *log_path;
+   char *hostname;
+   int port_socketdata;
+} monitoring_thread_data;
+
+
+const char *hostname = "localhost";
 pid_t pid_nodejs=0;
 
 int connexion(int *s, char *hostname, int port)
@@ -69,31 +77,103 @@ int envoie(int *s, char *message)
 }
 
 
+int seek_to_prevs_lines(FILE *fp, int nb_lines)
+{
+   char buff[512];
+   long pos=0;
+   int n;
+
+   if(nb_lines < 1)
+      return -1;
+
+
+   fseek(fp, 0, SEEK_END);
+
+   long max=ftell(fp);
+   long pos=max;
+
+   do
+   {
+      int nb_read=0;
+
+      pos=pos-sizeof(buff);
+      if(pos<0)
+      {
+         nb_read=sizeof(buff)+pos;
+         pos=0;
+      }
+      else
+      {
+         nb_read=sizeof(buff);
+      }
+
+      fseek(fp, pos, SEEK_SET);
+      fread(fp, buff, nb_read);
+
+      for(i=nb_read;i;i--)
+      {
+         if( (buff[i-1]=='\r') && ((pos+i) != 0) )
+         {
+            n++;
+            if(n==nb_line)
+            {
+               fseek(fp,pos+i,SEEK_SET);
+               return 0;
+            }
+        }
+     }
+  }
+  while(pos>0);
+
+  fseek(fp, pos, SEEK_END);
+  return 0;
+}
+
+
 int readAndSendLine(int nodejs_socket, char *file, long *pos)
 {
    FILE *fp=NULL;
    char line[512];
-
+   struct stat fileStat;
+   static time_t st_mtime=0;
 
    fp = fopen(file, "r");
    if(fp == NULL)
    {
       //perror("");
       *pos=0; // le fichier n'existe pas. lorsqu'il sera créé on le lira depuis le debut
+      st_mtime=0;
       return 0;
    }
+
+   fstat(fp, &fileStat);
+   if(fileStat.st_mtime == st_mtime)
+   { // aucun changement
+      fclose(fp);
+      return 0;
+   }
+   st_mtime=fileStat.st_mtime;
+
 
    fseek(fp,0,SEEK_END);
    if(*pos>=0)
    {
-      if(*pos > ftell(fp))
+      long current=ftell(fp);
+
+      if(*pos > current) // le fichier a diminué, on le relie depuis le debut
       {
          fseek(fp, 0, SEEK_SET);
          *pos=0;
       }
-      else
+      else // le fichier a grossie ou est resté identique (en taille).
       {
-         fseek(fp, *pos, SEEK_SET);
+         if(current != *pos) // il a grossie
+            fseek(fp, *pos, SEEK_SET);
+         else // il est identique (en taille), mais il a été modifié.
+         {
+            fseek(fp, 0, SEEK_SET);
+            *pos=0;
+         }
       }
    }
 
@@ -104,7 +184,7 @@ int readAndSendLine(int nodejs_socket, char *file, long *pos)
       {
          // plus de ligne à lire, on mémorise la dernière position connue
          *pos=ftell(fp);
-         // et on ferme le fichier
+         // et on s'arrete pour l'instant
          break; 
       }
       else
@@ -128,21 +208,23 @@ int readAndSendLine(int nodejs_socket, char *file, long *pos)
 }
 
 
-void monitoringServer(char *logfile)
+void _monitoring_thread(void *data)
 {
    int exit=0;
    int nodejs_socket=-1;
    char message[1024];
    long pos = -1;
-   
+
+   struct monitoring_thread_data_s *d=(struct monitoring_thread_data_s *)data;
+
    do
    {
-     if(connexion(&nodejs_socket, (char *)hostname, PORT)==0)
+     if(connexion(&nodejs_socket, (char *)(d->hostname), d->port_socketdata))
      {
        int ret;
        do
        {
-         if(readAndSendLine(nodejs_socket, logfile, &pos)==-1)
+         if(readAndSendLine(nodejs_socket, d->logfile, &pos)==-1)
             break;
          sleep(1);
        }
@@ -195,20 +277,8 @@ pid_t start_nodejs(char *nodejs_path, char *eventServer_path, int port_socketio,
    }
    // Code only executed by parent process
    return nodejs_pid;
-} 
-
-
-void startMonitoringServer(char *nodejs_path, char *eventServer_path, int port_socketio, int port_socketdata, char *log_path)
-{
-   pid_t pid;
-
-   pid=start_nodejs(nodejs_path, eventServer_path, port_socketio, port_socketdata);
-   if(pid>0)
-   {
-      pid_nodejs=pid;
-      monitoringServer(log_path);
-   }
 }
+
 
 
 void stop_nodejs()
@@ -222,3 +292,39 @@ void stop_nodejs()
       pid_nodejs=-1;
    }
 }
+
+
+pthread_t *monitoringServer(char *nodejs_path, char *eventServer_path, int port_socketio, int port_socketdata, char *log_path)
+{
+   pid_t nodejs_pid;
+   pthread_t *monitoring_thread=NULL;
+
+   nodejs_pid=start_nodejs(nodejs_path, eventServer_path, port_socketio, port_socketdata);
+   if(!node_js)
+   {
+      VERBOSE(1) {
+         fprintf (stderr, "%s (%s) : can't start nodejs",ERROR_STR,__func__);
+      }
+      return NULL;
+   }
+   
+   monitoring_thread_data.log_path=log_path;
+   monitoring_thread_data.hostname="localhost";
+   monitoring_thread_data.port_socketdata=port_socketdata;
+
+   monitoring_thread=(pthread_t *)malloc(sizeof(pthread_t));
+   if(!monitoring_thread)
+   {
+      VERBOSE(1) {
+         fprintf (stderr, "%s (%s) : malloc - ",ERROR_STR,__func__);
+         perror("");
+      }
+      return NULL;
+   }
+   if(pthread_create (monitoring_thread, NULL, _monitoring_thread, (void *)&monitoring_data))
+   {
+      VERBOSE(1) fprintf(stderr, "%s (%s) : pthread_create - can't start thread\n",ERROR_STR,__func__);
+      return NULL;
+   }
+   return xPL_thread;
+} 
