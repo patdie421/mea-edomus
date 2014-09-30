@@ -96,7 +96,7 @@ io.sockets.on('connection', function(socket) {
    console.log("Connexion d'un client " + socket.id + " depuis : "+ address.address);
 
    socket.on('disconnect', function() {
-      console.log("Deconnexion du client : "+addsocket.id); 
+      console.log("Deconnexion du client : "+socket.id); 
       delete clients[socket.id];
   });
 });
