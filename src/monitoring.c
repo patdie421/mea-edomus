@@ -17,6 +17,15 @@
 #include "debug.h"
 #include "monitoring.h"
 
+
+struct monitoring_thread_data_s
+{
+   char *log_path;
+   char *hostname;
+   int port_socketdata;
+} monitoring_thread_data;
+
+
 const char *hostname = "localhost";
 pid_t pid_nodejs=0;
 
@@ -199,21 +208,23 @@ int readAndSendLine(int nodejs_socket, char *file, long *pos)
 }
 
 
-void monitoringServer(char *logfile)
+void _monitoring_thread(void *data)
 {
    int exit=0;
    int nodejs_socket=-1;
    char message[1024];
    long pos = -1;
-   
+
+   struct monitoring_thread_data_s *d=(struct monitoring_thread_data_s *)data;
+
    do
    {
-     if(connexion(&nodejs_socket, (char *)hostname, PORT)==0)
+     if(connexion(&nodejs_socket, (char *)(d->hostname), d->port_socketdata))
      {
        int ret;
        do
        {
-         if(readAndSendLine(nodejs_socket, logfile, &pos)==-1)
+         if(readAndSendLine(nodejs_socket, d->logfile, &pos)==-1)
             break;
          sleep(1);
        }
@@ -266,20 +277,8 @@ pid_t start_nodejs(char *nodejs_path, char *eventServer_path, int port_socketio,
    }
    // Code only executed by parent process
    return nodejs_pid;
-} 
-
-
-void startMonitoringServer(char *nodejs_path, char *eventServer_path, int port_socketio, int port_socketdata, char *log_path)
-{
-   pid_t pid;
-
-   pid=start_nodejs(nodejs_path, eventServer_path, port_socketio, port_socketdata);
-   if(pid>0)
-   {
-      pid_nodejs=pid;
-      monitoringServer(log_path);
-   }
 }
+
 
 
 void stop_nodejs()
@@ -293,3 +292,39 @@ void stop_nodejs()
       pid_nodejs=-1;
    }
 }
+
+
+pthread_t *monitoringServer(char *nodejs_path, char *eventServer_path, int port_socketio, int port_socketdata, char *log_path)
+{
+   pid_t nodejs_pid;
+   pthread_t *monitoring_thread=NULL;
+
+   nodejs_pid=start_nodejs(nodejs_path, eventServer_path, port_socketio, port_socketdata);
+   if(!node_js)
+   {
+      VERBOSE(1) {
+         fprintf (stderr, "%s (%s) : can't start nodejs",ERROR_STR,__func__);
+      }
+      return NULL;
+   }
+   
+   monitoring_thread_data.log_path=log_path;
+   monitoring_thread_data.hostname="localhost";
+   monitoring_thread_data.port_socketdata=port_socketdata;
+
+   monitoring_thread=(pthread_t *)malloc(sizeof(pthread_t));
+   if(!monitoring_thread)
+   {
+      VERBOSE(1) {
+         fprintf (stderr, "%s (%s) : malloc - ",ERROR_STR,__func__);
+         perror("");
+      }
+      return NULL;
+   }
+   if(pthread_create (monitoring_thread, NULL, _monitoring_thread, (void *)&monitoring_data))
+   {
+      VERBOSE(1) fprintf(stderr, "%s (%s) : pthread_create - can't start thread\n",ERROR_STR,__func__);
+      return NULL;
+   }
+   return xPL_thread;
+} 
