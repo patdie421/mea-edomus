@@ -68,6 +68,59 @@ int envoie(int *s, char *message)
 }
 
 
+int seek_to_prevs_lines(FILE *fp, int nb_lines)
+{
+   char buff[512];
+   long pos=0;
+   int n;
+
+   if(nb_lines < 1)
+      return -1;
+
+
+   fseek(fp, 0, SEEK_END);
+
+   long max=ftell(fp);
+   long pos=max;
+
+   do
+   {
+      int nb_read=0;
+
+      pos=pos-sizeof(buff);
+      if(pos<0)
+      {
+         nb_read=sizeof(buff)+pos;
+         pos=0;
+      }
+      else
+      {
+         nb_read=sizeof(buff);
+      }
+
+      fseek(fp, pos, SEEK_SET);
+      fread(fp, buff, nb_read);
+
+      for(i=nb_read;i;i--)
+      {
+         if( (buff[i-1]=='\r') && ((pos+i) != 0) )
+         {
+            n++;
+            if(n==nb_line)
+            {
+               fseek(fp,pos+i,SEEK_SET);
+               return 0;
+            }
+        }
+     }
+  }
+  while(pos>0);
+
+  fseek(fp, pos, SEEK_END);
+  return 0;
+}
+
+
 int readAndSendLine(int nodejs_socket, char *file, long *pos)
 {
    FILE *fp=NULL;
