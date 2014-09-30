@@ -1048,7 +1048,7 @@ int main(int argc, const char * argv[])
    xPLServer_thread=start_xPLServer(params_list, interfaces, sqlite3_param_db); // initialisation du serveur xPL
 
    start_httpServer(params_list, sqlite3_param_db, interfaces); // initialisation du serveur HTTP
-   monitoringServer_thread=monitoringServer("/usr/bin/nodejs", "/data/dev/mea-edomus/gui/nodeJS/server/server.js", 8000, 5600, "/tmp/test");
+   monitoringServer_thread=monitoringServer("/data/rec/mea-edomus/alpha0.3/bin/node", "/data/rec/mea-edomus/alpha0.3/lib/mea-gui/nodeJS/server/server.js", 8000, 5600, "/tmp/test");
 
    DEBUG_SECTION fprintf(stderr,"MEA-EDOMUS %s starded\n",__MEA_EDOMUS_VERSION__);
 

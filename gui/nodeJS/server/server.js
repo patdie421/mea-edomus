@@ -43,10 +43,10 @@ var SOKET_IO_PORT = 8000;
 var server = require('net').createServer(function (socket) {
    socket.on('data', function (msg) {
       var t = msg.toString().split(/\r?\n/);
-      for (var i in t)
+      for ( i=0; i<t.length-1; i++)
       {
          console.log("Message recu : " + t[i]);
-         sendMessage(i);
+         sendMessage(t[i].slice(4));
       }
    });
 }).listen(LOCAL_PORT);

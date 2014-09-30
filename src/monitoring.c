@@ -11,6 +11,9 @@
 #include <errno.h>
 #include <signal.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <time.h>
 
 #define PORT 5600
 
@@ -90,7 +93,7 @@ int seek_to_prevs_lines(FILE *fp, int nb_lines)
    fseek(fp, 0, SEEK_END);
 
    long max=ftell(fp);
-   long pos=max;
+   pos=max;
 
    do
    {
@@ -107,15 +110,14 @@ int seek_to_prevs_lines(FILE *fp, int nb_lines)
          nb_read=sizeof(buff);
       }
 
-      fseek(fp, pos, SEEK_SET);
-      fread(fp, buff, nb_read);
+      fread(buff, nb_read, 1, fp);
 
-      for(i=nb_read;i;i--)
+      for(int i=nb_read;i;i--)
       {
          if( (buff[i-1]=='\r') && ((pos+i) != 0) )
          {
             n++;
-            if(n==nb_line)
+            if(n==nb_lines)
             {
                fseek(fp,pos+i,SEEK_SET);
                return 0;
@@ -134,26 +136,26 @@ int readAndSendLine(int nodejs_socket, char *file, long *pos)
 {
    FILE *fp=NULL;
    char line[512];
-   struct stat fileStat;
-   static time_t st_mtime=0;
 
+/*
+   struct stat fileStat;
+   time_t mtime;
+
+   stat(file, &fileStat);
+   if(fileStat.st_mtime == mtime)
+   { // aucun changement
+      return 0;
+   }
+   mtime=fileStat.st_mtime;
+*/
    fp = fopen(file, "r");
    if(fp == NULL)
    {
-      //perror("");
+      perror("");
       *pos=0; // le fichier n'existe pas. lorsqu'il sera créé on le lira depuis le debut
-      st_mtime=0;
+//      mtime=0;
       return 0;
    }
-
-   fstat(fp, &fileStat);
-   if(fileStat.st_mtime == st_mtime)
-   { // aucun changement
-      fclose(fp);
-      return 0;
-   }
-   st_mtime=fileStat.st_mtime;
-
 
    fseek(fp,0,SEEK_END);
    if(*pos>=0)
@@ -169,11 +171,6 @@ int readAndSendLine(int nodejs_socket, char *file, long *pos)
       {
          if(current != *pos) // il a grossie
             fseek(fp, *pos, SEEK_SET);
-         else // il est identique (en taille), mais il a été modifié.
-         {
-            fseek(fp, 0, SEEK_SET);
-            *pos=0;
-         }
       }
    }
 
@@ -208,7 +205,7 @@ int readAndSendLine(int nodejs_socket, char *file, long *pos)
 }
 
 
-void _monitoring_thread(void *data)
+void *_monitoring_thread(void *data)
 {
    int exit=0;
    int nodejs_socket=-1;
@@ -219,12 +216,12 @@ void _monitoring_thread(void *data)
 
    do
    {
-     if(connexion(&nodejs_socket, (char *)(d->hostname), d->port_socketdata))
+     if(connexion(&nodejs_socket, (char *)(d->hostname), 5600)==0)
      {
        int ret;
        do
        {
-         if(readAndSendLine(nodejs_socket, d->logfile, &pos)==-1)
+         if(readAndSendLine(nodejs_socket, d->log_path, &pos)==-1)
             break;
          sleep(1);
        }
@@ -300,7 +297,7 @@ pthread_t *monitoringServer(char *nodejs_path, char *eventServer_path, int port_
    pthread_t *monitoring_thread=NULL;
 
    nodejs_pid=start_nodejs(nodejs_path, eventServer_path, port_socketio, port_socketdata);
-   if(!node_js)
+   if(!nodejs_pid)
    {
       VERBOSE(1) {
          fprintf (stderr, "%s (%s) : can't start nodejs",ERROR_STR,__func__);
@@ -321,10 +318,10 @@ pthread_t *monitoringServer(char *nodejs_path, char *eventServer_path, int port_
       }
       return NULL;
    }
-   if(pthread_create (monitoring_thread, NULL, _monitoring_thread, (void *)&monitoring_data))
+   if(pthread_create (monitoring_thread, NULL, _monitoring_thread, (void *)&monitoring_thread_data))
    {
       VERBOSE(1) fprintf(stderr, "%s (%s) : pthread_create - can't start thread\n",ERROR_STR,__func__);
       return NULL;
    }
-   return xPL_thread;
+   return monitoring_thread;
 } 
