@@ -264,7 +264,7 @@ int16_t checkInstallationPaths(char *base_path, int16_t try_to_create_flag)
   * \return    0 si l'installation est ok, -1 = erreur bloquante, -2 = au moins un répertoire n'existe pas
   */
 {
-    const char *default_paths_list[]={NULL,"bin","etc","lib","lib/mea-plugins","var","var/db","var/log","var/log/sessions","lib/mea-gui",NULL};
+    const char *default_paths_list[]={NULL,"bin","etc","lib","lib/mea-plugins","var","var/db","var/log","var/sessions","lib/mea-gui",NULL};
     const char *usr_paths_list[]={"/etc","/usr/lib/mea-plugins","/var/db","/var/log","/tmp","/usr/lib/mea-gui",NULL};
     
     char **paths_list;
@@ -402,8 +402,8 @@ int16_t create_configs_php(char *gui_home, char *params_db_fullname, char *php_l
       fprintf(fd,"ini_set('error_reporting', E_ALL);\n");
       fprintf(fd,"ini_set('log_errors', 'On');\n");
       fprintf(fd,"ini_set('display_errors', 'Off');\n");
-      fprintf(fd,"ini_set(\"error_log\", \"%s\");\n",php_log_fullname);
-      fprintf(fd,"ini_set(session.save_path, \"%s\");\n", php_sessions_fullname);
+      fprintf(fd,"ini_set('error_log', \"%s\");\n",php_log_fullname);
+      fprintf(fd,"ini_set('session.save_path', \"%s\");\n", php_sessions_fullname);
 
       fprintf(fd,"$TITRE_APPLICATION='Mea eDomus Admin';\n");
       fprintf(fd,"$PARAMS_DB_PATH='sqlite:%s';\n",params_db_fullname);
