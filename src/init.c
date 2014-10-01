@@ -909,7 +909,7 @@ int16_t autoInit(char **params_list, char **keys)
    _construct_path(params_list, LOG_PATH,          p_str,                 "var/log");
    _construct_path(params_list, SQLITE3_DB_BUFF_PATH, p_str, "var/db/queries.db");
 
-   _construct_path(params_list, NODEJS_PATH,       "",   "/usr/bin/nodejs");
+   _construct_path(params_list, NODEJS_PATH,       "",   "usr/bin/nodejs");
 
    _construct_string(params_list, NODEJSIOSOCKET_PORT, "8000");
    _construct_string(params_list, NODEJSDATA_PORT, "5600");
