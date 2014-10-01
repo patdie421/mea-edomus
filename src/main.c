@@ -168,22 +168,6 @@ void init_param_names(char *param_names[])
 }
 
 
-int16_t set_xpl_address(char **params_list)
-/**
- * \brief     initialise les données pour l'adresse xPL
- * \details   positionne vendorID, deviceID et instanceID pour xPLServer
- * \param     params_liste  liste des parametres.
- * \return   -1 en cas d'erreur, 0 sinon
- */
-{
-   mea_setXPLVendorID(params_list[VENDOR_ID]);
-   mea_setXPLDeviceID(params_list[DEVICE_ID]);
-   mea_setXPLInstanceID(params_list[INSTANCE_ID]);
-   
-   return 0;
-}
-
-
 int16_t read_all_application_parameters(sqlite3 *sqlite3_param_db)
 /**
  * \brief     Chargement de tous les paramètres nécessaires au démarrage de l'application depuis la base de paramètres
@@ -240,8 +224,7 @@ void stop_all_services_and_exit()
    if(xPLServer_thread)
    {
       VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping xPLServer... ",INFO_STR,__func__);
-      pthread_cancel(*xPLServer_thread);
-      pthread_join(*xPLServer_thread, NULL);
+      stop_xPLServer();
       VERBOSE(9) fprintf(stderr,"done\n");
    }
 
@@ -405,48 +388,6 @@ static void _signal_HUP(int signal_number)
 }
 
 
-void start_httpServer(char **params_list, sqlite3 *sqlite3_param_db, queue_t *interfaces)
-{
-   char *phpcgibin=NULL;
-   if(params_list[PHPCGI_PATH] && params_list[PHPINI_PATH] && params_list[GUI_PATH] && params_list[SQLITE3_DB_PARAM_PATH])
-   {
-      phpcgibin=(char *)malloc(strlen(params_list[PHPCGI_PATH])+10); // 9 = strlen("/cgi-bin") + 1
-      sprintf(phpcgibin, "%s/php-cgi",params_list[PHPCGI_PATH]);
-
-      long guiport;
-      if(params_list[GUIPORT][0])
-      {
-         char *end;
-         guiport=strtol(params_list[GUIPORT],&end,10);
-         if(*end!=0 || errno==ERANGE)
-         {
-            VERBOSE(9) fprintf(stderr,"%s (%s) : GUI port (%s), not a number, 8083 will be used.\n",INFO_STR,__func__,params_list[GUIPORT]);
-            guiport=8083;
-         }
-      }
-      else
-      {
-         VERBOSE(9) fprintf(stderr,"%s (%s) : can't get GUI port, 8083 will be used.\n",INFO_STR,__func__);
-         guiport=8083;
-      }
-      
-      if(create_configs_php(params_list[GUI_PATH], params_list[SQLITE3_DB_PARAM_PATH], params_list[LOG_PATH], params_list[PHPSESSIONS_PATH])==0)
-         httpServer(guiport, params_list[GUI_PATH], phpcgibin, params_list[PHPINI_PATH], interfaces);
-      else
-      {
-         VERBOSE(3) fprintf(stderr,"%s (%s) : can't start GUI Server (can't create configs.php).\n",ERROR_STR,__func__);
-         // on continu sans ihm
-      }
-      free(phpcgibin);
-   }
-   else
-   {
-      VERBOSE(3) fprintf(stderr,"%s (%s) : can't start GUI Server (parameters errors).\n",ERROR_STR,__func__);
-      // on continu sans ihm
-   }
-}
-  
-  
 pthread_t *start_pythonPluginServer(char **params_list, sqlite3 *sqlite3_param_db)
 {
 pthread_t *pythonPluginServer_thread=NULL;
@@ -499,29 +440,6 @@ tomysqldb_md_t *start_dbServer(char **params_list, sqlite3 *sqlite3_param_db)
    VERBOSE(9) fprintf(stderr,"%s  (%s) : dbServer desactivated.\n",INFO_STR,__func__);
 #endif
    return md;
-}
-
-
-pthread_t *start_xPLServer(char **params_list, queue_t *interfaces, sqlite3 *sqlite3_param_db)
-{
-   pthread_t *xPLServer_thread;
-   if(!set_xpl_address(params_list))
-   {
-      xPLServer_thread=xPLServer(interfaces);
-      if(xPLServer_thread==NULL)
-      {
-         sqlite3_close(sqlite3_param_db);
-         VERBOSE(2) fprintf(stderr,"%s (%s) : can't start xpl server.\n",ERROR_STR,__func__);
-         stop_all_services_and_exit();
-      }
-   }
-   else
-   {
-      sqlite3_close(sqlite3_param_db);
-      VERBOSE(2) fprintf(stderr,"%s (%s) : can't start xpl server (incorrect xPL address).\n",ERROR_STR,__func__);
-      stop_all_services_and_exit();
-   }
-   return xPLServer_thread;
 }
 
 
@@ -660,44 +578,6 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
    return interfaces;
 }
 
-
-int export_electricity_conters()
-{
-   MYSQL *conn = mysql_init(NULL);
-   
-   if (mysql_real_connect(conn, "192.168.0.22", "domotique", "maison", "domotique", 3306, NULL, 0) == NULL)
-   {
-      VERBOSE(2) fprintf(stderr,"%s (%s) : %u - %s\n", ERROR_STR,__func__,mysql_errno(conn), mysql_error(conn));
-      return -1;
-   }
-   
-   if(mysql_query(conn, "SELECT sensor_id, date, wh, kwh FROM electricity_counters"))
-   {
-      VERBOSE(2) fprintf(stderr,"%s (%s) : %u - %s\n", ERROR_STR,__func__,mysql_errno(conn), mysql_error(conn));
-      return 1;
-   }
-  
-   MYSQL_RES *result = mysql_store_result(conn);
-   if(result == NULL)
-   {
-   }
-
-   MYSQL_ROW row;
-   int new_sensor_id;
-   int  sensor;
-   
-   while ((row = mysql_fetch_row(result)))
-   {
-      sensor=atoi(row[0]);
-      new_sensor_id=sensor;
-      
-      printf("INSERT INTO sensors_values (sensor_id,date,value1,unit,value2,complement) VALUES (%d,\"%s\",%s,1,%s,'WH');\n", new_sensor_id, row[1], row[2], row[3]);
-   }
-  
-   mysql_free_result(result);
-  
-   return 1;
-}
 
  
 int main(int argc, const char * argv[])
