@@ -10,7 +10,9 @@
 
 #include "error.h"
 #include "queue.h"
+#include <sqlite3.h>
 
-mea_error_t httpServer(uint16_t port, char *home, char *php_cgi, char *php_ini_path, queue_t *interfaces);
+int start_httpServer(char **params_list, sqlite3 *sqlite3_param_db, queue_t *interfaces);
+void stop_httpServer();
 
 #endif
