@@ -35,6 +35,8 @@ char *xpl_vendorID=NULL;
 char *xpl_deviceID=NULL;
 char *xpl_instanceID=NULL;
 
+
+pthread_t *_xPLServer_thread;
 pthread_cond_t  xplRespQueue_sync_cond;
 pthread_mutex_t xplRespQueue_sync_lock;
 queue_t         *xplRespQueue;
@@ -433,3 +435,23 @@ pthread_t *xPLServer(queue_t *interfaces)
       
    return xPL_thread;
 }
+
+
+pthread_t *start_xPLServer(char **params_list, queue_t *interfaces, sqlite3 *sqlite3_param_db)
+{
+   if(!set_xpl_address(params_list))
+   {
+      _xPLServer_thread=xPLServer(interfaces);
+      if(_xPLServer_thread==NULL)
+      {
+         VERBOSE(2) fprintf(stderr,"%s (%s) : can't start xpl server.\n",ERROR_STR,__func__);
+         return NULL;
+      }
+   }
+   else
+      return NULL;
+}
+
+
+
+
