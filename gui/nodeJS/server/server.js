@@ -45,7 +45,7 @@ var server = require('net').createServer(function (socket) {
       var t = msg.toString().split(/\r?\n/);
       for ( i=0; i<t.length-1; i++)
       {
-         console.log("Message recu : " + t[i]);
+//         console.log("Message recu : " + t[i]);
          sendMessage(t[i].slice(4));
       }
    });
@@ -75,7 +75,7 @@ io.use(function(socket, next) {
 //  var cookies=handshakeData.headers.['cookie'];
   var cookies=handshakeData.headers.cookie;
 
-  console.log(cookies); // pour voir ce qu'il y a dans les cookies à la connexion
+//  console.log(cookies); // pour voir ce qu'il y a dans les cookies à la connexion
 //  console.log(cookies.PHPSESSID); // voir si c'est possible
 
   // make sure the handshake data looks good as before
@@ -107,6 +107,6 @@ function sendMessage(message) {
    // emission du message à tous les clients "authentifies"
    for (var i in clients) {
       clients[i].socket.emit('log', message.toString());
-      console.log(message+" emis vers : "+i);
+//      console.log(message+" emis vers : "+i);
    }
 }
