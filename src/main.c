@@ -885,13 +885,27 @@ int main(int argc, const char * argv[])
 
    // démarrage des "services" (les services "majeurs" arrêtent tout (exit) si non démarrage
    if(!_b)
+   {
       myd=start_dbServer(params_list, sqlite3_param_db); // initialisation de la communication avec la base MySQL
+      if(!myd)
+      stop_all_services_and_exit();
+   }
+
    pythonPluginServer_thread=start_pythonPluginServer(params_list, sqlite3_param_db); // initialisation du serveur de plugin python
+   if(!pythonPluginServer_thread)
+      stop_all_services_and_exit();
+
    interfaces=start_interfaces(params_list, sqlite3_param_db); // démarrage des interfaces
+
    xPLServer_thread=start_xPLServer(params_list, interfaces, sqlite3_param_db); // initialisation du serveur xPL
+   if(!xPLServer_thread)
+      stop_all_services_and_exit();
 
    start_httpServer(params_list, sqlite3_param_db, interfaces); // initialisation du serveur HTTP
+
    monitoringServer_thread=start_monitoringServer("/data/rec/mea-edomus/alpha0.3/bin/node", "/data/rec/mea-edomus/alpha0.3/lib/mea-gui/nodeJS/server/server.js", 8000, 5600, "/tmp/test");
+//   if(!monitoringServer_thread)
+//      stop_all_services_and_exit();
 
    DEBUG_SECTION fprintf(stderr,"MEA-EDOMUS %s starded\n",__MEA_EDOMUS_VERSION__);
 
