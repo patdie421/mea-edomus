@@ -12,7 +12,7 @@
 #include "queue.h"
 #include <sqlite3.h>
 
-int start_httpServer(char **params_list, sqlite3 *sqlite3_param_db, queue_t *interfaces);
+int start_httpServer(char **params_list, queue_t *interfaces);
 void stop_httpServer();
 
 #endif
