@@ -272,7 +272,10 @@ void stop_interfaces(queut_t *interfaces)
 void restart_down_interfaces(queue_t interfaces)
 {
    interfaces_queue_elem_t *iq;
-   int16_t ret;  
+   int16_t ret;
+
+   if(!interfaces->nb_elem)
+     return;
 
    first_queue(interfaces);
    while(1)
