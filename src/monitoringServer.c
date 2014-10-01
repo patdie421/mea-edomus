@@ -18,7 +18,7 @@
 #define PORT 5600
 
 #include "debug.h"
-#include "monitoring.h"
+#include "monitoringServer.h"
 
 
 struct monitoring_thread_data_s

@@ -36,7 +36,7 @@
 #include "pythonPluginServer.h"
 #include "python_api_utils.h"
 
-#include "interfaces.h"
+#include "interfacesServer.h"
 
 
 typedef void (*thread_f)(void *);
