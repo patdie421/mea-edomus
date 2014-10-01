@@ -268,8 +268,7 @@ void stop_all_services_and_exit()
    if(pythonPluginServer_thread)
    {
       VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping pythonPluginServer... ",INFO_STR,__func__);
-      pthread_cancel(*pythonPluginServer_thread);
-      pthread_join(*pythonPluginServer_thread, NULL);
+      stop_pythonPluginServer();
       VERBOSE(9) fprintf(stderr,"done\n");
    }
 
@@ -385,35 +384,6 @@ static void _signal_HUP(int signal_number)
    }
    
    return;
-}
-
-
-tomysqldb_md_t *start_dbServer(char **params_list, sqlite3 *sqlite3_param_db)
-{
-   tomysqldb_md_t *md=NULL;
-   int16_t ret;
-#ifndef __NO_TOMYSQL__
-   md=(struct tomysqldb_md_s *)malloc(sizeof(struct tomysqldb_md_s));
-   if(!md)
-   {
-      sqlite3_close(sqlite3_param_db);
-      VERBOSE(2) {
-         fprintf(stderr,"%s (%s) : %s - ", ERROR_STR, __func__, MALLOC_ERROR_STR);
-         perror("");
-      }
-      stop_all_services_and_exit();
-   }
-   memset(md,0,sizeof(struct tomysqldb_md_s));
-   
-   ret=tomysqldb_init(md, params_list[MYSQL_DB_SERVER], params_list[MYSQL_DB_PORT], params_list[MYSQL_DATABASE], params_list[MYSQL_USER], params_list[MYSQL_PASSWD], params_list[SQLITE3_DB_BUFF_PATH]);
-   if(ret==-1)
-   {
-      VERBOSE(2) fprintf(stderr,"%s (%s) : Can not init data base communication.\n",ERROR_STR,__func__);
-   }
-#else
-   VERBOSE(9) fprintf(stderr,"%s  (%s) : dbServer desactivated.\n",INFO_STR,__func__);
-#endif
-   return md;
 }
 
 
