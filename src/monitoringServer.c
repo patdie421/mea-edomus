@@ -33,6 +33,7 @@ const char *hostname = "localhost";
 pid_t pid_nodejs=0;
 pthread_t *_monitoring_thread=NULL;
 
+
 int connexion(int *s, char *hostname, int port)
 {
    int sock;
@@ -42,14 +43,20 @@ int connexion(int *s, char *hostname, int port)
    sock = socket(AF_INET, SOCK_STREAM, 0);
    if(sock < 0)
    {
-      perror("socket()");
+      VERBOSE(1) {
+         fprintf(stderr, "%s (%s) :  socket - can't create : ",ERROR_STR,__func__);
+         perror("");
+      }
       return -1;
    }
 
    serv_info = gethostbyname(hostname); // on récupère les informations de l'hôte auquel on veut se connecter
    if(serv_info == NULL)
    {
-      perror("gethostbyname()");
+      VERBOSE(1) {
+         fprintf(stderr, "%s (%s) :  gethostbyname - can't get information : ",ERROR_STR,__func__);
+         perror("");
+      }
       return -1;
    }
 
@@ -60,7 +67,10 @@ int connexion(int *s, char *hostname, int port)
    
    if(connect(sock, (const struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
    {
-      perror("connect()");
+      VERBOSE(1) {
+         fprintf(stderr, "%s (%s) :  connect - can't connect : ",ERROR_STR,__func__);
+         perror("");
+      }
       return -1;
    }
 
@@ -73,7 +83,10 @@ int envoie(int *s, char *message)
 {
    if(send(*s, message, strlen(message), 0) < 0)
    {
-      perror("send()");
+      VERBOSE(1) {
+         fprintf(stderr, "%s (%s) :  send - can't send : ",ERROR_STR,__func__);
+         perror("");
+      }
       return -1;
    }
    
@@ -152,7 +165,10 @@ int readAndSendLine(int nodejs_socket, char *file, long *pos)
    fp = fopen(file, "r");
    if(fp == NULL)
    {
-      perror("");
+      VERBOSE(1) {
+         fprintf(stderr, "%s (%s) :  fopen - can't open %s : ",ERROR_STR,__func__,file);
+         perror("");
+      }
       *pos=0; // le fichier n'existe pas. lorsqu'il sera créé on le lira depuis le debut
 //      mtime=0;
       return 0;
@@ -190,7 +206,6 @@ int readAndSendLine(int nodejs_socket, char *file, long *pos)
          char message[512];
 
          sprintf(message,"LOG:%s",line);
-         fprintf(stderr,"%ld %s",*pos,message);
          int ret = envoie(&nodejs_socket, message);
          if(ret<0)
          {
@@ -210,7 +225,6 @@ void *monitoring_thread(void *data)
 {
    int exit=0;
    int nodejs_socket=-1;
-//   char message[1024];
    long pos = -1;
 
    struct monitoring_thread_data_s *d=(struct monitoring_thread_data_s *)data;
@@ -219,7 +233,6 @@ void *monitoring_thread(void *data)
    {
      if(connexion(&nodejs_socket, (char *)(d->hostname), 5600)==0)
      {
-//       int ret;
        do
        {
          if(readAndSendLine(nodejs_socket, d->log_path, &pos)==-1)
@@ -232,7 +245,9 @@ void *monitoring_thread(void *data)
      }
      else
      {
-       fprintf(stderr,"Retry next time ...\n");
+       VERBOSE(9) {
+          fprintf(stderr, "%s (%s) : connexion - retry next time ...\n",INFO_STR,__func__);
+       }
        sleep(5); // on essayera de se reconnecter dans 5 secondes
      }
    }
@@ -309,9 +324,9 @@ void stop_monitoringServer()
 
 pthread_t *start_monitoringServer(char *nodejs_path, char *eventServer_path, int port_socketio, int port_socketdata, char *log_path)
 {
-   pid_t nodejs_pid;
-   nodejs_pid=start_nodejs(nodejs_path, eventServer_path, port_socketio, port_socketdata);
-   if(!nodejs_pid)
+   pid_t pid;
+   pid=start_nodejs(nodejs_path, eventServer_path, port_socketio, port_socketdata);
+   if(!pid)
    {
       VERBOSE(1) {
          fprintf (stderr, "%s (%s) : can't start nodejs",ERROR_STR,__func__);
@@ -338,5 +353,7 @@ pthread_t *start_monitoringServer(char *nodejs_path, char *eventServer_path, int
       return NULL;
    }
 
+   pid_nodejs=pid;
    return _monitoring_thread;
-} 
+}
+
