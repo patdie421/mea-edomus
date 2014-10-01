@@ -287,7 +287,7 @@ void stop_nodejs()
 
    if(pid_nodejs>1)
    {
-      kill(pid_nodejs, SIGTERM);
+      kill(pid_nodejs, SIGKILL);
       wait(&status);
       pid_nodejs=-1;
    }
