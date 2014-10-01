@@ -9,20 +9,18 @@ DOWNLOAD=$(SOURCE)/complements/downloads
 all: $(NODEJSSOURCE)/node-v0.10.32/out/Release/node
 
 $(NODEJSSOURCE)/node-v0.10.32/out/Release/node: $(NODEJSSOURCE)/node-v0.10.32/Makefile
-	cd $(NODEJSSOURCE)/node-v0.10.32 ; make
+	cd $(NODEJSSOURCE)/node-v0.10.32 ; make -j2
 
 $(NODEJSSOURCE)/node-v0.10.32/Makefile: $(NODEJSSOURCE)/node-v0.10.32/extract.ok
-	cd $(NODEJSSOURCE)/node-v0.10.32 ; ./configure
-
-http://nodejs.org/dist/v0.10.32/node-v0.10.32.tar.gz
+	cd $(NODEJSSOURCE)/node-v0.10.32 ; ./configure ; touch $(NODEJSSOURCE)/node-v0.10.32/Makefile
 
 $(NODEJSSOURCE)/node-v0.10.32/extract.ok: $(DOWNLOAD)/node-v0.10.32.tar.gz
 	@mkdir -p $(NODEJSSOURCE)
-	cd $(NODEJSSOURCE) ; tar xvjf $(DOWNLOAD)/node-v0.10.32.tar.gz ; touch $(NODEJSSOURCE)/node-v0.10.32/extract.ok
+	cd $(NODEJSSOURCE) ; tar xvzf $(DOWNLOAD)/node-v0.10.32.tar.gz ; touch $(NODEJSSOURCE)/node-v0.10.32/extract.ok
 
 $(DOWNLOAD)/node-v0.10.32.tar.gz:
 	@mkdir -p $(DOWNLOAD)
-	curl -L http://nodejs.org/dist/v0.10.32/node-v0.10.32.tar.gz
+	curl -o $(DOWNLOAD)/node-v0.10.32.tar.gz http://nodejs.org/dist/v0.10.32/node-v0.10.32.tar.gz
 
 clean:
 	cd $(NODEJSSOURCE)/node-v0.10.32
