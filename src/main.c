@@ -302,13 +302,8 @@ static void _signal_HUP(int signal_number)
  * \param     signal_number  numéro du signal (pas utilisé mais nécessaire pour la déclaration du handler).
  */
 {
-   interfaces_queue_elem_t *iq;
-   int16_t ret;
-   
    VERBOSE(9) fprintf(stderr,"%s  (%s) : communication error signal (signal = %d).\n", INFO_STR, __func__, signal_number);
-   if(!interfaces->nb_elem)
-      return;
-   
+  
    // on cherche qui est à l'origine du signal et on le relance
    restart_down_interface(interfaces);
    return;
