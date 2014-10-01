@@ -453,6 +453,18 @@ int16_t set_xpl_address(char **params_list)
 }
 
 
+void stop_xPLServer()
+{
+   if(_xPLServer_thread)
+   {
+      pthread_cancel(_xPLServer_thread);
+      pthread_join(_xPLServer_thread, NULL);
+      free(_xPLServer_thread);
+      _xPLServer_thread=NULL;
+   }
+}
+
+
 pthread_t *start_xPLServer(char **params_list, queue_t *interfaces, sqlite3 *sqlite3_param_db)
 {
    if(!set_xpl_address(params_list))
