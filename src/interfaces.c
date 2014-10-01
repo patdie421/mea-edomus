@@ -236,7 +236,6 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
 
 void stop_interfaces(queut_t *interfaces)
 {
-   VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping interfaces...\n",INFO_STR,__func__);
    first_queue(interfaces);
    while(interfaces->nb_elem)
    {
@@ -268,7 +267,6 @@ void stop_interfaces(queut_t *interfaces)
       free(iq);
       iq=NULL;
    }
-   VERBOSE(9) fprintf(stderr,"%s  (%s) : done\n",INFO_STR,__func__);
 }
 
 
