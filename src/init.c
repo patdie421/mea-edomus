@@ -883,7 +883,7 @@ int16_t autoInit(char **params_list, char **keys)
    else
    {
       p_str=params_list[MEA_PATH];
-      sessions_str="var/log/sessions";
+      sessions_str="var/sessions";
    }
 
    //
@@ -971,7 +971,7 @@ int16_t interactiveInit(char **params_list, char **keys)
    else
    {
       p_str=params_list[MEA_PATH];
-      sessions_str="var/log/sessions";
+      sessions_str="var/sessions";
    }
 
    // Récupération des données
@@ -995,7 +995,7 @@ int16_t interactiveInit(char **params_list, char **keys)
 
    _read_path(params_list,   LOG_PATH,         p_str, "var/log", "PATH to logs directory");
 
-   _read_path(params_list,   NODEJS_PATH,      "", "/usr/bin/nodejs", "PATH to nodejs");
+   _read_path(params_list,   NODEJS_PATH,      "", "usr/bin/nodejs", "PATH to nodejs");
 
    _read_integer(params_list, NODEJSIOSOCKET_PORT, 8000,   "nodejs socketio port");
    _read_integer(params_list, NODEJSDATA_PORT,     5600,   "nodejs data exchange port");
