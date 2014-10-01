@@ -21,7 +21,7 @@
 #include "queue.h"
 #include "memory.h"
 
-#include "interfaces.h"
+#include "interfacesServer.h"
 #include "interface_type_001.h"
 #include "interface_type_002.h"
 

@@ -35,7 +35,7 @@
 #include "dbServer.h"
 #include "xPLServer.h"
 
-#include "interfaces.h"
+#include "interfacesServer.h"
 #include "interface_type_001.h"
 #include "interface_type_001_sensors.h"
 #include "interface_type_001_actuators.h"

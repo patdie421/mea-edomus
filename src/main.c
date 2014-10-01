@@ -32,7 +32,7 @@
 
 #include "init.h"
 
-#include "interfaces.h"
+#include "interfacesServer.h"
 #include "interface_type_001.h"
 #include "interface_type_002.h"
 
@@ -42,7 +42,7 @@
 #include "httpServer.h"
 #include "automatorServer.h"
 
-#include "monitoring.h"
+#include "monitoringServer.h"
 
 tomysqldb_md_t *myd;                       /*!< descripteur mysql. Variable globale car doit être accessible par les gestionnaires de signaux. */
 queue_t *interfaces;                       /*!< liste (file) des interfaces. Variable globale car doit être accessible par les gestionnaires de signaux. */
