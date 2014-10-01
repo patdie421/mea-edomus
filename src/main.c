@@ -282,7 +282,7 @@ void stop_all_services_and_exit()
    if(myd)
    {
       VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping dbServer... ",INFO_STR,__func__);
-      tomysqldb_release(myd);
+      stop_dbServer(myd);
       VERBOSE(9) fprintf(stderr,"done\n");
    }
    
