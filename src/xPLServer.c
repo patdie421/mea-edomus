@@ -437,6 +437,22 @@ pthread_t *xPLServer(queue_t *interfaces)
 }
 
 
+int16_t set_xpl_address(char **params_list)
+/**
+ * \brief     initialise les données pour l'adresse xPL
+ * \details   positionne vendorID, deviceID et instanceID pour xPLServer
+ * \param     params_liste  liste des parametres.
+ * \return   -1 en cas d'erreur, 0 sinon
+ */
+{
+   mea_setXPLVendorID(params_list[VENDOR_ID]);
+   mea_setXPLDeviceID(params_list[DEVICE_ID]);
+   mea_setXPLInstanceID(params_list[INSTANCE_ID]);
+   
+   return 0;
+}
+
+
 pthread_t *start_xPLServer(char **params_list, queue_t *interfaces, sqlite3 *sqlite3_param_db)
 {
    if(!set_xpl_address(params_list))
