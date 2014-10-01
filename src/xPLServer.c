@@ -475,6 +475,8 @@ pthread_t *start_xPLServer(char **params_list, queue_t *interfaces, sqlite3 *sql
          VERBOSE(2) fprintf(stderr,"%s (%s) : can't start xpl server.\n",ERROR_STR,__func__);
          return NULL;
       }
+      else
+         return _xPLServer_thread;
    }
    else
       return NULL;
