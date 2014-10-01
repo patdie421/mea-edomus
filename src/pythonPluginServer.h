@@ -9,6 +9,7 @@
 #define pythonPluginServer_h
 
 #include <pthread.h>
+#include <sqlite3.h>
 
 #include "error.h"
 #include "queue.h"
@@ -23,8 +24,9 @@ typedef struct pythonPlugin_cmd_s
    int  l_data;
 } pythonPlugin_cmd_t;
 
-pthread_t *pythonPluginServer(queue_t *plugin_queue);
 mea_error_t pythonPluginServer_add_cmd(char *module, void *data, int l_data);
 void setPythonPluginPath(char *path);
+pthread_t *start_pythonPluginServer(char **params_list, sqlite3 *sqlite3_param_db);
+void stop_pythoPluginServer();
 
 #endif
