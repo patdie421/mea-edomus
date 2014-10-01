@@ -231,37 +231,7 @@ void stop_all_services_and_exit()
    if(interfaces)
    {
       VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping interfaces...\n",INFO_STR,__func__);
-      first_queue(interfaces);
-      while(interfaces->nb_elem)
-      {
-         out_queue_elem(interfaces, (void **)&iq);
-         switch (iq->type)
-         {
-            case INTERFACE_TYPE_001:
-            {
-               interface_type_001_t *i001=(interface_type_001_t *)(iq->context);
-               VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping #%d\n",INFO_STR,__func__,i001->id_interface);
-               if(i001->xPL_callback)
-                  i001->xPL_callback=NULL;
-               stop_interface_type_001(i001);
-               break;
-            }
-            case INTERFACE_TYPE_002:
-            {
-               interface_type_002_t *i002=(interface_type_002_t *)(iq->context);
-               VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping #%d\n",INFO_STR,__func__,i002->id_interface);
-               if(i002->xPL_callback)
-                  i002->xPL_callback=NULL;
-               stop_interface_type_002(i002);
-               break;
-            }
-            
-            default:
-               break;
-         }
-         free(iq);
-         iq=NULL;
-      }
+      stop_interfaces(interfaces);
       VERBOSE(9) fprintf(stderr,"%s  (%s) : done\n",INFO_STR,__func__);
    }
    
