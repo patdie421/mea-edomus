@@ -360,7 +360,7 @@ mea_error_t interface_type_001_sensors_process_xpl_msg(interface_type_001_t *i00
 {
    queue_t *sensors_list=i001->sensors_list;
    struct sensor_s *sensor;
-   int type_id;
+   int type_id=0;
    uint16_t send_xpl_flag=0;
    int16_t no_type=0;
 

@@ -27,6 +27,6 @@ typedef struct pythonPlugin_cmd_s
 mea_error_t pythonPluginServer_add_cmd(char *module, void *data, int l_data);
 void setPythonPluginPath(char *path);
 pthread_t *start_pythonPluginServer(char **params_list, sqlite3 *sqlite3_param_db);
-void stop_pythoPluginServer();
+void stop_pythonPluginServer();
 
 #endif

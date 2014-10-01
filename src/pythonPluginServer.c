@@ -17,6 +17,7 @@
 #include <string.h>
 #include <pthread.h>
 
+#include "globals.h"
 #include "error.h"
 #include "debug.h"
 #include "queue.h"
@@ -417,12 +418,24 @@ pthread_t *pythonPluginServer(queue_t *plugin_queue)
 }
 
 
+void stop_pythonPluginServer()
+{
+   if(_pythonPluginServer_thread)
+   {
+      pthread_cancel(*_pythonPluginServer_thread);
+      pthread_join(*_pythonPluginServer_thread, NULL);
+      free(_pythonPluginServer_thread);
+      _pythonPluginServer_thread=NULL;
+   }
+}
+
+
 pthread_t *start_pythonPluginServer(char **params_list, sqlite3 *sqlite3_param_db)
 {
    if(params_list[PLUGINS_PATH])
    {
       setPythonPluginPath(params_list[PLUGINS_PATH]);
-      printf("PLUGINS_PATH=%s\n", params_list[PLUGINS_PATH]);
+//      printf("PLUGINS_PATH=%s\n", params_list[PLUGINS_PATH]);
       _pythonPluginServer_thread=pythonPluginServer(NULL);
       if(_pythonPluginServer_thread==NULL)
       {

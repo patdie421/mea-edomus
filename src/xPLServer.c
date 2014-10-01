@@ -349,7 +349,7 @@ void _flushExpiredXPLResponses()
 }
 
 
-void *_xPLServer_thread(void *data)
+void *_xPL_thread(void *data)
 {
 //   xPL_setDebugging(TRUE); // xPL en mode debug
 
@@ -427,7 +427,7 @@ pthread_t *xPLServer(queue_t *interfaces)
       return NULL;
    }
 
-   if(pthread_create (xPL_thread, NULL, _xPLServer_thread, (void *)interfaces))
+   if(pthread_create (xPL_thread, NULL, _xPL_thread, (void *)interfaces))
    {
       VERBOSE(1) fprintf(stderr, "%s (%s) : pthread_create - can't start thread\n",ERROR_STR,__func__);
       return NULL;
@@ -457,8 +457,8 @@ void stop_xPLServer()
 {
    if(_xPLServer_thread)
    {
-      pthread_cancel(_xPLServer_thread);
-      pthread_join(_xPLServer_thread, NULL);
+      pthread_cancel(*_xPLServer_thread);
+      pthread_join(*_xPLServer_thread, NULL);
       free(_xPLServer_thread);
       _xPLServer_thread=NULL;
    }

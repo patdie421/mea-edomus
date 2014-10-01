@@ -11,6 +11,7 @@
 #include <inttypes.h>
 #include <string.h>
 
+#include "globals.h"
 #include "debug.h"
 #include "error.h"
 #include "httpServer.h"
@@ -19,6 +20,7 @@
 #include "queue.h"
 #include "xPLServer.h"
 #include "token_strings.h"
+#include "init.h"
 
 //
 // pour compilation php-cgi :

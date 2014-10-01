@@ -16,6 +16,12 @@
 
 #include "string_utils.h"
 #include "queue.h"
+#include "debug.h"
+#include "types.h"
+
+#include "interfaces.h"
+#include "interface_type_001.h"
+#include "interface_type_002.h"
 
 uint32_t speeds[][3]={
    {   300,    B300},
@@ -32,7 +38,7 @@ uint32_t speeds[][3]={
 
 int32_t get_speed_from_speed_t(speed_t speed)
 {
-   for(int16_t i;speeds[i][0];i++)
+   for(int16_t i=0;speeds[i][0];i++)
    {
       if(speeds[i][1]==speed)
          return speeds[i][0];
@@ -68,7 +74,7 @@ int16_t get_dev_and_speed(char *device, char *dev, int16_t dev_l, speed_t *speed
       uint32_t v;
 
       reste_ptr=mea_strtrim(reste);
-      n=sscanf(reste,":%40[^/n/r]",vitesse);
+      n=sscanf(reste_ptr,":%40[^/n/r]",vitesse);
       if(n!=1)
          return -1;
 
@@ -97,7 +103,7 @@ int16_t get_dev_and_speed(char *device, char *dev, int16_t dev_l, speed_t *speed
 }
 
 
-queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
+queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db, tomysqldb_md_t *myd)
 {
    char sql[255];
    sqlite3_stmt * stmt;
@@ -112,7 +118,7 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
          fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
          perror("");
       }
-      stop_all_services_and_exit();
+      return NULL;
    }
    init_queue(interfaces);
    sprintf(sql,"SELECT * FROM interfaces");
@@ -121,7 +127,12 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
    {
       sqlite3_close(sqlite3_param_db);
       VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
-      stop_all_services_and_exit();
+      if(interfaces)
+      {
+         free(interfaces);
+         interfaces=NULL;
+      }
+      return NULL;
    }
    while (1)
    {
@@ -227,15 +238,22 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
          VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_step - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
          sqlite3_finalize(stmt);
          sqlite3_close(sqlite3_param_db);
-         stop_all_services_and_exit();
+         if(interfaces)
+         {
+            free(interfaces);
+            interfaces=NULL;
+         }
+         return NULL;
       }
    }
    return interfaces;
 }
 
 
-void stop_interfaces(queut_t *interfaces)
+void stop_interfaces(queue_t *interfaces)
 {
+   interfaces_queue_elem_t *iq;
+
    first_queue(interfaces);
    while(interfaces->nb_elem)
    {
@@ -269,7 +287,8 @@ void stop_interfaces(queut_t *interfaces)
    }
 }
 
-void restart_down_interfaces(queue_t interfaces)
+
+void restart_down_interfaces(queue_t *interfaces, sqlite3 *sqlite3_param_db, tomysqldb_md_t *myd)
 {
    interfaces_queue_elem_t *iq;
    int16_t ret;

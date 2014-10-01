@@ -85,7 +85,7 @@ int seek_to_prevs_lines(FILE *fp, int nb_lines)
 {
    char buff[512];
    long pos=0;
-   int n;
+   int n=0;
 
    if(nb_lines < 1)
       return -1;
@@ -190,7 +190,7 @@ int readAndSendLine(int nodejs_socket, char *file, long *pos)
          char message[512];
 
          sprintf(message,"LOG:%s",line);
-         fprintf(stderr,"%d %s",*pos,message);
+         fprintf(stderr,"%ld %s",*pos,message);
          int ret = envoie(&nodejs_socket, message);
          if(ret<0)
          {
@@ -206,11 +206,11 @@ int readAndSendLine(int nodejs_socket, char *file, long *pos)
 }
 
 
-void *_monitoring_thread(void *data)
+void *monitoring_thread(void *data)
 {
    int exit=0;
    int nodejs_socket=-1;
-   char message[1024];
+//   char message[1024];
    long pos = -1;
 
    struct monitoring_thread_data_s *d=(struct monitoring_thread_data_s *)data;
@@ -219,7 +219,7 @@ void *_monitoring_thread(void *data)
    {
      if(connexion(&nodejs_socket, (char *)(d->hostname), 5600)==0)
      {
-       int ret;
+//       int ret;
        do
        {
          if(readAndSendLine(nodejs_socket, d->log_path, &pos)==-1)
@@ -237,6 +237,8 @@ void *_monitoring_thread(void *data)
      }
    }
    while(exit==0);
+   
+   return NULL;
 }
 
 
@@ -292,12 +294,12 @@ void stop_nodejs()
 }
 
 
-stop_monitoringServer()
+void stop_monitoringServer()
 {
    if(_monitoring_thread)
    {
-      pthread_cancel(_monitoring_thread);
-      pthread_join(_monitoring_thread);
+      pthread_cancel(*_monitoring_thread);
+      pthread_join(*_monitoring_thread, NULL);
       free(_monitoring_thread);
       _monitoring_thread=NULL;
    }
@@ -322,7 +324,7 @@ pthread_t *start_monitoringServer(char *nodejs_path, char *eventServer_path, int
    monitoring_thread_data.port_socketdata=port_socketdata;
 
    _monitoring_thread=(pthread_t *)malloc(sizeof(pthread_t));
-   if(!monitoring_thread)
+   if(!_monitoring_thread)
    {
       VERBOSE(1) {
          fprintf (stderr, "%s (%s) : malloc - ",ERROR_STR,__func__);
@@ -330,7 +332,7 @@ pthread_t *start_monitoringServer(char *nodejs_path, char *eventServer_path, int
       }
       return NULL;
    }
-   if(pthread_create (monitoring_thread, NULL, _monitoring_thread, (void *)&monitoring_thread_data))
+   if(pthread_create (_monitoring_thread, NULL, monitoring_thread, (void *)&monitoring_thread_data))
    {
       VERBOSE(1) fprintf(stderr, "%s (%s) : pthread_create - can't start thread\n",ERROR_STR,__func__);
       return NULL;

@@ -70,6 +70,6 @@ void tomysqldb_release(tomysqldb_md_t *md);
 int16_t tomysqldb_add_data_to_sensors_values(tomysqldb_md_t *md, uint16_t sensor_id, double value1, uint16_t unit, double value2, char *complement);
 
 tomysqldb_md_t *start_dbServer(char **params_list, sqlite3 *sqlite3_param_db);
-void stop_dbServer();
+void stop_dbServer(tomysqldb_md_t *md);
 
 #endif

@@ -8,6 +8,7 @@
 
 #include "dbServer.h"
 
+#include "globals.h"
 #include "debug.h"
 #include "macros.h"
 #include "memory.h"
@@ -670,6 +671,12 @@ void tomysqldb_release(tomysqldb_md_t *md)
 }
 
 
+void stop_dbServer(tomysqldb_md_t *md)
+{
+   tomysqldb_release(md);
+}
+
+
 tomysqldb_md_t *start_dbServer(char **params_list, sqlite3 *sqlite3_param_db)
 {
    tomysqldb_md_t *md=NULL;
@@ -691,7 +698,7 @@ tomysqldb_md_t *start_dbServer(char **params_list, sqlite3 *sqlite3_param_db)
    if(ret==-1)
    {
       VERBOSE(2) fprintf(stderr,"%s (%s) : Can not init data base communication.\n",ERROR_STR,__func__);
-      return NULL
+      return NULL;
    }
 #else
    VERBOSE(9) fprintf(stderr,"%s  (%s) : dbServer desactivated.\n",INFO_STR,__func__);

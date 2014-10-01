@@ -54,10 +54,11 @@ WHERE id_rule=%d;";
 
 int16_t isnumeric3(char *s)
 {
-   float f;
+//   float f;
    char *end;
    
-   f=strtof(s,&end);
+//   f=strtof(s,&end);
+   strtof(s,&end);
    if(*end!=0 || errno==ERANGE || end==s)
       return 0;
    else
@@ -178,7 +179,7 @@ int16_t check_conditions(int conditions_id_rule, xPL_NameValueListPtr xpl_body)
          int s = sqlite3_step (stmt); // sqlite function need int
          if (s == SQLITE_ROW)
          {
-            char *name;
+//            char *name;
             char *key;
             int op;
             char value[128];
@@ -186,7 +187,7 @@ int16_t check_conditions(int conditions_id_rule, xPL_NameValueListPtr xpl_body)
             
             float fvalue, fxpl_value;
             
-            name = (char *)sqlite3_column_text(stmt, 0);
+//            name = (char *)sqlite3_column_text(stmt, 0);
             key = (char *)sqlite3_column_text(stmt, 1);
             op = sqlite3_column_int(stmt, 2);
             strncpy(value,(char *)sqlite3_column_text(stmt, 3),sizeof(value));
@@ -329,15 +330,15 @@ int16_t find_and_process_rules(sqlite3 *db, xPL_MessagePtr theMessage)
          {
             int conditions_id_rule;
             char *rules_name;
-            int input_type;
-            int input_index;
-            char *input_value;
+//            int input_type;
+//            int input_index;
+//            char *input_value;
 
             conditions_id_rule = sqlite3_column_int(stmt, 0);
             rules_name = (char *)sqlite3_column_text(stmt, 1);
-            input_type = sqlite3_column_int(stmt, 2);
-            input_index = sqlite3_column_int(stmt, 3);
-            input_value = (char *)sqlite3_column_text(stmt, 1);
+//            input_type = sqlite3_column_int(stmt, 2);
+//            input_index = sqlite3_column_int(stmt, 3);
+//            input_value = (char *)sqlite3_column_text(stmt, 1);
             
             if(check_conditions(conditions_id_rule, xpl_body)==0)
             {

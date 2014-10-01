@@ -163,7 +163,7 @@ void init_param_names(char *param_names[])
    param_names[GUIPORT]              = "GUIPORT";
    param_names[PHPSESSIONS_PATH]     = "PHPSESSIONSPATH";
    param_names[NODEJS_PATH]          = "NODEJSPATH";
-   param_names[NODEJSSOCKETIO_PORT]  = "NODEJSSOCKETIOPORT";
+   param_names[NODEJSIOSOCKET_PORT]  = "NODEJSSOCKETIOPORT";
    param_names[NODEJSDATA_PORT]      = "NODEJSDATAPORT";
 }
 
@@ -219,8 +219,6 @@ int16_t read_all_application_parameters(sqlite3 *sqlite3_param_db)
 
 void stop_all_services_and_exit()
 {
-   interfaces_queue_elem_t *iq;
-   
    if(xPLServer_thread)
    {
       VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping xPLServer... ",INFO_STR,__func__);
@@ -245,7 +243,7 @@ void stop_all_services_and_exit()
    if(monitoringServer_thread)
    {
       VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping monitoringServer... ",INFO_STR,__func__);
-      stop_monitoringServer()
+      stop_monitoringServer();
       VERBOSE(9) fprintf(stderr,"done\n");
    }
 
@@ -305,7 +303,7 @@ static void _signal_HUP(int signal_number)
    VERBOSE(9) fprintf(stderr,"%s  (%s) : communication error signal (signal = %d).\n", INFO_STR, __func__, signal_number);
   
    // on cherche qui est à l'origine du signal et on le relance
-   restart_down_interface(interfaces);
+   restart_down_interfaces(interfaces, sqlite3_param_db, myd);
    return;
 }
 
@@ -347,8 +345,8 @@ int main(int argc, const char * argv[])
       {"instanceid",        required_argument, 0,  INSTANCE_ID          }, // 'S'
       {"verboselevel",      required_argument, 0,  VERBOSELEVEL         }, // 'v'
       {"nodejspath",        required_argument, 0,  NODEJS_PATH          }, // 'j'
-      {"nodejssocketioport",required_argument, 0,  NODEJSSOCKETIO_PORT  }, // 'J' 
-      {"nodejsdataport",    required_argument, 0,  NODEJS_PORT          }, // 'k'
+      {"nodejssocketioport",required_argument, 0,  NODEJSIOSOCKET_PORT  }, // 'J'
+      {"nodejsdataport",    required_argument, 0,  NODEJSDATA_PORT      }, // 'k'
       {"guiport",           required_argument, 0,  GUIPORT              }, // 'g'
       {"nodatabase",        no_argument,       0,  'b'                  }, // 'b'
       {"help",              no_argument,       0,  'h'                  }, // 'h'
@@ -519,15 +517,15 @@ int main(int argc, const char * argv[])
             break;
 
          case 'j':
-            c=NODEJSPATH;
+            c=NODEJS_PATH;
             break;
 
          case 'J':
-            c=NODEJSSOCKETIOPORT; 
+            c=NODEJSIOSOCKET_PORT;
             break;
 
          case 'k':
-            c=NODEJSDATAPORT;
+            c=NODEJSDATA_PORT;
             break;
       }
 
@@ -627,6 +625,7 @@ int main(int argc, const char * argv[])
    //
    // strout et stderr vers fichier log
    //
+/*
    char log_file[255];
    int16_t n;
    
@@ -654,7 +653,7 @@ int main(int argc, const char * argv[])
    dup2(fd, 1);
    dup2(fd, 2);
    close(fd);
-
+*/
    //   
    // demarrage du processus de l'automate
    //
@@ -681,13 +680,13 @@ int main(int argc, const char * argv[])
    if(!pythonPluginServer_thread)
       stop_all_services_and_exit();
 
-   interfaces=start_interfaces(params_list, sqlite3_param_db); // démarrage des interfaces
+   interfaces=start_interfaces(params_list, sqlite3_param_db, myd); // démarrage des interfaces
 
    xPLServer_thread=start_xPLServer(params_list, interfaces, sqlite3_param_db); // initialisation du serveur xPL
    if(!xPLServer_thread)
       stop_all_services_and_exit();
 
-   start_httpServer(params_list, sqlite3_param_db, interfaces); // initialisation du serveur HTTP
+   start_httpServer(params_list, interfaces); // initialisation du serveur HTTP
 
    monitoringServer_thread=start_monitoringServer("/data/rec/mea-edomus/alpha0.3/bin/node", "/data/rec/mea-edomus/alpha0.3/lib/mea-gui/nodeJS/server/server.js", 8000, 5600, "/tmp/test");
 //   if(!monitoringServer_thread)

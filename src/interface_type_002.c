@@ -1019,6 +1019,9 @@ mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, in
    struct callback_xpl_data_s *xpl_callback_params=NULL;
    
    i002->thread=NULL;
+
+   int interface_nb_parameters=0;
+   parsed_parameters_t *interface_parameters=NULL;
    
    ret=get_dev_and_speed((char *)dev_and_speed, buff, sizeof(buff), &speed);
    if(!ret)
@@ -1091,8 +1094,7 @@ mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, in
    /*
     * exécution du plugin de paramétrage
     */   
-   int interface_nb_parameters=0;
-   parsed_parameters_t *interface_parameters=malloc_parsed_parameters(parameters, valid_xbee_plugin_params, &interface_nb_parameters, &err, 0);
+   interface_parameters=malloc_parsed_parameters(parameters, valid_xbee_plugin_params, &interface_nb_parameters, &err, 0);
    if(!interface_parameters || !interface_parameters[XBEE_PLUGIN_PARAMS_PLUGIN].value.s)
    {
       if(interface_parameters)
@@ -1112,7 +1114,7 @@ mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, in
    {
       PyObject *plugin_params_dict=NULL;
       PyObject *pName, *pModule, *pFunc;
-      PyObject *pArgs, *pValue;
+      PyObject *pArgs, *pValue=NULL;
       
       pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
       PyEval_AcquireLock();
@@ -1157,8 +1159,8 @@ mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, in
          {
             VERBOSE(5) fprintf(stderr, "%s (%s) : mea_init not fount in %s module\n", ERROR_STR, __func__, interface_parameters[XBEE_PLUGIN_PARAMS_PLUGIN].value.s);
          }
+         Py_XDECREF(pFunc);
       }
-      Py_XDECREF(pFunc);
       Py_XDECREF(pModule);
       Py_DECREF(pName);
       PyErr_Clear();

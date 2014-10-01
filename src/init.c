@@ -911,8 +911,8 @@ int16_t autoInit(char **params_list, char **keys)
 
    _construct_path(params_list, NODEJS_PATH,       "",   "/usr/bin/nodejs");
 
-   _construct_string(params_list, NODEJS_SOCKETIOPORT, "8000");
-   _construct_string(params_list, NODEJS_DATAPORT, "5600");
+   _construct_string(params_list, NODEJSIOSOCKET_PORT, "8000");
+   _construct_string(params_list, NODEJSDATA_PORT, "5600");
 
    _construct_path(params_list, LOG_PATH, p_str,   "var/log");
 
@@ -997,7 +997,7 @@ int16_t interactiveInit(char **params_list, char **keys)
 
    _read_path(params_list,   NODEJS_PATH,      "", "/usr/bin/nodejs", "PATH to nodejs");
 
-   _read_integer(params_list, NODEJSSOCKETIO_PORT, 8000,   "nodejs socketio port");
+   _read_integer(params_list, NODEJSIOSOCKET_PORT, 8000,   "nodejs socketio port");
    _read_integer(params_list, NODEJSDATA_PORT,     5600,   "nodejs data exchange port");
 
    _read_integer(params_list, VERBOSELEVEL, 1, "Verbose level");

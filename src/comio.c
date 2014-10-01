@@ -273,7 +273,7 @@ on_error_exit_arduino_read:
          char c=buff[i];
          if(c<'!')
             c=' ';
-         fprintf(stderr,"%x(%c) ",buff[i],buff[i]);
+         fprintf(stderr,"%x(%c) ",buff[i],c);
       }
       fprintf(stderr,"nerr=%d\n",*nerr);
    }
