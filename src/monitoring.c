@@ -299,6 +299,7 @@ monitoringServer_stop()
       pthread_cancel(_monitoring_thread);
       pthread_join(_monitoring_thread);
       free(_monitoring_thread);
+      _monitoring_thread=NULL;
    }
    stop_nodejs();
 }
