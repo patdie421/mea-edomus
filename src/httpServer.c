@@ -265,7 +265,7 @@ mea_error_t httpServer(uint16_t port, char *home, char *php_cgi, char *php_ini_p
 }
 
 
-int start_httpServer(char **params_list, sqlite3 *sqlite3_param_db, queue_t *interfaces)
+int start_httpServer(char **params_list, queue_t *interfaces)
 {
    char *phpcgibin=NULL;
    if(params_list[PHPCGI_PATH] && params_list[PHPINI_PATH] && params_list[GUI_PATH] && params_list[SQLITE3_DB_PARAM_PATH])
