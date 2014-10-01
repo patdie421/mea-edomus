@@ -625,7 +625,6 @@ int main(int argc, const char * argv[])
    //
    // strout et stderr vers fichier log
    //
-/*
    char log_file[255];
    int16_t n;
    
@@ -653,7 +652,7 @@ int main(int argc, const char * argv[])
    dup2(fd, 1);
    dup2(fd, 2);
    close(fd);
-*/
+
    //   
    // demarrage du processus de l'automate
    //
@@ -689,8 +688,8 @@ int main(int argc, const char * argv[])
    start_httpServer(params_list, interfaces); // initialisation du serveur HTTP
 
    monitoringServer_thread=start_monitoringServer("/data/rec/mea-edomus/alpha0.3/bin/node", "/data/rec/mea-edomus/alpha0.3/lib/mea-gui/nodeJS/server/server.js", 8000, 5600, "/tmp/test");
-//   if(!monitoringServer_thread)
-//      stop_all_services_and_exit();
+   if(!monitoringServer_thread)
+      stop_all_services_and_exit();
 
    DEBUG_SECTION fprintf(stderr,"MEA-EDOMUS %s starded\n",__MEA_EDOMUS_VERSION__);
 
