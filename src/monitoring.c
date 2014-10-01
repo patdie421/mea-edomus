@@ -304,7 +304,7 @@ monitoringServer_stop()
 }
 
 
-pthread_t *monitoringServer(char *nodejs_path, char *eventServer_path, int port_socketio, int port_socketdata, char *log_path)
+pthread_t *start_monitoringServer(char *nodejs_path, char *eventServer_path, int port_socketio, int port_socketdata, char *log_path)
 {
    pid_t nodejs_pid;
    nodejs_pid=start_nodejs(nodejs_path, eventServer_path, port_socketio, port_socketdata);
