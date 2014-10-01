@@ -388,32 +388,6 @@ static void _signal_HUP(int signal_number)
 }
 
 
-pthread_t *start_pythonPluginServer(char **params_list, sqlite3 *sqlite3_param_db)
-{
-pthread_t *pythonPluginServer_thread=NULL;
-
-   if(params_list[PLUGINS_PATH])
-   {
-      setPythonPluginPath(params_list[PLUGINS_PATH]);
-      printf("PLUGINS_PATH=%s\n", params_list[PLUGINS_PATH]);
-      pythonPluginServer_thread=pythonPluginServer(NULL);
-      if(pythonPluginServer_thread==NULL)
-      {
-         sqlite3_close(sqlite3_param_db);
-         VERBOSE(2) fprintf(stderr,"%s (%s) : can't start Python Plugin Server (thread error).\n",ERROR_STR,__func__);
-         stop_all_services_and_exit();
-      }
-   }
-   else
-   {
-      sqlite3_close(sqlite3_param_db);
-      VERBOSE(2) fprintf(stderr,"%s (%s) : can't start Python Plugin Server (incorrect plugin path).\n",ERROR_STR,__func__);
-      stop_all_services_and_exit();
-   }
-   return pythonPluginServer_thread;
-}
-
-
 tomysqldb_md_t *start_dbServer(char **params_list, sqlite3 *sqlite3_param_db)
 {
    tomysqldb_md_t *md=NULL;
