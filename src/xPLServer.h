@@ -47,6 +47,11 @@ uint32_t       mea_getXplRequestId();
 
 xPL_MessagePtr mea_createReceivedMessage(xPL_MessageType messageType);
 
+
+pthread_t    *start_xPLServer(char **params_list, queue_t *interfaces, sqlite3 *sqlite3_param_db);
+void         stop_xPLServer();
+
+
 // int is_started();
 
 #endif
