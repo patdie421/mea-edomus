@@ -163,8 +163,8 @@ void init_param_names(char *param_names[])
    param_names[GUIPORT]              = "GUIPORT";
    param_names[PHPSESSIONS_PATH]     = "PHPSESSIONSPATH";
    param_names[NODEJS_PATH]          = "NODEJSPATH";
-   param_names[NODEJS_SOCKETIO_PORT] = "NODEJSSOCKETIOPORT";
-   param_names[NODEJS_DATA_PORT]     = "NODEJSDATAPORT";
+   param_names[NODEJSSOCKETIO_PORT]  = "NODEJSSOCKETIOPORT";
+   param_names[NODEJSDATA_PORT]      = "NODEJSDATAPORT";
 }
 
 
