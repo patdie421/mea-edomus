@@ -31,6 +31,7 @@
 
 char *plugin_path=NULL;
 
+pthread_t *_pythonPluginServer_thread=NULL;
 
 queue_t *pythonPluginCmd_queue;
 pthread_cond_t pythonPluginCmd_queue_cond;
@@ -414,5 +415,32 @@ pthread_t *pythonPluginServer(queue_t *plugin_queue)
    
    return pythonPlugin_thread;
 }
+
+
+pthread_t *start_pythonPluginServer(char **params_list, sqlite3 *sqlite3_param_db)
+{
+   if(params_list[PLUGINS_PATH])
+   {
+      setPythonPluginPath(params_list[PLUGINS_PATH]);
+      printf("PLUGINS_PATH=%s\n", params_list[PLUGINS_PATH]);
+      _pythonPluginServer_thread=pythonPluginServer(NULL);
+      if(_pythonPluginServer_thread==NULL)
+      {
+         VERBOSE(2) fprintf(stderr,"%s (%s) : can't start Python Plugin Server (thread error).\n",ERROR_STR,__func__);
+         return NULL;
+      }
+   }
+   else
+   {
+      VERBOSE(2) fprintf(stderr,"%s (%s) : can't start Python Plugin Server (incorrect plugin path).\n",ERROR_STR,__func__);
+      return NULL;
+   }
+   return _pythonPluginServer_thread;
+}
+
+
+
+
+
 
 
