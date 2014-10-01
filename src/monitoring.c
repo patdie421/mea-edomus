@@ -292,7 +292,7 @@ void stop_nodejs()
 }
 
 
-monitoringServer_stop()
+stop_monitoringServer()
 {
    if(_monitoring_thread)
    {
