@@ -22,19 +22,6 @@
 
 #define TOMYSQLDB_TYPE_SENSORS_VALUES 1
 
-/*
-   CREATE TABLE IF NOT EXISTS sensors_values
-   (
-      id INT UNSIGNED NOT NULL AUTO_INCREMENT,
-      sensor_id SMALLINT UNSIGNED,
-      date DATETIME,
-      value1 FLOAT,
-      unit SMALLINT UNSIGNED,
-      value2 FLOAT,
-      specific VARCHAR(255),
-      PRIMARY KEY(id)
-   );
-*/
 struct sensor_value_s
 {
    uint16_t sensor_id;
@@ -79,6 +66,10 @@ typedef struct tomysqldb_md_s
 
 int  tomysqldb_init(tomysqldb_md_t *md, char *db_server, char *db_server_port, char *base, char *user, char *passwd, char *sqlite3_db_path);
 void tomysqldb_release(tomysqldb_md_t *md);
+
 int16_t tomysqldb_add_data_to_sensors_values(tomysqldb_md_t *md, uint16_t sensor_id, double value1, uint16_t unit, double value2, char *complement);
+
+tomysqldb_md_t *start_dbServer(char **params_list, sqlite3 *sqlite3_param_db);
+void stop_dbServer();
 
 #endif
