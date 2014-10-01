@@ -687,7 +687,7 @@ int main(int argc, const char * argv[])
 
    start_httpServer(params_list, interfaces); // initialisation du serveur HTTP
 
-   monitoringServer_thread=start_monitoringServer("/data/rec/mea-edomus/alpha0.3/bin/node", "/data/rec/mea-edomus/alpha0.3/lib/mea-gui/nodeJS/server/server.js", 8000, 5600, "/tmp/test");
+   monitoringServer_thread=start_monitoringServer("/data/rec/mea-edomus/0.1alpha3/bin/node", "/data/rec/mea-edomus/0.1alpha3/lib/mea-gui/nodeJS/server/server.js", 8000, 5600, "/data/rec/mea-edomus/0.1alpha3/var/log/mea-edomus.log");
    if(!monitoringServer_thread)
       stop_all_services_and_exit();
 

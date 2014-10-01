@@ -88,6 +88,8 @@ sudo chown -R "$MEAUSER":"$MEAGROUP" "$BASEPATH"/var/log
 sudo chmod -R 775 "$BASEPATH"/var/log
 sudo chown -R "$MEAUSER":"$MEAGROUP" "$BASEPATH"/var/db
 sudo chmod -R 775 "$BASEPATH"/var/db
+sudo chown -R "$MEAUSER":"$MEAGROUP" "$BASEPATH"/var/sessions
+sudo chmod -R 775 "$BASEPATH"/var/sessions
 sudo chown -R "$MEAUSER":"$MEAGROUP" "$BASEPATH"/etc
 sudo chmod -R 775 "$BASEPATH"/etc
 
