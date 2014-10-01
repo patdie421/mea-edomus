@@ -31,6 +31,7 @@ struct monitoring_thread_data_s
 
 const char *hostname = "localhost";
 pid_t pid_nodejs=0;
+pthread_t *_monitoring_thread=NULL;
 
 int connexion(int *s, char *hostname, int port)
 {
@@ -291,11 +292,21 @@ void stop_nodejs()
 }
 
 
+monitoringServer_stop()
+{
+   if(_monitoring_thread)
+   {
+      pthread_cancel(_monitoring_thread);
+      pthread_join(_monitoring_thread);
+      free(_monitoring_thread);
+   }
+   stop_nodejs();
+}
+
+
 pthread_t *monitoringServer(char *nodejs_path, char *eventServer_path, int port_socketio, int port_socketdata, char *log_path)
 {
    pid_t nodejs_pid;
-   pthread_t *monitoring_thread=NULL;
-
    nodejs_pid=start_nodejs(nodejs_path, eventServer_path, port_socketio, port_socketdata);
    if(!nodejs_pid)
    {
@@ -309,7 +320,7 @@ pthread_t *monitoringServer(char *nodejs_path, char *eventServer_path, int port_
    monitoring_thread_data.hostname="localhost";
    monitoring_thread_data.port_socketdata=port_socketdata;
 
-   monitoring_thread=(pthread_t *)malloc(sizeof(pthread_t));
+   _monitoring_thread=(pthread_t *)malloc(sizeof(pthread_t));
    if(!monitoring_thread)
    {
       VERBOSE(1) {
@@ -323,5 +334,6 @@ pthread_t *monitoringServer(char *nodejs_path, char *eventServer_path, int port_
       VERBOSE(1) fprintf(stderr, "%s (%s) : pthread_create - can't start thread\n",ERROR_STR,__func__);
       return NULL;
    }
-   return monitoring_thread;
+
+   return _monitoring_thread;
 } 
