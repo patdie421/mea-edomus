@@ -12,9 +12,10 @@
 #include <string.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <sqlite3.h>
 
 #include "string_utils.h"
-
+#include "queue.h"
 
 uint32_t speeds[][3]={
    {   300,    B300},
@@ -94,3 +95,144 @@ int16_t get_dev_and_speed(char *device, char *dev, int16_t dev_l, speed_t *speed
 
    return 0;
 }
+
+
+queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
+{
+   char sql[255];
+   sqlite3_stmt * stmt;
+   int16_t ret;
+   queue_t *interfaces;
+
+   interfaces=(queue_t *)malloc(sizeof(queue_t));
+   if(!interfaces)
+   {
+      sqlite3_close(sqlite3_param_db);
+      VERBOSE(1) {
+         fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
+         perror("");
+      }
+      stop_all_services_and_exit();
+   }
+   init_queue(interfaces);
+   sprintf(sql,"SELECT * FROM interfaces");
+   ret = sqlite3_prepare_v2(sqlite3_param_db,sql,strlen(sql)+1,&stmt,NULL);
+   if(ret)
+   {
+      sqlite3_close(sqlite3_param_db);
+      VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
+      stop_all_services_and_exit();
+   }
+   while (1)
+   {
+      int s = sqlite3_step (stmt); // sqlite function need int
+      if (s == SQLITE_ROW)
+      {
+         int16_t id_interface;
+         int16_t id_type;
+         const unsigned char *dev;
+         const unsigned char *parameters;
+         int16_t state;
+         
+         id_interface = sqlite3_column_int(stmt, 1);
+         id_type = sqlite3_column_int(stmt, 2);
+         dev = sqlite3_column_text(stmt, 5);
+         parameters = sqlite3_column_text(stmt, 6);
+         state = sqlite3_column_int(stmt, 7);
+         
+         if(state==1)
+         {
+            switch(id_type)
+            {
+               case INTERFACE_TYPE_001:
+               {
+                  interface_type_001_t *i001;
+                  
+                  i001=(interface_type_001_t *)malloc(sizeof(interface_type_001_t));
+                  if(!i001)
+                  {
+                     VERBOSE(2) {
+                        fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
+                        perror(""); }
+                     break;
+                  }
+                  i001->id_interface=id_interface;
+                  ret=start_interface_type_001(i001, sqlite3_param_db, id_interface, dev, myd);
+                  if(!ret)
+                  {
+                     interfaces_queue_elem_t *iq=(interfaces_queue_elem_t *)malloc(sizeof(interfaces_queue_elem_t));
+                     iq->type=id_type;
+                     iq->context=i001;
+                     in_queue_elem(interfaces, iq);
+                  }
+                  else
+                  {
+                     VERBOSE(2) {
+                        fprintf (stderr, "%s (%s) : start_interface_type_001 - can't start interface (%d).\n",ERROR_STR,__func__,id_interface);
+                     }
+                     free(i001);
+                     i001=NULL;
+                  }
+                  break;
+               }
+                  
+               case INTERFACE_TYPE_002:
+               {
+                  interface_type_002_t *i002;
+                  
+                  i002=(interface_type_002_t *)malloc(sizeof(interface_type_002_t));
+                  if(!i002)
+                  {
+                     VERBOSE(2) {
+                        fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
+                        perror(""); }
+                     break;
+                  }
+                  i002->id_interface=id_interface;
+                  ret=start_interface_type_002(i002, sqlite3_param_db, id_interface, dev, myd, (char *)parameters);
+                  if(!ret)
+                  {
+                     interfaces_queue_elem_t *iq=(interfaces_queue_elem_t *)malloc(sizeof(interfaces_queue_elem_t));
+                     iq->type=id_type;
+                     iq->context=i002;
+                     in_queue_elem(interfaces, iq);
+                  }
+                  else
+                  {
+                     VERBOSE(2) {
+                        fprintf (stderr, "%s (%s) : start_interface_type_002 - can't start interface (%d).\n",ERROR_STR,__func__,id_interface);
+                     }
+                     free(i002);
+                     i002=NULL;
+                  }
+                  break;
+               }
+                  
+               default:
+                  break;
+            }
+         }
+         else
+         {
+            VERBOSE(9) fprintf(stderr,"%s  (%s) : %s not activated (state = %d)\n",INFO_STR,__func__,dev,state);
+         }
+      }
+      else if (s == SQLITE_DONE)
+      {
+         sqlite3_finalize(stmt);
+         break;
+      }
+      else
+      {
+         VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_step - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
+         sqlite3_finalize(stmt);
+         sqlite3_close(sqlite3_param_db);
+         stop_all_services_and_exit();
+      }
+   }
+   return interfaces;
+}
+
+
+
+
