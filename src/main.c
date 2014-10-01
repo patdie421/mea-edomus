@@ -293,9 +293,7 @@ void stop_all_services_and_exit()
    if(monitoringServer_thread)
    {
       VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping monitoringServer... ",INFO_STR,__func__);
-      pthread_cancel(*monitoringServer_thread);
-      pthread_join(*monitoringServer_thread, NULL);
-      // ne pas oublier d'arrêter le process nodejs
+      monitoringServer_stop()
       VERBOSE(9) fprintf(stderr,"done\n");
    }
 
