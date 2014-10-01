@@ -117,13 +117,12 @@ void usage(char *cmd)
       "  --dbpassword, -W    (défaut : meaedomus)",
       "  --vendorid, -V      (défaut : mea)",
       "  --deviceid, -E      (défaut : edomus)",
+      "  --instanceid, -S    (défaut : home)",
       "  --nodejspath, -j    (défaut : /usr/bin/nodejs)",
       "  --nodejssocketioport, -J",
       "                      (défaut : 8000)",
       "  --nodejdataport, -k",
       "                      (défaut : 5600)",
-      "  --instanceid, -S    (défaut : home)",
-      "  --instanceid, -S    (défaut : home)",
       "",
       NULL
    };
