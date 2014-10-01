@@ -37,8 +37,8 @@
 #define GUIPORT               19
 #define PHPSESSIONS_PATH      20
 #define NODEJS_PATH           21
-#define NODEJS_IOSOCKET_PORT  22
-#define NODEJS_DATA_PORT      23
+#define NODEJSIOSOCKET_PORT   22
+#define NODEJSDATA_PORT       23
 #define MAX_LIST_SIZE         24
 
 extern tomysqldb_md_t *myd;
