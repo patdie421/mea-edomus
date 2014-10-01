@@ -117,6 +117,12 @@ void usage(char *cmd)
       "  --dbpassword, -W    (défaut : meaedomus)",
       "  --vendorid, -V      (défaut : mea)",
       "  --deviceid, -E      (défaut : edomus)",
+      "  --nodejspath, -S    (défaut : /usr/bin/nodejs)",
+      "  --nodejssocketioport, -S",
+      "                      (défaut : 8000)",
+      "  --nodejdataport, -S",
+      "                      (défaut : 5600)",
+      "  --instanceid, -S    (défaut : home)",
       "  --instanceid, -S    (défaut : home)",
       "",
       NULL
@@ -711,34 +717,35 @@ int main(int argc, const char * argv[])
    
    // toutes les options possibles
    static struct option long_options[] = {
-      {"init",             no_argument,       0,  'i'                  },
-      {"autoinit",         no_argument,       0,  'a'                  },
-      {"update",           no_argument,       0,  'u'                  },
-      {"basepath",         required_argument, 0,  MEA_PATH             }, // 'p'
-      {"paramsdb",         required_argument, 0,  SQLITE3_DB_PARAM_PATH}, // 'd'
-//      {"configfile",     required_argument, 0,  CONFIG_FILE          }, // 'c'
-      {"phpcgipath",       required_argument, 0,  PHPCGI_PATH          }, // 'C'
-      {"phpinipath",       required_argument, 0,  PHPINI_PATH          }, // 'H'
-      {"phpsessionspath",  required_argument, 0,  PHPSESSIONS_PATH     }, // 's'
-      {"guipath",          required_argument, 0,  GUI_PATH             }, // 'G'
-      {"logpath",          required_argument, 0,  LOG_PATH             }, // 'L'
-      {"pluginspath",      required_argument, 0,  PLUGINS_PATH         }, // 'A'
-      {"bufferdbpath",     required_argument, 0,  SQLITE3_DB_BUFF_PATH }, // 'B'
-      {"dbserver",         required_argument, 0,  MYSQL_DB_SERVER      }, // 'D'
-      {"dbport",           required_argument, 0,  MYSQL_DB_PORT        }, // 'P'
-      {"dbname",           required_argument, 0,  MYSQL_DATABASE       }, // 'N'
-      {"dbuser",           required_argument, 0,  MYSQL_USER           }, // 'U'
-      {"dbpassword",       required_argument, 0,  MYSQL_PASSWD         }, // 'W'
-      {"vendorid",         required_argument, 0,  VENDOR_ID            }, // 'V'
-      {"deviceid",         required_argument, 0,  DEVICE_ID            }, // 'E'
-      {"instanceid",       required_argument, 0,  INSTANCE_ID          }, // 'S'
-      {"verboselevel",     required_argument, 0,  VERBOSELEVEL         }, // 'v'
-      {"guiport",          required_argument, 0,  GUIPORT              }, // 'g'
-      {"nodatabase",       no_argument,       0,  'b'                  }, // 'b'
-      {"help",             no_argument,       0,  'h'                  }, // 'h'
-      {0,             0,                      0,  0                    }
-      
-      
+      {"init",              no_argument,       0,  'i'                  },
+      {"autoinit",          no_argument,       0,  'a'                  },
+      {"update",            no_argument,       0,  'u'                  },
+      {"basepath",          required_argument, 0,  MEA_PATH             }, // 'p'
+      {"paramsdb",          required_argument, 0,  SQLITE3_DB_PARAM_PATH}, // 'd'
+//      {"configfile",      required_argument, 0,  CONFIG_FILE          }, // 'c'
+      {"phpcgipath",        required_argument, 0,  PHPCGI_PATH          }, // 'C'
+      {"phpinipath",        required_argument, 0,  PHPINI_PATH          }, // 'H'
+      {"phpsessionspath",   required_argument, 0,  PHPSESSIONS_PATH     }, // 's'
+      {"guipath",           required_argument, 0,  GUI_PATH             }, // 'G'
+      {"logpath",           required_argument, 0,  LOG_PATH             }, // 'L'
+      {"pluginspath",       required_argument, 0,  PLUGINS_PATH         }, // 'A'
+      {"bufferdbpath",      required_argument, 0,  SQLITE3_DB_BUFF_PATH }, // 'B'
+      {"dbserver",          required_argument, 0,  MYSQL_DB_SERVER      }, // 'D'
+      {"dbport",            required_argument, 0,  MYSQL_DB_PORT        }, // 'P'
+      {"dbname",            required_argument, 0,  MYSQL_DATABASE       }, // 'N'
+      {"dbuser",            required_argument, 0,  MYSQL_USER           }, // 'U'
+      {"dbpassword",        required_argument, 0,  MYSQL_PASSWD         }, // 'W'
+      {"vendorid",          required_argument, 0,  VENDOR_ID            }, // 'V'
+      {"deviceid",          required_argument, 0,  DEVICE_ID            }, // 'E'
+      {"instanceid",        required_argument, 0,  INSTANCE_ID          }, // 'S'
+      {"verboselevel",      required_argument, 0,  VERBOSELEVEL         }, // 'v'
+      {"nodejspath",        required_argument, 0,  NODEJSPATH           }, // 'j'
+      {"nodejssocketioport",required_argument, 0,  NODEJSSOCKETIOPORT   }, // 'J' 
+      {"nodejsdataport",    required_argument, 0,  NODEJSPORT           }, // 'k'
+      {"guiport",           required_argument, 0,  GUIPORT              }, // 'g'
+      {"nodatabase",        no_argument,       0,  'b'                  }, // 'b'
+      {"help",              no_argument,       0,  'h'                  }, // 'h'
+      {0,                   0,                 0,  0                    }
    };
 
 #define __DEBUG_ON__ 1
@@ -786,8 +793,8 @@ int main(int argc, const char * argv[])
 
    int option_index = 0; // getopt_long function need int
    int c; // getopt_long function need int
-//   while ((c = getopt_long(argc, (char * const *)argv, "bhiaup:d:c:C:H:s:G:L:A:B:D:P:N:U:W:V:E:S:v:g:", long_options, &option_index)) != -1)
-   while ((c = getopt_long(argc, (char * const *)argv, "bhiaup:d:C:H:s:G:L:A:B:D:P:N:U:W:V:E:S:v:g:", long_options, &option_index)) != -1)
+//   while ((c = getopt_long(argc, (char * const *)argv, "bhiaup:d:c:C:H:s:G:L:A:B:D:P:N:U:W:V:E:S:v:g:j:J:k", long_options, &option_index)) != -1)
+   while ((c = getopt_long(argc, (char * const *)argv, "bhiaup:d:C:H:s:G:L:A:B:D:P:N:U:W:V:E:S:v:g:j:J:k", long_options, &option_index)) != -1)
    {
       switch (c)
       {
@@ -902,6 +909,18 @@ int main(int argc, const char * argv[])
 
          case 'S':
             c=INSTANCE_ID;
+            break;
+
+         case 'j':
+            c=NODEJSPATH;
+            break;
+
+         case 'J':
+            c=NODEJSSOCKETIOPORT; 
+            break;
+
+         case 'k':
+            c=NODEJSDATAPORT;
             break;
       }
 
@@ -1061,3 +1080,4 @@ int main(int argc, const char * argv[])
       sleep(5);
    }
 }
+
