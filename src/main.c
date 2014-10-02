@@ -627,11 +627,11 @@ int main(int argc, const char * argv[])
    //
    char log_file[255];
    int16_t n;
-   
-   if(strlen(params_list[LOG_PATH]))
-      n=snprintf(log_file,sizeof(log_file),"%s/mea-edomus.log", params_list[LOG_PATH]);
-   else
-      n=snprintf(log_file,sizeof(log_file),"/var/log/mea-edomus.log");
+
+
+   if(!params_list[LOG_PATH] || !strlen(params_list[LOG_PATH]))
+      params_list[LOG_PATH]="/var/log";
+   n=snprintf(log_file,sizeof(log_file),"%s/mea-edomus.log", params_list[LOG_PATH]);
    if(n<0 || n==sizeof(log_file))
    {
       VERBOSE(1) {
@@ -640,7 +640,6 @@ int main(int argc, const char * argv[])
       }
       exit(1);
    }
-
    int fd=open(log_file, O_CREAT | O_APPEND | O_RDWR,  S_IWUSR | S_IRUSR);
    if(fd<0)
    {
