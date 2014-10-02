@@ -17,7 +17,6 @@
 #include "string_utils.h"
 #include "queue.h"
 #include "debug.h"
-#include "types.h"
 
 #include "interfacesServer.h"
 #include "interface_type_001.h"

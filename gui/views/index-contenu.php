@@ -8,13 +8,16 @@ session_start() ?>
 <style>
 .console
 {
- font-family:'Courier New','courier';
- font-size:14px;
+ font-family:"Lucida Console", Monaco, monospace;
+ font-size:12px;
  border:1px dotted black;
  overflow-y:scroll;
 }
 </style>
-<div id="console" class="console" style="width:800px; min-height:400px; height:400px;">
+
+<div style="margin:auto;">
+  <div id="console" class="console" style="width:800px; min-height:400px; height:400px;">
+  </div>
 </div>
 
 <script type="text/javascript" src="lib/js/mea-auth-utils.js"></script>
@@ -29,16 +32,19 @@ session_start() ?>
    {
       // analyse de la ligne
       var color="black"; // couleur par défaut
-      if(line.indexOf("ERROR:")==0)
+      if(line.indexOf("ERROR")==0)
          color="red";
-      else if(line.indexOf("WARNING:")==0)
+      else if(line.indexOf("WARNING")==0)
          color="orange";
-      else if(line.indexOf("INFO:")==0)
+      else if(line.indexOf("INFO")==0)
          color="green";
-      else if(line.indexOf("DEBUG:")==0)
+      else if(line.indexOf("DEBUG")==0)
          color="blue";
+      if(line.lenght==0)
+         return;
+      
       // ajout de la ligne
-      $('#console').append("<div class='log' style='color:"+color+";'>"+line+"</div>");
+      $('#console').append("<div class='log' style='white-space:pre-wrap; color:"+color+";'>"+line+"</div>");
      
       // on retire une ligne si la limite est atteinte
       var logLineDivHigh = 0;

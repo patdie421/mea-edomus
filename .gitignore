@@ -11,6 +11,7 @@ build/bin/
 build/lib/
 build/etc/
 complements/php-cgi/src/
+complements/nodejs/src/
 mea-edomus
 xPLLib/
 mea-edomus.tar.pkg*

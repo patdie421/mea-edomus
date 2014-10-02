@@ -6,8 +6,8 @@
  *
  */
 
-#ifndef __tomysqldb_h
-#define __tomysqldb_h
+#ifndef __dbServer_h
+#define __dbServer_h
 
 #include <pthread.h>
 #include <semaphore.h>

@@ -35,7 +35,7 @@ build-php-cgi:
 	make -C complements/php-cgi -f php-cgi.mk SOURCE=$(MYPATH)
 
 build-nodejs:
-	make -C complements/nodejs -f node.mk SOURCE=$(MYPATH)
+	make -C complements/nodejs -f nodejs.mk SOURCE=$(MYPATH)
 
 build-package: $(EXECUTABLE)
 	package/build-package.sh $(MYPATH)

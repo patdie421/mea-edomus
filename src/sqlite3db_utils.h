@@ -6,8 +6,8 @@
 //
 //
 
-#ifndef mea_edomus_sqldb_h
-#define mea_edomus_sqldb_h
+#ifndef sqlite3_utils_h
+#define sqlite3_utils_h
 
 #include <inttypes.h>
 #include <sqlite3.h>

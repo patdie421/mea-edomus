@@ -5,16 +5,18 @@
 //
 //
 
-#ifndef __interfaces_h
-#define __interfaces_h
+#ifndef __interfacesServer_h
+#define __interfacesServer_h
 
 #include <termios.h>
 #include <inttypes.h>
 #include <sqlite3.h>
 
-#include "types.h"
 #include "queue.h"
 #include "dbServer.h"
+
+#define INTERFACE_TYPE_001 100
+#define INTERFACE_TYPE_002 200
 
 typedef struct interfaces_queue_elem_s
 {

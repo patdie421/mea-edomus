@@ -121,7 +121,7 @@ void usage(char *cmd)
       "  --nodejspath, -j    (défaut : /usr/bin/nodejs)",
       "  --nodejssocketioport, -J",
       "                      (défaut : 8000)",
-      "  --nodejdataport, -k",
+      "  --nodejsdataport, -k",
       "                      (défaut : 5600)",
       "",
       NULL
@@ -387,10 +387,17 @@ int main(int argc, const char * argv[])
    }
    free(buff);
    */
+   
    string_free_malloc_and_copy(&params_list[MEA_PATH], "/usr/local/mea-edomus", 1);
-// à remplacer avec message d'erreur
-   IF_NULL_EXIT(&params_list[MEA_PATH], 1);
-
+   if(!params_list[MEA_PATH])
+   {
+      VERBOSE(1) {
+         fprintf (stderr, "%s (%s) : malloc - ", ERROR_STR,__func__);
+         perror("");
+      }
+      stop_all_services_and_exit();
+   }
+ 
    //
    // récupération des paramètres de la ligne de commande
    //
@@ -415,8 +422,14 @@ int main(int argc, const char * argv[])
          case 'd':
          case SQLITE3_DB_PARAM_PATH:
             string_free_malloc_and_copy(&params_list[SQLITE3_DB_PARAM_PATH], optarg, 1);
-            IF_NULL_EXIT(&params_list[SQLITE3_DB_PARAM_PATH], 1);
-// à remplacer avec message d'erreur
+            if(!params_list[MEA_PATH])
+            {
+               VERBOSE(1) {
+                  fprintf (stderr, "%s (%s) : malloc - ", ERROR_STR,__func__);
+                  perror("");
+               }
+               stop_all_services_and_exit();
+            }
             c=-1;
             _d=1;
             break;
@@ -544,7 +557,10 @@ int main(int argc, const char * argv[])
          string_free_malloc_and_copy(&params_list[c], optarg, 1);
          if(params_list[c]==NULL)
          {
-// afficher message erreur
+            VERBOSE(1) {
+               fprintf (stderr, "%s (%s) : malloc - ", ERROR_STR,__func__);
+               perror("");
+            }
             stop_all_services_and_exit();
          }
       }
@@ -563,12 +579,18 @@ int main(int argc, const char * argv[])
    if(_v > 0 && _v < 10)
          set_verbose_level(_v);
 
-
    if(!_d) // si pas de db en parametre on construit un chemin vers le nom "théorique" de la db
    {
       params_list[SQLITE3_DB_PARAM_PATH]=(char *)malloc(strlen(params_list[MEA_PATH])+1 + 17); // lenght("/var/db/params.db") = 17
+      if(!params_list[SQLITE3_DB_PARAM_PATH])
+      {
+         VERBOSE(1) {
+            fprintf (stderr, "%s (%s) : malloc - ", ERROR_STR,__func__);
+            perror("");
+         }
+         stop_all_services_and_exit();
+      }
       sprintf(params_list[SQLITE3_DB_PARAM_PATH],"%s/var/db/params.db",params_list[MEA_PATH]);
-// contrôler malloc à faire
    }
    
 /*
@@ -637,16 +659,15 @@ int main(int argc, const char * argv[])
 
    if(!params_list[LOG_PATH] || !strlen(params_list[LOG_PATH]))
    {
-      params_list[LOG_PATH]=(char *)malloc(strlen("/var/log");
+      params_list[LOG_PATH]=(char *)malloc(strlen("/var/log"));
       if(params_list[LOG_PATH]==NULL)
       VERBOSE(1) {
          fprintf (stderr, "%s (%s) : malloc - ", ERROR_STR,__func__);
          perror("");
          stop_all_services_and_exit();
       }
-      strcpy(params_list[LOG_PATH,"/var/log");
+      strcpy(params_list[LOG_PATH],"/var/log");
    }
-
 
    n=snprintf(log_file,sizeof(log_file),"%s/mea-edomus.log", params_list[LOG_PATH]);
    if(n<0 || n==sizeof(log_file))
@@ -661,9 +682,9 @@ int main(int argc, const char * argv[])
    int fd=open(log_file, O_CREAT | O_APPEND | O_RDWR,  S_IWUSR | S_IRUSR);
    if(fd<0)
    {
-      VERBOSE(1) fprintf (stderr, "%s (%s) : can't open log file - \n",ERROR_STR,__func__);
+      VERBOSE(1) fprintf (stderr, "%s (%s) : can't open log file - ",ERROR_STR,__func__);
       perror("");
-      stop_all_services_and_exit()
+      stop_all_services_and_exit();
    }
    
    dup2(fd, 1);
@@ -691,18 +712,27 @@ int main(int argc, const char * argv[])
    {
       myd=start_dbServer(params_list, sqlite3_param_db); // initialisation de la communication avec la base MySQL
       if(!myd)
-      stop_all_services_and_exit();
+      {
+         VERBOSE(1) fprintf (stderr, "%s (%s) : can't start database server\n",ERROR_STR,__func__);
+         stop_all_services_and_exit();
+      }
    }
 
    pythonPluginServer_thread=start_pythonPluginServer(params_list, sqlite3_param_db); // initialisation du serveur de plugin python
    if(!pythonPluginServer_thread)
+   {
+      VERBOSE(1) fprintf (stderr, "%s (%s) : can't start python plugin server\n",ERROR_STR,__func__);
       stop_all_services_and_exit();
+   }
 
    interfaces=start_interfaces(params_list, sqlite3_param_db, myd); // démarrage des interfaces
 
    xPLServer_thread=start_xPLServer(params_list, interfaces, sqlite3_param_db); // initialisation du serveur xPL
    if(!xPLServer_thread)
+   {
+      VERBOSE(1) fprintf (stderr, "%s (%s) : can't start xpl server\n",ERROR_STR,__func__);
       stop_all_services_and_exit();
+   }
 
    start_httpServer(params_list, interfaces); // initialisation du serveur HTTP
 
@@ -710,7 +740,10 @@ int main(int argc, const char * argv[])
    monitoringServer_thread=start_monitoringServer(params_list);
 
    if(!monitoringServer_thread)
+   {
+      VERBOSE(1) fprintf (stderr, "%s (%s) : can't start monitoring server\n",ERROR_STR,__func__);
       stop_all_services_and_exit();
+   }
 
    DEBUG_SECTION fprintf(stderr,"MEA-EDOMUS %s starded\n",__MEA_EDOMUS_VERSION__);
 

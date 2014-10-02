@@ -5,8 +5,8 @@
 //  Created by Patrice Dietsch on 04/06/13.
 //
 //
-#ifndef mea_eDomus_httpServer_h
-#define mea_eDomus_httpServer_h
+#ifndef __httpServer_h
+#define __httpServer_h
 
 #include "error.h"
 #include "queue.h"

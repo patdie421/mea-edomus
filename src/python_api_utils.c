@@ -8,7 +8,7 @@
 #include <Python.h>
 #include <stdio.h>
 
-#include "token_strings.h"
+#include "tokens_strings.h"
 
 void addLong_to_pydict(PyObject *data_dict, char *key, long value)
 {

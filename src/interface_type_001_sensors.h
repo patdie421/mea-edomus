@@ -6,8 +6,8 @@
 //
 //
 
-#ifndef _interface_type_001_sensors_h
-#define _interface_type_001_sensors_h
+#ifndef __interface_type_001_sensors_h
+#define __interface_type_001_sensors_h
 
 #include "error.h"
 #include "timer.h"

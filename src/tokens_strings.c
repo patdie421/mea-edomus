@@ -12,7 +12,7 @@
 #include <ctype.h>
 
 #include "string_utils.h"
-#include "token_strings.h"
+#include "tokens_strings.h"
 
 struct token_s tokens_list[]={
    {"control",                    XPL_CONTROL_ID},

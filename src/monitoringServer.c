@@ -17,6 +17,8 @@
 
 #define PORT 5600
 
+#include "globals.h"
+
 #include "debug.h"
 #include "monitoringServer.h"
 
@@ -325,7 +327,7 @@ void stop_monitoringServer()
 
 
 //pthread_t *start_monitoringServer(char *nodejs_path, char *eventServer_path, int port_socketdata, char *log_path)
-pthread_t *start_monitoringServer(char **parms_list)
+pthread_t *start_monitoringServer(char **params_list)
 {
    pid_t pid;
    if(params_list[NODEJSIOSOCKET_PORT] == NULL ||
@@ -339,13 +341,13 @@ pthread_t *start_monitoringServer(char **parms_list)
       return NULL;
    }
 
-   int socketio_port = atoi(params_list[NODEJSIOSOCKET_PORT];
-   int socketdata_port = atoi(params_list[NODEJSDATA_PORT];
+   int socketio_port = atoi(params_list[NODEJSIOSOCKET_PORT]);
+   int socketdata_port = atoi(params_list[NODEJSDATA_PORT]);
    char *nodejs_path = params_list[NODEJS_PATH];
    char serverjs_path[256];
 
-   snprintf(serverjs_path, sizeof(serverjs_path), "%s/nodeJS/server/server", params_list[GUI_PATH]);
-   if(n<0 || n==sizeof(log_file))
+   int n=snprintf(serverjs_path, sizeof(serverjs_path), "%s/nodeJS/server/server", params_list[GUI_PATH]);
+   if(n<0 || n==sizeof(serverjs_path))
    {
       VERBOSE(1) {
          fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);

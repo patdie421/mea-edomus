@@ -13,7 +13,7 @@
 #include "macros.h"
 #include "debug.h"
 #include "memory.h"
-#include "parameters_mgr.h"
+#include "parameters_utils.h"
 
 
 int16_t is_in_assocs_list(struct assoc_s *assocs_list, int val1, int val2)

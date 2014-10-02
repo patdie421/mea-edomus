@@ -6,8 +6,8 @@
 //
 //
 
-#ifndef mea_edomus_init_h
-#define mea_edomus_init_h
+#ifndef __init_h
+#define __init_h
 
 #include <inttypes.h>
 

@@ -5,8 +5,8 @@
 //
 //
 
-#ifndef __xPL_strings_h
-#define __xPL_strings_h
+#ifndef __tokens_strings_h
+#define __tokens_strings_h
 
 #include <inttypes.h>
 

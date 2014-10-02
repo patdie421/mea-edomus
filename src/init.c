@@ -30,9 +30,8 @@
 #include "debug.h"
 #include "error.h"
 #include "string_utils.h"
-#include "types.h"
-
-#include "sqlite3db.h"
+#include "sqlite3db_utils.h"
+#include "interfacesServer.h"
 
 char const *usr_str="/usr";
 
@@ -399,10 +398,11 @@ int16_t create_configs_php(char *gui_home, char *params_db_fullname, char *php_l
    if(fd)
    {
       fprintf(fd,"<?php\n");
-      fprintf(fd,"ini_set('error_reporting', E_ALL);\n");
+//      fprintf(fd,"ini_set('error_reporting', E_ALL);\n");
+      fprintf(fd,"ini_set('error_reporting', E_ERROR);\n");
       fprintf(fd,"ini_set('log_errors', 'On');\n");
       fprintf(fd,"ini_set('display_errors', 'Off');\n");
-      fprintf(fd,"ini_set('error_log', \"%s\");\n",php_log_fullname);
+      fprintf(fd,"ini_set('error_log', \"%s/%s\");\n",php_log_fullname, "php.log");
       fprintf(fd,"ini_set('session.save_path', \"%s\");\n", php_sessions_fullname);
 
       fprintf(fd,"$TITRE_APPLICATION='Mea eDomus Admin';\n");

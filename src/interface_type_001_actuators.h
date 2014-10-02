@@ -5,8 +5,8 @@
 //  Created by Patrice DIETSCH on 29/11/12.
 //
 //
-#ifndef _interface_type_001_actuators_h
-#define _interface_type_001_actuators_h
+#ifndef __interface_type_001_actuators_h
+#define __interface_type_001_actuators_h
 
 #include "error.h"
 #include "timer.h"

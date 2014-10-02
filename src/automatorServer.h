@@ -6,8 +6,8 @@
 //
 //
 
-#ifndef mea_edomus_automatorServer_h
-#define mea_edomus_automatorServer_h
+#ifndef __automatorServer_h
+#define __automatorServer_h
 
 pid_t start_automatorServer(char *db_path);
 void automator(char *db_path);

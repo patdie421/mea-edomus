@@ -20,7 +20,7 @@
 
 #include "globals.h"
 #include "string_utils.h"
-#include "token_strings.h"
+#include "tokens_strings.h"
 #include "debug.h"
 #include "memory.h"
 #include "macros.h"
@@ -30,7 +30,7 @@
 #include "comio2.h"
 
 #include "arduino_pins.h"
-#include "parameters_mgr.h"
+#include "parameters_utils.h"
 
 #include "dbServer.h"
 #include "xPLServer.h"

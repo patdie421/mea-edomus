@@ -5,8 +5,8 @@
 //
 //
 
-#ifndef pythonPluginServer_h
-#define pythonPluginServer_h
+#ifndef __pythonPluginServer_h
+#define __pythonPluginServer_h
 
 #include <pthread.h>
 #include <sqlite3.h>

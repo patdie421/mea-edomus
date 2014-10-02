@@ -5,8 +5,8 @@
 //
 //
 
-#ifndef __parameters_mgr_h
-#define __parameters_mgr_h
+#ifndef __parameters_utils_h
+#define __parameters_utils_h
 
 #define PARAM_SYSTEM_ERR 1
 #define PARAM_SYSTAX_ERR 2

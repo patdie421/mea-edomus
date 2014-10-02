@@ -51,7 +51,7 @@ var server = require('net').createServer(function (socket) {
 }).listen(LOCAL_PORT);
 
 server.on('listening', function () {
-   console.log("Server accepting connection on port: " + LOCAL_PORT);
+   console.log("INFO  server.on(listening) : Server accepting connection on port: " + LOCAL_PORT);
 });
 
 
@@ -84,10 +84,10 @@ io.sockets.on('connection', function(socket) {
    clients[socket.id]['socket'] = socket;
 
    var address = socket.handshake.address;
-   console.log("Connexion d'un client " + socket.id + " depuis : "+ address.address);
+   console.log("INFO  io.sockets.on('connection') : new client : " + socket.id + " from "+ address.address);
 
    socket.on('disconnect', function() {
-      console.log("Deconnexion du client : "+socket.id); 
+      console.log("INFO  socket.on('disconnect') : client "+socket.id+" disconnected"); 
       delete clients[socket.id];
   });
 });

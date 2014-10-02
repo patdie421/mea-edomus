@@ -6,8 +6,8 @@
 //
 //
 
-#ifndef mea_edomus_Header_h
-#define mea_edomus_Header_h
+#ifndef __timer_h
+#define __timer_h
 
 #include <time.h>
 #include <inttypes.h>

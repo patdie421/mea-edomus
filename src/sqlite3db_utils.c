@@ -5,7 +5,7 @@
 //  Created by Patrice Dietsch on 22/10/13.
 //
 //
-#include "sqlite3db.h"
+#include "sqlite3db_utils.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>

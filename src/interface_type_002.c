@@ -22,7 +22,7 @@
 #include <pthread.h>
 
 #include "globals.h"
-#include "token_strings.h"
+#include "tokens_strings.h"
 
 #include "error.h"
 #include "debug.h"
@@ -31,7 +31,7 @@
 
 #include "xbee.h"
 #include "dbServer.h"
-#include "parameters_mgr.h"
+#include "parameters_utils.h"
 #include "mea_api.h"
 #include "pythonPluginServer.h"
 #include "python_api_utils.h"

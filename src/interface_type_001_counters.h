@@ -6,8 +6,8 @@
 //
 //
 
-#ifndef _interface_type_001_counters_h
-#define _interface_type_001_counters_h
+#ifndef __interface_type_001_counters_h
+#define __interface_type_001_counters_h
 
 #include <pthread.h>
 #include <inttypes.h>

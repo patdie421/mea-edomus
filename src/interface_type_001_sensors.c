@@ -20,9 +20,9 @@
 #include "debug.h"
 #include "xPLServer.h"
 #include "arduino_pins.h"
-#include "parameters_mgr.h"
+#include "parameters_utils.h"
 #include "string_utils.h"
-#include "token_strings.h"
+#include "tokens_strings.h"
 #include "interface_type_001_sensors.h"
 
 
