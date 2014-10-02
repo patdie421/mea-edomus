@@ -16,7 +16,7 @@ session_start() ?>
 </style>
 
 <div class="ui-corner-all ui-widget-content" style="padding-top: 40px; padding-bottom: 40px;">
-  <div id="console" class="console" style="style="margin:auto; width:800px; min-height:400px; height:400px;">
+  <div id="console" class="console" style="margin:auto; width:800px; min-height:400px; height:400px;">
   </div>
 </div>
 
