@@ -865,7 +865,7 @@
 		4E79946E19DC9D5600F87593 /* utilisateurs-contenu.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; path = "utilisateurs-contenu.php"; sourceTree = "<group>"; };
 		4E79947119DC9E6100F87593 /* mea-edomus */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; path = "mea-edomus"; sourceTree = "<group>"; };
 		4E79947319DC9EBB00F87593 /* php-cgi.mk */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "php-cgi.mk"; path = "complements/php-cgi/php-cgi.mk"; sourceTree = "<group>"; };
-		4E79947519DC9F1500F87593 /* node.mk */ = {isa = PBXFileReference; lastKnownFileType = text; path = node.mk; sourceTree = "<group>"; };
+		4E79947719DCB04B00F87593 /* nodejs.mk */ = {isa = PBXFileReference; lastKnownFileType = text; name = nodejs.mk; path = complements/nodejs/nodejs.mk; sourceTree = "<group>"; };
 		4E8787E51816732800A87FF0 /* sqlite3db.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = sqlite3db.c; path = src/sqlite3db.c; sourceTree = "<group>"; };
 		4E8787E71816733F00A87FF0 /* sqlite3db.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = sqlite3db.h; path = src/sqlite3db.h; sourceTree = "<group>"; };
 		4E8E5336184296F6006FB9D3 /* automatorServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = automatorServer.h; path = src/automatorServer.h; sourceTree = "<group>"; };
@@ -904,22 +904,22 @@
 		08FB7794FE84155DC02AAC07 /* Comio */ = {
 			isa = PBXGroup;
 			children = (
+				4E4811A619C37D96001C5F48 /* Makefile.linux */,
+				4E4811A719C37D96001C5F48 /* Makefile.macosx */,
 				4E79947219DC9EA600F87593 /* complements */,
 				4E79946F19DC9E6100F87593 /* linux */,
 				4E798FFF19DC9D5500F87593 /* gui */,
 				4E798FFB19DC9C8B00F87593 /* package */,
-				08FB7795FE84155DC02AAC07 /* Source */,
+				08FB7795FE84155DC02AAC07 /* src */,
 				1AB674ADFE9D54B511CA2CBB /* Products */,
 				4E48119F19C37C46001C5F48 /* Plugins */,
 			);
 			name = Comio;
 			sourceTree = "<group>";
 		};
-		08FB7795FE84155DC02AAC07 /* Source */ = {
+		08FB7795FE84155DC02AAC07 /* src */ = {
 			isa = PBXGroup;
 			children = (
-				4E4811A619C37D96001C5F48 /* Makefile.linux */,
-				4E4811A719C37D96001C5F48 /* Makefile.macosx */,
 				4EFBBC801748C9BA00090FEE /* Common */,
 				4E4D4E811601F2930008C14C /* Libs */,
 				4E4D4E7E1601F1510008C14C /* Interfaces_manager */,
@@ -935,7 +935,7 @@
 				4E798FF819D4871400F87593 /* monitoringServer.c */,
 				4E798FFA19D4890D00F87593 /* monitoringServer.h */,
 			);
-			name = Source;
+			name = src;
 			sourceTree = "<group>";
 		};
 		1AB674ADFE9D54B511CA2CBB /* Products */ = {
@@ -3454,7 +3454,7 @@
 		4E79947219DC9EA600F87593 /* complements */ = {
 			isa = PBXGroup;
 			children = (
-				4E79947619DC9F1A00F87593 /* node */,
+				4E79947619DC9F1A00F87593 /* nodejs */,
 				4E79947419DC9EC700F87593 /* php-cgi */,
 			);
 			name = complements;
@@ -3468,12 +3468,12 @@
 			name = "php-cgi";
 			sourceTree = "<group>";
 		};
-		4E79947619DC9F1A00F87593 /* node */ = {
+		4E79947619DC9F1A00F87593 /* nodejs */ = {
 			isa = PBXGroup;
 			children = (
-				4E79947519DC9F1500F87593 /* node.mk */,
+				4E79947719DCB04B00F87593 /* nodejs.mk */,
 			);
-			name = node;
+			name = nodejs;
 			sourceTree = "<group>";
 		};
 		4E8E53351842967F006FB9D3 /* automator manager */ = {

@@ -1,5 +1,5 @@
 ifndef SOURCE
-$(error "SOURCE not set, can't make php-cgi binary")
+$(error "SOURCE not set, can't make nodejs binary")
 endif 
 
 NODEJS=$(SOURCE)/complements/nodejs
