@@ -226,8 +226,10 @@ void *monitoring_thread(void *data)
    int exit=0;
    int nodejs_socket=-1;
    long pos = -1;
+   char log_file[256];
 
    struct monitoring_thread_data_s *d=(struct monitoring_thread_data_s *)data;
+   sprintf(log_file,"%s/mea-edomus.log", d->log_path);
 
    do
    {
@@ -235,7 +237,7 @@ void *monitoring_thread(void *data)
      {
        do
        {
-         if(readAndSendLine(nodejs_socket, d->log_path, &pos)==-1)
+         if(readAndSendLine(nodejs_socket, log_file, &pos)==-1)
             break;
          sleep(1);
        }
@@ -322,10 +324,37 @@ void stop_monitoringServer()
 }
 
 
-pthread_t *start_monitoringServer(char *nodejs_path, char *eventServer_path, int port_socketio, int port_socketdata, char *log_path)
+//pthread_t *start_monitoringServer(char *nodejs_path, char *eventServer_path, int port_socketdata, char *log_path)
+pthread_t *start_monitoringServer(char **parms_list)
 {
    pid_t pid;
-   pid=start_nodejs(nodejs_path, eventServer_path, port_socketio, port_socketdata);
+   if(params_list[NODEJSIOSOCKET_PORT] == NULL ||
+      params_list[NODEJSDATA_PORT] == NULL     ||
+      params_list[NODEJS_PATH] == NULL         ||
+      params_list[LOG_PATH] == NULL)
+   {
+      VERBOSE(1) {
+         fprintf (stderr, "%s (%s) : parameters error ...",ERROR_STR,__func__);
+      }
+      return NULL;
+   }
+
+   int socketio_port = atoi(params_list[NODEJSIOSOCKET_PORT];
+   int socketdata_port = atoi(params_list[NODEJSDATA_PORT];
+   char *nodejs_path = params_list[NODEJS_PATH];
+   char serverjs_path[256];
+
+   snprintf(serverjs_path, sizeof(serverjs_path), "%s/nodeJS/server/server", params_list[GUI_PATH]);
+   if(n<0 || n==sizeof(log_file))
+   {
+      VERBOSE(1) {
+         fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);
+         perror("");
+      }
+      return NULL; 
+   }
+
+   pid=start_nodejs(nodejs_path, serverjs_path, socketio_port, socketdata_port);
    if(!pid)
    {
       VERBOSE(1) {
@@ -334,9 +363,9 @@ pthread_t *start_monitoringServer(char *nodejs_path, char *eventServer_path, int
       return NULL;
    }
    
-   monitoring_thread_data.log_path=log_path;
+   monitoring_thread_data.log_path=params_list[LOG_PATH];
    monitoring_thread_data.hostname="localhost";
-   monitoring_thread_data.port_socketdata=port_socketdata;
+   monitoring_thread_data.port_socketdata=socketdata_port;
 
    _monitoring_thread=(pthread_t *)malloc(sizeof(pthread_t));
    if(!_monitoring_thread)
