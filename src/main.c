@@ -598,6 +598,7 @@ int main(int argc, const char * argv[])
    int16_t cause;
    if(checkParamsDb(params_list[SQLITE3_DB_PARAM_PATH], &cause))
    {
+      VERBOSE(1) fprintf (stderr, "%s (%s) : checkParamsDb - parameters database error\n", ERROR_STR, __func__);
       exit(1);
    }
 
