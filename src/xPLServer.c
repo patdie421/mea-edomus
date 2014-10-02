@@ -424,6 +424,8 @@ pthread_t *xPLServer(queue_t *interfaces)
          fprintf (stderr, "%s (%s) : malloc - ",ERROR_STR,__func__);
          perror("");
       }
+      free(xplRespQueue);
+      xplRespQueue=NULL;
       return NULL;
    }
 
