@@ -674,6 +674,8 @@ void tomysqldb_release(tomysqldb_md_t *md)
 void stop_dbServer(tomysqldb_md_t *md)
 {
    tomysqldb_release(md);
+   free(md);
+   md=NULL;
 }
 
 
