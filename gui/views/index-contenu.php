@@ -24,3 +24,6 @@ session_start() ?>
 <script type="text/javascript" src="lib/js/mea-gui-utils.js"></script>
 
 <script type="text/javascript" src="controlers/index.js"></script>
+jQuery(document).ready(function(){
+   start_controler();
+});
