@@ -69,7 +69,10 @@ var server = require('net').createServer(function (socket) {
       var t = msg.toString().split(/\r?\n/);
       for ( i=0; i<t.length-1; i++)
       {
-         sendMessage('log', t[i].slice(4));
+         var cmd = t[i].substring(0, 3);
+         var msg = t[i].slice(4);
+         if(cmd=="LOG")
+            sendMessage('log', msg);
       }
    });
 }).listen(LOCAL_PORT);
