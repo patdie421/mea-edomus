@@ -289,7 +289,7 @@ static void _signal_STOP(int signal_number)
  */
 {
    VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping mea-edomus requested (signal = %d).\n",INFO_STR,__func__,signal_number);
-   stop_all_services_and_exit();
+   clean_all_and_exit();
 }
 
 

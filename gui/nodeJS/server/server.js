@@ -9,27 +9,29 @@
 
 // voir ici : http://stackoverflow.com/questions/6502031/authenticate-user-for-socket-io-nodejs pour récupérer l'id session PHP dans les cookies
 
-// pour récupérer les info d'un fichier php session
-function unserialize_session(str){
-   var sessHash, sessHashEnd, sess = {}, serial = '', i =0;
-   do {
-      sessHash = str.match(/(^|;)([a-zA-Z0-9_-]+)\|/i);
-      if (sessHash) {
-         str = str.substring(sessHash[0].length);
-         serial = str;
-         sessHashEnd = serial.match(/(^|;)([a-zA-Z0-9_-]+)\|/i);
 
-         if (sessHashEnd && sessHashEnd[2] && sessHashEnd[2].length > 0) {
-            serial = serial.substring(serial.search(new RegExp('(^|;)('+sessHashEnd[2]+')\\|')),0);
-            str = str.substring(str.search(new RegExp('(^|;)('+sessHashEnd[2]+')\\|')))
+function unserialize_session(str) { // c'est tres tres light mais suffisant pour l'appli ...
+   unserialized={};
+   
+   var variables=str.split(';');
+   for(i=0;i<variables.length;i++)
+   {
+      if(variables[i])
+      {
+         keyval=variables[i].split('|');
+         key=keyval[0];
+         typevalue=keyval[1].split(':');
+         if(typevalue[0]=='s')
+         {
+            unserialized[key]=typevalue[2].substring(1,typevalue[2].length-1);
          }
-
-         sess[sessHash[2]] = unserialize(serial);
+         else if(typevalue[0]=='i')
+         {
+            unserialized[key]=typevalue[1];
+         }
       }
-      if (i++ > 50 ) break;
-   } while (sessHash);
-
-   return sess;
+   }
+   return unserialized;
 }
 
 
@@ -39,7 +41,8 @@ var PHPSESSION_PATH = "/tmp";
 
 // récupération des paramètres de la ligne de commande 
 for (var i = 2; i < process.argv.length; i++) {
-   var opt=process.argv[i].split(';');
+   var opt=process.argv[i].split('=');
+   
    if(opt[0]=="--iosocketport")
    try {
       SOKET_IO_PORT=Number(opt[1]);
@@ -47,6 +50,7 @@ for (var i = 2; i < process.argv.length; i++) {
       console.log("not a number");
    }
    else if(opt[0]=="--dataport")
+   {
       try {
          LOCAL_PORT=Number(opt[1]);
       } catch(e) {
@@ -93,31 +97,45 @@ io.use(function(socket, next) {
 
    var cookiesStr=handshakeData.headers.cookie;
    cookies = {}
-   cookiesStr.split(';').forEach (cookie) ->
-      parts = cookie.split '='
+   cookies_splited=cookiesStr.split(';');
+   for(i=0;i<cookies_splited.length;i++)
+   {
+      parts = cookies_splited[i].split('=');
       cookies[parts[0].trim()] = (parts[1] || '').trim()
-      return
+   }
 
-   var phpSessionFile = PHPSESSION_PATH+"sess_"+cookies['PHPSESSID'];
+   var phpSessionFile = PHPSESSION_PATH+"/sess_"+cookies['PHPSESSID'];
 
    try {
       data = fs.readFileSync(phpSessionFile,'utf8');
       console.log("INFO  fs.readFile("+phpSessionFile+") = "+data);
       sess={};
-      sess=unserialize_session(data);
-      if(sess['logged_in']==1) {
-         console.log("INFO  io.use() : authorized");
-         next();
-         return;
-      else
-         console.log("INFO  io.use() : not authorized");
-         next(new Error('not authorized'));
-         return;
-      } catch(e) {
-         console.log("ERROR fs.readFile("+phpSessionFile+") : \n"+e.message);
-         next(new Error('not authorized'));
-         return;
-      }
+   }
+   catch(e) {
+      console.log("ERROR fs.readFileSync("+phpSessionFile+") : "+e.message);
+      next(new Error('not authorized'));
+      return;
+   }
+
+   try {
+      sess=unserialize_session(data.toString());
+   }
+   catch(e) {
+      console.log("ERROR unserialize_session() : "+e.message);
+      next(new Error('not authorized'));
+      return;
+   }
+
+   if(sess['logged_in']==1) {
+      console.log("INFO  io.use() : authorized");
+      next();
+      return;
+   }
+   else
+   {
+      console.log("INFO  io.use() : not authorized");
+      next(new Error('not authorized'));
+      return;
    }
 });
 
@@ -128,7 +146,6 @@ io.sockets.on('connection', function(socket) {
 
    var address = socket.handshake.address;
    console.log("INFO  io.sockets.on('connection') : new client : " + socket.id + " from "+ address.address);
-
    socket.on('disconnect', function() {
       console.log("INFO  socket.on('disconnect') : client "+socket.id+" disconnected"); 
       delete clients[socket.id];

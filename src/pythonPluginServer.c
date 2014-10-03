@@ -421,7 +421,7 @@ pthread_t *pythonPluginServer()
 
 void pythonPluginCmd_queue_free_queue_elem(void *d)
 {
-   xplpythonPlugin_cmd_t *e=(pythonPlugin_cmd_t *d);
+   pythonPlugin_cmd_t *e=(pythonPlugin_cmd_t *)d;
 
    free(e->python_module);
    e->python_module=NULL;

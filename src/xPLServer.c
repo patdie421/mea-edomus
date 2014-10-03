@@ -351,7 +351,7 @@ void _flushExpiredXPLResponses()
 
 void _xplRespQueue_free_queue_elem(void *d)
 {
-   xplRespQueue_elem_t e=(xplRespQueue_elem_t *d);
+   xplRespQueue_elem_t *e=(xplRespQueue_elem_t *)d;
    xPL_releaseMessage(e->msg);
    e->msg=NULL;
 }

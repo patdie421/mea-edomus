@@ -261,7 +261,7 @@ void *monitoring_thread(void *data)
 }
 
 
-pid_t start_nodejs(char *nodejs_path, char *eventServer_path, int port_socketio, int port_socketdata)
+pid_t start_nodejs(char *nodejs_path, char *eventServer_path, int port_socketio, int port_socketdata, char *phpsession_path)
 {
    pid_t nodejs_pid = -1;
    nodejs_pid = fork();
@@ -269,18 +269,22 @@ pid_t start_nodejs(char *nodejs_path, char *eventServer_path, int port_socketio,
    if (nodejs_pid == 0) // child
    {
       // Code only executed by child process
-      char str_port_socketio[16];
-      char str_port_socketdata[16];
-      char *params[5];
+      char str_port_socketio[80];
+      char str_port_socketdata[80];
+      char str_phpsession_path[80];
+      
+      char *params[6];
 
-      sprintf(str_port_socketio,"%d",port_socketio);
-      sprintf(str_port_socketdata,"%d",port_socketdata);
+      sprintf(str_port_socketio,"--iosocketport=%d",port_socketio);
+      sprintf(str_port_socketdata,"--dataport=%d",port_socketdata);
+      sprintf(str_phpsession_path,"--phpsession_path=%s",phpsession_path);
 
       params[0]="nodejs";
       params[1]=eventServer_path;
       params[2]=str_port_socketio;
-      params[3]=str_port_socketio;
-      params[4]=0;
+      params[3]=str_port_socketdata;
+      params[4]=str_phpsession_path;
+      params[5]=0;
 
       execvp(nodejs_path, params);
 
@@ -344,6 +348,7 @@ pthread_t *start_monitoringServer(char **params_list)
    int socketio_port = atoi(params_list[NODEJSIOSOCKET_PORT]);
    int socketdata_port = atoi(params_list[NODEJSDATA_PORT]);
    char *nodejs_path = params_list[NODEJS_PATH];
+   char *phpsession_path = params_list[PHPSESSIONS_PATH];
    char serverjs_path[256];
 
    int n=snprintf(serverjs_path, sizeof(serverjs_path), "%s/nodeJS/server/server", params_list[GUI_PATH]);
@@ -356,7 +361,7 @@ pthread_t *start_monitoringServer(char **params_list)
       return NULL; 
    }
 
-   pid=start_nodejs(nodejs_path, serverjs_path, socketio_port, socketdata_port);
+   pid=start_nodejs(nodejs_path, serverjs_path, socketio_port, socketdata_port, phpsession_path);
    if(!pid)
    {
       VERBOSE(1) {

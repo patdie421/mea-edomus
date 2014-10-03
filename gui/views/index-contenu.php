@@ -24,6 +24,8 @@ session_start() ?>
 <script type="text/javascript" src="lib/js/mea-gui-utils.js"></script>
 
 <script type="text/javascript" src="controlers/index.js"></script>
+<script>
 jQuery(document).ready(function(){
    start_controler(8000); //voir comment récupérer le port dans la config ...
 });
+</script>

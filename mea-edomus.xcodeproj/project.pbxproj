@@ -34,6 +34,7 @@
 		4E76CEAB163F146900A3EBA9 /* parameters_utils.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E76CEA9163F146900A3EBA9 /* parameters_utils.c */; };
 		4E76CEB2163F175100A3EBA9 /* tokens_strings.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E76CEB0163F175100A3EBA9 /* tokens_strings.c */; };
 		4E798FF919D4871400F87593 /* monitoringServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E798FF819D4871400F87593 /* monitoringServer.c */; };
+		4E79947A19DF223000F87593 /* index.js in Sources */ = {isa = PBXBuildFile; fileRef = 4E79947919DF223000F87593 /* index.js */; };
 		4E8787E61816732800A87FF0 /* sqlite3db_utils.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E8787E51816732800A87FF0 /* sqlite3db_utils.c */; };
 		4E8E533818429724006FB9D3 /* automatorServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E8E533718429724006FB9D3 /* automatorServer.c */; };
 		4E8F781C178B44490099A751 /* string_utils.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E8F781B178B44490099A751 /* string_utils.c */; };
@@ -863,6 +864,7 @@
 		4E79947119DC9E6100F87593 /* mea-edomus */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; path = "mea-edomus"; sourceTree = "<group>"; };
 		4E79947319DC9EBB00F87593 /* php-cgi.mk */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "php-cgi.mk"; path = "complements/php-cgi/php-cgi.mk"; sourceTree = "<group>"; };
 		4E79947719DCB04B00F87593 /* nodejs.mk */ = {isa = PBXFileReference; lastKnownFileType = text; name = nodejs.mk; path = complements/nodejs/nodejs.mk; sourceTree = "<group>"; };
+		4E79947919DF223000F87593 /* index.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = index.js; sourceTree = "<group>"; };
 		4E8787E51816732800A87FF0 /* sqlite3db_utils.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = sqlite3db_utils.c; path = src/sqlite3db_utils.c; sourceTree = "<group>"; };
 		4E8787E71816733F00A87FF0 /* sqlite3db_utils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = sqlite3db_utils.h; path = src/sqlite3db_utils.h; sourceTree = "<group>"; };
 		4E8E5336184296F6006FB9D3 /* automatorServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = automatorServer.h; path = src/automatorServer.h; sourceTree = "<group>"; };
@@ -1078,6 +1080,7 @@
 		4E79900319DC9D5500F87593 /* controlers */ = {
 			isa = PBXGroup;
 			children = (
+				4E79947919DF223000F87593 /* index.js */,
 				4E79900419DC9D5500F87593 /* change_password.php */,
 				4E79900519DC9D5500F87593 /* config.js */,
 				4E79900619DC9D5500F87593 /* grid_inputs.js */,
@@ -3599,6 +3602,7 @@
 				4E4A5EA915F003420052ABF4 /* dbServer.c in Sources */,
 				4E4A5EAA15F003420052ABF4 /* xbee.c in Sources */,
 				4E14AC0E16083B8C000686C3 /* memory.c in Sources */,
+				4E79947A19DF223000F87593 /* index.js in Sources */,
 				4E76CE98163F120C00A3EBA9 /* xPL-config.c in Sources */,
 				4E76CE9A163F120C00A3EBA9 /* xPL-io.c in Sources */,
 				4E76CE9B163F120C00A3EBA9 /* xPL-listeners.c in Sources */,
