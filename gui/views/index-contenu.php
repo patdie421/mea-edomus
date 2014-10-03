@@ -25,5 +25,5 @@ session_start() ?>
 
 <script type="text/javascript" src="controlers/index.js"></script>
 jQuery(document).ready(function(){
-   start_controler();
+   start_controler(8000); //voir comment récupérer le port dans la config ...
 });
