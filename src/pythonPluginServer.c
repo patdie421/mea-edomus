@@ -383,7 +383,8 @@ void *_pythonPlugin_thread(void *data)
 }
 
 
-pthread_t *pythonPluginServer(queue_t *plugin_queue)
+// pthread_t *pythonPluginServer(queue_t *plugin_queue)
+pthread_t *pythonPluginServer()
 {
    pthread_t *pythonPlugin_thread=NULL;
    
@@ -418,6 +419,17 @@ pthread_t *pythonPluginServer(queue_t *plugin_queue)
 }
 
 
+void pythonPluginCmd_queue_free_queue_elem(void *d)
+{
+   xplpythonPlugin_cmd_t *e=(pythonPlugin_cmd_t *d);
+
+   free(e->python_module);
+   e->python_module=NULL;
+   free(e->data);
+   e->data=NULL;
+} 
+
+
 void stop_pythonPluginServer()
 {
    if(_pythonPluginServer_thread)
@@ -426,6 +438,13 @@ void stop_pythonPluginServer()
       pthread_join(*_pythonPluginServer_thread, NULL);
       free(_pythonPluginServer_thread);
       _pythonPluginServer_thread=NULL;
+   }
+
+   if(pythonPluginCmd_queue)
+   {
+      clear_queue(pythonPluginCmd_queue, pythonPluginCmd_queue_free_queue_elem);
+      free(pythonPluginCmd_queue);
+      pythonPluginCmd_queue=NULL;
    }
 }
 
@@ -436,7 +455,8 @@ pthread_t *start_pythonPluginServer(char **params_list, sqlite3 *sqlite3_param_d
    {
       setPythonPluginPath(params_list[PLUGINS_PATH]);
 //      printf("PLUGINS_PATH=%s\n", params_list[PLUGINS_PATH]);
-      _pythonPluginServer_thread=pythonPluginServer(NULL);
+//      _pythonPluginServer_thread=pythonPluginServer(NULL);
+      _pythonPluginServer_thread=pythonPluginServer();
       if(_pythonPluginServer_thread==NULL)
       {
          VERBOSE(2) fprintf(stderr,"%s (%s) : can't start Python Plugin Server (thread error).\n",ERROR_STR,__func__);
