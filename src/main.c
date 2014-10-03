@@ -86,7 +86,8 @@ void usage(char *cmd)
       "  --paramsdb, -d      : chemin et nom la base de paramétrage",
 //      "  --config, -c        : fichier de configuration (mea-edomus.ini peut contenir contient basepath, paramsdb et guiport). Les options de la ligne de commandes sont prioritaires sur le fichier de config.",
       "  --guiport, -g       : port tcp de l'ihm",
-      "  --nodatabase, -b    : le gestionnaire de base de données n'est pas lancé (pas d'historisation des données",
+      "  --nodatabase, -b    : le gestionnaire de base de données n'est pas lancé (pas",
+      "                        d'historisation des données",
       "  --verboselevel, -v  : niveau de détail des messages d'erreur (1 à 9)",
       "  --help, -h          : ce message",
       "",
@@ -217,7 +218,7 @@ int16_t read_all_application_parameters(sqlite3 *sqlite3_param_db)
 }
 
 
-void stop_all_services_and_exit()
+void clean_all_and_exit()
 {
    if(xPLServer_thread)
    {
@@ -374,14 +375,44 @@ int main(int argc, const char * argv[])
    /*
    // chemin "théorique" de l'installation mea-domus (si les recommendations ont été respectées) => ne marche pas sur linux
    buff=(char *)malloc(strlen(argv[0])+1);
+   if(!buff)
+   {
+      VERBOSE(1) {
+         fprintf (stderr, "%s (%s) : malloc - ", ERROR_STR,__func__);
+         perror("");
+      }
+      clean_services_and_exit();
+   }
+
+
    if(realpath(argv[0], buff))
    {
       char *path;
 
       path=malloc(strlen(dirname(buff))+1);
+      if(!path)
+      {
+         VERBOSE(1) {
+            fprintf (stderr, "%s (%s) : malloc - ", ERROR_STR,__func__);
+            perror("");
+         }
+         free(buff);
+         clean_services_and_exit();
+      }
       strcpy(path,dirname(buff));
       
       params_list[MEA_PATH]=(char *)malloc(strlen(dirname(path))+1);
+      if(!patparams_list[MEA_PATH])
+      {
+         VERBOSE(1) {
+            fprintf (stderr, "%s (%s) : malloc - ", ERROR_STR,__func__);
+            perror("");
+         }
+         free(buff);
+         free(path);
+         clean_services_and_exit();
+      }
+
       strcpy(params_list[MEA_PATH],dirname(path));
       free(path);
    }
@@ -395,7 +426,7 @@ int main(int argc, const char * argv[])
          fprintf (stderr, "%s (%s) : malloc - ", ERROR_STR,__func__);
          perror("");
       }
-      stop_all_services_and_exit();
+      clean_all_and_exit();
    }
  
    //
@@ -428,7 +459,7 @@ int main(int argc, const char * argv[])
                   fprintf (stderr, "%s (%s) : malloc - ", ERROR_STR,__func__);
                   perror("");
                }
-               stop_all_services_and_exit();
+               clean_all_and_exit();
             }
             c=-1;
             _d=1;
@@ -547,7 +578,7 @@ int main(int argc, const char * argv[])
       {
          VERBOSE(1) fprintf(stderr,"%s (%s) : Paramètre \"%s\" inconnu.\n",ERROR_STR,__func__,optarg);
          usage((char *)argv[0]);
-         stop_all_services_and_exit();
+         clean_all_and_exit();
       }
       
       if(c!=-1 && c!=0)
@@ -561,7 +592,7 @@ int main(int argc, const char * argv[])
                fprintf (stderr, "%s (%s) : malloc - ", ERROR_STR,__func__);
                perror("");
             }
-            stop_all_services_and_exit();
+            clean_all_and_exit();
          }
       }
    }
@@ -573,7 +604,7 @@ int main(int argc, const char * argv[])
    {
       VERBOSE(1) fprintf(stderr,"%s (%s) : --init (-i), --autoinit (-a), et --update (-u) incompatible\n",ERROR_STR,__func__);
       usage((char *)argv[0]);
-      stop_all_services_and_exit();
+      clean_all_and_exit();
    }
    
    if(_v > 0 && _v < 10)
@@ -588,7 +619,7 @@ int main(int argc, const char * argv[])
             fprintf (stderr, "%s (%s) : malloc - ", ERROR_STR,__func__);
             perror("");
          }
-         stop_all_services_and_exit();
+         clean_all_and_exit();
       }
       sprintf(params_list[SQLITE3_DB_PARAM_PATH],"%s/var/db/params.db",params_list[MEA_PATH]);
    }
@@ -602,21 +633,21 @@ int main(int argc, const char * argv[])
    if(_i || _a)
    {
       initMeaEdomus(_a, params_list, params_names);
-      stop_all_services_and_exit();
+      clean_all_and_exit();
    }
    
    if(_u)
    {
       // à faire
       updateMeaEdomus(params_list, params_names);
-      stop_all_services_and_exit();
+      clean_all_and_exit();
    }
 
    if(_o)
    {
       VERBOSE(1) fprintf(stderr,"%s (%s) : options complémentaires uniquement utilisable avec --init (-i), --autoinit (-a), et --update (-u)\n", ERROR_STR, __func__);
       usage((char *)argv[0]);
-      stop_all_services_and_exit();
+      clean_all_and_exit();
    }
 
    
@@ -627,7 +658,7 @@ int main(int argc, const char * argv[])
    if(checkParamsDb(params_list[SQLITE3_DB_PARAM_PATH], &cause))
    {
       VERBOSE(1) fprintf (stderr, "%s (%s) : checkParamsDb - parameters database error\n", ERROR_STR, __func__);
-      stop_all_services_and_exit();
+      clean_all_and_exit();
    }
 
  
@@ -636,7 +667,7 @@ int main(int argc, const char * argv[])
    if(ret)
    {
       VERBOSE(1) fprintf (stderr, "%s (%s) : sqlite3_open - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
-      stop_all_services_and_exit();
+      clean_all_and_exit();
    }
 
    
@@ -646,7 +677,7 @@ int main(int argc, const char * argv[])
    {
       VERBOSE(1) fprintf (stderr, "%s (%s) : can't load parameters\n",ERROR_STR,__func__);
       sqlite3_close(sqlite3_param_db);
-      stop_all_services_and_exit();
+      clean_all_and_exit();
    }
 
 
@@ -664,7 +695,7 @@ int main(int argc, const char * argv[])
       VERBOSE(1) {
          fprintf (stderr, "%s (%s) : malloc - ", ERROR_STR,__func__);
          perror("");
-         stop_all_services_and_exit();
+         clean_all_and_exit();
       }
       strcpy(params_list[LOG_PATH],"/var/log");
    }
@@ -675,7 +706,7 @@ int main(int argc, const char * argv[])
       VERBOSE(1) {
          fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);
          perror("");
-         stop_all_services_and_exit();
+         clean_all_and_exit();
       }
    }
 
@@ -684,7 +715,7 @@ int main(int argc, const char * argv[])
    {
       VERBOSE(1) fprintf (stderr, "%s (%s) : can't open log file - ",ERROR_STR,__func__);
       perror("");
-      stop_all_services_and_exit();
+      clean_all_and_exit();
    }
    
    dup2(fd, 1);
@@ -696,7 +727,7 @@ int main(int argc, const char * argv[])
    //   
    // demarrage du processus de l'automate
    //
-   //automator_pid = start_automatorServer(params_list[SQLITE3_DB_PARAM_PATH]);
+   automator_pid = start_automatorServer(params_list[SQLITE3_DB_PARAM_PATH]);
 
    //
    // initialisation gestions des signaux (arrêt de l'appli et réinitialisation
@@ -714,7 +745,7 @@ int main(int argc, const char * argv[])
       if(!myd)
       {
          VERBOSE(1) fprintf (stderr, "%s (%s) : can't start database server\n",ERROR_STR,__func__);
-         stop_all_services_and_exit();
+         clean_all_and_exit();
       }
    }
 
@@ -722,7 +753,7 @@ int main(int argc, const char * argv[])
    if(!pythonPluginServer_thread)
    {
       VERBOSE(1) fprintf (stderr, "%s (%s) : can't start python plugin server\n",ERROR_STR,__func__);
-      stop_all_services_and_exit();
+      clean_all_and_exit();
    }
 
    interfaces=start_interfaces(params_list, sqlite3_param_db, myd); // démarrage des interfaces
@@ -731,18 +762,16 @@ int main(int argc, const char * argv[])
    if(!xPLServer_thread)
    {
       VERBOSE(1) fprintf (stderr, "%s (%s) : can't start xpl server\n",ERROR_STR,__func__);
-      stop_all_services_and_exit();
+      clean_all_and_exit();
    }
 
    start_httpServer(params_list, interfaces); // initialisation du serveur HTTP
 
-   // monitoringServer_thread=start_monitoringServer("/data/rec/mea-edomus/0.1alpha3/bin/node", "/data/rec/mea-edomus/0.1alpha3/lib/mea-gui/nodeJS/server/server.js", 8000, 5600, "/data/rec/mea-edomus/0.1alpha3/var/log/mea-edomus.log");
    monitoringServer_thread=start_monitoringServer(params_list);
-
    if(!monitoringServer_thread)
    {
       VERBOSE(1) fprintf (stderr, "%s (%s) : can't start monitoring server\n",ERROR_STR,__func__);
-      stop_all_services_and_exit();
+      clean_all_and_exit();
    }
 
    DEBUG_SECTION fprintf(stderr,"MEA-EDOMUS %s starded\n",__MEA_EDOMUS_VERSION__);
