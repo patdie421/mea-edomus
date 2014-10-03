@@ -72,9 +72,11 @@ function socketio_available() { // socket io est chargé, on se connecte
 function socketio_unavailable(jqXHR, textStatus, errorThrown) {
    jqXHR.abort();
    $("#console").append("<div>Pas d'iosocket => pas de console en live ...<div>");
-}  
+   }
 
-jQuery(document).ready(function(){
+
+function start_controler()
+{
    var socketiojs_url=window.location.protocol + '//' + window.location.hostname + ':8000/socket.io/socket.io.js';
    $.ajax({
        url: socketiojs_url,
@@ -83,4 +85,7 @@ jQuery(document).ready(function(){
        success: socketio_available,
        error: socketio_unavailable
    });   
-});
+}
+
+
+
