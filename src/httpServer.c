@@ -205,7 +205,8 @@ static int begin_request_handler(struct mg_connection *conn)
                       "\r\n"
                       "%s\r\n",
                       (int)strlen(reponse)+2, reponse);
-            return "done";
+//            return "done";
+            return 1;
          }
          else
             return 0;
