@@ -88,14 +88,6 @@ var fs = require('fs');
 io.use(function(socket, next) {
    var handshakeData = socket.request;
 
-   try {
-      if(clients[socket.id][logged_in]==1) // déjà connecté, pas la peine de perdre du temps
-      {
-         next();
-         return;
-      }
-   }
-
    var cookiesStr=handshakeData.headers.cookie;
    cookies = {}
    cookiesStr.split(';').forEach (cookie) ->
@@ -112,7 +104,6 @@ io.use(function(socket, next) {
       sess=unserialize_session(data);
       if(sess['logged_in']==1) {
          console.log("INFO  io.use() : authorized");
-         clients[socket.id]['logged_in']=1;
          next();
          return;
       else
@@ -131,7 +122,6 @@ io.use(function(socket, next) {
 io.sockets.on('connection', function(socket) {
    clients[socket.id] = [];
    clients[socket.id]['socket'] = socket;
-   clients[socket.id]['logged_in'] = 0;
 
    var address = socket.handshake.address;
    console.log("INFO  io.sockets.on('connection') : new client : " + socket.id + " from "+ address.address);
