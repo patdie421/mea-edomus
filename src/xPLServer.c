@@ -133,7 +133,7 @@ xPL_ServicePtr mea_getXPLServicePtr()
 }
 
 
-void _dispatchXPLMessage(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
+void _dispatchXPLMessage(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xPL_ObjectPtr userValue) // à mettre dans interfaces.h ?
 {
    int ret;
 
@@ -349,6 +349,14 @@ void _flushExpiredXPLResponses()
 }
 
 
+void _xplRespQueue_free_queue_elem(void *d)
+{
+   xplRespQueue_elem_t e=(xplRespQueue_elem_t *d);
+   xPL_releaseMessage(e->msg);
+   e->msg=NULL;
+}
+
+
 void *_xPL_thread(void *data)
 {
 //   xPL_setDebugging(TRUE); // xPL en mode debug
@@ -463,6 +471,12 @@ void stop_xPLServer()
       pthread_join(*_xPLServer_thread, NULL);
       free(_xPLServer_thread);
       _xPLServer_thread=NULL;
+   }
+   if(xplRespQueue)
+   {
+      clear_queue(xplRespQueue,_xplRespQueue_free_queue_elem);
+      free(xplRespQueue);
+      xplRespQueue=NULL;
    }
 }
 
