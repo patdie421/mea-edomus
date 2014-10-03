@@ -75,9 +75,9 @@ function socketio_unavailable(jqXHR, textStatus, errorThrown) {
    }
 
 
-function start_controler()
+function start_controler(port)
 {
-   var socketiojs_url=window.location.protocol + '//' + window.location.hostname + ':8000/socket.io/socket.io.js';
+   var socketiojs_url=window.location.protocol + '//' + window.location.hostname + ':'+port+'/socket.io/socket.io.js';
    $.ajax({
        url: socketiojs_url,
        dataType: "script",
