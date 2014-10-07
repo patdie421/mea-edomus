@@ -43,6 +43,7 @@ struct monitored_processes_s
 {
    int max_processes;
    struct monitored_process_s *processes_table;
+   pthread_mutex_t monitored_processes_lock;
 } monitored_processes;
 
 
@@ -63,10 +64,15 @@ const char *hostname = "localhost";
 
 int clear_monitored_processes_list(struct monitored_processes_s *monitored_processes)
 {
+   pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&monitored_processes_lock);
+   pthread_mutex_lock(&monitored_processes_lock);  
+
    for(int i=0;i<max_nb_processes;i++)
-   {
       unregister_process(i);
-   }
+
+   pthread_mutex_unlock(&monitored_processes_lock); 
+   pthread_cleanup_pop(0); 
+
    return 0;
 }
 
@@ -81,86 +87,157 @@ int init_monitored_processes_list(struct monitored_processes_s *monitored_proces
    for(int i=0;i<max_nb_processes;i++)
       monitored_processes->processes_table[i]=NULL;
    max_processes = max_nb_processes;
+
+   pthread_mutex_init(&monitored_processes_lock, NULL);
+
+   return 0;
 }
 
 
 int register_process(char *name)
 {
+   int ret=0;
+   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&monitored_processes_lock );
+   pthread_mutex_lock(&monitored_processes_lock);  
+
    for(i=0;monitored_processes.max_processes;i++)
    {
       if(!monitored_processes.processes_table[i])
       {
          monitored_processes.processes_table[i]=(struct monitored_process_s *)malloc(sizeof(struct monitored_process_s));
          if(!monitored_processes.processes_table[i])
-            return -1;
+         {
+            ret=-1;
+            goto register_process_clean_exit;
+         }
          else
          {
             strncpy(monitored_processes.processes_table[i]->name, name, 40);
             last_heartbeat=time();
             queue_init(indicator_list);
-            return i;
+            ret=i;
+            goto register_process_clean_exit;
          }
       }
    }
-   return -1;
+   ret=-1;
+register_process_clean_exit:
+   pthread_mutex_unlock(&monitored_processes_lock); 
+   pthread_cleanup_pop(0); 
+   return ret;
 }
 
 
 int unregister_process(int id)
 {
+   ret=-1;
+   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&monitored_processes_lock );
+   pthread_mutex_lock(&monitored_processes_lock);  
+
    if(monitored_processes.processes_table[id])
    {
-      free(monitored_processes.processes_table[id);
+      free(monitored_processes.processes_table[id]);
       monitored_processes.processes_table[i]=NULL;
-      return 0;
+      ret=0;
    }
-   return -1;
+
+   pthread_mutex_unlock(&monitored_processes_lock); 
+   pthread_cleanup_pop(0); 
+
+   return ret;
 }
 
 
 int send_Heartbeat(int id)
 {
+   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&monitored_processes_lock );
+   pthread_mutex_lock(&monitored_processes_lock);  
+
    if(monitored_processes.processes_table[id])
    {
       monitored_processes.processes_table[id]->heartbeat = time();
    }
+
+   pthread_mutex_unlock(&monitored_processes_lock); 
+   pthread_cleanup_pop(0); 
 }
 
 
 int process_add_indicator(int id, char *name, long initial_value)
 {
+   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&monitored_processes_lock );
+   pthread_mutex_lock(&monitored_processes_lock);  
+
    send_Heartbeat(int id);
 
+// à compléter
+
+   pthread_mutex_unlock(&monitored_processes_lock); 
+   pthread_cleanup_pop(0); 
 }
 
 
 int process_del_indicator(int id, char *name)
 {
-   send_Heartbeat(int id);
+   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&monitored_processes_lock );
+   pthread_mutex_lock(&monitored_processes_lock);  
 
+   send_Heartbeat(int id);// à compléter
+
+   pthread_mutex_unlock(&monitored_processes_lock); 
+   pthread_cleanup_pop(0); 
 }
 
 
 int process_update_indicator(int id, char *name, long value)
-{
+{ 
+   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&monitored_processes_lock );
+   pthread_mutex_lock(&monitored_processes_lock);  
+
    send_Heartbeat(int id);
 
+// à compléter
+
    monitored_processes_send_indicator(&monitored_processes_list, id);
+
+   pthread_mutex_unlock(&monitored_processes_lock); 
+   pthread_cleanup_pop(0); 
 }
 
 
 int monitored_processes_send_indicator(struct monitored_processes_s *monitored_processes, int id)
 {
+   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&monitored_processes_lock );
+   pthread_mutex_lock(&monitored_processes_lock);  
+
+// à compléter
+
+   pthread_mutex_unlock(&monitored_processes_lock); 
+   pthread_cleanup_pop(0); 
 }
 
 
 int monitored_processes_send_all_indicators(struct monitored_processes_s *monitored_processes)
 {
+   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&monitored_processes_lock );
+   pthread_mutex_lock(&monitored_processes_lock);  
+
+// à compléter
+
+   pthread_mutex_unlock(&monitored_processes_lock); 
+   pthread_cleanup_pop(0); 
 }
 
 
 int monitored_processes_run(struct monitored_processes_s *monitored_processes)
 {
+   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&monitored_processes_lock );
+   pthread_mutex_lock(&monitored_processes_lock);  
+
+// à compléter
+
+   pthread_mutex_unlock(&monitored_processes_lock); 
+   pthread_cleanup_pop(0); 
 }
 
 
