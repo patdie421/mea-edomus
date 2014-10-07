@@ -149,17 +149,17 @@ int process_update_indicator(int id, char *name, long value)
 }
 
 
-monitored_processes_send_indicator(struct monitored_processes_s *monitored_processes, int id)
+int monitored_processes_send_indicator(struct monitored_processes_s *monitored_processes, int id)
 {
 }
 
 
-monitored_processes_send_all_indicators(struct monitored_processes_s *monitored_processes)
+int monitored_processes_send_all_indicators(struct monitored_processes_s *monitored_processes)
 {
 }
 
 
-monitored_processes_run(struct monitored_processes_s *monitored_processes)
+int monitored_processes_run(struct monitored_processes_s *monitored_processes)
 {
 }
 
@@ -280,6 +280,7 @@ int readAndSendLine(int nodejs_socket, char *file, long *pos)
 {
    FILE *fp=NULL;
    char line[512];
+   int nb_loop=0;
 
 /*
    struct stat fileStat;
@@ -324,11 +325,13 @@ int readAndSendLine(int nodejs_socket, char *file, long *pos)
    int ret=0;
    while (1)
    {
-      if (fgets(line, sizeof(line), fp) == NULL)
+      if (fgets(line, sizeof(line), fp) == NULL || nb_loop >= 20)
       {
-         // plus de ligne à lire, on mémorise la dernière position connue
+         // plus de ligne à lire ou déjà 20 ligne transmise on rend la mains, on mémorise la dernière position connue
          *pos=ftell(fp);
          // et on s'arrete pour l'instant
+         if(nb_loop >= 20)
+            ret=1; // pour dire qu'il ne faudra pas attendre ...
          break; 
       }
       else
@@ -342,6 +345,7 @@ int readAndSendLine(int nodejs_socket, char *file, long *pos)
             ret=-1;
             break;
          }
+         nb_lopp++;
       }
    }
    if(fp)
@@ -365,11 +369,18 @@ void *monitoring_thread(void *data)
    {
      if(connexion(&nodejs_socket, (char *)(d->hostname), 5600)==0)
      {
+       int nb_loop=0;
        do
        {
-         if(readAndSendLine(nodejs_socket, log_file, &pos)==-1)
-            break;
-         sleep(1);
+         // monitored_processes_run(&monitored_processes); // mettre un timer à 10 secondes
+
+         int ret=readAndSendLine(nodejs_socket, log_file, &pos);
+
+         if(ret==-1)
+            break; // erreur de com. on essaye de se reconnecter au prochain tour.
+
+         if(ret!=1)
+            sleep(1);
        }
        while(1);
 
@@ -380,7 +391,8 @@ void *monitoring_thread(void *data)
        VERBOSE(9) {
           fprintf(stderr, "%s (%s) : connexion - retry next time ...\n",INFO_STR,__func__);
        }
-       sleep(5); // on essayera de se reconnecter dans 5 secondes
+       // monitored_processes_run(&monitored_processes); mettre un timer à 10 secondes
+       sleep(1); // on essayera de se reconnecter dans 1 secondes
      }
    }
    while(exit==0);
