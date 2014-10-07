@@ -21,6 +21,7 @@
 #include "queue.h"
 #include "debug.h"
 #include "monitoringServer.h"
+#include "timer.h"
 
 
 struct process_indicator_s
@@ -34,6 +35,7 @@ struct monitored_process_s
 {
    char name[41];
    time_t last_heartbeat;
+   mea_timer_t timer;
    int heartbeat_interval; // second
    queue *indicators_list;
 };
@@ -86,7 +88,10 @@ int init_monitored_processes_list(struct monitored_processes_s *monitored_proces
    }
    for(int i=0;i<max_nb_processes;i++)
       monitored_processes->processes_table[i]=NULL;
-   max_processes = max_nb_processes;
+
+   monitored_processes->max_processes = max_nb_processes;
+   init_timer(&monitored_processes->timer, 5, 1);
+   start_timer(&monitored_processes->timer);
 
    pthread_mutex_init(&monitored_processes_lock, NULL);
 
@@ -165,15 +170,36 @@ int send_Heartbeat(int id)
 
 int process_add_indicator(int id, char *name, long initial_value)
 {
-   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&monitored_processes_lock );
-   pthread_mutex_lock(&monitored_processes_lock);  
+   int ret=-1;
 
    send_Heartbeat(int id);
 
-// à compléter
+   struct monitored_process_s *e;
+
+   e=(process_indicator_s *)malloc(sizeof(struct process_indicator_s));
+   if(e)
+   {
+      strncpy(e->name,name);
+      e->value=initial_value;
+   }
+   else
+     return -1;
+
+   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&monitored_processes_lock );
+   pthread_mutex_lock(&monitored_processes_lock);
+
+   if(monitored_processes.processes_table[id])
+   {
+      in_queue_elem(monitored_processes.processes_table[id]->indicators_list,e);
+      ret=0;
+   }
+   else
+      ret=-1;
 
    pthread_mutex_unlock(&monitored_processes_lock); 
    pthread_cleanup_pop(0); 
+
+   return ret;
 }
 
 
@@ -234,7 +260,10 @@ int monitored_processes_run(struct monitored_processes_s *monitored_processes)
    pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&monitored_processes_lock );
    pthread_mutex_lock(&monitored_processes_lock);  
 
+   if(!test_timer(&monitored_processes->timer))
+   {
 // à compléter
+   }
 
    pthread_mutex_unlock(&monitored_processes_lock); 
    pthread_cleanup_pop(0); 
@@ -449,7 +478,7 @@ void *monitoring_thread(void *data)
        int nb_loop=0;
        do
        {
-         // monitored_processes_run(&monitored_processes); // mettre un timer à 10 secondes
+         monitored_processes_run(&monitored_processes); // mettre un timer à 10 secondes
 
          int ret=readAndSendLine(nodejs_socket, log_file, &pos);
 
@@ -468,7 +497,7 @@ void *monitoring_thread(void *data)
        VERBOSE(9) {
           fprintf(stderr, "%s (%s) : connexion - retry next time ...\n",INFO_STR,__func__);
        }
-       // monitored_processes_run(&monitored_processes); mettre un timer à 10 secondes
+       monitored_processes_run(&monitored_processes); mettre un timer à 10 secondes
        sleep(1); // on essayera de se reconnecter dans 1 secondes
      }
    }
