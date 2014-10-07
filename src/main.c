@@ -687,7 +687,7 @@ int main(int argc, const char * argv[])
    char log_file[255];
    int16_t n;
 
-
+/*
    if(!params_list[LOG_PATH] || !strlen(params_list[LOG_PATH]))
    {
       params_list[LOG_PATH]=(char *)malloc(strlen("/var/log"));
@@ -721,7 +721,7 @@ int main(int argc, const char * argv[])
    dup2(fd, 1);
    dup2(fd, 2);
    close(fd);
-
+*/
    DEBUG_SECTION fprintf(stderr,"Starting MEA-EDOMUS %s\n",__MEA_EDOMUS_VERSION__);
 
    //   
@@ -776,10 +776,16 @@ int main(int argc, const char * argv[])
 
    DEBUG_SECTION fprintf(stderr,"MEA-EDOMUS %s starded\n",__MEA_EDOMUS_VERSION__);
 
+
+   int mid=register_process(monitor(), "TEST");
+   process_add_indicator(monitor(), mid, "TEST1", 1234);
+
    // boucle sans fin.
+   long cptr=0;
    while(1)
    {
       sleep(5);
+      process_update_indicator(monitor(), mid, "TEST1", cptr++);
    }
 }
 

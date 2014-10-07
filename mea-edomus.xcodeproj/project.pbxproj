@@ -34,7 +34,6 @@
 		4E76CEAB163F146900A3EBA9 /* parameters_utils.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E76CEA9163F146900A3EBA9 /* parameters_utils.c */; };
 		4E76CEB2163F175100A3EBA9 /* tokens_strings.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E76CEB0163F175100A3EBA9 /* tokens_strings.c */; };
 		4E798FF919D4871400F87593 /* monitoringServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E798FF819D4871400F87593 /* monitoringServer.c */; };
-		4E79947A19DF223000F87593 /* index.js in Sources */ = {isa = PBXBuildFile; fileRef = 4E79947919DF223000F87593 /* index.js */; };
 		4E8787E61816732800A87FF0 /* sqlite3db_utils.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E8787E51816732800A87FF0 /* sqlite3db_utils.c */; };
 		4E8E533818429724006FB9D3 /* automatorServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E8E533718429724006FB9D3 /* automatorServer.c */; };
 		4E8F781C178B44490099A751 /* string_utils.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E8F781B178B44490099A751 /* string_utils.c */; };
@@ -3602,7 +3601,6 @@
 				4E4A5EA915F003420052ABF4 /* dbServer.c in Sources */,
 				4E4A5EAA15F003420052ABF4 /* xbee.c in Sources */,
 				4E14AC0E16083B8C000686C3 /* memory.c in Sources */,
-				4E79947A19DF223000F87593 /* index.js in Sources */,
 				4E76CE98163F120C00A3EBA9 /* xPL-config.c in Sources */,
 				4E76CE9A163F120C00A3EBA9 /* xPL-io.c in Sources */,
 				4E76CE9B163F120C00A3EBA9 /* xPL-listeners.c in Sources */,
