@@ -28,14 +28,13 @@ struct process_indicator_s
 {
    char name[41];
    long value;
-}
+};
 
 
 struct monitored_process_s
 {
    char name[41];
    time_t last_heartbeat;
-   mea_timer_t timer;
    int heartbeat_interval; // second
    queue *indicators_list;
 };
@@ -45,7 +44,8 @@ struct monitored_processes_s
 {
    int max_processes;
    struct monitored_process_s *processes_table;
-   pthread_mutex_t monitored_processes_lock;
+   mea_timer_t timer;
+   pthread_mutex_t lock;
 } monitored_processes;
 
 
@@ -64,15 +64,55 @@ pid_t pid_nodejs=0;
 const char *hostname = "localhost";
 
 
+void _indicators_free_queue_elem(void *e)
+{
+}
+
+
+int _monitored_processes_send_indicator(struct monitored_processes_s *monitored_processes, int id)
+{
+   struct process_indicator_s *e;
+
+   if(monitored_processes->processes_table[id])
+   {
+      if(first_queue(monitored_processes->processes_table[id]->indicators_list)==0)
+      { 
+         while(1)
+         {
+            if(current_queue(monitored_processes->processes_table[id]->indicators_list, (void **)&e)==0)
+            {
+               frprintf(stderr,"%s = %d\n",e->name, e->value);
+               next_queue(monitored_processes->processes_table[id]->indicators_list);
+            }
+            else
+               break;
+         }
+      }
+   }
+}
+
+
+int _monitored_processes_send_all_indicators(struct monitored_processes_s *monitored_processes)
+{
+   for(int i=0;i<monitored_processes->max_processes;i++)
+   {
+      if(monitored_processes->processes_table[i])
+      {
+         _monitor_processes_send_indicators(monitored_processes, i);
+      }
+   }
+}
+
+
 int clear_monitored_processes_list(struct monitored_processes_s *monitored_processes)
 {
-   pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&monitored_processes_lock);
-   pthread_mutex_lock(&monitored_processes_lock);  
+   pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(monitored_processes->lock));
+   pthread_mutex_lock(&monitored_processes->lock);  
 
-   for(int i=0;i<max_nb_processes;i++)
-      unregister_process(i);
+   for(int i=0;i<monitored_processes->max_nb_processes;i++)
+      unregister_process(monitored_processes,i);
 
-   pthread_mutex_unlock(&monitored_processes_lock); 
+   pthread_mutex_unlock(&(monitored_processes->lock)); 
    pthread_cleanup_pop(0); 
 
    return 0;
@@ -81,7 +121,7 @@ int clear_monitored_processes_list(struct monitored_processes_s *monitored_proce
 
 int init_monitored_processes_list(struct monitored_processes_s *monitored_processes, int max_nb_processes)
 {
-   monitored_processes->processes_table=(struct monitored_processes_s *)malloc(max_nb_processes * sizeof(struct monitored_processes_s);
+   monitored_processes->processes_table=(struct monitored_process_s *)malloc(max_nb_processes * sizeof(struct monitored_process_s);
    if(!monitored_processes->processes_table)
    {
       return -1;
@@ -93,33 +133,34 @@ int init_monitored_processes_list(struct monitored_processes_s *monitored_proces
    init_timer(&monitored_processes->timer, 5, 1);
    start_timer(&monitored_processes->timer);
 
-   pthread_mutex_init(&monitored_processes_lock, NULL);
+   pthread_mutex_init(&(monitored_processes->lock), NULL);
 
    return 0;
 }
 
 
-int register_process(char *name)
+int register_process(struct monitored_processes_s *monitored_processes, char *name)
 {
    int ret=0;
-   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&monitored_processes_lock );
-   pthread_mutex_lock(&monitored_processes_lock);  
+   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&monitored_processes->lock );
+   pthread_mutex_lock(&monitored_processes->lock);  
 
-   for(i=0;i<monitored_processes.max_processes;i++)
+   for(i=0;i<monitored_processes->max_processes;i++)
    {
-      if(!monitored_processes.processes_table[i])
+      if(!monitored_processes->processes_table[i])
       {
-         monitored_processes.processes_table[i]=(struct monitored_process_s *)malloc(sizeof(struct monitored_process_s));
-         if(!monitored_processes.processes_table[i])
+         monitored_processes->processes_table[i]=(struct monitored_process_s *)malloc(sizeof(struct monitored_process_s));
+         if(!monitored_processes->processes_table[i])
          {
             ret=-1;
             goto register_process_clean_exit;
          }
          else
          {
-            strncpy(monitored_processes.processes_table[i]->name, name, 40);
-            last_heartbeat=time();
-            queue_init(indicator_list);
+            strncpy(monitored_processes->processes_table[i]->name, name, 40);
+            monitored_processes->processes_table[i]->last_heartbeat=time();
+            queue_init(monitored_processes->processes_table[i]->indicator_list);
+            monitored_processes->processes_table[i]->heartbeat_interval=20;
             ret=i;
             goto register_process_clean_exit;
          }
@@ -127,145 +168,149 @@ int register_process(char *name)
    }
    ret=-1;
 register_process_clean_exit:
-   pthread_mutex_unlock(&monitored_processes_lock); 
+   pthread_mutex_unlock(&monitored_processes->lock); 
    pthread_cleanup_pop(0); 
    return ret;
 }
 
 
-int unregister_process(int id)
+int unregister_process(struct monitored_processes_s *monitored_processes, int id)
 {
    ret=-1;
-   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&monitored_processes_lock );
-   pthread_mutex_lock(&monitored_processes_lock);  
+   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(monitored_processes->lock) );
+   pthread_mutex_lock(&(monitored_processes->lock));  
 
-   if(monitored_processes.processes_table[id])
+   if(monitored_processes->processes_table[id])
    {
-      free(monitored_processes.processes_table[id]);
-      monitored_processes.processes_table[i]=NULL;
+      clear_queue(_monitored_processes->processes_table[id]->queue, indicators_free_queue_elem);
+      free(monitored_processes->processes_table[id]);
+      monitored_processes->processes_table[i]=NULL;
       ret=0;
    }
 
-   pthread_mutex_unlock(&monitored_processes_lock); 
+   pthread_mutex_unlock(&monitored_processes->lock); 
    pthread_cleanup_pop(0); 
 
    return ret;
 }
 
 
-int send_Heartbeat(int id)
+int send_Heartbeat(struct monitored_processes_s *monitored_processes, int id)
 {
-   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&monitored_processes_lock );
-   pthread_mutex_lock(&monitored_processes_lock);  
+   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(monitored_processes->lock) );
+   pthread_mutex_lock(&(monitored_processes->lock));  
 
-   if(monitored_processes.processes_table[id])
+   if(monitored_processes->processes_table[id])
    {
-      monitored_processes.processes_table[id]->heartbeat = time();
+      monitored_processes->processes_table[id]->heartbeat = time();
    }
 
-   pthread_mutex_unlock(&monitored_processes_lock); 
+   pthread_mutex_unlock(&monitored_processes->lock); 
    pthread_cleanup_pop(0); 
 }
 
 
-int process_add_indicator(int id, char *name, long initial_value)
+int process_add_indicator(struct monitored_processes_s *monitored_processes, int id, char *name, long initial_value)
 {
    int ret=-1;
 
-   send_Heartbeat(int id);
+   send_Heartbeat(monitored_processes, id);
 
-   struct monitored_process_s *e;
+   struct process_indicator_s *e;
 
    e=(process_indicator_s *)malloc(sizeof(struct process_indicator_s));
    if(e)
    {
-      strncpy(e->name,name);
+      strncpy(e->name,name,40);
       e->value=initial_value;
    }
    else
      return -1;
 
-   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&monitored_processes_lock );
+   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(monitored_processes->lock) );
    pthread_mutex_lock(&monitored_processes_lock);
 
-   if(monitored_processes.processes_table[id])
+   if(monitored_processes->processes_table[id])
    {
-      in_queue_elem(monitored_processes.processes_table[id]->indicators_list,e);
+      in_queue_elem(monitored_processes->processes_table[id]->indicators_list,e);
       ret=0;
    }
    else
       ret=-1;
 
-   pthread_mutex_unlock(&monitored_processes_lock); 
+   pthread_mutex_unlock(&(monitored_processes->lock)); 
    pthread_cleanup_pop(0); 
 
    return ret;
 }
 
 
-int process_del_indicator(int id, char *name)
+int process_del_indicator(struct monitored_processes_s *monitored_processes, sint id, char *name)
 {
-   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&monitored_processes_lock );
-   pthread_mutex_lock(&monitored_processes_lock);  
+   send_Heartbeat(monitored_processes, id);// à compléter
 
-   send_Heartbeat(int id);// à compléter
+   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(monitored_processes->lock) );
+   pthread_mutex_lock(&(monitored_processes->lock));  
 
    pthread_mutex_unlock(&monitored_processes_lock); 
    pthread_cleanup_pop(0); 
 }
 
 
-int process_update_indicator(int id, char *name, long value)
-{ 
-   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&monitored_processes_lock );
-   pthread_mutex_lock(&monitored_processes_lock);  
-
-   send_Heartbeat(int id);
-
-// à compléter
-
-   monitored_processes_send_indicator(&monitored_processes_list, id);
-
-   pthread_mutex_unlock(&monitored_processes_lock); 
-   pthread_cleanup_pop(0); 
-}
-
-
-int monitored_processes_send_indicator(struct monitored_processes_s *monitored_processes, int id)
+int process_update_indicator(struct monitored_processes_s *monitored_processes, int id, char *name, long value)
 {
-   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&monitored_processes_lock );
-   pthread_mutex_lock(&monitored_processes_lock);  
+   int ret=-1;
+   send_Heartbeat(monitored_processes, id);
 
-// à compléter
+   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(monitored_processes->lock) );
+   pthread_mutex_lock(&(monitored_processes->lock));
 
-   pthread_mutex_unlock(&monitored_processes_lock); 
+   if(monitored_processes->processes_table[id])
+   {
+      struct process_indicator_s *e;
+
+      if(first_queue(monitored_processes->processes_table[id]->indicators_list)==0)
+      {
+         while(1)
+         {
+            if(current_queue(monitored_processes->processes_table[id]->indicators_list, (void **)&e)==0)
+            {
+               if((strcmp(name, e->name) == 0)
+               {
+                  e->value=value;
+                  ret=0;
+                  break;
+               }
+               else
+                  next_queue(monitored_processes->processes_table[id]->indicators_list);
+            }
+            else
+               break;
+         }
+      }
+   }
+
+   if(!ret)
+      _monitored_processes_send_indicator(monitored_processes, id);
+
+   pthread_mutex_unlock(&(monitored_processes->lock));
    pthread_cleanup_pop(0); 
-}
 
-
-int monitored_processes_send_all_indicators(struct monitored_processes_s *monitored_processes)
-{
-   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&monitored_processes_lock );
-   pthread_mutex_lock(&monitored_processes_lock);  
-
-// à compléter
-
-   pthread_mutex_unlock(&monitored_processes_lock); 
-   pthread_cleanup_pop(0); 
+   return ret;
 }
 
 
 int monitored_processes_run(struct monitored_processes_s *monitored_processes)
 {
-   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&monitored_processes_lock );
-   pthread_mutex_lock(&monitored_processes_lock);  
+   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(monitored_processes->lock) );
+   pthread_mutex_lock(&(monitored_processes->lock));  
 
    if(!test_timer(&monitored_processes->timer))
    {
-// à compléter
+      _monitored_processes_send_all_indicators(monitored_processes);
    }
 
-   pthread_mutex_unlock(&monitored_processes_lock); 
+   pthread_mutex_unlock(&(monitored_processes->lock)); 
    pthread_cleanup_pop(0); 
 }
 
@@ -525,7 +570,7 @@ pid_t start_nodejs(char *nodejs_path, char *eventServer_path, int port_socketio,
       sprintf(str_port_socketdata,"--dataport=%d",port_socketdata);
       sprintf(str_phpsession_path,"--phpsession_path=%s",phpsession_path);
 
-      params[0]="nodejs";
+      params[0]="nodejs/mea-edomus";
       params[1]=eventServer_path;
       params[2]=str_port_socketio;
       params[3]=str_port_socketdata;
