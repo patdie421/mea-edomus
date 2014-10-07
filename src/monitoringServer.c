@@ -18,9 +18,32 @@
 #define PORT 5600
 
 #include "globals.h"
-
+#include "queue.h"
 #include "debug.h"
 #include "monitoringServer.h"
+
+
+struct process_indicator_s
+{
+   char name[41];
+   long value;
+}
+
+
+struct monitored_process_s
+{
+   char name[41];
+   time_t last_heartbeat;
+   int heartbeat_interval; // second
+   queue *indicators_list;
+};
+
+
+struct monitored_processes_s
+{
+   int max_processes;
+   struct monitored_process_s *processes_table;
+} monitored_processes;
 
 
 struct monitoring_thread_data_s
@@ -31,9 +54,114 @@ struct monitoring_thread_data_s
 } monitoring_thread_data;
 
 
-const char *hostname = "localhost";
-pid_t pid_nodejs=0;
 pthread_t *_monitoring_thread=NULL;
+
+pid_t pid_nodejs=0;
+
+const char *hostname = "localhost";
+
+
+int clear_monitored_processes_list(struct monitored_processes_s *monitored_processes)
+{
+   for(int i=0;i<max_nb_processes;i++)
+   {
+      unregister_process(i);
+   }
+   return 0;
+}
+
+
+int init_monitored_processes_list(struct monitored_processes_s *monitored_processes, int max_nb_processes)
+{
+   monitored_processes->processes_table=(struct monitored_processes_s *)malloc(max_nb_processes * sizeof(struct monitored_processes_s);
+   if(!monitored_processes->processes_table)
+   {
+      return -1;
+   }
+   for(int i=0;i<max_nb_processes;i++)
+      monitored_processes->processes_table[i]=NULL;
+   max_processes = max_nb_processes;
+}
+
+
+int register_process(char *name)
+{
+   for(i=0;monitored_processes.max_processes;i++)
+   {
+      if(!monitored_processes.processes_table[i])
+      {
+         monitored_processes.processes_table[i]=(struct monitored_process_s *)malloc(sizeof(struct monitored_process_s));
+         if(!monitored_processes.processes_table[i])
+            return -1;
+         else
+         {
+            strncpy(monitored_processes.processes_table[i]->name, name, 40);
+            last_heartbeat=time();
+            queue_init(indicator_list);
+            return i;
+         }
+      }
+   }
+   return -1;
+}
+
+
+int unregister_process(int id)
+{
+   if(monitored_processes.processes_table[id])
+   {
+      free(monitored_processes.processes_table[id);
+      monitored_processes.processes_table[i]=NULL;
+      return 0;
+   }
+   return -1;
+}
+
+
+int send_Heartbeat(int id)
+{
+   if(monitored_processes.processes_table[id])
+   {
+      monitored_processes.processes_table[id]->heartbeat = time();
+   }
+}
+
+
+int process_add_indicator(int id, char *name, long initial_value)
+{
+   send_Heartbeat(int id);
+
+}
+
+
+int process_del_indicator(int id, char *name)
+{
+   send_Heartbeat(int id);
+
+}
+
+
+int process_update_indicator(int id, char *name, long value)
+{
+   send_Heartbeat(int id);
+
+   monitored_processes_send_indicator(&monitored_processes_list, id);
+}
+
+
+monitored_processes_send_indicator(struct monitored_processes_s *monitored_processes, int id)
+{
+}
+
+
+monitored_processes_send_all_indicators(struct monitored_processes_s *monitored_processes)
+{
+}
+
+
+monitored_processes_run(struct monitored_processes_s *monitored_processes)
+{
+}
 
 
 int connexion(int *s, char *hostname, int port)
