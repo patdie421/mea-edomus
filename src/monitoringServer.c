@@ -105,7 +105,7 @@ int register_process(char *name)
    pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&monitored_processes_lock );
    pthread_mutex_lock(&monitored_processes_lock);  
 
-   for(i=0;monitored_processes.max_processes;i++)
+   for(i=0;i<monitored_processes.max_processes;i++)
    {
       if(!monitored_processes.processes_table[i])
       {
