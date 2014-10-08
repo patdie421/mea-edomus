@@ -506,7 +506,7 @@ pid_t start_nodejs(char *nodejs_path, char *eventServer_path, int port_socketio,
       sprintf(str_port_socketdata,"--dataport=%d",port_socketdata);
       sprintf(str_phpsession_path,"--phpsession_path=%s",phpsession_path);
 
-      params[0]="nodejs/mea-edomus";
+      params[0]="mea-edomus[nodejs]";
       params[1]=eventServer_path;
       params[2]=str_port_socketio;
       params[3]=str_port_socketdata;
