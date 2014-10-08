@@ -55,7 +55,7 @@ char *params_names[MAX_LIST_SIZE];          /*!< liste des noms (chaines) de par
 char *params_list[MAX_LIST_SIZE];          /*!< liste des valeurs de paramètres.*/
 
 pid_t automator_pid = 0;
-
+int main_monitoring_id = -1;
 
 tomysqldb_md_t *get_myd()
 {
@@ -220,6 +220,8 @@ int16_t read_all_application_parameters(sqlite3 *sqlite3_param_db)
 
 void clean_all_and_exit()
 {
+   process_unregister(monitor(), main_monitoring_id);
+
    if(xPLServer_thread)
    {
       VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping xPLServer... ",INFO_STR,__func__);
@@ -774,20 +776,25 @@ int main(int argc, const char * argv[])
       clean_all_and_exit();
    }
 
+
+   time_t start_time;
+   long uptime = 0;
+
+   start_time = time(NULL);
+
    DEBUG_SECTION fprintf(stderr,"MEA-EDOMUS %s starded\n",__MEA_EDOMUS_VERSION__);
 
-
-   int mid=register_process(monitor(), "TEST");
-   process_add_indicator(monitor(), mid, "TEST1", 1234);
+   main_monitoring_id=process_register(monitor(), "MAIN");
+   process_add_indicator(monitor(), main_monitoring_id, "UPTIME", 0);
 
    // boucle sans fin.
-   long cptr=0;
    while(1)
    {
-      monitoringServer_indicators_loop();
-      sleep(5);
+      uptime = (long)(time(NULL)-start_time);
+      process_update_indicator(monitor(), main_monitoring_id, "UPTIME", uptime);
 
-      process_update_indicator(monitor(), mid, "TEST1", cptr++);
+      monitoringServer_indicators_loop();
+
+      sleep(5);
    }
 }
-
