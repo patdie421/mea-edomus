@@ -281,6 +281,12 @@ void clean_all_and_exit()
 }
 
 
+void signal_callback_handler(int signum)
+{
+   fprintf(stderr, "%s  (%s) : Caught signal SIGPIPE %d\n", INFO_STR, __func__, signum);
+}
+
+
 static void _signal_STOP(int signal_number)
 /**
  * \brief     Traitement des signaux d'arrêt (SIGINT, SIGQUIT, SIGTERM)
@@ -685,10 +691,10 @@ int main(int argc, const char * argv[])
    //
    // strout et stderr vers fichier log
    //
+/*
    char log_file[255];
    int16_t n;
 
-/*
    if(!params_list[LOG_PATH] || !strlen(params_list[LOG_PATH]))
    {
       params_list[LOG_PATH]=(char *)malloc(strlen("/var/log"));
@@ -725,10 +731,17 @@ int main(int argc, const char * argv[])
 */
    DEBUG_SECTION fprintf(stderr,"Starting MEA-EDOMUS %s\n",__MEA_EDOMUS_VERSION__);
 
+   monitoringServer_thread=start_monitoringServer(params_list);
+   if(!monitoringServer_thread)
+   {
+      VERBOSE(1) fprintf (stderr, "%s (%s) : can't start monitoring server\n",ERROR_STR,__func__);
+      clean_all_and_exit();
+   }
+
    //   
    // demarrage du processus de l'automate
    //
-   automator_pid = start_automatorServer(params_list[SQLITE3_DB_PARAM_PATH]);
+//   automator_pid = start_automatorServer(params_list[SQLITE3_DB_PARAM_PATH]);
 
    //
    // initialisation gestions des signaux (arrêt de l'appli et réinitialisation
@@ -737,7 +750,7 @@ int main(int argc, const char * argv[])
    signal(SIGQUIT, _signal_STOP);
    signal(SIGTERM, _signal_STOP);
    signal(SIGHUP,  _signal_HUP);
-
+   signal(SIGPIPE, signal_callback_handler);
 
    // démarrage des "services" (les services "majeurs" arrêtent tout (exit) si non démarrage
    if(!_b)
@@ -767,14 +780,6 @@ int main(int argc, const char * argv[])
    }
 
    start_httpServer(params_list, interfaces); // initialisation du serveur HTTP
-
-   monitoringServer_thread=start_monitoringServer(params_list);
-   if(!monitoringServer_thread)
-   {
-      VERBOSE(1) fprintf (stderr, "%s (%s) : can't start monitoring server\n",ERROR_STR,__func__);
-      clean_all_and_exit();
-   }
-
 
    time_t start_time;
    long uptime = 0;

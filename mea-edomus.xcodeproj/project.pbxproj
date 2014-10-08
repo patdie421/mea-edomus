@@ -908,7 +908,6 @@
 				4E798FFB19DC9C8B00F87593 /* package */,
 				08FB7795FE84155DC02AAC07 /* src */,
 				4E48119F19C37C46001C5F48 /* Plugins */,
-				1AB674ADFE9D54B511CA2CBB /* Products */,
 			);
 			name = Comio;
 			sourceTree = "<group>";
@@ -3456,6 +3455,7 @@
 			children = (
 				4E798FF819D4871400F87593 /* monitoringServer.c */,
 				4E798FFA19D4890D00F87593 /* monitoringServer.h */,
+				1AB674ADFE9D54B511CA2CBB /* Products */,
 			);
 			name = "monitoring manager";
 			sourceTree = "<group>";

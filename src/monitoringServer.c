@@ -71,6 +71,7 @@ int process_register(struct monitored_processes_s *monitored_processes, char *na
          {
             strncpy(monitored_processes->processes_table[i]->name, name, 40);
             monitored_processes->processes_table[i]->last_heartbeat=time(NULL);
+            monitored_processes->processes_table[i]->indicators_list=(queue_t *)malloc(sizeof(queue_t));
             init_queue(monitored_processes->processes_table[i]->indicators_list);
             monitored_processes->processes_table[i]->heartbeat_interval=20;
             ret=i;
@@ -107,24 +108,42 @@ int process_unregister(struct monitored_processes_s *monitored_processes, int id
 }
 
 
-int _monitored_processes_send_indicators(struct monitored_processes_s *monitored_processes, int id)
+int _monitored_processes_send_indicators(struct monitored_processes_s *monitored_processes, int id, char *s, int s_l)
 {
    struct process_indicator_s *e;
+   char buff[81];
    
+   s[0]=0;
    if(monitored_processes->processes_table[id])
    {
       if(first_queue(monitored_processes->processes_table[id]->indicators_list)==0)
-      { 
+      {
+         DEBUG_SECTION fprintf(stderr, "{");
+         strcat(s,"{");
+         int flag=0;
          while(1)
          {
             if(current_queue(monitored_processes->processes_table[id]->indicators_list, (void **)&e)==0)
             {
-               fprintf(stderr,"%s = %ld\n",e->name, e->value);
+               if(flag==1)
+               {
+                  fprintf(stderr,",");
+                  strcat(s,",");
+               }
+               DEBUG_SECTION fprintf(stderr,"\"%s\":%ld",e->name,e->value);
+               sprintf(buff,"\"%s\":%ld",e->name,e->value);
+               strcat(s,buff);
+               flag=1;
+               VERBOSE(9) {
+                  // fprintf(stderr, "%s (%s) :  indicator - %s.%s = %ld\n",INFO_STR,__func__,monitored_processes->processes_table[id]->name, e->name, e->value);
+               }
                next_queue(monitored_processes->processes_table[id]->indicators_list);
             }
             else
                break;
          }
+         DEBUG_SECTION fprintf(stderr, "}");
+         strcat(s,"}");
       }
    }
    return 0;
@@ -133,13 +152,38 @@ int _monitored_processes_send_indicators(struct monitored_processes_s *monitored
 
 int _monitored_processes_send_all_indicators(struct monitored_processes_s *monitored_processes)
 {
+   char buff[256];
+   char json[1024];
+   
+   json[0]=0;
+   
+   DEBUG_SECTION {
+      fprintf(stderr, "%s (%s) :  json message - ",DEBUG_STR,__func__);
+   }
+   
+   DEBUG_SECTION fprintf(stderr, "{");
+   strcat(json,"{");
+   int flag=0;
    for(int i=0;i<monitored_processes->max_processes;i++)
    {
       if(monitored_processes->processes_table[i])
       {
-         _monitored_processes_send_indicators(monitored_processes, i);
+         if(flag==1)
+         {
+            DEBUG_SECTION fprintf(stderr,",");
+            strcat(json,",");
+         }
+         DEBUG_SECTION fprintf(stderr,"\"%s\":",monitored_processes->processes_table[i]->name);
+         sprintf(buff,"\"%s\":",monitored_processes->processes_table[i]->name);
+         strcat(json,buff);
+         flag=1;
+         _monitored_processes_send_indicators(monitored_processes, i, buff, sizeof(buff));
+         strcat(json,buff);
       }
    }
+   DEBUG_SECTION fprintf(stderr, "}\n");
+   strcat(json,"}");
+
    return 0;
 }
 
@@ -150,7 +194,7 @@ int _clear_monitored_processes_list(struct monitored_processes_s *monitored_proc
    pthread_mutex_lock(&monitored_processes->lock);  
 
    for(int i=0;i<monitored_processes->max_processes;i++)
-      unregister_process(monitored_processes,i);
+      process_unregister(monitored_processes,i);
 
    pthread_mutex_unlock(&(monitored_processes->lock)); 
    pthread_cleanup_pop(0); 
@@ -279,9 +323,6 @@ int process_update_indicator(struct monitored_processes_s *monitored_processes, 
          }
       }
    }
-
-   if(!ret)
-      _monitored_processes_send_indicators(monitored_processes, id);
 
    pthread_mutex_unlock(&(monitored_processes->lock));
    pthread_cleanup_pop(0); 
@@ -548,7 +589,7 @@ void monitoringServer_indicators_loop()
 {
    if(_monitoring_thread)
    {
-      _monitored_processes_run(&monitored_processes)
+      _monitored_processes_run(&monitored_processes);
    }
 }
 

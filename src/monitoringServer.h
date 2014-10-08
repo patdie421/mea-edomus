@@ -47,5 +47,6 @@ int process_unregister(struct monitored_processes_s *monitored_processes, int id
 int process_add_indicator(struct monitored_processes_s *monitored_processes, int id, char *name, long initial_value);
 int process_update_indicator(struct monitored_processes_s *monitored_processes, int id, char *name, long value);
 int process_heartbeat(struct monitored_processes_s *monitored_processes, int id);
+void monitoringServer_indicators_loop();
 
 #endif
