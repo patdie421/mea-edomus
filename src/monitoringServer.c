@@ -45,7 +45,7 @@ void _indicators_free_queue_elem(void *e)
 }
 
 
-struct monitored_processes_s *monitor()
+struct monitored_processes_s *get_monitored_processes_descriptor()
 {
    return &monitored_processes;
 }
@@ -159,7 +159,7 @@ int clear_monitored_processes_list(struct monitored_processes_s *monitored_proce
 }
 
 
-int init_monitored_processes_list(struct monitored_processes_s *monitored_processes, int max_nb_processes)
+int _init_monitored_processes_list(struct monitored_processes_s *monitored_processes, int max_nb_processes)
 {
    monitored_processes->processes_table=(struct monitored_process_s **)malloc(max_nb_processes * sizeof(struct monitored_process_s));
    if(!monitored_processes->processes_table)
@@ -179,7 +179,7 @@ int init_monitored_processes_list(struct monitored_processes_s *monitored_proces
 }
 
 
-int send_Heartbeat(struct monitored_processes_s *monitored_processes, int id)
+int process_send_heartbeat(struct monitored_processes_s *monitored_processes, int id)
 {
    pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(monitored_processes->lock) );
    pthread_mutex_lock(&(monitored_processes->lock));  
@@ -200,7 +200,7 @@ int process_add_indicator(struct monitored_processes_s *monitored_processes, int
 {
    int ret=-1;
 
-   send_Heartbeat(monitored_processes, id);
+   process_send_heartbeat(monitored_processes, id);
 
    struct process_indicator_s *e;
 
@@ -233,7 +233,7 @@ int process_add_indicator(struct monitored_processes_s *monitored_processes, int
 
 int process_del_indicator(struct monitored_processes_s *monitored_processes, int id, char *name)
 {
-   send_Heartbeat(monitored_processes, id);// à compléter
+   process_send_heartbeat(monitored_processes, id);// à compléter
 
    pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(monitored_processes->lock) );
    pthread_mutex_lock(&(monitored_processes->lock));
@@ -250,7 +250,7 @@ int process_del_indicator(struct monitored_processes_s *monitored_processes, int
 int process_update_indicator(struct monitored_processes_s *monitored_processes, int id, char *name, long value)
 {
    int ret=-1;
-   send_Heartbeat(monitored_processes, id);
+   process_send_heartbeat(monitored_processes, id);
 
    pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(monitored_processes->lock) );
    pthread_mutex_lock(&(monitored_processes->lock));
@@ -367,58 +367,6 @@ int envoie(int *s, char *message)
 }
 
 
-int seek_to_prevs_lines(FILE *fp, int nb_lines)
-{
-   char buff[512];
-   long pos=0;
-   int n=0;
-
-   if(nb_lines < 1)
-      return -1;
-
-
-   fseek(fp, 0, SEEK_END);
-
-   long max=ftell(fp);
-   pos=max;
-
-   do
-   {
-      int nb_read=0;
-
-      pos=pos-sizeof(buff);
-      if(pos<0)
-      {
-         nb_read=sizeof(buff)+pos;
-         pos=0;
-      }
-      else
-      {
-         nb_read=sizeof(buff);
-      }
-
-      fread(buff, nb_read, 1, fp);
-
-      for(int i=nb_read;i;i--)
-      {
-         if( (buff[i-1]=='\r') && ((pos+i) != 0) )
-         {
-            n++;
-            if(n==nb_lines)
-            {
-               fseek(fp,pos+i,SEEK_SET);
-               return 0;
-            }
-        }
-     }
-  }
-  while(pos>0);
-
-  fseek(fp, pos, SEEK_END);
-  return 0;
-}
-
-
 int readAndSendLine(int nodejs_socket, char *file, long *pos)
 {
    FILE *fp=NULL;
@@ -514,8 +462,6 @@ void *monitoring_thread(void *data)
      {
        do
        {
-         monitored_processes_run(&monitored_processes); // mettre un timer à 10 secondes
-
          int ret=readAndSendLine(nodejs_socket, log_file, &pos);
 
          if(ret==-1)
@@ -533,7 +479,6 @@ void *monitoring_thread(void *data)
        VERBOSE(9) {
           fprintf(stderr, "%s (%s) : connexion - retry next time ...\n",INFO_STR,__func__);
        }
-       monitored_processes_run(&monitored_processes); // mettre un timer à 10 secondes
        sleep(1); // on essayera de se reconnecter dans 1 secondes
      }
    }
@@ -652,7 +597,7 @@ pthread_t *start_monitoringServer(char **params_list)
       return NULL;
    }
 
-   init_monitored_processes_list(&monitored_processes, 40);
+   _init_monitored_processes_list(&monitored_processes, 40);
    
    monitoring_thread_data.log_path=params_list[LOG_PATH];
    monitoring_thread_data.hostname="localhost";
