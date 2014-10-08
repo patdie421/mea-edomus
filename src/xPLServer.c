@@ -25,6 +25,9 @@
 #include "interface_type_001.h"
 #include "interface_type_002.h"
 
+#include "monitoringServer.h"
+
+
 #define XPL_VERSION "0.1a2"
 
 
@@ -39,11 +42,17 @@ char *xpl_instanceID=NULL;
 pthread_t *_xPLServer_thread;
 pthread_cond_t  xplRespQueue_sync_cond;
 pthread_mutex_t xplRespQueue_sync_lock;
+
 queue_t         *xplRespQueue;
 pthread_mutex_t xplRespSend_lock;
 pthread_mutex_t requestId_lock;
 
 uint32_t requestId = 1;
+
+int xplServer_monitoring_id = -1;
+long xplin_indicator = 0;
+long xplout_indicator = 0;
+
 
 // declaration des fonctions xPL non exporté par la librairies
 extern xPL_MessagePtr xPL_AllocMessage();
@@ -182,6 +191,8 @@ uint16_t mea_sendXPLMessage(xPL_MessagePtr xPLMsg)
    char *addr;
    xPL_MessagePtr newXPLMsg = NULL;
 
+   xplout_indicator++;
+
    addr = xPL_getSourceDeviceID(xPLMsg);
    if(addr && strcmp(addr,"internal")==0) // source interne => dispatching sans passer par le réseau
    {
@@ -311,6 +322,7 @@ readFromQueue_return:
 
 void _cmndXPLMessageHandler(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
 {
+   xplin_indicator++;
    _dispatchXPLMessage(theService, theMessage, userValue);
 }
 
@@ -361,6 +373,10 @@ void *_xPL_thread(void *data)
 {
 //   xPL_setDebugging(TRUE); // xPL en mode debug
 
+   xplServer_monitoring_id=process_register(get_monitored_processes_descriptor(), "XPLSERVER");
+   process_add_indicator(get_monitored_processes_descriptor(), xplServer_monitoring_id, "XPLIN", xplin_indicator);
+   process_add_indicator(get_monitored_processes_descriptor(), xplServer_monitoring_id, "XPLOUT", xplout_indicator);  
+
    if ( !xPL_initialize(xPL_getParsedConnectionType()) ) return 0 ;
    
    xPLService = xPL_createService(xpl_vendorID, xpl_deviceID, xpl_instanceID);
@@ -390,7 +406,9 @@ void *_xPL_thread(void *data)
       xPL_processMessages(500);
       
       _flushExpiredXPLResponses();
-      
+
+      process_heartbeat(get_monitored_processes_descriptor(), xplServer_monitoring_id);
+
       pthread_testcancel();
    }
    while (1);
@@ -465,6 +483,12 @@ int16_t set_xpl_address(char **params_list)
 
 void stop_xPLServer()
 {
+   if(xplServer_monitoring_id!=-1)
+   {
+      process_unregister(get_monitored_processes_descriptor(), xplServer_monitoring_id);
+      xplServer_monitoring_id=-1;
+   }
+
    if(_xPLServer_thread)
    {
       pthread_cancel(*_xPLServer_thread);
