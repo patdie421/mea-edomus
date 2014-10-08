@@ -51,7 +51,7 @@ struct monitored_processes_s *get_monitored_processes_descriptor()
 }
 
 
-int register_process(struct monitored_processes_s *monitored_processes, char *name)
+int process_register(struct monitored_processes_s *monitored_processes, char *name)
 {
    int ret=0;
    pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&monitored_processes->lock );
@@ -86,7 +86,7 @@ register_process_clean_exit:
 }
 
 
-int unregister_process(struct monitored_processes_s *monitored_processes, int id)
+int process_unregister(struct monitored_processes_s *monitored_processes, int id)
 {
    int ret=-1;
    pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(monitored_processes->lock) );
@@ -144,7 +144,7 @@ int _monitored_processes_send_all_indicators(struct monitored_processes_s *monit
 }
 
 
-int clear_monitored_processes_list(struct monitored_processes_s *monitored_processes)
+int _clear_monitored_processes_list(struct monitored_processes_s *monitored_processes)
 {
    pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(monitored_processes->lock));
    pthread_mutex_lock(&monitored_processes->lock);  
@@ -290,7 +290,7 @@ int process_update_indicator(struct monitored_processes_s *monitored_processes, 
 }
 
 
-int monitored_processes_run(struct monitored_processes_s *monitored_processes)
+int _monitored_processes_run(struct monitored_processes_s *monitored_processes)
 {
    pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(monitored_processes->lock) );
    pthread_mutex_lock(&(monitored_processes->lock));  
@@ -544,6 +544,15 @@ void stop_nodejs()
 }
 
 
+void monitoringServer_indicators_loop()
+{
+   if(_monitoring_thread)
+   {
+      _monitored_processes_run(&monitored_processes)
+   }
+}
+
+
 void stop_monitoringServer()
 {
    if(_monitoring_thread)
@@ -621,4 +630,3 @@ pthread_t *start_monitoringServer(char **params_list)
    pid_nodejs=pid;
    return _monitoring_thread;
 }
-
