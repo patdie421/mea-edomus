@@ -38,12 +38,13 @@ struct monitored_processes_s
 
 //pthread_t *start_monitoringServer(char *nodejs_path, char *eventServer_path, int port_socketio, int port_socketdata, char *log_path);
 pthread_t *start_monitoringServer(char **parms_list);
+
 void stop_monitoringServer();
-int register_process(struct monitored_processes_s *monitored_processes, char *name);
-int unregister_process(struct monitored_processes_s *monitored_processes, int id);
+
+struct monitored_processes_s *get_monitored_processes_descriptor();
+int process_register(struct monitored_processes_s *monitored_processes, char *name);
+int process_unregister(struct monitored_processes_s *monitored_processes, int id);
 int process_add_indicator(struct monitored_processes_s *monitored_processes, int id, char *name, long initial_value);
 int process_update_indicator(struct monitored_processes_s *monitored_processes, int id, char *name, long value);
-
-struct monitored_processes_s *monitor();
 
 #endif
