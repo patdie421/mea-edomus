@@ -179,7 +179,7 @@ int _init_monitored_processes_list(struct monitored_processes_s *monitored_proce
 }
 
 
-int process_send_heartbeat(struct monitored_processes_s *monitored_processes, int id)
+int process_heartbeat(struct monitored_processes_s *monitored_processes, int id)
 {
    pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(monitored_processes->lock) );
    pthread_mutex_lock(&(monitored_processes->lock));  
@@ -200,7 +200,7 @@ int process_add_indicator(struct monitored_processes_s *monitored_processes, int
 {
    int ret=-1;
 
-   process_send_heartbeat(monitored_processes, id);
+   process_heartbeat(monitored_processes, id);
 
    struct process_indicator_s *e;
 
@@ -233,7 +233,7 @@ int process_add_indicator(struct monitored_processes_s *monitored_processes, int
 
 int process_del_indicator(struct monitored_processes_s *monitored_processes, int id, char *name)
 {
-   process_send_heartbeat(monitored_processes, id);// à compléter
+   process_heartbeat(monitored_processes, id);// à compléter
 
    pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(monitored_processes->lock) );
    pthread_mutex_lock(&(monitored_processes->lock));
@@ -250,7 +250,7 @@ int process_del_indicator(struct monitored_processes_s *monitored_processes, int
 int process_update_indicator(struct monitored_processes_s *monitored_processes, int id, char *name, long value)
 {
    int ret=-1;
-   process_send_heartbeat(monitored_processes, id);
+   process_heartbeat(monitored_processes, id);
 
    pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(monitored_processes->lock) );
    pthread_mutex_lock(&(monitored_processes->lock));
