@@ -784,7 +784,9 @@ int main(int argc, const char * argv[])
    long cptr=0;
    while(1)
    {
+      monitoringServer_indicators_loop();
       sleep(5);
+
       process_update_indicator(monitor(), mid, "TEST1", cptr++);
    }
 }
