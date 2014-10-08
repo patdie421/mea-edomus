@@ -220,7 +220,7 @@ int16_t read_all_application_parameters(sqlite3 *sqlite3_param_db)
 
 void clean_all_and_exit()
 {
-   process_unregister(monitor(), main_monitoring_id);
+   process_unregister(get_monitored_processes_descriptor(), main_monitoring_id);
 
    if(xPLServer_thread)
    {
@@ -784,14 +784,14 @@ int main(int argc, const char * argv[])
 
    DEBUG_SECTION fprintf(stderr,"MEA-EDOMUS %s starded\n",__MEA_EDOMUS_VERSION__);
 
-   main_monitoring_id=process_register(monitor(), "MAIN");
-   process_add_indicator(monitor(), main_monitoring_id, "UPTIME", 0);
+   main_monitoring_id=process_register(get_monitored_processes_descriptor(), "MAIN");
+   process_add_indicator(get_monitored_processes_descriptor(), main_monitoring_id, "UPTIME", 0);
 
    // boucle sans fin.
    while(1)
    {
       uptime = (long)(time(NULL)-start_time);
-      process_update_indicator(monitor(), main_monitoring_id, "UPTIME", uptime);
+      process_update_indicator(get_monitored_processes_descriptor(), main_monitoring_id, "UPTIME", uptime);
 
       monitoringServer_indicators_loop();
 
