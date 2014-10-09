@@ -373,7 +373,6 @@ void *_xPL_thread(void *data)
 {
 //   xPL_setDebugging(TRUE); // xPL en mode debug
 
-   xplServer_monitoring_id=process_register(get_monitored_processes_descriptor(), "XPLSERVER");
    process_add_indicator(get_monitored_processes_descriptor(), xplServer_monitoring_id, "XPLIN", xplin_indicator);
    process_add_indicator(get_monitored_processes_descriptor(), xplServer_monitoring_id, "XPLOUT", xplout_indicator);  
 
@@ -483,12 +482,6 @@ int16_t set_xpl_address(char **params_list)
 
 void stop_xPLServer()
 {
-   if(xplServer_monitoring_id!=-1)
-   {
-      process_unregister(get_monitored_processes_descriptor(), xplServer_monitoring_id);
-      xplServer_monitoring_id=-1;
-   }
-
    if(_xPLServer_thread)
    {
       pthread_cancel(*_xPLServer_thread);
@@ -502,13 +495,16 @@ void stop_xPLServer()
       free(xplRespQueue);
       xplRespQueue=NULL;
    }
+   xplServer_monitoring_id=-1;
 }
 
 
-pthread_t *start_xPLServer(char **params_list, queue_t *interfaces, sqlite3 *sqlite3_param_db)
+pthread_t *start_xPLServer(int my_id, char **params_list, queue_t *interfaces, sqlite3 *sqlite3_param_db)
 {
    if(!set_xpl_address(params_list))
    {
+      xplServer_monitoring_id=my_id;
+
       _xPLServer_thread=xPLServer(interfaces);
       if(_xPLServer_thread==NULL)
       {
