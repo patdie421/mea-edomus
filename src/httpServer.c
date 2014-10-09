@@ -293,7 +293,7 @@ int start_httpServer(char **params_list, queue_t *interfaces)
          guiport=8083;
       }
       
-      if(create_configs_php(params_list[GUI_PATH], params_list[SQLITE3_DB_PARAM_PATH], params_list[LOG_PATH], params_list[PHPSESSIONS_PATH], params_list[NODEJSIOSOCKET_PORT])==0)
+      if(create_configs_php(params_list[GUI_PATH], params_list[SQLITE3_DB_PARAM_PATH], params_list[LOG_PATH], params_list[PHPSESSIONS_PATH], atoi(params_list[NODEJSIOSOCKET_PORT]))==0)
       {
          httpServer(guiport, params_list[GUI_PATH], phpcgibin, params_list[PHPINI_PATH], interfaces);
          return 0;

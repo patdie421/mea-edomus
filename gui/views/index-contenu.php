@@ -10,7 +10,6 @@ session_start() ?>
 {
  font-family:"Lucida Console", Monaco, monospace;
  font-size:12px;
- border:1px dotted black;
  overflow-y:scroll;
 }
 </style>
@@ -30,7 +29,7 @@ session_start() ?>
 </div>
 
 <div id="tabs1-3">
-  <div class="ui-corner-all ui-widget-content" style="padding-top: 40px; padding-bottom: 40px;">
+  <div class="ui-corner-all ui-widget-content" style="padding: 10px;">
      <div id="console" class="console" style="margin:auto; min-width:800px; min-height:400px; height:400px;"></div>
   </div>
 </div>

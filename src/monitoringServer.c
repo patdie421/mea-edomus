@@ -15,8 +15,6 @@
 #include <sys/types.h>
 #include <time.h>
 
-#define PORT 5600 // à remplacer par le port déclaré
-
 #include "globals.h"
 #include "queue.h"
 #include "debug.h"
@@ -305,9 +303,7 @@ int _monitored_processes_send_all_indicators(struct monitored_processes_s *monit
 
    int sock;
    int ret;
-//   if(connexion(&sock, hostname, port)<0)
-   if(connexion(&sock, hostname, 8000)<0)
-   
+   if(connexion(&sock, hostname, port)<0)
       return -1;
    ret = envoie(&sock, message);
    close(sock);
