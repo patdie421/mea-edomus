@@ -175,10 +175,11 @@ int _monitored_processes_send_indicators(struct monitored_processes_s *monitored
 }
 
 
-int _monitored_processes_send_all_indicators(struct monitored_processes_s *monitored_processes)
+int _monitored_processes_send_all_indicators(struct monitored_processes_s *monitored_processes, char *hostname, int port)
 {
    char buff[256];
    char json[2048];
+   char message[2048];
    
    json[0]=0;
    
@@ -219,9 +220,18 @@ int _monitored_processes_send_all_indicators(struct monitored_processes_s *monit
    if(_strncat2(json,sizeof(json),"}")<0)
       return -1;
 
-   // faire ici ce qu'il y a à faire avec json
+   strcpy(message,"MON:");
+   if(_strncat2(message,sizeof(message),json)<0)
+      return -1;
 
-   return 0;
+   int sock;
+   int ret;
+   if(connexion(&sock, hostname, port)<0)
+      return -1;
+   int ret = envoie(&sock, message);
+   close(sock);
+   
+   return return ret;
 }
 
 
@@ -368,14 +378,14 @@ int process_update_indicator(struct monitored_processes_s *monitored_processes, 
 }
 
 
-int _monitored_processes_run(struct monitored_processes_s *monitored_processes)
+int monitored_processes_run(struct monitored_processes_s *monitored_processes, char *hostname, int port)
 {
    pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(monitored_processes->lock) );
    pthread_mutex_lock(&(monitored_processes->lock));  
 
    if(!test_timer(&monitored_processes->timer))
    {
-      _monitored_processes_send_all_indicators(monitored_processes);
+      _monitored_processes_send_all_indicators(monitored_processes, hostname, port);
    }
 
    pthread_mutex_unlock(&(monitored_processes->lock)); 
@@ -524,7 +534,7 @@ void *monitoring_thread(void *data)
 
    do
    {
-     if(connexion(&nodejs_socket, (char *)(d->hostname), 5600)==0)
+     if(connexion(&nodejs_socket, (char *)(d->hostname), (d->socketdata)==0)
      {
        do
        {
