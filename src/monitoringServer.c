@@ -378,7 +378,7 @@ int process_update_indicator(struct monitored_processes_s *monitored_processes, 
 }
 
 
-int monitored_processes_run(struct monitored_processes_s *monitored_processes, char *hostname, int port)
+int _monitored_processes_run(struct monitored_processes_s *monitored_processes, char *hostname, int port)
 {
    pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(monitored_processes->lock) );
    pthread_mutex_lock(&(monitored_processes->lock));  
@@ -620,11 +620,11 @@ void stop_nodejs()
 }
 
 
-int monitoringServer_indicators_loop()
+int monitoringServer_indicators_loop(char *hostname, int port)
 {
    if(_monitoring_thread)
    {
-      return _monitored_processes_run(&monitored_processes);
+      return _monitored_processes_run(&monitored_processes, hostname, port);
    }
    return -1;
 }
