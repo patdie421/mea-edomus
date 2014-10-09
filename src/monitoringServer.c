@@ -74,6 +74,10 @@ int process_register(struct monitored_processes_s *monitored_processes, char *na
             monitored_processes->processes_table[i]->indicators_list=(queue_t *)malloc(sizeof(queue_t));
             init_queue(monitored_processes->processes_table[i]->indicators_list);
             monitored_processes->processes_table[i]->heartbeat_interval=20;
+            monitored_processes->processes_table[i]->enable_autorestart=0;
+            monitored_processes->processes_table[i]->start=NULL;
+            monitored_processes->processes_table[i]->stop=NULL;
+            monitored_processes->processes_table[i]->start_stop_data=NULL;
             ret=i;
             goto register_process_clean_exit;
          }
