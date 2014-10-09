@@ -480,7 +480,7 @@ int16_t set_xpl_address(char **params_list)
 }
 
 
-void stop_xPLServer()
+int stop_xPLServer(int id)
 {
    if(_xPLServer_thread)
    {
