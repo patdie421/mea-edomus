@@ -36,10 +36,10 @@
 <script type="text/javascript" src="lib/js/mea-gui-utils.js"></script>
 <script type="text/javascript" src="lib/js/mea-grid-utils.js"></script>
 
-<script type="text/javascript" src="controlers/grid_sensors_actuators.js"></script>
-<script type="text/javascript" src="controlers/grid_interfaces.js"></script>
-<script type="text/javascript" src="controlers/grid_locations.js"></script>
-<script type="text/javascript" src="controlers/grid_types.js"></script>
+<script type="text/javascript" src="controllers/grid_sensors_actuators.js"></script>
+<script type="text/javascript" src="controllers/grid_interfaces.js"></script>
+<script type="text/javascript" src="controllers/grid_locations.js"></script>
+<script type="text/javascript" src="controllers/grid_types.js"></script>
 
 <script>
 var interfaces_inEdit, sensors_actuators_inEdit, locations_inEdit, types_inEdit,
