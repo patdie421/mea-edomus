@@ -66,12 +66,16 @@ function socketio_available() { // socket io est chargé, on se connecte
    socket.on('log', function(message){
       toLogConsole(message);
    });
+
+   socket.on('mon', function(message){
+      $("#info").text(message); // en attendant de pouvoir traiter proprement.
+   });
 }
 
    
 function socketio_unavailable(jqXHR, textStatus, errorThrown) {
    jqXHR.abort();
-   $("#console").append("<div>Pas d'iosocket => pas de console en live ...<div>");
+   $("#console").append("<div>Pas d'iosocket => pas d'info en live ...<div>");
    }
 
 
