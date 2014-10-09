@@ -108,6 +108,19 @@ int process_unregister(struct monitored_processes_s *monitored_processes, int id
 }
 
 
+int _strncat2(char *dest, int max_dest, char *source)
+{
+   int l_dest = strlen(dest);
+   int l_source = strlen(source);
+   if((l_dest+lsource)>max_test)
+      return -1;
+   else
+   {
+      strcat(dest,source);
+   }
+}
+
+
 int _monitored_processes_send_indicators(struct monitored_processes_s *monitored_processes, int id, char *s, int s_l)
 {
    struct process_indicator_s *e;
@@ -119,7 +132,8 @@ int _monitored_processes_send_indicators(struct monitored_processes_s *monitored
       if(first_queue(monitored_processes->processes_table[id]->indicators_list)==0)
       {
          DEBUG_SECTION fprintf(stderr, "{");
-         strcat(s,"{");
+         if(_strncat2(s, s_l, "{")<0)
+            return -1;
          int flag=0;
          while(1)
          {
@@ -128,11 +142,15 @@ int _monitored_processes_send_indicators(struct monitored_processes_s *monitored
                if(flag==1)
                {
                   fprintf(stderr,",");
-                  strcat(s,",");
+                  if(_strncat2(s,s_l,",")<0)
+                     return -1;
                }
                DEBUG_SECTION fprintf(stderr,"\"%s\":%ld",e->name,e->value);
-               sprintf(buff,"\"%s\":%ld",e->name,e->value);
-               strcat(s,buff);
+               int n=snprintf(buff,sizeof(buff),"\"%s\":%ld",e->name,e->value);
+               if(n<0 || n==sizeof(buff))
+                  return -1;
+               if(_strncat2(s,s_l,buff)<0)
+                  return -1;
                flag=1;
                VERBOSE(9) {
                   // fprintf(stderr, "%s (%s) :  indicator - %s.%s = %ld\n",INFO_STR,__func__,monitored_processes->processes_table[id]->name, e->name, e->value);
@@ -143,7 +161,8 @@ int _monitored_processes_send_indicators(struct monitored_processes_s *monitored
                break;
          }
          DEBUG_SECTION fprintf(stderr, "}");
-         strcat(s,"}");
+         if(_strncat2(s,s_l,"}")<0)
+            return -1;
       }
    }
    return 0;
@@ -153,7 +172,7 @@ int _monitored_processes_send_indicators(struct monitored_processes_s *monitored
 int _monitored_processes_send_all_indicators(struct monitored_processes_s *monitored_processes)
 {
    char buff[256];
-   char json[1024];
+   char json[2048];
    
    json[0]=0;
    
@@ -162,7 +181,8 @@ int _monitored_processes_send_all_indicators(struct monitored_processes_s *monit
    }
    
    DEBUG_SECTION fprintf(stderr, "{");
-   strcat(json,"{");
+   if(_strncat2(json, sizeof(json), "{")<0)
+      return -1;
    int flag=0;
    for(int i=0;i<monitored_processes->max_processes;i++)
    {
@@ -171,18 +191,29 @@ int _monitored_processes_send_all_indicators(struct monitored_processes_s *monit
          if(flag==1)
          {
             DEBUG_SECTION fprintf(stderr,",");
-            strcat(json,",");
+            if(_strncat2(json, sizeof(json), ",")<0)
+               return -1;
          }
          DEBUG_SECTION fprintf(stderr,"\"%s\":",monitored_processes->processes_table[i]->name);
-         sprintf(buff,"\"%s\":",monitored_processes->processes_table[i]->name);
-         strcat(json,buff);
+         int n=snprintf(buff,sizeof(buff),"\"%s\":",monitored_processes->processes_table[i]->name);
+         if(n<0 || n==sizeof(buff))
+            return -1;
+
+         if(_strncat2(json,sizeof(json),buff)<0)
+            return -1;
+
          flag=1;
-         _monitored_processes_send_indicators(monitored_processes, i, buff, sizeof(buff));
-         strcat(json,buff);
+         if(_monitored_processes_send_indicators(monitored_processes, i, buff, sizeof(buff))<0)
+            return -1;
+         if(strncat2(json,sizeof(json),buff)<0)
+            return -1;
       }
    }
    DEBUG_SECTION fprintf(stderr, "}\n");
-   strcat(json,"}");
+   if(_strncat2(json,sizeof(json),"}")<0)
+      return -1;
+
+   // faire ici ce qu'il y a à faire avec json
 
    return 0;
 }
@@ -585,12 +616,13 @@ void stop_nodejs()
 }
 
 
-void monitoringServer_indicators_loop()
+int monitoringServer_indicators_loop()
 {
    if(_monitoring_thread)
    {
-      _monitored_processes_run(&monitored_processes);
+      return _monitored_processes_run(&monitored_processes);
    }
+   return -1;
 }
 
 
