@@ -77,6 +77,10 @@ var server = require('net').createServer(function (socket) {
          var msg = t[i].slice(4);
          if(cmd=="LOG")
             sendMessage('log', msg);
+         else if(cmd=="MON")
+            sendMessage('mon', msg);
+         else
+           console.log("INFO   socket.on(data) : unknown command - "+cmd);
       }
    });
 }).listen(LOCAL_PORT);
