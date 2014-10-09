@@ -797,7 +797,7 @@ int main(int argc, const char * argv[])
       uptime = (long)(time(NULL)-start_time);
       process_update_indicator(get_monitored_processes_descriptor(), main_monitoring_id, "UPTIME", uptime);
 
-      monitoringServer_indicators_loop();
+      monitoringServer_indicators_loop("localhost", param_names[NODEJSDATA_PORT]);
 
       sleep(5);
    }
