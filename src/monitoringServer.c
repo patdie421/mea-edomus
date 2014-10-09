@@ -51,7 +51,7 @@ struct monitored_processes_s *get_monitored_processes_descriptor()
 }
 
 
-int process_set_start_stop(struct monitored_processes_s *monitored_processes, int id  process_start_stop_f start, process_start_stop_f stop, void *start_stop_data, int auto_restart)
+int process_set_start_stop(struct monitored_processes_s *monitored_processes, int id,  process_start_stop_f start, process_start_stop_f stop, void *start_stop_data, int auto_restart)
 {
    if(id<0 || !monitored_processes->processes_table[id])
       return -1;
