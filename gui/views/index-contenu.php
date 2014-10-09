@@ -32,6 +32,5 @@ jQuery(document).ready(function(){
    echo $IOSOCKET_PORT;
    echo ";\n";
 ?>
-   start_index_controller(socketio_port); //voir comment récupérer le port dans la config ...
-});
+   start_index_controller(socketio_port);
 </script>
