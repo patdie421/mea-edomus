@@ -772,13 +772,22 @@ int main(int argc, const char * argv[])
 
    interfaces=start_interfaces(params_list, sqlite3_param_db, myd); // démarrage des interfaces
 
-   xPLServer_thread=start_xPLServer(params_list, interfaces, sqlite3_param_db); // initialisation du serveur xPL
-   if(!xPLServer_thread)
+   xplServer_monitoring_id=process_register(get_monitored_processes_descriptor(), "XPLSERVER");
+   process_set_start_stop(get_monitored_processes_descriptor(), xplServer_monitoring_id , xPLServer_start, xPLServer_stop, (void *)xPLServerData, 1);
+   if(process_start(get_monitored_processes_descriptor(), xplServer_monitoring_id)<0)
    {
       VERBOSE(1) fprintf (stderr, "%s (%s) : can't start xpl server\n",ERROR_STR,__func__);
       clean_all_and_exit();
    }
 
+//   xPLServer_thread=start_xPLServer(params_list, interfaces, sqlite3_param_db); // initialisation du serveur xPL
+//   if(!xPLServer_thread)
+//   {
+//      VERBOSE(1) fprintf (stderr, "%s (%s) : can't start xpl server\n",ERROR_STR,__func__);
+//      clean_all_and_exit();
+//   }
+
+   
    start_httpServer(params_list, interfaces); // initialisation du serveur HTTP
 
    time_t start_time;
