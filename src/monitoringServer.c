@@ -15,7 +15,7 @@
 #include <sys/types.h>
 #include <time.h>
 
-#define PORT 5600
+#define PORT 5600 // à remplacer par le port déclaré
 
 #include "globals.h"
 #include "queue.h"
@@ -124,46 +124,52 @@ int _strncat2(char *dest, int max_dest, char *source)
 int _monitored_processes_send_indicators(struct monitored_processes_s *monitored_processes, int id, char *s, int s_l)
 {
    struct process_indicator_s *e;
-   char buff[81];
+   char buff[256];
    
    s[0]=0;
    if(monitored_processes->processes_table[id])
    {
+   time_t now = time(NULL);
+
+      DEBUG_SECTION fprintf(stderr, "{heartbeat:");
+      if(_strncat2(s, s_l, "{heartbeat:")<0)
+         return -1;
+      
+      if((now - monitored_processes->processes_table[id]->last_heartbeat)<30)
+      {
+         DEBUG_SECTION fprintf(stderr, "\"OK"\");
+         if(_strncat2(s, s_l, "\"OK\"")<0)
+            return -1;
+      }
+      else
+      {
+         DEBUG_SECTION fprintf(stderr, "\"KO"\");
+         if(_strncat2(s, s_l, "\"KO\"")<0)
+            return -1;
+      }
+
       if(first_queue(monitored_processes->processes_table[id]->indicators_list)==0)
       {
-         DEBUG_SECTION fprintf(stderr, "{");
-         if(_strncat2(s, s_l, "{")<0)
-            return -1;
-         int flag=0;
          while(1)
          {
             if(current_queue(monitored_processes->processes_table[id]->indicators_list, (void **)&e)==0)
             {
-               if(flag==1)
-               {
-                  fprintf(stderr,",");
-                  if(_strncat2(s,s_l,",")<0)
-                     return -1;
-               }
-               DEBUG_SECTION fprintf(stderr,"\"%s\":%ld",e->name,e->value);
-               int n=snprintf(buff,sizeof(buff),"\"%s\":%ld",e->name,e->value);
+               DEBUG_SECTION fprintf(stderr,",\"%s\":%ld",e->name,e->value);
+               int n=snprintf(buff,sizeof(buff),",\"%s\":%ld",e->name,e->value);
                if(n<0 || n==sizeof(buff))
                   return -1;
                if(_strncat2(s,s_l,buff)<0)
                   return -1;
-               flag=1;
-               VERBOSE(9) {
-                  // fprintf(stderr, "%s (%s) :  indicator - %s.%s = %ld\n",INFO_STR,__func__,monitored_processes->processes_table[id]->name, e->name, e->value);
-               }
                next_queue(monitored_processes->processes_table[id]->indicators_list);
             }
             else
                break;
          }
-         DEBUG_SECTION fprintf(stderr, "}");
-         if(_strncat2(s,s_l,"}")<0)
-            return -1;
       }
+
+      DEBUG_SECTION fprintf(stderr, "}");
+      if(_strncat2(s,s_l,"}")<0)
+         return -1;
    }
    return 0;
 }
@@ -445,17 +451,6 @@ int readAndSendLine(int nodejs_socket, char *file, long *pos)
    char line[512];
    int nb_loop=0;
 
-/*
-   struct stat fileStat;
-   time_t mtime;
-
-   stat(file, &fileStat);
-   if(fileStat.st_mtime == mtime)
-   { // aucun changement
-      return 0;
-   }
-   mtime=fileStat.st_mtime;
-*/
    fp = fopen(file, "r");
    if(fp == NULL)
    {
@@ -464,7 +459,6 @@ int readAndSendLine(int nodejs_socket, char *file, long *pos)
          perror("");
       }
       *pos=0; // le fichier n'existe pas. lorsqu'il sera créé on le lira depuis le debut
-//      mtime=0;
       return 0;
    }
 
