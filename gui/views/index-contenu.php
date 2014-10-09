@@ -27,6 +27,11 @@ session_start() ?>
 <script type="text/javascript" src="controllers/index.js"></script>
 <script>
 jQuery(document).ready(function(){
-   start_index_controller(8000); //voir comment récupérer le port dans la config ...
+<?php
+   echo "var socketio_port=";
+   echo $IOSOCKET_PORT;
+   echo ";\n";
+?>
+   start_index_controller(socketio_port); //voir comment récupérer le port dans la config ...
 });
 </script>
