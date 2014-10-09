@@ -17,7 +17,7 @@ struct process_indicator_s
    long value;
 };
 
-typedef int (*process_start_stop_f)(void *);
+typedef int (*process_start_stop_f)(int, void *);
 
 struct monitored_process_s
 {
@@ -54,4 +54,7 @@ int process_update_indicator(struct monitored_processes_s *monitored_processes, 
 int process_heartbeat(struct monitored_processes_s *monitored_processes, int id);
 int monitoringServer_indicators_loop(char *hostname, int port);
 int process_set_start_stop(struct monitored_processes_s *monitored_processes, int id,  process_start_stop_f start, process_start_stop_f stop, void *start_stop_data, int auto_restart);
+int process_start(struct monitored_processes_s *monitored_processes, int id);
+int process_stop(struct monitored_processes_s *monitored_processes, int id);
+
 #endif,
