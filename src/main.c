@@ -44,6 +44,8 @@
 
 #include "monitoringServer.h"
 
+int xplServer_monitoring_id=-1;
+
 tomysqldb_md_t *myd=NULL;                  /*!< descripteur mysql. Variable globale car doit être accessible par les gestionnaires de signaux. */
 queue_t *interfaces=NULL;                  /*!< liste (file) des interfaces. Variable globale car doit être accessible par les gestionnaires de signaux. */
 sqlite3 *sqlite3_param_db=NULL;            /*!< descripteur pour la base sqlite de paramétrage. Variable globale car doit être accessible par les gestionnaires de signaux. */
@@ -219,15 +221,19 @@ int16_t read_all_application_parameters(sqlite3 *sqlite3_param_db)
 
 void clean_all_and_exit()
 {
-   process_unregister(get_monitored_processes_descriptor(), main_monitoring_id);
 
-   if(xPLServer_thread)
+//   if(xPLServer_thread)
+//   {
+//      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping xPLServer... ",INFO_STR,__func__);
+//      stop_xPLServer(xplServer_monitoring_id,NULL);
+//      VERBOSE(9) fprintf(stderr,"done\n");
+//   }
+
+   if(xplServer_monitoring_id!=-1)
    {
-      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping xPLServer... ",INFO_STR,__func__);
-      stop_xPLServer();
-      VERBOSE(9) fprintf(stderr,"done\n");
+      process_start(get_monitored_processes_descriptor(), xplServer_monitoring_id);
    }
-
+   
    if(interfaces)
    {
       VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping interfaces...\n",INFO_STR,__func__);
@@ -239,13 +245,6 @@ void clean_all_and_exit()
    {
       VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping pythonPluginServer... ",INFO_STR,__func__);
       stop_pythonPluginServer();
-      VERBOSE(9) fprintf(stderr,"done\n");
-   }
-
-   if(monitoringServer_thread)
-   {
-      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping monitoringServer... ",INFO_STR,__func__);
-      stop_monitoringServer();
       VERBOSE(9) fprintf(stderr,"done\n");
    }
 
@@ -266,6 +265,14 @@ void clean_all_and_exit()
       VERBOSE(9) fprintf(stderr,"done\n");
    }
    
+   process_unregister(get_monitored_processes_descriptor(), main_monitoring_id);
+   if(monitoringServer_thread)
+   {
+      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping monitoringServer... ",INFO_STR,__func__);
+      stop_monitoringServer();
+      VERBOSE(9) fprintf(stderr,"done\n");
+   }
+
    for(int16_t i=0;i<MAX_LIST_SIZE;i++)
    {
       if(params_list[i])
@@ -772,8 +779,12 @@ int main(int argc, const char * argv[])
 
    interfaces=start_interfaces(params_list, sqlite3_param_db, myd); // démarrage des interfaces
 
+   struct xplServerData_s xplServerData;
+   xplServerData.interfaces=interfaces;
+   xplServerData.params_list=params_list;
+   xplServerData.sqlite3_param_db=sqlite3_param_db;
    xplServer_monitoring_id=process_register(get_monitored_processes_descriptor(), "XPLSERVER");
-   process_set_start_stop(get_monitored_processes_descriptor(), xplServer_monitoring_id , xPLServer_start, xPLServer_stop, (void *)xPLServerData, 1);
+   process_set_start_stop(get_monitored_processes_descriptor(), xplServer_monitoring_id , start_xPLServer, stop_xPLServer, (void *)(&xplServerData), 1);
    if(process_start(get_monitored_processes_descriptor(), xplServer_monitoring_id)<0)
    {
       VERBOSE(1) fprintf (stderr, "%s (%s) : can't start xpl server\n",ERROR_STR,__func__);
@@ -806,7 +817,7 @@ int main(int argc, const char * argv[])
       uptime = (long)(time(NULL)-start_time);
       process_update_indicator(get_monitored_processes_descriptor(), main_monitoring_id, "UPTIME", uptime);
 
-      monitoringServer_indicators_loop("localhost", param_names[NODEJSDATA_PORT]);
+      monitoringServer_indicators_loop("localhost", params_names[NODEJSDATA_PORT]);
 
       sleep(5);
    }

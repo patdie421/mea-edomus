@@ -1060,7 +1060,7 @@
 				4E79900019DC9D5500F87593 /* automate.php */,
 				4E79900119DC9D5500F87593 /* change_password.php */,
 				4E79900219DC9D5500F87593 /* config.php */,
-				4E79900319DC9D5500F87593 /* controlers */,
+				4E79900319DC9D5500F87593 /* controllers */,
 				4E79900C19DC9D5500F87593 /* index.php */,
 				4E79900D19DC9D5500F87593 /* lib */,
 				4E79909019DC9D5500F87593 /* login.php */,
@@ -1075,7 +1075,7 @@
 			path = gui;
 			sourceTree = "<group>";
 		};
-		4E79900319DC9D5500F87593 /* controlers */ = {
+		4E79900319DC9D5500F87593 /* controllers */ = {
 			isa = PBXGroup;
 			children = (
 				4E79947919DF223000F87593 /* index.js */,
@@ -1088,6 +1088,7 @@
 				4E79900A19DC9D5500F87593 /* grid_types.js */,
 				4E79900B19DC9D5500F87593 /* grid_utilisateurs.js */,
 			);
+			name = controllers;
 			path = controlers;
 			sourceTree = "<group>";
 		};

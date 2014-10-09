@@ -51,6 +51,66 @@ struct monitored_processes_s *get_monitored_processes_descriptor()
 }
 
 
+int connexion(int *s, char *hostname, int port)
+{
+   int sock;
+   struct sockaddr_in serv_addr;
+   struct hostent *serv_info = NULL;
+
+   sock = socket(AF_INET, SOCK_STREAM, 0);
+   if(sock < 0)
+   {
+      VERBOSE(1) {
+         fprintf(stderr, "%s (%s) :  socket - can't create : ",ERROR_STR,__func__);
+         perror("");
+      }
+      return -1;
+   }
+
+   serv_info = gethostbyname(hostname); // on récupère les informations de l'hôte auquel on veut se connecter
+   if(serv_info == NULL)
+   {
+      VERBOSE(1) {
+         fprintf(stderr, "%s (%s) :  gethostbyname - can't get information : ",ERROR_STR,__func__);
+         perror("");
+      }
+      return -1;
+   }
+
+   bzero((char *)&serv_addr, sizeof(serv_addr));
+   serv_addr.sin_family = AF_INET;
+   serv_addr.sin_port   = htons(port);
+   bcopy((char *)serv_info->h_addr, (char *)&serv_addr.sin_addr.s_addr, serv_info->h_length);
+   
+   if(connect(sock, (const struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
+   {
+      VERBOSE(1) {
+         fprintf(stderr, "%s (%s) :  connect - can't connect : ",ERROR_STR,__func__);
+         perror("");
+      }
+      return -1;
+   }
+
+   *s=sock;
+   return 0;
+}
+
+
+int envoie(int *s, char *message)
+{
+   if(send(*s, message, strlen(message), 0) < 0)
+   {
+      VERBOSE(1) {
+         fprintf(stderr, "%s (%s) :  send - can't send : ",ERROR_STR,__func__);
+         perror("");
+      }
+      return -1;
+   }
+   
+   return 0;
+}
+
+
 int process_set_start_stop(struct monitored_processes_s *monitored_processes, int id,  process_start_stop_f start, process_start_stop_f stop, void *start_stop_data, int auto_restart)
 {
    if(id<0 || !monitored_processes->processes_table[id])
@@ -126,16 +186,17 @@ int process_unregister(struct monitored_processes_s *monitored_processes, int id
 }
 
 
-int _strncat2(char *dest, int max_dest, char *source)
+int _strncat2(char *dest, int max_test, char *source)
 {
    int l_dest = strlen(dest);
    int l_source = strlen(source);
-   if((l_dest+lsource)>max_test)
+   if((l_dest+l_source)>max_test)
       return -1;
    else
    {
       strcat(dest,source);
    }
+   return 0;
 }
 
 
@@ -155,13 +216,13 @@ int _monitored_processes_send_indicators(struct monitored_processes_s *monitored
       
       if((now - monitored_processes->processes_table[id]->last_heartbeat)<30)
       {
-         DEBUG_SECTION fprintf(stderr, "\"OK"\");
+         DEBUG_SECTION fprintf(stderr, "\"OK\"");
          if(_strncat2(s, s_l, "\"OK\"")<0)
             return -1;
       }
       else
       {
-         DEBUG_SECTION fprintf(stderr, "\"KO"\");
+         DEBUG_SECTION fprintf(stderr, "\"KO\"");
          if(_strncat2(s, s_l, "\"KO\"")<0)
             return -1;
       }
@@ -230,7 +291,7 @@ int _monitored_processes_send_all_indicators(struct monitored_processes_s *monit
          flag=1;
          if(_monitored_processes_send_indicators(monitored_processes, i, buff, sizeof(buff))<0)
             return -1;
-         if(strncat2(json,sizeof(json),buff)<0)
+         if(_strncat2(json,sizeof(json),buff)<0)
             return -1;
       }
    }
@@ -244,12 +305,14 @@ int _monitored_processes_send_all_indicators(struct monitored_processes_s *monit
 
    int sock;
    int ret;
-   if(connexion(&sock, hostname, port)<0)
+//   if(connexion(&sock, hostname, port)<0)
+   if(connexion(&sock, hostname, 8000)<0)
+   
       return -1;
-   int ret = envoie(&sock, message);
+   ret = envoie(&sock, message);
    close(sock);
    
-   return return ret;
+   return ret;
 }
 
 
@@ -413,62 +476,19 @@ int _monitored_processes_run(struct monitored_processes_s *monitored_processes, 
 }
 
 
-int connexion(int *s, char *hostname, int port)
+int process_start(struct monitored_processes_s *monitored_processes, int id)
 {
-   int sock;
-   struct sockaddr_in serv_addr;
-   struct hostent *serv_info = NULL;
-
-   sock = socket(AF_INET, SOCK_STREAM, 0);
-   if(sock < 0)
+   if(monitored_processes->processes_table[id])
    {
-      VERBOSE(1) {
-         fprintf(stderr, "%s (%s) :  socket - can't create : ",ERROR_STR,__func__);
-         perror("");
-      }
-      return -1;
+      return monitored_processes->processes_table[id]->start(id, monitored_processes->processes_table[id]->start_stop_data);
    }
-
-   serv_info = gethostbyname(hostname); // on récupère les informations de l'hôte auquel on veut se connecter
-   if(serv_info == NULL)
-   {
-      VERBOSE(1) {
-         fprintf(stderr, "%s (%s) :  gethostbyname - can't get information : ",ERROR_STR,__func__);
-         perror("");
-      }
-      return -1;
-   }
-
-   bzero((char *)&serv_addr, sizeof(serv_addr));
-   serv_addr.sin_family = AF_INET;
-   serv_addr.sin_port   = htons(port);
-   bcopy((char *)serv_info->h_addr, (char *)&serv_addr.sin_addr.s_addr, serv_info->h_length);
    
-   if(connect(sock, (const struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
-   {
-      VERBOSE(1) {
-         fprintf(stderr, "%s (%s) :  connect - can't connect : ",ERROR_STR,__func__);
-         perror("");
-      }
-      return -1;
-   }
-
-   *s=sock;
    return 0;
 }
 
 
-int envoie(int *s, char *message)
+int process_stop(struct monitored_processes_s *monitored_processes, int id)
 {
-   if(send(*s, message, strlen(message), 0) < 0)
-   {
-      VERBOSE(1) {
-         fprintf(stderr, "%s (%s) :  send - can't send : ",ERROR_STR,__func__);
-         perror("");
-      }
-      return -1;
-   }
-   
    return 0;
 }
 
@@ -552,7 +572,7 @@ void *monitoring_thread(void *data)
 
    do
    {
-     if(connexion(&nodejs_socket, (char *)(d->hostname), (d->socketdata)==0)
+     if(connexion(&nodejs_socket, (char *)(d->hostname), (d->port_socketdata))==0)
      {
        do
        {

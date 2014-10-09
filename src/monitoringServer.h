@@ -28,7 +28,7 @@ struct monitored_process_s
    int enable_autorestart;
    process_start_stop_f stop;
    process_start_stop_f start;
-   void *start_strop_data;
+   void *start_stop_data;
 };
 
 
@@ -57,4 +57,4 @@ int process_set_start_stop(struct monitored_processes_s *monitored_processes, in
 int process_start(struct monitored_processes_s *monitored_processes, int id);
 int process_stop(struct monitored_processes_s *monitored_processes, int id);
 
-#endif,
+#endif

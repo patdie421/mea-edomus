@@ -49,7 +49,7 @@ pthread_mutex_t requestId_lock;
 
 uint32_t requestId = 1;
 
-int xplServer_monitoring_id = -1;
+int _xplServer_monitoring_id = -1;
 long xplin_indicator = 0;
 long xplout_indicator = 0;
 
@@ -373,8 +373,8 @@ void *_xPL_thread(void *data)
 {
 //   xPL_setDebugging(TRUE); // xPL en mode debug
 
-   process_add_indicator(get_monitored_processes_descriptor(), xplServer_monitoring_id, "XPLIN", xplin_indicator);
-   process_add_indicator(get_monitored_processes_descriptor(), xplServer_monitoring_id, "XPLOUT", xplout_indicator);  
+   process_add_indicator(get_monitored_processes_descriptor(), _xplServer_monitoring_id, "XPLIN", xplin_indicator);
+   process_add_indicator(get_monitored_processes_descriptor(), _xplServer_monitoring_id, "XPLOUT", xplout_indicator);
 
    if ( !xPL_initialize(xPL_getParsedConnectionType()) ) return 0 ;
    
@@ -406,7 +406,7 @@ void *_xPL_thread(void *data)
       
       _flushExpiredXPLResponses();
 
-      process_heartbeat(get_monitored_processes_descriptor(), xplServer_monitoring_id);
+      process_heartbeat(get_monitored_processes_descriptor(), _xplServer_monitoring_id);
 
       pthread_testcancel();
    }
@@ -480,7 +480,7 @@ int16_t set_xpl_address(char **params_list)
 }
 
 
-int stop_xPLServer(int id)
+int stop_xPLServer(int my_id, void *data)
 {
    if(_xPLServer_thread)
    {
@@ -495,15 +495,17 @@ int stop_xPLServer(int id)
       free(xplRespQueue);
       xplRespQueue=NULL;
    }
-   xplServer_monitoring_id=-1;
+   _xplServer_monitoring_id=-1;
+   
+   return 0;
 }
 
 
-pthread_t *start_xPLServer(int my_id, char **params_list, queue_t *interfaces, sqlite3 *sqlite3_param_db)
+pthread_t *start_xPLServer_old(int my_id, char **params_list, queue_t *interfaces, sqlite3 *sqlite3_param_db)
 {
    if(!set_xpl_address(params_list))
    {
-      xplServer_monitoring_id=my_id;
+      _xplServer_monitoring_id=my_id;
 
       _xPLServer_thread=xPLServer(interfaces);
       if(_xPLServer_thread==NULL)
@@ -516,6 +518,28 @@ pthread_t *start_xPLServer(int my_id, char **params_list, queue_t *interfaces, s
    }
    else
       return NULL;
+}
+
+
+int start_xPLServer(int my_id, void *data)
+{
+   struct xplServerData_s *xplServerData = (struct xplServerData_s *)data;
+   
+   if(!set_xpl_address(xplServerData->params_list))
+   {
+      _xplServer_monitoring_id=my_id;
+
+      _xPLServer_thread=xPLServer(xplServerData->interfaces);
+      if(_xPLServer_thread==NULL)
+      {
+         VERBOSE(2) fprintf(stderr,"%s (%s) : can't start xpl server.\n",ERROR_STR,__func__);
+         return NULL;
+      }
+      else
+         return 0;
+   }
+   else
+      return -1;
 }
 
 
