@@ -17,6 +17,7 @@ struct process_indicator_s
    long value;
 };
 
+typedef int (*process_start_stop_f)(void *);
 
 struct monitored_process_s
 {
@@ -24,6 +25,10 @@ struct monitored_process_s
    time_t last_heartbeat;
    int heartbeat_interval; // second
    queue_t *indicators_list;
+   int enable_autorestart;
+   process_start_stop_f stop;
+   process_start_stop_f start;
+   void *start_strop_data;
 };
 
 
