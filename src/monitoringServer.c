@@ -217,7 +217,7 @@ int _monitored_processes_send_all_indicators(struct monitored_processes_s *monit
       }
    }
    DEBUG_SECTION fprintf(stderr, "}\n");
-   if(_strncat2(json,sizeof(json),"}")<0)
+   if(_strncat2(json,sizeof(json),"}\n")<0)
       return -1;
 
    strcpy(message,"MON:");
