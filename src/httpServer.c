@@ -22,6 +22,8 @@
 #include "tokens_strings.h"
 #include "init.h"
 
+#include "monitoringServer.h"
+
 //
 // pour compilation php-cgi :
 //
@@ -268,22 +270,36 @@ mea_error_t httpServer(uint16_t port, char *home, char *php_cgi, char *php_ini_p
 }
 
 
-int start_httpServer(char **params_list, queue_t *interfaces)
+int stop_httpServer(int my_id, void *data)
 {
+   mg_stop(g_mongooseContext);
+   
+   return 0;
+}
+
+
+//int start_httpServer(char **params_list, queue_t *interfaces)
+int start_httpServer(int my_id, void *data)
+{
+   struct httpServerData_s *httpServerData = (struct httpServerData_s *)data;
+
    char *phpcgibin=NULL;
-   if(params_list[PHPCGI_PATH] && params_list[PHPINI_PATH] && params_list[GUI_PATH] && params_list[SQLITE3_DB_PARAM_PATH])
+   if(httpServerData->params_list[PHPCGI_PATH] &&
+      httpServerData->params_list[PHPINI_PATH] &&
+      httpServerData->params_list[GUI_PATH]    &&
+      httpServerData->params_list[SQLITE3_DB_PARAM_PATH])
    {
-      phpcgibin=(char *)malloc(strlen(params_list[PHPCGI_PATH])+10); // 9 = strlen("/cgi-bin") + 1
-      sprintf(phpcgibin, "%s/php-cgi",params_list[PHPCGI_PATH]);
+      phpcgibin=(char *)malloc(strlen(httpServerData->params_list[PHPCGI_PATH])+10); // 9 = strlen("/cgi-bin") + 1
+      sprintf(phpcgibin, "%s/php-cgi",httpServerData->params_list[PHPCGI_PATH]);
 
       long guiport;
-      if(params_list[GUIPORT][0])
+      if(httpServerData->params_list[GUIPORT][0])
       {
          char *end;
-         guiport=strtol(params_list[GUIPORT],&end,10);
+         guiport=strtol(httpServerData->params_list[GUIPORT],&end,10);
          if(*end!=0 || errno==ERANGE)
          {
-            VERBOSE(9) fprintf(stderr,"%s (%s) : GUI port (%s), not a number, 8083 will be used.\n",INFO_STR,__func__,params_list[GUIPORT]);
+            VERBOSE(9) fprintf(stderr,"%s (%s) : GUI port (%s), not a number, 8083 will be used.\n",INFO_STR,__func__,httpServerData->params_list[GUIPORT]);
             guiport=8083;
          }
       }
@@ -293,9 +309,13 @@ int start_httpServer(char **params_list, queue_t *interfaces)
          guiport=8083;
       }
       
-      if(create_configs_php(params_list[GUI_PATH], params_list[SQLITE3_DB_PARAM_PATH], params_list[LOG_PATH], params_list[PHPSESSIONS_PATH], atoi(params_list[NODEJSIOSOCKET_PORT]))==0)
+      if(create_configs_php(httpServerData->params_list[GUI_PATH],
+                            httpServerData->params_list[SQLITE3_DB_PARAM_PATH],
+                            httpServerData->params_list[LOG_PATH],
+                            httpServerData->params_list[PHPSESSIONS_PATH],
+                            atoi(httpServerData->params_list[NODEJSIOSOCKET_PORT]))==0)
       {
-         httpServer(guiport, params_list[GUI_PATH], phpcgibin, params_list[PHPINI_PATH], interfaces);
+         httpServer(guiport, httpServerData->params_list[GUI_PATH], phpcgibin, httpServerData->params_list[PHPINI_PATH], httpServerData->interfaces);
          return 0;
       }
       else

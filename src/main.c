@@ -45,6 +45,7 @@
 #include "monitoringServer.h"
 
 int xplServer_monitoring_id=-1;
+int httpServer_monitoring_id=-1;
 
 tomysqldb_md_t *myd=NULL;                  /*!< descripteur mysql. Variable globale car doit être accessible par les gestionnaires de signaux. */
 queue_t *interfaces=NULL;                  /*!< liste (file) des interfaces. Variable globale car doit être accessible par les gestionnaires de signaux. */
@@ -231,7 +232,20 @@ void clean_all_and_exit()
 
    if(xplServer_monitoring_id!=-1)
    {
-      process_start(get_monitored_processes_descriptor(), xplServer_monitoring_id);
+      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping xPLServer... ",INFO_STR,__func__);
+      process_stop(get_monitored_processes_descriptor(), xplServer_monitoring_id);
+      process_unregister(get_monitored_processes_descriptor(), xplServer_monitoring_id);
+      xplServer_monitoring_id=-1;
+      VERBOSE(9) fprintf(stderr,"done\n");
+   }
+
+   if(httpServer_monitoring_id!=-1)
+   {
+      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping httpServer... ",INFO_STR,__func__);
+      process_stop(get_monitored_processes_descriptor(), httpServer_monitoring_id);
+      process_unregister(get_monitored_processes_descriptor(), httpServer_monitoring_id);
+      httpServer_monitoring_id=-1;
+      VERBOSE(9) fprintf(stderr,"done\n");
    }
    
    if(interfaces)
@@ -791,15 +805,16 @@ int main(int argc, const char * argv[])
       clean_all_and_exit();
    }
 
-//   xPLServer_thread=start_xPLServer(params_list, interfaces, sqlite3_param_db); // initialisation du serveur xPL
-//   if(!xPLServer_thread)
-//   {
-//      VERBOSE(1) fprintf (stderr, "%s (%s) : can't start xpl server\n",ERROR_STR,__func__);
-//      clean_all_and_exit();
-//   }
-
-   
-   start_httpServer(params_list, interfaces); // initialisation du serveur HTTP
+   struct httpServerData_s httpServerData;
+   httpServerData.params_list=params_list;
+   httpServerData.interfaces=interfaces;
+   httpServer_monitoring_id=process_register(get_monitored_processes_descriptor(), "HTTPSERVER");
+   process_set_start_stop(get_monitored_processes_descriptor(), httpServer_monitoring_id , start_httpServer, stop_httpServer, (void *)(&httpServerData), 1);
+//   start_httpServer(params_list, interfaces); // initialisation du serveur HTTP
+   if(process_start(get_monitored_processes_descriptor(), httpServer_monitoring_id)<0)
+   {
+      VERBOSE(1) fprintf (stderr, "%s (%s) : can't start http server\n",ERROR_STR,__func__);
+   }
 
    time_t start_time;
    long uptime = 0;
