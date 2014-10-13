@@ -842,13 +842,18 @@ int main(int argc, const char * argv[])
    process_add_indicator(get_monitored_processes_descriptor(), main_monitoring_id, "UPTIME", 0);
 
    // boucle sans fin.
+   char response[512];
    while(1)
    {
+      // interrogation du serveur HTTP Interne pour heartbeat ... (voir passage d'un parametre pour sécuriser ...)
+      gethttp("localhost", atoi(params_list[GUIPORT]), "/CMD/ping.php", response, sizeof(response));
+      DEBUG_SECTION fprintf(stderr,"%s\n",response);
+
       uptime = (long)(time(NULL)-start_time);
       process_update_indicator(get_monitored_processes_descriptor(), main_monitoring_id, "UPTIME", uptime);
 
       monitoringServer_indicators_loop("localhost", atoi(params_list[NODEJSDATA_PORT]));
 
-      sleep(5);
+      sleep(10);
    }
 }

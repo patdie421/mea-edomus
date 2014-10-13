@@ -10,6 +10,12 @@
 #include <stdlib.h>
 #include <inttypes.h>
 #include <string.h>
+#include <sys/socket.h>
+#include <netinet/tcp.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h> // close
+#include <netdb.h> // gethostbyname
 
 #include "globals.h"
 #include "debug.h"
@@ -66,6 +72,84 @@ const char* options[] = {
 const char *options[15];
 
 struct mg_context* g_mongooseContext = 0;
+
+
+int gethttp(char *server, int port, char *url, char *response, int l_response)
+{
+  int sockfd;                   // descripteur de socket
+  struct sockaddr_in serveur;   // structure d'adresse qui contiendra les param reseaux du serveur
+  struct hostent * hs;          // structure hostent qui contiendra IPs et noms du serveur
+
+  // recuperation de l'@ serveur dans la structure hostent (utile si l'utilisateur entre un nom et pas une adresse IP)
+  if((hs=gethostbyname("localhost")) == NULL)
+  {                                
+    fprintf(stderr, "Erreur lors de l'appel a gethostbyname\n");
+    return -1;
+  }
+   
+  // creation de la requete
+  char requete[1000]="GET ";
+  strcat(requete, url);
+  strcat(requete, " HTTP/1.1\r\n");
+  strcat(requete, "Host: ");
+  strcat(requete, server);
+  strcat(requete, "\r\n");
+  strcat(requete, "Connection: close\r\n");
+  strcat(requete, "\r\n");
+ 
+  // creation de la socket
+  sockfd = socket(AF_INET,SOCK_STREAM,IPPROTO_TCP);
+  
+ 
+  // initialisation de la structure d'adresse du serveur :
+   
+  // famille d'adresse
+  serveur.sin_family = AF_INET;
+ 
+  // recuperation de l'adresse IPv4 du serveur
+  serveur.sin_addr=*(struct in_addr *)(hs->h_addr_list[0]);
+ 
+  // recuperation du port du serveur
+  serveur.sin_port = htons(port);
+ 
+  printf("Tentative de connexion au serveur web : %s (%s)\n",hs->h_name,inet_ntoa(serveur.sin_addr));
+ 
+  // tentative de connexion
+  if(connect(sockfd,(struct sockaddr*)&serveur, sizeof(serveur)) == -1)
+  {
+    perror("Erreur lors de l'appel a connect -> ");
+    close(sockfd);
+    return -1;
+  }
+ 
+  printf("Connexion etablie !\n");
+ 
+  // envoi de la requete HTTP
+  if(send(sockfd,requete, strlen(requete), 0) == -1)
+  {
+    perror("Erreur lors de l'appel a send -> ");
+    close(sockfd);
+    return -1;
+  }
+   
+  // reception de la reponse HTTP
+  int n=recv(sockfd, response, l_response, 0);
+  if(n == -1)
+  {
+    perror("Erreur lors de l'appel a recv -> ");
+    close(sockfd);
+    return -1;
+  }
+   
+  //affichage de la reponse HTTP
+  if(n)
+     printf("\n\n%s\n\n\n",response);
+ 
+  // fermeture de la socket
+  close(sockfd);
+ 
+  return 0;
+}
 
 
 // fichier "mémoire"

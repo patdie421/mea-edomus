@@ -21,5 +21,5 @@ struct httpServerData_s
 //int start_httpServer(char **params_list, queue_t *interfaces);
 int start_httpServer(int my_id, void *data);
 int stop_httpServer(int my_id, void *data);
-
+int gethttp(char *server, int port, char *url, char *response, int l_response);
 #endif

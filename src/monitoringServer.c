@@ -209,8 +209,8 @@ int _monitored_processes_send_indicators(struct monitored_processes_s *monitored
    {
    time_t now = time(NULL);
 
-      DEBUG_SECTION fprintf(stderr, "{heartbeat:");
-      if(_strncat2(s, s_l, "{heartbeat:")<0)
+      DEBUG_SECTION fprintf(stderr, "{\"heartbeat\":");
+      if(_strncat2(s, s_l, "{\"heartbeat\":")<0)
          return -1;
       
       if((now - monitored_processes->processes_table[id]->last_heartbeat)<30)
@@ -226,6 +226,12 @@ int _monitored_processes_send_indicators(struct monitored_processes_s *monitored
             return -1;
       }
 
+      DEBUG_SECTION fprintf(stderr,", \"status\":%d",monitored_processes->processes_table[id]->status);
+      int n=snprintf(buff,sizeof(buff),", \"status\":%d",monitored_processes->processes_table[id]->status);
+      if(n<0 || n==sizeof(buff))
+         return -1;
+
+      
       if(first_queue(monitored_processes->processes_table[id]->indicators_list)==0)
       {
          while(1)
