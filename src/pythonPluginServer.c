@@ -87,7 +87,7 @@ mea_error_t pythonPluginServer_init()
 mea_error_t pythonPluginServer_add_cmd(char *module, void *data, int l_data)
 {
    pythonPlugin_cmd_t *e=NULL;
-   
+   int ret=ERROR;
    e=(pythonPlugin_cmd_t *)malloc(sizeof(pythonPlugin_cmd_t));
    if(!e)
       return ERROR;
@@ -110,14 +110,19 @@ mea_error_t pythonPluginServer_add_cmd(char *module, void *data, int l_data)
    pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&pythonPluginCmd_queue_lock);
    pthread_mutex_lock(&pythonPluginCmd_queue_lock);
    
-   in_queue_elem(pythonPluginCmd_queue, e);
-   
-   if(pythonPluginCmd_queue->nb_elem>=1)
-      pthread_cond_broadcast(&pythonPluginCmd_queue_cond);
+   if(pythonPluginCmd_queue)
+   {
+      in_queue_elem(pythonPluginCmd_queue, e);
+      if(pythonPluginCmd_queue->nb_elem>=1)
+         pthread_cond_broadcast(&pythonPluginCmd_queue_cond);
+   }
+   else
+      ret=ERROR;
    pthread_mutex_unlock(&pythonPluginCmd_queue_lock);
    pthread_cleanup_pop(0);
 
-   return NOERROR;
+   if(ret!=ERROR)
+      return NOERROR;
    
 exit_pythonPluginServer_add_cmd:
    if(e)
