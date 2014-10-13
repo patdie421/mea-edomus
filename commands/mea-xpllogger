@@ -61,6 +61,13 @@ void xplmsglogger(xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
 }
 
 
+static void _logger_stop(int signal_number)
+{
+    exit(0);
+} 
+
+
+
 void logger()
 {
    signal(SIGINT,  _logger_stop);
