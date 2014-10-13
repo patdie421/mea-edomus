@@ -17,6 +17,14 @@
 
 typedef enum {XBEEDATA=1, XPLMSG=2, COMMISSIONNING=3} pythonPlugin_type;
 
+
+struct pythonPluginServerData_s
+{
+   char **params_list;
+   sqlite3 *sqlite3_param_db;
+};  
+
+
 typedef struct pythonPlugin_cmd_s
 {
    char *python_module;
@@ -26,7 +34,9 @@ typedef struct pythonPlugin_cmd_s
 
 mea_error_t pythonPluginServer_add_cmd(char *module, void *data, int l_data);
 void setPythonPluginPath(char *path);
-pthread_t *start_pythonPluginServer(char **params_list, sqlite3 *sqlite3_param_db);
-void stop_pythonPluginServer();
+//pthread_t *start_pythonPluginServer(char **params_list, sqlite3 *sqlite3_param_db);
+int start_pythonPluginServer(int my_id, void *data);
+//void stop_pythonPluginServer();
+int stop_pythonPluginServer(int my_id, void *data);
 
 #endif

@@ -224,18 +224,21 @@ uint16_t mea_sendXPLMessage(xPL_MessagePtr xPLMsg)
       }
 
       // ajout de la copie du message dans la file
-      xplRespQueue_elem_t *e = malloc(sizeof(xplRespQueue_elem_t));
-      e->msg = newXPLMsg;
-      e->id = id;
-      e->tsp = (uint32_t)time(NULL);
-      
       pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(xplRespQueue_sync_lock) );
       pthread_mutex_lock(&xplRespQueue_sync_lock);
+
+      if(xplRespQueue)
+      {
+         xplRespQueue_elem_t *e = malloc(sizeof(xplRespQueue_elem_t));
+         e->msg = newXPLMsg;
+         e->id = id;
+         e->tsp = (uint32_t)time(NULL);
       
-      in_queue_elem(xplRespQueue, e);
+         in_queue_elem(xplRespQueue, e);
       
-      if(xplRespQueue->nb_elem>=1)
-         pthread_cond_broadcast(&xplRespQueue_sync_cond);
+         if(xplRespQueue->nb_elem>=1)
+            pthread_cond_broadcast(&xplRespQueue_sync_cond);
+      }
       
       pthread_mutex_unlock(&xplRespQueue_sync_lock);
       pthread_cleanup_pop(0);
@@ -259,9 +262,9 @@ xPL_MessagePtr mea_readXPLResponse(int id)
 
    // on va attendre le retour dans la file des reponses
    pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(xplRespQueue_sync_lock) );
-
    pthread_mutex_lock(&(xplRespQueue_sync_lock));
-   if(xplRespQueue->nb_elem==0 || notfound==1)
+
+   if(xplRespQueue && xplRespQueue->nb_elem==0 || notfound==1)
    {
       // rien a lire => on va attendre que quelque chose soit mis dans la file
       struct timeval tv;
@@ -275,7 +278,11 @@ xPL_MessagePtr mea_readXPLResponse(int id)
          if(ret!=ETIMEDOUT)
             goto readFromQueue_return;
       } 
-   }  
+   }
+   else
+   {
+      goto readFromQueue_return;
+   }
 
    // a ce point il devrait y avoir quelque chose dans la file.
    if(first_queue(xplRespQueue)==0)
@@ -335,7 +342,7 @@ void _flushExpiredXPLResponses()
    pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(xplRespQueue_sync_lock) );
    pthread_mutex_lock(&xplRespQueue_sync_lock);
    
-   if(first_queue(xplRespQueue)==0)
+   if(xplRespQueue && first_queue(xplRespQueue)==0)
    {
       while(1)
       {
@@ -489,12 +496,18 @@ int stop_xPLServer(int my_id, void *data)
       free(_xPLServer_thread);
       _xPLServer_thread=NULL;
    }
+      
+   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(xplRespQueue_sync_lock) );
+   pthread_mutex_lock(&(xplRespQueue_sync_lock));
    if(xplRespQueue)
    {
       clear_queue(xplRespQueue,_xplRespQueue_free_queue_elem);
       free(xplRespQueue);
       xplRespQueue=NULL;
    }
+   pthread_mutex_unlock(&(xplRespQueue_sync_lock));
+   pthread_cleanup_pop(0);
+
    _xplServer_monitoring_id=-1;
    
    return 0;
@@ -532,14 +545,20 @@ int start_xPLServer(int my_id, void *data)
       _xPLServer_thread=xPLServer(xplServerData->interfaces);
       if(_xPLServer_thread==NULL)
       {
-         VERBOSE(2) fprintf(stderr,"%s (%s) : can't start xpl server.\n",ERROR_STR,__func__);
-         return NULL;
+         VERBOSE(2) {
+            fprintf(stderr,"%s (%s) : can't start xpl server -\n",ERROR_STR,__func__);
+            perror("");
+         }
+         return -1;
       }
       else
          return 0;
    }
    else
-      return -1;
+   {
+         VERBOSE(2) fprintf(stderr,"%s (%s) : no valid xPL address.\n",ERROR_STR,__func__);
+         return -1;
+   }
 }
 
 

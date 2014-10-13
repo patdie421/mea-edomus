@@ -147,6 +147,7 @@ int process_register(struct monitored_processes_s *monitored_processes, char *na
             init_queue(monitored_processes->processes_table[i]->indicators_list);
             monitored_processes->processes_table[i]->heartbeat_interval=20;
             monitored_processes->processes_table[i]->enable_autorestart=0;
+            monitored_processes->processes_table[i]->status=0; // arrêté par défaut
             monitored_processes->processes_table[i]->start=NULL;
             monitored_processes->processes_table[i]->stop=NULL;
             monitored_processes->processes_table[i]->start_stop_data=NULL;
@@ -483,6 +484,7 @@ int process_start(struct monitored_processes_s *monitored_processes, int id)
 {
    if(id!=-1 && monitored_processes->processes_table[id])
    {
+      monitored_processes->processes_table[id]->status=1;
       return monitored_processes->processes_table[id]->start(id, monitored_processes->processes_table[id]->start_stop_data);
    }
    
@@ -492,6 +494,12 @@ int process_start(struct monitored_processes_s *monitored_processes, int id)
 
 int process_stop(struct monitored_processes_s *monitored_processes, int id)
 {
+   if(monitored_processes->processes_table[id])
+   {
+      monitored_processes->processes_table[id]->status=0;
+      return monitored_processes->processes_table[id]->stop(id, monitored_processes->processes_table[id]->start_stop_data);
+   }
+   
    return 0;
 }
 

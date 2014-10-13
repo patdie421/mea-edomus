@@ -93,11 +93,36 @@ static int begin_request_handler(struct mg_connection *conn)
 // API REST ...
    uint32_t id = 0;
    const struct mg_request_info *request_info = mg_get_request_info(conn);
+   char phpsessid[80];
 
    char *tokens[MAX_TOKEN]; // 10 tokens maximum
    char buffer[MAX_BUFFER_SIZE];
 
-   if(mea_strncmplower("/API/",(char *)request_info->uri,5)==0)
+   
+   if(mea_strncmplower("/CMD/startstop.php",(char *)request_info->uri,18)==0)
+   {
+   // demande d'arrêt/relance de process.
+   // verifier si authorisé
+      if(mg_get_cookie(conn, "PHPSESSID", phpsessid, sizeof(phpsessid))>0)
+      {
+         // lire ici les info de session php
+         // il faut être connecté et disposer des droits admin.
+         fprintf(stderr,"PHPSESSID=%s\n",phpsessid);
+         // lire les paramètres
+         if(strcmp(request_info->request_method, "GET") != 0)
+         {
+            // on traite que les demandes get
+            // renvoyer ici un message d'erreur
+            return 1;
+         }
+
+         char val[80];
+         mg_get_var(request_info->query_string, strlen(request_info->query_string), "process", val, sizeof(val)); 
+         fprintf(stderr,"VAL=",val);
+         return 1;
+      }
+   }
+   else if(mea_strncmplower("/API/",(char *)request_info->uri,5)==0)
    {
       // traiter ici l'URL
       char reponse[255];
