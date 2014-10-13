@@ -533,7 +533,7 @@ int start_xPLServer(int my_id, void *data)
       if(_xPLServer_thread==NULL)
       {
          VERBOSE(2) fprintf(stderr,"%s (%s) : can't start xpl server.\n",ERROR_STR,__func__);
-         return NULL;
+         return -1;
       }
       else
          return 0;
