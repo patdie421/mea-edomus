@@ -26,6 +26,7 @@ struct monitored_process_s
    int heartbeat_interval; // second
    queue_t *indicators_list;
    int enable_autorestart;
+   int status; // started, stopped
    process_start_stop_f stop;
    process_start_stop_f start;
    void *start_stop_data;
