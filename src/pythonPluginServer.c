@@ -37,7 +37,7 @@ pthread_t *_pythonPluginServer_thread=NULL;
 queue_t *pythonPluginCmd_queue;
 pthread_cond_t pythonPluginCmd_queue_cond;
 pthread_mutex_t pythonPluginCmd_queue_lock;
-
+int _pythonPluginServer_monitoring_id=-1;
 
 PyObject *known_modules;
 
@@ -464,27 +464,42 @@ void stop_pythonPluginServer()
 
    PyEval_AcquireLock();
    Py_Finalize();
+
+   _pythonPluginServer_monitoring_id=-1;
+
+   return 0;
 }
 
 
-pthread_t *start_pythonPluginServer(char **params_list, sqlite3 *sqlite3_param_db)
+struct pythonPluginServerData_s
+
+
+
+//pthread_t *start_pythonPluginServer(char **params_list, sqlite3 *sqlite3_param_db)
+pthread_t *start_pythonPluginServer(int my_id, void *data)
 {
-   if(params_list[PLUGINS_PATH])
+struct pythonPluginServerData_s *pythonPluginServerData = (struct pythonPluginServerData_s *)data;  
+
+   if(pythonPluginServerData->params_list[PLUGINS_PATH])
    {
-      setPythonPluginPath(params_list[PLUGINS_PATH]);
+      setPythonPluginPath(pythonPluginServerData->params_list[PLUGINS_PATH]);
       _pythonPluginServer_thread=pythonPluginServer();
       if(_pythonPluginServer_thread==NULL)
       {
-         VERBOSE(2) fprintf(stderr,"%s (%s) : can't start Python Plugin Server (thread error).\n",ERROR_STR,__func__);
-         return NULL;
+         VERBOSE(2) {
+            fprintf(stderr,"%s (%s) : can't start Python Plugin Server (thread error) - ",ERROR_STR,__func__);
+            perror();
+         }
+         return -1;
       }
+      _pythonPluginServer_monitoring_id=my_id;
    }
    else
    {
       VERBOSE(2) fprintf(stderr,"%s (%s) : can't start Python Plugin Server (incorrect plugin path).\n",ERROR_STR,__func__);
-      return NULL;
+      return -1;
    }
-   return _pythonPluginServer_thread;
+   return 0;
 }
 
 
