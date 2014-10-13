@@ -457,12 +457,18 @@ void stop_pythonPluginServer()
       _pythonPluginServer_thread=NULL;
    }
 
+
+   pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&pythonPluginCmd_queue_lock);
+   pthread_mutex_lock(&pythonPluginCmd_queue_lock);
    if(pythonPluginCmd_queue)
    {
       clear_queue(pythonPluginCmd_queue, pythonPluginCmd_queue_free_queue_elem);
       free(pythonPluginCmd_queue);
       pythonPluginCmd_queue=NULL;
    }
+   pthread_mutex_unlock(&pythonPluginCmd_queue_lock);
+   pthread_cleanup_pop(0);
+
 
    PyEval_AcquireLock();
    Py_Finalize();
