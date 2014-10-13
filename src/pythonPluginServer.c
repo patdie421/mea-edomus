@@ -32,14 +32,14 @@
 
 char *plugin_path=NULL;
 
+// globales pour le fonctionnement du thread
 pthread_t *_pythonPluginServer_thread=NULL;
-
 queue_t *pythonPluginCmd_queue;
 pthread_cond_t pythonPluginCmd_queue_cond;
 pthread_mutex_t pythonPluginCmd_queue_lock;
 
-PyObject *known_modules;
 
+PyObject *known_modules;
 
 void _pythonPlugin_thread_cleanup_PyEval_AcquireLock(void *arg)
 {
@@ -61,26 +61,6 @@ void setPythonPluginPath(char *path)
    plugin_path=malloc(strlen(path)+1);
    
    strcpy(plugin_path, path);
-}
-
-
-mea_error_t pythonPluginServer_init()
-{
-   pythonPluginCmd_queue=(queue_t *)malloc(sizeof(queue_t));
-   if(!pythonPluginCmd_queue)
-   {
-      VERBOSE(1) {
-         fprintf (stderr, "%s (%s) : %s - ", ERROR_STR, __func__, MALLOC_ERROR_STR);
-         perror("");
-      }
-      return ERROR;
-   }
-   init_queue(pythonPluginCmd_queue);
-   
-   pthread_mutex_init(&pythonPluginCmd_queue_lock, NULL);
-   pthread_cond_init(&pythonPluginCmd_queue_cond, NULL);
-
-   return NOERROR;
 }
 
 
@@ -276,8 +256,6 @@ void *_pythonPlugin_thread(void *data)
    pythonPlugin_cmd_t *e;
    PyThreadState *mainThreadState, *myThreadState;
    
-//   Py_Initialize();
-//   PyEval_InitThreads(); // voir ici http://www.codeproject.com/Articles/11805/Embedding-Python-in-C-C-Part-I
    PyEval_AcquireLock(); // DEBUG_PyEval_AcquireLock(fn_name, &local_last_time);
    mainThreadState = PyThreadState_Get();
    myThreadState = PyThreadState_New(mainThreadState->interp);
@@ -392,14 +370,22 @@ void *_pythonPlugin_thread(void *data)
 // pthread_t *pythonPluginServer(queue_t *plugin_queue)
 pthread_t *pythonPluginServer()
 {
+   int py_init_flag=0;
    pthread_t *pythonPlugin_thread=NULL;
    
-   if(pythonPluginServer_init())
+   pythonPluginCmd_queue=(queue_t *)malloc(sizeof(queue_t));
+   if(!pythonPluginCmd_queue)
    {
-      VERBOSE(2) fprintf (stderr, "%s (%s) : can't initialize pluginServer\n", FATAL_ERROR_STR, __func__);
+      VERBOSE(1) {
+         fprintf (stderr, "%s (%s) : %s - ", ERROR_STR, __func__, MALLOC_ERROR_STR);
+         perror("");
+      }
       return NULL;
    }
-   
+   init_queue(pythonPluginCmd_queue);
+   pthread_mutex_init(&pythonPluginCmd_queue_lock, NULL);
+   pthread_cond_init(&pythonPluginCmd_queue_cond, NULL);
+ 
    pythonPlugin_thread=(pthread_t *)malloc(sizeof(pthread_t));
    if(!pythonPlugin_thread)
    {
@@ -407,21 +393,44 @@ pthread_t *pythonPluginServer()
          fprintf (stderr, "%s (%s) : %s - ",FATAL_ERROR_STR, __func__, MALLOC_ERROR_STR);
          perror("");
       }
-      return NULL;
+      goto pythonPluginServer_clean_exit;
    }
    
    Py_Initialize();
    PyEval_InitThreads(); // voir ici http://www.codeproject.com/Articles/11805/Embedding-Python-in-C-C-Part-I
    PyEval_ReleaseLock();
+   py_init_flag=1;
 
    if(pthread_create (pythonPlugin_thread, NULL, _pythonPlugin_thread, (void *)pythonPluginCmd_queue))
    {
       VERBOSE(2) fprintf(stderr, "%s (%s) : pthread_create - can't start thread - ", FATAL_ERROR_STR, __func__);
       perror("");
-      return NULL;
+      goto pythonPluginServer_clean_exit;
+
    }
-   
-   return pythonPlugin_thread;
+
+   if(pythonPlugin_thread)   
+      return pythonPlugin_thread;
+
+pythonPluginServer_clean_exit:
+   if(pythonPlugin_thread)
+   {
+      free(pythonPlugin_thread);
+      pythonPlugin_thread=NULL;
+   }
+
+   if(pythonPluginCmd_queue)
+   {
+      free(pythonPluginCmd_queue);
+      pythonPluginCmd_queue=NULL;
+   }
+
+   if(py_init_flag)
+   {
+      PyEval_AcquireLock();
+      Py_Finalize();
+   }
+   return NULL;
 }
 
 
@@ -463,8 +472,6 @@ pthread_t *start_pythonPluginServer(char **params_list, sqlite3 *sqlite3_param_d
    if(params_list[PLUGINS_PATH])
    {
       setPythonPluginPath(params_list[PLUGINS_PATH]);
-//      printf("PLUGINS_PATH=%s\n", params_list[PLUGINS_PATH]);
-//      _pythonPluginServer_thread=pythonPluginServer(NULL);
       _pythonPluginServer_thread=pythonPluginServer();
       if(_pythonPluginServer_thread==NULL)
       {
