@@ -96,7 +96,7 @@ void logger()
 
 int main(int argc, char *argv[])
 {
-   automator();
+   logger();
 }
 
 
