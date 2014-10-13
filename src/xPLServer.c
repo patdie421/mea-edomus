@@ -264,7 +264,7 @@ xPL_MessagePtr mea_readXPLResponse(int id)
    pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(xplRespQueue_sync_lock) );
    pthread_mutex_lock(&(xplRespQueue_sync_lock));
 
-   if(xplRespQueue && xplRespQueue->nb_elem==0 || notfound==1)
+   if((xplRespQueue && xplRespQueue->nb_elem==0) || notfound==1)
    {
       // rien a lire => on va attendre que quelque chose soit mis dans la file
       struct timeval tv;
@@ -399,6 +399,8 @@ void *_xPL_thread(void *data)
 
    do
    {
+      process_heartbeat(get_monitored_processes_descriptor(), _xplServer_monitoring_id);
+   
       VERBOSE(9) {
          static char compteur=0;
          if(compteur>59)
@@ -412,8 +414,6 @@ void *_xPL_thread(void *data)
       xPL_processMessages(500);
       
       _flushExpiredXPLResponses();
-
-      process_heartbeat(get_monitored_processes_descriptor(), _xplServer_monitoring_id);
 
       pthread_testcancel();
    }

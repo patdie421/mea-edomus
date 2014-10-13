@@ -24,6 +24,7 @@
 #include "tokens_strings.h"
 
 #include "pythonPluginServer.h"
+#include "monitoringServer.h"
 
 #include "interface_type_002.h"
 
@@ -275,6 +276,8 @@ void *_pythonPlugin_thread(void *data)
    
    while(1)
    {
+      process_heartbeat(get_monitored_processes_descriptor(), _pythonPluginServer_monitoring_id);
+
       pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&pythonPluginCmd_queue_lock);
       pthread_mutex_lock(&pythonPluginCmd_queue_lock);
    
@@ -285,7 +288,7 @@ void *_pythonPlugin_thread(void *data)
          struct timeval tv;
          struct timespec ts;
          gettimeofday(&tv, NULL);
-         ts.tv_sec = tv.tv_sec + 30; // timeout de 30 secondes
+         ts.tv_sec = tv.tv_sec + 10; // timeout de 10 secondes
          ts.tv_nsec = 0;
          
          ret=pthread_cond_timedwait(&pythonPluginCmd_queue_cond, &pythonPluginCmd_queue_lock, &ts);
@@ -354,6 +357,7 @@ void *_pythonPlugin_thread(void *data)
          // pb d'accés aux données de la file
          VERBOSE(5) fprintf(stderr,"%s (%s) : out_queue_elem - can't access\n", ERROR_STR, __func__);
       }
+      
       pthread_testcancel();
    }
    
@@ -447,7 +451,7 @@ void pythonPluginCmd_queue_free_queue_elem(void *d)
 } 
 
 
-void stop_pythonPluginServer()
+int stop_pythonPluginServer(int my_id, void *data)
 {
    if(_pythonPluginServer_thread)
    {
@@ -479,12 +483,8 @@ void stop_pythonPluginServer()
 }
 
 
-struct pythonPluginServerData_s
-
-
-
 //pthread_t *start_pythonPluginServer(char **params_list, sqlite3 *sqlite3_param_db)
-pthread_t *start_pythonPluginServer(int my_id, void *data)
+int start_pythonPluginServer(int my_id, void *data)
 {
 struct pythonPluginServerData_s *pythonPluginServerData = (struct pythonPluginServerData_s *)data;  
 
@@ -496,7 +496,7 @@ struct pythonPluginServerData_s *pythonPluginServerData = (struct pythonPluginSe
       {
          VERBOSE(2) {
             fprintf(stderr,"%s (%s) : can't start Python Plugin Server (thread error) - ",ERROR_STR,__func__);
-            perror();
+            perror("");
          }
          return -1;
       }

@@ -48,6 +48,8 @@ char *val_cgi_environment=NULL;
 char *val_cgi_pattern=NULL;
 char *val_num_threads=NULL;
 
+int _httpServer_monitoring_id=-1;
+
 /*
 const char* options[] = {
    "document_root",   "/Data/www",
@@ -85,12 +87,26 @@ static const char *open_file_handler(const struct mg_connection *conn, const cha
    return NULL;
 }
 
+void httpResponse(struct mg_connection *conn, char *response)
+{
+   mg_printf(conn,
+      "HTTP/1.1 200 OK\r\n"
+      "Content-Type: application/json\r\n"
+      "Content-Length: %d\r\n" // Always set Content-Length
+      "Cache-Control: no-cache, no-store, must-revalidate\r\n"
+      "Pragma: no-cache\r\n"
+      "Expires: -1\r\n"
+      "Vary: *\r\n"
+      "\r\n"
+      "%s\r\n",
+      (int)strlen(response)+2, response);
+}
+
 
 #define MAX_BUFFER_SIZE 80
 #define MAX_TOKEN 20
 static int begin_request_handler(struct mg_connection *conn)
 {
-// API REST ...
    uint32_t id = 0;
    const struct mg_request_info *request_info = mg_get_request_info(conn);
    char phpsessid[80];
@@ -98,29 +114,46 @@ static int begin_request_handler(struct mg_connection *conn)
    char *tokens[MAX_TOKEN]; // 10 tokens maximum
    char buffer[MAX_BUFFER_SIZE];
 
-   
-   if(mea_strncmplower("/CMD/startstop.php",(char *)request_info->uri,18)==0)
+   if(mea_strncmplower("/CMD/ping.php",(char *)request_info->uri,13)==0)
    {
+       process_heartbeat(get_monitored_processes_descriptor(), _httpServer_monitoring_id);
+       httpResponse(conn, "{ errno : 0 }");
+       return 1;
+   }
+   else if(mea_strncmplower("/CMD/startstop.php",(char *)request_info->uri,18)==0)
+   {
+      const char *cookie = mg_get_header(conn, "Cookie");
    // demande d'arrêt/relance de process.
    // verifier si authorisé
-      if(mg_get_cookie(conn, "PHPSESSID", phpsessid, sizeof(phpsessid))>0)
+      if(mg_get_cookie(cookie, "PHPSESSID", phpsessid, sizeof(phpsessid))>0)
       {
          // lire ici les info de session php
          // il faut être connecté et disposer des droits admin.
          fprintf(stderr,"PHPSESSID=%s\n",phpsessid);
+      }
          // lire les paramètres
-         if(strcmp(request_info->request_method, "GET") != 0)
-         {
-            // on traite que les demandes get
-            // renvoyer ici un message d'erreur
-            return 1;
-         }
-
-         char val[80];
-         mg_get_var(request_info->query_string, strlen(request_info->query_string), "process", val, sizeof(val)); 
-         fprintf(stderr,"VAL=",val);
+      if(strcmp(request_info->request_method, "GET") != 0)
+      {
+         // on traite que les demandes get
+         // renvoyer ici un message d'erreur
          return 1;
       }
+
+      char val[80];
+      if(request_info->query_string)
+      {
+         mg_get_var(request_info->query_string, strlen(request_info->query_string), "process", val, sizeof(val));
+         if(val)
+            fprintf(stderr,"PROCESS=%s\n",val);
+         mg_get_var(request_info->query_string, strlen(request_info->query_string), "cmnd", val, sizeof(val));
+         if(val)
+            fprintf(stderr,"CMND=%s\n",val);
+         httpResponse(conn, "{ errno : 0 }");
+      }
+      else
+         httpResponse(conn, "{ errno : 1 }");
+
+      return 1;
    }
    else if(mea_strncmplower("/API/",(char *)request_info->uri,5)==0)
    {
@@ -221,6 +254,8 @@ static int begin_request_handler(struct mg_connection *conn)
                   strcpy(reponse,"{ errno : 1 }");
                }
             }
+            httpResponse(conn, reponse);
+/*
             mg_printf(conn,
                       "HTTP/1.1 200 OK\r\n"
                       "Content-Type: application/json\r\n" 
@@ -232,7 +267,7 @@ static int begin_request_handler(struct mg_connection *conn)
                       "\r\n"
                       "%s\r\n",
                       (int)strlen(reponse)+2, reponse);
-//            return "done";
+*/
             return 1;
          }
          else
@@ -307,6 +342,8 @@ int stop_httpServer(int my_id, void *data)
 int start_httpServer(int my_id, void *data)
 {
    struct httpServerData_s *httpServerData = (struct httpServerData_s *)data;
+
+   _httpServer_monitoring_id=my_id;
 
    char *phpcgibin=NULL;
    if(httpServerData->params_list[PHPCGI_PATH] &&

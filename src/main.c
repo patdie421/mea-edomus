@@ -46,6 +46,7 @@
 
 int xplServer_monitoring_id=-1;
 int httpServer_monitoring_id=-1;
+int pythonPluginServer_monitoring_id=-1;
 
 tomysqldb_md_t *myd=NULL;                  /*!< descripteur mysql. Variable globale car doit être accessible par les gestionnaires de signaux. */
 queue_t *interfaces=NULL;                  /*!< liste (file) des interfaces. Variable globale car doit être accessible par les gestionnaires de signaux. */
@@ -258,7 +259,10 @@ void clean_all_and_exit()
    if(pythonPluginServer_thread)
    {
       VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping pythonPluginServer... ",INFO_STR,__func__);
-      stop_pythonPluginServer();
+//      stop_pythonPluginServer();
+      process_stop(get_monitored_processes_descriptor(), pythonPluginServer_monitoring_id);
+      process_unregister(get_monitored_processes_descriptor(), pythonPluginServer_monitoring_id);
+      pythonPluginServer_monitoring_id=-1;
       VERBOSE(9) fprintf(stderr,"done\n");
    }
 
@@ -784,12 +788,23 @@ int main(int argc, const char * argv[])
       }
    }
 
-   pythonPluginServer_thread=start_pythonPluginServer(params_list, sqlite3_param_db); // initialisation du serveur de plugin python
-   if(!pythonPluginServer_thread)
+   struct pythonPluginServerData_s pythonPluginServerData;
+   pythonPluginServerData.params_list=params_list;
+   pythonPluginServerData.sqlite3_param_db=sqlite3_param_db;
+   pythonPluginServer_monitoring_id=process_register(get_monitored_processes_descriptor(), "PYTHONPLUGINSERVER");
+   process_set_start_stop(get_monitored_processes_descriptor(), pythonPluginServer_monitoring_id , start_pythonPluginServer, stop_pythonPluginServer, (void *)(&pythonPluginServerData), 1);
+   if(process_start(get_monitored_processes_descriptor(), pythonPluginServer_monitoring_id)<0)
    {
       VERBOSE(1) fprintf (stderr, "%s (%s) : can't start python plugin server\n",ERROR_STR,__func__);
       clean_all_and_exit();
    }
+   
+//   pythonPluginServer_thread=start_pythonPluginServer(params_list, sqlite3_param_db); // initialisation du serveur de plugin python
+//   if(!pythonPluginServer_thread)
+//   {
+//      VERBOSE(1) fprintf (stderr, "%s (%s) : can't start python plugin server\n",ERROR_STR,__func__);
+//      clean_all_and_exit();
+//   }
 
    interfaces=start_interfaces(params_list, sqlite3_param_db, myd); // démarrage des interfaces
 
