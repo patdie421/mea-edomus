@@ -532,14 +532,20 @@ int start_xPLServer(int my_id, void *data)
       _xPLServer_thread=xPLServer(xplServerData->interfaces);
       if(_xPLServer_thread==NULL)
       {
-         VERBOSE(2) fprintf(stderr,"%s (%s) : can't start xpl server.\n",ERROR_STR,__func__);
+         VERBOSE(2) {
+            fprintf(stderr,"%s (%s) : can't start xpl server -\n",ERROR_STR,__func__);
+            perror("");
+         }
          return -1;
       }
       else
          return 0;
    }
    else
-      return -1;
+   {
+         VERBOSE(2) fprintf(stderr,"%s (%s) : no valid xPL address.\n",ERROR_STR,__func__);
+         return -1;
+   }
 }
 
 
