@@ -280,7 +280,7 @@ void *_pythonPlugin_thread(void *data)
    
       pass=0; // pour faire en sorte de n'avoir qu'un seul pthread_mutex_unlock en face du pthread_mutex_lock ci-dessus
       ret=0;
-      if(pythonPluginCmd_queue->nb_elem==0)
+      if(pythonPluginCmd_queue && pythonPluginCmd_queue->nb_elem==0)
       {
          struct timeval tv;
          struct timespec ts;
@@ -306,9 +306,11 @@ void *_pythonPlugin_thread(void *data)
          }
       }
       
-      if (!pass) // pas d'erreur, on récupère un élément dans la queue
+      if (pythonPluginCmd_queue && !pass) // pas d'erreur, on récupère un élément dans la queue
          ret=out_queue_elem(pythonPluginCmd_queue, (void **)&e);
-      
+      else
+         ret=-1;
+
       pthread_mutex_unlock(&pythonPluginCmd_queue_lock);
       pthread_cleanup_pop(0);
 
@@ -318,7 +320,7 @@ void *_pythonPlugin_thread(void *data)
          continue;
       }
       
-      if(!ret)
+      if(!ret) // on a sortie un élément de la queue
       {
          plugin_queue_elem_t *data = (plugin_queue_elem_t *)e->data;
 
