@@ -799,13 +799,6 @@ int main(int argc, const char * argv[])
       clean_all_and_exit();
    }
    
-//   pythonPluginServer_thread=start_pythonPluginServer(params_list, sqlite3_param_db); // initialisation du serveur de plugin python
-//   if(!pythonPluginServer_thread)
-//   {
-//      VERBOSE(1) fprintf (stderr, "%s (%s) : can't start python plugin server\n",ERROR_STR,__func__);
-//      clean_all_and_exit();
-//   }
-
    interfaces=start_interfaces(params_list, sqlite3_param_db, myd); // démarrage des interfaces
 
    struct xplServerData_s xplServerData;
@@ -822,10 +815,8 @@ int main(int argc, const char * argv[])
 
    struct httpServerData_s httpServerData;
    httpServerData.params_list=params_list;
-   httpServerData.interfaces=interfaces;
    httpServer_monitoring_id=process_register(get_monitored_processes_descriptor(), "HTTPSERVER");
    process_set_start_stop(get_monitored_processes_descriptor(), httpServer_monitoring_id , start_httpServer, stop_httpServer, (void *)(&httpServerData), 1);
-//   start_httpServer(params_list, interfaces); // initialisation du serveur HTTP
    if(process_start(get_monitored_processes_descriptor(), httpServer_monitoring_id)<0)
    {
       VERBOSE(1) fprintf (stderr, "%s (%s) : can't start http server\n",ERROR_STR,__func__);
@@ -852,7 +843,7 @@ int main(int argc, const char * argv[])
       uptime = (long)(time(NULL)-start_time);
       process_update_indicator(get_monitored_processes_descriptor(), main_monitoring_id, "UPTIME", uptime);
 
-      monitoringServer_indicators_loop("localhost", atoi(params_list[NODEJSDATA_PORT]));
+      monitoringServer_loop("localhost", atoi(params_list[NODEJSDATA_PORT]));
 
       sleep(10);
    }
