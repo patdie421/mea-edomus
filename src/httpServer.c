@@ -365,7 +365,7 @@ static int begin_request_handler(struct mg_connection *conn)
 }
 
 
-mea_error_t httpServer(uint16_t port, char *home, char *php_cgi, char *php_ini_path, queue_t *interfaces)
+mea_error_t httpServer(uint16_t port, char *home, char *php_cgi, char *php_ini_path)
 {
    if(port==0)
       port=8083;
@@ -461,7 +461,7 @@ int start_httpServer(int my_id, void *data)
                             httpServerData->params_list[PHPSESSIONS_PATH],
                             atoi(httpServerData->params_list[NODEJSIOSOCKET_PORT]))==0)
       {
-         httpServer(guiport, httpServerData->params_list[GUI_PATH], phpcgibin, httpServerData->params_list[PHPINI_PATH], httpServerData->interfaces);
+         httpServer(guiport, httpServerData->params_list[GUI_PATH], phpcgibin, httpServerData->params_list[PHPINI_PATH);
          return 0;
       }
       else
