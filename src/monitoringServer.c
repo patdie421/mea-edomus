@@ -535,7 +535,7 @@ int process_set_not_managed(struct monitored_processes_s *monitored_processes, i
 }
 
 
-int readAndSendLine(int nodejs_socket, char *file, long *pos)
+int _readAndSendLine(int nodejs_socket, char *file, long *pos)
 {
    FILE *fp=NULL;
    char line[512];
@@ -618,7 +618,7 @@ void *monitoring_thread(void *data)
      {
        do
        {
-         int ret=readAndSendLine(nodejs_socket, log_file, &pos);
+         int ret=_readAndSendLine(nodejs_socket, log_file, &pos);
 
          if(ret==-1)
             break; // erreur de com. on essaye de se reconnecter au prochain tour.
@@ -644,7 +644,7 @@ void *monitoring_thread(void *data)
 }
 
 
-pid_t start_nodejs(char *nodejs_path, char *eventServer_path, int port_socketio, int port_socketdata, char *phpsession_path)
+pid_t _start_nodejs(char *nodejs_path, char *eventServer_path, int port_socketio, int port_socketdata, char *phpsession_path)
 {
    pid_t nodejs_pid = -1;
    nodejs_pid = fork();
@@ -675,7 +675,6 @@ pid_t start_nodejs(char *nodejs_path, char *eventServer_path, int port_socketio,
 
       exit(1);
    }
-
    else if (nodejs_pid < 0)
    { // failed to fork
       perror("");
@@ -687,7 +686,7 @@ pid_t start_nodejs(char *nodejs_path, char *eventServer_path, int port_socketio,
 
 
 
-void stop_nodejs()
+void _stop_nodejs()
 {
    int status;
 
@@ -700,7 +699,7 @@ void stop_nodejs()
 }
 
 
-int monitoringServer_indicators_loop(char *hostname, int port)
+int monitoringServer_loop(char *hostname, int port)
 {
    if(_monitoring_thread)
    {
@@ -719,7 +718,7 @@ void stop_monitoringServer()
       free(_monitoring_thread);
       _monitoring_thread=NULL;
    }
-   stop_nodejs();
+   _stop_nodejs();
 }
 
 
@@ -754,7 +753,7 @@ pthread_t *start_monitoringServer(char **params_list)
       return NULL; 
    }
 
-   pid=start_nodejs(nodejs_path, serverjs_path, socketio_port, socketdata_port, phpsession_path);
+   pid=_start_nodejs(nodejs_path, serverjs_path, socketio_port, socketdata_port, phpsession_path);
    if(!pid)
    {
       VERBOSE(1) {
