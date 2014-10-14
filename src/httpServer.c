@@ -171,6 +171,7 @@ static const char *open_file_handler(const struct mg_connection *conn, const cha
    return NULL;
 }
 
+
 void httpResponse(struct mg_connection *conn, char *response)
 {
    mg_printf(conn,
@@ -184,6 +185,23 @@ void httpResponse(struct mg_connection *conn, char *response)
       "\r\n"
       "%s\r\n",
       (int)strlen(response)+2, response);
+}
+
+
+void httpErrno(struct mg_connection *conn, int n)
+{
+   char errno_str[20];
+   sprintf(errno_str, "{ errno : %d }",n);
+   httpResponse(conn, errno_str"
+}
+
+
+int _phpsessid_check_admin(char *phpsessid, char *sessions_files_path)
+{
+   FILE *fd;
+   char session_file[80];
+
+   snprintf(session_file, "%s/sess%s",sessions_files_path, phpsessid);
 }
 
 
@@ -201,41 +219,73 @@ static int begin_request_handler(struct mg_connection *conn)
    if(mea_strncmplower("/CMD/ping.php",(char *)request_info->uri,13)==0)
    {
        process_heartbeat(get_monitored_processes_descriptor(), _httpServer_monitoring_id);
-       httpResponse(conn, "{ errno : 0 }");
+       httpErrno(conn, 0);
        return 1;
    }
    else if(mea_strncmplower("/CMD/startstop.php",(char *)request_info->uri,18)==0)
    {
+      // on récupère les cookies
       const char *cookie = mg_get_header(conn, "Cookie");
-   // demande d'arrêt/relance de process.
-   // verifier si authorisé
+
+      // on récupère le session_id PHP
       if(mg_get_cookie(cookie, "PHPSESSID", phpsessid, sizeof(phpsessid))>0)
       {
-         // lire ici les info de session php
-         // il faut être connecté et disposer des droits admin.
-         fprintf(stderr,"PHPSESSID=%s\n",phpsessid);
+         if(_phpsessid_check_admin(phpsessid)<0)
+         {
+            httpErrno(conn, 2); // pas habilité
+            return 1;
+         }
       }
          // lire les paramètres
       if(strcmp(request_info->request_method, "GET") != 0)
       {
-         // on traite que les demandes get
-         // renvoyer ici un message d'erreur
+         httpErrno(conn, 3); // pas la bonne méthode
          return 1;
       }
 
-      char val[80];
       if(request_info->query_string)
       {
-         mg_get_var(request_info->query_string, strlen(request_info->query_string), "process", val, sizeof(val));
-         if(val)
-            fprintf(stderr,"PROCESS=%s\n",val);
-         mg_get_var(request_info->query_string, strlen(request_info->query_string), "cmnd", val, sizeof(val));
-         if(val)
-            fprintf(stderr,"CMND=%s\n",val);
-         httpResponse(conn, "{ errno : 0 }");
+         char process_id_str[10]; 
+         int process_id=-1;
+         char command[10]; // "start" ou "stop"
+         int ret=0;
+
+         ret=mg_get_var(request_info->query_string, strlen(request_info->query_string), "process", process_id_str, sizeof(process_id_str));
+         if(ret)
+         {
+            process_id=atoi(process_id_str); // à remplacer par atol et test si number
+         }
+         else
+         {
+            httpErrno(conn, 4);
+         }
+         ret=mg_get_var(request_info->query_string, strlen(request_info->query_string), "cmnd", command, sizeof(command));
+         if(ret)
+         {
+            if(mea_strncmplower("start", command, strlen(command))==0)
+            {
+               ret=process_start(get_monitored_processes_descriptor(), process_id);
+               if(!ret)
+                  httpErrno(conn, 0);
+               else
+                  httpErrno(conn, 7);
+            }
+            else if (mea_strncmplower("stop", command, strlen(command))==0)
+            {
+               ret=process_stop(get_monitored_processes_descriptor(), process_id);
+               if(!ret)
+                  httpErrno(conn, 0);
+               else
+                  httpErrno(conn, 7);
+            }
+            else
+            {
+               httpErrno(conn, 6);
+            }
+         }
       }
       else
-         httpResponse(conn, "{ errno : 1 }");
+         httpErrno(conn, 5);
 
       return 1;
    }
@@ -339,19 +389,6 @@ static int begin_request_handler(struct mg_connection *conn)
                }
             }
             httpResponse(conn, reponse);
-/*
-            mg_printf(conn,
-                      "HTTP/1.1 200 OK\r\n"
-                      "Content-Type: application/json\r\n" 
-                      "Content-Length: %d\r\n" // Always set Content-Length
-                      "Cache-Control: no-cache, no-store, must-revalidate\r\n"
-                      "Pragma: no-cache\r\n"
-                      "Expires: -1\r\n"
-                      "Vary: *\r\n"
-                      "\r\n"
-                      "%s\r\n",
-                      (int)strlen(reponse)+2, reponse);
-*/
             return 1;
          }
          else
