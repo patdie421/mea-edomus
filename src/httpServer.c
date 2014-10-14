@@ -461,7 +461,7 @@ int start_httpServer(int my_id, void *data)
                             httpServerData->params_list[PHPSESSIONS_PATH],
                             atoi(httpServerData->params_list[NODEJSIOSOCKET_PORT]))==0)
       {
-         httpServer(guiport, httpServerData->params_list[GUI_PATH], phpcgibin, httpServerData->params_list[PHPINI_PATH);
+         httpServer(guiport, httpServerData->params_list[GUI_PATH], phpcgibin, httpServerData->params_list[PHPINI_PATH]);
          return 0;
       }
       else
