@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#include <stdarg.h>
 
 #include "string_utils.h"
 
@@ -139,6 +140,7 @@ int16_t mea_strsplit(char str[], char separator, char *tokens[], char l_tokens)
    }
    return j+1;
 }
+
 
 size_t mea_snprintfcat(char* buf, size_t bufSize, char const* fmt, ...)
 {

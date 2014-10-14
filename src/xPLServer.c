@@ -1,4 +1,4 @@
-//
+   //
 //  xPLServer.c
 //
 //  Created by Patrice DIETSCH on 17/10/12.
@@ -351,7 +351,7 @@ void _flushExpiredXPLResponses()
             if((tsp - e->tsp) > 5)
             {
                xPL_releaseMessage(e->msg);
-               DEBUG_SECTION fprintf(stderr,"Je flush\n");
+               DEBUG_SECTION fprintf(stderr,"%s (%s) : Je flush\n",DEBUG_STR,__func__);
                free(e);
                remove_current_queue(xplRespQueue); // remove current passe sur le suivant
             }
@@ -491,6 +491,7 @@ int stop_xPLServer(int my_id, void *data)
 {
    if(_xPLServer_thread)
    {
+      xPL_shutdown();
       pthread_cancel(*_xPLServer_thread);
       pthread_join(*_xPLServer_thread, NULL);
       free(_xPLServer_thread);

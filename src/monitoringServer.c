@@ -209,17 +209,10 @@ int _monitored_processes_send_indicators(struct monitored_processes_s *monitored
    {
       time_t now = time(NULL);
 
-      DEBUG_SECTION fprintf(stderr,", \"pid\":%d",id);
-      int n=snprintf(buff,sizeof(buff),", \"pid\":%d",id);
-      if(n<0 || n==sizeof(buff))
-         return -1;
-      if(_strncat2(s, s_l, buff)<0)
-         return -1;
-
       DEBUG_SECTION fprintf(stderr, "{\"heartbeat\":");
       if(_strncat2(s, s_l, "{\"heartbeat\":")<0)
          return -1;
-      
+
       if((now - monitored_processes->processes_table[id]->last_heartbeat)<30)
       {
          DEBUG_SECTION fprintf(stderr, "\"OK\"");
@@ -233,8 +226,15 @@ int _monitored_processes_send_indicators(struct monitored_processes_s *monitored
             return -1;
       }
 
-      DEBUG_SECTION fprintf(stderr,", \"status\":%d",monitored_processes->processes_table[id]->status);
-      int n=snprintf(buff,sizeof(buff),", \"status\":%d",monitored_processes->processes_table[id]->status);
+      DEBUG_SECTION fprintf(stderr,",\"pid\":%d",id);
+      int n=snprintf(buff,sizeof(buff),",\"pid\":%d",id);
+      if(n<0 || n==sizeof(buff))
+         return -1;
+      if(_strncat2(s, s_l, buff)<0)
+         return -1;
+      
+      DEBUG_SECTION fprintf(stderr,",\"status\":%d",monitored_processes->processes_table[id]->status);
+      n=snprintf(buff,sizeof(buff),",\"status\":%d",monitored_processes->processes_table[id]->status);
       if(n<0 || n==sizeof(buff))
          return -1;
       if(_strncat2(s, s_l, buff)<0)
@@ -367,7 +367,7 @@ int process_heartbeat(struct monitored_processes_s *monitored_processes, int id)
    pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(monitored_processes->lock) );
    pthread_mutex_lock(&(monitored_processes->lock));  
 
-   if(monitored_processes->processes_table[id])
+   if(id >= 0 && monitored_processes->processes_table[id])
    {
       monitored_processes->processes_table[id]->last_heartbeat = time(NULL);
    }
@@ -379,13 +379,56 @@ int process_heartbeat(struct monitored_processes_s *monitored_processes, int id)
 }
 
 
-int process_add_indicator(struct monitored_processes_s *monitored_processes, int id, char *name, long initial_value)
+int _indicator_exist(struct monitored_processes_s *monitored_processes, int id, char *name)
 {
    int ret=-1;
-
    process_heartbeat(monitored_processes, id);
 
+   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(monitored_processes->lock) );
+   pthread_mutex_lock(&(monitored_processes->lock));
+
+   if(monitored_processes->processes_table[id])
+   {
+      struct process_indicator_s *e;
+
+      if(first_queue(monitored_processes->processes_table[id]->indicators_list)==0)
+      {
+         while(1)
+         {
+            if(current_queue(monitored_processes->processes_table[id]->indicators_list, (void **)&e)==0)
+            {
+               if(strcmp(name, e->name) == 0)
+               {
+                  ret=0;
+                  break;
+               }
+               else
+                  next_queue(monitored_processes->processes_table[id]->indicators_list);
+            }
+            else
+               break;
+         }
+      }
+   }
+
+   pthread_mutex_unlock(&(monitored_processes->lock));
+   pthread_cleanup_pop(0); 
+
+   return ret;
+}
+
+
+int process_add_indicator(struct monitored_processes_s *monitored_processes, int id, char *name, long initial_value)
+{
    struct process_indicator_s *e = NULL;
+
+   if(!monitored_processes->processes_table[id])
+      return 0;
+   else
+      process_heartbeat(monitored_processes, id);
+
+   if(_indicator_exist(monitored_processes, id, name)==0)
+      return 0;
 
    e=(struct process_indicator_s *)malloc(sizeof(struct process_indicator_s));
    if(e)
@@ -399,25 +442,12 @@ int process_add_indicator(struct monitored_processes_s *monitored_processes, int
    pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(monitored_processes->lock) );
    pthread_mutex_lock(&(monitored_processes->lock));
 
-   if(monitored_processes->processes_table[id])
-   {
-      in_queue_elem(monitored_processes->processes_table[id]->indicators_list,e);
-      ret=0;
-   }
-   else
-   {
-      if(e)
-      {
-         free(e);
-         e=NULL;
-      }
-      ret=-1;
-   }
+   in_queue_elem(monitored_processes->processes_table[id]->indicators_list,e);
 
    pthread_mutex_unlock(&(monitored_processes->lock)); 
    pthread_cleanup_pop(0); 
 
-   return ret;
+   return 0;
 }
 
 
@@ -496,7 +526,7 @@ int _monitored_processes_run(struct monitored_processes_s *monitored_processes, 
 
 int process_start(struct monitored_processes_s *monitored_processes, int id)
 {
-   if(id!=-1 && monitored_processes->processes_table[id])
+   if(id>=0 && monitored_processes->processes_table[id] && monitored_processes->processes_table[id]->status==0)
    {
       monitored_processes->processes_table[id]->status=1;
       return monitored_processes->processes_table[id]->start(id, monitored_processes->processes_table[id]->start_stop_data);
@@ -510,7 +540,7 @@ int process_start(struct monitored_processes_s *monitored_processes, int id)
 
 int process_stop(struct monitored_processes_s *monitored_processes, int id)
 {
-   if(monitored_processes->processes_table[id])
+   if(id>=0 && monitored_processes->processes_table[id] && monitored_processes->processes_table[id]->status==1)
    {
       monitored_processes->processes_table[id]->status=0;
       return monitored_processes->processes_table[id]->stop(id, monitored_processes->processes_table[id]->start_stop_data);

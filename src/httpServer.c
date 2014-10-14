@@ -16,6 +16,7 @@
 #include <arpa/inet.h>
 #include <unistd.h> // close
 #include <netdb.h> // gethostbyname
+#include <sys/stat.h>
 
 #include "globals.h"
 #include "debug.h"
@@ -55,6 +56,8 @@ char *val_cgi_pattern=NULL;
 char *val_num_threads=NULL;
 
 int _httpServer_monitoring_id=-1;
+
+char php_sessions_path[256];
 
 /*
 const char* options[] = {
@@ -99,7 +102,6 @@ int gethttp(char *server, int port, char *url, char *response, int l_response)
  
   // creation de la socket
   sockfd = socket(AF_INET,SOCK_STREAM,IPPROTO_TCP);
-  
  
   // initialisation de la structure d'adresse du serveur :
    
@@ -112,7 +114,7 @@ int gethttp(char *server, int port, char *url, char *response, int l_response)
   // recuperation du port du serveur
   serveur.sin_port = htons(port);
  
-  printf("Tentative de connexion au serveur web : %s (%s)\n",hs->h_name,inet_ntoa(serveur.sin_addr));
+  fprintf(stderr, "Tentative de connexion au serveur web : %s (%s)\n",hs->h_name,inet_ntoa(serveur.sin_addr));
  
   // tentative de connexion
   if(connect(sockfd,(struct sockaddr*)&serveur, sizeof(serveur)) == -1)
@@ -122,7 +124,7 @@ int gethttp(char *server, int port, char *url, char *response, int l_response)
     return -1;
   }
  
-  printf("Connexion etablie !\n");
+  fprintf(stderr, "Connexion etablie !\n");
  
   // envoi de la requete HTTP
   if(send(sockfd,requete, strlen(requete), 0) == -1)
@@ -143,7 +145,7 @@ int gethttp(char *server, int port, char *url, char *response, int l_response)
    
   //affichage de la reponse HTTP
   if(n)
-     printf("\n\n%s\n\n\n",response);
+     fprintf(stderr, "\n\n%s\n\n\n",response);
  
   // fermeture de la socket
   close(sockfd);
@@ -192,16 +194,107 @@ void httpErrno(struct mg_connection *conn, int n)
 {
    char errno_str[20];
    sprintf(errno_str, "{ errno : %d }",n);
-   httpResponse(conn, errno_str"
+   httpResponse(conn, errno_str);
 }
 
 
-int _phpsessid_check_admin(char *phpsessid, char *sessions_files_path)
+int _findPHPVar(char *phpserial, char *var, int *type, char *value, int l_value)
 {
-   FILE *fd;
-   char session_file[80];
+   char *_toFind;
+   char _type[2];
+   char _v1[17];
+   char _v2[256];
 
-   snprintf(session_file, "%s/sess%s",sessions_files_path, phpsessid);
+   _toFind=(char *)malloc(strlen(var)+2);
+   if(!_toFind)
+      return -1;
+   sprintf(_toFind,"%s|",var);
+   char *str_ptr=strstr(phpserial,_toFind)+strlen(_toFind);
+   free(_toFind);
+   
+   if(!str_ptr)
+      return -1;
+
+   int n=sscanf(str_ptr,"%1[^:;]:%16[^:;]:%255[^:;]",_type,_v1,_v2);
+   if(n<2)
+      return -1;
+   
+   *type=0;
+   if(strcmp(_type,"i")==0)
+   {
+      *type=1;
+      strncpy(value,_v1,l_value);
+   }
+   else if(strcmp(_type,"s")==0)
+   {
+      *type=2;
+      int l=atoi(_v1)+1;
+      if(l > l_value)
+         l=l_value;
+   
+      strncpy(value,&_v2[1],l);
+   }
+   else
+      return -1;
+
+   return 0;
+}
+
+
+int _phpsessid_check_admin(char *phpsessid,char *sessions_files_path)
+{
+   char session_file[80];
+   snprintf(session_file, sizeof(session_file), "%s/sess_%s",sessions_files_path, phpsessid);
+   
+   char *buff;
+   struct stat st;
+
+   if (stat(session_file, &st) == 0)
+   {
+      buff=(char *)malloc(st.st_size+1);
+      if(!buff)
+         return -1;
+   }
+   else
+      return -1;
+
+   FILE *fd;
+   fd=fopen(session_file, "r");
+   if(fd)
+   {
+      int n = fread(buff, st.st_size, 1, fd);
+      fclose(fd);
+      if(!n)
+         return -1;
+      buff[n]='\0'; // pour eviter les problèmes ...
+      
+      int logged_in;
+      int admin;
+
+      int type;
+      char value[81];
+      if(_findPHPVar(buff, "logged_in", &type, value, 80)==0)
+         logged_in=atoi(value);
+      else
+         return -1;
+      if(_findPHPVar(buff, "profil", &type, value, 80)==0)
+         admin=atoi(value);
+      else
+         return -1;
+      
+      if(logged_in==1 && admin==1)
+         return 0;
+      else
+         return -1;
+   }
+   else
+   {
+      VERBOSE(5) {
+         fprintf(stderr, "%s (%s) : cannot read %s file - ",ERROR_STR,__func__,session_file);
+         perror("");
+      }
+      return -1;
+   }
 }
 
 
@@ -230,7 +323,7 @@ static int begin_request_handler(struct mg_connection *conn)
       // on récupère le session_id PHP
       if(mg_get_cookie(cookie, "PHPSESSID", phpsessid, sizeof(phpsessid))>0)
       {
-         if(_phpsessid_check_admin(phpsessid)<0)
+         if(_phpsessid_check_admin(phpsessid, php_sessions_path)<0)
          {
             httpErrno(conn, 2); // pas habilité
             return 1;
@@ -492,6 +585,8 @@ int start_httpServer(int my_id, void *data)
          guiport=8083;
       }
       
+      strncpy(php_sessions_path, httpServerData->params_list[PHPSESSIONS_PATH], sizeof(php_sessions_path)-1);
+
       if(create_configs_php(httpServerData->params_list[GUI_PATH],
                             httpServerData->params_list[SQLITE3_DB_PARAM_PATH],
                             httpServerData->params_list[LOG_PATH],
