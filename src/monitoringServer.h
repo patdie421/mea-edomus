@@ -48,14 +48,16 @@ pthread_t *start_monitoringServer(char **parms_list);
 void stop_monitoringServer();
 
 struct monitored_processes_s *get_monitored_processes_descriptor();
+
 int process_register(struct monitored_processes_s *monitored_processes, char *name);
 int process_unregister(struct monitored_processes_s *monitored_processes, int id);
 int process_add_indicator(struct monitored_processes_s *monitored_processes, int id, char *name, long initial_value);
 int process_update_indicator(struct monitored_processes_s *monitored_processes, int id, char *name, long value);
 int process_heartbeat(struct monitored_processes_s *monitored_processes, int id);
-int monitoringServer_indicators_loop(char *hostname, int port);
 int process_set_start_stop(struct monitored_processes_s *monitored_processes, int id,  process_start_stop_f start, process_start_stop_f stop, void *start_stop_data, int auto_restart);
 int process_start(struct monitored_processes_s *monitored_processes, int id);
 int process_stop(struct monitored_processes_s *monitored_processes, int id);
+
+int monitoringServer_loop(char *hostname, int port);
 
 #endif
