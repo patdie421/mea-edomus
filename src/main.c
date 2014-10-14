@@ -830,6 +830,7 @@ int main(int argc, const char * argv[])
    DEBUG_SECTION fprintf(stderr,"MEA-EDOMUS %s starded\n",__MEA_EDOMUS_VERSION__);
 
    main_monitoring_id=process_register(get_monitored_processes_descriptor(), "MAIN");
+   process_set_not_managed(get_monitored_processes_descriptor(), main_monitoring_id);
    process_add_indicator(get_monitored_processes_descriptor(), main_monitoring_id, "UPTIME", 0);
 
    // boucle sans fin.
