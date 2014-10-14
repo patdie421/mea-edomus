@@ -26,7 +26,7 @@ struct monitored_process_s
    int heartbeat_interval; // second
    queue_t *indicators_list;
    int enable_autorestart;
-   int status; // started, stopped
+   int status; // started=1, stopped=0, not_managed=2
    process_start_stop_f stop;
    process_start_stop_f start;
    void *start_stop_data;
@@ -57,7 +57,7 @@ int process_heartbeat(struct monitored_processes_s *monitored_processes, int id)
 int process_set_start_stop(struct monitored_processes_s *monitored_processes, int id,  process_start_stop_f start, process_start_stop_f stop, void *start_stop_data, int auto_restart);
 int process_start(struct monitored_processes_s *monitored_processes, int id);
 int process_stop(struct monitored_processes_s *monitored_processes, int id);
-
+int process_set_not_managed(struct monitored_processes_s *monitored_processes, int id);
 int monitoringServer_loop(char *hostname, int port);
 
 #endif
