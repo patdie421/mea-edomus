@@ -138,10 +138,9 @@ int16_t mea_strsplit(char str[], char separator, char *tokens[], char l_tokens)
       }
    }
    return j+1;
-}size_t 
+}
 
-
-snprintfcat(char* buf, size_t bufSize, char const* fmt, ...)
+size_t mea_snprintfcat(char* buf, size_t bufSize, char const* fmt, ...)
 {
    size_t result;
    va_list args;
