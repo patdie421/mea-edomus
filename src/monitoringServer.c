@@ -493,7 +493,9 @@ int process_start(struct monitored_processes_s *monitored_processes, int id)
       monitored_processes->processes_table[id]->status=1;
       return monitored_processes->processes_table[id]->start(id, monitored_processes->processes_table[id]->start_stop_data);
    }
-   
+   else
+      return -1;
+
    return 0;
 }
 
@@ -505,6 +507,21 @@ int process_stop(struct monitored_processes_s *monitored_processes, int id)
       monitored_processes->processes_table[id]->status=0;
       return monitored_processes->processes_table[id]->stop(id, monitored_processes->processes_table[id]->start_stop_data);
    }
+   else
+      return -1;
+   
+   return 0;
+}
+
+
+int process_set_not_managed(struct monitored_processes_s *monitored_processes, int id)
+{
+   if(monitored_processes->processes_table[id])
+   {
+      monitored_processes->processes_table[id]->status=2;
+   }
+   else
+      return -1;
    
    return 0;
 }
