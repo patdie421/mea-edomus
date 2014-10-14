@@ -213,8 +213,8 @@ int _monitored_processes_send_indicators(struct monitored_processes_s *monitored
       int n=snprintf(buff,sizeof(buff),", \"pid\":%d",id);
       if(n<0 || n==sizeof(buff))
          return -1;
-//      if(_strncat2(s, s_l, buff)<0)
-//         return -1;
+      if(_strncat2(s, s_l, buff)<0)
+         return -1;
 
       DEBUG_SECTION fprintf(stderr, "{\"heartbeat\":");
       if(_strncat2(s, s_l, "{\"heartbeat\":")<0)
@@ -237,8 +237,8 @@ int _monitored_processes_send_indicators(struct monitored_processes_s *monitored
       int n=snprintf(buff,sizeof(buff),", \"status\":%d",monitored_processes->processes_table[id]->status);
       if(n<0 || n==sizeof(buff))
          return -1;
-//      if(_strncat2(s, s_l, buff)<0)
-//         return -1;
+      if(_strncat2(s, s_l, buff)<0)
+         return -1;
       
       if(first_queue(monitored_processes->processes_table[id]->indicators_list)==0)
       {
