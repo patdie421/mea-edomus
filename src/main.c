@@ -51,8 +51,8 @@ int pythonPluginServer_monitoring_id=-1;
 tomysqldb_md_t *myd=NULL;                  /*!< descripteur mysql. Variable globale car doit être accessible par les gestionnaires de signaux. */
 queue_t *interfaces=NULL;                  /*!< liste (file) des interfaces. Variable globale car doit être accessible par les gestionnaires de signaux. */
 sqlite3 *sqlite3_param_db=NULL;            /*!< descripteur pour la base sqlite de paramétrage. Variable globale car doit être accessible par les gestionnaires de signaux. */
-pthread_t *xPLServer_thread=NULL;          /*!< Adresse du thread du serveur xPL. Variable globale car doit être accessible par les gestionnaires de signaux.*/
-pthread_t *pythonPluginServer_thread=NULL; /*!< Adresse du thread Python. Variable globale car doit être accessible par les gestionnaires de signaux.*/
+//pthread_t *xPLServer_thread=NULL;          /*!< Adresse du thread du serveur xPL. Variable globale car doit être accessible par les gestionnaires de signaux.*/
+//pthread_t *pythonPluginServer_thread=NULL; /*!< Adresse du thread Python. Variable globale car doit être accessible par les gestionnaires de signaux.*/
 pthread_t *monitoringServer_thread=NULL;   /*!< Adresse du thread de surveillance interne. Variable globale car doit être accessible par les gestionnaires de signaux.*/
 
 char *params_names[MAX_LIST_SIZE];          /*!< liste des noms (chaines) de paramètres dans la base sqlite3 de paramétrage.*/
@@ -839,8 +839,7 @@ int main(int argc, const char * argv[])
    {
       // interrogation du serveur HTTP Interne pour heartbeat ... (voir passage d'un parametre pour sécuriser ...)
       gethttp("localhost", atoi(params_list[GUIPORT]), "/CMD/ping.php", response, sizeof(response));
-      DEBUG_SECTION fprintf(stderr,"%s\n",response);
-
+ 
       uptime = (long)(time(NULL)-start_time);
       process_update_indicator(get_monitored_processes_descriptor(), main_monitoring_id, "UPTIME", uptime);
 
