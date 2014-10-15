@@ -324,7 +324,7 @@ static void _signal_HUP(int signal_number)
    VERBOSE(9) fprintf(stderr,"%s  (%s) : communication error signal (signal = %d).\n", INFO_STR, __func__, signal_number);
   
    // on cherche qui est à l'origine du signal et on le relance
-   restart_down_interfaces(interfaces, dbServer_get_md());
+   restart_down_interfaces(interfaces, sqlite3_param_db, dbServer_get_md());
    return;
 }
 
