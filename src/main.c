@@ -47,8 +47,9 @@
 int xplServer_monitoring_id=-1;
 int httpServer_monitoring_id=-1;
 int pythonPluginServer_monitoring_id=-1;
+int dbServer_monitoring_id=-1;
 
-tomysqldb_md_t *myd=NULL;                  /*!< descripteur mysql. Variable globale car doit être accessible par les gestionnaires de signaux. */
+//tomysqldb_md_t *myd=NULL;                  /*!< descripteur mysql. Variable globale car doit être accessible par les gestionnaires de signaux. */
 queue_t *interfaces=NULL;                  /*!< liste (file) des interfaces. Variable globale car doit être accessible par les gestionnaires de signaux. */
 sqlite3 *sqlite3_param_db=NULL;            /*!< descripteur pour la base sqlite de paramétrage. Variable globale car doit être accessible par les gestionnaires de signaux. */
 //pthread_t *xPLServer_thread=NULL;          /*!< Adresse du thread du serveur xPL. Variable globale car doit être accessible par les gestionnaires de signaux.*/
@@ -60,11 +61,6 @@ char *params_list[MAX_LIST_SIZE];          /*!< liste des valeurs de paramètres
 
 pid_t automator_pid = 0;
 int main_monitoring_id = -1;
-
-tomysqldb_md_t *get_myd()
-{
-   return myd;
-}
 
 
 queue_t * get_interfaces()
@@ -223,14 +219,6 @@ int16_t read_all_application_parameters(sqlite3 *sqlite3_param_db)
 
 void clean_all_and_exit()
 {
-
-//   if(xPLServer_thread)
-//   {
-//      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping xPLServer... ",INFO_STR,__func__);
-//      stop_xPLServer(xplServer_monitoring_id,NULL);
-//      VERBOSE(9) fprintf(stderr,"done\n");
-//   }
-
    if(xplServer_monitoring_id!=-1)
    {
       VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping xPLServer... ",INFO_STR,__func__);
@@ -256,20 +244,20 @@ void clean_all_and_exit()
       VERBOSE(9) fprintf(stderr,"%s  (%s) : done\n",INFO_STR,__func__);
    }
    
-   if(pythonPluginServer_thread)
+   if(pythonPluginServer_monitoring_id!=-1)
    {
       VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping pythonPluginServer... ",INFO_STR,__func__);
-//      stop_pythonPluginServer();
       process_stop(get_monitored_processes_descriptor(), pythonPluginServer_monitoring_id);
       process_unregister(get_monitored_processes_descriptor(), pythonPluginServer_monitoring_id);
       pythonPluginServer_monitoring_id=-1;
       VERBOSE(9) fprintf(stderr,"done\n");
    }
 
-   if(myd)
+   if(dbServer_monitoring_d!=-1)
    {
       VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping dbServer... ",INFO_STR,__func__);
-      stop_dbServer(myd);
+      process_unregister(get_monitored_processes_descriptor(), dbServer_monitoring_id);
+      dbServer_monitoring_id=-1;
       VERBOSE(9) fprintf(stderr,"done\n");
    }
    
@@ -336,7 +324,7 @@ static void _signal_HUP(int signal_number)
    VERBOSE(9) fprintf(stderr,"%s  (%s) : communication error signal (signal = %d).\n", INFO_STR, __func__, signal_number);
   
    // on cherche qui est à l'origine du signal et on le relance
-   restart_down_interfaces(interfaces, sqlite3_param_db, myd);
+   restart_down_interfaces(interfaces, dbServer_get_md());
    return;
 }
 
@@ -778,15 +766,28 @@ int main(int argc, const char * argv[])
    signal(SIGPIPE, signal_callback_handler);
 
    // démarrage des "services" (les services "majeurs" arrêtent tout (exit) si non démarrage
+   struct dbServerData_s dbServerData;
+   dbServerData.params_list=params_list;
+   dbServer_monitoring_id=process_register(get_monitored_processes_descriptor(), "DBSERVER");
+   process_set_start_stop(get_monitored_processes_descriptor(), dbServer_monitoring_id, start_dbServer, stop_dbServer, (void *)(&dbServerData), 1);
    if(!_b)
    {
-      myd=start_dbServer(params_list, sqlite3_param_db); // initialisation de la communication avec la base MySQL
-      if(!myd)
+      if(process_start(get_monitored_processes_descriptor(), dbServer_monitoring_id)<0)
       {
-         VERBOSE(1) fprintf (stderr, "%s (%s) : can't start database server\n",ERROR_STR,__func__);
+         VERBOSE(1) fprintf (stderr, "%s (%s) : can't start python plugin server\n",ERROR_STR,__func__);
          clean_all_and_exit();
       }
    }
+
+//   if(!_b)
+//   {
+//      myd=start_dbServer(params_list, sqlite3_param_db); // initialisation de la communication avec la base MySQL
+//      if(!myd)
+//      {
+//         VERBOSE(1) fprintf (stderr, "%s (%s) : can't start database server\n",ERROR_STR,__func__);
+//         clean_all_and_exit();
+//      }
+//   }
 
    struct pythonPluginServerData_s pythonPluginServerData;
    pythonPluginServerData.params_list=params_list;
@@ -799,7 +800,7 @@ int main(int argc, const char * argv[])
       clean_all_and_exit();
    }
    
-   interfaces=start_interfaces(params_list, sqlite3_param_db, myd); // démarrage des interfaces
+   interfaces=start_interfaces(params_list, sqlite3_param_db, dbServer_get_md()); // démarrage des interfaces
 
    struct xplServerData_s xplServerData;
    xplServerData.interfaces=interfaces;
