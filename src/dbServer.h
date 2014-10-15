@@ -64,6 +64,14 @@ typedef struct tomysqldb_md_s
 
 } tomysqldb_md_t;
 
+
+struct dbServerData_s
+{
+   char **params_list;
+   sqlite3 *sqlite3_param_db;
+}; 
+
+
 int  tomysqldb_init(tomysqldb_md_t *md, char *db_server, char *db_server_port, char *base, char *user, char *passwd, char *sqlite3_db_path);
 void tomysqldb_release(tomysqldb_md_t *md);
 
