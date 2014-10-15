@@ -28,6 +28,10 @@
 #include <errmsg.h>
 
 
+tomysqldb_md_t *_md=NULL;
+int _dbServer_monitoring_id=-1;
+
+
 int tomysqldb_connect(tomysqldb_md_t *md, MYSQL **conn);
 
 
@@ -671,42 +675,56 @@ void tomysqldb_release(tomysqldb_md_t *md)
 }
 
 
-void stop_dbServer(tomysqldb_md_t *md)
+//void stop_dbServer(tomysqldb_md_t *md)
+int stop_dbServer(int my_id, void *data)
 {
-   tomysqldb_release(md);
-   free(md);
+   tomysqldb_release(_md);
+   free(_md);
+   _dbServer_monitoring_id=-1;
+
    md=NULL;
 }
 
 
-tomysqldb_md_t *start_dbServer(char **params_list, sqlite3 *sqlite3_param_db)
+tomtomysqldb_md_t *dbServer_get_md()
 {
-   tomysqldb_md_t *md=NULL;
-   int16_t ret;
+   return _md;
+}
+
+
+int start_dbServer(int my_id, void *data)
+// tomysqldb_md_t *start_dbServer(char **params_list, sqlite3 *sqlite3_param_db)
+{
 #ifndef __NO_TOMYSQL__
-   md=(struct tomysqldb_md_s *)malloc(sizeof(struct tomysqldb_md_s));
-   if(!md)
+   struct xplServerData_s *dbServerData = (struct dbServerData_s *)data;
+   int16_t ret;
+   _md=(struct tomysqldb_md_s *)malloc(sizeof(struct tomysqldb_md_s));
+   if(!_md)
    {
-      sqlite3_close(sqlite3_param_db);
       VERBOSE(2) {
          fprintf(stderr,"%s (%s) : %s - ", ERROR_STR, __func__, MALLOC_ERROR_STR);
          perror("");
       }
-      return NULL;
+      return -1;
    }
-   memset(md,0,sizeof(struct tomysqldb_md_s));
+   memset(_md,0,sizeof(struct tomysqldb_md_s));
    
-   ret=tomysqldb_init(md, params_list[MYSQL_DB_SERVER], params_list[MYSQL_DB_PORT], params_list[MYSQL_DATABASE], params_list[MYSQL_USER], params_list[MYSQL_PASSWD], params_list[SQLITE3_DB_BUFF_PATH]);
+   ret=tomysqldb_init(_md, data->params_list[MYSQL_DB_SERVER],
+                           data->params_list[MYSQL_DB_PORT],
+                           data->params_list[MYSQL_DATABASE],
+                           data->params_list[MYSQL_USER],
+                           data->params_list[MYSQL_PASSWD],
+                           data->params_list[SQLITE3_DB_BUFF_PATH]);
    if(ret==-1)
    {
-      VERBOSE(2) fprintf(stderr,"%s (%s) : Can not init data base communication.\n",ERROR_STR,__func__);
+      VERBOSE(2) fprintf(stderr,"%s (%s) : Can not init data base communication.\n", ERROR_STR, __func__);
       return NULL;
    }
+   _dbServer_monitoring_id=my_id;
+
 #else
-   VERBOSE(9) fprintf(stderr,"%s  (%s) : dbServer desactivated.\n",INFO_STR,__func__);
+   VERBOSE(9) fprintf(stderr,"%s  (%s) : dbServer desactivated.\n", INFO_STR,__func__);
 #endif
-   return md;
+   return 0;
 }
-
-
 
