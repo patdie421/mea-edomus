@@ -29,7 +29,6 @@ typedef struct xplRespQueue_elem_s
 struct xplServerData_s
 {
    char **params_list;
-   queue_t *interfaces;
    sqlite3 *sqlite3_param_db;
 };
 
