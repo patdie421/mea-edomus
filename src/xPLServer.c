@@ -423,7 +423,8 @@ void *_xPL_thread(void *data)
 }
 
 
-pthread_t *xPLServer(queue_t *interfaces)
+//pthread_t *xPLServer(queue_t *interfaces)
+pthread_t *xPLServer()
 {
    pthread_t *xPL_thread=NULL;
 
@@ -463,7 +464,8 @@ pthread_t *xPLServer(queue_t *interfaces)
       return NULL;
    }
 
-   if(pthread_create (xPL_thread, NULL, _xPL_thread, (void *)interfaces))
+//   if(pthread_create (xPL_thread, NULL, _xPL_thread, (void *)interfaces))
+   if(pthread_create (xPL_thread, NULL, _xPL_thread, NULL))
    {
       VERBOSE(1) fprintf(stderr, "%s (%s) : pthread_create - can't start thread\n",ERROR_STR,__func__);
       return NULL;
@@ -525,7 +527,9 @@ int start_xPLServer(int my_id, void *data)
    {
       _xplServer_monitoring_id=my_id;
 
-      _xPLServer_thread=xPLServer(xplServerData->interfaces);
+      _xPLServer_thread=xPLServer();
+      //_xPLServer_thread=xPLServer(xplServerData->interfaces);
+
       if(_xPLServer_thread==NULL)
       {
          VERBOSE(2) {
