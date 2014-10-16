@@ -26,7 +26,7 @@
 #include "pythonPluginServer.h"
 #include "monitoringServer.h"
 
-#include "interface_type_002.h"
+//#include "interface_type_002.h"
 
 #include "mea_api.h"
 
