@@ -23,7 +23,7 @@
 
 #include "monitoringServer.h"
 
-//#include "interfacesServer.h"
+#include "interfacesServer.h"
 //#include "interface_type_001.h"
 //#include "interface_type_002.h"
 
