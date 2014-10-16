@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		4E09454E17C10FB2003749FE /* init.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E09454D17C10FB2003749FE /* init.c */; };
 		4E14AC0E16083B8C000686C3 /* memory.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E14ABFF16083B8C000686C3 /* memory.c */; };
+		4E207BB119F04EAB00410B40 /* sockets_utils.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E207BB019F04EAB00410B40 /* sockets_utils.c */; };
+		4E207BB519F0529D00410B40 /* logServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E207BB419F0529D00410B40 /* logServer.c */; };
 		4E4A5EA215F003420052ABF4 /* comio.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E4A5E8F15F003420052ABF4 /* comio.c */; };
 		4E4A5EA315F003420052ABF4 /* interface_type_001.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E4A5E9115F003420052ABF4 /* interface_type_001.c */; };
 		4E4A5EA415F003420052ABF4 /* debug.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E4A5E9315F003420052ABF4 /* debug.c */; };
@@ -41,7 +43,7 @@
 		4EF3D8FC19B3C02200892F29 /* comio2.c in Sources */ = {isa = PBXBuildFile; fileRef = 4EF3D8FA19B3C02200892F29 /* comio2.c */; };
 		4EF3F6C31828400F00959B93 /* interfacesServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4EF3F6C21828400F00959B93 /* interfacesServer.c */; };
 		4EFBBC7F1746C85D00090FEE /* error.c in Sources */ = {isa = PBXBuildFile; fileRef = 4EFBBC7E1746C85D00090FEE /* error.c */; };
-		4EFBFCAE175E616E007BBFD1 /* httpServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4EFBFCAD175E616E007BBFD1 /* httpServer.c */; };
+		4EFBFCAE175E616E007BBFD1 /* guiServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4EFBFCAD175E616E007BBFD1 /* guiServer.c */; };
 		4EFBFCC9175E6BE7007BBFD1 /* mongoose.c in Sources */ = {isa = PBXBuildFile; fileRef = 4EFBFCC8175E6BE7007BBFD1 /* mongoose.c */; };
 		4EFBFCCC175E8BDC007BBFD1 /* python_api_utils.c in Sources */ = {isa = PBXBuildFile; fileRef = 4EFBFCCB175E8BDC007BBFD1 /* python_api_utils.c */; };
 /* End PBXBuildFile section */
@@ -66,6 +68,10 @@
 		4E14ABFD16083B8C000686C3 /* macros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = macros.h; path = src/macros.h; sourceTree = "<group>"; };
 		4E14ABFF16083B8C000686C3 /* memory.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = memory.c; path = src/memory.c; sourceTree = "<group>"; };
 		4E14AC0016083B8C000686C3 /* memory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = memory.h; path = src/memory.h; sourceTree = "<group>"; };
+		4E207BB019F04EAB00410B40 /* sockets_utils.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = sockets_utils.c; path = src/sockets_utils.c; sourceTree = "<group>"; };
+		4E207BB219F04ED100410B40 /* sockets_utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sockets_utils.h; path = src/sockets_utils.h; sourceTree = "<group>"; };
+		4E207BB319F0528400410B40 /* logServer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = logServer.h; path = src/logServer.h; sourceTree = "<group>"; };
+		4E207BB419F0529D00410B40 /* logServer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = logServer.c; path = src/logServer.c; sourceTree = "<group>"; };
 		4E4811A219C37D43001C5F48 /* mea_simulation.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = mea_simulation.py; path = plugins/mea_simulation.py; sourceTree = "<group>"; };
 		4E4811A319C37D43001C5F48 /* mea_utils.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = mea_utils.py; path = plugins/mea_utils.py; sourceTree = "<group>"; };
 		4E4811A419C37D43001C5F48 /* my_dht22.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = my_dht22.py; path = plugins/my_dht22.py; sourceTree = "<group>"; };
@@ -878,8 +884,8 @@
 		4EFBBC7D1746C84F00090FEE /* error.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = error.h; path = src/error.h; sourceTree = "<group>"; };
 		4EFBBC7E1746C85D00090FEE /* error.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = error.c; path = src/error.c; sourceTree = "<group>"; };
 		4EFBFCAA175E60F9007BBFD1 /* mongoose.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = mongoose.h; path = src/mongoose.h; sourceTree = "<group>"; };
-		4EFBFCAC175E6155007BBFD1 /* httpServer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = httpServer.h; path = src/httpServer.h; sourceTree = "<group>"; };
-		4EFBFCAD175E616E007BBFD1 /* httpServer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = httpServer.c; path = src/httpServer.c; sourceTree = "<group>"; };
+		4EFBFCAC175E6155007BBFD1 /* guiServer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = guiServer.h; path = src/guiServer.h; sourceTree = "<group>"; };
+		4EFBFCAD175E616E007BBFD1 /* guiServer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = guiServer.c; path = src/guiServer.c; sourceTree = "<group>"; };
 		4EFBFCC8175E6BE7007BBFD1 /* mongoose.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mongoose.c; path = src/mongoose.c; sourceTree = "<group>"; };
 		4EFBFCCB175E8BDC007BBFD1 /* python_api_utils.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = python_api_utils.c; path = src/python_api_utils.c; sourceTree = "<group>"; };
 		4EFBFCCD175E8BF7007BBFD1 /* python_api_utils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = python_api_utils.h; path = src/python_api_utils.h; sourceTree = "<group>"; };
@@ -983,6 +989,8 @@
 				4EFBFCCB175E8BDC007BBFD1 /* python_api_utils.c */,
 				4E8787E51816732800A87FF0 /* sqlite3db_utils.c */,
 				4E8787E71816733F00A87FF0 /* sqlite3db_utils.h */,
+				4E207BB019F04EAB00410B40 /* sockets_utils.c */,
+				4E207BB219F04ED100410B40 /* sockets_utils.h */,
 			);
 			name = Utils;
 			sourceTree = "<group>";
@@ -3522,8 +3530,10 @@
 			children = (
 				4EFBFCAA175E60F9007BBFD1 /* mongoose.h */,
 				4EFBFCC8175E6BE7007BBFD1 /* mongoose.c */,
-				4EFBFCAC175E6155007BBFD1 /* httpServer.h */,
-				4EFBFCAD175E616E007BBFD1 /* httpServer.c */,
+				4EFBFCAC175E6155007BBFD1 /* guiServer.h */,
+				4EFBFCAD175E616E007BBFD1 /* guiServer.c */,
+				4E207BB319F0528400410B40 /* logServer.h */,
+				4E207BB419F0529D00410B40 /* logServer.c */,
 			);
 			name = "gui manager";
 			sourceTree = "<group>";
@@ -3593,6 +3603,7 @@
 			files = (
 				4E4A5EA215F003420052ABF4 /* comio.c in Sources */,
 				4E4A5EA315F003420052ABF4 /* interface_type_001.c in Sources */,
+				4E207BB119F04EAB00410B40 /* sockets_utils.c in Sources */,
 				4E4A5EA415F003420052ABF4 /* debug.c in Sources */,
 				4E8787E61816732800A87FF0 /* sqlite3db_utils.c in Sources */,
 				4E4A5EA615F003420052ABF4 /* main.c in Sources */,
@@ -3615,6 +3626,7 @@
 				4E76CEA5163F12C800A3EBA9 /* arduino_pins.c in Sources */,
 				4E76CEAB163F146900A3EBA9 /* parameters_utils.c in Sources */,
 				4E76CEB2163F175100A3EBA9 /* tokens_strings.c in Sources */,
+				4E207BB519F0529D00410B40 /* logServer.c in Sources */,
 				4E5FC65F172F0F91004266EB /* interface_type_001_counters.c in Sources */,
 				4E5FC660172F0F91004266EB /* interface_type_001_sensors.c in Sources */,
 				4E5FC662172F103B004266EB /* interface_type_001_actuators.c in Sources */,
@@ -3622,7 +3634,7 @@
 				4E798FF919D4871400F87593 /* monitoringServer.c in Sources */,
 				4E5E24C3173C34AE00B8CEFE /* mea_api.c in Sources */,
 				4EFBBC7F1746C85D00090FEE /* error.c in Sources */,
-				4EFBFCAE175E616E007BBFD1 /* httpServer.c in Sources */,
+				4EFBFCAE175E616E007BBFD1 /* guiServer.c in Sources */,
 				4EFBFCC9175E6BE7007BBFD1 /* mongoose.c in Sources */,
 				4EFBFCCC175E8BDC007BBFD1 /* python_api_utils.c in Sources */,
 				4E8F781C178B44490099A751 /* string_utils.c in Sources */,

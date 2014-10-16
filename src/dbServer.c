@@ -401,7 +401,7 @@ void *tomysqldb_thread(void *args)
    {
       int nb=0;
       
-      process_heartbeat(get_monitored_processes_descriptor(), _dbServer_monitoring_id);
+      process_heartbeat(_dbServer_monitoring_id);
 
       pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(md->lock));
       if(!pthread_mutex_lock(&(md->lock)))

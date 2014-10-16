@@ -21,6 +21,8 @@
 #include "queue.h"
 #include "memory.h"
 
+#include "xPLServer.h"
+
 #include "monitoringServer.h"
 
 #include "interfacesServer.h"
@@ -192,7 +194,7 @@ uint16_t mea_sendXPLMessage(xPL_MessagePtr xPLMsg)
 {
    char *addr;
    xPL_MessagePtr newXPLMsg = NULL;
-
+   xplRespQueue_elem_t *e;
    xplout_indicator++;
 
    addr = xPL_getSourceDeviceID(xPLMsg);
@@ -231,7 +233,7 @@ uint16_t mea_sendXPLMessage(xPL_MessagePtr xPLMsg)
 
       if(xplRespQueue)
       {
-         xplRespQueue_elem_t *e = malloc(sizeof(xplRespQueue_elem_t));
+         e = malloc(sizeof(xplRespQueue_elem_t));
          e->msg = newXPLMsg;
          e->id = id;
          e->tsp = (uint32_t)time(NULL);
@@ -382,8 +384,8 @@ void *_xPL_thread(void *data)
 {
 //   xPL_setDebugging(TRUE); // xPL en mode debug
 
-   process_add_indicator(get_monitored_processes_descriptor(), _xplServer_monitoring_id, "XPLIN", xplin_indicator);
-   process_add_indicator(get_monitored_processes_descriptor(), _xplServer_monitoring_id, "XPLOUT", xplout_indicator);
+   process_add_indicator(_xplServer_monitoring_id, "XPLIN", xplin_indicator);
+   process_add_indicator(_xplServer_monitoring_id, "XPLOUT", xplout_indicator);
 
    if ( !xPL_initialize(xPL_getParsedConnectionType()) ) return 0 ;
    
@@ -401,7 +403,7 @@ void *_xPL_thread(void *data)
 
    do
    {
-      process_heartbeat(get_monitored_processes_descriptor(), _xplServer_monitoring_id);
+      process_heartbeat(_xplServer_monitoring_id);
    
       VERBOSE(9) {
          static char compteur=0;
@@ -514,7 +516,7 @@ int stop_xPLServer(int my_id, void *data)
    pthread_cleanup_pop(0);
 
    _xplServer_monitoring_id=-1;
-   
+
    return 0;
 }
 

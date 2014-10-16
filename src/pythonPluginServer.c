@@ -30,7 +30,6 @@
 
 #include "mea_api.h"
 
-
 char *plugin_path=NULL;
 
 // globales pour le fonctionnement du thread
@@ -276,7 +275,7 @@ void *_pythonPlugin_thread(void *data)
    
    while(1)
    {
-      process_heartbeat(get_monitored_processes_descriptor(), _pythonPluginServer_monitoring_id);
+      process_heartbeat(_pythonPluginServer_monitoring_id);
 
       pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&pythonPluginCmd_queue_lock);
       pthread_mutex_lock(&pythonPluginCmd_queue_lock);
@@ -373,7 +372,6 @@ void *_pythonPlugin_thread(void *data)
 }
 
 
-// pthread_t *pythonPluginServer(queue_t *plugin_queue)
 pthread_t *pythonPluginServer()
 {
    int py_init_flag=0;
@@ -483,7 +481,6 @@ int stop_pythonPluginServer(int my_id, void *data)
 }
 
 
-//pthread_t *start_pythonPluginServer(char **params_list, sqlite3 *sqlite3_param_db)
 int start_pythonPluginServer(int my_id, void *data)
 {
 struct pythonPluginServerData_s *pythonPluginServerData = (struct pythonPluginServerData_s *)data;  

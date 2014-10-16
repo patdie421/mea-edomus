@@ -17,17 +17,19 @@
 #include <unistd.h> // close
 #include <netdb.h> // gethostbyname
 #include <sys/stat.h>
+#include <signal.h>
 
 #include "globals.h"
 #include "debug.h"
 #include "error.h"
-#include "httpServer.h"
+#include "guiServer.h"
 #include "mongoose.h"
 #include "string_utils.h"
 #include "queue.h"
 #include "xPLServer.h"
 #include "tokens_strings.h"
 #include "init.h"
+#include "sockets_utils.h"
 
 #include "monitoringServer.h"
 
@@ -57,6 +59,8 @@ char *val_num_threads=NULL;
 
 int _httpServer_monitoring_id=-1;
 
+pid_t pid_nodejs=0;
+
 char php_sessions_path[256];
 
 /*
@@ -73,84 +77,62 @@ const char* options[] = {
 */
 
 const char *options[15];
-
 struct mg_context* g_mongooseContext = 0;
 
 
 int gethttp(char *server, int port, char *url, char *response, int l_response)
 {
-  int sockfd;                   // descripteur de socket
-  struct sockaddr_in serveur;   // structure d'adresse qui contiendra les param reseaux du serveur
-  struct hostent * hs;          // structure hostent qui contiendra IPs et noms du serveur
+   int sockfd;                   // descripteur de socket
 
-  // recuperation de l'@ serveur dans la structure hostent (utile si l'utilisateur entre un nom et pas une adresse IP)
-  if((hs=gethostbyname("localhost")) == NULL)
-  {                                
-    fprintf(stderr, "Erreur lors de l'appel a gethostbyname\n");
-    return -1;
-  }
+   // creation de la requete
+   char requete[1000]="GET ";
+   strcat(requete, url);
+   strcat(requete, " HTTP/1.1\r\n");
+   strcat(requete, "Host: ");
+   strcat(requete, server);
+   strcat(requete, "\r\n");
+   strcat(requete, "Connection: close\r\n");
+   strcat(requete, "\r\n");
+
+   if(mea_socket_connect(&sockfd, server, port)<0)
+   {
+      VERBOSE(2) {
+         fprintf (stderr, "%s (%s) : mea_socket_connect - ", ERROR_STR,__func__);
+         perror("");
+      }
+      return -1;
+   }
+ 
+   if(mea_socket_send(&sockfd, requete)<0)
+   {
+      close(sockfd);
+      return -1;
+   }
+
+   // reception de la reponse HTTP
+   int n=recv(sockfd, response, l_response, 0);
+   if(n == -1)
+   {
+      VERBOSE(2) {
+         fprintf (stderr, "%s (%s) : recv - ", ERROR_STR,__func__);
+         perror("");
+      }
+      close(sockfd);
+      return -1;
+   }
    
-  // creation de la requete
-  char requete[1000]="GET ";
-  strcat(requete, url);
-  strcat(requete, " HTTP/1.1\r\n");
-  strcat(requete, "Host: ");
-  strcat(requete, server);
-  strcat(requete, "\r\n");
-  strcat(requete, "Connection: close\r\n");
-  strcat(requete, "\r\n");
+   //affichage de la reponse HTTP
+   if(n)
+   {
+      VERBOSE(9) {
+         fprintf (stderr, "%s  (%s) : recv - ", INFO_STR,__func__);
+         fprintf(stderr, "%s\n",response);
+      }
+   }
+   // fermeture de la socket
+   close(sockfd);
  
-  // creation de la socket
-  sockfd = socket(AF_INET,SOCK_STREAM,IPPROTO_TCP);
- 
-  // initialisation de la structure d'adresse du serveur :
-   
-  // famille d'adresse
-  serveur.sin_family = AF_INET;
- 
-  // recuperation de l'adresse IPv4 du serveur
-  serveur.sin_addr=*(struct in_addr *)(hs->h_addr_list[0]);
- 
-  // recuperation du port du serveur
-  serveur.sin_port = htons(port);
- 
-  fprintf(stderr, "Tentative de connexion au serveur web : %s (%s)\n",hs->h_name,inet_ntoa(serveur.sin_addr));
- 
-  // tentative de connexion
-  if(connect(sockfd,(struct sockaddr*)&serveur, sizeof(serveur)) == -1)
-  {
-    perror("Erreur lors de l'appel a connect -> ");
-    close(sockfd);
-    return -1;
-  }
- 
-  fprintf(stderr, "Connexion etablie !\n");
- 
-  // envoi de la requete HTTP
-  if(send(sockfd,requete, strlen(requete), 0) == -1)
-  {
-    perror("Erreur lors de l'appel a send -> ");
-    close(sockfd);
-    return -1;
-  }
-   
-  // reception de la reponse HTTP
-  int n=recv(sockfd, response, l_response, 0);
-  if(n == -1)
-  {
-    perror("Erreur lors de l'appel a recv -> ");
-    close(sockfd);
-    return -1;
-  }
-   
-  //affichage de la reponse HTTP
-  if(n)
-     fprintf(stderr, "\n\n%s\n\n\n",response);
- 
-  // fermeture de la socket
-  close(sockfd);
- 
-  return 0;
+   return 0;
 }
 
 
@@ -311,7 +293,7 @@ static int begin_request_handler(struct mg_connection *conn)
 
    if(mea_strncmplower("/CMD/ping.php",(char *)request_info->uri,13)==0)
    {
-       process_heartbeat(get_monitored_processes_descriptor(), _httpServer_monitoring_id);
+       process_heartbeat(_httpServer_monitoring_id);
        httpErrno(conn, 0);
        return 1;
    }
@@ -357,7 +339,7 @@ static int begin_request_handler(struct mg_connection *conn)
          {
             if(mea_strncmplower("start", command, strlen(command))==0)
             {
-               ret=process_start(get_monitored_processes_descriptor(), process_id);
+               ret=process_start(process_id);
                if(!ret)
                   httpErrno(conn, 0);
                else
@@ -365,7 +347,7 @@ static int begin_request_handler(struct mg_connection *conn)
             }
             else if (mea_strncmplower("stop", command, strlen(command))==0)
             {
-               ret=process_stop(get_monitored_processes_descriptor(), process_id);
+               ret=process_stop(process_id);
                if(!ret)
                   httpErrno(conn, 0);
                else
@@ -495,6 +477,60 @@ static int begin_request_handler(struct mg_connection *conn)
 }
 
 
+void _stop_nodejs()
+{
+   int status;
+
+   if(pid_nodejs>1)
+   {
+      kill(pid_nodejs, SIGKILL);
+      wait(&status);
+      pid_nodejs=-1;
+   }
+}
+
+
+pid_t _start_nodejs(char *nodejs_path, char *eventServer_path, int port_socketio, int port_socketdata, char *phpsession_path)
+{
+   pid_t nodejs_pid = -1;
+   nodejs_pid = fork();
+
+   if (nodejs_pid == 0) // child
+   {
+      // Code only executed by child process
+      char str_port_socketio[80];
+      char str_port_socketdata[80];
+      char str_phpsession_path[80];
+      
+      char *params[6];
+
+      sprintf(str_port_socketio,"--iosocketport=%d",port_socketio);
+      sprintf(str_port_socketdata,"--dataport=%d",port_socketdata);
+      sprintf(str_phpsession_path,"--phpsession_path=%s",phpsession_path);
+
+      params[0]="mea-edomus[nodejs]";
+      params[1]=eventServer_path;
+      params[2]=str_port_socketio;
+      params[3]=str_port_socketdata;
+      params[4]=str_phpsession_path;
+      params[5]=0;
+
+      execvp(nodejs_path, params);
+
+      perror("");
+
+      exit(1);
+   }
+   else if (nodejs_pid < 0)
+   { // failed to fork
+      perror("");
+      return -1;
+   }
+   // Code only executed by parent process
+   return nodejs_pid;
+}
+
+
 mea_error_t httpServer(uint16_t port, char *home, char *php_cgi, char *php_ini_path)
 {
    if(port==0)
@@ -544,21 +580,69 @@ mea_error_t httpServer(uint16_t port, char *home, char *php_cgi, char *php_ini_p
 }
 
 
-int stop_httpServer(int my_id, void *data)
+int stop_guiServer(int my_id, void *data)
 {
    mg_stop(g_mongooseContext);
-   
+      
+   _stop_nodejs();
+
    return 0;
 }
 
 
 //int start_httpServer(char **params_list, queue_t *interfaces)
-int start_httpServer(int my_id, void *data)
+int start_guiServer(int my_id, void *data)
 {
    struct httpServerData_s *httpServerData = (struct httpServerData_s *)data;
+   int nodejs_started=0;
+   pid_t pid;
+   
+   if(httpServerData->params_list[NODEJSIOSOCKET_PORT] == NULL ||
+      httpServerData->params_list[NODEJSDATA_PORT] == NULL     ||
+      httpServerData->params_list[NODEJS_PATH] == NULL         ||
+      httpServerData->params_list[LOG_PATH] == NULL)
+   {
+      VERBOSE(3) {
+         fprintf (stderr, "%s (%s) : nodejs - parameters error ...",ERROR_STR,__func__);
+      }
+      goto httpServer_only;
+   }
 
-   _httpServer_monitoring_id=my_id;
+   int socketio_port = atoi(httpServerData->params_list[NODEJSIOSOCKET_PORT]);
+   int socketdata_port = atoi(httpServerData->params_list[NODEJSDATA_PORT]);
+   char *nodejs_path = httpServerData->params_list[NODEJS_PATH];
+   char *phpsession_path = httpServerData->params_list[PHPSESSIONS_PATH];
+   char serverjs_path[256];
 
+   int n=snprintf(serverjs_path, sizeof(serverjs_path), "%s/nodeJS/server/server", httpServerData->params_list[GUI_PATH]);
+   if(n<0 || n==sizeof(serverjs_path))
+   {
+      VERBOSE(3) {
+         fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);
+         perror("");
+      }
+      goto httpServer_only;
+   }
+
+   pid=_start_nodejs(nodejs_path, serverjs_path, socketio_port, socketdata_port, phpsession_path);
+   if(!pid)
+   {
+      VERBOSE(3) {
+         fprintf (stderr, "%s (%s) : can't start nodejs",ERROR_STR,__func__);
+      }
+      goto httpServer_only;
+   }
+   pid_nodejs=pid;
+   nodejs_started=1;
+   
+httpServer_only:
+   if(!nodejs_started)
+   {
+      VERBOSE(1) {
+         fprintf (stderr, "%s (%s) : nodejs not started, try httpServer only",ERROR_STR,__func__);
+      }
+   }
+   
    char *phpcgibin=NULL;
    if(httpServerData->params_list[PHPCGI_PATH] &&
       httpServerData->params_list[PHPINI_PATH] &&
@@ -594,6 +678,8 @@ int start_httpServer(int my_id, void *data)
                             atoi(httpServerData->params_list[NODEJSIOSOCKET_PORT]))==0)
       {
          httpServer(guiport, httpServerData->params_list[GUI_PATH], phpcgibin, httpServerData->params_list[PHPINI_PATH]);
+         _httpServer_monitoring_id=my_id;
+
          return 0;
       }
       else

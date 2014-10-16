@@ -39,13 +39,15 @@
 #include "dbServer.h"
 #include "xPLServer.h"
 #include "pythonPluginServer.h"
-#include "httpServer.h"
+#include "guiServer.h"
+#include "logServer.h"
 #include "automatorServer.h"
 
 #include "monitoringServer.h"
 
 int xplServer_monitoring_id=-1;
 int httpServer_monitoring_id=-1;
+int logServer_monitoring_id=-1;
 int pythonPluginServer_monitoring_id=-1;
 int dbServer_monitoring_id=-1;
 
@@ -222,8 +224,8 @@ void clean_all_and_exit()
    if(xplServer_monitoring_id!=-1)
    {
       VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping xPLServer... ",INFO_STR,__func__);
-      process_stop(get_monitored_processes_descriptor(), xplServer_monitoring_id);
-      process_unregister(get_monitored_processes_descriptor(), xplServer_monitoring_id);
+      process_stop(xplServer_monitoring_id);
+      process_unregister(xplServer_monitoring_id);
       xplServer_monitoring_id=-1;
       VERBOSE(9) fprintf(stderr,"done\n");
    }
@@ -231,8 +233,8 @@ void clean_all_and_exit()
    if(httpServer_monitoring_id!=-1)
    {
       VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping httpServer... ",INFO_STR,__func__);
-      process_stop(get_monitored_processes_descriptor(), httpServer_monitoring_id);
-      process_unregister(get_monitored_processes_descriptor(), httpServer_monitoring_id);
+      process_stop(httpServer_monitoring_id);
+      process_unregister(httpServer_monitoring_id);
       httpServer_monitoring_id=-1;
       VERBOSE(9) fprintf(stderr,"done\n");
    }
@@ -247,8 +249,8 @@ void clean_all_and_exit()
    if(pythonPluginServer_monitoring_id!=-1)
    {
       VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping pythonPluginServer... ",INFO_STR,__func__);
-      process_stop(get_monitored_processes_descriptor(), pythonPluginServer_monitoring_id);
-      process_unregister(get_monitored_processes_descriptor(), pythonPluginServer_monitoring_id);
+      process_stop(pythonPluginServer_monitoring_id);
+      process_unregister(pythonPluginServer_monitoring_id);
       pythonPluginServer_monitoring_id=-1;
       VERBOSE(9) fprintf(stderr,"done\n");
    }
@@ -256,7 +258,7 @@ void clean_all_and_exit()
    if(dbServer_monitoring_id!=-1)
    {
       VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping dbServer... ",INFO_STR,__func__);
-      process_unregister(get_monitored_processes_descriptor(), dbServer_monitoring_id);
+      process_unregister(dbServer_monitoring_id);
       dbServer_monitoring_id=-1;
       VERBOSE(9) fprintf(stderr,"done\n");
    }
@@ -271,13 +273,14 @@ void clean_all_and_exit()
       VERBOSE(9) fprintf(stderr,"done\n");
    }
    
-   process_unregister(get_monitored_processes_descriptor(), main_monitoring_id);
-   if(monitoringServer_thread)
-   {
-      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping monitoringServer... ",INFO_STR,__func__);
-      stop_monitoringServer();
-      VERBOSE(9) fprintf(stderr,"done\n");
-   }
+   process_unregister(main_monitoring_id);
+   
+//   if(monitoringServer_thread)
+//   {
+//      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping monitoringServer... ",INFO_STR,__func__);
+//      stop_monitoringServer();
+//      VERBOSE(9) fprintf(stderr,"done\n");
+//   }
 
    for(int16_t i=0;i<MAX_LIST_SIZE;i++)
    {
@@ -744,12 +747,14 @@ int main(int argc, const char * argv[])
 
    DEBUG_SECTION fprintf(stderr,"Starting MEA-EDOMUS %s\n",__MEA_EDOMUS_VERSION__);
 
-   monitoringServer_thread=start_monitoringServer(params_list);
-   if(!monitoringServer_thread)
-   {
-      VERBOSE(1) fprintf (stderr, "%s (%s) : can't start monitoring server\n",ERROR_STR,__func__);
-      clean_all_and_exit();
-   }
+   init_monitored_processes_list(40);
+
+//   monitoringServer_thread=start_monitoringServer(params_list);
+//   if(!monitoringServer_thread)
+//   {
+//      VERBOSE(1) fprintf (stderr, "%s (%s) : can't start monitoring server\n",ERROR_STR,__func__);
+//      clean_all_and_exit();
+//   }
 
    //   
    // demarrage du processus de l'automate
@@ -768,11 +773,11 @@ int main(int argc, const char * argv[])
    // démarrage des "services" (les services "majeurs" arrêtent tout (exit) si non démarrage
    struct dbServerData_s dbServerData;
    dbServerData.params_list=params_list;
-   dbServer_monitoring_id=process_register(get_monitored_processes_descriptor(), "DBSERVER");
-   process_set_start_stop(get_monitored_processes_descriptor(), dbServer_monitoring_id, start_dbServer, stop_dbServer, (void *)(&dbServerData), 1);
+   dbServer_monitoring_id=process_register("DBSERVER");
+   process_set_start_stop(dbServer_monitoring_id, start_dbServer, stop_dbServer, (void *)(&dbServerData), 1);
    if(!_b)
    {
-      if(process_start(get_monitored_processes_descriptor(), dbServer_monitoring_id)<0)
+      if(process_start(dbServer_monitoring_id)<0)
       {
          VERBOSE(1) fprintf (stderr, "%s (%s) : can't start python plugin server\n",ERROR_STR,__func__);
          clean_all_and_exit();
@@ -792,9 +797,9 @@ int main(int argc, const char * argv[])
    struct pythonPluginServerData_s pythonPluginServerData;
    pythonPluginServerData.params_list=params_list;
    pythonPluginServerData.sqlite3_param_db=sqlite3_param_db;
-   pythonPluginServer_monitoring_id=process_register(get_monitored_processes_descriptor(), "PYTHONPLUGINSERVER");
-   process_set_start_stop(get_monitored_processes_descriptor(), pythonPluginServer_monitoring_id , start_pythonPluginServer, stop_pythonPluginServer, (void *)(&pythonPluginServerData), 1);
-   if(process_start(get_monitored_processes_descriptor(), pythonPluginServer_monitoring_id)<0)
+   pythonPluginServer_monitoring_id=process_register("PYTHONPLUGINSERVER");
+   process_set_start_stop(pythonPluginServer_monitoring_id , start_pythonPluginServer, stop_pythonPluginServer, (void *)(&pythonPluginServerData), 1);
+   if(process_start(pythonPluginServer_monitoring_id)<0)
    {
       VERBOSE(1) fprintf (stderr, "%s (%s) : can't start python plugin server\n",ERROR_STR,__func__);
       clean_all_and_exit();
@@ -805,9 +810,9 @@ int main(int argc, const char * argv[])
    struct xplServerData_s xplServerData;
    xplServerData.params_list=params_list;
    xplServerData.sqlite3_param_db=sqlite3_param_db;
-   xplServer_monitoring_id=process_register(get_monitored_processes_descriptor(), "XPLSERVER");
-   process_set_start_stop(get_monitored_processes_descriptor(), xplServer_monitoring_id , start_xPLServer, stop_xPLServer, (void *)(&xplServerData), 1);
-   if(process_start(get_monitored_processes_descriptor(), xplServer_monitoring_id)<0)
+   xplServer_monitoring_id=process_register("XPLSERVER");
+   process_set_start_stop(xplServer_monitoring_id , start_xPLServer, stop_xPLServer, (void *)(&xplServerData), 1);
+   if(process_start(xplServer_monitoring_id)<0)
    {
       VERBOSE(1) fprintf (stderr, "%s (%s) : can't start xpl server\n",ERROR_STR,__func__);
       clean_all_and_exit();
@@ -815,12 +820,22 @@ int main(int argc, const char * argv[])
 
    struct httpServerData_s httpServerData;
    httpServerData.params_list=params_list;
-   httpServer_monitoring_id=process_register(get_monitored_processes_descriptor(), "HTTPSERVER");
-   process_set_start_stop(get_monitored_processes_descriptor(), httpServer_monitoring_id , start_httpServer, stop_httpServer, (void *)(&httpServerData), 1);
-   if(process_start(get_monitored_processes_descriptor(), httpServer_monitoring_id)<0)
+   httpServer_monitoring_id=process_register("GUISERVER");
+   process_set_start_stop(httpServer_monitoring_id , start_guiServer, stop_guiServer, (void *)(&httpServerData), 1);
+   if(process_start(httpServer_monitoring_id)<0)
    {
-      VERBOSE(1) fprintf (stderr, "%s (%s) : can't start http server\n",ERROR_STR,__func__);
+      VERBOSE(1) fprintf (stderr, "%s (%s) : can't start gui server\n",ERROR_STR,__func__);
    }
+
+   struct logServerData_s logServerData;
+   logServerData.params_list=params_list;
+   logServer_monitoring_id=process_register("LOGSERVER");
+   process_set_start_stop(logServer_monitoring_id , start_logServer, stop_logServer, (void *)(&logServerData), 1);
+   if(process_start(logServer_monitoring_id)<0)
+   {
+      VERBOSE(1) fprintf (stderr, "%s (%s) : can't start gui server\n",ERROR_STR,__func__);
+   }
+
 
    time_t start_time;
    long uptime = 0;
@@ -829,9 +844,9 @@ int main(int argc, const char * argv[])
 
    DEBUG_SECTION fprintf(stderr,"MEA-EDOMUS %s starded\n",__MEA_EDOMUS_VERSION__);
 
-   main_monitoring_id=process_register(get_monitored_processes_descriptor(), "MAIN");
-   process_set_not_managed(get_monitored_processes_descriptor(), main_monitoring_id);
-   process_add_indicator(get_monitored_processes_descriptor(), main_monitoring_id, "UPTIME", 0);
+   main_monitoring_id=process_register("MAIN");
+   process_set_not_managed(main_monitoring_id);
+   process_add_indicator(main_monitoring_id, "UPTIME", 0);
 
    // boucle sans fin.
    char response[512];
@@ -841,7 +856,7 @@ int main(int argc, const char * argv[])
       gethttp("localhost", atoi(params_list[GUIPORT]), "/CMD/ping.php", response, sizeof(response));
  
       uptime = (long)(time(NULL)-start_time);
-      process_update_indicator(get_monitored_processes_descriptor(), main_monitoring_id, "UPTIME", uptime);
+      process_update_indicator(main_monitoring_id, "UPTIME", uptime);
 
       monitoringServer_loop("localhost", atoi(params_list[NODEJSDATA_PORT]));
 

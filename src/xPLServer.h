@@ -36,7 +36,7 @@ struct xplServerData_s
 typedef int16_t (*xpl_f)(xPL_ServicePtr, xPL_MessagePtr theMessage, xPL_ObjectPtr userValue);
 
 
-pthread_t *xPLServer(queue_t *interfaces);
+//pthread_t *xPLServer(queue_t *interfaces);
 
 
 xPL_ServicePtr mea_getXPLServicePtr();

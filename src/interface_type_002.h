@@ -72,15 +72,6 @@ typedef struct plugin_commissionning_queue_elem_s
 } plugin_commissionning_queue_elem_t;
 
 
-typedef struct plugin_queue_elem_s
-{
-   pythonPlugin_type type_elem;
-   PyObject *aDict;
-   char buff[128];
-   uint16_t l_buff;
-} plugin_queue_elem_t;
-
-
 mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, int id_interface, const unsigned char *dev_and_speed, tomysqldb_md_t *md, char *paramters);
 mea_error_t stop_interface_type_002(interface_type_002_t *it002);
 mea_error_t restart_interface_type_002(interface_type_002_t *i002,sqlite3 *db, tomysqldb_md_t *md);

@@ -19,6 +19,7 @@ char *mea_strrtrim(char *s);
 char *mea_strtrim(char *s);
 int16_t mea_strsplit(char str[], char separator, char *tokens[], char l_tokens);
 size_t mea_snprintfcat(char* buf, size_t bufSize, char const* fmt, ...);
+int mea_strncat(char *dest, int max_test, char *source);
 
 #endif
 

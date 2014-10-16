@@ -49,15 +49,18 @@ void stop_monitoringServer();
 
 struct monitored_processes_s *get_monitored_processes_descriptor();
 
-int process_register(struct monitored_processes_s *monitored_processes, char *name);
-int process_unregister(struct monitored_processes_s *monitored_processes, int id);
-int process_add_indicator(struct monitored_processes_s *monitored_processes, int id, char *name, long initial_value);
-int process_update_indicator(struct monitored_processes_s *monitored_processes, int id, char *name, long value);
-int process_heartbeat(struct monitored_processes_s *monitored_processes, int id);
-int process_set_start_stop(struct monitored_processes_s *monitored_processes, int id,  process_start_stop_f start, process_start_stop_f stop, void *start_stop_data, int auto_restart);
-int process_start(struct monitored_processes_s *monitored_processes, int id);
-int process_stop(struct monitored_processes_s *monitored_processes, int id);
-int process_set_not_managed(struct monitored_processes_s *monitored_processes, int id);
+int init_monitored_processes_list(int max_nb_processes);
+int clear_monitored_processes_list();
+
+int process_register(char *name);
+int process_unregister(int id);
+int process_add_indicator(int id, char *name, long initial_value);
+int process_update_indicator(int id, char *name, long value);
+int process_heartbeat(int id);
+int process_set_start_stop(int id,  process_start_stop_f start, process_start_stop_f stop, void *start_stop_data, int auto_restart);
+int process_start(int id);
+int process_stop(int id);
+int process_set_not_managed(int id);
 int monitoringServer_loop(char *hostname, int port);
 
 #endif

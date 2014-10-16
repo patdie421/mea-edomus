@@ -156,3 +156,18 @@ size_t mea_snprintfcat(char* buf, size_t bufSize, char const* fmt, ...)
 }
 
 
+int mea_strncat(char *dest, int max_test, char *source)
+{
+   int l_dest = strlen(dest);
+   int l_source = strlen(source);
+   if((l_dest+l_source)>max_test)
+      return -1;
+   else
+   {
+      strcat(dest,source);
+   }
+   return 0;
+}
+
+
+
