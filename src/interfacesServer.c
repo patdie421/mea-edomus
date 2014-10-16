@@ -23,6 +23,7 @@
 #include "interface_type_001.h"
 #include "interface_type_002.h"
 
+queue_t *_interfaces=NULL;
 
 uint32_t speeds[][3]={
    {   300,    B300},
@@ -108,19 +109,19 @@ void dispatchXPLMessageToInterfaces(xPL_ServicePtr theService, xPL_MessagePtr th
 {
    int ret;
 
-   queue_t *interfaces;
+//   queue_t *interfaces;
    interfaces_queue_elem_t *iq;
 
-   interfaces=(queue_t *)userValue;
+//   interfaces=(queue_t *)userValue;
    
    VERBOSE(9) fprintf(stderr,"%s  (%s) : Reception message xPL\n",INFO_STR,__func__);
    
-   if(first_queue(interfaces)==-1)
+   if(first_queue(_interfaces)==-1)
       return;
 
    while(1)
    {
-      current_queue(interfaces, (void **)&iq);
+      current_queue(_interfaces, (void **)&iq);
       switch (iq->type)
       {
          case INTERFACE_TYPE_001:
@@ -141,11 +142,17 @@ void dispatchXPLMessageToInterfaces(xPL_ServicePtr theService, xPL_MessagePtr th
          default:
             break;
       }
-      ret=next_queue(interfaces);
+      ret=next_queue(_interfaces);
       if(ret<0)
          break;
    }
 }
+
+
+queue_t * get_interfaces()
+{
+   return _interfaces;
+}  
 
 
 queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db, tomysqldb_md_t *myd)
@@ -153,10 +160,10 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db, tomysql
    char sql[255];
    sqlite3_stmt * stmt;
    int16_t ret;
-   queue_t *interfaces;
+//   queue_t *interfaces;
 
-   interfaces=(queue_t *)malloc(sizeof(queue_t));
-   if(!interfaces)
+   _interfaces=(queue_t *)malloc(sizeof(queue_t));
+   if(!_interfaces)
    {
       sqlite3_close(sqlite3_param_db);
       VERBOSE(1) {
@@ -165,17 +172,17 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db, tomysql
       }
       return NULL;
    }
-   init_queue(interfaces);
+   init_queue(_interfaces);
    sprintf(sql,"SELECT * FROM interfaces");
    ret = sqlite3_prepare_v2(sqlite3_param_db,sql,strlen(sql)+1,&stmt,NULL);
    if(ret)
    {
       sqlite3_close(sqlite3_param_db);
       VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
-      if(interfaces)
+      if(_interfaces)
       {
-         free(interfaces);
-         interfaces=NULL;
+         free(_interfaces);
+         _interfaces=NULL;
       }
       return NULL;
    }
@@ -219,7 +226,7 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db, tomysql
                      interfaces_queue_elem_t *iq=(interfaces_queue_elem_t *)malloc(sizeof(interfaces_queue_elem_t));
                      iq->type=id_type;
                      iq->context=i001;
-                     in_queue_elem(interfaces, iq);
+                     in_queue_elem(_interfaces, iq);
                   }
                   else
                   {
@@ -251,7 +258,7 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db, tomysql
                      interfaces_queue_elem_t *iq=(interfaces_queue_elem_t *)malloc(sizeof(interfaces_queue_elem_t));
                      iq->type=id_type;
                      iq->context=i002;
-                     in_queue_elem(interfaces, iq);
+                     in_queue_elem(_interfaces, iq);
                   }
                   else
                   {
@@ -283,15 +290,15 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db, tomysql
          VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_step - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
          sqlite3_finalize(stmt);
          sqlite3_close(sqlite3_param_db);
-         if(interfaces)
+         if(_interfaces)
          {
-            free(interfaces);
-            interfaces=NULL;
+            free(_interfaces);
+            _interfaces=NULL;
          }
          return NULL;
       }
    }
-   return interfaces;
+   return _interfaces;
 }
 
 
