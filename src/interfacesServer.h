@@ -14,6 +14,7 @@
 
 #include "queue.h"
 #include "dbServer.h"
+#include "xPL.h"
 
 #define INTERFACE_TYPE_001 100
 #define INTERFACE_TYPE_002 200
@@ -29,5 +30,7 @@ int32_t get_speed_from_speed_t(speed_t speed);
 queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db, tomysqldb_md_t *myd);
 void restart_down_interfaces(queue_t *interfaces, sqlite3 *sqlite3_param_db, tomysqldb_md_t *myd);
 void stop_interfaces(queue_t *interfaces);
+void dispatchXPLMessageToInterfaces(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
+
 
 #endif
