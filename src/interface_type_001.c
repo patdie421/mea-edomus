@@ -20,7 +20,7 @@
 
 #include "globals.h"
 #include "string_utils.h"
-#include "tokens_strings.h"
+#include "tokens.h"
 #include "debug.h"
 #include "memory.h"
 #include "macros.h"

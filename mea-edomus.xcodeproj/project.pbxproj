@@ -34,7 +34,7 @@
 		4E76CEA2163F124200A3EBA9 /* xPLServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E76CEA0163F124200A3EBA9 /* xPLServer.c */; };
 		4E76CEA5163F12C800A3EBA9 /* arduino_pins.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E76CEA3163F12C700A3EBA9 /* arduino_pins.c */; };
 		4E76CEAB163F146900A3EBA9 /* parameters_utils.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E76CEA9163F146900A3EBA9 /* parameters_utils.c */; };
-		4E76CEB2163F175100A3EBA9 /* tokens_strings.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E76CEB0163F175100A3EBA9 /* tokens_strings.c */; };
+		4E76CEB2163F175100A3EBA9 /* tokens.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E76CEB0163F175100A3EBA9 /* tokens.c */; };
 		4E798FF919D4871400F87593 /* monitoringServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E798FF819D4871400F87593 /* monitoringServer.c */; };
 		4E8787E61816732800A87FF0 /* sqlite3db_utils.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E8787E51816732800A87FF0 /* sqlite3db_utils.c */; };
 		4E8E533818429724006FB9D3 /* automatorServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E8E533718429724006FB9D3 /* automatorServer.c */; };
@@ -120,8 +120,8 @@
 		4E76CEA6163F133400A3EBA9 /* sqlite3_params_db.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = sqlite3_params_db.sql; path = sql/sqlite3_params_db.sql; sourceTree = "<group>"; };
 		4E76CEA9163F146900A3EBA9 /* parameters_utils.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = parameters_utils.c; path = src/parameters_utils.c; sourceTree = "<group>"; };
 		4E76CEAA163F146900A3EBA9 /* parameters_utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = parameters_utils.h; path = src/parameters_utils.h; sourceTree = "<group>"; };
-		4E76CEB0163F175100A3EBA9 /* tokens_strings.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = tokens_strings.c; path = src/tokens_strings.c; sourceTree = "<group>"; };
-		4E76CEB1163F175100A3EBA9 /* tokens_strings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = tokens_strings.h; path = src/tokens_strings.h; sourceTree = "<group>"; };
+		4E76CEB0163F175100A3EBA9 /* tokens.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = tokens.c; path = src/tokens.c; sourceTree = "<group>"; };
+		4E76CEB1163F175100A3EBA9 /* tokens.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = tokens.h; path = src/tokens.h; sourceTree = "<group>"; };
 		4E76CEB4163F17E300A3EBA9 /* mysql_mea-edomus_db.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "mysql_mea-edomus_db.sql"; path = "sql/mysql_mea-edomus_db.sql"; sourceTree = "<group>"; };
 		4E798FF819D4871400F87593 /* monitoringServer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = monitoringServer.c; path = src/monitoringServer.c; sourceTree = "<group>"; };
 		4E798FFA19D4890D00F87593 /* monitoringServer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = monitoringServer.h; path = src/monitoringServer.h; sourceTree = "<group>"; };
@@ -3507,8 +3507,8 @@
 		4EFBBC801748C9BA00090FEE /* Common */ = {
 			isa = PBXGroup;
 			children = (
-				4E76CEB1163F175100A3EBA9 /* tokens_strings.h */,
-				4E76CEB0163F175100A3EBA9 /* tokens_strings.c */,
+				4E76CEB1163F175100A3EBA9 /* tokens.h */,
+				4E76CEB0163F175100A3EBA9 /* tokens.c */,
 				4E8F781F178B47F80099A751 /* timer.h */,
 				4E8F781D178B47C80099A751 /* timer.c */,
 				4E14AC0016083B8C000686C3 /* memory.h */,
@@ -3625,7 +3625,7 @@
 				4E76CEA2163F124200A3EBA9 /* xPLServer.c in Sources */,
 				4E76CEA5163F12C800A3EBA9 /* arduino_pins.c in Sources */,
 				4E76CEAB163F146900A3EBA9 /* parameters_utils.c in Sources */,
-				4E76CEB2163F175100A3EBA9 /* tokens_strings.c in Sources */,
+				4E76CEB2163F175100A3EBA9 /* tokens.c in Sources */,
 				4E207BB519F0529D00410B40 /* logServer.c in Sources */,
 				4E5FC65F172F0F91004266EB /* interface_type_001_counters.c in Sources */,
 				4E5FC660172F0F91004266EB /* interface_type_001_sensors.c in Sources */,

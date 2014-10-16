@@ -25,11 +25,6 @@ void _indicators_free_queue_elem(void *e)
 {
 }
 
-//struct monitored_processes_s *get_monitored_processes_descriptor()
-//{
-//   return &monitored_processes;
-//}
-
 
 int process_set_start_stop(int id,  process_start_stop_f start, process_start_stop_f stop, void *start_stop_data, int auto_restart)
 {

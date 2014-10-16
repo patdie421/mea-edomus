@@ -21,7 +21,7 @@
 #include "error.h"
 #include "debug.h"
 #include "queue.h"
-#include "tokens_strings.h"
+#include "tokens.h"
 
 #include "pythonPluginServer.h"
 #include "monitoringServer.h"
