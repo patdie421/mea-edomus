@@ -102,6 +102,50 @@ int16_t get_dev_and_speed(char *device, char *dev, int16_t dev_l, speed_t *speed
 }
 
 
+void dispatchXPLMessageToInterfaces(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
+{
+   int ret;
+
+   queue_t *interfaces;
+   interfaces_queue_elem_t *iq;
+
+   interfaces=(queue_t *)userValue;
+   
+   VERBOSE(9) fprintf(stderr,"%s  (%s) : Reception message xPL\n",INFO_STR,__func__);
+   
+   if(first_queue(interfaces)==-1)
+      return;
+
+   while(1)
+   {
+      current_queue(interfaces, (void **)&iq);
+      switch (iq->type)
+      {
+         case INTERFACE_TYPE_001:
+         {
+            interface_type_001_t *i001 = (interface_type_001_t *)(iq->context);
+            if(i001->xPL_callback)
+               i001->xPL_callback(theService, theMessage, (xPL_ObjectPtr)i001);
+            break;
+         }
+
+         case INTERFACE_TYPE_002:
+         {
+            interface_type_002_t *i002 = (interface_type_002_t *)(iq->context);
+            if(i002->xPL_callback)
+               i002->xPL_callback(theService, theMessage, (xPL_ObjectPtr)i002);
+            break;
+         }
+         default:
+            break;
+      }
+      ret=next_queue(interfaces);
+      if(ret<0)
+         break;
+   }
+}
+
+
 queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db, tomysqldb_md_t *myd)
 {
    char sql[255];
