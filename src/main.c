@@ -63,10 +63,10 @@ pid_t automator_pid = 0;
 int main_monitoring_id = -1;
 
 
-queue_t * get_interfaces()
-{
-   return interfaces;
-}
+//queue_t * get_interfaces()
+//{
+//   return interfaces;
+//}
 
 
 void usage(char *cmd)
