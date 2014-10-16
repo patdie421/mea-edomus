@@ -31,6 +31,6 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db, tomysql
 void restart_down_interfaces(queue_t *interfaces, sqlite3 *sqlite3_param_db, tomysqldb_md_t *myd);
 void stop_interfaces(queue_t *interfaces);
 void dispatchXPLMessageToInterfaces(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xPL_ObjectPtr userValue);
-
+queue_t *get_interfaces();
 
 #endif
