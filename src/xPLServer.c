@@ -23,9 +23,9 @@
 
 #include "monitoringServer.h"
 
-#include "interfacesServer.h"
-#include "interface_type_001.h"
-#include "interface_type_002.h"
+//#include "interfacesServer.h"
+//#include "interface_type_001.h"
+//#include "interface_type_002.h"
 
 
 #define XPL_VERSION "0.1a2"
@@ -143,7 +143,7 @@ xPL_ServicePtr mea_getXPLServicePtr()
    return xPLService;
 }
 
-
+/*
 void _dispatchXPLMessage(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xPL_ObjectPtr userValue) // à mettre dans interfaces.h ?
 {
    int ret;
@@ -186,7 +186,7 @@ void _dispatchXPLMessage(xPL_ServicePtr theService, xPL_MessagePtr theMessage, x
          break;
    }
 }
-
+*/
 
 uint16_t mea_sendXPLMessage(xPL_MessagePtr xPLMsg)
 {
@@ -198,7 +198,7 @@ uint16_t mea_sendXPLMessage(xPL_MessagePtr xPLMsg)
    addr = xPL_getSourceDeviceID(xPLMsg);
    if(addr && strcmp(addr,"internal")==0) // source interne => dispatching sans passer par le réseau
    {
-      _dispatchXPLMessage(xPLService, xPLMsg, (xPL_ObjectPtr)get_interfaces());
+      dispatchXPLMessageToInterfaces(xPLService, xPLMsg, (xPL_ObjectPtr)get_interfaces());
       return 0;
    }
    
@@ -332,7 +332,7 @@ readFromQueue_return:
 void _cmndXPLMessageHandler(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
 {
    xplin_indicator++;
-   _dispatchXPLMessage(theService, theMessage, userValue);
+   dispatchXPLMessageToInterfaces(theService, theMessage, userValue);
 }
 
 
