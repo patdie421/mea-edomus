@@ -302,14 +302,14 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db, tomysql
 }
 
 
-void stop_interfaces(queue_t *interfaces)
+void stop_interfaces()
 {
    interfaces_queue_elem_t *iq;
 
-   first_queue(interfaces);
-   while(interfaces->nb_elem)
+   first_queue(_interfaces);
+   while(_interfaces->nb_elem)
    {
-      out_queue_elem(interfaces, (void **)&iq);
+      out_queue_elem(_interfaces, (void **)&iq);
       switch (iq->type)
       {
          case INTERFACE_TYPE_001:
@@ -337,21 +337,24 @@ void stop_interfaces(queue_t *interfaces)
       free(iq);
       iq=NULL;
    }
+
+   free(_interfaces);
+   _interfaces=NULL;
 }
 
 
-void restart_down_interfaces(queue_t *interfaces, sqlite3 *sqlite3_param_db, tomysqldb_md_t *myd)
+void restart_down_interfaces(sqlite3 *sqlite3_param_db, tomysqldb_md_t *myd)
 {
    interfaces_queue_elem_t *iq;
    int16_t ret;
 
-   if(!interfaces->nb_elem)
+   if(!_interfaces->nb_elem)
      return;
 
-   first_queue(interfaces);
+   first_queue(_interfaces);
    while(1)
    {
-      current_queue(interfaces, (void **)&iq);
+      current_queue(_interfaces, (void **)&iq);
       switch (iq->type)
       {
          case INTERFACE_TYPE_001:
@@ -386,7 +389,7 @@ void restart_down_interfaces(queue_t *interfaces, sqlite3 *sqlite3_param_db, tom
          default:
             break;
       }
-      ret=next_queue(interfaces);
+      ret=next_queue(_interfaces);
       if(ret<0)
          break;
    }
