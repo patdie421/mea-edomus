@@ -253,7 +253,7 @@ void clean_all_and_exit()
       VERBOSE(9) fprintf(stderr,"done\n");
    }
 
-   if(dbServer_monitoring_d!=-1)
+   if(dbServer_monitoring_id!=-1)
    {
       VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping dbServer... ",INFO_STR,__func__);
       process_unregister(get_monitored_processes_descriptor(), dbServer_monitoring_id);

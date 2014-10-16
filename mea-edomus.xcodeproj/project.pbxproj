@@ -926,6 +926,7 @@
 				4EFBFCAB175E612D007BBFD1 /* gui manager */,
 				4EE28EAA162F4DD00090B5B3 /* xPL manager */,
 				4E79947819DDDA5D00F87593 /* monitoring manager */,
+				1AB674ADFE9D54B511CA2CBB /* Products */,
 				4E8E53351842967F006FB9D3 /* automator manager */,
 			);
 			name = src;
@@ -3456,7 +3457,6 @@
 			children = (
 				4E798FF819D4871400F87593 /* monitoringServer.c */,
 				4E798FFA19D4890D00F87593 /* monitoringServer.h */,
-				1AB674ADFE9D54B511CA2CBB /* Products */,
 			);
 			name = "monitoring manager";
 			sourceTree = "<group>";

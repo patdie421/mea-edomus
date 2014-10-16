@@ -13,6 +13,8 @@
 #include "macros.h"
 #include "memory.h"
 
+#include "monitoringServer.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -69,6 +71,7 @@ int16_t tomysqldb_add_data_to_sensors_values(tomysqldb_md_t *md, uint16_t sensor
 
    if(!md)
       return -1;
+
     if(!md->opened) // md initialisé mais connexion avec Mysql jamais établie (peut-être un pb de paramétrage ???)
       return -1;    // on s'arrête pour ne pas remplir la mémoire
    
@@ -398,6 +401,8 @@ void *tomysqldb_thread(void *args)
    {
       int nb=0;
       
+      process_heartbeat(get_monitored_processes_descriptor(), _dbServer_monitoring_id);
+
       pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(md->lock));
       if(!pthread_mutex_lock(&(md->lock)))
       {
@@ -517,7 +522,7 @@ void *tomysqldb_thread(void *args)
       }
       
       pthread_testcancel();
-      sleep(30);
+      sleep(10);
 //      DEBUG_SECTION {
 //         printf("Boucle tomysqldb\n");
 //      }
@@ -682,11 +687,13 @@ int stop_dbServer(int my_id, void *data)
    free(_md);
    _dbServer_monitoring_id=-1;
 
-   md=NULL;
+   _md=NULL;
+   
+   return 0;
 }
 
 
-tomtomysqldb_md_t *dbServer_get_md()
+tomysqldb_md_t *dbServer_get_md()
 {
    return _md;
 }
@@ -696,7 +703,7 @@ int start_dbServer(int my_id, void *data)
 // tomysqldb_md_t *start_dbServer(char **params_list, sqlite3 *sqlite3_param_db)
 {
 #ifndef __NO_TOMYSQL__
-   struct xplServerData_s *dbServerData = (struct dbServerData_s *)data;
+   struct dbServerData_s *dbServerData = (struct dbServerData_s *)data;
    int16_t ret;
    _md=(struct tomysqldb_md_s *)malloc(sizeof(struct tomysqldb_md_s));
    if(!_md)
@@ -709,12 +716,12 @@ int start_dbServer(int my_id, void *data)
    }
    memset(_md,0,sizeof(struct tomysqldb_md_s));
    
-   ret=tomysqldb_init(_md, data->params_list[MYSQL_DB_SERVER],
-                           data->params_list[MYSQL_DB_PORT],
-                           data->params_list[MYSQL_DATABASE],
-                           data->params_list[MYSQL_USER],
-                           data->params_list[MYSQL_PASSWD],
-                           data->params_list[SQLITE3_DB_BUFF_PATH]);
+   ret=tomysqldb_init(_md, dbServerData->params_list[MYSQL_DB_SERVER],
+                           dbServerData->params_list[MYSQL_DB_PORT],
+                           dbServerData->params_list[MYSQL_DATABASE],
+                           dbServerData->params_list[MYSQL_USER],
+                           dbServerData->params_list[MYSQL_PASSWD],
+                           dbServerData->params_list[SQLITE3_DB_BUFF_PATH]);
    if(ret==-1)
    {
       VERBOSE(2) fprintf(stderr,"%s (%s) : Can not init data base communication.\n", ERROR_STR, __func__);

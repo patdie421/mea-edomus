@@ -41,10 +41,7 @@
 #define NODEJSDATA_PORT       23
 #define MAX_LIST_SIZE         24
 
-extern tomysqldb_md_t *myd;
-tomysqldb_md_t *get_myd();
 queue_t * get_interfaces();
-
 
 // voir ou mettre
 #define UNIT_WH 1 // Watt/Heure

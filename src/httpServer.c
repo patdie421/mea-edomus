@@ -262,7 +262,7 @@ int _phpsessid_check_admin(char *phpsessid,char *sessions_files_path)
    fd=fopen(session_file, "r");
    if(fd)
    {
-      int n = fread(buff, st.st_size, 1, fd);
+      int n = fread(buff, 1, st.st_size, fd);
       fclose(fd);
       if(!n)
          return -1;
