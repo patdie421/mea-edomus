@@ -24,6 +24,7 @@
 #include "interface_type_002.h"
 
 queue_t *_interfaces=NULL;
+pthread_mutex_t interfaces_queue_lock
 
 uint32_t speeds[][3]={
    {   300,    B300},
@@ -160,32 +161,38 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db, tomysql
    char sql[255];
    sqlite3_stmt * stmt;
    int16_t ret;
-//   queue_t *interfaces;
+   //   queue_t *interfaces;
+   int sortie=0;
+   interfaces_queue_elem_t *iq;
 
-   _interfaces=(queue_t *)malloc(sizeof(queue_t));
-   if(!_interfaces)
-   {
-      sqlite3_close(sqlite3_param_db);
-      VERBOSE(1) {
-         fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
-         perror("");
-      }
-      return NULL;
-   }
-   init_queue(_interfaces);
-   sprintf(sql,"SELECT * FROM interfaces");
+   pthread_mutex_init(&interfaces_queue_lock, NULL);
+
+
    ret = sqlite3_prepare_v2(sqlite3_param_db,sql,strlen(sql)+1,&stmt,NULL);
    if(ret)
    {
       sqlite3_close(sqlite3_param_db);
       VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
-      if(_interfaces)
-      {
-         free(_interfaces);
-         _interfaces=NULL;
-      }
       return NULL;
    }
+
+
+   pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&interfaces_queue_lock);
+   pthread_mutex_lock(&interfaces_queue_lock);
+
+   _interfaces=(queue_t *)malloc(sizeof(queue_t));
+   if(!_interfaces)
+   {
+      VERBOSE(1) {
+         fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
+         perror("");
+      }
+      sqlite3_close(sqlite3_param_db);
+      goto start_interfaces_clean_exit;
+   }
+
+   init_queue(_interfaces);
+   sprintf(sql,"SELECT * FROM interfaces");
    while (1)
    {
       int s = sqlite3_step (stmt); // sqlite function need int
@@ -223,7 +230,7 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db, tomysql
                   ret=start_interface_type_001(i001, sqlite3_param_db, id_interface, dev, myd);
                   if(!ret)
                   {
-                     interfaces_queue_elem_t *iq=(interfaces_queue_elem_t *)malloc(sizeof(interfaces_queue_elem_t));
+                     iq=(interfaces_queue_elem_t *)malloc(sizeof(interfaces_queue_elem_t));
                      iq->type=id_type;
                      iq->context=i001;
                      in_queue_elem(_interfaces, iq);
@@ -290,14 +297,20 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db, tomysql
          VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_step - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
          sqlite3_finalize(stmt);
          sqlite3_close(sqlite3_param_db);
-         if(_interfaces)
-         {
-            free(_interfaces);
-            _interfaces=NULL;
-         }
-         return NULL;
+         goto start_interfaces_clean_exit;
       }
    }
+   sortie=1;
+
+start_interfaces_clean_exit:
+   pthread_mutex_unlock(&interfaces_queue_lock);
+   pthread_cleanup_pop(0); 
+
+   if(sortie==0)
+   {
+      stop_interfaces(); // stop fait le free de interfaces.
+   }
+
    return _interfaces;
 }
 
@@ -305,6 +318,9 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db, tomysql
 void stop_interfaces()
 {
    interfaces_queue_elem_t *iq;
+
+   if(!_interfaces)
+      return;
 
    first_queue(_interfaces);
    while(_interfaces->nb_elem)
