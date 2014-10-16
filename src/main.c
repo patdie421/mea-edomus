@@ -240,7 +240,7 @@ void clean_all_and_exit()
    if(interfaces)
    {
       VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping interfaces...\n",INFO_STR,__func__);
-      stop_interfaces(interfaces);
+      stop_interfaces();
       VERBOSE(9) fprintf(stderr,"%s  (%s) : done\n",INFO_STR,__func__);
    }
    
@@ -324,7 +324,7 @@ static void _signal_HUP(int signal_number)
    VERBOSE(9) fprintf(stderr,"%s  (%s) : communication error signal (signal = %d).\n", INFO_STR, __func__, signal_number);
   
    // on cherche qui est à l'origine du signal et on le relance
-   restart_down_interfaces(interfaces, sqlite3_param_db, dbServer_get_md());
+   restart_down_interfaces(sqlite3_param_db, dbServer_get_md());
    return;
 }
 
@@ -803,7 +803,6 @@ int main(int argc, const char * argv[])
    interfaces=start_interfaces(params_list, sqlite3_param_db, dbServer_get_md()); // démarrage des interfaces
 
    struct xplServerData_s xplServerData;
-   xplServerData.interfaces=interfaces;
    xplServerData.params_list=params_list;
    xplServerData.sqlite3_param_db=sqlite3_param_db;
    xplServer_monitoring_id=process_register(get_monitored_processes_descriptor(), "XPLSERVER");
