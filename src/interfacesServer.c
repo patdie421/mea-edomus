@@ -17,10 +17,12 @@
 #include "string_utils.h"
 #include "queue.h"
 #include "debug.h"
+#include "xPL.h"
 
 #include "interfacesServer.h"
 #include "interface_type_001.h"
 #include "interface_type_002.h"
+
 
 uint32_t speeds[][3]={
    {   300,    B300},
