@@ -21,11 +21,11 @@
 #include "queue.h"
 #include "memory.h"
 
+#include "monitoringServer.h"
+
 #include "interfacesServer.h"
 #include "interface_type_001.h"
 #include "interface_type_002.h"
-
-#include "monitoringServer.h"
 
 
 #define XPL_VERSION "0.1a2"
@@ -33,30 +33,32 @@
 
 xPL_ServicePtr xPLService = NULL;
 
-
 char *xpl_vendorID=NULL;
 char *xpl_deviceID=NULL;
 char *xpl_instanceID=NULL;
 
-
 pthread_t *_xPLServer_thread;
-pthread_cond_t  xplRespQueue_sync_cond;
-pthread_mutex_t xplRespQueue_sync_lock;
+// pthread_mutex_t xplRespSend_lock;
 
-queue_t         *xplRespQueue;
-pthread_mutex_t xplRespSend_lock;
-pthread_mutex_t requestId_lock;
 
-uint32_t requestId = 1;
-
+// gestion du thread et des indicateurs
 int _xplServer_monitoring_id = -1;
 long xplin_indicator = 0;
 long xplout_indicator = 0;
 
 
+// gestion de des messages xpl internes
+uint32_t requestId = 1;
+pthread_mutex_t requestId_lock;
+pthread_cond_t  xplRespQueue_sync_cond;
+pthread_mutex_t xplRespQueue_sync_lock;
+queue_t         *xplRespQueue;
+
+
 // declaration des fonctions xPL non exporté par la librairies
 extern xPL_MessagePtr xPL_AllocMessage();
 extern xPL_NameValueListPtr xPL_AllocNVList();
+
 
 // duplication de createReceivedMessage de la lib xPL qui est déclarée en static et ne peut donc
 // pas normalement être utilisée. On a besoin de cette fonction pour pouvoir utiliser mettre
@@ -431,7 +433,7 @@ pthread_t *xPLServer(queue_t *interfaces)
    }
    
    // initialisation
-   pthread_mutex_init(&xplRespSend_lock, NULL);
+//   pthread_mutex_init(&xplRespSend_lock, NULL);
 
       // préparation synchro consommateur / producteur
    pthread_cond_init(&xplRespQueue_sync_cond, NULL);
@@ -515,26 +517,6 @@ int stop_xPLServer(int my_id, void *data)
 }
 
 
-pthread_t *start_xPLServer_old(int my_id, char **params_list, queue_t *interfaces, sqlite3 *sqlite3_param_db)
-{
-   if(!set_xpl_address(params_list))
-   {
-      _xplServer_monitoring_id=my_id;
-
-      _xPLServer_thread=xPLServer(interfaces);
-      if(_xPLServer_thread==NULL)
-      {
-         VERBOSE(2) fprintf(stderr,"%s (%s) : can't start xpl server.\n",ERROR_STR,__func__);
-         return NULL;
-      }
-      else
-         return _xPLServer_thread;
-   }
-   else
-      return NULL;
-}
-
-
 int start_xPLServer(int my_id, void *data)
 {
    struct xplServerData_s *xplServerData = (struct xplServerData_s *)data;
@@ -557,8 +539,8 @@ int start_xPLServer(int my_id, void *data)
    }
    else
    {
-         VERBOSE(2) fprintf(stderr,"%s (%s) : no valid xPL address.\n",ERROR_STR,__func__);
-         return -1;
+      VERBOSE(2) fprintf(stderr,"%s (%s) : no valid xPL address.\n",ERROR_STR,__func__);
+      return -1;
    }
 }
 
