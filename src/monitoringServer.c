@@ -17,89 +17,9 @@
 #include "sockets_utils.h"
 #include "string_utils.h"
 
+
 struct monitored_processes_s monitored_processes;
-
 const char *hostname = "localhost";
-
-void _indicators_free_queue_elem(void *e)
-{
-}
-
-
-int process_set_start_stop(int id,  process_start_stop_f start, process_start_stop_f stop, void *start_stop_data, int auto_restart)
-{
-   if(id<0 || !monitored_processes.processes_table[id])
-      return -1;
-
-   monitored_processes.processes_table[id]->enable_autorestart=auto_restart;
-   monitored_processes.processes_table[id]->start=start;
-   monitored_processes.processes_table[id]->stop=stop;
-   monitored_processes.processes_table[id]->start_stop_data=start_stop_data;
-
-   return 0;
-}
-
-
-int process_register(char *name)
-{
-   int ret=0;
-   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&monitored_processes.lock );
-   pthread_mutex_lock(&monitored_processes.lock);
-
-   for(int i=0;i<monitored_processes.max_processes;i++)
-   {
-      if(!monitored_processes.processes_table[i])
-      {
-         monitored_processes.processes_table[i]=(struct monitored_process_s *)malloc(sizeof(struct monitored_process_s));
-         if(!monitored_processes.processes_table[i])
-         {
-            ret=-1;
-            goto register_process_clean_exit;
-         }
-         else
-         {
-            strncpy(monitored_processes.processes_table[i]->name, name, 40);
-            monitored_processes.processes_table[i]->last_heartbeat=time(NULL);
-            monitored_processes.processes_table[i]->indicators_list=(queue_t *)malloc(sizeof(queue_t));
-            init_queue(monitored_processes.processes_table[i]->indicators_list);
-            monitored_processes.processes_table[i]->heartbeat_interval=20;
-            monitored_processes.processes_table[i]->enable_autorestart=0;
-            monitored_processes.processes_table[i]->status=0; // arrêté par défaut
-            monitored_processes.processes_table[i]->start=NULL;
-            monitored_processes.processes_table[i]->stop=NULL;
-            monitored_processes.processes_table[i]->start_stop_data=NULL;
-            ret=i;
-            goto register_process_clean_exit;
-         }
-      }
-   }
-   ret=-1;
-register_process_clean_exit:
-   pthread_mutex_unlock(&monitored_processes.lock);
-   pthread_cleanup_pop(0); 
-   return ret;
-}
-
-
-int process_unregister(int id)
-{
-   int ret=-1;
-   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(monitored_processes.lock) );
-   pthread_mutex_lock(&(monitored_processes.lock));
-
-   if(monitored_processes.processes_table[id])
-   {
-      clear_queue(monitored_processes.processes_table[id]->indicators_list, _indicators_free_queue_elem);
-      free(monitored_processes.processes_table[id]);
-      monitored_processes.processes_table[id]=NULL;
-      ret=0;
-   }
-
-   pthread_mutex_unlock(&monitored_processes.lock);
-   pthread_cleanup_pop(0); 
-
-   return ret;
-}
 
 
 int _monitored_processes_send_indicators(int id, char *s, int s_l)
@@ -108,7 +28,7 @@ int _monitored_processes_send_indicators(int id, char *s, int s_l)
    char buff[256];
    
    s[0]=0;
-   if(monitored_processes.processes_table[id])
+   if(id>=0 && monitored_processes.processes_table[id])
    {
       time_t now = time(NULL);
 
@@ -143,6 +63,20 @@ int _monitored_processes_send_indicators(int id, char *s, int s_l)
       if(mea_strncat(s, s_l, buff)<0)
          return -1;
       
+      DEBUG_SECTION fprintf(stderr,",\"type\":%d",monitored_processes.processes_table[id]->type);
+      n=snprintf(buff,sizeof(buff),",\"type\":%d",monitored_processes.processes_table[id]->type);
+      if(n<0 || n==sizeof(buff))
+         return -1;
+      if(mea_strncat(s, s_l, buff)<0)
+         return -1;
+
+      DEBUG_SECTION fprintf(stderr,",\"group\":%d",monitored_processes.processes_table[id]->group_id);
+      n=snprintf(buff,sizeof(buff),",\"group\":%d",monitored_processes.processes_table[id]->group_id);
+      if(n<0 || n==sizeof(buff))
+         return -1;
+      if(mea_strncat(s, s_l, buff)<0)
+         return -1;
+
       if(first_queue(monitored_processes.processes_table[id]->indicators_list)==0)
       {
          while(1)
@@ -230,7 +164,162 @@ int _monitored_processes_send_all_indicators(char *hostname, int port)
 }
 
 
-int clear_monitored_processes_list()
+void _indicators_free_queue_elem(void *e)
+{
+}
+
+
+int process_set_status(int id, process_status_t status)
+{
+   int ret=0;
+   
+   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&monitored_processes.lock );
+   pthread_mutex_lock(&monitored_processes.lock);
+
+   if(id<0 || !monitored_processes.processes_table[id])
+      ret=-1;
+   else
+   {
+      monitored_processes.processes_table[id]->status=status;
+   }
+   
+   pthread_mutex_unlock(&monitored_processes.lock);
+   pthread_cleanup_pop(0); 
+
+   return ret;
+}
+
+
+int process_set_type(int id, process_type_t type)
+{
+   int ret=0;
+   
+   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&monitored_processes.lock );
+   pthread_mutex_lock(&monitored_processes.lock);
+
+   if(id<0 || !monitored_processes.processes_table[id])
+      ret=-1;
+   else
+   {
+      monitored_processes.processes_table[id]->type=type;
+   }
+   
+   pthread_mutex_unlock(&monitored_processes.lock);
+   pthread_cleanup_pop(0); 
+
+   return ret;
+}
+
+
+int process_set_group(int id, int group_id)
+{
+   int ret=0;
+   
+   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&monitored_processes.lock );
+   pthread_mutex_lock(&monitored_processes.lock);
+
+   if(id<0 || !monitored_processes.processes_table[id])
+      ret=-1;
+   else
+   {
+      monitored_processes.processes_table[id]->group_id=group_id;
+   }
+   
+   pthread_mutex_unlock(&monitored_processes.lock);
+   pthread_cleanup_pop(0); 
+
+   return ret;
+}
+
+
+int process_set_start_stop(int id, process_start_stop_f start, process_start_stop_f stop, void *start_stop_data, int auto_restart)
+{
+   int ret=0;
+   
+   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&monitored_processes.lock );
+   pthread_mutex_lock(&monitored_processes.lock);
+
+   if(id<0 || !monitored_processes.processes_table[id])
+      ret=-1;
+   else
+   {
+      monitored_processes.processes_table[id]->type=AUTOSTART;
+      monitored_processes.processes_table[id]->status=STOPPED;
+      monitored_processes.processes_table[id]->start=start;
+      monitored_processes.processes_table[id]->stop=stop;
+      monitored_processes.processes_table[id]->start_stop_data=start_stop_data;
+   }
+   pthread_mutex_unlock(&monitored_processes.lock);
+   pthread_cleanup_pop(0); 
+
+   return ret;
+}
+
+
+int process_register(char *name)
+{
+   int ret=0;
+   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&monitored_processes.lock );
+   pthread_mutex_lock(&monitored_processes.lock);
+
+   for(int i=0;i<monitored_processes.max_processes;i++)
+   {
+      if(!monitored_processes.processes_table[i])
+      {
+         monitored_processes.processes_table[i]=(struct monitored_process_s *)malloc(sizeof(struct monitored_process_s));
+         if(!monitored_processes.processes_table[i])
+         {
+            ret=-1;
+            goto register_process_clean_exit;
+         }
+         else
+         {
+            strncpy(monitored_processes.processes_table[i]->name, name, 40);
+            monitored_processes.processes_table[i]->last_heartbeat=time(NULL);
+            monitored_processes.processes_table[i]->indicators_list=(queue_t *)malloc(sizeof(queue_t));
+            init_queue(monitored_processes.processes_table[i]->indicators_list);
+            monitored_processes.processes_table[i]->heartbeat_interval=20;
+            monitored_processes.processes_table[i]->type=AUTOSTART;
+            monitored_processes.processes_table[i]->status=STOPPED; // arrêté par défaut
+            monitored_processes.processes_table[i]->start=NULL;
+            monitored_processes.processes_table[i]->stop=NULL;
+            monitored_processes.processes_table[i]->start_stop_data=NULL;
+            monitored_processes.processes_table[i]->group_id=DEFAULTGROUP;
+            ret=i;
+            goto register_process_clean_exit;
+         }
+      }
+   }
+   ret=-1;
+register_process_clean_exit:
+   pthread_mutex_unlock(&monitored_processes.lock);
+   pthread_cleanup_pop(0); 
+   return ret;
+}
+
+
+int process_unregister(int id)
+{
+   int ret=-1;
+   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(monitored_processes.lock) );
+   pthread_mutex_lock(&(monitored_processes.lock));
+
+   if(id>=0 && monitored_processes.processes_table[id])
+   {
+      clear_queue(monitored_processes.processes_table[id]->indicators_list, _indicators_free_queue_elem);
+      free(monitored_processes.processes_table[id]);
+      monitored_processes.processes_table[id]=NULL;
+      ret=0;
+   }
+
+   pthread_mutex_unlock(&monitored_processes.lock);
+   pthread_cleanup_pop(0); 
+
+   return ret;
+}
+
+
+int clear_monitored_processes()
 {
    pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(monitored_processes.lock));
    pthread_mutex_lock(&monitored_processes.lock);
@@ -245,7 +334,7 @@ int clear_monitored_processes_list()
 }
 
 
-int init_monitored_processes_list(int max_nb_processes)
+int init_monitored_processes(int max_nb_processes)
 {
    monitored_processes.processes_table=(struct monitored_process_s **)malloc(max_nb_processes * sizeof(struct monitored_process_s *));
    if(!monitored_processes.processes_table)
@@ -290,7 +379,7 @@ int _indicator_exist(int id, char *name)
    pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(monitored_processes.lock) );
    pthread_mutex_lock(&(monitored_processes.lock));
 
-   if(monitored_processes.processes_table[id])
+   if(id>=0 && monitored_processes.processes_table[id])
    {
       struct process_indicator_s *e;
 
@@ -356,6 +445,9 @@ int process_add_indicator(int id, char *name, long initial_value)
 
 int process_del_indicator(int id, char *name)
 {
+   if(id<0)
+      return -1;
+   
    process_heartbeat(id);// à compléter
 
    pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(monitored_processes.lock) );
@@ -378,7 +470,7 @@ int process_update_indicator(int id, char *name, long value)
    pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(monitored_processes.lock) );
    pthread_mutex_lock(&(monitored_processes.lock));
 
-   if(monitored_processes.processes_table[id])
+   if(id>=0 && monitored_processes.processes_table[id])
    {
       struct process_indicator_s *e;
 
@@ -433,55 +525,81 @@ int monitoringServer_loop(char *hostname, int port)
 }
 
 
+int process_is_running(int id)
+{
+   int ret;
+   
+   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(monitored_processes.lock) );
+   pthread_mutex_lock(&(monitored_processes.lock));
+
+   if(id>=0 && monitored_processes.processes_table[id])
+   {
+      ret =monitored_processes.processes_table[id]->status;
+   }
+
+   pthread_mutex_unlock(&(monitored_processes.lock));
+   pthread_cleanup_pop(0);
+
+   return ret;
+}
+
+
 int process_start(int id)
 {
-   if(id>=0 && monitored_processes.processes_table[id] && monitored_processes.processes_table[id]->status==0)
-   {
-      monitored_processes.processes_table[id]->status=1;
-      return monitored_processes.processes_table[id]->start(id, monitored_processes.processes_table[id]->start_stop_data);
-   }
-   else
-      return -1;
+   int ret=0;
+ 
+   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(monitored_processes.lock) );
+   pthread_mutex_lock(&(monitored_processes.lock));
 
-   return 0;
+   if(id>=0 && monitored_processes.processes_table[id] &&
+      monitored_processes.processes_table[id]->status==0 &&
+      monitored_processes.processes_table[id]->type!=NOTMANAGED)
+   {
+      
+      ret=monitored_processes.processes_table[id]->start(id, monitored_processes.processes_table[id]->start_stop_data);
+      if(ret<0)
+         monitored_processes.processes_table[id]->status=STOPPED;
+      else
+         monitored_processes.processes_table[id]->status=RUNNING;
+   }
+
+   pthread_mutex_unlock(&(monitored_processes.lock));
+   pthread_cleanup_pop(0);
+
+   return ret;
 }
 
 
 int process_stop(int id)
 {
-   if(id>=0 && monitored_processes.processes_table[id] && monitored_processes.processes_table[id]->status==1)
-   {
-      monitored_processes.processes_table[id]->status=0;
-      return monitored_processes.processes_table[id]->stop(id, monitored_processes.processes_table[id]->start_stop_data);
-   }
-   else
-      return -1;
-   
-   return 0;
-}
-
-
-int process_set_not_managed(int id)
-{
-   if(monitored_processes.processes_table[id])
-   {
-      monitored_processes.processes_table[id]->status=2;
-   }
-   else
-      return -1;
-   
-   return 0;
-}
-
-
-void* process_getDataPtr(int id)
-{
-   void *ptr;
+   int ret=0;
 
    pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(monitored_processes.lock) );
    pthread_mutex_lock(&(monitored_processes.lock));
 
-   if(monitored_processes.processes_table[id])
+   if(id>=0 && monitored_processes.processes_table[id] &&
+      monitored_processes.processes_table[id]->status==1 &&
+      monitored_processes.processes_table[id]->type!=NOTMANAGED)
+   {
+      monitored_processes.processes_table[id]->status=0;
+      ret=monitored_processes.processes_table[id]->stop(id, monitored_processes.processes_table[id]->start_stop_data);
+   }
+
+   pthread_mutex_unlock(&(monitored_processes.lock));
+   pthread_cleanup_pop(0);
+   
+   return ret;
+}
+
+
+void* process_get_data_ptr(int id)
+{
+   void *ptr=NULL;
+
+   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(monitored_processes.lock) );
+   pthread_mutex_lock(&(monitored_processes.lock));
+
+   if(id>=0 && monitored_processes.processes_table[id])
    {
       ptr=monitored_processes.processes_table[id]->start_stop_data;
    }
@@ -491,6 +609,3 @@ void* process_getDataPtr(int id)
 
    return ptr;
 }
-
-
-

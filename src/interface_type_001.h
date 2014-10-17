@@ -27,6 +27,7 @@ typedef struct interface_type_001_s
    pthread_t  *thread; // thread id
    int monitoring_id;
    comio2_ad_t *ad; // comio descriptor
+   int loaded;
    queue_t *counters_list; // counter sensors attach to interface
    queue_t *actuators_list;
    queue_t *sensors_list;
@@ -39,7 +40,7 @@ struct interface_type_001_Data_s
    interface_type_001_t *i001;
    sqlite3 *sqlite3_param_db;
    int16_t id_interface;
-   unsigned char *dev;
+   char dev[81];
    tomysqldb_md_t *myd;
 };  
 
@@ -48,12 +49,12 @@ typedef float (*compute_f)(unsigned int value);
 
 void counters_stop(pthread_t *counters_thread, comio2_ad_t *ad, int signal_number);
 
-mea_error_t stop_interface_type_001(interface_type_001_t *i001);
-mea_error_t start_interface_type_001(interface_type_001_t *itd, sqlite3 *db, int id_interface, const unsigned char *dev, tomysqldb_md_t *md);
-mea_error_t restart_interface_type_001(interface_type_001_t *i001,sqlite3 *db, tomysqldb_md_t *md);
+int stop_interface_type_001(int my_id, void *data);
+int start_interface_type_001(int my_id, void *data);
+int restart_interface_type_001(int id);
 
 int16_t check_status_interface_type_001(interface_type_001_t *i001);
 
-//uint16_t safe_call_comio2_fn(interface_type_001_t *i001, char fn, uint16_t val);
+int clean_interface_type_001(interface_type_001_t *i001);
 
 #endif

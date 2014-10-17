@@ -82,7 +82,7 @@ int _readAndSendLine(int nodejs_socket, char *file, long *pos)
       }
       else
       {
-         char message[512];
+         char message[1024];
 
          sprintf(message,"LOG:%s",line);
          int ret = mea_socket_send(&nodejs_socket, message);

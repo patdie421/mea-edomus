@@ -198,6 +198,7 @@ mea_error_t clear_queue(queue_t *queue,free_data_f f)
 mea_error_t current_queue(queue_t *queue, void **data)
 {
    if(!queue)
+   
       return ERROR;
 
    if(!queue->current)

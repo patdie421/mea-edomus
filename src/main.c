@@ -51,11 +51,8 @@ int logServer_monitoring_id=-1;
 int pythonPluginServer_monitoring_id=-1;
 int dbServer_monitoring_id=-1;
 
-//tomysqldb_md_t *myd=NULL;                  /*!< descripteur mysql. Variable globale car doit être accessible par les gestionnaires de signaux. */
 queue_t *interfaces=NULL;                  /*!< liste (file) des interfaces. Variable globale car doit être accessible par les gestionnaires de signaux. */
 sqlite3 *sqlite3_param_db=NULL;            /*!< descripteur pour la base sqlite de paramétrage. Variable globale car doit être accessible par les gestionnaires de signaux. */
-//pthread_t *xPLServer_thread=NULL;          /*!< Adresse du thread du serveur xPL. Variable globale car doit être accessible par les gestionnaires de signaux.*/
-//pthread_t *pythonPluginServer_thread=NULL; /*!< Adresse du thread Python. Variable globale car doit être accessible par les gestionnaires de signaux.*/
 pthread_t *monitoringServer_thread=NULL;   /*!< Adresse du thread de surveillance interne. Variable globale car doit être accessible par les gestionnaires de signaux.*/
 
 char *params_names[MAX_LIST_SIZE];          /*!< liste des noms (chaines) de paramètres dans la base sqlite3 de paramétrage.*/
@@ -63,12 +60,6 @@ char *params_list[MAX_LIST_SIZE];          /*!< liste des valeurs de paramètres
 
 pid_t automator_pid = 0;
 int main_monitoring_id = -1;
-
-
-//queue_t * get_interfaces()
-//{
-//   return interfaces;
-//}
 
 
 void usage(char *cmd)
@@ -750,14 +741,7 @@ int main(int argc, const char * argv[])
    //
    // initialisation du gestionnaire de process
    //
-   init_monitored_processes_list(40);
-
-//   monitoringServer_thread=start_monitoringServer(params_list);
-//   if(!monitoringServer_thread)
-//   {
-//      VERBOSE(1) fprintf (stderr, "%s (%s) : can't start monitoring server\n",ERROR_STR,__func__);
-//      clean_all_and_exit();
-//   }
+   init_monitored_processes(40);
 
    //   
    // demarrage du processus de l'automate
@@ -777,6 +761,8 @@ int main(int argc, const char * argv[])
    struct dbServerData_s dbServerData;
    dbServerData.params_list=params_list;
    dbServer_monitoring_id=process_register("DBSERVER");
+   
+   VERBOSE(9) fprintf (stderr, "%s  (%s) : starting DBSERVER\n",INFO_STR,__func__);
    process_set_start_stop(dbServer_monitoring_id, start_dbServer, stop_dbServer, (void *)(&dbServerData), 1);
    if(!_b)
    {
@@ -786,27 +772,21 @@ int main(int argc, const char * argv[])
          clean_all_and_exit();
       }
    }
-
-//   if(!_b)
-//   {
-//      myd=start_dbServer(params_list, sqlite3_param_db); // initialisation de la communication avec la base MySQL
-//      if(!myd)
-//      {
-//         VERBOSE(1) fprintf (stderr, "%s (%s) : can't start database server\n",ERROR_STR,__func__);
-//         clean_all_and_exit();
-//      }
-//   }
+   VERBOSE(9) fprintf (stderr, "%s  (%s) : DBSERVER started\n",INFO_STR,__func__);
 
    struct pythonPluginServerData_s pythonPluginServerData;
    pythonPluginServerData.params_list=params_list;
    pythonPluginServerData.sqlite3_param_db=sqlite3_param_db;
    pythonPluginServer_monitoring_id=process_register("PYTHONPLUGINSERVER");
+   
+   VERBOSE(9) fprintf (stderr, "%s  (%s) : starting PYTHONPLUGINSERVER\n",INFO_STR,__func__);
    process_set_start_stop(pythonPluginServer_monitoring_id , start_pythonPluginServer, stop_pythonPluginServer, (void *)(&pythonPluginServerData), 1);
    if(process_start(pythonPluginServer_monitoring_id)<0)
    {
       VERBOSE(1) fprintf (stderr, "%s (%s) : can't start python plugin server\n",ERROR_STR,__func__);
       clean_all_and_exit();
    }
+   VERBOSE(9) fprintf (stderr, "%s  (%s) : PYTHONPLUGINSERVER started\n",INFO_STR,__func__);
    
    interfaces=start_interfaces(params_list, sqlite3_param_db, dbServer_get_md()); // démarrage des interfaces
 
@@ -815,29 +795,38 @@ int main(int argc, const char * argv[])
    xplServerData.sqlite3_param_db=sqlite3_param_db;
    xplServer_monitoring_id=process_register("XPLSERVER");
    process_set_start_stop(xplServer_monitoring_id , start_xPLServer, stop_xPLServer, (void *)(&xplServerData), 1);
+
+   VERBOSE(9) fprintf (stderr, "%s  (%s) : starting XPLSERVER\n",INFO_STR,__func__);
    if(process_start(xplServer_monitoring_id)<0)
    {
       VERBOSE(1) fprintf (stderr, "%s (%s) : can't start xpl server\n",ERROR_STR,__func__);
       clean_all_and_exit();
    }
+   VERBOSE(9) fprintf (stderr, "%s  (%s) : XPLSERVER started\n",INFO_STR,__func__);
 
    struct httpServerData_s httpServerData;
    httpServerData.params_list=params_list;
    httpServer_monitoring_id=process_register("GUISERVER");
    process_set_start_stop(httpServer_monitoring_id , start_guiServer, stop_guiServer, (void *)(&httpServerData), 1);
+   
+   VERBOSE(9) fprintf (stderr, "%s  (%s) : starting GUISERVER\n",INFO_STR,__func__);
    if(process_start(httpServer_monitoring_id)<0)
    {
       VERBOSE(1) fprintf (stderr, "%s (%s) : can't start gui server\n",ERROR_STR,__func__);
    }
+   VERBOSE(9) fprintf (stderr, "%s  (%s) : GUISERVER started\n",INFO_STR,__func__);
 
    struct logServerData_s logServerData;
    logServerData.params_list=params_list;
    logServer_monitoring_id=process_register("LOGSERVER");
+   
+   VERBOSE(9) fprintf (stderr, "%s  (%s) : starting LOGSERVER\n",INFO_STR,__func__);
    process_set_start_stop(logServer_monitoring_id , start_logServer, stop_logServer, (void *)(&logServerData), 1);
    if(process_start(logServer_monitoring_id)<0)
    {
-      VERBOSE(1) fprintf (stderr, "%s (%s) : can't start gui server\n",ERROR_STR,__func__);
+      VERBOSE(1) fprintf (stderr, "%s (%s) : can't start log server\n",ERROR_STR,__func__);
    }
+   VERBOSE(9) fprintf (stderr, "%s  (%s) : LOGSERVER started\n",INFO_STR,__func__);
 
 
    time_t start_time;
@@ -848,7 +837,8 @@ int main(int argc, const char * argv[])
    DEBUG_SECTION fprintf(stderr,"MEA-EDOMUS %s starded\n",__MEA_EDOMUS_VERSION__);
 
    main_monitoring_id=process_register("MAIN");
-   process_set_not_managed(main_monitoring_id);
+   process_set_type(main_monitoring_id, NOTMANAGED);
+   process_set_status(main_monitoring_id, RUNNING);
    process_add_indicator(main_monitoring_id, "UPTIME", 0);
 
    // boucle sans fin.

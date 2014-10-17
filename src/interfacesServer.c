@@ -19,6 +19,8 @@
 #include "debug.h"
 #include "xPL.h"
 
+#include "monitoringServer.h"
+
 #include "interfacesServer.h"
 #include "interface_type_001.h"
 #include "interface_type_002.h"
@@ -185,7 +187,7 @@ void stop_interfaces()
 
                if(i001->monitoring_id!=-1)
                {
-                  struct interface_type_001_Data_s *interface_type_001Data = process_getDataPtr(i001->monitoring_id);
+                  struct interface_type_001_Data_s *interface_type_001Data = process_get_data_ptr(i001->monitoring_id);
 
                   VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping %s... ",INFO_STR,__func__,i001->name);
                   process_stop(i001->monitoring_id);
@@ -194,7 +196,7 @@ void stop_interfaces()
                   if(interface_type_001Data)
                   {
                      free(interface_type_001Data);
-                     interface_type_001_Data=NULL;
+                     interface_type_001Data=NULL;
                   }
                   VERBOSE(9) fprintf(stderr,"done\n");
                } 
@@ -242,8 +244,8 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db, tomysql
    interfaces_queue_elem_t *iq;
 
    pthread_mutex_init(&interfaces_queue_lock, NULL);
-
-
+   
+   sprintf(sql,"SELECT * FROM interfaces");
    ret = sqlite3_prepare_v2(sqlite3_param_db,sql,strlen(sql)+1,&stmt,NULL);
    if(ret)
    {
@@ -267,7 +269,6 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db, tomysql
    }
 
    init_queue(_interfaces);
-   sprintf(sql,"SELECT * FROM interfaces");
    while (1)
    {
       int s = sqlite3_step (stmt); // sqlite function need int
@@ -306,7 +307,7 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db, tomysql
                   }
 
                   struct interface_type_001_Data_s *interface_type_001Data=(struct interface_type_001_Data_s *)malloc(sizeof(struct interface_type_001_Data_s));
-                  if(!interface_type_001_Data)
+                  if(!interface_type_001Data)
                   {
                      free(i001);
                      VERBOSE(2) {
@@ -316,18 +317,19 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db, tomysql
                      break;
                   } 
                   
-
-                  strncpy(i001->name, name, sizeof(i001->name)-1);
                   interface_type_001Data->i001=i001;
                   interface_type_001Data->sqlite3_param_db = sqlite3_param_db;
                   interface_type_001Data->id_interface = id_interface;
-                  interface_type_001Data->dev = dev;
                   interface_type_001Data->myd = myd;
+                  strncpy(interface_type_001Data->dev, (char *)dev, sizeof(interface_type_001Data->dev)-1);
 
-                  i001->monitoring_id=process_register(name);
+                  strncpy(i001->name, (char *)name, sizeof(i001->name)-1);
+                  i001->loaded=0;
+                  i001->monitoring_id=process_register((char *)name);
+                  process_set_group(i001->monitoring_id, 1);
+                  
                   process_set_start_stop(i001->monitoring_id, start_interface_type_001, stop_interface_type_001, (void *)interface_type_001Data, 1);
-                  ret=process_start(interface_type_001_monitoring_id);
-//                  ret=start_interface_type_001(i001, sqlite3_param_db, id_interface, dev, myd);
+                  ret=process_start(i001->monitoring_id);
                   if(!ret)
                   {
                      iq=(interfaces_queue_elem_t *)malloc(sizeof(interfaces_queue_elem_t));
@@ -443,7 +445,7 @@ void restart_down_interfaces(sqlite3 *sqlite3_param_db, tomysqldb_md_t *myd)
                      i001->xPL_callback=NULL;
                   sleep(1);
                   VERBOSE(9) fprintf(stderr,"%s  (%s) : restart interface type_001 (interface_id=%d).\n", INFO_STR, __func__, i001->id_interface);
-                  restart_interface_type_001(i001, sqlite3_param_db, myd);
+                  restart_interface_type_001(i001->monitoring_id);
                }
                break;
             }
