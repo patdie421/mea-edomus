@@ -22,12 +22,13 @@ typedef int (*process_start_stop_f)(int, void *);
 struct monitored_process_s
 {
    char name[41];
+   int group_id;
    time_t last_heartbeat;
    int heartbeat_interval; // second
    queue_t *indicators_list;
    int type; // 0 = , 1 autorestart, 2 oneshot (start mais pas de stop, ...)
    int enable_autorestart;
-   int status; // started=1, stopped=0, not_managed=2
+   int status; // running=1, stopped=0, not_managed=2
    process_start_stop_f stop;
    process_start_stop_f start;
    void *start_stop_data;
