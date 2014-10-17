@@ -472,3 +472,25 @@ int process_set_not_managed(int id)
    
    return 0;
 }
+
+
+void* process_getDataPtr(int id)
+{
+   void *ptr;
+
+   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(monitored_processes.lock) );
+   pthread_mutex_lock(&(monitored_processes.lock));
+
+   if(monitored_processes.processes_table[id])
+   {
+      ptr=monitored_processes.processes_table[id]->start_stop_data;
+   }
+
+   pthread_mutex_unlock(&monitored_processes.lock);
+   pthread_cleanup_pop(0); 
+
+   return ptr;
+}
+
+
+
