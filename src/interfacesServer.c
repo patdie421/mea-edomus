@@ -128,7 +128,7 @@ void dispatchXPLMessageToInterfaces(xPL_ServicePtr theService, xPL_MessagePtr th
             case INTERFACE_TYPE_001:
             {
                interface_type_001_t *i001 = (interface_type_001_t *)(iq->context);
-               if(i001->xPL_callback)
+               if(i001->monitoring_id>-1 && process_is_running(i001->monitoring_id) && i001->xPL_callback)
                   i001->xPL_callback(theService, theMessage, (xPL_ObjectPtr)i001);
                break;
             }
@@ -157,7 +157,80 @@ void dispatchXPLMessageToInterfaces(xPL_ServicePtr theService, xPL_MessagePtr th
 queue_t * get_interfaces()
 {
    return _interfaces;
-}  
+}
+
+
+void stop_interfaces()
+{
+   interfaces_queue_elem_t *iq;
+
+   pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&interfaces_queue_lock);
+   pthread_mutex_lock(&interfaces_queue_lock);
+
+   if(_interfaces && _interfaces->nb_elem)
+   {
+      first_queue(_interfaces);
+      while(_interfaces->nb_elem)
+      {
+         out_queue_elem(_interfaces, (void **)&iq);
+         switch (iq->type)
+         {
+            case INTERFACE_TYPE_001:
+            {
+               interface_type_001_t *i001=(interface_type_001_t *)(iq->context);
+               VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping #%d\n",INFO_STR,__func__,i001->id_interface);
+               
+               if(i001->xPL_callback)
+                  i001->xPL_callback=NULL;
+
+               if(i001->monitoring_id!=-1)
+               {
+                  struct interface_type_001_Data_s *interface_type_001Data = process_getDataPtr(i001->monitoring_id);
+
+                  VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping %s... ",INFO_STR,__func__,i001->name);
+                  process_stop(i001->monitoring_id);
+                  process_unregister(i001->monitoring_id);
+                  i001->monitoring_id=-1;
+                  if(interface_type_001Data)
+                  {
+                     free(interface_type_001Data);
+                     interface_type_001_Data=NULL;
+                  }
+                  VERBOSE(9) fprintf(stderr,"done\n");
+               } 
+
+               // stop_interface_type_001(i001);
+               free(i001);
+               i001=NULL;
+               break;
+            }
+            case INTERFACE_TYPE_002:
+            {
+               interface_type_002_t *i002=(interface_type_002_t *)(iq->context);
+               VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping #%d\n",INFO_STR,__func__,i002->id_interface);
+               if(i002->xPL_callback)
+                  i002->xPL_callback=NULL;
+               stop_interface_type_002(i002);
+               free(i002);
+               i002=NULL;
+               break;
+            }
+         
+            default:
+               break;
+         }
+         free(iq);
+         iq=NULL;
+      }
+      free(_interfaces);
+      _interfaces=NULL;
+   }
+   
+   pthread_mutex_unlock(&interfaces_queue_lock);
+   pthread_cleanup_pop(0);
+   
+   return;
+}
 
 
 queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db, tomysqldb_md_t *myd)
@@ -165,7 +238,6 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db, tomysql
    char sql[255];
    sqlite3_stmt * stmt;
    int16_t ret;
-   //   queue_t *interfaces;
    int sortie=0;
    interfaces_queue_elem_t *iq;
 
@@ -205,10 +277,12 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db, tomysql
          int16_t id_type;
          const unsigned char *dev;
          const unsigned char *parameters;
+         const unsigned char *name;
          int16_t state;
          
          id_interface = sqlite3_column_int(stmt, 1);
          id_type = sqlite3_column_int(stmt, 2);
+         name = sqlite3_column_text(stmt, 3);
          dev = sqlite3_column_text(stmt, 5);
          parameters = sqlite3_column_text(stmt, 6);
          state = sqlite3_column_int(stmt, 7);
@@ -226,11 +300,34 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db, tomysql
                   {
                      VERBOSE(2) {
                         fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
-                        perror(""); }
+                        perror("");
+                     }
                      break;
                   }
-                  i001->id_interface=id_interface;
-                  ret=start_interface_type_001(i001, sqlite3_param_db, id_interface, dev, myd);
+
+                  struct interface_type_001_Data_s *interface_type_001Data=(struct interface_type_001_Data_s *)malloc(sizeof(struct interface_type_001_Data_s));
+                  if(!interface_type_001_Data)
+                  {
+                     free(i001);
+                     VERBOSE(2) {
+                        fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
+                        perror("");
+                     }
+                     break;
+                  } 
+                  
+
+                  strncpy(i001->name, name, sizeof(i001->name)-1);
+                  interface_type_001Data->i001=i001;
+                  interface_type_001Data->sqlite3_param_db = sqlite3_param_db;
+                  interface_type_001Data->id_interface = id_interface;
+                  interface_type_001Data->dev = dev;
+                  interface_type_001Data->myd = myd;
+
+                  i001->monitoring_id=process_register(name);
+                  process_set_start_stop(i001->monitoring_id, start_interface_type_001, stop_interface_type_001, (void *)interface_type_001Data, 1);
+                  ret=process_start(interface_type_001_monitoring_id);
+//                  ret=start_interface_type_001(i001, sqlite3_param_db, id_interface, dev, myd);
                   if(!ret)
                   {
                      iq=(interfaces_queue_elem_t *)malloc(sizeof(interfaces_queue_elem_t));
@@ -244,6 +341,8 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db, tomysql
                         fprintf (stderr, "%s (%s) : start_interface_type_001 - can't start interface (%d).\n",ERROR_STR,__func__,id_interface);
                      }
                      free(i001);
+                     free(interface_type_001Data);
+                     interface_type_001Data=NULL;
                      i001=NULL;
                   }
                   break;
@@ -315,57 +414,6 @@ start_interfaces_clean_exit:
    }
 
    return _interfaces;
-}
-
-
-void stop_interfaces()
-{
-   interfaces_queue_elem_t *iq;
-
-   pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&interfaces_queue_lock);
-   pthread_mutex_lock(&interfaces_queue_lock);
-
-   if(_interfaces && _interfaces->nb_elem)
-   {
-      first_queue(_interfaces);
-      while(_interfaces->nb_elem)
-      {
-         out_queue_elem(_interfaces, (void **)&iq);
-         switch (iq->type)
-         {
-            case INTERFACE_TYPE_001:
-            {
-               interface_type_001_t *i001=(interface_type_001_t *)(iq->context);
-               VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping #%d\n",INFO_STR,__func__,i001->id_interface);
-               if(i001->xPL_callback)
-                  i001->xPL_callback=NULL;
-               stop_interface_type_001(i001);
-               break;
-            }
-            case INTERFACE_TYPE_002:
-            {
-               interface_type_002_t *i002=(interface_type_002_t *)(iq->context);
-               VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping #%d\n",INFO_STR,__func__,i002->id_interface);
-               if(i002->xPL_callback)
-                  i002->xPL_callback=NULL;
-               stop_interface_type_002(i002);
-               break;
-            }
-         
-            default:
-               break;
-         }
-         free(iq);
-         iq=NULL;
-      }
-      free(_interfaces);
-      _interfaces=NULL;
-   }
-   
-   pthread_mutex_unlock(&interfaces_queue_lock);
-   pthread_cleanup_pop(0);
-   
-   return;
 }
 
 

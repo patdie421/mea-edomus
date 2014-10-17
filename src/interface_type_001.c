@@ -110,111 +110,6 @@ int16_t interface_type_001_xPL_callback(xPL_ServicePtr theService, xPL_MessagePt
 }
 
 
-mea_error_t stop_interface_type_001(interface_type_001_t *i001)
-{
-
-//   comio2_remove_all_traps(i001->ad);
-
-   queue_t *counters_list=i001->counters_list;
-   struct electricity_counter_s *counter;
-
-   queue_t *sensors_list=i001->sensors_list;
-   struct sensor_s *sensor;
-
-   queue_t *actuators_list=i001->actuators_list;
-   struct actuator_s *actuator;
-
-   VERBOSE(9) fprintf(stderr,"%s  (%s) : shutdown thread ... ",INFO_STR,__func__);
-   
-   first_queue(counters_list);
-   while(counters_list->nb_elem)
-   {
-      out_queue_elem(counters_list, (void **)&counter);
-      free(counter);
-      counter=NULL;
-   }
-
-   first_queue(sensors_list);
-   while(sensors_list->nb_elem)
-   {
-      out_queue_elem(sensors_list, (void **)&sensor);
-      free(sensor);
-      sensor=NULL;
-   }
-   
-   first_queue(actuators_list);
-   while(actuators_list->nb_elem)
-   {
-      out_queue_elem(actuators_list, (void **)&actuator);
-      free(actuator);
-      actuator=NULL;
-   }
-   
-   if(i001->thread)
-   {
-      pthread_cancel(*(i001->thread));
-      pthread_join(*(i001->thread), NULL);
-      FREE(i001->thread);
-      i001->thread=NULL;
-   }
-   
-   comio2_close(i001->ad);
-
-   FREE(i001->ad);
-   FREE(i001->counters_list);
-   FREE(i001->sensors_list);
-   FREE(i001->actuators_list);
-   
-   VERBOSE(9) fprintf(stderr,"done.\n");
-   
-   return NOERROR;
-}
-
-
-mea_error_t restart_interface_type_001(interface_type_001_t *i001,sqlite3 *db, tomysqldb_md_t *md)
-{
-   char full_dev[80];
-   char dev[80];
-   uint32_t id_interface;
-   int ret;
-   
-   sscanf(i001->ad->serial_dev_name,"/dev/%s",full_dev);
-   sprintf(dev,"SERIAL://%s:%ld",full_dev,(long)get_speed_from_speed_t(i001->ad->speed));
-   
-   id_interface=i001->id_interface;
-   
-   stop_interface_type_001(i001);
-   sleep(5);
-   ret=start_interface_type_001(i001, db, id_interface, (const unsigned char *)dev, md);
-
-   return ret;
-}
-
-
-void *_thread_interface_type_001(void *args)
-{
-   struct thread_interface_type_001_params_s *params=(struct thread_interface_type_001_params_s *)args;
-   
-   interface_type_001_t *i001=params->it001;
-   tomysqldb_md_t *md=params->md;
-   free(params);
-   params=NULL;
-
-   interface_type_001_counters_init(i001);
-   interface_type_001_sensors_init(i001);
-
-   uint32_t cntr=0;
-   while(1)
-   {
-      interface_type_001_counters_poll_inputs(i001, md);
-      interface_type_001_sensors_poll_inputs(i001, md);
-      cntr++;
-      sleep(5);
-   }
-   pthread_testcancel();
-}
-
-
 int16_t check_status_interface_type_001(interface_type_001_t *i001)
 {
    if(i001->ad->signal_flag!=0)
@@ -224,39 +119,19 @@ int16_t check_status_interface_type_001(interface_type_001_t *i001)
 }
 
 
-mea_error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, int id_interface, const unsigned char *dev, tomysqldb_md_t *md)
+int load_interface_type_001(interface_type_001_t *i001, int id_interface, sqlite3 *db)
 {
-   int16_t ret;
-   
-   char sql_request[255];
-   char real_dev[80];
-   char buff[80];
-   speed_t speed;
-   int fd = 0;
    sqlite3_stmt * stmt;
-   comio2_ad_t *ad=NULL;
-   
-   pthread_t *counters_thread=NULL; // descripteur du thread
-   struct thread_interface_type_001_params_s *params=NULL; // parametre à transmettre au thread
-   
+   int16_t nb_sensors_actuators=0;
+
    // préparation des éléments de contexte de l'interface
    i001->id_interface=id_interface;
    i001->xPL_callback=NULL;
    i001->counters_list=NULL;
    i001->sensors_list=NULL;
    i001->actuators_list=NULL;
+   i001->loaded=0;
 
-
-   ret=get_dev_and_speed((char *)dev, buff, sizeof(buff), &speed);
-   if(!ret)
-      sprintf(real_dev,"/dev/%s",buff);
-   else
-   {
-      VERBOSE(2) fprintf (stderr, "%s (%s) : unknow interface device - %s\n", ERROR_STR,__func__,dev);
-      return ERROR;
-   }
-   
-   
    // initialisation de la liste des capteurs de type compteur
    i001->counters_list=(queue_t *)malloc(sizeof(queue_t));
    if(!i001->counters_list)
@@ -265,7 +140,7 @@ mea_error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, in
          fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
          perror("");
       }
-      goto start_interface_type_001_clean_exit;
+      goto load_interface_type_001_clean_exit;
    }
    init_queue(i001->counters_list);
    
@@ -277,7 +152,7 @@ mea_error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, in
       VERBOSE(2) {
          fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
          perror(""); }
-      goto start_interface_type_001_clean_exit;
+      goto load_interface_type_001_clean_exit;
    }
    init_queue(i001->actuators_list);
 
@@ -289,7 +164,7 @@ mea_error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, in
       VERBOSE(2) {
          fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
          perror(""); }
-      goto start_interface_type_001_clean_exit;
+      goto load_interface_type_001_clean_exit;
    }
    init_queue(i001->sensors_list);
 
@@ -300,11 +175,10 @@ mea_error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, in
    if(ret)
    {
       VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg (db));
-      goto start_interface_type_001_clean_exit;
+      goto load_interface_type_001_clean_exit;
    }
    
    // récupération des parametrages des capteurs dans la base
-   int16_t nb_sensors_actuators=0;
    while (1) // boucle de traitement du résultat de la requete
    {
       int s=sqlite3_step(stmt);
@@ -367,13 +241,179 @@ mea_error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, in
       {
          // traitement d'erreur à faire ici
          sqlite3_finalize(stmt);
-         goto start_interface_type_001_clean_exit;
+         goto load_interface_type_001_clean_exit;
       }
    }
-   
-   // si on a trouvé une config
-   if(nb_sensors_actuators)
+   i001->loaded=1;
+   return nb_sensors_actuators;
+
+load_interface_type_001_clean_exit:
+   clean_interface_type_001(i001);
+   return -1;
+}
+
+
+int clean_interface_type_001(interface_type_001_t *i001)
+{
+   if(i001==NULL)
+      return 0;
+
+   if(i001->counter_list) 
    {
+      struct counter_s *counter;
+      first_queue(i001->counters_list);
+      while(counters_list->nb_elem)
+      {
+         out_queue_elem(i001->counters_list, (void **)&counter);
+         free(counter);
+         counter=NULL;
+      }
+      FREE(i001->counters_list);
+   }
+
+   if(i001->sensor_list)
+   {
+      struct sensor_s *sensor;
+      first_queue(i001->sensors_list);
+      while(i001->sensors_list->nb_elem)
+      {
+         out_queue_elem(i001->sensors_list, (void **)&sensor);
+         free(sensor);
+         sensor=NULL;
+      } 
+      FREE(i001->sensors_list);
+   }
+
+   if(ai001->ctuators_list)
+   {
+      struct actuator_s *actuator;
+      first_queue(i001->actuators_list);
+      while(i001->actuators_list->nb_elem)
+      {
+         out_queue_elem(i001->actuators_list, (void **)&actuator);
+         free(actuator);
+         actuator=NULL;
+      }
+      FREE(i001->actuators_list);
+   }
+   i001->loaded=0;
+}
+
+
+void *_thread_interface_type_001(void *args)
+{
+   struct thread_interface_type_001_params_s *params=(struct thread_interface_type_001_params_s *)args;
+   
+   interface_type_001_t *i001=params->it001;
+   tomysqldb_md_t *md=params->md;
+   free(params);
+   params=NULL;
+
+   interface_type_001_counters_init(i001);
+   interface_type_001_sensors_init(i001);
+
+   uint32_t cntr=0;
+   while(1)
+   {
+      process_heartbeat(i001->monitoring_id);
+
+      interface_type_001_counters_poll_inputs(i001, md);
+      interface_type_001_sensors_poll_inputs(i001, md);
+      cntr++;
+      sleep(5);
+   }
+   pthread_testcancel();
+}
+
+/*
+mea_error_t restart_interface_type_001(interface_type_001_t *i001,sqlite3 *db, tomysqldb_md_t *md)
+{
+   char full_dev[80];
+   char dev[80];
+   uint32_t id_interface;
+   int ret;
+   
+   sscanf(i001->ad->serial_dev_name,"/dev/%s",full_dev);
+   sprintf(dev,"SERIAL://%s:%ld",full_dev,(long)get_speed_from_speed_t(i001->ad->speed));
+   
+   id_interface=i001->id_interface;
+   
+   stop_interface_type_001(i001);
+   sleep(5);
+   ret=start_interface_type_001(i001, db, id_interface, (const unsigned char *)dev, md);
+
+   return ret;
+}
+*/
+int restart_interface_type_001(int id)
+{
+   process_stop(id);
+   sleep(5);
+   return process_start(id);
+}
+
+
+//mea_error_t stop_interface_type_001(interface_type_001_t *i001)
+int stop_interface_type_001(int my_id, void *data)
+{
+   struct interface_type_001_Data_s *interface_type_001Data=(struct interface_type_001_Data_s *)data;
+   if(!data)
+      return -1;
+
+   VERBOSE(9) fprintf(stderr,"%s  (%s) : shutdown thread ... ",INFO_STR,__func__);
+
+   if(interface_type_001Data->i001->thread)
+   {
+      pthread_cancel(*(interface_type_001Data->i001->thread));
+      pthread_join(*(interface_type_001Data->i001->thread), NULL);
+      FREE(interface_type_001Data->i001->thread);
+      interface_type_001Data->i001->thread=NULL;
+   }
+   
+   comio2_close(interface_type_001Data->i001->ad);
+   FREE(interface_type_001Data->i001->ad);
+   interface_type_001Data->i001->ad=NULL;
+   VERBOSE(9) fprintf(stderr,"done.\n");
+   
+   return 0;
+}
+
+
+//mea_error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, int id_interface, const unsigned char *dev, tomysqldb_md_t *md)
+int start_interface_type_001(int my_id, void *data)
+{
+   int16_t ret;
+   
+   char sql_request[255];
+   char real_dev[80];
+   char buff[80];
+   speed_t speed;
+   int fd = 0;
+   sqlite3_stmt * stmt;
+   comio2_ad_t *ad=NULL;
+   
+   struct interface_type_001_Data_s *interface_type_001Data=(struct interface_type_001_Data_s *)data;
+
+   pthread_t *counters_thread=NULL; // descripteur du thread
+   struct thread_interface_type_001_params_s *params=NULL; // parametre à transmettre au thread
+
+   if(i001->interface_type_001Data->loaded!=1)
+   {
+      load_interface_type_001(interface_type_001Data->i001, interface_type_001Data->id_interfaces, interface_type_001Data->sqlite3_param_db);
+   }
+
+   // si on a trouvé une config
+   if(interface_type_001Data->i001->loaded==1)
+   {
+      ret=get_dev_and_speed((char *)interface_type_001Data->dev, buff, sizeof(buff), &speed);
+      if(!ret)
+         sprintf(real_dev,"/dev/%s",buff);
+      else
+      {
+         VERBOSE(2) fprintf (stderr, "%s (%s) : unknow interface device - %s\n", ERROR_STR,__func__,dev);
+         return ERROR;
+      }
+
       ad=(comio2_ad_t *)malloc(sizeof(comio2_ad_t));
       if(!ad)
       {
@@ -401,20 +441,20 @@ mea_error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, in
       goto start_interface_type_001_clean_exit;
    }
    
-   i001->ad=ad;
+   interface_type_001Data->i001->ad=ad;
    
    params=malloc(sizeof(struct thread_interface_type_001_params_s));
    if(!params)
       goto start_interface_type_001_clean_exit;
    
-   params->it001=i001;
-   params->md=md;
+   params->it001=interface_type_001Data->i001;
+   params->md=interface_type_001Data->myd;
    
    counters_thread=(pthread_t *)malloc(sizeof(pthread_t));
    if(!counters_thread)
       goto start_interface_type_001_clean_exit;
    
-   i001->xPL_callback=interface_type_001_xPL_callback;
+   interface_type_001Data->i001->xPL_callback=interface_type_001_xPL_callback;
 
    if(pthread_create (counters_thread, NULL, _thread_interface_type_001, (void *)params))
    {
@@ -422,7 +462,7 @@ mea_error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, in
       goto start_interface_type_001_clean_exit;
    }
    
-   i001->thread=counters_thread;
+   interface_type_001Data->i001->thread=counters_thread;
    
    return NOERROR;
    
@@ -433,23 +473,9 @@ start_interface_type_001_clean_exit:
       comio2_close(ad);
    if(ad)
       free(ad);
-   if(i001)
+   if(interface_type_001Data->i001)
    {
-      if(i001->counters_list)
-      {
-         clear_queue(i001->counters_list,interface_type_001_free_counters_queue_elem);
-         FREE(i001->counters_list);
-      }
-      if(i001->actuators_list)
-      {
-         clear_queue(i001->actuators_list,_interface_type_001_free_actuators_queue_elem);
-         FREE(i001->actuators_list);
-      }
-      if(i001->sensors_list)
-      {
-         clear_queue(i001->sensors_list,interface_type_001_sensors_free_queue_elem);
-         FREE(i001->sensors_list);
-      }
+      clean_interface_type_001(interface_type_001Data->i001);
    }
    
    return ERROR;

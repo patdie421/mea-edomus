@@ -19,16 +19,30 @@
 
 #include "interface_type_001.h"
 
+
 typedef struct interface_type_001_s
 {
    uint16_t id_interface;
+   char name[41];
    pthread_t  *thread; // thread id
+   int monitoring_id;
    comio2_ad_t *ad; // comio descriptor
    queue_t *counters_list; // counter sensors attach to interface
    queue_t *actuators_list;
    queue_t *sensors_list;
    xpl_f xPL_callback;
 } interface_type_001_t;
+
+
+struct interface_type_001_Data_s
+{
+   interface_type_001_t *i001;
+   sqlite3 *sqlite3_param_db;
+   int16_t id_interface;
+   unsigned char *dev;
+   tomysqldb_md_t *myd;
+};  
+
 
 typedef float (*compute_f)(unsigned int value);
 
