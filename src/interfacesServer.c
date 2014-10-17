@@ -229,8 +229,29 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db, tomysql
                         perror(""); }
                      break;
                   }
-                  i001->id_interface=id_interface;
-                  ret=start_interface_type_001(i001, sqlite3_param_db, id_interface, dev, myd);
+
+                  struct interface_type_001_Data_s *interface_type_001_Data=(struct interface_type_001_Data_s *)malloc(sizeof(struct interface_type_001_Data_s));
+                  if(!interface_type_001_Data)
+                  {
+                     free(i001);
+                     VERBOSE(2) {
+                        fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
+                        perror(""); }
+                     break;
+                  }
+
+                  interface_type_001_Data->i001=i001;
+                  interface_type_001_Data->sqlite3_param_db = sqlite3_param_db;
+                  interface_type_001_Data->id_interface = id_interface;
+                  interface_type_001_Data->dev = dev;
+                  interface_type_001_Data->myd = myd;
+
+                  strncpy(i001->name, name, sizeof(i001->name)-1);
+
+                  i001->monitoring_id=process_register(name);
+                  process_set_start_stop(i001->monitoring_id , start_interface_type_001, stop_interface_type_001, (void *)interface_type_001_Data, 1);
+                  ret=process_start(interface_type_001_monitoring_id);
+//                  ret=start_interface_type_001(i001, sqlite3_param_db, id_interface, dev, myd);
                   if(!ret)
                   {
                      iq=(interfaces_queue_elem_t *)malloc(sizeof(interfaces_queue_elem_t));
@@ -244,6 +265,7 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db, tomysql
                         fprintf (stderr, "%s (%s) : start_interface_type_001 - can't start interface (%d).\n",ERROR_STR,__func__,id_interface);
                      }
                      free(i001);
+                     free(interface_type_001_Data);
                      i001=NULL;
                   }
                   break;
@@ -337,9 +359,29 @@ void stop_interfaces()
             {
                interface_type_001_t *i001=(interface_type_001_t *)(iq->context);
                VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping #%d\n",INFO_STR,__func__,i001->id_interface);
+               
                if(i001->xPL_callback)
                   i001->xPL_callback=NULL;
-               stop_interface_type_001(i001);
+
+               if(i001->monitoring_id!=-1)
+               {
+                  struct interface_type_001_Data_s *interface_type_001_Data = process_getDataPtr(i001->monitoring_id);
+
+                  VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping %s... ",INFO_STR,__func__,i001->name);
+                  process_stop(i001->monitoring_id);
+                  process_unregister(i001->monitoring_id);
+                  i001->monitoring_id=-1;
+                  if(interface_type_001_Data)
+                  {
+                     free(interface_type_001_Data);
+                     interface_type_001_Data=NULL;
+                  }
+                  VERBOSE(9) fprintf(stderr,"done\n");
+               } 
+
+               // stop_interface_type_001(i001);
+               free(i001);
+               i001=NULL;
                break;
             }
             case INTERFACE_TYPE_002:
@@ -349,6 +391,8 @@ void stop_interfaces()
                if(i002->xPL_callback)
                   i002->xPL_callback=NULL;
                stop_interface_type_002(i002);
+               free(i002);
+               i002=NULL;
                break;
             }
          
