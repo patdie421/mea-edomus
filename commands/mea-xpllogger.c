@@ -38,7 +38,7 @@ int16_t displayXPLMsg(xPL_MessagePtr theMessage)
 
    snprintf(xpl_schema,sizeof(xpl_schema),"%s.%s", xPL_getSchemaClass(theMessage), xPL_getSchemaType(theMessage));
 
-   fprintf(stdout, "source = %s, destination = %s, schema = %, body = [",xpl_source, "", xpl_schema);
+   fprintf(stdout, "source = %s, destination = %s, schema = %s, body = [",xpl_source, "", xpl_schema);
 
    xPL_NameValueListPtr xpl_body = xPL_getMessageBody(theMessage);
    int n = xPL_getNamedValueCount(xpl_body);
@@ -57,15 +57,14 @@ int16_t displayXPLMsg(xPL_MessagePtr theMessage)
 
 void xplmsglogger(xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
 {
-   dsplayXPLMsg(theMessage);
+   displayXPLMsg(theMessage);
 }
 
 
 static void _logger_stop(int signal_number)
 {
     exit(0);
-} 
-
+}
 
 
 void logger()
