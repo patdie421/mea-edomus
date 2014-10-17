@@ -110,11 +110,8 @@ int16_t interface_type_001_xPL_callback(xPL_ServicePtr theService, xPL_MessagePt
 }
 
 
-mea_error_t stop_interface_type_001(interface_type_001_t *i001)
+int clean_interface_type_001(interface_type_001_t *i001)
 {
-
-//   comio2_remove_all_traps(i001->ad);
-
    queue_t *counters_list=i001->counters_list;
    struct electricity_counter_s *counter;
 
@@ -124,8 +121,6 @@ mea_error_t stop_interface_type_001(interface_type_001_t *i001)
    queue_t *actuators_list=i001->actuators_list;
    struct actuator_s *actuator;
 
-   VERBOSE(9) fprintf(stderr,"%s  (%s) : shutdown thread ... ",INFO_STR,__func__);
-   
    first_queue(counters_list);
    while(counters_list->nb_elem)
    {
@@ -149,7 +144,17 @@ mea_error_t stop_interface_type_001(interface_type_001_t *i001)
       free(actuator);
       actuator=NULL;
    }
-   
+
+   FREE(i001->counters_list);
+   FREE(i001->sensors_list);
+   FREE(i001->actuators_list);
+}
+
+
+mea_error_t stop_interface_type_001(interface_type_001_t *i001)
+{
+   VERBOSE(9) fprintf(stderr,"%s  (%s) : shutdown thread ... ",INFO_STR,__func__);
+
    if(i001->thread)
    {
       pthread_cancel(*(i001->thread));
@@ -159,12 +164,10 @@ mea_error_t stop_interface_type_001(interface_type_001_t *i001)
    }
    
    comio2_close(i001->ad);
-
    FREE(i001->ad);
-   FREE(i001->counters_list);
-   FREE(i001->sensors_list);
-   FREE(i001->actuators_list);
-   
+
+   clean_interface_type_001(i001);
+
    VERBOSE(9) fprintf(stderr,"done.\n");
    
    return NOERROR;
