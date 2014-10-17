@@ -747,6 +747,9 @@ int main(int argc, const char * argv[])
 
    DEBUG_SECTION fprintf(stderr,"Starting MEA-EDOMUS %s\n",__MEA_EDOMUS_VERSION__);
 
+   //
+   // initialisation du gestionnaire de process
+   //
    init_monitored_processes_list(40);
 
 //   monitoringServer_thread=start_monitoringServer(params_list);
