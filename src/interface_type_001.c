@@ -110,8 +110,144 @@ int16_t interface_type_001_xPL_callback(xPL_ServicePtr theService, xPL_MessagePt
 }
 
 
+int load_interface_type_001(interface_type_001_t *i001, int id_interface, sqlite3 *db)
+{
+   sqlite3_stmt * stmt;
+   int16_t nb_sensors_actuators=0;
+
+   // préparation des éléments de contexte de l'interface
+   i001->id_interface=id_interface;
+   i001->xPL_callback=NULL;
+   i001->counters_list=NULL;
+   i001->sensors_list=NULL;
+   i001->actuators_list=NULL;
+
+   // initialisation de la liste des capteurs de type compteur
+   i001->counters_list=(queue_t *)malloc(sizeof(queue_t));
+   if(!i001->counters_list)
+   {
+      VERBOSE(2) {
+         fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
+         perror("");
+      }
+      goto load_interface_type_001_clean_exit;
+   }
+   init_queue(i001->counters_list);
+   
+   
+   // initialisation de la liste des actionneurs (sorties logiques de l'arduino)
+   i001->actuators_list=(queue_t *)malloc(sizeof(queue_t));
+   if(!i001->actuators_list)
+   {
+      VERBOSE(2) {
+         fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
+         perror(""); }
+      goto load_interface_type_001_clean_exit;
+   }
+   init_queue(i001->actuators_list);
+
+
+   // initialisation de la liste des autres capteurs (entrees logiques et analogiques)
+   i001->sensors_list=(queue_t *)malloc(sizeof(queue_t));
+   if(!i001->sensors_list)
+   {
+      VERBOSE(2) {
+         fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
+         perror(""); }
+      goto load_interface_type_001_clean_exit;
+   }
+   init_queue(i001->sensors_list);
+
+   
+   // préparation de la requete permettant d'obtenir les capteurs associés à l'interface
+   sprintf(sql_request,"SELECT * FROM sensors_actuators WHERE id_interface=%d", id_interface);
+   ret = sqlite3_prepare_v2(db,sql_request,strlen(sql_request)+1,&stmt,NULL);
+   if(ret)
+   {
+      VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg (db));
+      goto load_interface_type_001_clean_exit;
+   }
+   
+   // récupération des parametrages des capteurs dans la base
+   while (1) // boucle de traitement du résultat de la requete
+   {
+      int s=sqlite3_step(stmt);
+      if (s==SQLITE_ROW)
+      {
+         // les valeurs dont ont a besoin
+         int id_sensor_actuator=sqlite3_column_int(stmt, 1);
+         int id_type=sqlite3_column_int(stmt, 2);
+         const unsigned char *name=sqlite3_column_text(stmt, 4);
+         const unsigned char *parameters=sqlite3_column_text(stmt, 7);
+         
+         switch (id_type)
+         {
+            case 1000: // capteur de type compteur
+            {
+               struct electricity_counter_s *counter;
+               counter=interface_type_001_sensors_valid_and_malloc_counter(id_sensor_actuator, (char *)name, (char *)parameters);
+               if(counter)
+               {
+                  counter->power=0.0;
+                  counter->counter=0;
+                  counter->last_power=0.0;
+                  counter->last_counter=0;
+                  in_queue_elem(i001->counters_list, counter);
+               }
+               nb_sensors_actuators++;
+               break;
+            }
+               
+            case 1002: // relais
+            {
+               struct actuator_s *actuator;
+               actuator=valid_and_malloc_actuator(id_sensor_actuator, (char *)name, (char *)parameters);
+               if(actuator)
+                  in_queue_elem(i001->actuators_list, actuator);
+               nb_sensors_actuators++;
+               break;
+            }
+            
+            case 1001: // entrées
+            {
+               struct sensor_s *sensor;
+               sensor=interface_type_001_sensors_valid_and_malloc_sensor(id_sensor_actuator, (char *)name, (char *)parameters);
+               if(sensor)
+                  in_queue_elem(i001->sensors_list, sensor);
+               nb_sensors_actuators++;
+               break;
+            }
+
+            default:
+               break;
+         }
+      }
+      else if (s==SQLITE_DONE)
+      {
+         sqlite3_finalize(stmt);
+         break;
+      }
+      else
+      {
+         // traitement d'erreur à faire ici
+         sqlite3_finalize(stmt);
+         goto load_interface_type_001_clean_exit;
+      }
+   }
+
+   return nb_sensors_actuators;
+
+load_interface_type_001_clean_exit:
+   clean_interface_type_001(i001);
+   return -1;
+}
+
+
 int clean_interface_type_001(interface_type_001_t *i001)
 {
+   if(i001==NULL)
+      return 0;
+
    queue_t *counters_list=i001->counters_list;
    struct electricity_counter_s *counter;
 
@@ -121,33 +257,41 @@ int clean_interface_type_001(interface_type_001_t *i001)
    queue_t *actuators_list=i001->actuators_list;
    struct actuator_s *actuator;
 
-   first_queue(counters_list);
-   while(counters_list->nb_elem)
+   if(counter_list) 
    {
-      out_queue_elem(counters_list, (void **)&counter);
-      free(counter);
-      counter=NULL;
+      first_queue(counters_list);
+      while(counters_list->nb_elem)
+      {
+         out_queue_elem(counters_list, (void **)&counter);
+         free(counter);
+         counter=NULL;
+      }
+      FREE(i001->counters_list);
    }
 
-   first_queue(sensors_list);
-   while(sensors_list->nb_elem)
+   if(sensor_list)
    {
-      out_queue_elem(sensors_list, (void **)&sensor);
-      free(sensor);
-      sensor=NULL;
-   }
-   
-   first_queue(actuators_list);
-   while(actuators_list->nb_elem)
-   {
-      out_queue_elem(actuators_list, (void **)&actuator);
-      free(actuator);
-      actuator=NULL;
+      first_queue(sensors_list);
+      while(sensors_list->nb_elem)
+      {
+         out_queue_elem(sensors_list, (void **)&sensor);
+         free(sensor);
+         sensor=NULL;
+      } 
+      FREE(i001->sensors_list);
    }
 
-   FREE(i001->counters_list);
-   FREE(i001->sensors_list);
-   FREE(i001->actuators_list);
+   if(actuators_list)
+   {
+      first_queue(actuators_list);
+      while(actuators_list->nb_elem)
+      {
+         out_queue_elem(actuators_list, (void **)&actuator);
+         free(actuator);
+         actuator=NULL;
+      }
+      FREE(i001->actuators_list);
+   }
 }
 
 
@@ -241,142 +385,21 @@ mea_error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, in
    
    pthread_t *counters_thread=NULL; // descripteur du thread
    struct thread_interface_type_001_params_s *params=NULL; // parametre à transmettre au thread
-   
-   // préparation des éléments de contexte de l'interface
-   i001->id_interface=id_interface;
-   i001->xPL_callback=NULL;
-   i001->counters_list=NULL;
-   i001->sensors_list=NULL;
-   i001->actuators_list=NULL;
 
+   int nb_sensors_actuators=load_interface_type_001(i001, id_interfaces);
 
-   ret=get_dev_and_speed((char *)dev, buff, sizeof(buff), &speed);
-   if(!ret)
-      sprintf(real_dev,"/dev/%s",buff);
-   else
-   {
-      VERBOSE(2) fprintf (stderr, "%s (%s) : unknow interface device - %s\n", ERROR_STR,__func__,dev);
-      return ERROR;
-   }
-   
-   
-   // initialisation de la liste des capteurs de type compteur
-   i001->counters_list=(queue_t *)malloc(sizeof(queue_t));
-   if(!i001->counters_list)
-   {
-      VERBOSE(2) {
-         fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
-         perror("");
-      }
-      goto start_interface_type_001_clean_exit;
-   }
-   init_queue(i001->counters_list);
-   
-   
-   // initialisation de la liste des actionneurs (sorties logiques de l'arduino)
-   i001->actuators_list=(queue_t *)malloc(sizeof(queue_t));
-   if(!i001->actuators_list)
-   {
-      VERBOSE(2) {
-         fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
-         perror(""); }
-      goto start_interface_type_001_clean_exit;
-   }
-   init_queue(i001->actuators_list);
-
-
-   // initialisation de la liste des autres capteurs (entrees logiques et analogiques)
-   i001->sensors_list=(queue_t *)malloc(sizeof(queue_t));
-   if(!i001->sensors_list)
-   {
-      VERBOSE(2) {
-         fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
-         perror(""); }
-      goto start_interface_type_001_clean_exit;
-   }
-   init_queue(i001->sensors_list);
-
-   
-   // préparation de la requete permettant d'obtenir les capteurs associés à l'interface
-   sprintf(sql_request,"SELECT * FROM sensors_actuators WHERE id_interface=%d", id_interface);
-   ret = sqlite3_prepare_v2(db,sql_request,strlen(sql_request)+1,&stmt,NULL);
-   if(ret)
-   {
-      VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg (db));
-      goto start_interface_type_001_clean_exit;
-   }
-   
-   // récupération des parametrages des capteurs dans la base
-   int16_t nb_sensors_actuators=0;
-   while (1) // boucle de traitement du résultat de la requete
-   {
-      int s=sqlite3_step(stmt);
-      if (s==SQLITE_ROW)
-      {
-         // les valeurs dont ont a besoin
-         int id_sensor_actuator=sqlite3_column_int(stmt, 1);
-         int id_type=sqlite3_column_int(stmt, 2);
-         const unsigned char *name=sqlite3_column_text(stmt, 4);
-         const unsigned char *parameters=sqlite3_column_text(stmt, 7);
-         
-         switch (id_type)
-         {
-            case 1000: // capteur de type compteur
-            {
-               struct electricity_counter_s *counter;
-               counter=interface_type_001_sensors_valid_and_malloc_counter(id_sensor_actuator, (char *)name, (char *)parameters);
-               if(counter)
-               {
-                  counter->power=0.0;
-                  counter->counter=0;
-                  counter->last_power=0.0;
-                  counter->last_counter=0;
-                  in_queue_elem(i001->counters_list, counter);
-               }
-               nb_sensors_actuators++;
-               break;
-            }
-               
-            case 1002: // relais
-            {
-               struct actuator_s *actuator;
-               actuator=valid_and_malloc_actuator(id_sensor_actuator, (char *)name, (char *)parameters);
-               if(actuator)
-                  in_queue_elem(i001->actuators_list, actuator);
-               nb_sensors_actuators++;
-               break;
-            }
-            
-            case 1001: // entrées
-            {
-               struct sensor_s *sensor;
-               sensor=interface_type_001_sensors_valid_and_malloc_sensor(id_sensor_actuator, (char *)name, (char *)parameters);
-               if(sensor)
-                  in_queue_elem(i001->sensors_list, sensor);
-               nb_sensors_actuators++;
-               break;
-            }
-
-            default:
-               break;
-         }
-      }
-      else if (s==SQLITE_DONE)
-      {
-         sqlite3_finalize(stmt);
-         break;
-      }
-      else
-      {
-         // traitement d'erreur à faire ici
-         sqlite3_finalize(stmt);
-         goto start_interface_type_001_clean_exit;
-      }
-   }
-   
    // si on a trouvé une config
    if(nb_sensors_actuators)
    {
+      ret=get_dev_and_speed((char *)dev, buff, sizeof(buff), &speed);
+      if(!ret)
+         sprintf(real_dev,"/dev/%s",buff);
+      else
+      {
+         VERBOSE(2) fprintf (stderr, "%s (%s) : unknow interface device - %s\n", ERROR_STR,__func__,dev);
+         return ERROR;
+      }
+
       ad=(comio2_ad_t *)malloc(sizeof(comio2_ad_t));
       if(!ad)
       {
@@ -438,21 +461,7 @@ start_interface_type_001_clean_exit:
       free(ad);
    if(i001)
    {
-      if(i001->counters_list)
-      {
-         clear_queue(i001->counters_list,interface_type_001_free_counters_queue_elem);
-         FREE(i001->counters_list);
-      }
-      if(i001->actuators_list)
-      {
-         clear_queue(i001->actuators_list,_interface_type_001_free_actuators_queue_elem);
-         FREE(i001->actuators_list);
-      }
-      if(i001->sensors_list)
-      {
-         clear_queue(i001->sensors_list,interface_type_001_sensors_free_queue_elem);
-         FREE(i001->sensors_list);
-      }
+      clean_interface_type_001(i001);
    }
    
    return ERROR;
