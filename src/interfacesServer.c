@@ -128,7 +128,7 @@ void dispatchXPLMessageToInterfaces(xPL_ServicePtr theService, xPL_MessagePtr th
             case INTERFACE_TYPE_001:
             {
                interface_type_001_t *i001 = (interface_type_001_t *)(iq->context);
-               if(i001->xPL_callback)
+               if(i001->monitoring_id>-1 && process_is_running(i001->monitoring_id) && i001->xPL_callback)
                   i001->xPL_callback(theService, theMessage, (xPL_ObjectPtr)i001);
                break;
             }
