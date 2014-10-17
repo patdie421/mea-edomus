@@ -110,6 +110,15 @@ int16_t interface_type_001_xPL_callback(xPL_ServicePtr theService, xPL_MessagePt
 }
 
 
+int16_t check_status_interface_type_001(interface_type_001_t *i001)
+{
+   if(i001->ad->signal_flag!=0)
+      return -1;
+   
+   return 0;
+}
+
+
 int load_interface_type_001(interface_type_001_t *i001, int id_interface, sqlite3 *db)
 {
    sqlite3_stmt * stmt;
@@ -121,6 +130,7 @@ int load_interface_type_001(interface_type_001_t *i001, int id_interface, sqlite
    i001->counters_list=NULL;
    i001->sensors_list=NULL;
    i001->actuators_list=NULL;
+   i001->loaded=0;
 
    // initialisation de la liste des capteurs de type compteur
    i001->counters_list=(queue_t *)malloc(sizeof(queue_t));
@@ -234,7 +244,7 @@ int load_interface_type_001(interface_type_001_t *i001, int id_interface, sqlite
          goto load_interface_type_001_clean_exit;
       }
    }
-
+   i001->loaded=1;
    return nb_sensors_actuators;
 
 load_interface_type_001_clean_exit:
@@ -292,49 +302,7 @@ int clean_interface_type_001(interface_type_001_t *i001)
       }
       FREE(i001->actuators_list);
    }
-}
-
-
-mea_error_t stop_interface_type_001(interface_type_001_t *i001)
-{
-   VERBOSE(9) fprintf(stderr,"%s  (%s) : shutdown thread ... ",INFO_STR,__func__);
-
-   if(i001->thread)
-   {
-      pthread_cancel(*(i001->thread));
-      pthread_join(*(i001->thread), NULL);
-      FREE(i001->thread);
-      i001->thread=NULL;
-   }
-   
-   comio2_close(i001->ad);
-   FREE(i001->ad);
-
-   clean_interface_type_001(i001);
-
-   VERBOSE(9) fprintf(stderr,"done.\n");
-   
-   return NOERROR;
-}
-
-
-mea_error_t restart_interface_type_001(interface_type_001_t *i001,sqlite3 *db, tomysqldb_md_t *md)
-{
-   char full_dev[80];
-   char dev[80];
-   uint32_t id_interface;
-   int ret;
-   
-   sscanf(i001->ad->serial_dev_name,"/dev/%s",full_dev);
-   sprintf(dev,"SERIAL://%s:%ld",full_dev,(long)get_speed_from_speed_t(i001->ad->speed));
-   
-   id_interface=i001->id_interface;
-   
-   stop_interface_type_001(i001);
-   sleep(5);
-   ret=start_interface_type_001(i001, db, id_interface, (const unsigned char *)dev, md);
-
-   return ret;
+   i001->loaded=0;
 }
 
 
@@ -362,12 +330,46 @@ void *_thread_interface_type_001(void *args)
 }
 
 
-int16_t check_status_interface_type_001(interface_type_001_t *i001)
+mea_error_t restart_interface_type_001(interface_type_001_t *i001,sqlite3 *db, tomysqldb_md_t *md)
 {
-   if(i001->ad->signal_flag!=0)
-      return -1;
+   char full_dev[80];
+   char dev[80];
+   uint32_t id_interface;
+   int ret;
    
-   return 0;
+   sscanf(i001->ad->serial_dev_name,"/dev/%s",full_dev);
+   sprintf(dev,"SERIAL://%s:%ld",full_dev,(long)get_speed_from_speed_t(i001->ad->speed));
+   
+   id_interface=i001->id_interface;
+   
+   stop_interface_type_001(i001);
+   sleep(5);
+   ret=start_interface_type_001(i001, db, id_interface, (const unsigned char *)dev, md);
+
+   return ret;
+}
+
+
+mea_error_t stop_interface_type_001(interface_type_001_t *i001)
+{
+   VERBOSE(9) fprintf(stderr,"%s  (%s) : shutdown thread ... ",INFO_STR,__func__);
+
+   if(i001->thread)
+   {
+      pthread_cancel(*(i001->thread));
+      pthread_join(*(i001->thread), NULL);
+      FREE(i001->thread);
+      i001->thread=NULL;
+   }
+   
+   comio2_close(i001->ad);
+   FREE(i001->ad);
+
+   clean_interface_type_001(i001);
+
+   VERBOSE(9) fprintf(stderr,"done.\n");
+   
+   return NOERROR;
 }
 
 
@@ -386,11 +388,16 @@ mea_error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, in
    pthread_t *counters_thread=NULL; // descripteur du thread
    struct thread_interface_type_001_params_s *params=NULL; // parametre à transmettre au thread
 
-   int nb_sensors_actuators=load_interface_type_001(i001, id_interfaces);
+   if(i001->loaded!=1)
+   {
+      i001->loaded=0;
+      load_interface_type_001(i001, id_interfaces);
+   }
 
    // si on a trouvé une config
-   if(nb_sensors_actuators)
+   if(i001->loaded==1)
    {
+      i001->loaded=1;
       ret=get_dev_and_speed((char *)dev, buff, sizeof(buff), &speed);
       if(!ret)
          sprintf(real_dev,"/dev/%s",buff);
