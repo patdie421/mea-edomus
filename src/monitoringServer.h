@@ -25,6 +25,7 @@ struct monitored_process_s
    time_t last_heartbeat;
    int heartbeat_interval; // second
    queue_t *indicators_list;
+   int type; // 0 = , 1 autorestart, 2 oneshot (start mais pas de stop, ...)
    int enable_autorestart;
    int status; // started=1, stopped=0, not_managed=2
    process_start_stop_f stop;
@@ -57,7 +58,7 @@ int process_unregister(int id);
 int process_add_indicator(int id, char *name, long initial_value);
 int process_update_indicator(int id, char *name, long value);
 int process_heartbeat(int id);
-int process_set_start_stop(int id,  process_start_stop_f start, process_start_stop_f stop, void *start_stop_data, int auto_restart);
+int process_set_start_stop(int id,  process_start_stop_f start, process_start_stop_f stop, void *start_stop_data, int type);
 int process_start(int id);
 int process_stop(int id);
 int process_set_not_managed(int id);
