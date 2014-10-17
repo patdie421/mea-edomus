@@ -62,5 +62,6 @@ int process_start(int id);
 int process_stop(int id);
 int process_set_not_managed(int id);
 int monitoringServer_loop(char *hostname, int port);
+void* process_getDataPtr(int id);
 
 #endif
