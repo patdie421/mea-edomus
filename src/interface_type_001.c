@@ -329,7 +329,7 @@ void *_thread_interface_type_001(void *args)
    pthread_testcancel();
 }
 
-
+/*
 mea_error_t restart_interface_type_001(interface_type_001_t *i001,sqlite3 *db, tomysqldb_md_t *md)
 {
    char full_dev[80];
@@ -348,24 +348,32 @@ mea_error_t restart_interface_type_001(interface_type_001_t *i001,sqlite3 *db, t
 
    return ret;
 }
-
-
-mea_error_t stop_interface_type_001(interface_type_001_t *i001)
+*/
+int restart_interface_type_001(int id)
 {
+   process_stop(id);
+   sleep(5);
+   return process_start(id);
+}
+
+
+//mea_error_t stop_interface_type_001(interface_type_001_t *i001)
+int stop_interface_type_001(int my_id, void *data)
+{
+   struct interface_type_001_Data_s *interface_type_001Data=(struct interface_type_001_Data_s *)data;
+
    VERBOSE(9) fprintf(stderr,"%s  (%s) : shutdown thread ... ",INFO_STR,__func__);
 
-   if(i001->thread)
+   if(interface_type_001Data->i001->thread)
    {
-      pthread_cancel(*(i001->thread));
-      pthread_join(*(i001->thread), NULL);
-      FREE(i001->thread);
-      i001->thread=NULL;
+      pthread_cancel(*(interface_type_001Data->i001->thread));
+      pthread_join(*(interface_type_001Data->i001->thread), NULL);
+      FREE(interface_type_001Data->i001->thread);
+      interface_type_001Data->i001->thread=NULL;
    }
    
-   comio2_close(i001->ad);
-   FREE(i001->ad);
-
-   clean_interface_type_001(i001);
+   comio2_close(interface_type_001Data->i001->ad);
+   FREE(interface_type_001Data->i001->ad);
 
    VERBOSE(9) fprintf(stderr,"done.\n");
    
@@ -373,7 +381,8 @@ mea_error_t stop_interface_type_001(interface_type_001_t *i001)
 }
 
 
-mea_error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, int id_interface, const unsigned char *dev, tomysqldb_md_t *md)
+//mea_error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, int id_interface, const unsigned char *dev, tomysqldb_md_t *md)
+int start_interface_type_001(int my_id, void *data)
 {
    int16_t ret;
    
@@ -385,20 +394,22 @@ mea_error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, in
    sqlite3_stmt * stmt;
    comio2_ad_t *ad=NULL;
    
+   struct interface_type_001_Data_s *interface_type_001Data=(struct interface_type_001_Data_s *)data;
+
    pthread_t *counters_thread=NULL; // descripteur du thread
    struct thread_interface_type_001_params_s *params=NULL; // parametre à transmettre au thread
 
-   if(i001->loaded!=1)
+   if(i001->interface_type_001Data->loaded!=1)
    {
-      i001->loaded=0;
-      load_interface_type_001(i001, id_interfaces);
+      interface_type_001Data->i001->loaded=0;
+      load_interface_type_001(interface_type_001Data->i001, interface_type_001Data->id_interfaces, interface_type_001Data->sqlite3_param_db);
    }
 
    // si on a trouvé une config
-   if(i001->loaded==1)
+   if(interface_type_001Data->i001->loaded==1)
    {
-      i001->loaded=1;
-      ret=get_dev_and_speed((char *)dev, buff, sizeof(buff), &speed);
+      interface_type_001Data->i001->loaded=1;
+      ret=get_dev_and_speed((char *)interface_type_001Data->dev, buff, sizeof(buff), &speed);
       if(!ret)
          sprintf(real_dev,"/dev/%s",buff);
       else
@@ -434,20 +445,20 @@ mea_error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, in
       goto start_interface_type_001_clean_exit;
    }
    
-   i001->ad=ad;
+   interface_type_001Data->i001->ad=ad;
    
    params=malloc(sizeof(struct thread_interface_type_001_params_s));
    if(!params)
       goto start_interface_type_001_clean_exit;
    
-   params->it001=i001;
-   params->md=md;
+   params->it001=interface_type_001Data->i001;
+   params->md=interface_type_001Data->myd;
    
    counters_thread=(pthread_t *)malloc(sizeof(pthread_t));
    if(!counters_thread)
       goto start_interface_type_001_clean_exit;
    
-   i001->xPL_callback=interface_type_001_xPL_callback;
+   interface_type_001Data->i001->xPL_callback=interface_type_001_xPL_callback;
 
    if(pthread_create (counters_thread, NULL, _thread_interface_type_001, (void *)params))
    {
@@ -455,7 +466,7 @@ mea_error_t start_interface_type_001(interface_type_001_t *i001, sqlite3 *db, in
       goto start_interface_type_001_clean_exit;
    }
    
-   i001->thread=counters_thread;
+   interface_type_001Data->i001->thread=counters_thread;
    
    return NOERROR;
    
@@ -466,9 +477,9 @@ start_interface_type_001_clean_exit:
       comio2_close(ad);
    if(ad)
       free(ad);
-   if(i001)
+   if(interface_type_001Data->i001)
    {
-      clean_interface_type_001(i001);
+      clean_interface_type_001(interface_type_001Data->i001);
    }
    
    return ERROR;
