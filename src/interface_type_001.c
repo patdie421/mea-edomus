@@ -258,45 +258,39 @@ int clean_interface_type_001(interface_type_001_t *i001)
    if(i001==NULL)
       return 0;
 
-   queue_t *counters_list=i001->counters_list;
-   struct electricity_counter_s *counter;
-
-   queue_t *sensors_list=i001->sensors_list;
-   struct sensor_s *sensor;
-
-   queue_t *actuators_list=i001->actuators_list;
-   struct actuator_s *actuator;
-
-   if(counter_list) 
+   if(i001->counter_list) 
    {
-      first_queue(counters_list);
+      struct counter_s *counter;
+      first_queue(i001->counters_list);
       while(counters_list->nb_elem)
       {
-         out_queue_elem(counters_list, (void **)&counter);
+         out_queue_elem(i001->counters_list, (void **)&counter);
          free(counter);
          counter=NULL;
       }
       FREE(i001->counters_list);
    }
 
-   if(sensor_list)
+   if(i001->sensor_list)
    {
-      first_queue(sensors_list);
-      while(sensors_list->nb_elem)
+      struct sensor_s *sensor;
+      first_queue(i001->sensors_list);
+      while(i001->sensors_list->nb_elem)
       {
-         out_queue_elem(sensors_list, (void **)&sensor);
+         out_queue_elem(i001->sensors_list, (void **)&sensor);
          free(sensor);
          sensor=NULL;
       } 
       FREE(i001->sensors_list);
    }
 
-   if(actuators_list)
+   if(ai001->ctuators_list)
    {
-      first_queue(actuators_list);
-      while(actuators_list->nb_elem)
+      struct actuator_s *actuator;
+      first_queue(i001->actuators_list);
+      while(i001->actuators_list->nb_elem)
       {
-         out_queue_elem(actuators_list, (void **)&actuator);
+         out_queue_elem(i001->actuators_list, (void **)&actuator);
          free(actuator);
          actuator=NULL;
       }
@@ -321,6 +315,8 @@ void *_thread_interface_type_001(void *args)
    uint32_t cntr=0;
    while(1)
    {
+      process_heartbeat(i001->monitoring_id);
+
       interface_type_001_counters_poll_inputs(i001, md);
       interface_type_001_sensors_poll_inputs(i001, md);
       cntr++;
@@ -361,6 +357,8 @@ int restart_interface_type_001(int id)
 int stop_interface_type_001(int my_id, void *data)
 {
    struct interface_type_001_Data_s *interface_type_001Data=(struct interface_type_001_Data_s *)data;
+   if(!data)
+      return -1;
 
    VERBOSE(9) fprintf(stderr,"%s  (%s) : shutdown thread ... ",INFO_STR,__func__);
 
@@ -374,10 +372,10 @@ int stop_interface_type_001(int my_id, void *data)
    
    comio2_close(interface_type_001Data->i001->ad);
    FREE(interface_type_001Data->i001->ad);
-
+   interface_type_001Data->i001->ad=NULL;
    VERBOSE(9) fprintf(stderr,"done.\n");
    
-   return NOERROR;
+   return 0;
 }
 
 
@@ -401,14 +399,12 @@ int start_interface_type_001(int my_id, void *data)
 
    if(i001->interface_type_001Data->loaded!=1)
    {
-      interface_type_001Data->i001->loaded=0;
       load_interface_type_001(interface_type_001Data->i001, interface_type_001Data->id_interfaces, interface_type_001Data->sqlite3_param_db);
    }
 
    // si on a trouvé une config
    if(interface_type_001Data->i001->loaded==1)
    {
-      interface_type_001Data->i001->loaded=1;
       ret=get_dev_and_speed((char *)interface_type_001Data->dev, buff, sizeof(buff), &speed);
       if(!ret)
          sprintf(real_dev,"/dev/%s",buff);
