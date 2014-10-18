@@ -14,11 +14,13 @@
 		<string>https://code.google.com/p/mea-edomus/</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
-	<string>mea-edomus.xcodeproj/project.xcworkspace</string>
+	<string>mea-edomus.xcodeproj</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
 		<key>4E3764B0426CB7AFEB3FC8B551E53B27EC3C6B16</key>
 		<string>../..</string>
+		<key>B340261F-A0E3-4375-BDC4-B12B6B43C9EA</key>
+		<string>../../../mea-edomus</string>
 	</dict>
 	<key>IDESourceControlProjectURL</key>
 	<string>https://code.google.com/p/mea-edomus/</string>
