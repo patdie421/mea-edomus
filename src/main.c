@@ -249,8 +249,27 @@ void clean_all_and_exit()
    if(dbServer_monitoring_id!=-1)
    {
       VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping dbServer... ",INFO_STR,__func__);
+      process_stop(dbServer_monitoring_id);
       process_unregister(dbServer_monitoring_id);
       dbServer_monitoring_id=-1;
+      VERBOSE(9) fprintf(stderr,"done\n");
+   }
+   
+   if(logServer_monitoring_id!=-1)
+   {
+      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping logServer... ",INFO_STR,__func__);
+      process_stop(logServer_monitoring_id);
+      process_unregister(logServer_monitoring_id);
+      logServer_monitoring_id=-1;
+      VERBOSE(9) fprintf(stderr,"done\n");
+   }
+   
+   if(httpServer_monitoring_id!=-1)
+   {
+      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping guiServer... ",INFO_STR,__func__);
+      process_stop(httpServer_monitoring_id);
+      process_unregister(httpServer_monitoring_id);
+      httpServer_monitoring_id=-1;
       VERBOSE(9) fprintf(stderr,"done\n");
    }
    
@@ -266,13 +285,6 @@ void clean_all_and_exit()
    
    process_unregister(main_monitoring_id);
    
-//   if(monitoringServer_thread)
-//   {
-//      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping monitoringServer... ",INFO_STR,__func__);
-//      stop_monitoringServer();
-//      VERBOSE(9) fprintf(stderr,"done\n");
-//   }
-
    for(int16_t i=0;i<MAX_LIST_SIZE;i++)
    {
       if(params_list[i])
@@ -755,6 +767,7 @@ int main(int argc, const char * argv[])
    signal(SIGQUIT, _signal_STOP);
    signal(SIGTERM, _signal_STOP);
    signal(SIGHUP,  _signal_HUP);
+   
    signal(SIGPIPE, signal_callback_handler);
 
    // démarrage des "services" (les services "majeurs" arrêtent tout (exit) si non démarrage
