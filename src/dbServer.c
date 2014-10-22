@@ -23,6 +23,7 @@
 #include <string.h>
 #include <time.h>
 #include <sys/time.h>
+#include <pthread.h>
 
 #include <mysql.h>
 #include <sqlite3.h>
@@ -725,7 +726,7 @@ int start_dbServer(int my_id, void *data)
    if(ret==-1)
    {
       VERBOSE(2) fprintf(stderr,"%s (%s) : Can not init data base communication.\n", ERROR_STR, __func__);
-      return NULL;
+      return -1;
    }
    _dbServer_monitoring_id=my_id;
 
