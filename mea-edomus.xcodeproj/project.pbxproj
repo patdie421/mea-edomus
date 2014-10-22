@@ -955,9 +955,9 @@
 		08FB7794FE84155DC02AAC07 /* Comio */ = {
 			isa = PBXGroup;
 			children = (
-				4E207BB919F1BA5900410B40 /* commands */,
 				4E4811A619C37D96001C5F48 /* Makefile.linux */,
 				4E4811A719C37D96001C5F48 /* Makefile.macosx */,
+				4E207BB919F1BA5900410B40 /* commands */,
 				4E79947219DC9EA600F87593 /* complements */,
 				4E79946F19DC9E6100F87593 /* linux */,
 				4E798FFF19DC9D5500F87593 /* gui */,
