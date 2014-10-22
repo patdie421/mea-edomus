@@ -109,6 +109,7 @@
 		4E3F342D19F816050066A9CC /* xplhub.amp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = xplhub.amp; sourceTree = "<group>"; };
 		4E3F342E19F816050066A9CC /* xplhub.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xplhub.cc; sourceTree = "<group>"; };
 		4E3F343019F816050066A9CC /* xplhub.start */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; path = xplhub.start; sourceTree = "<group>"; };
+		4E3F343419F844660066A9CC /* xplhub */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; name = xplhub; path = install/init.d/xplhub; sourceTree = "<group>"; };
 		4E40668E19F3C0D600468E11 /* uthash.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = uthash.h; path = src/uthash.h; sourceTree = "<group>"; };
 		4E4811A219C37D43001C5F48 /* mea_simulation.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = mea_simulation.py; path = plugins/mea_simulation.py; sourceTree = "<group>"; };
 		4E4811A319C37D43001C5F48 /* mea_utils.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = mea_utils.py; path = plugins/mea_utils.py; sourceTree = "<group>"; };
@@ -1048,6 +1049,7 @@
 		4E3F342719F816050066A9CC /* xPLHub */ = {
 			isa = PBXGroup;
 			children = (
+				4E3F343519F8446C0066A9CC /* install */,
 				4E3F342819F816050066A9CC /* gpl.txt */,
 				4E3F342919F816050066A9CC /* install.sh */,
 				4E3F342A19F816050066A9CC /* Install.txt */,
@@ -1058,6 +1060,22 @@
 			);
 			name = xPLHub;
 			path = commands/xPLHub;
+			sourceTree = "<group>";
+		};
+		4E3F343519F8446C0066A9CC /* install */ = {
+			isa = PBXGroup;
+			children = (
+				4E3F343619F8447B0066A9CC /* init.d */,
+			);
+			name = install;
+			sourceTree = "<group>";
+		};
+		4E3F343619F8447B0066A9CC /* init.d */ = {
+			isa = PBXGroup;
+			children = (
+				4E3F343419F844660066A9CC /* xplhub */,
+			);
+			name = init.d;
 			sourceTree = "<group>";
 		};
 		4E48119F19C37C46001C5F48 /* Plugins */ = {
