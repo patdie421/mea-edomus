@@ -451,14 +451,29 @@ void pythonPluginCmd_queue_free_queue_elem(void *d)
 
 int stop_pythonPluginServer(int my_id, void *data)
 {
+   int ret=-1;
    if(_pythonPluginServer_thread)
    {
+      int count=5; // 5 secondes pour s'arrêter
       pthread_cancel(*_pythonPluginServer_thread);
-      pthread_join(*_pythonPluginServer_thread, NULL);
+      while(count)
+      {
+         if(pthread_kill(*_pythonPluginServer_thread, 0) == 0)
+         {
+            sleep(1);
+            count--;
+         }
+         else
+         {
+            ret=0;
+            break;
+         }
+      }
+//      pthread_join(*_pythonPluginServer_thread, NULL);
+      
       free(_pythonPluginServer_thread);
       _pythonPluginServer_thread=NULL;
    }
-
 
    pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&pythonPluginCmd_queue_lock);
    pthread_mutex_lock(&pythonPluginCmd_queue_lock);
@@ -477,7 +492,7 @@ int stop_pythonPluginServer(int my_id, void *data)
 
    _pythonPluginServer_monitoring_id=-1;
 
-   return 0;
+   return ret;
 }
 
 

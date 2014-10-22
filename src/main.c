@@ -776,14 +776,13 @@ int main(int argc, const char * argv[])
    struct dbServerData_s dbServerData;
    dbServerData.params_list=params_list;
    dbServer_monitoring_id=process_register("DBSERVER");
-   
    VERBOSE(9) fprintf (stderr, "%s  (%s) : starting DBSERVER\n",INFO_STR,__func__);
    process_set_start_stop(dbServer_monitoring_id, start_dbServer, stop_dbServer, (void *)(&dbServerData), 1);
    if(!_b)
    {
       if(process_start(dbServer_monitoring_id)<0)
       {
-         VERBOSE(1) fprintf (stderr, "%s (%s) : can't start python plugin server\n",ERROR_STR,__func__);
+         VERBOSE(1) fprintf (stderr, "%s (%s) : can't start database server\n",ERROR_STR,__func__);
          clean_all_and_exit();
       }
    }
@@ -793,7 +792,6 @@ int main(int argc, const char * argv[])
    pythonPluginServerData.params_list=params_list;
    pythonPluginServerData.sqlite3_param_db=sqlite3_param_db;
    pythonPluginServer_monitoring_id=process_register("PYTHONPLUGINSERVER");
-   
    VERBOSE(9) fprintf (stderr, "%s  (%s) : starting PYTHONPLUGINSERVER\n",INFO_STR,__func__);
    process_set_start_stop(pythonPluginServer_monitoring_id , start_pythonPluginServer, stop_pythonPluginServer, (void *)(&pythonPluginServerData), 1);
    if(process_start(pythonPluginServer_monitoring_id)<0)
@@ -802,15 +800,16 @@ int main(int argc, const char * argv[])
       clean_all_and_exit();
    }
    VERBOSE(9) fprintf (stderr, "%s  (%s) : PYTHONPLUGINSERVER started\n",INFO_STR,__func__);
+
    
    interfaces=start_interfaces(params_list, sqlite3_param_db, dbServer_get_md()); // démarrage des interfaces
+
 
    struct xplServerData_s xplServerData;
    xplServerData.params_list=params_list;
    xplServerData.sqlite3_param_db=sqlite3_param_db;
    xplServer_monitoring_id=process_register("XPLSERVER");
    process_set_start_stop(xplServer_monitoring_id , start_xPLServer, stop_xPLServer, (void *)(&xplServerData), 1);
-
    VERBOSE(9) fprintf (stderr, "%s  (%s) : starting XPLSERVER\n",INFO_STR,__func__);
    if(process_start(xplServer_monitoring_id)<0)
    {
