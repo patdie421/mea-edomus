@@ -9,6 +9,7 @@
 #define __xPLServer_h
 
 #include <inttypes.h>
+#include <sqlite3.h>
 
 #include "queue.h"
 #include "xPL.h"

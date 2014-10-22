@@ -15,6 +15,19 @@
 #include "error.h"
 #include "queue.h"
 
+
+#define DEBUG_PyEval_AcquireLock(id, last_time) { \
+   printf("CHRONO : Demande Lock par %s a %u ms\n",(id),start_chrono((last_time))); \
+   PyEval_AcquireLock(); \
+   fprintf(stderr,"CHRONO : Lock obtenu par %s apres %u ms\n",(id),take_chrono((last_time))); \
+}
+
+#define DEBUG_PyEval_ReleaseLock(id, last_time) { \
+   PyEval_ReleaseLock(); \
+   fprintf(stderr,"CHRONO : Liberation Lock par %s apres %u\n",(id), take_chrono((last_time))); \
+}
+
+
 typedef enum {XBEEDATA=1, XPLMSG=2, COMMISSIONNING=3} pythonPlugin_type;
 
 

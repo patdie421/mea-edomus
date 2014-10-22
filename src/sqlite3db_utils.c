@@ -15,6 +15,7 @@
 #include <sqlite3.h>
 
 #include "debug.h"
+#include "error.h"
 
 
 int16_t sqlite3_dropTable(sqlite3 *sqlite3_param_db, char *table)
@@ -29,7 +30,7 @@ int16_t sqlite3_dropTable(sqlite3 *sqlite3_param_db, char *table)
     int16_t func_ret = sqlite3_exec(sqlite3_param_db, sql_query, NULL, NULL, &errmsg);
     if( func_ret != SQLITE_OK )
     {
-        VERBOSE(9) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,errmsg);
+        VERBOSE(9) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", DEBUG_STR, __func__,errmsg);
         sqlite3_free(errmsg);
         return 1;
     }

@@ -12,7 +12,9 @@
 
 #include "macros.h"
 #include "debug.h"
+#include "error.h"
 #include "memory.h"
+
 #include "parameters_utils.h"
 
 

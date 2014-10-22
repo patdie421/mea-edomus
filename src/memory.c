@@ -11,6 +11,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "error.h"
+
 
 char *string_malloc_and_copy(char *str, int v)
 {
@@ -20,7 +22,7 @@ char *string_malloc_and_copy(char *str, int v)
    else
    {
       VERBOSE(1) {
-         fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
+         fprintf (stderr, "%s (%s) : %s - ",ERROR_STR, __func__, MALLOC_ERROR_STR);
          perror("");
       }
       return NULL;

@@ -11,6 +11,7 @@
 #include <arpa/inet.h>
 #include <unistd.h> // close
 #include <netdb.h> // gethostbyname
+#include <strings.h>
 
 #include "globals.h"
 #include "debug.h"
