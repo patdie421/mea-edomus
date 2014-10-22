@@ -64,12 +64,23 @@ typedef struct tomysqldb_md_s
 
 } tomysqldb_md_t;
 
+
+struct dbServerData_s
+{
+   char **params_list;
+};
+
+tomysqldb_md_t *dbServer_get_md();
+
 int  tomysqldb_init(tomysqldb_md_t *md, char *db_server, char *db_server_port, char *base, char *user, char *passwd, char *sqlite3_db_path);
 void tomysqldb_release(tomysqldb_md_t *md);
 
 int16_t tomysqldb_add_data_to_sensors_values(tomysqldb_md_t *md, uint16_t sensor_id, double value1, uint16_t unit, double value2, char *complement);
 
-tomysqldb_md_t *start_dbServer(char **params_list, sqlite3 *sqlite3_param_db);
-void stop_dbServer(tomysqldb_md_t *md);
+//tomysqldb_md_t *start_dbServer(char **params_list, sqlite3 *sqlite3_param_db);
+//void stop_dbServer(tomysqldb_md_t *md);
+
+int start_dbServer(int my_id, void *data);
+int stop_dbServer(int my_id, void *data);
 
 #endif

@@ -22,7 +22,7 @@
 #include <pthread.h>
 
 #include "globals.h"
-#include "tokens_strings.h"
+#include "tokens.h"
 
 #include "error.h"
 #include "debug.h"

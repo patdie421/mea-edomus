@@ -5,34 +5,46 @@
 	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
 	<false/>
 	<key>IDESourceControlProjectIdentifier</key>
-	<string>65264A50-D93B-4386-B8DE-5A829B01EFF3</string>
+	<string>82F5DB94-A983-4E79-9537-8CA6444E82C7</string>
 	<key>IDESourceControlProjectName</key>
 	<string>mea-edomus</string>
 	<key>IDESourceControlProjectOriginsDictionary</key>
 	<dict>
-		<key>471B05D8-D32A-46D6-9E53-72C9A3054901</key>
+		<key>4E3764B0426CB7AFEB3FC8B551E53B27EC3C6B16</key>
+		<string>https://code.google.com/p/mea-edomus/</string>
+		<key>B340261F-A0E3-4375-BDC4-B12B6B43C9EA</key>
 		<string>https://code.google.com/p/mea-edomus/</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
-	<string>mea-edomus.xcodeproj/project.xcworkspace</string>
+	<string>mea-edomus.xcodeproj</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
-		<key>471B05D8-D32A-46D6-9E53-72C9A3054901</key>
+		<key>4E3764B0426CB7AFEB3FC8B551E53B27EC3C6B16</key>
 		<string>../..</string>
+		<key>B340261F-A0E3-4375-BDC4-B12B6B43C9EA</key>
+		<string>../../../mea-edomus</string>
 	</dict>
 	<key>IDESourceControlProjectURL</key>
 	<string>https://code.google.com/p/mea-edomus/</string>
 	<key>IDESourceControlProjectVersion</key>
-	<integer>110</integer>
+	<integer>111</integer>
 	<key>IDESourceControlProjectWCCIdentifier</key>
-	<string>471B05D8-D32A-46D6-9E53-72C9A3054901</string>
+	<string>4E3764B0426CB7AFEB3FC8B551E53B27EC3C6B16</string>
 	<key>IDESourceControlProjectWCConfigurations</key>
 	<array>
 		<dict>
 			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
 			<string>public.vcs.git</string>
 			<key>IDESourceControlWCCIdentifierKey</key>
-			<string>471B05D8-D32A-46D6-9E53-72C9A3054901</string>
+			<string>4E3764B0426CB7AFEB3FC8B551E53B27EC3C6B16</string>
+			<key>IDESourceControlWCCName</key>
+			<string>master</string>
+		</dict>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>B340261F-A0E3-4375-BDC4-B12B6B43C9EA</string>
 			<key>IDESourceControlWCCName</key>
 			<string>mea-edomus</string>
 		</dict>

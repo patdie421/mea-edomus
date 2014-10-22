@@ -226,7 +226,7 @@ switch(check_admin()){
 <script type="text/javascript" src="lib/js/mea-auth-utils.js"></script>
 <script type="text/javascript" src="lib/js/mea-gui-utils.js"></script>
 
-<script type="text/javascript" src="controlers/config.js"></script>
+<script type="text/javascript" src="controllers/config.js"></script>
 
 <script type="text/javascript">
 jQuery(document).ready(function(){

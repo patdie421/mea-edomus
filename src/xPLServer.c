@@ -1,4 +1,4 @@
-//
+   //
 //  xPLServer.c
 //
 //  Created by Patrice DIETSCH on 17/10/12.
@@ -21,33 +21,46 @@
 #include "queue.h"
 #include "memory.h"
 
+#include "xPLServer.h"
+
+#include "monitoringServer.h"
+
 #include "interfacesServer.h"
-#include "interface_type_001.h"
-#include "interface_type_002.h"
+//#include "interface_type_001.h"
+//#include "interface_type_002.h"
+
 
 #define XPL_VERSION "0.1a2"
 
 
 xPL_ServicePtr xPLService = NULL;
 
-
 char *xpl_vendorID=NULL;
 char *xpl_deviceID=NULL;
 char *xpl_instanceID=NULL;
 
-
 pthread_t *_xPLServer_thread;
+// pthread_mutex_t xplRespSend_lock;
+
+
+// gestion du thread et des indicateurs
+int _xplServer_monitoring_id = -1;
+long xplin_indicator = 0;
+long xplout_indicator = 0;
+
+
+// gestion de des messages xpl internes
+uint32_t requestId = 1;
+pthread_mutex_t requestId_lock;
 pthread_cond_t  xplRespQueue_sync_cond;
 pthread_mutex_t xplRespQueue_sync_lock;
 queue_t         *xplRespQueue;
-pthread_mutex_t xplRespSend_lock;
-pthread_mutex_t requestId_lock;
 
-uint32_t requestId = 1;
 
 // declaration des fonctions xPL non exporté par la librairies
 extern xPL_MessagePtr xPL_AllocMessage();
 extern xPL_NameValueListPtr xPL_AllocNVList();
+
 
 // duplication de createReceivedMessage de la lib xPL qui est déclarée en static et ne peut donc
 // pas normalement être utilisée. On a besoin de cette fonction pour pouvoir utiliser mettre
@@ -132,7 +145,7 @@ xPL_ServicePtr mea_getXPLServicePtr()
    return xPLService;
 }
 
-
+/*
 void _dispatchXPLMessage(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xPL_ObjectPtr userValue) // à mettre dans interfaces.h ?
 {
    int ret;
@@ -175,17 +188,19 @@ void _dispatchXPLMessage(xPL_ServicePtr theService, xPL_MessagePtr theMessage, x
          break;
    }
 }
-
+*/
 
 uint16_t mea_sendXPLMessage(xPL_MessagePtr xPLMsg)
 {
    char *addr;
    xPL_MessagePtr newXPLMsg = NULL;
+   xplRespQueue_elem_t *e;
+   xplout_indicator++;
 
    addr = xPL_getSourceDeviceID(xPLMsg);
    if(addr && strcmp(addr,"internal")==0) // source interne => dispatching sans passer par le réseau
    {
-      _dispatchXPLMessage(xPLService, xPLMsg, (xPL_ObjectPtr)get_interfaces());
+      dispatchXPLMessageToInterfaces(xPLService, xPLMsg, (xPL_ObjectPtr)get_interfaces());
       return 0;
    }
    
@@ -213,18 +228,21 @@ uint16_t mea_sendXPLMessage(xPL_MessagePtr xPLMsg)
       }
 
       // ajout de la copie du message dans la file
-      xplRespQueue_elem_t *e = malloc(sizeof(xplRespQueue_elem_t));
-      e->msg = newXPLMsg;
-      e->id = id;
-      e->tsp = (uint32_t)time(NULL);
-      
       pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(xplRespQueue_sync_lock) );
       pthread_mutex_lock(&xplRespQueue_sync_lock);
+
+      if(xplRespQueue)
+      {
+         e = malloc(sizeof(xplRespQueue_elem_t));
+         e->msg = newXPLMsg;
+         e->id = id;
+         e->tsp = (uint32_t)time(NULL);
       
-      in_queue_elem(xplRespQueue, e);
+         in_queue_elem(xplRespQueue, e);
       
-      if(xplRespQueue->nb_elem>=1)
-         pthread_cond_broadcast(&xplRespQueue_sync_cond);
+         if(xplRespQueue->nb_elem>=1)
+            pthread_cond_broadcast(&xplRespQueue_sync_cond);
+      }
       
       pthread_mutex_unlock(&xplRespQueue_sync_lock);
       pthread_cleanup_pop(0);
@@ -248,9 +266,9 @@ xPL_MessagePtr mea_readXPLResponse(int id)
 
    // on va attendre le retour dans la file des reponses
    pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(xplRespQueue_sync_lock) );
-
    pthread_mutex_lock(&(xplRespQueue_sync_lock));
-   if(xplRespQueue->nb_elem==0 || notfound==1)
+
+   if((xplRespQueue && xplRespQueue->nb_elem==0) || notfound==1)
    {
       // rien a lire => on va attendre que quelque chose soit mis dans la file
       struct timeval tv;
@@ -264,7 +282,11 @@ xPL_MessagePtr mea_readXPLResponse(int id)
          if(ret!=ETIMEDOUT)
             goto readFromQueue_return;
       } 
-   }  
+   }
+   else
+   {
+      goto readFromQueue_return;
+   }
 
    // a ce point il devrait y avoir quelque chose dans la file.
    if(first_queue(xplRespQueue)==0)
@@ -311,7 +333,8 @@ readFromQueue_return:
 
 void _cmndXPLMessageHandler(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
 {
-   _dispatchXPLMessage(theService, theMessage, userValue);
+   xplin_indicator++;
+   dispatchXPLMessageToInterfaces(theService, theMessage, userValue);
 }
 
 
@@ -323,7 +346,7 @@ void _flushExpiredXPLResponses()
    pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(xplRespQueue_sync_lock) );
    pthread_mutex_lock(&xplRespQueue_sync_lock);
    
-   if(first_queue(xplRespQueue)==0)
+   if(xplRespQueue && first_queue(xplRespQueue)==0)
    {
       while(1)
       {
@@ -332,7 +355,7 @@ void _flushExpiredXPLResponses()
             if((tsp - e->tsp) > 5)
             {
                xPL_releaseMessage(e->msg);
-               DEBUG_SECTION fprintf(stderr,"Je flush\n");
+               DEBUG_SECTION fprintf(stderr,"%s (%s) : Je flush\n",DEBUG_STR,__func__);
                free(e);
                remove_current_queue(xplRespQueue); // remove current passe sur le suivant
             }
@@ -361,6 +384,9 @@ void *_xPL_thread(void *data)
 {
 //   xPL_setDebugging(TRUE); // xPL en mode debug
 
+   process_add_indicator(_xplServer_monitoring_id, "XPLIN", xplin_indicator);
+   process_add_indicator(_xplServer_monitoring_id, "XPLOUT", xplout_indicator);
+
    if ( !xPL_initialize(xPL_getParsedConnectionType()) ) return 0 ;
    
    xPLService = xPL_createService(xpl_vendorID, xpl_deviceID, xpl_instanceID);
@@ -377,6 +403,8 @@ void *_xPL_thread(void *data)
 
    do
    {
+      process_heartbeat(_xplServer_monitoring_id);
+   
       VERBOSE(9) {
          static char compteur=0;
          if(compteur>59)
@@ -390,14 +418,15 @@ void *_xPL_thread(void *data)
       xPL_processMessages(500);
       
       _flushExpiredXPLResponses();
-      
+
       pthread_testcancel();
    }
    while (1);
 }
 
 
-pthread_t *xPLServer(queue_t *interfaces)
+//pthread_t *xPLServer(queue_t *interfaces)
+pthread_t *xPLServer()
 {
    pthread_t *xPL_thread=NULL;
 
@@ -407,7 +436,7 @@ pthread_t *xPLServer(queue_t *interfaces)
    }
    
    // initialisation
-   pthread_mutex_init(&xplRespSend_lock, NULL);
+//   pthread_mutex_init(&xplRespSend_lock, NULL);
 
       // préparation synchro consommateur / producteur
    pthread_cond_init(&xplRespQueue_sync_cond, NULL);
@@ -437,7 +466,8 @@ pthread_t *xPLServer(queue_t *interfaces)
       return NULL;
    }
 
-   if(pthread_create (xPL_thread, NULL, _xPL_thread, (void *)interfaces))
+//   if(pthread_create (xPL_thread, NULL, _xPL_thread, (void *)interfaces))
+   if(pthread_create (xPL_thread, NULL, _xPL_thread, NULL))
    {
       VERBOSE(1) fprintf(stderr, "%s (%s) : pthread_create - can't start thread\n",ERROR_STR,__func__);
       return NULL;
@@ -463,39 +493,61 @@ int16_t set_xpl_address(char **params_list)
 }
 
 
-void stop_xPLServer()
+int stop_xPLServer(int my_id, void *data)
 {
    if(_xPLServer_thread)
    {
+      xPL_shutdown();
       pthread_cancel(*_xPLServer_thread);
       pthread_join(*_xPLServer_thread, NULL);
       free(_xPLServer_thread);
       _xPLServer_thread=NULL;
    }
+      
+   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(xplRespQueue_sync_lock) );
+   pthread_mutex_lock(&(xplRespQueue_sync_lock));
    if(xplRespQueue)
    {
       clear_queue(xplRespQueue,_xplRespQueue_free_queue_elem);
       free(xplRespQueue);
       xplRespQueue=NULL;
    }
+   pthread_mutex_unlock(&(xplRespQueue_sync_lock));
+   pthread_cleanup_pop(0);
+
+   _xplServer_monitoring_id=-1;
+
+   return 0;
 }
 
 
-pthread_t *start_xPLServer(char **params_list, queue_t *interfaces, sqlite3 *sqlite3_param_db)
+int start_xPLServer(int my_id, void *data)
 {
-   if(!set_xpl_address(params_list))
+   struct xplServerData_s *xplServerData = (struct xplServerData_s *)data;
+   
+   if(!set_xpl_address(xplServerData->params_list))
    {
-      _xPLServer_thread=xPLServer(interfaces);
+      _xplServer_monitoring_id=my_id;
+
+      _xPLServer_thread=xPLServer();
+      //_xPLServer_thread=xPLServer(xplServerData->interfaces);
+
       if(_xPLServer_thread==NULL)
       {
-         VERBOSE(2) fprintf(stderr,"%s (%s) : can't start xpl server.\n",ERROR_STR,__func__);
-         return NULL;
+         VERBOSE(2) {
+            fprintf(stderr,"%s (%s) : can't start xpl server -\n",ERROR_STR,__func__);
+            perror("");
+         }
+         return -1;
       }
       else
-         return _xPLServer_thread;
+         return 0;
    }
    else
-      return NULL;
+   {
+      VERBOSE(2) fprintf(stderr,"%s (%s) : no valid xPL address.\n",ERROR_STR,__func__);
+      return -1;
+   }
 }
 
 

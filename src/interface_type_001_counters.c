@@ -24,7 +24,7 @@
 #include "arduino_pins.h"
 #include "string_utils.h"
 #include "parameters_utils.h"
-#include "tokens_strings.h"
+#include "tokens.h"
 #include "timer.h"
 #include "dbServer.h"
 #include "xPLServer.h"
@@ -444,7 +444,6 @@ void interface_type_001_counters_init(interface_type_001_t *i001)
 
       start_timer(&(counter->timer));
       start_timer(&(counter->trap_timer));
-
       
       next_queue(counters_list);
    }

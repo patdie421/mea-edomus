@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#include <stdarg.h>
 
 #include "string_utils.h"
 
@@ -121,7 +122,6 @@ int16_t mea_strncmplower(char *str1, char *str2, int n)
 }
 
 
-
 int16_t mea_strsplit(char str[], char separator, char *tokens[], char l_tokens)
 {
    int j=0;
@@ -140,4 +140,34 @@ int16_t mea_strsplit(char str[], char separator, char *tokens[], char l_tokens)
    }
    return j+1;
 }
+
+
+size_t mea_snprintfcat(char* buf, size_t bufSize, char const* fmt, ...)
+{
+   size_t result;
+   va_list args;
+   size_t len = strnlen(buf, bufSize);
+
+   va_start(args, fmt);
+   result = vsnprintf(buf + len, bufSize - len, fmt, args);
+   va_end( args);
+
+   return result + len;
+}
+
+
+int mea_strncat(char *dest, int max_test, char *source)
+{
+   int l_dest = strlen(dest);
+   int l_source = strlen(source);
+   if((l_dest+l_source)>max_test)
+      return -1;
+   else
+   {
+      strcat(dest,source);
+   }
+   return 0;
+}
+
+
 

@@ -1,5 +1,6 @@
 var whoIsScrollingFlag=0; // 1 = le script, 0 = l'utilisateur
 var scrollOnOffFlag=1;    // 1 = activé par defaut
+var iosocket_port=-1;
 
 function toLogConsole(line)
 {
@@ -42,8 +43,10 @@ function toLogConsole(line)
 }
 
 
-function socketio_available() { // socket io est chargé, on se connecte 
-   var socketio_addr=window.location.protocol + '//' + window.location.hostname + ':8000';
+function socketio_available() { // socket io est chargé, on se connecte
+   if(iosocket_port<0)
+      iosocket_port=8000;
+   var socketio_addr=window.location.protocol + '//' + window.location.hostname + ':'+iosocket_port;
    var socket = io.connect(socketio_addr);
 
    $("#console").scroll(function() {
@@ -66,17 +69,23 @@ function socketio_available() { // socket io est chargé, on se connecte
    socket.on('log', function(message){
       toLogConsole(message);
    });
+
+   socket.on('mon', function(message){
+      $("#info").text(message); // en attendant de pouvoir traiter proprement.
+   });
 }
 
    
 function socketio_unavailable(jqXHR, textStatus, errorThrown) {
    jqXHR.abort();
-   $("#console").append("<div>Pas d'iosocket => pas de console en live ...<div>");
+   $("#console").append("<div>Pas d'iosocket => pas d'info en live ...<div>");
    }
 
 
-function start_controler(port)
+function start_index_controller(port)
 {
+   iosocket_port=port;
+   
    var socketiojs_url=window.location.protocol + '//' + window.location.hostname + ':'+port+'/socket.io/socket.io.js';
    $.ajax({
        url: socketiojs_url,

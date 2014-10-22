@@ -28,7 +28,7 @@
 <script type="text/javascript" src="lib/js/mea-gui-utils.js"></script>
 <script type="text/javascript" src="lib/js/mea-grid-utils.js"></script>
 
-<script type="text/javascript" src="controlers/grid_inputs.js"></script>
+<script type="text/javascript" src="controllers/grid_inputs.js"></script>
 
 <script>
 

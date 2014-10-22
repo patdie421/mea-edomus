@@ -21,8 +21,8 @@ MEAEDOMUS_OPT="--basepath=$MEAEDOMUS_BASEPATH --nodatabase"
 PIDFILE=/var/run/mea-edomus.pid
 test -x $DAEMON || exit 5
 
-#if [ -r /etc/default/ntp ]; then
-#	. /etc/default/ntp
+#if [ -r /etc/default/mea-edomus ]; then
+#	. /etc/default/mea-edomus
 #fi
 
 RUNASUSER=<USER>

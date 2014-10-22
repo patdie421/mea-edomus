@@ -12,7 +12,7 @@
 #include "queue.h"
 #include "xPL.h"
 #include "xPLServer.h"
-#include "tokens_strings.h"
+#include "tokens.h"
 #include "dbServer.h"
 #include "xbee.h"
 #include "globals.h"
@@ -673,10 +673,10 @@ static PyObject *mea_addDataToSensorsValuesTable(PyObject *self, PyObject *args)
    else
       goto mea_addDataToSensorsValuesTable_arg_err;
 
-   tomysqldb_md_t *md=get_myd();
+   tomysqldb_md_t *md=dbServer_get_md();
    if(md)
    {
-      tomysqldb_add_data_to_sensors_values(myd, sensor_id, value1, unit, value2, complement);
+      tomysqldb_add_data_to_sensors_values(md, sensor_id, value1, unit, value2, complement);
    }
 
    return PyLong_FromLong(1L); // True

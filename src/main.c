@@ -39,34 +39,27 @@
 #include "dbServer.h"
 #include "xPLServer.h"
 #include "pythonPluginServer.h"
-#include "httpServer.h"
+#include "guiServer.h"
+#include "logServer.h"
 #include "automatorServer.h"
 
 #include "monitoringServer.h"
 
-tomysqldb_md_t *myd=NULL;                  /*!< descripteur mysql. Variable globale car doit être accessible par les gestionnaires de signaux. */
+int xplServer_monitoring_id=-1;
+int httpServer_monitoring_id=-1;
+int logServer_monitoring_id=-1;
+int pythonPluginServer_monitoring_id=-1;
+int dbServer_monitoring_id=-1;
+
 queue_t *interfaces=NULL;                  /*!< liste (file) des interfaces. Variable globale car doit être accessible par les gestionnaires de signaux. */
 sqlite3 *sqlite3_param_db=NULL;            /*!< descripteur pour la base sqlite de paramétrage. Variable globale car doit être accessible par les gestionnaires de signaux. */
-pthread_t *xPLServer_thread=NULL;          /*!< Adresse du thread du serveur xPL. Variable globale car doit être accessible par les gestionnaires de signaux.*/
-pthread_t *pythonPluginServer_thread=NULL; /*!< Adresse du thread Python. Variable globale car doit être accessible par les gestionnaires de signaux.*/
 pthread_t *monitoringServer_thread=NULL;   /*!< Adresse du thread de surveillance interne. Variable globale car doit être accessible par les gestionnaires de signaux.*/
 
 char *params_names[MAX_LIST_SIZE];          /*!< liste des noms (chaines) de paramètres dans la base sqlite3 de paramétrage.*/
 char *params_list[MAX_LIST_SIZE];          /*!< liste des valeurs de paramètres.*/
 
 pid_t automator_pid = 0;
-
-
-tomysqldb_md_t *get_myd()
-{
-   return myd;
-}
-
-
-queue_t * get_interfaces()
-{
-   return interfaces;
-}
+int main_monitoring_id = -1;
 
 
 void usage(char *cmd)
@@ -98,8 +91,7 @@ void usage(char *cmd)
       "Remarque : --init, --autoinit et --update sont incompatibles.",
       "",
       "Parametres pour --init, --autoinit ou --update uniquement : ",
-      "  --basepath, -p      (défaut : chemin de l'exécutable (moins 'bin'.",
-      "                       Ex : si /usr/bin/mea-edomus => basepath=/usr)",
+      "  --basepath, -p      (défaut : /usr/local/mea-edomus)",
       "  --paramsdb, -d      (défaut : basepath/var/db/params.db ou ",
       "                                /var/db/mea-params.db si basepath=/usr)",
       "  --phpcgipath, -C    (défaut : basepath/bin)",
@@ -220,38 +212,45 @@ int16_t read_all_application_parameters(sqlite3 *sqlite3_param_db)
 
 void clean_all_and_exit()
 {
-   if(xPLServer_thread)
+   if(xplServer_monitoring_id!=-1)
    {
       VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping xPLServer... ",INFO_STR,__func__);
-      stop_xPLServer();
+      process_stop(xplServer_monitoring_id);
+      process_unregister(xplServer_monitoring_id);
+      xplServer_monitoring_id=-1;
       VERBOSE(9) fprintf(stderr,"done\n");
    }
 
+   if(httpServer_monitoring_id!=-1)
+   {
+      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping httpServer... ",INFO_STR,__func__);
+      process_stop(httpServer_monitoring_id);
+      process_unregister(httpServer_monitoring_id);
+      httpServer_monitoring_id=-1;
+      VERBOSE(9) fprintf(stderr,"done\n");
+   }
+   
    if(interfaces)
    {
       VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping interfaces...\n",INFO_STR,__func__);
-      stop_interfaces(interfaces);
+      stop_interfaces();
       VERBOSE(9) fprintf(stderr,"%s  (%s) : done\n",INFO_STR,__func__);
    }
    
-   if(pythonPluginServer_thread)
+   if(pythonPluginServer_monitoring_id!=-1)
    {
       VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping pythonPluginServer... ",INFO_STR,__func__);
-      stop_pythonPluginServer();
+      process_stop(pythonPluginServer_monitoring_id);
+      process_unregister(pythonPluginServer_monitoring_id);
+      pythonPluginServer_monitoring_id=-1;
       VERBOSE(9) fprintf(stderr,"done\n");
    }
 
-   if(monitoringServer_thread)
-   {
-      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping monitoringServer... ",INFO_STR,__func__);
-      stop_monitoringServer();
-      VERBOSE(9) fprintf(stderr,"done\n");
-   }
-
-   if(myd)
+   if(dbServer_monitoring_id!=-1)
    {
       VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping dbServer... ",INFO_STR,__func__);
-      stop_dbServer(myd);
+      process_unregister(dbServer_monitoring_id);
+      dbServer_monitoring_id=-1;
       VERBOSE(9) fprintf(stderr,"done\n");
    }
    
@@ -267,6 +266,15 @@ void clean_all_and_exit()
       VERBOSE(9) fprintf(stderr,"done\n");
    }
    
+   process_unregister(main_monitoring_id);
+   
+//   if(monitoringServer_thread)
+//   {
+//      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping monitoringServer... ",INFO_STR,__func__);
+//      stop_monitoringServer();
+//      VERBOSE(9) fprintf(stderr,"done\n");
+//   }
+
    for(int16_t i=0;i<MAX_LIST_SIZE;i++)
    {
       if(params_list[i])
@@ -279,6 +287,12 @@ void clean_all_and_exit()
    VERBOSE(9) fprintf(stderr,"%s  (%s) : mea-edomus down ...\n",INFO_STR,__func__);
 
    exit(0);
+}
+
+
+void signal_callback_handler(int signum)
+{
+   fprintf(stderr, "%s  (%s) : Caught signal SIGPIPE %d\n", INFO_STR, __func__, signum);
 }
 
 
@@ -306,7 +320,7 @@ static void _signal_HUP(int signal_number)
    VERBOSE(9) fprintf(stderr,"%s  (%s) : communication error signal (signal = %d).\n", INFO_STR, __func__, signal_number);
   
    // on cherche qui est à l'origine du signal et on le relance
-   restart_down_interfaces(interfaces, sqlite3_param_db, myd);
+   restart_down_interfaces(sqlite3_param_db, dbServer_get_md());
    return;
 }
 
@@ -686,9 +700,9 @@ int main(int argc, const char * argv[])
    //
    // strout et stderr vers fichier log
    //
+
    char log_file[255];
    int16_t n;
-
 
    if(!params_list[LOG_PATH] || !strlen(params_list[LOG_PATH]))
    {
@@ -726,6 +740,11 @@ int main(int argc, const char * argv[])
 
    DEBUG_SECTION fprintf(stderr,"Starting MEA-EDOMUS %s\n",__MEA_EDOMUS_VERSION__);
 
+   //
+   // initialisation du gestionnaire de process
+   //
+   init_monitored_processes(40);
+
    //   
    // demarrage du processus de l'automate
    //
@@ -738,50 +757,104 @@ int main(int argc, const char * argv[])
    signal(SIGQUIT, _signal_STOP);
    signal(SIGTERM, _signal_STOP);
    signal(SIGHUP,  _signal_HUP);
-
+   signal(SIGPIPE, signal_callback_handler);
 
    // démarrage des "services" (les services "majeurs" arrêtent tout (exit) si non démarrage
+   struct dbServerData_s dbServerData;
+   dbServerData.params_list=params_list;
+   dbServer_monitoring_id=process_register("DBSERVER");
+   
+   VERBOSE(9) fprintf (stderr, "%s  (%s) : starting DBSERVER\n",INFO_STR,__func__);
+   process_set_start_stop(dbServer_monitoring_id, start_dbServer, stop_dbServer, (void *)(&dbServerData), 1);
    if(!_b)
    {
-      myd=start_dbServer(params_list, sqlite3_param_db); // initialisation de la communication avec la base MySQL
-      if(!myd)
+      if(process_start(dbServer_monitoring_id)<0)
       {
-         VERBOSE(1) fprintf (stderr, "%s (%s) : can't start database server\n",ERROR_STR,__func__);
+         VERBOSE(1) fprintf (stderr, "%s (%s) : can't start python plugin server\n",ERROR_STR,__func__);
          clean_all_and_exit();
       }
    }
+   VERBOSE(9) fprintf (stderr, "%s  (%s) : DBSERVER started\n",INFO_STR,__func__);
 
-   pythonPluginServer_thread=start_pythonPluginServer(params_list, sqlite3_param_db); // initialisation du serveur de plugin python
-   if(!pythonPluginServer_thread)
+   struct pythonPluginServerData_s pythonPluginServerData;
+   pythonPluginServerData.params_list=params_list;
+   pythonPluginServerData.sqlite3_param_db=sqlite3_param_db;
+   pythonPluginServer_monitoring_id=process_register("PYTHONPLUGINSERVER");
+   
+   VERBOSE(9) fprintf (stderr, "%s  (%s) : starting PYTHONPLUGINSERVER\n",INFO_STR,__func__);
+   process_set_start_stop(pythonPluginServer_monitoring_id , start_pythonPluginServer, stop_pythonPluginServer, (void *)(&pythonPluginServerData), 1);
+   if(process_start(pythonPluginServer_monitoring_id)<0)
    {
       VERBOSE(1) fprintf (stderr, "%s (%s) : can't start python plugin server\n",ERROR_STR,__func__);
       clean_all_and_exit();
    }
+   VERBOSE(9) fprintf (stderr, "%s  (%s) : PYTHONPLUGINSERVER started\n",INFO_STR,__func__);
+   
+   interfaces=start_interfaces(params_list, sqlite3_param_db, dbServer_get_md()); // démarrage des interfaces
 
-   interfaces=start_interfaces(params_list, sqlite3_param_db, myd); // démarrage des interfaces
+   struct xplServerData_s xplServerData;
+   xplServerData.params_list=params_list;
+   xplServerData.sqlite3_param_db=sqlite3_param_db;
+   xplServer_monitoring_id=process_register("XPLSERVER");
+   process_set_start_stop(xplServer_monitoring_id , start_xPLServer, stop_xPLServer, (void *)(&xplServerData), 1);
 
-   xPLServer_thread=start_xPLServer(params_list, interfaces, sqlite3_param_db); // initialisation du serveur xPL
-   if(!xPLServer_thread)
+   VERBOSE(9) fprintf (stderr, "%s  (%s) : starting XPLSERVER\n",INFO_STR,__func__);
+   if(process_start(xplServer_monitoring_id)<0)
    {
       VERBOSE(1) fprintf (stderr, "%s (%s) : can't start xpl server\n",ERROR_STR,__func__);
       clean_all_and_exit();
    }
+   VERBOSE(9) fprintf (stderr, "%s  (%s) : XPLSERVER started\n",INFO_STR,__func__);
 
-   start_httpServer(params_list, interfaces); // initialisation du serveur HTTP
-
-   monitoringServer_thread=start_monitoringServer(params_list);
-   if(!monitoringServer_thread)
+   struct httpServerData_s httpServerData;
+   httpServerData.params_list=params_list;
+   httpServer_monitoring_id=process_register("GUISERVER");
+   process_set_start_stop(httpServer_monitoring_id , start_guiServer, stop_guiServer, (void *)(&httpServerData), 1);
+   
+   VERBOSE(9) fprintf (stderr, "%s  (%s) : starting GUISERVER\n",INFO_STR,__func__);
+   if(process_start(httpServer_monitoring_id)<0)
    {
-      VERBOSE(1) fprintf (stderr, "%s (%s) : can't start monitoring server\n",ERROR_STR,__func__);
-      clean_all_and_exit();
+      VERBOSE(1) fprintf (stderr, "%s (%s) : can't start gui server\n",ERROR_STR,__func__);
    }
+   VERBOSE(9) fprintf (stderr, "%s  (%s) : GUISERVER started\n",INFO_STR,__func__);
+
+   struct logServerData_s logServerData;
+   logServerData.params_list=params_list;
+   logServer_monitoring_id=process_register("LOGSERVER");
+   
+   VERBOSE(9) fprintf (stderr, "%s  (%s) : starting LOGSERVER\n",INFO_STR,__func__);
+   process_set_start_stop(logServer_monitoring_id , start_logServer, stop_logServer, (void *)(&logServerData), 1);
+   if(process_start(logServer_monitoring_id)<0)
+   {
+      VERBOSE(1) fprintf (stderr, "%s (%s) : can't start log server\n",ERROR_STR,__func__);
+   }
+   VERBOSE(9) fprintf (stderr, "%s  (%s) : LOGSERVER started\n",INFO_STR,__func__);
+
+
+   time_t start_time;
+   long uptime = 0;
+
+   start_time = time(NULL);
 
    DEBUG_SECTION fprintf(stderr,"MEA-EDOMUS %s starded\n",__MEA_EDOMUS_VERSION__);
 
+   main_monitoring_id=process_register("MAIN");
+   process_set_type(main_monitoring_id, NOTMANAGED);
+   process_set_status(main_monitoring_id, RUNNING);
+   process_add_indicator(main_monitoring_id, "UPTIME", 0);
+
    // boucle sans fin.
+   char response[512];
    while(1)
    {
-      sleep(5);
+      // interrogation du serveur HTTP Interne pour heartbeat ... (voir passage d'un parametre pour sécuriser ...)
+      gethttp("localhost", atoi(params_list[GUIPORT]), "/CMD/ping.php", response, sizeof(response));
+ 
+      uptime = (long)(time(NULL)-start_time);
+      process_update_indicator(main_monitoring_id, "UPTIME", uptime);
+
+      monitoringServer_loop("localhost", atoi(params_list[NODEJSDATA_PORT]));
+
+      sleep(10);
    }
 }
-
