@@ -259,9 +259,11 @@ void clean_all_and_exit()
    {
       int status;
       
-      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping automatorServer... ",INFO_STR,__func__);
+      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping automatorServer... (%d)",INFO_STR,__func__,automator_pid);
+
       kill(automator_pid, SIGTERM);
-      waitpid(automator_pid, &status, 0);
+      //waitpid(automator_pid, &status, 0);
+      wait(&status);
       VERBOSE(9) fprintf(stderr,"done\n");
    }
    
@@ -727,7 +729,7 @@ int main(int argc, const char * argv[])
    //   
    // demarrage du processus de l'automate
    //
-   automator_pid = start_automatorServer(params_list[SQLITE3_DB_PARAM_PATH]);
+//   automator_pid = start_automatorServer(params_list[SQLITE3_DB_PARAM_PATH]);
 
    //
    // initialisation gestions des signaux (arrêt de l'appli et réinitialisation
