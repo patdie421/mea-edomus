@@ -37,12 +37,12 @@ typedef struct xpl_msg_struc {
 	char section[36];
 	char name[18];
 	char value[130];
-};
+} xpl_msg_struc_t ;
 
 typedef struct xpl_hub_struc {
 	unsigned port;
 	int timeout;
-};
+} xpl_hub_struc_t ;
 
 int udpSocket = 0;
 struct sockaddr_in inSocket = { 0 }, FromName = { 0 };
