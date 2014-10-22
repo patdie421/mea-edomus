@@ -73,6 +73,10 @@ void logger()
    signal(SIGQUIT, _logger_stop);
    signal(SIGTERM, _logger_stop);
 
+#ifdef __APPLE__
+   xPL_setBroadcastInterface("en0"); // comprendre pourquoi ca ne marche plus sans sur mac os x ...
+#endif
+
    if ( !xPL_initialize(xPL_getParsedConnectionType()) )
       exit(1);
    
@@ -97,5 +101,3 @@ int main(int argc, char *argv[])
 {
    logger();
 }
-
-

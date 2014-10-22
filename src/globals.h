@@ -41,7 +41,7 @@
 #define NODEJSDATA_PORT       23
 #define MAX_LIST_SIZE         24
 
-queue_t * get_interfaces();
+//queue_t * get_interfaces();
 
 // voir ou mettre
 #define UNIT_WH 1 // Watt/Heure

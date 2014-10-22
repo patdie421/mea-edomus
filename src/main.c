@@ -43,7 +43,7 @@
 #include "logServer.h"
 #include "automatorServer.h"
 
-#include "monitoringServer.h"
+#include "processManager.h"
 
 int xplServer_monitoring_id=-1;
 int httpServer_monitoring_id=-1;
@@ -753,7 +753,7 @@ int main(int argc, const char * argv[])
    //
    // initialisation du gestionnaire de process
    //
-   init_monitored_processes(40);
+   init_processes_manager(40);
 
    //   
    // demarrage du processus de l'automate
@@ -833,7 +833,7 @@ int main(int argc, const char * argv[])
    logServerData.params_list=params_list;
    logServer_monitoring_id=process_register("LOGSERVER");
    
-   VERBOSE(9) fprintf (stderr, "%s  (%s) : starting LOGSERVER\n",INFO_STR,__func__);
+   VERBOSE(9) fprintf (stderr, "%s (%s) : starting LOGSERVER\n",INFO_STR,__func__);
    process_set_start_stop(logServer_monitoring_id , start_logServer, stop_logServer, (void *)(&logServerData), 1);
    if(process_start(logServer_monitoring_id)<0)
    {
@@ -864,7 +864,7 @@ int main(int argc, const char * argv[])
       uptime = (long)(time(NULL)-start_time);
       process_update_indicator(main_monitoring_id, "UPTIME", uptime);
 
-      monitoringServer_loop("localhost", atoi(params_list[NODEJSDATA_PORT]));
+      managed_processes_loop("localhost", atoi(params_list[NODEJSDATA_PORT]));
 
       sleep(10);
    }

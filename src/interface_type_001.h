@@ -35,11 +35,11 @@ typedef struct interface_type_001_s
 } interface_type_001_t;
 
 
-struct interface_type_001_Data_s
+struct interface_type_001_data_s
 {
    interface_type_001_t *i001;
    sqlite3 *sqlite3_param_db;
-   int16_t id_interface;
+//   int16_t id_interface;
    char dev[81];
    tomysqldb_md_t *myd;
 };  

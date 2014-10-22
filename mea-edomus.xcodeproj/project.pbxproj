@@ -44,7 +44,7 @@
 		4E76CEA5163F12C800A3EBA9 /* arduino_pins.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E76CEA3163F12C700A3EBA9 /* arduino_pins.c */; };
 		4E76CEAB163F146900A3EBA9 /* parameters_utils.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E76CEA9163F146900A3EBA9 /* parameters_utils.c */; };
 		4E76CEB2163F175100A3EBA9 /* tokens.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E76CEB0163F175100A3EBA9 /* tokens.c */; };
-		4E798FF919D4871400F87593 /* monitoringServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E798FF819D4871400F87593 /* monitoringServer.c */; };
+		4E798FF919D4871400F87593 /* processManager.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E798FF819D4871400F87593 /* processManager.c */; };
 		4E8787E61816732800A87FF0 /* sqlite3db_utils.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E8787E51816732800A87FF0 /* sqlite3db_utils.c */; };
 		4E8E533818429724006FB9D3 /* automatorServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E8E533718429724006FB9D3 /* automatorServer.c */; };
 		4E8F781C178B44490099A751 /* string_utils.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E8F781B178B44490099A751 /* string_utils.c */; };
@@ -91,9 +91,10 @@
 		4E207BB219F04ED100410B40 /* sockets_utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sockets_utils.h; path = src/sockets_utils.h; sourceTree = "<group>"; };
 		4E207BB319F0528400410B40 /* logServer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = logServer.h; path = src/logServer.h; sourceTree = "<group>"; };
 		4E207BB419F0529D00410B40 /* logServer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = logServer.c; path = src/logServer.c; sourceTree = "<group>"; };
-		4E207BB819F1BA4300410B40 /* mea-xpllogger.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = "mea-xpllogger.c"; path = "commands/mea-xpllogger.c"; sourceTree = "<group>"; };
+		4E207BB819F1BA4300410B40 /* mea-xpllogger.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = "mea-xpllogger.c"; path = "../commands/mea-xpllogger.c"; sourceTree = "<group>"; };
 		4E207BBF19F1C13A00410B40 /* mea-xpllogger */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "mea-xpllogger"; sourceTree = BUILT_PRODUCTS_DIR; };
 		4E207BC419F1C13A00410B40 /* mea_xpllogger.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = mea_xpllogger.1; sourceTree = "<group>"; };
+		4E40668E19F3C0D600468E11 /* uthash.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = uthash.h; path = src/uthash.h; sourceTree = "<group>"; };
 		4E4811A219C37D43001C5F48 /* mea_simulation.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = mea_simulation.py; path = plugins/mea_simulation.py; sourceTree = "<group>"; };
 		4E4811A319C37D43001C5F48 /* mea_utils.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = mea_utils.py; path = plugins/mea_utils.py; sourceTree = "<group>"; };
 		4E4811A419C37D43001C5F48 /* my_dht22.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = my_dht22.py; path = plugins/my_dht22.py; sourceTree = "<group>"; };
@@ -145,8 +146,8 @@
 		4E76CEB0163F175100A3EBA9 /* tokens.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = tokens.c; path = src/tokens.c; sourceTree = "<group>"; };
 		4E76CEB1163F175100A3EBA9 /* tokens.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = tokens.h; path = src/tokens.h; sourceTree = "<group>"; };
 		4E76CEB4163F17E300A3EBA9 /* mysql_mea-edomus_db.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "mysql_mea-edomus_db.sql"; path = "sql/mysql_mea-edomus_db.sql"; sourceTree = "<group>"; };
-		4E798FF819D4871400F87593 /* monitoringServer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = monitoringServer.c; path = src/monitoringServer.c; sourceTree = "<group>"; };
-		4E798FFA19D4890D00F87593 /* monitoringServer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = monitoringServer.h; path = src/monitoringServer.h; sourceTree = "<group>"; };
+		4E798FF819D4871400F87593 /* processManager.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = processManager.c; path = src/processManager.c; sourceTree = "<group>"; };
+		4E798FFA19D4890D00F87593 /* processManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = processManager.h; path = src/processManager.h; sourceTree = "<group>"; };
 		4E798FFC19DC9CAA00F87593 /* build-package.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = "build-package.sh"; path = "package/build-package.sh"; sourceTree = "<group>"; };
 		4E798FFD19DC9CAA00F87593 /* install.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = install.sh; path = package/install.sh; sourceTree = "<group>"; };
 		4E79900019DC9D5500F87593 /* automate.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; path = automate.php; sourceTree = "<group>"; };
@@ -944,7 +945,6 @@
 				4E798FFB19DC9C8B00F87593 /* package */,
 				08FB7795FE84155DC02AAC07 /* src */,
 				4E48119F19C37C46001C5F48 /* Plugins */,
-				4E207BC119F1C13A00410B40 /* mea-xpllogger */,
 				4E207BC019F1C13A00410B40 /* Products */,
 			);
 			name = Comio;
@@ -963,7 +963,7 @@
 				4E5FC67E1736C8A9004266EB /* plugin manager */,
 				4EFBFCAB175E612D007BBFD1 /* gui manager */,
 				4EE28EAA162F4DD00090B5B3 /* xPL manager */,
-				4E79947819DDDA5D00F87593 /* monitoring manager */,
+				4E79947819DDDA5D00F87593 /* process manager */,
 				1AB674ADFE9D54B511CA2CBB /* Products */,
 				4E8E53351842967F006FB9D3 /* automator manager */,
 			);
@@ -981,7 +981,7 @@
 		4E207BB919F1BA5900410B40 /* commands */ = {
 			isa = PBXGroup;
 			children = (
-				4E207BB819F1BA4300410B40 /* mea-xpllogger.c */,
+				4E207BC119F1C13A00410B40 /* mea-xpllogger */,
 			);
 			name = commands;
 			sourceTree = "<group>";
@@ -997,6 +997,7 @@
 		4E207BC119F1C13A00410B40 /* mea-xpllogger */ = {
 			isa = PBXGroup;
 			children = (
+				4E207BB819F1BA4300410B40 /* mea-xpllogger.c */,
 				4E207BC419F1C13A00410B40 /* mea_xpllogger.1 */,
 			);
 			path = "mea-xpllogger";
@@ -1063,6 +1064,7 @@
 				4E4A5E9015F003420052ABF4 /* comio.h */,
 				4EF3D8FA19B3C02200892F29 /* comio2.c */,
 				4EF3D8FB19B3C02200892F29 /* comio2.h */,
+				4E40668E19F3C0D600468E11 /* uthash.h */,
 			);
 			name = Libs;
 			sourceTree = "<group>";
@@ -3516,13 +3518,13 @@
 			name = nodejs;
 			sourceTree = "<group>";
 		};
-		4E79947819DDDA5D00F87593 /* monitoring manager */ = {
+		4E79947819DDDA5D00F87593 /* process manager */ = {
 			isa = PBXGroup;
 			children = (
-				4E798FF819D4871400F87593 /* monitoringServer.c */,
-				4E798FFA19D4890D00F87593 /* monitoringServer.h */,
+				4E798FF819D4871400F87593 /* processManager.c */,
+				4E798FFA19D4890D00F87593 /* processManager.h */,
 			);
-			name = "monitoring manager";
+			name = "process manager";
 			sourceTree = "<group>";
 		};
 		4E8E53351842967F006FB9D3 /* automator manager */ = {
@@ -3540,10 +3542,10 @@
 				4E76CE8E163F120C00A3EBA9 /* xPL_priv.h */,
 				4E76CE8F163F120C00A3EBA9 /* xPL-config.c */,
 				4E76CE91163F120C00A3EBA9 /* xPL-io.c */,
-				4E76CE92163F120C00A3EBA9 /* xPL-listeners.c */,
 				4E76CE93163F120C00A3EBA9 /* xPL-message.c */,
 				4E76CE94163F120C00A3EBA9 /* xPL-service.c */,
 				4E76CE95163F120C00A3EBA9 /* xPL-store.c */,
+				4E76CE92163F120C00A3EBA9 /* xPL-listeners.c */,
 				4E76CE96163F120C00A3EBA9 /* xPL-utils.c */,
 				4E76CE97163F120C00A3EBA9 /* xPL.h */,
 			);
@@ -3721,7 +3723,7 @@
 				4E5FC660172F0F91004266EB /* interface_type_001_sensors.c in Sources */,
 				4E5FC662172F103B004266EB /* interface_type_001_actuators.c in Sources */,
 				4E5FC67917357D72004266EB /* pythonPluginServer.c in Sources */,
-				4E798FF919D4871400F87593 /* monitoringServer.c in Sources */,
+				4E798FF919D4871400F87593 /* processManager.c in Sources */,
 				4E5E24C3173C34AE00B8CEFE /* mea_api.c in Sources */,
 				4EFBBC7F1746C85D00090FEE /* error.c in Sources */,
 				4EFBFCAE175E616E007BBFD1 /* guiServer.c in Sources */,
@@ -3923,6 +3925,7 @@
 				4E207BC819F1C13A00410B40 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

@@ -30,7 +30,6 @@ int32_t get_speed_from_speed_t(speed_t speed);
 queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db, tomysqldb_md_t *myd);
 void restart_down_interfaces(sqlite3 *sqlite3_param_db, tomysqldb_md_t *myd);
 void stop_interfaces();
-void dispatchXPLMessageToInterfaces(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xPL_ObjectPtr userValue);
-queue_t *get_interfaces();
+void dispatchXPLMessageToInterfaces(xPL_ServicePtr theService, xPL_MessagePtr theMessage);
 
 #endif

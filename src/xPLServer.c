@@ -23,7 +23,7 @@
 
 #include "xPLServer.h"
 
-#include "monitoringServer.h"
+#include "processManager.h"
 
 #include "interfacesServer.h"
 //#include "interface_type_001.h"
@@ -145,50 +145,6 @@ xPL_ServicePtr mea_getXPLServicePtr()
    return xPLService;
 }
 
-/*
-void _dispatchXPLMessage(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xPL_ObjectPtr userValue) // à mettre dans interfaces.h ?
-{
-   int ret;
-
-   queue_t *interfaces;
-   interfaces_queue_elem_t *iq;
-
-   interfaces=(queue_t *)userValue;
-   
-   VERBOSE(9) fprintf(stderr,"%s  (%s) : Reception message xPL\n",INFO_STR,__func__);
-   
-   if(first_queue(interfaces)==-1)
-      return;
-
-   while(1)
-   {
-      current_queue(interfaces, (void **)&iq);
-      switch (iq->type)
-      {
-         case INTERFACE_TYPE_001:
-         {
-            interface_type_001_t *i001 = (interface_type_001_t *)(iq->context);
-            if(i001->xPL_callback)
-               i001->xPL_callback(theService, theMessage, (xPL_ObjectPtr)i001);
-            break;
-         }
-
-         case INTERFACE_TYPE_002:
-         {
-            interface_type_002_t *i002 = (interface_type_002_t *)(iq->context);
-            if(i002->xPL_callback)
-               i002->xPL_callback(theService, theMessage, (xPL_ObjectPtr)i002);
-            break;
-         }
-         default:
-            break;
-      }
-      ret=next_queue(interfaces);
-      if(ret<0)
-         break;
-   }
-}
-*/
 
 uint16_t mea_sendXPLMessage(xPL_MessagePtr xPLMsg)
 {
@@ -200,7 +156,7 @@ uint16_t mea_sendXPLMessage(xPL_MessagePtr xPLMsg)
    addr = xPL_getSourceDeviceID(xPLMsg);
    if(addr && strcmp(addr,"internal")==0) // source interne => dispatching sans passer par le réseau
    {
-      dispatchXPLMessageToInterfaces(xPLService, xPLMsg, (xPL_ObjectPtr)get_interfaces());
+      dispatchXPLMessageToInterfaces(xPLService, xPLMsg);
       return 0;
    }
    
@@ -260,7 +216,6 @@ uint16_t mea_sendXPLMessage(xPL_MessagePtr xPLMsg)
 xPL_MessagePtr mea_readXPLResponse(int id)
 {
    int16_t ret;
-//   int16_t boucle=5; // 5 tentatives de 1 secondes
    uint16_t notfound=0;
    xPL_MessagePtr msg=NULL;
 
@@ -334,7 +289,8 @@ readFromQueue_return:
 void _cmndXPLMessageHandler(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
 {
    xplin_indicator++;
-   dispatchXPLMessageToInterfaces(theService, theMessage, userValue);
+
+   dispatchXPLMessageToInterfaces(theService, theMessage);
 }
 
 
@@ -386,8 +342,6 @@ void *_xPL_thread(void *data)
 
    process_add_indicator(_xplServer_monitoring_id, "XPLIN", xplin_indicator);
    process_add_indicator(_xplServer_monitoring_id, "XPLOUT", xplout_indicator);
-
-   if ( !xPL_initialize(xPL_getParsedConnectionType()) ) return 0 ;
    
    xPLService = xPL_createService(xpl_vendorID, xpl_deviceID, xpl_instanceID);
    xPL_setServiceVersion(xPLService, XPL_VERSION);
@@ -395,7 +349,6 @@ void *_xPL_thread(void *data)
    xPL_setRespondingToBroadcasts(xPLService, TRUE);
    
    xPL_setHeartbeatInterval(xPLService, 5000); // en milliseconde    
-   // xPL_MESSAGE_ANY, xPL_MESSAGE_COMMAND, xPL_MESSAGE_STATUS, xPL_MESSAGE_TRIGGER
    xPL_addServiceListener(xPLService, _cmndXPLMessageHandler, xPL_MESSAGE_COMMAND, "control", "basic", (xPL_ObjectPtr)data) ;
    xPL_addServiceListener(xPLService, _cmndXPLMessageHandler, xPL_MESSAGE_COMMAND, "sensor", "request", (xPL_ObjectPtr)data) ;
    
@@ -425,7 +378,6 @@ void *_xPL_thread(void *data)
 }
 
 
-//pthread_t *xPLServer(queue_t *interfaces)
 pthread_t *xPLServer()
 {
    pthread_t *xPL_thread=NULL;
@@ -435,10 +387,7 @@ pthread_t *xPLServer()
       return NULL;
    }
    
-   // initialisation
-//   pthread_mutex_init(&xplRespSend_lock, NULL);
-
-      // préparation synchro consommateur / producteur
+   // préparation synchro consommateur / producteur
    pthread_cond_init(&xplRespQueue_sync_cond, NULL);
    pthread_mutex_init(&xplRespQueue_sync_lock, NULL);
    pthread_mutex_init(&requestId_lock, NULL);
@@ -466,7 +415,6 @@ pthread_t *xPLServer()
       return NULL;
    }
 
-//   if(pthread_create (xPL_thread, NULL, _xPL_thread, (void *)interfaces))
    if(pthread_create (xPL_thread, NULL, _xPL_thread, NULL))
    {
       VERBOSE(1) fprintf(stderr, "%s (%s) : pthread_create - can't start thread\n",ERROR_STR,__func__);
@@ -529,8 +477,18 @@ int start_xPLServer(int my_id, void *data)
    {
       _xplServer_monitoring_id=my_id;
 
+#ifdef __APPLE__
+      xPL_setBroadcastInterface("en0"); // comprendre pourquoi ca ne marche plus sans ...
+#endif
+      if ( !xPL_initialize(xPL_getParsedConnectionType()) )
+      {
+         VERBOSE(1) {
+            fprintf (stderr, "%s (%s) : xPL_initialize - error\n",ERROR_STR,__func__);
+         }
+         return -1;
+      }
+
       _xPLServer_thread=xPLServer();
-      //_xPLServer_thread=xPLServer(xplServerData->interfaces);
 
       if(_xPLServer_thread==NULL)
       {
@@ -549,7 +507,3 @@ int start_xPLServer(int my_id, void *data)
       return -1;
    }
 }
-
-
-
-
