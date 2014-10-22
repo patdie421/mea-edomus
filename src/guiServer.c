@@ -18,6 +18,7 @@
 #include <netdb.h> // gethostbyname
 #include <sys/stat.h>
 #include <signal.h>
+#include <sys/wait.h>
 
 #include "globals.h"
 #include "debug.h"

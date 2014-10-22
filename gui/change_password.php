@@ -151,7 +151,7 @@ if(isset($_SESSION['change_passwd_flag']))
     </div>
 </body>
 
-<?php include "controlers/change_password.php"; ?>
+<?php include "controllers/change_password.php"; ?>
 
 <script type="text/javascript" src="lib/js/strings.js"></script>
 <script type="text/javascript">

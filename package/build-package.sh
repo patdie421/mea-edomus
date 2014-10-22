@@ -46,8 +46,15 @@ if [ -f $SOURCE/complements/php-cgi/src/php-5.5.16/sapi/cgi/php-cgi ]
 then
    cp $SOURCE/complements/php-cgi/src/php-5.5.16/sapi/cgi/php-cgi $SOURCE/package/tmp/bin
 fi
+
+if [ -f $SOURCE/complements/nodejs/src/node-v0.10.32/out/Release/node ]
+then
+   cp $SOURCE/complements/nodejs/src/node-v0.10.32/out/Release/node $SOURCE/package/tmp/bin
+fi
+
 strip $SOURCE/package/tmp/bin/*
 
+cd $SOURCE/package/tmp
 cd $SOURCE/package/tmp
 tar cf $SOURCE/package/mea-edomus.tar *
 
