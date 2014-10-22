@@ -150,7 +150,6 @@ unsigned int xPLParser(const char* xplmsg, struct xpl_msg_struc * pxpl_msg) {
 
 void XplSend(const unsigned short xplports, const char* xplmessage) {
 
-	int xplsent;
 	struct sockaddr_in sendxpl = { 0 };
 	unsigned int sendxpllen;
 	int xplSocket = 0;
@@ -165,7 +164,7 @@ void XplSend(const unsigned short xplports, const char* xplmessage) {
 	if(setsockopt(xplSocket, SOL_SOCKET, SO_BROADCAST, (char*)&optval, optlen)) { return; }
 	sendxpllen=sizeof(struct sockaddr_in);
 
-	xplsent=sendto(xplSocket, xplmessage, strlen(xplmessage),0, (struct sockaddr *) &sendxpl, sendxpllen);
+	sendto(xplSocket, xplmessage, strlen(xplmessage),0, (struct sockaddr *) &sendxpl, sendxpllen);
 
 	close(xplSocket);
 }
