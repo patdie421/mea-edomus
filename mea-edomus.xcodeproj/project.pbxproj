@@ -20,7 +20,6 @@
 		4E207BCF19F1C17500410B40 /* xPL-io.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E76CE91163F120C00A3EBA9 /* xPL-io.c */; };
 		4E207BD019F1C17900410B40 /* xPL-config.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E76CE8F163F120C00A3EBA9 /* xPL-config.c */; };
 		4E3F343119F816050066A9CC /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = 4E3F342B19F816050066A9CC /* Makefile */; };
-		4E3F343319F816050066A9CC /* xplhub.o in Frameworks */ = {isa = PBXBuildFile; fileRef = 4E3F342F19F816050066A9CC /* xplhub.o */; };
 		4E4A5EA215F003420052ABF4 /* comio.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E4A5E8F15F003420052ABF4 /* comio.c */; };
 		4E4A5EA315F003420052ABF4 /* interface_type_001.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E4A5E9115F003420052ABF4 /* interface_type_001.c */; };
 		4E4A5EA415F003420052ABF4 /* debug.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E4A5E9315F003420052ABF4 /* debug.c */; };
@@ -107,10 +106,8 @@
 		4E3F342919F816050066A9CC /* install.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; path = install.sh; sourceTree = "<group>"; };
 		4E3F342A19F816050066A9CC /* Install.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Install.txt; sourceTree = "<group>"; };
 		4E3F342B19F816050066A9CC /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
-		4E3F342C19F816050066A9CC /* xplhub */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = xplhub; sourceTree = "<group>"; };
 		4E3F342D19F816050066A9CC /* xplhub.amp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = xplhub.amp; sourceTree = "<group>"; };
 		4E3F342E19F816050066A9CC /* xplhub.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xplhub.cc; sourceTree = "<group>"; };
-		4E3F342F19F816050066A9CC /* xplhub.o */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.objfile"; path = xplhub.o; sourceTree = "<group>"; };
 		4E3F343019F816050066A9CC /* xplhub.start */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; path = xplhub.start; sourceTree = "<group>"; };
 		4E40668E19F3C0D600468E11 /* uthash.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = uthash.h; path = src/uthash.h; sourceTree = "<group>"; };
 		4E4811A219C37D43001C5F48 /* mea_simulation.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = mea_simulation.py; path = plugins/mea_simulation.py; sourceTree = "<group>"; };
@@ -945,7 +942,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4E3F343319F816050066A9CC /* xplhub.o in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1056,10 +1052,8 @@
 				4E3F342919F816050066A9CC /* install.sh */,
 				4E3F342A19F816050066A9CC /* Install.txt */,
 				4E3F342B19F816050066A9CC /* Makefile */,
-				4E3F342C19F816050066A9CC /* xplhub */,
 				4E3F342D19F816050066A9CC /* xplhub.amp */,
 				4E3F342E19F816050066A9CC /* xplhub.cc */,
-				4E3F342F19F816050066A9CC /* xplhub.o */,
 				4E3F343019F816050066A9CC /* xplhub.start */,
 			);
 			name = xPLHub;
