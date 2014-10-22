@@ -2,8 +2,9 @@ export LIBS =
 export CFLAGS = -g -Wall -O2
 export LFLAGS = 
 
-all: CC = g++
-all: xPL = -DxPLLinux
+CC=g++
+xPL=-DxPLLinux
+
 all: xplhub 
 
 xplhub: xplhub.o

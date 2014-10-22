@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 
+#
+# from http://bazaar.launchpad.net/~sffjunkie/expel/trunk/files
+#
+
 # Copyright (c) 2009-2012 Simon Kennedy <code@sffjunkie.co.uk>.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -63,6 +67,7 @@ class xPLHub(object):
         try:
             self._log.info('xPL Hub: Starting hub %s' % self.source)
             self._log.debug('xPL Hub: Listening on port %d' % XPL_PORT)
+
 
             for address in self._listen_on:
                 conn = xPLHubProtocol(hub=self)
