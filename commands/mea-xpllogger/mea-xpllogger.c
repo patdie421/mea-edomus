@@ -13,9 +13,7 @@
 #include <errno.h>
 #include <inttypes.h>
 
-
 #include "xPL.h"
-
 
 #define XPL_VERSION "0.1a2"
 
