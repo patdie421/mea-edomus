@@ -363,8 +363,8 @@ void *_pythonPlugin_thread(void *data)
    PyThreadState_Clear(myThreadState);
    PyThreadState_Delete(myThreadState);
 
-   PyEval_AcquireLock();
-   Py_Finalize();
+//   PyEval_AcquireLock();
+//   Py_Finalize();
    
    pthread_exit(NULL);
    
@@ -485,7 +485,6 @@ int stop_pythonPluginServer(int my_id, void *data)
    }
    pthread_mutex_unlock(&pythonPluginCmd_queue_lock);
    pthread_cleanup_pop(0);
-
 
    PyEval_AcquireLock();
    Py_Finalize();
