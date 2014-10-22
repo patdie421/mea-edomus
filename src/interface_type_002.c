@@ -36,7 +36,10 @@
 #include "pythonPluginServer.h"
 #include "python_api_utils.h"
 
+#include "processManager.h"
+
 #include "interfacesServer.h"
+#include "interface_type_002.h"
 
 
 typedef void (*thread_f)(void *);
@@ -869,16 +872,22 @@ clean_exit:
 }
 
 
-mea_error_t stop_interface_type_002(interface_type_002_t *i002)
-/**  
+//mea_error_t stop_interface_type_002(interface_type_002_t *i002)
+int stop_interface_type_002(int my_id, void *data)
+/**
  * \brief     arrêt d'une interface de type 2
  * \details   RAZ de tous les structures de données et libération des mémoires allouées
  * \param     i002           descripteur de l'interface  
  * \return    ERROR ou NOERROR
  **/ 
 {
-   VERBOSE(9) fprintf(stderr,"%s  (%s) : shutdown interface_type_002 thread.\n",INFO_STR, __func__);
+   if(!data)
+      return -1;
 
+   struct interface_type_002_data_s *start_stop_params=(struct interface_type_002_data_s *)data;
+
+   VERBOSE(9) fprintf(stderr,"%s  (%s) : shutdown interface_type_002 thread.\n",INFO_STR, __func__);
+/*
    FREE(i002->xPL_callback_data);
    if(i002->xPL_callback)
       i002->xPL_callback=NULL;
@@ -908,17 +917,57 @@ mea_error_t stop_interface_type_002(interface_type_002_t *i002)
    VERBOSE(9) fprintf(stderr,"%s  (%s) : interface_type_002 thread is down.\n",INFO_STR, __func__);
    
    return NOERROR;
+*/
+   FREE(start_stop_params->i002->xPL_callback_data);
+   if(start_stop_params->i002->xPL_callback)
+      start_stop_params->i002->xPL_callback=NULL;
+   
+   if(start_stop_params->i002->xd->dataflow_callback_data)
+   {
+      free(start_stop_params->i002->xd->dataflow_callback_data);
+      start_stop_params->i002->xd->dataflow_callback_data=NULL;
+      start_stop_params->i002->xd->io_callback_data=NULL;
+   }
+   
+   if(start_stop_params->i002->thread)
+   {
+      pthread_cancel(*(start_stop_params->i002->thread));
+      pthread_join(*(start_stop_params->i002->thread), NULL);
+   }
+   FREE(start_stop_params->i002->thread);
+   
+   xbee_remove_commissionning_callback(start_stop_params->i002->xd);
+   FREE(start_stop_params->i002->xd->commissionning_callback_data);
+
+   xbee_close(start_stop_params->i002->xd);
+
+   FREE(start_stop_params->i002->xd);
+   FREE(start_stop_params->i002->local_xbee);
+
+   VERBOSE(9) fprintf(stderr,"%s  (%s) : interface_type_002 thread is down.\n",INFO_STR, __func__);
+   
+   return 0;
+
 }
 
 
-mea_error_t restart_interface_type_002(interface_type_002_t *i002,sqlite3 *db, tomysqldb_md_t *md)
+int restart_interface_type_002(int id)
+{
+   process_stop(id);
+   sleep(5);
+   return process_start(id);
+}
+
+
+//mea_error_t restart_interface_type_002(interface_type_002_t *i002,sqlite3 *db, tomysqldb_md_t *md)
 /**  
  * \brief     Re-demarrage d'une interface de type 2
  * \details   appel stop_interface_type_002 puis start_interface_type_002 en ayant pris soit de récupérer les différentes données nécessaires.
  * \param     db             descripteur ouvert de la base de paramétrage  
  * \param     md             descripteur ouvert de la base d'historique
  * \return    ERROR ou NOERROR
- **/ 
+ **/
+ /*
 {
    char full_dev[80];
    char dev[80];
@@ -975,9 +1024,9 @@ mea_error_t restart_interface_type_002(interface_type_002_t *i002,sqlite3 *db, t
    
    return ret;
 }
+*/
 
-
-mea_error_t check_status_interface_type_002(interface_type_002_t *it002)
+int16_t check_status_interface_type_002(interface_type_002_t *it002)
 /**  
  * \brief     indique si une anomalie a généré l'emission d'un signal SIGHUP
  * \param     i002           descripteur de l'interface  
@@ -985,13 +1034,14 @@ mea_error_t check_status_interface_type_002(interface_type_002_t *it002)
  **/ 
 {
    if(it002->xd->signal_flag!=0)
-      return ERROR;
-   return NOERROR;
+      return -1;
+   return 0;
 }
 
 
-mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, int id_interface, const unsigned char *dev_and_speed, tomysqldb_md_t *md, char *parameters)
-/**  
+//mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, int id_interface, const unsigned char *dev_and_speed, tomysqldb_md_t *md, char *parameters)
+int start_interface_type_002(int my_id, void *data)
+/**
  * \brief     Demarrage d'une interface de type 2
  * \details   ouverture de la communication avec l'xbee point d'entrée MESH, démarrage du thread de gestion des données iodata et xbeedata, mise en place des callback xpl et commissionnement
  * \param     i002           descripteur de l'interface  
@@ -1003,7 +1053,7 @@ mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, in
  * \return    ERROR ou NOERROR
  **/ 
 {
-   char unix_dev[80];
+   char dev[81];
    char buff[80];
    speed_t speed;
 
@@ -1018,17 +1068,23 @@ mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, in
    struct callback_commissionning_data_s *commissionning_callback_params=NULL;
    struct callback_xpl_data_s *xpl_callback_params=NULL;
    
-   i002->thread=NULL;
+   struct interface_type_002_data_s *start_stop_params=(struct interface_type_002_data_s *)data;
+
+//   i002->thread=NULL;
+   start_stop_params->i002->thread=NULL;
 
    int interface_nb_parameters=0;
    parsed_parameters_t *interface_parameters=NULL;
    
-   ret=get_dev_and_speed((char *)dev_and_speed, buff, sizeof(buff), &speed);
+
+//   ret=get_dev_and_speed((char *)dev_and_speed, buff, sizeof(buff), &speed);
+   ret=get_dev_and_speed((char *)start_stop_params->i002->dev, buff, sizeof(buff), &speed);
    if(!ret)
-      sprintf(unix_dev,"/dev/%s",buff);
+      snprintf(dev,sizeof(buff)-1,"/dev/%s",buff);
    else
    {
-      VERBOSE(2) fprintf (stderr, "%s (%s) : incorrect device/speed interface - %s\n", ERROR_STR,__func__,dev_and_speed);
+//      VERBOSE(2) fprintf (stderr, "%s (%s) : incorrect device/speed interface - %s\n", ERROR_STR,__func__,dev_and_speed);
+      VERBOSE(2) fprintf (stderr, "%s (%s) : incorrect device/speed interface - %s\n", ERROR_STR,__func__,start_stop_params->i002->dev);
       goto clean_exit;
    }
 
@@ -1042,16 +1098,17 @@ mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, in
       goto clean_exit;
    }
    
-   fd=xbee_init(xd, unix_dev, speed);
+   fd=xbee_init(xd, dev, speed);
    if (fd == -1)
    {
       VERBOSE(2) {
-         fprintf(stderr,"%s (%s) : init_xbee - Unable to open serial port (%s) : ", ERROR_STR, __func__, unix_dev);
+         fprintf(stderr,"%s (%s) : init_xbee - Unable to open serial port (%s) : ", ERROR_STR, __func__, dev);
          perror("");
       }
       goto clean_exit;
    }
-   i002->xd=xd;
+//   i002->xd=xd;
+   start_stop_params->i002->xd=xd;
    
    /*
     * Préparation du réseau XBEE
@@ -1089,12 +1146,14 @@ mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, in
  
    xbee_get_host_by_addr_64(xd, local_xbee, addr_64_h, addr_64_l, &nerr);
 
-   i002->local_xbee=local_xbee;
+//   i002->local_xbee=local_xbee;
+   start_stop_params->i002->local_xbee=local_xbee;
  
    /*
     * exécution du plugin de paramétrage
     */   
-   interface_parameters=malloc_parsed_parameters(parameters, valid_xbee_plugin_params, &interface_nb_parameters, &err, 0);
+//   interface_parameters=malloc_parsed_parameters(parameters, valid_xbee_plugin_params, &interface_nb_parameters, &err, 0);
+   interface_parameters=malloc_parsed_parameters(start_stop_params->parameters, valid_xbee_plugin_params, &interface_nb_parameters, &err, 0);
    if(!interface_parameters || !interface_parameters[XBEE_PLUGIN_PARAMS_PLUGIN].value.s)
    {
       if(interface_parameters)
@@ -1106,7 +1165,8 @@ mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, in
       }
       else
       {
-         VERBOSE(2) fprintf(stderr, "%s (%s) : invalid python plugin parameters (%s)\n", ERROR_STR, __func__, parameters);
+//         VERBOSE(2) fprintf(stderr, "%s (%s) : invalid python plugin parameters (%s)\n", ERROR_STR, __func__, parameters);
+         VERBOSE(2) fprintf(stderr, "%s (%s) : invalid python plugin parameters (%s)\n", ERROR_STR, __func__, start_stop_params->parameters);
          goto clean_exit;
       }
    }
@@ -1138,7 +1198,8 @@ mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, in
             // préparation du parametre du module
             plugin_params_dict=PyDict_New();
             addLong_to_pydict(plugin_params_dict, get_token_by_id(ID_XBEE_ID), (long)xd);
-            addLong_to_pydict(plugin_params_dict, get_token_by_id(INTERFACE_ID_ID), id_interface);
+//            addLong_to_pydict(plugin_params_dict, get_token_by_id(INTERFACE_ID_ID), id_interface);
+            addLong_to_pydict(plugin_params_dict, get_token_by_id(INTERFACE_ID_ID), start_stop_params->i002->id_interface);
             if(interface_parameters[XBEE_PLUGIN_PARAMS_PARAMETERS].value.s)
                addString_to_pydict(plugin_params_dict, get_token_by_id(INTERFACE_PARAMETERS_ID), interface_parameters[XBEE_PLUGIN_PARAMS_PARAMETERS].value.s);
 
@@ -1186,7 +1247,8 @@ mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, in
    /*
     * Gestion des sous-interfaces
     */
-   i002->thread=start_interface_type_002_xbeedata_thread(i002, xd, db, md, (thread_f)_thread_interface_type_002_xbeedata);
+//   i002->thread=start_interface_type_002_xbeedata_thread(i002, xd, db, md, (thread_f)_thread_interface_type_002_xbeedata);
+   start_stop_params->i002->thread=start_interface_type_002_xbeedata_thread(start_stop_params->i002, xd, start_stop_params->sqlite3_param_db, start_stop_params->myd, (thread_f)_thread_interface_type_002_xbeedata);
 
    //
    // gestion du commissionnement : mettre une zone donnees specifique au commissionnement
@@ -1201,7 +1263,8 @@ mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, in
       goto clean_exit;
    }
    commissionning_callback_params->xd=xd;
-   commissionning_callback_params->param_db=db;
+//   commissionning_callback_params->param_db=db;
+   commissionning_callback_params->param_db=start_stop_params->sqlite3_param_db;
    commissionning_callback_params->mainThreadState=NULL;
    commissionning_callback_params->myThreadState=NULL;
    commissionning_callback_params->local_xbee=local_xbee;
@@ -1219,12 +1282,15 @@ mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, in
       }
       goto clean_exit;
    }
-   xpl_callback_params->param_db=db;
+//   xpl_callback_params->param_db=db;
+   xpl_callback_params->param_db=start_stop_params->sqlite3_param_db;
    xpl_callback_params->mainThreadState=NULL;
    xpl_callback_params->myThreadState=NULL;
    
-   i002->xPL_callback_data=xpl_callback_params;
-   i002->xPL_callback=_interface_type_002_xPL_callback;
+//   i002->xPL_callback_data=xpl_callback_params;
+   start_stop_params->i002->xPL_callback_data=xpl_callback_params;
+//   i002->xPL_callback=_interface_type_002_xPL_callback;
+   start_stop_params->i002->xPL_callback=_interface_type_002_xPL_callback;
    
    return NOERROR;
    
@@ -1236,9 +1302,11 @@ clean_exit:
       xbee_remove_dataflow_callback(xd);
    }
    
-   if(i002->thread)
+//   if(i002->thread)
+   if(start_stop_params->i002->thread)
    {
-      stop_interface_type_002(i002);
+//      stop_interface_type_002(i002);
+      stop_interface_type_002(start_stop_params->i002->monitoring_id, start_stop_params);
    }
    
    if(interface_parameters)
@@ -1272,5 +1340,5 @@ clean_exit:
       xd=NULL;
    }
    
-   return ERROR;
+   return -1;
 }

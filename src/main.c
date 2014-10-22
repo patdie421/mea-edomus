@@ -43,7 +43,7 @@
 #include "logServer.h"
 #include "automatorServer.h"
 
-#include "monitoringServer.h"
+#include "processManager.h"
 
 int xplServer_monitoring_id=-1;
 int httpServer_monitoring_id=-1;
@@ -249,8 +249,27 @@ void clean_all_and_exit()
    if(dbServer_monitoring_id!=-1)
    {
       VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping dbServer... ",INFO_STR,__func__);
+      process_stop(dbServer_monitoring_id);
       process_unregister(dbServer_monitoring_id);
       dbServer_monitoring_id=-1;
+      VERBOSE(9) fprintf(stderr,"done\n");
+   }
+   
+   if(logServer_monitoring_id!=-1)
+   {
+      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping logServer... ",INFO_STR,__func__);
+      process_stop(logServer_monitoring_id);
+      process_unregister(logServer_monitoring_id);
+      logServer_monitoring_id=-1;
+      VERBOSE(9) fprintf(stderr,"done\n");
+   }
+   
+   if(httpServer_monitoring_id!=-1)
+   {
+      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping guiServer... ",INFO_STR,__func__);
+      process_stop(httpServer_monitoring_id);
+      process_unregister(httpServer_monitoring_id);
+      httpServer_monitoring_id=-1;
       VERBOSE(9) fprintf(stderr,"done\n");
    }
    
@@ -268,13 +287,6 @@ void clean_all_and_exit()
    
    process_unregister(main_monitoring_id);
    
-//   if(monitoringServer_thread)
-//   {
-//      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping monitoringServer... ",INFO_STR,__func__);
-//      stop_monitoringServer();
-//      VERBOSE(9) fprintf(stderr,"done\n");
-//   }
-
    for(int16_t i=0;i<MAX_LIST_SIZE;i++)
    {
       if(params_list[i])
@@ -743,7 +755,7 @@ int main(int argc, const char * argv[])
    //
    // initialisation du gestionnaire de process
    //
-   init_monitored_processes(40);
+   init_processes_manager(40);
 
    //   
    // demarrage du processus de l'automate
@@ -757,6 +769,7 @@ int main(int argc, const char * argv[])
    signal(SIGQUIT, _signal_STOP);
    signal(SIGTERM, _signal_STOP);
    signal(SIGHUP,  _signal_HUP);
+   
    signal(SIGPIPE, signal_callback_handler);
 
    // démarrage des "services" (les services "majeurs" arrêtent tout (exit) si non démarrage
@@ -822,7 +835,7 @@ int main(int argc, const char * argv[])
    logServerData.params_list=params_list;
    logServer_monitoring_id=process_register("LOGSERVER");
    
-   VERBOSE(9) fprintf (stderr, "%s  (%s) : starting LOGSERVER\n",INFO_STR,__func__);
+   VERBOSE(9) fprintf (stderr, "%s (%s) : starting LOGSERVER\n",INFO_STR,__func__);
    process_set_start_stop(logServer_monitoring_id , start_logServer, stop_logServer, (void *)(&logServerData), 1);
    if(process_start(logServer_monitoring_id)<0)
    {
@@ -853,7 +866,7 @@ int main(int argc, const char * argv[])
       uptime = (long)(time(NULL)-start_time);
       process_update_indicator(main_monitoring_id, "UPTIME", uptime);
 
-      monitoringServer_loop("localhost", atoi(params_list[NODEJSDATA_PORT]));
+      managed_processes_loop("localhost", atoi(params_list[NODEJSDATA_PORT]));
 
       sleep(10);
    }

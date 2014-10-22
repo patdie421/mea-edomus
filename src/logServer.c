@@ -19,7 +19,7 @@
 #include "globals.h"
 #include "queue.h"
 #include "debug.h"
-#include "monitoringServer.h"
+#include "processManager.h"
 #include "timer.h"
 #include "sockets_utils.h"
 #include "string_utils.h"
@@ -37,7 +37,7 @@ struct logServer_thread_data_s
 int _readAndSendLine(int nodejs_socket, char *file, long *pos)
 {
    FILE *fp=NULL;
-   char line[512];
+   char line[4096];
    int nb_loop=0;
 
    fp = fopen(file, "r");

@@ -36,9 +36,13 @@ typedef struct data_queue_elem_s
    struct timeval tv;
 } data_queue_elem_t;
 
+
 typedef struct interface_type_002_s
 {
    int              id_interface;
+   char             name[41];
+   char             dev[81];
+   int              monitoring_id;
    xbee_xd_t       *xd;
    xbee_host_t     *local_xbee;
    pthread_t       *thread;
@@ -46,24 +50,18 @@ typedef struct interface_type_002_s
    void            *xPL_callback_data;
 } interface_type_002_t;
 
+
+struct interface_type_002_data_s
+{
+   interface_type_002_t *i002;
+   sqlite3 *sqlite3_param_db;
+//   int16_t id_interface;
+   tomysqldb_md_t *myd;
+   char *parameters;
+};  
+
+
 #define PLUGIN_DATA_MAX_SIZE 80
-
-/*
-typedef struct plugin_xbeedata_queue_elem_s
-{
-   unsigned char    addr_64_h[4];
-   unsigned char    addr_64_l[4];
-   unsigned char    cmd[80];
-   int              l_cmd;
-   struct timeval   tv;
-   
-} plugin_xbeedata_queue_elem_t;
-*/
-
-typedef struct plugin_xpl_queue_elem_s
-{
-   PyObject      *pyXplMsg;
-} plugin_xpl_queue_elem_t;
 
 
 typedef struct plugin_commissionning_queue_elem_s
@@ -72,9 +70,12 @@ typedef struct plugin_commissionning_queue_elem_s
 } plugin_commissionning_queue_elem_t;
 
 
-mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, int id_interface, const unsigned char *dev_and_speed, tomysqldb_md_t *md, char *paramters);
-mea_error_t stop_interface_type_002(interface_type_002_t *it002);
-mea_error_t restart_interface_type_002(interface_type_002_t *i002,sqlite3 *db, tomysqldb_md_t *md);
-mea_error_t check_status_interface_type_002(interface_type_002_t *it002);
+//mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, int id_interface, const unsigned char *dev_and_speed, tomysqldb_md_t *md, char *paramters);
+int start_interface_type_002(int my_id, void *data);
+// mea_error_t stop_interface_type_002(interface_type_002_t *it002);
+int stop_interface_type_002(int my_id, void *data);
+//mea_error_t restart_interface_type_002(interface_type_002_t *i002,sqlite3 *db, tomysqldb_md_t *md);
+int restart_interface_type_002(int id);
+int16_t check_status_interface_type_002(interface_type_002_t *it002);
 
 #endif
