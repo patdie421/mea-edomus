@@ -13,8 +13,8 @@ build/lib/
 build/etc/
 complements/php-cgi/src/
 complements/nodejs/src/
+complements/xplhub/src/xplhub/xplhub
 mea-edomus
 xPLLib/
 mea-edomus.tar.pkg*
-xplhub
 a.out
