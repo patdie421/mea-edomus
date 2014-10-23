@@ -221,6 +221,7 @@ void comio2_free_ad(comio2_ad_t *ad)
    {
       comio2_clean_ad(ad);
       free(ad);
+      ad=NULL;
    }
 }
 
@@ -647,6 +648,7 @@ int16_t _comio2_write_frame(int fd, char id, char *cmd_data, uint16_t l_cmd_data
    ret=(int16_t)write(fd,frame,l_frame);
 
    free(frame);
+   frame=NULL;
    
    if(ret<0)
    {

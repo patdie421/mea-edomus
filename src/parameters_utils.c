@@ -65,7 +65,10 @@ void free_parsed_parameters(parsed_parameters_t *params, int nb_params)
    for(int i=0;i<nb_params;i++)
       if(params[i].type==STRING)
          if(params[i].value.s)
+         {
             free(params[i].value.s);
+            params[i].value.s=NULL;
+         }
 }
 
 
@@ -161,6 +164,7 @@ parsed_parameters_t *malloc_parsed_parameters(char *parameters_string, char *par
                         {
                            free_parsed_parameters(parsed_parameters, *nb_params);
                            free(parsed_parameters);
+                           parsed_parameters=NULL;
                         }
                         if(err) *err=1; // erreur système, voir errno
                         goto malloc_parsed_parameters_exit;
@@ -191,6 +195,7 @@ parsed_parameters_t *malloc_parsed_parameters(char *parameters_string, char *par
             {
                free_parsed_parameters(parsed_parameters, *nb_params);
                free(parsed_parameters);
+               parsed_parameters=NULL;
             }
             if(err) *err=3; // label inconnu
             goto malloc_parsed_parameters_exit;
@@ -222,10 +227,16 @@ parsed_parameters_t *malloc_parsed_parameters(char *parameters_string, char *par
       }
    }
    free(value);
+   value=NULL;
+   
    return parsed_parameters;
    
 malloc_parsed_parameters_exit:
-   FREE(value);
+   if(value)
+   {
+      free(value);
+      value=NULL;
+   }
    return NULL;
 }
 

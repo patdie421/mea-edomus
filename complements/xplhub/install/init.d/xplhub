@@ -13,10 +13,11 @@ PATH=/sbin:/bin:/usr/sbin:/usr/bin
 
 . /lib/lsb/init-functions
 
-MEAEDOMUS_BASEPATH="/data/rec/mea-edomus/0.1alpha3"
+MEAEDOMUS_BASEPATH="<BASEPATH>"
 
 DAEMON="$MEAEDOMUS_BASEPATH/bin/xplhub"
-XPLHUB_OPT="wlan0"
+#XPLHUB_OPT="wlan0"
+XPLHUB_OPT="<INTERFACE>"
 
 PIDFILE=/var/run/xplhub.pid
 test -x $DAEMON || exit 5
@@ -25,7 +26,7 @@ test -x $DAEMON || exit 5
 #	. /etc/default/xplhub
 #fi
 
-RUNASUSER=mea-edomus
+RUNASUSER=<USER>
 UGID=$(getent passwd $RUNASUSER | cut -f 3,4 -d:) || true
 
 case $1 in

@@ -178,6 +178,7 @@ char *get_and_malloc_integer(int16_t default_value, char *question_str)
       if(*end!=0 || errno==ERANGE)
       {
          free(value_str);
+         value_str=NULL;
       }
       else
       {
@@ -411,6 +412,7 @@ int16_t create_configs_php(char *gui_home, char *params_db_fullname, char *php_l
       fprintf(fd,"$IOSOCKET_PORT=%d;\n",iosocket_port);
       fclose(fd);
       free(f);
+      f=NULL;
    }
    else
    {
@@ -419,6 +421,7 @@ int16_t create_configs_php(char *gui_home, char *params_db_fullname, char *php_l
          perror("");
       }
       free(f);
+      f=NULL;
       return -1;
    }
    return 0;

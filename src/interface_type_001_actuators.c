@@ -122,7 +122,8 @@ struct actuator_s *valid_and_malloc_actuator(int16_t id_sensor_actuator, char *n
          
          free_parsed_parameters(relay_params, nb_relay_params);
          free(relay_params);
-
+         relay_params=NULL;
+         
          return actuator;
       }
       else
@@ -140,11 +141,15 @@ struct actuator_s *valid_and_malloc_actuator(int16_t id_sensor_actuator, char *n
    
 valid_and_malloc_relay_clean_exit:
    if(actuator)
+   {
       free(actuator);
+      actuator=NULL;
+   }
    if(relay_params)
    {
       free_parsed_parameters(relay_params, nb_relay_params);
       free(relay_params);
+      relay_params=NULL;
    }
    return NULL;
 }

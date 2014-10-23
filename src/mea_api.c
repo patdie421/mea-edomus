@@ -467,7 +467,10 @@ static PyObject *mea_sendAtCmdAndWaitResp(PyObject *self, PyObject *args)
    {
       VERBOSE(3) fprintf(stderr, "%s (%s) : host not found\n",ERROR_STR,__func__);
       if(host)
+      {
          free(host);
+         host=NULL;
+      }
       PyErr_BadArgument(); // à remplacer
       return NULL;
    }
@@ -478,7 +481,10 @@ static PyObject *mea_sendAtCmdAndWaitResp(PyObject *self, PyObject *args)
    {
       VERBOSE(9) fprintf(stderr, "%s (%s) : error %d\n",ERROR_STR,__func__,nerr);
       if(host)
+      {
          free(host);
+         host=NULL;
+      }
       PyErr_BadArgument(); // à remplacer
       return NULL;
    }
@@ -504,6 +510,7 @@ static PyObject *mea_sendAtCmdAndWaitResp(PyObject *self, PyObject *args)
    }
    
    free(host);
+   host=NULL;
 
    return t; // return True
    

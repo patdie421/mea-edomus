@@ -18,6 +18,8 @@ LDFLAGS     = -L/usr/local/mysql/lib \
               -lsqlite3 \
               -lpython2.7
 
+MYPATH=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
+
 SOURCES=$(shell echo src/*.c src/xPLLib-mac/*.c)
 OBJECTS=$(SOURCES:.c=.o)
 EXECUTABLE=mea-edomus
@@ -29,3 +31,15 @@ $(EXECUTABLE): $(OBJECTS)
 
 clean:
 	-rm -f $(OBJECTS)
+
+build-php-cgi:
+	make -C complements/php-cgi -f php-cgi.mk SOURCE=$(MYPATH)
+
+build-nodejs:
+	make -C complements/nodejs -f nodejs.mk SOURCE=$(MYPATH)
+
+build-xplhub:
+	make -C complements/xplhub -f xplhub.mk SOURCE=$(MYPATH)
+
+build-package: $(EXECUTABLE)
+	package/build-package.sh $(MYPATH)

@@ -732,6 +732,7 @@ void _hosts_table_delete(xbee_hosts_table_t *table)
    table->hosts_table=NULL;
    
    free(table);
+   table=NULL;
 }
 
 
@@ -1276,6 +1277,7 @@ int _xbee_write_cmd(int fd, unsigned char *cmd, uint16_t l_cmd, int16_t *nerr)
    ret=write(fd,frame,l_frame);
 
    free(frame);
+   frame=NULL;
    
    if(ret<0)
    {

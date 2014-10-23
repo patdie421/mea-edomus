@@ -2,17 +2,41 @@
 
 # à lancer de préférence en sudo
 
-if [ $# -ne 1 ]
+if [ $# -ne 1 ] || [ $# -ne 2 ]
 then
-   echo "usage : $0 BASEPATH"
+   echo "usage : $0 BASEPATH [ INTERFACE ]"
    echo "suggestion : $0 /usr/local/mea-edomus"
+   echo "suggestion : $0 /usr/local/mea-edomus wlan0"
    exit 1
 fi
 
+ARCH=`uname`
+
 # recupération des parametres
+INTERFACE=""
 BASEPATH="$1"
 
-if [ "$BASEPATH" == "/usr" ] || [ "$BASEPATH" == "/" ]
+if [ $# -eq 2 ]
+then
+   if [ -f ./etc/init.d/xplhub ]
+      INTERFACE="$2"
+   else
+      echo "ERROR : no xplhub in package. Try without INTERFACE !"
+   exit 1
+   fi
+fi
+
+if [ "$INTERFACE" == "" ]
+then
+   if [ "$ARCH" == "Darwin" ]
+   then
+      INTERFACE="en0"
+   else
+      INTERFACE="eth0"
+   fi
+fi
+
+if [ "$BASEPATH" == "/usr" ] || [ "$BASEPATH" == "/" || [ "$BASEPATH" == "/etc" ]
 then
    echo "ERROR : can't actualy install in $BASEPATH. Choose an other directory, or install manualy !"
    exit 0
@@ -93,6 +117,11 @@ sudo chmod -R 775 "$BASEPATH"/var/sessions
 sudo chown -R "$MEAUSER":"$MEAGROUP" "$BASEPATH"/etc
 sudo chmod -R 775 "$BASEPATH"/etc
 
+# pour l'instant on install pas de service Mac OS X
+if [ "$ARCH" == "Darwin" ]
+   exit 0
+fi
+
 # déclaration du service
 BASEPATH4SED=`echo "$BASEPATH" | sed -e 's/\\//\\\\\\//g'`
 # Pour mémoire :
@@ -100,14 +129,19 @@ BASEPATH4SED=`echo "$BASEPATH" | sed -e 's/\\//\\\\\\//g'`
 # echo $BASEPATH | sed -e 's/\//\\\//g' donne le résultat attendu
 # mais pour utilisation avec les `` il faut remplacer en plus les \ par des \\
 
-# déclaration du service
+# déclaration du service mea-edomus
 sudo sed -e 's/<BASEPATH>/'"$BASEPATH4SED"'/g' -e 's/<USER>/'"$MEAUSER"'/g' ./etc/init.d/mea-edomus > /etc/init.d/mea-edomus
 chmod +x /etc/init.d/mea-edomus
-
-# activation du service
 sudo update-rc.d mea-edomus defaults
-
-# lancement du service
 sudo service mea-edomus restart
+
+# déclaration du service xplhub
+if [ "$INTERFACE" != "" ] && [ -f ./etc/init.d/xplhub ]
+then
+   sudo sed -e 's/<BASEPATH>/'"$BASEPATH4SED"'/g' -e 's/<USER>/'"$MEAUSER"'/g' -e 's/<INTERFACE>/'"$INTERFACE"'/g' ./etc/init.d/xplhub > /etc/init.d/xplhub
+   chmod +x /etc/init.d/xplhub
+   sudo update-rc.d xplhub defaults
+   sudo service xplhub restart
+fi
 
 cd "$CURRENTPATH"

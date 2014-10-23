@@ -261,9 +261,9 @@ xPL_MessagePtr mea_readXPLResponse(int id)
                   msg=e->msg;
                   // et on fait le menage avant de sortir
                   free(e);
+                  e=NULL;
                   xplRespQueue->current->d=NULL; // pour evite le bug
                   remove_current_queue(xplRespQueue);
-                  e=NULL;
                   goto readFromQueue_return;
                }
                // theoriquement pour nous mais donnees trop vieilles, on supprime ?
@@ -313,6 +313,7 @@ void _flushExpiredXPLResponses()
                xPL_releaseMessage(e->msg);
                DEBUG_SECTION fprintf(stderr,"%s (%s) : Je flush\n",DEBUG_STR,__func__);
                free(e);
+               e=NULL;
                remove_current_queue(xplRespQueue); // remove current passe sur le suivant
             }
             else

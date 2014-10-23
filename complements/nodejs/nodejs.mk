@@ -2,30 +2,36 @@ ifndef SOURCE
 $(error "SOURCE not set, can't make nodejs binary")
 endif 
 
-NODEJS=$(SOURCE)/complements/nodejs
-NODEJSSOURCE=$(NODEJS)/src
 DOWNLOAD=$(SOURCE)/complements/downloads
 
-all: $(NODEJSSOURCE)/node-v0.10.32/out/Release/node
+COMP_NAME=nodejs
+COMP_SRC_NAME=node-v0.10.32
+COMP_EXEC=out/Release/node
+COMP_TAR_FILE=node-v0.10.32.tar.gz
+COMP_URL=http://nodejs.org/dist/v0.10.32/node-v0.10.32.tar.gz
 
-$(NODEJSSOURCE)/node-v0.10.32/out/Release/node: $(NODEJSSOURCE)/node-v0.10.32/Makefile
-	cd $(NODEJSSOURCE)/node-v0.10.32 ; make -j2
+COMP_PATH=$(SOURCE)/complements/$(COMP_NAME)
+COMP_SRC_PATH=$(COMP_PATH)/src/$(COMP_SRC_NAME)
 
-$(NODEJSSOURCE)/node-v0.10.32/Makefile: $(NODEJSSOURCE)/node-v0.10.32/extract.ok
-	cd $(NODEJSSOURCE)/node-v0.10.32 ; ./configure ; touch $(NODEJSSOURCE)/node-v0.10.32/Makefile
+all: $(COMP_SRC_PATH)/$(COMP_EXEC)
 
-$(NODEJSSOURCE)/node-v0.10.32/extract.ok: $(DOWNLOAD)/node-v0.10.32.tar.gz
-	@mkdir -p $(NODEJSSOURCE)
-	cd $(NODEJSSOURCE) ; tar xvzf $(DOWNLOAD)/node-v0.10.32.tar.gz ; touch $(NODEJSSOURCE)/node-v0.10.32/extract.ok
+$(COMP_SRC_PATH)/$(COMP_EXEC): $(COMP_SRC_PATH)/Makefile
+	cd $(COMP_SRC_PATH) ; make -j8
 
-$(DOWNLOAD)/node-v0.10.32.tar.gz:
+$(COMP_SRC_PATH)/Makefile: $(COMP_SRC_PATH)/extract.ok
+	cd $(COMP_SRC_PATH) ; ./configure ; touch $(COMP_SRC_PATH)/Makefile
+
+$(COMP_SRC_PATH)/extract.ok: $(DOWNLOAD)/$(COMP_TAR_FILE)
+	@mkdir -p $(COMP_PATH)/src
+	cd $(COMP_PATH)/src ; tar xvzf $(DOWNLOAD)/$(COMP_TAR_FILE) ; touch $(COMP_SRC_PATH)/extract.ok
+
+$(DOWNLOAD)/$(COMP_TAR_FILE):
 	@mkdir -p $(DOWNLOAD)
-	curl -o $(DOWNLOAD)/node-v0.10.32.tar.gz http://nodejs.org/dist/v0.10.32/node-v0.10.32.tar.gz
+	curl -o $(DOWNLOAD)/$(COMP_TAR_FILE) $(COMP_URL)
 
 clean:
-	cd $(NODEJSSOURCE)/node-v0.10.32
-	make clean
+	cd $(COMP_SRC_PATH) ; make clean
 
-fullclean:
-	rm -r $(NODEJSSOURCE)
-	rm $(DOWNLOAD)/node-v0.10.32.tar.gz
+fullclean: clean
+	rm $(DOWNLOAD)/$(COMP_TAR_FILE)
+   rm -r COMP_SRC_PATH=$(COMP_PATH)/src

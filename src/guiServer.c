@@ -194,6 +194,7 @@ int _findPHPVar(char *phpserial, char *var, int *type, char *value, int l_value)
    sprintf(_toFind,"%s|",var);
    char *str_ptr=strstr(phpserial,_toFind)+strlen(_toFind);
    free(_toFind);
+   _toFind=NULL;
    
    if(!str_ptr)
       return -1;
@@ -689,6 +690,7 @@ httpServer_only:
          // on continu sans ihm
       }
       free(phpcgibin);
+      phpcgibin=NULL;
    }
    else
    {

@@ -55,6 +55,7 @@ fi
 if [ -f $SOURCE/complements/xplhub/src/xplhub/xplhub ]
 then
    cp $SOURCE/complements/xplhub/src/xplhub/xplhub $SOURCE/package/tmp/bin
+   cp $SOURCE/complements/xplhub/install/init.d/xplhub $SOURCE/package/tmp/etc/init.d
 fi
 
 strip $SOURCE/package/tmp/bin/*
@@ -66,5 +67,5 @@ tar cf $SOURCE/package/mea-edomus.tar *
 cd $SOURCE/package
 tar cjf $SOURCE/package/mea-edomus.tar.pkg.bz2 mea-edomus.tar install.sh
 
-rm mea-edomus.tar > /dev/null 2>&1
-rm -r $SOURCE/package/tmp > /dev/null 2>&1
+#rm mea-edomus.tar > /dev/null 2>&1
+#rm -r $SOURCE/package/tmp > /dev/null 2>&1

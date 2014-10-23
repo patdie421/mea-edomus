@@ -19,6 +19,7 @@
 		4E207BCE19F1C17100410B40 /* xPL-listeners.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E76CE92163F120C00A3EBA9 /* xPL-listeners.c */; };
 		4E207BCF19F1C17500410B40 /* xPL-io.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E76CE91163F120C00A3EBA9 /* xPL-io.c */; };
 		4E207BD019F1C17900410B40 /* xPL-config.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E76CE8F163F120C00A3EBA9 /* xPL-config.c */; };
+		4E3F343C19F970150066A9CC /* consts.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E3F343A19F970150066A9CC /* consts.c */; };
 		4E4A5EA215F003420052ABF4 /* comio.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E4A5E8F15F003420052ABF4 /* comio.c */; };
 		4E4A5EA315F003420052ABF4 /* interface_type_001.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E4A5E9115F003420052ABF4 /* interface_type_001.c */; };
 		4E4A5EA415F003420052ABF4 /* debug.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E4A5E9315F003420052ABF4 /* debug.c */; };
@@ -92,7 +93,7 @@
 		4E207BB819F1BA4300410B40 /* mea-xpllogger.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = "mea-xpllogger.c"; path = "commands/mea-xpllogger/mea-xpllogger.c"; sourceTree = "<group>"; };
 		4E207BBF19F1C13A00410B40 /* mea-xpllogger */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "mea-xpllogger"; sourceTree = BUILT_PRODUCTS_DIR; };
 		4E3F341D19F80BA40066A9CC /* __init__.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = __init__.py; sourceTree = "<group>"; };
-		4E3F341E19F80BA40066A9CC /* pyparsingl.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = pyparsingl.py; sourceTree = "<group>"; };
+		4E3F341E19F80BA40066A9CC /* pyparsing.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = pyparsing.py; sourceTree = "<group>"; };
 		4E3F341F19F80BA40066A9CC /* settings.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = settings.py; sourceTree = "<group>"; };
 		4E3F342019F80BA40066A9CC /* utility.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = utility.py; sourceTree = "<group>"; };
 		4E3F342119F80BA40066A9CC /* xaddress.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = xaddress.py; sourceTree = "<group>"; };
@@ -107,8 +108,11 @@
 		4E3F342D19F816050066A9CC /* xplhub.amp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file; name = xplhub.amp; path = "Logiciels/mea-edomus/complements/xplhub/src/xplhub/xplhub.amp"; sourceTree = "<group>"; };
 		4E3F342E19F816050066A9CC /* xplhub.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = xplhub.cc; path = "Logiciels/mea-edomus/complements/xplhub/src/xplhub/xplhub.cc"; sourceTree = "<group>"; };
 		4E3F343019F816050066A9CC /* xplhub.start */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file; name = xplhub.start; path = "Logiciels/mea-edomus/complements/xplhub/src/xplhub/xplhub.start"; sourceTree = "<group>"; };
-		4E3F343419F844660066A9CC /* xplhub */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; name = xplhub; path = install/init.d/xplhub; sourceTree = "<group>"; };
+		4E3F343419F844660066A9CC /* xplhub */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = xplhub; path = complements/xplhub/install/init.d/xplhub; sourceTree = "<group>"; };
 		4E3F343919F8F5660066A9CC /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; name = Makefile; path = complements/xplhub/src/xplhub/Makefile; sourceTree = SOURCE_ROOT; };
+		4E3F343A19F970150066A9CC /* consts.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = consts.c; path = src/consts.c; sourceTree = "<group>"; };
+		4E3F343B19F970150066A9CC /* consts.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = consts.h; path = src/consts.h; sourceTree = "<group>"; };
+		4E3F343E19F9A0E50066A9CC /* xplhub.mk */ = {isa = PBXFileReference; lastKnownFileType = text; name = xplhub.mk; path = complements/xplhub/xplhub.mk; sourceTree = SOURCE_ROOT; };
 		4E40668E19F3C0D600468E11 /* uthash.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = uthash.h; path = src/uthash.h; sourceTree = "<group>"; };
 		4E4811A219C37D43001C5F48 /* mea_simulation.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = mea_simulation.py; path = plugins/mea_simulation.py; sourceTree = "<group>"; };
 		4E4811A319C37D43001C5F48 /* mea_utils.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = mea_utils.py; path = plugins/mea_utils.py; sourceTree = "<group>"; };
@@ -959,7 +963,8 @@
 				4E798FFF19DC9D5500F87593 /* gui */,
 				4E798FFB19DC9C8B00F87593 /* package */,
 				08FB7795FE84155DC02AAC07 /* src */,
-				4E48119F19C37C46001C5F48 /* Plugins */,
+				4E48119F19C37C46001C5F48 /* plugins */,
+				4E3F343D19F97F970066A9CC /* others */,
 			);
 			name = Comio;
 			sourceTree = "<group>";
@@ -1033,7 +1038,7 @@
 			isa = PBXGroup;
 			children = (
 				4E3F341D19F80BA40066A9CC /* __init__.py */,
-				4E3F341E19F80BA40066A9CC /* pyparsingl.py */,
+				4E3F341E19F80BA40066A9CC /* pyparsing.py */,
 				4E3F341F19F80BA40066A9CC /* settings.py */,
 				4E3F342019F80BA40066A9CC /* utility.py */,
 				4E3F342119F80BA40066A9CC /* xaddress.py */,
@@ -1048,6 +1053,7 @@
 		4E3F342719F816050066A9CC /* xplhub */ = {
 			isa = PBXGroup;
 			children = (
+				4E3F343E19F9A0E50066A9CC /* xplhub.mk */,
 				4E3F343719F8F44E0066A9CC /* src */,
 				4E3F343519F8446C0066A9CC /* install */,
 			);
@@ -1094,7 +1100,15 @@
 			name = xplhub;
 			sourceTree = "<group>";
 		};
-		4E48119F19C37C46001C5F48 /* Plugins */ = {
+		4E3F343D19F97F970066A9CC /* others */ = {
+			isa = PBXGroup;
+			children = (
+				4EFD8C3215D97ABE0032D454 /* SQL */,
+			);
+			name = others;
+			sourceTree = "<group>";
+		};
+		4E48119F19C37C46001C5F48 /* plugins */ = {
 			isa = PBXGroup;
 			children = (
 				4E4811A219C37D43001C5F48 /* mea_simulation.py */,
@@ -1102,7 +1116,7 @@
 				4E4811A419C37D43001C5F48 /* my_dht22.py */,
 				4E4811A519C37D43001C5F48 /* xbee_generic.py */,
 			);
-			name = Plugins;
+			name = plugins;
 			sourceTree = "<group>";
 		};
 		4E4D4E7E1601F1510008C14C /* Interfaces manager */ = {
@@ -1119,7 +1133,6 @@
 		4E4D4E7F1601F2550008C14C /* db manager */ = {
 			isa = PBXGroup;
 			children = (
-				4EFD8C3215D97ABE0032D454 /* SQL */,
 				4E4A5E9E15F003420052ABF4 /* dbServer.c */,
 				4E4A5E9F15F003420052ABF4 /* dbServer.h */,
 			);
@@ -3671,6 +3684,8 @@
 				4E4A5E9315F003420052ABF4 /* debug.c */,
 				4EFBBC7D1746C84F00090FEE /* error.h */,
 				4EFBBC7E1746C85D00090FEE /* error.c */,
+				4E3F343A19F970150066A9CC /* consts.c */,
+				4E3F343B19F970150066A9CC /* consts.h */,
 			);
 			name = Common;
 			sourceTree = "<group>";
@@ -3796,6 +3811,7 @@
 				4E4A5EA815F003420052ABF4 /* interface_type_002.c in Sources */,
 				4E4A5EA915F003420052ABF4 /* dbServer.c in Sources */,
 				4E4A5EAA15F003420052ABF4 /* xbee.c in Sources */,
+				4E3F343C19F970150066A9CC /* consts.c in Sources */,
 				4E14AC0E16083B8C000686C3 /* memory.c in Sources */,
 				4E76CE98163F120C00A3EBA9 /* xPL-config.c in Sources */,
 				4E76CE9A163F120C00A3EBA9 /* xPL-io.c in Sources */,

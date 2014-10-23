@@ -20,7 +20,6 @@
 
 
 struct managed_processes_s menaged_processes;
-const char *hostname = "localhost";
 
 
 int _managed_processes_send_indicators(int id, char *s, int s_l)

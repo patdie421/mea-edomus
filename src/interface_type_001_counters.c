@@ -170,6 +170,7 @@ struct electricity_counter_s *interface_type_001_sensors_valid_and_malloc_counte
       
       free_parsed_parameters(counter_params, nb_counter_params);
       free(counter_params);
+      counter_params=NULL;
    }
    else
    {
@@ -191,11 +192,15 @@ struct electricity_counter_s *interface_type_001_sensors_valid_and_malloc_counte
    
 valid_and_malloc_counter_clean_exit:
    if(counter)
+   {
       free(counter);
+      counter=NULL;
+   }
    if(counter_params)
    {
       free_parsed_parameters(counter_params, nb_counter_params);
       free(counter_params);
+      counter_params=NULL;
    }
    VERBOSE(1) {
       fprintf(stderr,"%s (%s) : %s/%s invalid. Check parameters.\n",ERROR_STR,__func__,name,parameters);

@@ -310,7 +310,7 @@ struct sensor_s *interface_type_001_sensors_valid_and_malloc_sensor(int id_senso
          
          free_parsed_parameters(sensor_params, nb_sensor_params);
          free(sensor_params);
-         
+         sensor_params=NULL;
          return sensor;
       }
       else
@@ -328,11 +328,15 @@ struct sensor_s *interface_type_001_sensors_valid_and_malloc_sensor(int id_senso
    
 interface_type_001_sensors_valid_and_malloc_sensor_clean_exit:
    if(sensor)
+   {
       free(sensor);
+      sensor=NULL;
+   }
    if(sensor_params)
    {
       free_parsed_parameters(sensor_params, nb_sensor_params);
       free(sensor_params);
+      sensor_params=NULL;
    }
    return NULL;
 }

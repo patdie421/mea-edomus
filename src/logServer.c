@@ -24,6 +24,7 @@
 #include "timer.h"
 #include "sockets_utils.h"
 #include "string_utils.h"
+#include "consts.h"
 
 pthread_t *_logServer_thread=NULL;
 int _logServer_monitoring_id=-1;
@@ -170,7 +171,7 @@ int start_logServer(int my_id, void *data)
    struct logServerData_s *logServerData = (struct logServerData_s *)data;
 
    logServer_thread_data.log_path=logServerData->params_list[LOG_PATH];
-   logServer_thread_data.hostname="localhost";
+   logServer_thread_data.hostname=localhost_const;
    logServer_thread_data.port_socketdata=atoi(logServerData->params_list[NODEJSDATA_PORT]);
 
    _logServer_thread=(pthread_t *)malloc(sizeof(pthread_t));

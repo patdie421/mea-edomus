@@ -270,7 +270,8 @@ int clean_interface_type_001(interface_type_001_t *i001)
          free(counter);
          counter=NULL;
       }
-      FREE(i001->counters_list);
+      free(i001->counters_list);
+      i001->counters_list=NULL;
    }
 
    if(i001->sensors_list)
@@ -283,7 +284,8 @@ int clean_interface_type_001(interface_type_001_t *i001)
          free(sensor);
          sensor=NULL;
       } 
-      FREE(i001->sensors_list);
+      free(i001->sensors_list);
+      i001->sensors_list=NULL;
    }
 
    if(i001->actuators_list)
@@ -296,7 +298,8 @@ int clean_interface_type_001(interface_type_001_t *i001)
          free(actuator);
          actuator=NULL;
       }
-      FREE(i001->actuators_list);
+      free(i001->actuators_list);
+      i001->actuators_list=NULL;
    }
    i001->loaded=0;
    
@@ -351,15 +354,15 @@ int stop_interface_type_001(int my_id, void *data)
    {
       pthread_cancel(*(start_stop_params->i001->thread));
       pthread_join(*(start_stop_params->i001->thread), NULL);
-      FREE(start_stop_params->i001->thread);
+      
+      free(start_stop_params->i001->thread);
       start_stop_params->i001->thread=NULL;
    }
    
    if(start_stop_params->i001->ad)
    {
       comio2_close(start_stop_params->i001->ad);
-      FREE(start_stop_params->i001->ad);
-      
+      free(start_stop_params->i001->ad);
       start_stop_params->i001->ad=NULL;
    }
    VERBOSE(9) fprintf(stderr,"done.\n");
@@ -458,12 +461,23 @@ int start_interface_type_001(int my_id, void *data)
    return 0;
    
 start_interface_type_001_clean_exit:
-   FREE(thread_params);
-   FREE(_interface_type_001_thread);
+   if(thread_params)
+   {
+      free(thread_params);
+      thread_params=NULL;
+   }
+   if(_interface_type_001_thread)
+   {
+      free(_interface_type_001_thread);
+      _interface_type_001_thread=NULL;
+   }
    if(fd)
       comio2_close(ad);
    if(ad)
+   {
       free(ad);
+      ad=NULL;
+   }
 //   if(start_stop_params)
 //   {
 //      if(start_stop_params->i001)

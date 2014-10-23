@@ -29,6 +29,7 @@
 #include "memory.h"
 #include "queue.h"
 #include "string_utils.h"
+#include "consts.h"
 
 #include "init.h"
 
@@ -772,34 +773,38 @@ int main(int argc, const char * argv[])
    
    signal(SIGPIPE, signal_callback_handler);
 
+
    // démarrage des "services" (les services "majeurs" arrêtent tout (exit) si non démarrage
    struct dbServerData_s dbServerData;
    dbServerData.params_list=params_list;
    dbServer_monitoring_id=process_register("DBSERVER");
-   VERBOSE(9) fprintf (stderr, "%s  (%s) : starting DBSERVER\n",INFO_STR,__func__);
+   VERBOSE(9) fprintf (stderr, "%s  (%s) : starting DBSERVER ... ",INFO_STR,__func__);
    process_set_start_stop(dbServer_monitoring_id, start_dbServer, stop_dbServer, (void *)(&dbServerData), 1);
    if(!_b)
    {
       if(process_start(dbServer_monitoring_id)<0)
       {
+         VERBOSE(9) fprintf (stderr, "error !!!\n");
          VERBOSE(1) fprintf (stderr, "%s (%s) : can't start database server\n",ERROR_STR,__func__);
          clean_all_and_exit();
       }
    }
-   VERBOSE(9) fprintf (stderr, "%s  (%s) : DBSERVER started\n",INFO_STR,__func__);
+   VERBOSE(9) fprintf (stderr, "done\n");
+
 
    struct pythonPluginServerData_s pythonPluginServerData;
    pythonPluginServerData.params_list=params_list;
    pythonPluginServerData.sqlite3_param_db=sqlite3_param_db;
    pythonPluginServer_monitoring_id=process_register("PYTHONPLUGINSERVER");
-   VERBOSE(9) fprintf (stderr, "%s  (%s) : starting PYTHONPLUGINSERVER\n",INFO_STR,__func__);
+   VERBOSE(9) fprintf (stderr, "%s  (%s) : starting PYTHONPLUGINSERVER ... ",INFO_STR,__func__);
    process_set_start_stop(pythonPluginServer_monitoring_id , start_pythonPluginServer, stop_pythonPluginServer, (void *)(&pythonPluginServerData), 1);
    if(process_start(pythonPluginServer_monitoring_id)<0)
    {
+      VERBOSE(9) fprintf (stderr, "error !!!\n");
       VERBOSE(1) fprintf (stderr, "%s (%s) : can't start python plugin server\n",ERROR_STR,__func__);
       clean_all_and_exit();
    }
-   VERBOSE(9) fprintf (stderr, "%s  (%s) : PYTHONPLUGINSERVER started\n",INFO_STR,__func__);
+   VERBOSE(9) fprintf (stderr, "done\n");
 
    
    interfaces=start_interfaces(params_list, sqlite3_param_db, dbServer_get_md()); // démarrage des interfaces
@@ -810,37 +815,41 @@ int main(int argc, const char * argv[])
    xplServerData.sqlite3_param_db=sqlite3_param_db;
    xplServer_monitoring_id=process_register("XPLSERVER");
    process_set_start_stop(xplServer_monitoring_id , start_xPLServer, stop_xPLServer, (void *)(&xplServerData), 1);
-   VERBOSE(9) fprintf (stderr, "%s  (%s) : starting XPLSERVER\n",INFO_STR,__func__);
+   VERBOSE(9) fprintf (stderr, "%s  (%s) : starting XPLSERVER ... ",INFO_STR,__func__);
    if(process_start(xplServer_monitoring_id)<0)
    {
+      VERBOSE(9) fprintf (stderr, "error !!!\n");
       VERBOSE(1) fprintf (stderr, "%s (%s) : can't start xpl server\n",ERROR_STR,__func__);
       clean_all_and_exit();
    }
-   VERBOSE(9) fprintf (stderr, "%s  (%s) : XPLSERVER started\n",INFO_STR,__func__);
+   VERBOSE(9) fprintf (stderr, "done\n");
+
 
    struct httpServerData_s httpServerData;
    httpServerData.params_list=params_list;
    httpServer_monitoring_id=process_register("GUISERVER");
    process_set_start_stop(httpServer_monitoring_id , start_guiServer, stop_guiServer, (void *)(&httpServerData), 1);
    
-   VERBOSE(9) fprintf (stderr, "%s  (%s) : starting GUISERVER\n",INFO_STR,__func__);
+   VERBOSE(9) fprintf (stderr, "%s  (%s) : starting GUISERVER ... ",INFO_STR,__func__);
    if(process_start(httpServer_monitoring_id)<0)
    {
+      VERBOSE(9) fprintf (stderr, "error !!!\n");
       VERBOSE(1) fprintf (stderr, "%s (%s) : can't start gui server\n",ERROR_STR,__func__);
    }
-   VERBOSE(9) fprintf (stderr, "%s  (%s) : GUISERVER started\n",INFO_STR,__func__);
-
+   VERBOSE(9) fprintf (stderr, "done\n");
+   
+   
    struct logServerData_s logServerData;
    logServerData.params_list=params_list;
    logServer_monitoring_id=process_register("LOGSERVER");
-   
-   VERBOSE(9) fprintf (stderr, "%s (%s) : starting LOGSERVER\n",INFO_STR,__func__);
+   VERBOSE(9) fprintf (stderr, "%s (%s) : starting LOGSERVER ... ",INFO_STR,__func__);
    process_set_start_stop(logServer_monitoring_id , start_logServer, stop_logServer, (void *)(&logServerData), 1);
    if(process_start(logServer_monitoring_id)<0)
    {
+      VERBOSE(9) fprintf (stderr, "error !!!\n");
       VERBOSE(1) fprintf (stderr, "%s (%s) : can't start log server\n",ERROR_STR,__func__);
    }
-   VERBOSE(9) fprintf (stderr, "%s  (%s) : LOGSERVER started\n",INFO_STR,__func__);
+   VERBOSE(9) fprintf (stderr, "done\n");
 
 
    time_t start_time;
@@ -857,15 +866,17 @@ int main(int argc, const char * argv[])
 
    // boucle sans fin.
    char response[512];
+   int nodejsdata_port = atoi(params_list[NODEJSDATA_PORT]);
+   int guiport = atoi(params_list[GUIPORT]);
    while(1)
    {
-      // interrogation du serveur HTTP Interne pour heartbeat ... (voir passage d'un parametre pour sécuriser ...)
-      gethttp("localhost", atoi(params_list[GUIPORT]), "/CMD/ping.php", response, sizeof(response));
+      // interrogation du serveur HTTP Interne pour heartbeat ... (voir le passage d'un parametre pour sécuriser ...)
+      gethttp(localhost_const, guiport, "/CMD/ping.php", response, sizeof(response));
  
       uptime = (long)(time(NULL)-start_time);
       process_update_indicator(main_monitoring_id, "UPTIME", uptime);
 
-      managed_processes_loop("localhost", atoi(params_list[NODEJSDATA_PORT]));
+      managed_processes_loop(localhost_const, nodejsdata_port);
 
       sleep(10);
    }

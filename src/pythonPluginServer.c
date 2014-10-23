@@ -108,11 +108,18 @@ exit_pythonPluginServer_add_cmd:
    if(e)
    {
       if(e->python_module)
+      {
          free(e->python_module);
+         e->python_module=NULL;
+      }
       if(e->data)
+      {
          free(e->data);
+         e->data=NULL;
+      }
       e->l_data=0;
       free(e);
+      e=NULL;
    }
    return ERROR;
 }
@@ -344,11 +351,18 @@ void *_pythonPlugin_thread(void *data)
          if(e)
          {
             if(e->python_module)
+            {
                free(e->python_module);
+               e->python_module=NULL;
+            }
             if(e->data)
+            {
                free(e->data);
+               e->data=NULL;
+            }
             e->l_data=0;
             free(e);
+            e=NULL;
          }
       }
       else

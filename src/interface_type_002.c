@@ -373,9 +373,11 @@ int16_t _interface_type_002_xPL_callback(xPL_ServicePtr theService, xPL_MessageP
             
             free_parsed_parameters(plugin_params, nb_plugin_params);
             free(plugin_elem);
+            plugin_elem=NULL;
          }
          
          free(plugin_params);
+         plugin_params=NULL;
       }
       else if (s == SQLITE_DONE)
       {
@@ -518,10 +520,13 @@ mea_error_t _interface_type_002_commissionning_callback(int id, unsigned char *c
          
          pythonPluginServer_add_cmd(plugin_params[XBEE_PLUGIN_PARAMS_PLUGIN].value.s, (void *)plugin_elem, sizeof(plugin_queue_elem_t));
          
-         FREE(plugin_elem);
-         free_parsed_parameters(plugin_params, nb_plugin_params);
-         FREE(plugin_params);
+         free(plugin_elem);
+         plugin_elem=NULL;
       }
+      
+      free_parsed_parameters(plugin_params, nb_plugin_params);
+      free(plugin_params);
+      plugin_params=NULL;
    }
    sqlite3_finalize(stmt);
    
@@ -539,9 +544,13 @@ void *_thread_interface_type_002_xbeedata_cleanup(void *args)
 {
    struct thread_params_s *params=(struct thread_params_s *)args;
 
+   if(!params)
+      return NULL;
+   
    if(params->e)
    {
       free(params->e->cmd);
+      params->e->cmd=NULL;
       free(params->e);
       params->e=NULL;
    }
@@ -568,8 +577,15 @@ void *_thread_interface_type_002_xbeedata_cleanup(void *args)
    
    if(params->queue && params->queue->nb_elem>0) // on vide s'il y a quelque chose avant de partir
       clear_queue(params->queue, _iodata_free_queue_elem);
-   FREE(params->queue);
-   FREE(params);
+   
+   if(params->queue)
+   {
+      free(params->queue);
+      params->queue=NULL;
+   }
+
+   free(params);
+   params=NULL;
 
    return NULL;
 }
@@ -769,8 +785,8 @@ void *_thread_interface_type_002_xbeedata(void *args)
          }
          
          free(e->cmd);
+         e->cmd=NULL;
          free(e);
-         // params->e=NULL;
          e=NULL;
          
          pthread_testcancel();
@@ -861,13 +877,31 @@ pthread_t *start_interface_type_002_xbeedata_thread(interface_type_002_t *i002, 
    return thread;
    
 clean_exit:
-   FREE(thread);
-   FREE(callback_xbeedata);
+   if(thread)
+   {
+      free(thread);
+      thread=NULL;
+   }
+   
+   if(callback_xbeedata)
+   {
+      free(callback_xbeedata);
+      callback_xbeedata=NULL;
+   }
+
    if(params && params->queue && params->queue->nb_elem>0) // on vide s'il y a quelque chose avant de partir
       clear_queue(params->queue, _iodata_free_queue_elem);
+
    if(params)
-      FREE(params->queue);
-   FREE(params);
+   {
+      if(params->queue)
+      {
+         free(params->queue);
+         params->queue=NULL;
+      }
+      free(params);
+      params=NULL;
+   }
    return NULL;
 }
 
@@ -918,14 +952,26 @@ int stop_interface_type_002(int my_id, void *data)
    
    return NOERROR;
 */
-   FREE(start_stop_params->i002->xPL_callback_data);
+   if(start_stop_params->i002->xPL_callback_data)
+   {
+      free(start_stop_params->i002->xPL_callback_data);
+      start_stop_params->i002->xPL_callback_data=NULL;
+   }
+   
    if(start_stop_params->i002->xPL_callback)
+   {
       start_stop_params->i002->xPL_callback=NULL;
+   }
    
    if(start_stop_params->i002->xd->dataflow_callback_data)
    {
       free(start_stop_params->i002->xd->dataflow_callback_data);
       start_stop_params->i002->xd->dataflow_callback_data=NULL;
+   }
+
+   if(start_stop_params->i002->xd->io_callback_data)
+   {
+      free(start_stop_params->i002->xd->io_callback_data);
       start_stop_params->i002->xd->io_callback_data=NULL;
    }
    
@@ -933,17 +979,32 @@ int stop_interface_type_002(int my_id, void *data)
    {
       pthread_cancel(*(start_stop_params->i002->thread));
       pthread_join(*(start_stop_params->i002->thread), NULL);
+      free(start_stop_params->i002->thread);
+      start_stop_params->i002->thread=NULL;
    }
-   FREE(start_stop_params->i002->thread);
    
    xbee_remove_commissionning_callback(start_stop_params->i002->xd);
-   FREE(start_stop_params->i002->xd->commissionning_callback_data);
+   
+   if(start_stop_params->i002->xd->commissionning_callback_data)
+   {
+      free(start_stop_params->i002->xd->commissionning_callback_data);
+      start_stop_params->i002->xd->commissionning_callback_data=NULL;
+   }
 
    xbee_close(start_stop_params->i002->xd);
 
-   FREE(start_stop_params->i002->xd);
-   FREE(start_stop_params->i002->local_xbee);
-
+   if(start_stop_params->i002->xd)
+   {
+      free(start_stop_params->i002->xd);
+      start_stop_params->i002->xd=NULL;
+   }
+   
+   if(start_stop_params->i002->local_xbee)
+   {
+      free(start_stop_params->i002->local_xbee);
+      start_stop_params->i002->local_xbee=NULL;
+   }
+   
    VERBOSE(9) fprintf(stderr,"%s  (%s) : interface_type_002 thread is down.\n",INFO_STR, __func__);
    
    return 0;
@@ -1233,8 +1294,11 @@ int start_interface_type_002(int my_id, void *data)
       pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 
       free_parsed_parameters(interface_parameters, interface_nb_parameters);
-      FREE(interface_parameters);
-      interface_parameters=NULL;
+      if(interface_parameters)
+      {
+         free(interface_parameters);
+         interface_parameters=NULL;
+      }
       interface_nb_parameters=0;
    }
 
@@ -1312,7 +1376,7 @@ clean_exit:
    if(interface_parameters)
    {
       free_parsed_parameters(interface_parameters, interface_nb_parameters);
-      FREE(interface_parameters);
+      free(interface_parameters);
       interface_parameters=NULL;
       interface_nb_parameters=0;
 
@@ -1330,7 +1394,11 @@ clean_exit:
       xpl_callback_params=NULL;
    }
    
-   FREE(local_xbee);
+   if(local_xbee)
+   {
+      free(local_xbee);
+      local_xbee=NULL;
+   }
    
    if(xd)
    {

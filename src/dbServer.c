@@ -48,8 +48,12 @@ void free_value(void *data)
    
    value=(struct sensor_value_s *)data;
    if(value->complement)
+   {
       free(value->complement);
+      value->complement=NULL;
+   }
    free(data);
+   data=NULL;
 }
 
 
@@ -108,7 +112,10 @@ int16_t tomysqldb_add_data_to_sensors_values(tomysqldb_md_t *md, uint16_t sensor
       if(value)
       {
          if(value->complement)
+         {
             free(value->complement);
+            value->complement=NULL;
+         }
          free(value);
          value=NULL;
       }
@@ -129,6 +136,7 @@ int16_t tomysqldb_add_data_to_sensors_values(tomysqldb_md_t *md, uint16_t sensor
    {
       free_value(elem->data);
       free(elem);
+      elem=NULL;
    }
    pthread_cleanup_pop(0);
 
@@ -670,13 +678,47 @@ void tomysqldb_release(tomysqldb_md_t *md)
 
       clear_queue(md->queue,_tomysqldb_free_queue_elem);
       
-      FREE(md->queue);
-      FREE(md->db_server);
-      FREE(md->db_server_port);
-      FREE(md->base);
-      FREE(md->user);
-      FREE(md->passwd);
-      FREE(md->sqlite3_db_path);
+      if(md->queue)
+      {
+         free(md->queue);
+         md->queue=NULL;
+      }
+      
+      if(md->db_server)
+      {
+         free(md->db_server);
+         md->db_server=NULL;
+      }
+      
+      if(md->db_server_port)
+      {
+         free(md->db_server_port);
+         md->db_server_port=NULL;
+      }
+      
+      if(md->base)
+      {
+         free(md->base);
+         md->base=NULL;
+      }
+      
+      if(md->user)
+      {
+         free(md->user);
+         md->user=NULL;
+      }
+      
+      if(md->passwd)
+      {
+         free(md->passwd);
+         md->passwd=NULL;
+      }
+      
+      if(md->sqlite3_db_path)
+      {
+         free(md->sqlite3_db_path);
+         md->sqlite3_db_path=NULL;
+      }
    }
 }
 
@@ -686,9 +728,9 @@ int stop_dbServer(int my_id, void *data)
 {
    tomysqldb_release(_md);
    free(_md);
-   _dbServer_monitoring_id=-1;
-
    _md=NULL;
+
+   _dbServer_monitoring_id=-1;
    
    return 0;
 }

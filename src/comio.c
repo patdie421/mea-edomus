@@ -262,7 +262,10 @@ int _comio_read(comio_ad_t *ad, unsigned char *op, unsigned char *var, unsigned 
    
 on_error_exit_arduino_read:
    if(data)
+   {
       free(data);
+      data=NULL;
+   }
 #ifdef COMIO_DEBUG
    if(*nerr!=COMIO_ERR_TIMEOUT)
    {
@@ -462,6 +465,7 @@ void *_comio_read_thread_func(void *args)
                DEBUG_SECTION fprintf(stderr,"%s (%s) : no handler for long trap %d.\n",DEBUG_STR,__func__,trap);
             }
             free(buff);
+            buff=NULL;
          }
       }
       

@@ -336,6 +336,7 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db, tomysql
                   if(!i001_start_stop_params)
                   {
                      free(i001);
+                     i001=NULL;
                      VERBOSE(2) {
                         fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
                         perror("");
@@ -394,6 +395,7 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db, tomysql
                   if(!i002_start_stop_params)
                   {
                      free(i002);
+                     i002=NULL;
                      VERBOSE(2) {
                         fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
                         perror("");
