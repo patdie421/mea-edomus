@@ -52,6 +52,11 @@ then
    cp $SOURCE/complements/nodejs/src/node-v0.10.32/out/Release/node $SOURCE/package/tmp/bin
 fi
 
+if [ -f $SOURCE/complements/xplhub/src/xplhub/xplhub ]
+then
+   cp $SOURCE/complements/xplhub/src/xplhub/xplhub $SOURCE/package/tmp/bin
+fi
+
 strip $SOURCE/package/tmp/bin/*
 
 cd $SOURCE/package/tmp

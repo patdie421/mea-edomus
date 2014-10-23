@@ -38,5 +38,8 @@ build-php-cgi:
 build-nodejs:
 	make -C complements/nodejs -f nodejs.mk SOURCE=$(MYPATH)
 
+build-xplhub:
+	make -C complements/xplhub -f xplhub.mk SOURCE=$(MYPATH)
+
 build-package: $(EXECUTABLE)
 	package/build-package.sh $(MYPATH)

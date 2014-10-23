@@ -56,7 +56,7 @@ cd "$BASEPATH"
 
 # Pour la création du package
 # sudo strip ./bin/* # faire un strip des executables avant de faire le tar dans le makefile
-# préparer les permissions avant le tar (mettre un g+s sur var/log et var/db
+# préparer les permissions avant le tar (mettre un g+s sur var/log et var/db)
 # mettre root/root au repertoires/fichiers pendant le tar
 
 sudo tar --owner="$MEAUSER" --group="$MEAGROUP" -xpf "$CURRENTPATH"/mea-edomus.tar
