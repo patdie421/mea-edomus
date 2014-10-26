@@ -12,73 +12,73 @@ session_start()
     <?php echo $TITRE_APPLICATION; ?>
     </title>
     <meta charset="utf-8">
-    <style>
-.form-login {
-    position: relative;
-    margin: 0 auto;
-    margin-top:50px;
-    padding: 20px 20px 20px;
-    width: 310px;
-
-    border-color:#a6c9e2;
-    border-width:1px;
-    border-style:solid;
-    }
-    
-.form-login p.submit {
-    text-align:center;}
-
-.form-login h1 {
-    font-family: 'Lucida Grande', Tahoma, Verdana, sans-serif;
-    font-size: 18px;
-    margin: -20px -20px 21px;
-    line-height: 40px;
-    font-size: 15px;
-    font-weight: bold;
-    text-align: center;
-    }
-
-.form-login input[type=text], .form-login input[type=password] {
-    font-family: 'Lucida Grande', Tahoma, Verdana, sans-serif;
-    font-size: 14px;
-    margin: 5px;
-    margin-top: -5px;
-    padding: 0 10px;
-    width: 280px;
-    height: 34px;
-    color: #404040;
-    background: white;
-    border: 1px solid;
-    border-color: #c4c4c4 #d1d1d1 #d4d4d4;
-    border-radius: 2px;
-    outline: 5px solid #eff4f7;
-    -moz-outline-radius: 3px;
-    -webkit-box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.12);
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.12);
-}
-
-.form-login input[type=text]:focus, .form-login input[type=password]:focus {
-    border-color: #7dc9e2;
-    outline-color: #dceefc;
-    outline-offset: 0;
-}
-
-:-moz-placeholder {
-    color: #c9c9c9 !important;
-    font-size: 13px;
-    }
-
-::-webkit-input-placeholder {
-    color: #ccc;
-    font-size: 13px;
-    }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=0.99">
 </head>
 
 <body>
-    <?php include "lib/includes.php"; ?>
-    <style>
-        .ui-widget{font-size:14px;}
+   <?php include "lib/includes.php"; ?>
+   <style>
+      .ui-widget{font-size:14px;}
+      .form-login {
+         position: relative;
+         margin: 0 auto;
+         margin-top:50px;
+         padding: 20px 20px 20px;
+         width: 310px;
+
+         border-color:#a6c9e2;
+         border-width:1px;
+         border-style:solid;
+      }
+    
+      .form-login p.submit {
+         text-align:center;
+      }
+
+      .form-login h1 {
+         font-family: 'Lucida Grande', Tahoma, Verdana, sans-serif;
+         font-size: 18px;
+         margin: -20px -20px 21px;
+         line-height: 40px;
+         font-size: 15px;
+         font-weight: bold;
+         text-align: center;
+      }
+
+      .form-login input[type=text], .form-login input[type=password] {
+         font-family: 'Lucida Grande', Tahoma, Verdana, sans-serif;
+         font-size: 14px;
+         margin: 5px;
+         margin-top: -5px;
+         padding: 0 10px;
+         width: 280px;
+         height: 34px;
+         color: #404040;
+         background: white;
+         border: 1px solid;
+         border-color: #c4c4c4 #d1d1d1 #d4d4d4;
+         border-radius: 2px;
+         outline: 5px solid #eff4f7;
+         -moz-outline-radius: 3px;
+         -webkit-box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.12);
+         box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.12);
+      }
+
+      .form-login input[type=text]:focus, .form-login input[type=password]:focus {
+         border-color: #7dc9e2;
+         outline-color: #dceefc;
+         outline-offset: 0;
+      }
+
+      :-moz-placeholder {
+         color: #c9c9c9 !important;
+         font-size: 13px;
+      }
+
+      ::-webkit-input-placeholder {
+         color: #ccc;
+         font-size: 13px;
+      }
     </style>
     
     <div style="align:center;">
@@ -93,7 +93,7 @@ session_start()
                     <div id="label_userid">
                     id :
                     </div>
-                    <p><input type="text" name="userid" value="" placeholder="userid" id='userid'></p>
+                    <p><input type="text" name="userid" autocorrect="off" autocapitalize="off" value="" placeholder="userid" id='userid'></p>
                     <div id="label_passwd">
                     password :
                     </div>

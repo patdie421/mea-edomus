@@ -67,8 +67,8 @@ for (var i = 2; i < process.argv.length; i++) {
    }
 }
 
-
 var server = require('net').createServer(function (socket) {
+/*
    socket.on('data', function (msg) {
       var t = msg.toString().split(/\r?\n/);
       for ( i=0; i<t.length-1; i++)
@@ -83,6 +83,78 @@ var server = require('net').createServer(function (socket) {
            console.log("INFO   socket.on(data) : unknown command - "+cmd);
       }
    });
+*/
+   socket.on('readable',function() {
+      var car;
+      var data="";
+      var counter=0;
+      var found=0;
+      var t=null;
+      
+      // recherche un debut de trame ($$$)
+      car = socket.read(1);
+      while(car)
+      {
+         // recherche un debut de trame ($$$)
+         while (car)
+         {
+            if(car == '$')
+               counter++;
+            else
+               counter=0;
+            if(counter==3)
+            {
+               found=1;
+               break;
+            }
+            car = socket.read(1);
+         }
+         if(found!=1) // pas de début de trame trouvé
+            continue;
+
+         // lecture de la taille des données
+         var size=socket.read(2);
+         var l;
+         if(size)
+         {
+            l=size.toString().charCodeAt(0)+size.toString().charCodeAt(1)*256;
+         }
+         var buff;
+         var cmd;
+         var msg;
+
+         // lecture des données
+         buff = socket.read(l);
+         if(buff)
+         {
+            var t = buff.toString();
+            cmd = t.substring(0, 3);
+            msg = t.slice(4);
+         }
+         else
+            return;
+         
+         // lire fin de trame : ###
+         var end = socket.read(3);
+         if( end.toString() != "###")
+         {
+            return;
+         }
+      
+         if(cmd=="LOG")
+            sendMessage('log', msg);
+         else if(cmd=="MON")
+            sendMessage('mon', msg);
+         else
+            console.log("INFO   socket.on(data) : unknown command - "+cmd);
+      }
+      car = socket.read(1);
+   });
+   
+   socket.once('end',function()
+   {
+   });
+   
 }).listen(LOCAL_PORT);
 
 

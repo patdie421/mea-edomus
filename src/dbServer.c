@@ -724,7 +724,7 @@ void tomysqldb_release(tomysqldb_md_t *md)
 
 
 //void stop_dbServer(tomysqldb_md_t *md)
-int stop_dbServer(int my_id, void *data)
+int stop_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
 {
    tomysqldb_release(_md);
    free(_md);
@@ -742,7 +742,7 @@ tomysqldb_md_t *dbServer_get_md()
 }
 
 
-int start_dbServer(int my_id, void *data)
+int start_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
 // tomysqldb_md_t *start_dbServer(char **params_list, sqlite3 *sqlite3_param_db)
 {
 #ifndef __NO_TOMYSQL__

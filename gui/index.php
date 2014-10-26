@@ -20,10 +20,12 @@ if(!isset($_SESSION['logged_in']))
 <html>
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=0.99">
     <title>
     <?php echo $TITRE_APPLICATION; ?>
     </title>
     <?php include "lib/includes.php"; ?>
+    <script type="text/javascript" src="lib/noty-2.2.10/js/noty/packaged/jquery.noty.packaged.min.js"></script>
 </head>
 <body>
     <style>

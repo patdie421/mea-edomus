@@ -302,7 +302,7 @@ void *_pythonPlugin_thread(void *data)
          {
             if(ret==ETIMEDOUT)
             {
-               DEBUG_SECTION fprintf(stderr,"%s (%s) : Nb elements in queue after TIMEOUT : %ld\n",DEBUG_STR, __func__, pythonPluginCmd_queue->nb_elem);
+//               DEBUG_SECTION fprintf(stderr,"%s (%s) : Nb elements in queue after TIMEOUT : %ld\n",DEBUG_STR, __func__, pythonPluginCmd_queue->nb_elem);
                pass=1;
             }
             else
@@ -463,7 +463,7 @@ void pythonPluginCmd_queue_free_queue_elem(void *d)
 } 
 
 
-int stop_pythonPluginServer(int my_id, void *data)
+int stop_pythonPluginServer(int my_id, void *data, char *errmsg, int l_errmsg)
 {
    int ret=-1;
    if(_pythonPluginServer_thread)
@@ -509,7 +509,7 @@ int stop_pythonPluginServer(int my_id, void *data)
 }
 
 
-int start_pythonPluginServer(int my_id, void *data)
+int start_pythonPluginServer(int my_id, void *data, char *errmsg, int l_errmsg)
 {
 struct pythonPluginServerData_s *pythonPluginServerData = (struct pythonPluginServerData_s *)data;  
 

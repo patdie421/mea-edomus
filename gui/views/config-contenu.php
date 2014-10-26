@@ -58,9 +58,10 @@ switch(check_admin()){
     }
     
     .titreboite {
+        height:30px;
+        line-height:30px;
         padding-left:5px;
         padding-right:10px;
-        padding-top:5px;
     }
     
     .boite {

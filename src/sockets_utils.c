@@ -11,7 +11,7 @@
 #include <arpa/inet.h>
 #include <unistd.h> // close
 #include <netdb.h> // gethostbyname
-#include <strings.h>
+#include <string.h>
 
 #include "globals.h"
 #include "debug.h"
@@ -62,9 +62,9 @@ int mea_socket_connect(int *s, char *hostname, int port)
 }
 
 
-int mea_socket_send(int *s, char *message)
+int mea_socket_send(int *s, char *message, int l_message)
 {
-   if(send(*s, message, strlen(message), 0) < 0)
+   if(send(*s, message, l_message, 0) < 0)
    {
       VERBOSE(1) {
          fprintf(stderr, "%s (%s) :  send - can't send : ",ERROR_STR,__func__);

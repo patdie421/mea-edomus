@@ -163,7 +163,16 @@ int16_t check_conditions(int conditions_id_rule, xPL_NameValueListPtr xpl_body)
 {
    char sql_query[1024];
 
-   snprintf(sql_query,sizeof(sql_query),get_conditions_sql,conditions_id_rule);
+   int n=snprintf(sql_query,sizeof(sql_query),get_conditions_sql,conditions_id_rule);
+   if(n<0 || n==sizeof(sql_query))
+   {
+      VERBOSE(2) {
+         fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);
+         perror("");
+      }
+      return -1;
+   }
+
    sqlite3_stmt * stmt;
    int ret = sqlite3_prepare_v2(db, sql_query, strlen(sql_query)+1, &stmt, NULL);
    if(ret)
@@ -190,7 +199,7 @@ int16_t check_conditions(int conditions_id_rule, xPL_NameValueListPtr xpl_body)
 //            name = (char *)sqlite3_column_text(stmt, 0);
             key = (char *)sqlite3_column_text(stmt, 1);
             op = sqlite3_column_int(stmt, 2);
-            strncpy(value,(char *)sqlite3_column_text(stmt, 3),sizeof(value));
+            strncpy(value, (char *)sqlite3_column_text(stmt, 3), sizeof(value)-1);
             mea_strtoupper(value);
             
             char *xpl_value_ptr = xPL_getNamedValue(xpl_body, key);
@@ -199,7 +208,7 @@ int16_t check_conditions(int conditions_id_rule, xPL_NameValueListPtr xpl_body)
                sqlite3_finalize(stmt);
                return -1;
             }
-            strncpy(xpl_value,xpl_value_ptr,sizeof(xpl_value));
+            strncpy(xpl_value,xpl_value_ptr,sizeof(xpl_value)-1);
             mea_strtoupper(xpl_value);
             
             int16_t isnum=isnumeric2(value,&fvalue) && isnumeric2(xpl_value,&fxpl_value);
@@ -291,27 +300,66 @@ int16_t find_and_process_rules(sqlite3 *db, xPL_MessagePtr theMessage)
    char condition_key[256];
    char sql_query[2048];
    
-   snprintf(xpl_source,sizeof(xpl_source),"%s-%s.%s", xPL_getSourceVendor(theMessage), xPL_getSourceDeviceID(theMessage), xPL_getSourceInstanceID(theMessage));
-   snprintf(xpl_schema,sizeof(xpl_schema),"%s.%s", xPL_getSchemaClass(theMessage), xPL_getSchemaType(theMessage));
+   int n;
+   
+   n=snprintf(xpl_source, sizeof(xpl_source), "%s-%s.%s", xPL_getSourceVendor(theMessage), xPL_getSourceDeviceID(theMessage), xPL_getSourceInstanceID(theMessage));
+   if(n<0 || n==sizeof(xpl_source))
+   {
+      VERBOSE(2) {
+         fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);
+         perror("");
+      }
+      return -1;
+   }
+
+   n=snprintf(xpl_schema, sizeof(xpl_schema), "%s.%s", xPL_getSchemaClass(theMessage), xPL_getSchemaType(theMessage));
+   if(n<0 || n==sizeof(xpl_schema))
+   {
+      VERBOSE(2) {
+         fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);
+         perror("");
+      }
+      return -1;
+   }
 
    conditions_keys[0]=0;
    xPL_NameValueListPtr xpl_body = xPL_getMessageBody(theMessage);
-   int n = xPL_getNamedValueCount(xpl_body);
+   n = xPL_getNamedValueCount(xpl_body);
    for (int16_t i = 0; i < n; i++)
    {
       xPL_NameValuePairPtr keyValuePtr = xPL_getNamedValuePairAt(xpl_body, i);
 
       if(!isnumeric2(keyValuePtr->itemValue,NULL)) // pour les valeurs non numérique seul l'égalité ou l'inégalité est possible, on peut donc améliorer la 1ere recherche
-         snprintf(condition_key,sizeof(condition_key),"(key = '%s' AND value = '%s')", keyValuePtr->itemName, keyValuePtr->itemValue);
+      {
+         n=snprintf(condition_key,sizeof(condition_key),"(key = '%s' AND value = '%s')", keyValuePtr->itemName, keyValuePtr->itemValue);
+      }
       else
-         snprintf(condition_key,sizeof(condition_key),"(key = '%s')", keyValuePtr->itemName);
+      {
+         n=snprintf(condition_key,sizeof(condition_key),"(key = '%s')", keyValuePtr->itemName);
+      }
+      if(n<0 || n==sizeof(condition_key))
+      {
+         VERBOSE(2) {
+            fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);
+            perror("");
+         }
+         return -1;
+      }
 
       if(i)
          strcat(conditions_keys," OR ");
 
       strcat(conditions_keys, condition_key);
    }
-   snprintf(sql_query, sizeof(sql_query), get_rules_sql, conditions_keys, xpl_source, xpl_schema);
+   n=snprintf(sql_query, sizeof(sql_query), get_rules_sql, conditions_keys, xpl_source, xpl_schema);
+   if(n<0 || n==sizeof(sql_query))
+   {
+      VERBOSE(2) {
+            fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);
+            perror("");
+      }
+      return -1;
+   }
    
    sqlite3_stmt * stmt;
    int ret = sqlite3_prepare_v2(db, sql_query, strlen(sql_query)+1, &stmt, NULL);

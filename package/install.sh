@@ -94,14 +94,18 @@ then
    if [ ! -z $PHPCGI ]
    then
       OPTIONS="--phpcgipath=\"$PHPCGI\""
+   else
+      echo "No php-cgi provided or found."
+      echo "install one if you need the mea-edomus gui and excute $0 --basepath=\""$BASEPATH"\" --update --phpcgipath=\"<PATH_TO_CGI_BIN>\""
    fi
 fi
 
-if [ -z OPTIONS ]
+# un node.js est fourni dans le package
+if [ -f ./bin/node ]
 then
-   echo "No php-cgi provided or found."
-   echo "install one if you need the mea-edomus gui and excute $0 --basepath=\""$BASEPATH"\" --update --phpcgipath=\"<PATH_TO_CGI_BIN>\""
+   OPTIONS="$OPTIONS --nodejspath=$BASEPATH/bin/node"
 fi
+
 sudo ./bin/mea-edomus --autoinit --basepath="$BASEPATH" "$OPTIONS"
 
 sudo chown -R "$MEAUSER":"$MEAGROUP" "$BASEPATH"/lib/mea-gui

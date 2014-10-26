@@ -17,7 +17,7 @@ struct process_indicator_s
    long value;
 };
 
-typedef int (*process_start_stop_f)(int, void *);
+typedef int (*process_start_stop_f)(int, void *, char *, int);
 
 typedef enum process_status_e { STOPPED = 0,   RUNNING = 1 } process_status_t;
 typedef enum process_type_e   { AUTOSTART = 0, ONSHOT = 1, NOTMANAGED = 2, TASK = 3 } process_type_t;
@@ -64,8 +64,8 @@ int   process_unregister(int id);
 int   process_add_indicator(int id, char *name, long initial_value);
 int   process_update_indicator(int id, char *name, long value);
 int   process_heartbeat(int id);
-int   process_start(int id);
-int   process_stop(int id);
+int   process_start(int id, char *errmsg, int l_errmsg);
+int   process_stop(int id, char *errmsg, int l_errmsg);
 int   process_is_running(int id);
 
 int   process_set_start_stop(int id,  process_start_stop_f start, process_start_stop_f stop, void *start_stop_data, int type);
@@ -77,5 +77,8 @@ void* process_get_data_ptr(int id);
 int   init_processes_manager(int max_nb_processes);
 int   clear_managed_processes();
 int   managed_processes_loop(char *hostname, int port);
+int   managed_processes_processes_to_json_mini(char *json, int l_json);
+int   managed_processes_refresh_now(char *hostname, int port);
+
 
 #endif

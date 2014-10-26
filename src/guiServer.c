@@ -21,6 +21,7 @@
 #include <sys/wait.h>
 
 #include "globals.h"
+#include "consts.h"
 #include "debug.h"
 #include "error.h"
 #include "guiServer.h"
@@ -59,23 +60,23 @@ char *val_cgi_pattern=NULL;
 char *val_num_threads=NULL;
 
 int _httpServer_monitoring_id=-1;
-
 pid_t pid_nodejs=0;
-
+int socketio_port=0;
+int socketdata_port=0;
 char php_sessions_path[256];
 
 /*
-const char* options[] = {
-   "document_root",   "/Data/www",
-   "listening_ports", "8083",
-   "index_files",     "index.php",
-   "cgi_interpreter", "/Data/bin/php-cgi",
-   "cgi_environment", "PHPRC=/Data/php",
-   "cgi_pattern",     "**.php$",
-   "num_threads",     "5",
-   NULL
-};
-*/
+ const char* options[] = {
+ "document_root",   "/Data/www",
+ "listening_ports", "8083",
+ "index_files",     "index.php",
+ "cgi_interpreter", "/Data/bin/php-cgi",
+ "cgi_environment", "PHPRC=/Data/php",
+ "cgi_pattern",     "**.php$",
+ "num_threads",     "5",
+ NULL
+ };
+ */
 
 const char *options[15];
 struct mg_context* g_mongooseContext = 0;
@@ -84,7 +85,7 @@ struct mg_context* g_mongooseContext = 0;
 int gethttp(char *server, int port, char *url, char *response, int l_response)
 {
    int sockfd;                   // descripteur de socket
-
+   
    // creation de la requete
    char requete[1000]="GET ";
    strcat(requete, url);
@@ -94,7 +95,7 @@ int gethttp(char *server, int port, char *url, char *response, int l_response)
    strcat(requete, "\r\n");
    strcat(requete, "Connection: close\r\n");
    strcat(requete, "\r\n");
-
+   
    if(mea_socket_connect(&sockfd, server, port)<0)
    {
       VERBOSE(2) {
@@ -103,13 +104,13 @@ int gethttp(char *server, int port, char *url, char *response, int l_response)
       }
       return -1;
    }
- 
-   if(mea_socket_send(&sockfd, requete)<0)
+   
+   if(mea_socket_send(&sockfd, requete, strlen(requete))<0)
    {
       close(sockfd);
       return -1;
    }
-
+   
    // reception de la reponse HTTP
    int n=recv(sockfd, response, l_response, 0);
    if(n == -1)
@@ -123,6 +124,7 @@ int gethttp(char *server, int port, char *url, char *response, int l_response)
    }
    
    //affichage de la reponse HTTP
+/*
    if(n)
    {
       VERBOSE(9) {
@@ -130,9 +132,10 @@ int gethttp(char *server, int port, char *url, char *response, int l_response)
          fprintf(stderr, "%s\n",response);
       }
    }
+*/
    // fermeture de la socket
    close(sockfd);
- 
+   
    return 0;
 }
 
@@ -140,19 +143,19 @@ int gethttp(char *server, int port, char *url, char *response, int l_response)
 // fichier "mémoire"
 static const char *open_file_handler(const struct mg_connection *conn, const char *path, size_t *size)
 {
-/*
-   // ne peut pas marcher avec les cgi car le cgi-php va chercher sur disque le fichier ... utile néanmoins pour fournir des pages statiques ...
-   char *content = "<html><head><title>Test PHP</title></head><body><p>Bonjour le monde</p></body></html>";
-
-   int i;
-   for(i=0; path[i]==val_document_root[i]; i++);
-
-   if(strcmp(&path[i],"/test.html")==0)
-   {
-      *size = strlen(content);
-      return content;
-   }
-*/
+   /*
+    // ne peut pas marcher avec les cgi car le cgi-php va chercher sur disque le fichier ... utile néanmoins pour fournir des pages statiques ...
+    char *content = "<html><head><title>Test PHP</title></head><body><p>Bonjour le monde</p></body></html>";
+    
+    int i;
+    for(i=0; path[i]==val_document_root[i]; i++);
+    
+    if(strcmp(&path[i],"/test.html")==0)
+    {
+    *size = strlen(content);
+    return content;
+    }
+    */
    return NULL;
 }
 
@@ -160,23 +163,27 @@ static const char *open_file_handler(const struct mg_connection *conn, const cha
 void httpResponse(struct mg_connection *conn, char *response)
 {
    mg_printf(conn,
-      "HTTP/1.1 200 OK\r\n"
-      "Content-Type: application/json\r\n"
-      "Content-Length: %d\r\n" // Always set Content-Length
-      "Cache-Control: no-cache, no-store, must-revalidate\r\n"
-      "Pragma: no-cache\r\n"
-      "Expires: -1\r\n"
-      "Vary: *\r\n"
-      "\r\n"
-      "%s\r\n",
-      (int)strlen(response)+2, response);
+             "HTTP/1.1 200 OK\r\n"
+             "Content-Type: application/json\r\n"
+             "Content-Length: %d\r\n" // Always set Content-Length
+             "Cache-Control: no-cache, no-store, must-revalidate\r\n"
+             "Pragma: no-cache\r\n"
+             "Expires: -1\r\n"
+             "Vary: *\r\n"
+             "\r\n"
+             "%s\r\n",
+             (int)strlen(response)+2, response);
 }
 
 
-void httpErrno(struct mg_connection *conn, int n)
+void httpErrno(struct mg_connection *conn, int n, char *msg)
 {
-   char errno_str[20];
-   sprintf(errno_str, "{ errno : %d }",n);
+   char errno_str[100];
+   if(msg)
+      snprintf(errno_str, sizeof(errno_str)-1, "{ \"errno\" : %d, \"errmsg\" : \"%s\" }",n, msg);
+   else
+      snprintf(errno_str, sizeof(errno_str)-1, "{ \"errno\" : %d }",n);
+   
    httpResponse(conn, errno_str);
 }
 
@@ -187,7 +194,7 @@ int _findPHPVar(char *phpserial, char *var, int *type, char *value, int l_value)
    char _type[2];
    char _v1[17];
    char _v2[256];
-
+   
    _toFind=(char *)malloc(strlen(var)+2);
    if(!_toFind)
       return -1;
@@ -198,7 +205,7 @@ int _findPHPVar(char *phpserial, char *var, int *type, char *value, int l_value)
    
    if(!str_ptr)
       return -1;
-
+   
    int n=sscanf(str_ptr,"%1[^:;]:%16[^:;]:%255[^:;]",_type,_v1,_v2);
    if(n<2)
       return -1;
@@ -207,7 +214,7 @@ int _findPHPVar(char *phpserial, char *var, int *type, char *value, int l_value)
    if(strcmp(_type,"i")==0)
    {
       *type=1;
-      strncpy(value,_v1,l_value);
+      strncpy(value,_v1,l_value-1);
    }
    else if(strcmp(_type,"s")==0)
    {
@@ -215,24 +222,32 @@ int _findPHPVar(char *phpserial, char *var, int *type, char *value, int l_value)
       int l=atoi(_v1)+1;
       if(l > l_value)
          l=l_value;
-   
-      strncpy(value,&_v2[1],l);
+      
+      strncpy(value,&_v2[1],l-1);
    }
    else
       return -1;
-
+   
    return 0;
 }
 
 
-int _phpsessid_check_admin(char *phpsessid,char *sessions_files_path)
+int _phpsessid_check_loggedin_and_admin(char *phpsessid,char *sessions_files_path)
 {
    char session_file[80];
-   snprintf(session_file, sizeof(session_file), "%s/sess_%s",sessions_files_path, phpsessid);
+   int n=snprintf(session_file, sizeof(session_file), "%s/sess_%s",sessions_files_path, phpsessid);
+   if(n<0 || n==sizeof(session_file))
+   {
+      VERBOSE(2) {
+         fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);
+         perror("");
+      }
+      return -1;
+   }
    
    char *buff;
    struct stat st;
-
+   
    if (stat(session_file, &st) == 0)
    {
       buff=(char *)malloc(st.st_size+1);
@@ -241,7 +256,7 @@ int _phpsessid_check_admin(char *phpsessid,char *sessions_files_path)
    }
    else
       return -1;
-
+   
    FILE *fd;
    fd=fopen(session_file, "r");
    if(fd)
@@ -254,7 +269,7 @@ int _phpsessid_check_admin(char *phpsessid,char *sessions_files_path)
       
       int logged_in;
       int admin;
-
+      
       int type;
       char value[81];
       if(_findPHPVar(buff, "logged_in", &type, value, 80)==0)
@@ -267,9 +282,14 @@ int _phpsessid_check_admin(char *phpsessid,char *sessions_files_path)
          return -1;
       
       if(logged_in==1 && admin==1)
-         return 0;
+         return 1;
       else
-         return -1;
+      {
+         if(logged_in==1)
+            return 0;
+         else
+            return -1;
+      }
    }
    else
    {
@@ -289,44 +309,59 @@ static int begin_request_handler(struct mg_connection *conn)
    uint32_t id = 0;
    const struct mg_request_info *request_info = mg_get_request_info(conn);
    char phpsessid[80];
-
+   
    char *tokens[MAX_TOKEN]; // 10 tokens maximum
    char buffer[MAX_BUFFER_SIZE];
 
-   if(mea_strncmplower("/CMD/ping.php",(char *)request_info->uri,13)==0)
+   const char *cookie = mg_get_header(conn, "Cookie");
+   if(mg_get_cookie(cookie, "PHPSESSID", phpsessid, sizeof(phpsessid))>0)
    {
-       process_heartbeat(_httpServer_monitoring_id);
-       httpErrno(conn, 0);
-       return 1;
+   }
+   else
+      phpsessid[0]=0;
+   
+   if(strlen((char *)request_info->uri)==11 && mea_strncmplower("/CMD/ps.php",(char *)request_info->uri,11)==0)
+   {
+      if(!phpsessid[0] || _phpsessid_check_loggedin_and_admin(phpsessid, php_sessions_path)<0)
+      {
+         httpErrno(conn, 2, NULL); // pas habilité
+         return 1;
+      }
+      
+      char json[2048];
+      managed_processes_processes_to_json_mini(json, sizeof(json)-1);
+      httpResponse(conn, json);
+      return 1;
+   }
+   else if(strlen((char *)request_info->uri)==13 &&  mea_strncmplower("/CMD/ping.php",(char *)request_info->uri,13)==0)
+   {
+      process_heartbeat(_httpServer_monitoring_id);
+      httpErrno(conn, 0, NULL);
+      return 1;
    }
    else if(mea_strncmplower("/CMD/startstop.php",(char *)request_info->uri,18)==0)
    {
-      // on récupère les cookies
-      const char *cookie = mg_get_header(conn, "Cookie");
-
       // on récupère le session_id PHP
-      if(mg_get_cookie(cookie, "PHPSESSID", phpsessid, sizeof(phpsessid))>0)
+      if(!phpsessid[0] || _phpsessid_check_loggedin_and_admin(phpsessid, php_sessions_path)!=1)
       {
-         if(_phpsessid_check_admin(phpsessid, php_sessions_path)<0)
-         {
-            httpErrno(conn, 2); // pas habilité
-            return 1;
-         }
-      }
-         // lire les paramètres
-      if(strcmp(request_info->request_method, "GET") != 0)
-      {
-         httpErrno(conn, 3); // pas la bonne méthode
+         httpErrno(conn, 2, NULL); // pas habilité
          return 1;
       }
-
+      
+      // lire les paramètres
+      if(strcmp(request_info->request_method, "GET") != 0)
+      {
+         httpErrno(conn, 3, NULL); // pas la bonne méthode
+         return 1;
+      }
+      
       if(request_info->query_string)
       {
-         char process_id_str[10]; 
+         char process_id_str[10];
          int process_id=-1;
          char command[10]; // "start" ou "stop"
          int ret=0;
-
+         
          ret=mg_get_var(request_info->query_string, strlen(request_info->query_string), "process", process_id_str, sizeof(process_id_str));
          if(ret)
          {
@@ -334,36 +369,43 @@ static int begin_request_handler(struct mg_connection *conn)
          }
          else
          {
-            httpErrno(conn, 4);
+            httpErrno(conn, 4, NULL);
          }
          ret=mg_get_var(request_info->query_string, strlen(request_info->query_string), "cmnd", command, sizeof(command));
          if(ret)
          {
+            char errmsg[80];
             if(mea_strncmplower("start", command, strlen(command))==0)
             {
-               ret=process_start(process_id);
+               ret=process_start(process_id, errmsg, sizeof(errmsg));
                if(!ret)
-                  httpErrno(conn, 0);
+                  httpErrno(conn, 0, "started");
+               else if(ret!=1)
+                  httpErrno(conn, 7, errmsg);
                else
-                  httpErrno(conn, 7);
+                  httpErrno(conn, -1, "all ready running !");
             }
             else if (mea_strncmplower("stop", command, strlen(command))==0)
             {
-               ret=process_stop(process_id);
+               ret=process_stop(process_id, errmsg, sizeof(errmsg));
                if(!ret)
-                  httpErrno(conn, 0);
+                  httpErrno(conn, 0, "stopped");
+               else if(ret!=1)
+                  httpErrno(conn, 7, errmsg);
                else
-                  httpErrno(conn, 7);
+                  httpErrno(conn, -1, "all ready not running !");
             }
             else
             {
-               httpErrno(conn, 6);
+               httpErrno(conn, 6, NULL);
             }
          }
       }
       else
-         httpErrno(conn, 5);
+         httpErrno(conn, 5, NULL);
 
+      managed_processes_refresh_now(localhost_const, socketdata_port);
+      
       return 1;
    }
    else if(mea_strncmplower("/API/",(char *)request_info->uri,5)==0)
@@ -384,7 +426,7 @@ static int begin_request_handler(struct mg_connection *conn)
             xPL_MessagePtr msg = mea_createReceivedMessage(xPL_MESSAGE_COMMAND);
             xPL_setBroadcastMessage(msg, TRUE); // pas de destinataire spécifié (pas nécessaire, on sait que c'est pour nous
             int waitResp = FALSE;
-
+            
             if(mea_strcmplower("ACTUATOR",tokens[1])==0)
             {
                xPL_setSchema(msg, get_token_by_id(XPL_CONTROL_ID), get_token_by_id(XPL_BASIC_ID));
@@ -395,11 +437,11 @@ static int begin_request_handler(struct mg_connection *conn)
             {
                xPL_setSchema(msg, get_token_by_id(XPL_SENSOR_ID), get_token_by_id(XPL_REQUEST_ID));
                char requestId[9];
-
+               
                id=mea_getXplRequestId();
                sprintf(requestId,"%08d",id);
                xPL_setSource(msg, "mea", "internal", requestId); // 00000000 = message sans réponse attendue
-
+               
                waitResp=TRUE;
             }
             else
@@ -421,8 +463,8 @@ static int begin_request_handler(struct mg_connection *conn)
                   mea_strtolower(keyval[0]);
                   mea_strtolower(keyval[1]);
                   xPL_setMessageNamedValue(msg, keyval[0], keyval[1]);
-
-//                  DEBUG_SECTION fprintf(stderr, "key=%s value=%s\n",keyval[0],keyval[1]);
+                  
+                  // DEBUG_SECTION fprintf(stderr, "key=%s value=%s\n",keyval[0],keyval[1]);
                }
                else
                {
@@ -430,17 +472,17 @@ static int begin_request_handler(struct mg_connection *conn)
                   return 0;
                }
             }
-
+            
             mea_sendXPLMessage(msg);
             xPL_releaseMessage(msg);
             
             if(waitResp==FALSE)
             {
-               strcpy(reponse,"{ errno : 0 }");
+               strcpy(reponse,"{ \"errno\" : 0 }");
             }
             else
             {
-//               DEBUG_SECTION fprintf(stderr,"En attente de reponse\n");
+               //               DEBUG_SECTION fprintf(stderr,"En attente de reponse\n");
                xPL_MessagePtr respMsg=mea_readXPLResponse(id);
                if(respMsg)
                {
@@ -455,14 +497,14 @@ static int begin_request_handler(struct mg_connection *conn)
                      strcat(reponse, keyValuePtr->itemValue);
                      strcat(reponse,", "); // on rajoute une virgule
                   }
-                  strcat(reponse,"errno : 0 }");
-
+                  strcat(reponse,"\"errno\" : 0 }");
+                  
                   // réponse traitée, on libère
                   xPL_releaseMessage(respMsg);
                }
                else
                {
-                  strcpy(reponse,"{ errno : 1 }");
+                  strcpy(reponse,"{ \"errno\" : 1 }");
                }
             }
             httpResponse(conn, reponse);
@@ -482,7 +524,7 @@ static int begin_request_handler(struct mg_connection *conn)
 void _stop_nodejs()
 {
    int status;
-
+   
    if(pid_nodejs>1)
    {
       kill(pid_nodejs, SIGKILL);
@@ -496,7 +538,7 @@ pid_t _start_nodejs(char *nodejs_path, char *eventServer_path, int port_socketio
 {
    pid_t nodejs_pid = -1;
    nodejs_pid = fork();
-
+   
    if (nodejs_pid == 0) // child
    {
       // Code only executed by child process
@@ -505,22 +547,22 @@ pid_t _start_nodejs(char *nodejs_path, char *eventServer_path, int port_socketio
       char str_phpsession_path[80];
       
       char *params[6];
-
+      
       sprintf(str_port_socketio,"--iosocketport=%d",port_socketio);
       sprintf(str_port_socketdata,"--dataport=%d",port_socketdata);
       sprintf(str_phpsession_path,"--phpsession_path=%s",phpsession_path);
-
+      
       params[0]="mea-edomus[nodejs]";
       params[1]=eventServer_path;
       params[2]=str_port_socketio;
       params[3]=str_port_socketdata;
       params[4]=str_phpsession_path;
       params[5]=0;
-
+      
       execvp(nodejs_path, params);
-
+      
       perror("");
-
+      
       exit(1);
    }
    else if (nodejs_pid < 0)
@@ -572,7 +614,7 @@ mea_error_t httpServer(uint16_t port, char *home, char *php_cgi, char *php_ini_p
    struct mg_callbacks callbacks;
    memset(&callbacks,0,sizeof(struct mg_callbacks));
    callbacks.begin_request = begin_request_handler;
-//   callbacks.open_file = open_file_handler;
+   //   callbacks.open_file = open_file_handler;
    
    g_mongooseContext = mg_start(&callbacks, NULL, options);
    if (g_mongooseContext == NULL)
@@ -582,18 +624,18 @@ mea_error_t httpServer(uint16_t port, char *home, char *php_cgi, char *php_ini_p
 }
 
 
-int stop_guiServer(int my_id, void *data)
+int stop_guiServer(int my_id, void *data, char *errmsg, int l_errmsg)
 {
    mg_stop(g_mongooseContext);
-      
+   
    _stop_nodejs();
-
+   
    return 0;
 }
 
 
 //int start_httpServer(char **params_list, queue_t *interfaces)
-int start_guiServer(int my_id, void *data)
+int start_guiServer(int my_id, void *data, char *errmsg, int l_errmsg)
 {
    struct httpServerData_s *httpServerData = (struct httpServerData_s *)data;
    int nodejs_started=0;
@@ -609,13 +651,13 @@ int start_guiServer(int my_id, void *data)
       }
       goto httpServer_only;
    }
-
-   int socketio_port = atoi(httpServerData->params_list[NODEJSIOSOCKET_PORT]);
-   int socketdata_port = atoi(httpServerData->params_list[NODEJSDATA_PORT]);
+   
+   socketio_port = atoi(httpServerData->params_list[NODEJSIOSOCKET_PORT]);
+   socketdata_port = atoi(httpServerData->params_list[NODEJSDATA_PORT]);
    char *nodejs_path = httpServerData->params_list[NODEJS_PATH];
    char *phpsession_path = httpServerData->params_list[PHPSESSIONS_PATH];
    char serverjs_path[256];
-
+   
    int n=snprintf(serverjs_path, sizeof(serverjs_path), "%s/nodeJS/server/server", httpServerData->params_list[GUI_PATH]);
    if(n<0 || n==sizeof(serverjs_path))
    {
@@ -625,7 +667,7 @@ int start_guiServer(int my_id, void *data)
       }
       goto httpServer_only;
    }
-
+   
    pid=_start_nodejs(nodejs_path, serverjs_path, socketio_port, socketdata_port, phpsession_path);
    if(!pid)
    {
@@ -641,7 +683,7 @@ httpServer_only:
    if(!nodejs_started)
    {
       VERBOSE(1) {
-         fprintf (stderr, "%s (%s) : nodejs not started, try httpServer only",ERROR_STR,__func__);
+         fprintf (stderr, "%s (%s) : nodejs not started, httpServer only trying ...",ERROR_STR,__func__);
       }
    }
    
@@ -653,7 +695,7 @@ httpServer_only:
    {
       phpcgibin=(char *)malloc(strlen(httpServerData->params_list[PHPCGI_PATH])+10); // 9 = strlen("/cgi-bin") + 1
       sprintf(phpcgibin, "%s/php-cgi",httpServerData->params_list[PHPCGI_PATH]);
-
+      
       long guiport;
       if(httpServerData->params_list[GUIPORT][0])
       {
@@ -672,7 +714,7 @@ httpServer_only:
       }
       
       strncpy(php_sessions_path, httpServerData->params_list[PHPSESSIONS_PATH], sizeof(php_sessions_path)-1);
-
+      
       if(create_configs_php(httpServerData->params_list[GUI_PATH],
                             httpServerData->params_list[SQLITE3_DB_PARAM_PATH],
                             httpServerData->params_list[LOG_PATH],
@@ -681,7 +723,7 @@ httpServer_only:
       {
          httpServer(guiport, httpServerData->params_list[GUI_PATH], phpcgibin, httpServerData->params_list[PHPINI_PATH]);
          _httpServer_monitoring_id=my_id;
-
+         
          return 0;
       }
       else
@@ -696,10 +738,10 @@ httpServer_only:
    {
       VERBOSE(3) fprintf(stderr,"%s (%s) : can't start GUI Server (parameters errors).\n",ERROR_STR,__func__);
    }
-
+   
    return -1;
 }
-  
+
 
 
 

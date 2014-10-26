@@ -104,13 +104,12 @@ int16_t get_dev_and_speed(char *device, char *dev, int16_t dev_l, speed_t *speed
          return -1;
    }
 
-   strncpy(dev,_dev_ptr,dev_l);
+   strncpy(dev,_dev_ptr,dev_l-1);
 
    return 0;
 }
 
 
-//void dispatchXPLMessageToInterfaces(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
 void dispatchXPLMessageToInterfaces(xPL_ServicePtr theService, xPL_MessagePtr theMessage)
 {
    int ret;
@@ -119,8 +118,6 @@ void dispatchXPLMessageToInterfaces(xPL_ServicePtr theService, xPL_MessagePtr th
 
    VERBOSE(9) fprintf(stderr,"%s  (%s) : Reception message xPL\n",INFO_STR,__func__);
 
-//   pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&interfaces_queue_lock);
-//   pthread_mutex_lock(&interfaces_queue_lock);
    pthread_cleanup_push( (void *)pthread_rwlock_unlock, (void *)&interfaces_queue_rwlock);
    pthread_rwlock_rdlock(&interfaces_queue_rwlock);
    
@@ -156,8 +153,6 @@ void dispatchXPLMessageToInterfaces(xPL_ServicePtr theService, xPL_MessagePtr th
       }
    }
    
-//   pthread_mutex_unlock(&interfaces_queue_lock);
-//   pthread_cleanup_pop(0);
    pthread_rwlock_unlock(&interfaces_queue_rwlock);
    pthread_cleanup_pop(0);
 }
@@ -167,8 +162,6 @@ void stop_interfaces()
 {
    interfaces_queue_elem_t *iq;
 
-//   pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&interfaces_queue_lock);
-//   pthread_mutex_lock(&interfaces_queue_lock);
    pthread_cleanup_push( (void *)pthread_rwlock_unlock, (void *)&interfaces_queue_rwlock);
    pthread_rwlock_wrlock(&interfaces_queue_rwlock);
 
@@ -193,7 +186,7 @@ void stop_interfaces()
                   struct interface_type_001_Data_s *interface_type_001Data = process_get_data_ptr(i001->monitoring_id);
 
                   VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping %s... ",INFO_STR,__func__,i001->name);
-                  process_stop(i001->monitoring_id);
+                  process_stop(i001->monitoring_id, NULL, 0);
                   process_unregister(i001->monitoring_id);
                   i001->monitoring_id=-1;
                   if(interface_type_001Data)
@@ -204,7 +197,6 @@ void stop_interfaces()
                   VERBOSE(9) fprintf(stderr,"done\n");
                } 
 
-               // stop_interface_type_001(i001);
                free(i001);
                i001=NULL;
                break;
@@ -222,7 +214,7 @@ void stop_interfaces()
                   struct interface_type_002_Data_s *interface_type_002Data = process_get_data_ptr(i002->monitoring_id);
 
                   VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping %s... ",INFO_STR,__func__,i002->name);
-                  process_stop(i002->monitoring_id);
+                  process_stop(i002->monitoring_id, NULL, 0);
                   process_unregister(i002->monitoring_id);
                   i002->monitoring_id=-1;
                   if(interface_type_002Data)
@@ -233,7 +225,6 @@ void stop_interfaces()
                   VERBOSE(9) fprintf(stderr,"done\n");
                } 
 
-//               stop_interface_type_002(i002);
                free(i002);
                i002=NULL;
                break;
@@ -249,8 +240,6 @@ void stop_interfaces()
       _interfaces=NULL;
    }
    
-//   pthread_mutex_unlock(&interfaces_queue_lock);
-//   pthread_cleanup_pop(0);
    pthread_rwlock_unlock(&interfaces_queue_rwlock);
    pthread_cleanup_pop(0); 
    
@@ -266,7 +255,6 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db, tomysql
    int sortie=0;
    interfaces_queue_elem_t *iq;
 
-//   pthread_mutex_init(&interfaces_queue_lock, NULL);
    pthread_rwlock_init(&interfaces_queue_rwlock, NULL);
    
    sprintf(sql,"SELECT * FROM interfaces");
@@ -278,8 +266,6 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db, tomysql
       return NULL;
    }
 
-//   pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&interfaces_queue_lock);
-//   pthread_mutex_lock(&interfaces_queue_lock);
    pthread_cleanup_push( (void *)pthread_rwlock_unlock, (void *)&interfaces_queue_rwlock);
    pthread_rwlock_wrlock(&interfaces_queue_rwlock);
 
@@ -346,7 +332,6 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db, tomysql
                   
                   i001_start_stop_params->i001=i001;
                   i001_start_stop_params->sqlite3_param_db = sqlite3_param_db;
-//                  i001_start_stop_params->id_interface = id_interface;
                   i001_start_stop_params->myd = myd;
                   strncpy(i001_start_stop_params->dev, (char *)dev, sizeof(i001_start_stop_params->dev)-1);
                   
@@ -356,7 +341,8 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db, tomysql
                   process_set_group(i001->monitoring_id, 1);
                   i001->id_interface=id_interface;
                   process_set_start_stop(i001->monitoring_id, start_interface_type_001, stop_interface_type_001, (void *)i001_start_stop_params, 1);
-                  ret=process_start(i001->monitoring_id);
+                  ret=process_start(i001->monitoring_id, NULL, 0);
+/*
                   if(!ret)
                   {
                      iq=(interfaces_queue_elem_t *)malloc(sizeof(interfaces_queue_elem_t));
@@ -369,11 +355,17 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db, tomysql
                      VERBOSE(2) {
                         fprintf (stderr, "%s (%s) : start_interface_type_001 - can't start interface (%d).\n",ERROR_STR,__func__,id_interface);
                      }
+                     process_unregister(i001->monitoring_id);
                      free(i001_start_stop_params);
                      i001_start_stop_params=NULL;
                      free(i001);
                      i001=NULL;
                   }
+*/
+                  iq=(interfaces_queue_elem_t *)malloc(sizeof(interfaces_queue_elem_t));
+                  iq->type=id_type;
+                  iq->context=i001;
+                  in_queue_elem(_interfaces, iq);
                   break;
                }
                   
@@ -403,8 +395,6 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db, tomysql
                      break;
                   }
                   
-//                  i002_start_stop_params->id_interface = id_interface;
-                  
                   strncpy(i002_start_stop_params->i002->dev, (char *)dev, sizeof(i002_start_stop_params->i002->dev)-1);
                   strncpy(i002->name, (char *)name, sizeof(i002->name)-1);
                   i002->id_interface=id_interface;
@@ -417,9 +407,8 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db, tomysql
                   i002_start_stop_params->i002=i002;
 
                   process_set_start_stop(i002->monitoring_id, start_interface_type_002, stop_interface_type_002, (void *)i002_start_stop_params, 1);
-                  
-//                  ret=start_interface_type_002(i002, sqlite3_param_db, id_interface, dev, myd, (char *)parameters);
-                  ret=process_start(i002->monitoring_id);
+                  ret=process_start(i002->monitoring_id, NULL, 0);
+/*
                   if(!ret)
                   {
                      interfaces_queue_elem_t *iq=(interfaces_queue_elem_t *)malloc(sizeof(interfaces_queue_elem_t));
@@ -437,6 +426,11 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db, tomysql
                      free(i002);
                      i002=NULL;
                   }
+*/
+                  interfaces_queue_elem_t *iq=(interfaces_queue_elem_t *)malloc(sizeof(interfaces_queue_elem_t));
+                  iq->type=id_type;
+                  iq->context=i002;
+                  in_queue_elem(_interfaces, iq);
                   break;
                }
                   
@@ -465,8 +459,6 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db, tomysql
    sortie=1;
 
 start_interfaces_clean_exit:
-//   pthread_mutex_unlock(&interfaces_queue_lock);
-//   pthread_cleanup_pop(0);
    pthread_rwlock_unlock(&interfaces_queue_rwlock);
    pthread_cleanup_pop(0); 
 
@@ -484,8 +476,6 @@ void restart_down_interfaces(sqlite3 *sqlite3_param_db, tomysqldb_md_t *myd)
    interfaces_queue_elem_t *iq;
    int16_t ret;
 
-//   pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&interfaces_queue_lock);
-//   pthread_mutex_lock(&interfaces_queue_lock);
    pthread_cleanup_push( (void *)pthread_rwlock_unlock, (void *)&interfaces_queue_rwlock);
    pthread_rwlock_wrlock(&interfaces_queue_rwlock);
 
@@ -521,7 +511,6 @@ void restart_down_interfaces(sqlite3 *sqlite3_param_db, tomysqldb_md_t *myd)
                      i002->xPL_callback=NULL;
                   sleep(1);
                   VERBOSE(9) fprintf(stderr,"%s  (%s) : restart interface type_002 (interface_id=%d).\n", INFO_STR, __func__, i002->id_interface);
-//                  restart_interface_type_002(i002, sqlite3_param_db, myd);
                   restart_interface_type_002(i002->monitoring_id);
                }
                break;
@@ -536,8 +525,6 @@ void restart_down_interfaces(sqlite3 *sqlite3_param_db, tomysqldb_md_t *myd)
       }
    }
 
-//   pthread_mutex_unlock(&interfaces_queue_lock);
-//   pthread_cleanup_pop(0);
    pthread_rwlock_unlock(&interfaces_queue_rwlock);
    pthread_cleanup_pop(0); 
    

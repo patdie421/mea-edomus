@@ -786,7 +786,7 @@ int _read_path(char **params_list, uint16_t index, char *base_path, char *dir_na
    char tmp_str[1024];
    if(params_list[index])
    {
-      strncpy(tmp_str, params_list[index], sizeof(tmp_str));
+      strncpy(tmp_str, params_list[index], sizeof(tmp_str)-1);
       free(params_list[index]);
       params_list[index]=NULL;
       
@@ -814,12 +814,12 @@ int _read_string(char **params_list, uint16_t index, char *default_value, char *
    char tmp_str[1024];
    if(params_list[index])
    {
-      strncpy(tmp_str, params_list[index],sizeof(tmp_str));
+      strncpy(tmp_str, params_list[index],sizeof(tmp_str)-1);
       free(params_list[index]);
       params_list[index]=NULL;
    }
    else
-      strncpy(tmp_str,default_value,sizeof(tmp_str));
+      strncpy(tmp_str,default_value,sizeof(tmp_str)-1);
    params_list[index]=get_and_malloc_string(tmp_str, question);
    
    return 0;
@@ -877,6 +877,7 @@ int16_t autoInit(char **params_list, char **keys)
    char *p_str; // pointeur sur une chaine
    char *sessions_str;
    int16_t retcode=0;
+   int n;
    
    if(strcmp(usr_str,params_list[MEA_PATH])==0)
    {
@@ -923,23 +924,41 @@ int16_t autoInit(char **params_list, char **keys)
    //
    // Contrôles et créations de fichiers
    //
-   snprintf(to_check,sizeof(to_check),"%s/php.ini",params_list[PHPINI_PATH]);
+   n=snprintf(to_check, sizeof(to_check), "%s/php.ini", params_list[PHPINI_PATH]);
+   if(n<0 || n==sizeof(to_check))
+   {
+      VERBOSE(2) {
+            fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);
+            perror("");
+      }
+      retcode=11; goto autoInit_exit;
+   }
+
    if( access(to_check, R_OK) == -1 )
    {
-      VERBOSE(9) fprintf(stderr,"%s (%s) : %s/php.ini - ",WARNING_STR,__func__,params_list[PHPINI_PATH]);
+      VERBOSE(9) fprintf(stderr,"%s (%s) : %s/php.ini - ", WARNING_STR, __func__, params_list[PHPINI_PATH]);
       VERBOSE(9) perror("");
-      VERBOSE(1) fprintf(stderr,"%s : no 'php.ini' exist, create one.\n",WARNING_STR);
+      VERBOSE(1) fprintf(stderr,"%s : no 'php.ini' exist, create one.\n", WARNING_STR);
       if(create_php_ini(params_list[PHPINI_PATH])) {
          retcode=11; goto autoInit_exit;
       }
    }
 
-   snprintf(to_check,sizeof(to_check),"%s/php-cgi",params_list[PHPCGI_PATH]);
+   n=snprintf(to_check, sizeof(to_check), "%s/php-cgi", params_list[PHPCGI_PATH]);
+   if(n<0 || n==sizeof(to_check))
+   {
+      VERBOSE(2) {
+            fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);
+            perror("");
+      }
+      retcode=11; goto autoInit_exit;
+   }
+   
    if( access(to_check, R_OK | X_OK) == -1 )
    {
-      VERBOSE(9) fprintf(stderr,"%s (%s) : %s/cgi-bin - ", WARNING_STR, __func__, params_list[PHPCGI_PATH]);
+      VERBOSE(9) fprintf(stderr, "%s (%s) : %s/cgi-bin - ", WARNING_STR, __func__, params_list[PHPCGI_PATH]);
       VERBOSE(9) perror("");
-      VERBOSE(1) fprintf(stderr,"%s : no 'cgi-bin', gui will not start.\n",WARNING_STR);
+      VERBOSE(1) fprintf(stderr, "%s : no 'cgi-bin', gui will not start.\n", WARNING_STR);
    }
 
    //
@@ -964,7 +983,7 @@ int16_t interactiveInit(char **params_list, char **keys)
    char *sessions_str;
    char to_check[1024];
    int16_t retcode=0;
-
+   int n;
 
    if(strcmp(usr_str,params_list[MEA_PATH])==0)
    {
@@ -1007,7 +1026,16 @@ int16_t interactiveInit(char **params_list, char **keys)
    _read_integer(params_list, GUIPORT, 8083,   "web interface port");
 
    // contrôle des données
-   snprintf(to_check,sizeof(to_check), "%s/php-cgi", params_list[PHPCGI_PATH]);
+   n=snprintf(to_check,sizeof(to_check), "%s/php-cgi", params_list[PHPCGI_PATH]);
+   if(n<0 || n==sizeof(to_check))
+   {
+      VERBOSE(2) {
+            fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);
+            perror("");
+      }
+      retcode=11; goto interactiveInit_exit;
+   }
+
    if( access(to_check, R_OK | W_OK | X_OK) == -1 )
    {
       VERBOSE(9) fprintf(stderr, "%s (%s) : %s/php-cgi - ", INFO_STR, __func__, params_list[PHPCGI_PATH]);
@@ -1015,7 +1043,16 @@ int16_t interactiveInit(char **params_list, char **keys)
       VERBOSE(1) fprintf(stderr,"%s (%s) : no 'php-cgi', gui will not start.\n",WARNING_STR,__func__);
    }
 
-   snprintf(to_check,sizeof(to_check),"%s/php.ini",params_list[PHPINI_PATH]);
+   n=snprintf(to_check,sizeof(to_check),"%s/php.ini",params_list[PHPINI_PATH]);
+   if(n<0 || n==sizeof(to_check))
+   {
+      VERBOSE(2) {
+            fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);
+            perror("");
+      }
+      retcode=11; goto interactiveInit_exit;
+   }
+
    if( access(to_check, R_OK ) == -1 )
    {
       VERBOSE(9) fprintf(stderr,"%s (%s) : %s/php.ini - ",INFO_STR,__func__,params_list[PHPINI_PATH]);
@@ -1027,6 +1064,7 @@ int16_t interactiveInit(char **params_list, char **keys)
    // insertion des données dans la base
    retcode=init_db(params_list, keys)+11;
 
+interactiveInit_exit:
    return retcode;
 }
 

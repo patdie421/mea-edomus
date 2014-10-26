@@ -57,7 +57,7 @@ typedef struct plugin_queue_elem_s
 
 mea_error_t pythonPluginServer_add_cmd(char *module, void *data, int l_data);
 void setPythonPluginPath(char *path);
-int start_pythonPluginServer(int my_id, void *data);
-int stop_pythonPluginServer(int my_id, void *data);
+int start_pythonPluginServer(int my_id, void *data, char *errmsg, int l_errmsg);
+int stop_pythonPluginServer(int my_id, void *data, char *errmsg, int l_errmsg);
 
 #endif

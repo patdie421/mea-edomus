@@ -58,7 +58,7 @@ xPL_MessagePtr mea_createReceivedMessage(xPL_MessageType messageType);
 
 
 //pthread_t    *start_xPLServer(int my_id, char **params_list, queue_t *interfaces, sqlite3 *sqlite3_param_db);
-int           start_xPLServer(int my_id, void *data);
-int           stop_xPLServer(int my_id, void *data);
+int           start_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg);
+int           stop_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg);
 
 #endif

@@ -335,13 +335,13 @@ void *_thread_interface_type_001(void *args)
 
 int restart_interface_type_001(int id)
 {
-   process_stop(id);
+   process_stop(id, NULL, 0);
    sleep(5);
-   return process_start(id);
+   return process_start(id, NULL, 0);
 }
 
 
-int stop_interface_type_001(int my_id, void *data)
+int stop_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
 {
    if(!data)
       return -1;
@@ -365,13 +365,17 @@ int stop_interface_type_001(int my_id, void *data)
       free(start_stop_params->i001->ad);
       start_stop_params->i001->ad=NULL;
    }
+   
    VERBOSE(9) fprintf(stderr,"done.\n");
    
+   if(errmsg)
+      snprintf(errmsg, l_errmsg, "interface down");
+
    return 0;
 }
 
 
-int start_interface_type_001(int my_id, void *data)
+int start_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
 {
    int16_t ret;
    
@@ -392,6 +396,8 @@ int start_interface_type_001(int my_id, void *data)
       if(ret<0)
       {
          VERBOSE(2) fprintf (stderr, "%s (%s) : can not load sensors/actuators - %s\n", ERROR_STR,__func__,start_stop_params->dev);
+         if(errmsg)
+            snprintf(errmsg, l_errmsg, "Can not load sensors/actuators");
          return -1;
       }
    }
@@ -401,11 +407,25 @@ int start_interface_type_001(int my_id, void *data)
    {
       ret=get_dev_and_speed((char *)start_stop_params->dev, buff, sizeof(buff), &speed);
       if(!ret)
-         snprintf(dev,sizeof(buff)-1,"/dev/%s",buff);
+      {
+         int n=snprintf(dev,sizeof(buff)-1,"/dev/%s",buff);
+         if( n<0 || n==(sizeof(buff)-1) )
+         {
+            VERBOSE(2) {
+               fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);
+               perror("");
+            }
+            if(errmsg)
+               snprintf(errmsg, l_errmsg, "internal error (sprintf)");
+            goto start_interface_type_001_clean_exit;
+         }
+      }
       else
       {
          VERBOSE(2) fprintf (stderr, "%s (%s) : unknow interface device - %s\n", ERROR_STR,__func__,start_stop_params->dev);
-         return -1;
+         if(errmsg)
+            snprintf(errmsg, l_errmsg, "unknow interface device (%s)",start_stop_params->dev);
+         goto start_interface_type_001_clean_exit;
       }
 
       ad=(comio2_ad_t *)malloc(sizeof(comio2_ad_t));
@@ -415,6 +435,9 @@ int start_interface_type_001(int my_id, void *data)
             fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
             perror("");
          }
+         if(errmsg)
+            snprintf(errmsg, l_errmsg, "internal error (malloc)");
+
          goto start_interface_type_001_clean_exit;
       }
       
@@ -425,6 +448,8 @@ int start_interface_type_001(int my_id, void *data)
             fprintf(stderr,"%s (%s) : init_arduino - Unable to open serial port (%s) - ",ERROR_STR,__func__,start_stop_params->dev);
             perror("");
          }
+         if(errmsg)
+            snprintf(errmsg, l_errmsg, "Unable to open serial port (%s)",start_stop_params->dev);
          fd=0;
          goto start_interface_type_001_clean_exit;
       }
@@ -432,6 +457,8 @@ int start_interface_type_001(int my_id, void *data)
    else
    {
       VERBOSE(5) fprintf(stderr,"%s (%s) : no sensor/actuator active for this interface (%d) - ",ERROR_STR,__func__,start_stop_params->i001->id_interface);
+      if(errmsg)
+         snprintf(errmsg, l_errmsg, "no sensor/actuator active for this interface");
       goto start_interface_type_001_clean_exit;
    }
    
@@ -453,6 +480,8 @@ int start_interface_type_001(int my_id, void *data)
    if(pthread_create (_interface_type_001_thread, NULL, _thread_interface_type_001, (void *)thread_params))
    {
       VERBOSE(2) fprintf(stderr, "%s (%s) : pthread_create - can't start thread\n",ERROR_STR,__func__);
+      if(errmsg)
+         snprintf(errmsg, l_errmsg, "internal error (pthread_create)");
       goto start_interface_type_001_clean_exit;
    }
    

@@ -10,6 +10,6 @@
 #define sockets_utils_h
 
 int mea_socket_connect(int *s, char *hostname, int port);
-int mea_socket_send(int *s, char *message);
+int mea_socket_send(int *s, char *message, int l_message);
 
 #endif

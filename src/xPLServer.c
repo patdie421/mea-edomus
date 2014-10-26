@@ -442,7 +442,7 @@ int16_t set_xpl_address(char **params_list)
 }
 
 
-int stop_xPLServer(int my_id, void *data)
+int stop_xPLServer(int my_id, void *data,  char *errmsg, int l_errmsg)
 {
    if(_xPLServer_thread)
    {
@@ -470,7 +470,7 @@ int stop_xPLServer(int my_id, void *data)
 }
 
 
-int start_xPLServer(int my_id, void *data)
+int start_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg)
 {
    struct xplServerData_s *xplServerData = (struct xplServerData_s *)data;
    
@@ -479,7 +479,7 @@ int start_xPLServer(int my_id, void *data)
       _xplServer_monitoring_id=my_id;
 
 #ifdef __APPLE__
-      xPL_setBroadcastInterface("en0"); // comprendre pourquoi ca ne marche plus sans ...
+      xPL_setBroadcastInterface("lo0"); // comprendre pourquoi ca ne marche plus sans ...
 #endif
       if ( !xPL_initialize(xPL_getParsedConnectionType()) )
       {

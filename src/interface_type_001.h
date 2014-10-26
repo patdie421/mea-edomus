@@ -49,8 +49,8 @@ typedef float (*compute_f)(unsigned int value);
 
 void counters_stop(pthread_t *counters_thread, comio2_ad_t *ad, int signal_number);
 
-int stop_interface_type_001(int my_id, void *data);
-int start_interface_type_001(int my_id, void *data);
+int stop_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg);
+int start_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg);
 int restart_interface_type_001(int id);
 
 int16_t check_status_interface_type_001(interface_type_001_t *i001);

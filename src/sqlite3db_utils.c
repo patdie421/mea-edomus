@@ -24,8 +24,8 @@ int16_t sqlite3_dropTable(sqlite3 *sqlite3_param_db, char *table)
     char *errmsg = 0;
     
     int16_t n=snprintf(sql_query,sizeof(sql_query),"DROP TABLE IF EXISTS '%s'",table);
-        if(n<0 || n==sizeof(sql_query))
-            return 0;
+   if(n<0 || n==sizeof(sql_query))
+      return 0;
 
     int16_t func_ret = sqlite3_exec(sqlite3_param_db, sql_query, NULL, NULL, &errmsg);
     if( func_ret != SQLITE_OK )

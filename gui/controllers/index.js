@@ -2,6 +2,11 @@ var whoIsScrollingFlag=0; // 1 = le script, 0 = l'utilisateur
 var scrollOnOffFlag=1;    // 1 = activé par defaut
 var iosocket_port=-1;
 
+function ajax_error(xhr, ajaxOptions, thrownError){
+    alert("responseText="+xhr.responseText+" status="+xhr.status+" thrownError="+thrownError);
+}
+
+
 function toLogConsole(line)
 {
    // analyse de la ligne
@@ -71,15 +76,174 @@ function socketio_available() { // socket io est chargé, on se connecte
    });
 
    socket.on('mon', function(message){
-      $("#info").text(message); // en attendant de pouvoir traiter proprement.
+      var data = jQuery.parseJSON( message );
+      anim_status(data);
    });
+   
+   load_processes_list();
 }
 
-   
+
+function anim_status(data)
+{
+   for(var key in data)
+   {
+      if(data[key]['status']==1)
+      {
+         if(data[key]['heartbeat']=='KO')
+         {
+            $("#process_"+data[key]['pid']).css("background","black");
+         }
+         else
+         {
+            $("#process_"+data[key]['pid']).css("background","green");
+         }
+      }
+      else if(data[key]['status']==0 && data[key]['type']!=3)
+      {
+         $("#process_"+data[key]['pid']).css("background","red");
+      }
+      else
+      {
+         $("#process_"+data[key]['pid']).css("background","gray");
+      }
+   }
+}
+
+
 function socketio_unavailable(jqXHR, textStatus, errorThrown) {
    jqXHR.abort();
    $("#console").append("<div>Pas d'iosocket => pas d'info en live ...<div>");
+}
+
+
+function notify(type, msg)
+{
+   noty({
+        "text":msg,
+        "layout":"topRight",
+        "type":type,
+        "textAlign":"center",
+        "easing":"swing",
+        "animateOpen":{"height":"toggle"},
+        "animateClose":{"height":"toggle"},
+        "speed":"500",
+        "timeout":"2000",
+        "closable":true,
+        "closeOnSelfClick":true
+   });
+   
+}
+
+
+function start(id)
+{
+   $.ajax({
+      url: 'CMD/startstop.php?process='+id+'&cmnd=start',
+      async: true,
+      type: 'GET',
+      dataType: 'json',
+      success: function(data){
+         var type="";
+         if(data["errno"]==0)
+            type="success";
+         else if(data["errno"]==-1)
+            type="information";
+         else
+            type="error";
+
+         notify(type,data["errmsg"]);
+      },
+      error: function(jqXHR, textStatus, errorThrown ){
+         ajax_error( jqXHR, textStatus, errorThrown );
+      }
+   });
+}
+
+
+function stop(id)
+{
+   $.ajax({
+      url: 'CMD/startstop.php?process='+id+'&cmnd=stop',
+      async: true,
+      type: 'GET',
+      dataType: 'json',
+      success: function(data){
+         var type="";
+         if(data["errno"]==0)
+            type="success";
+         else if(data["errno"]==-1)
+            type="information";
+         else
+            type="error";
+
+         notify(type,data["errmsg"]);
+      },
+      error: function(jqXHR, textStatus, errorThrown ){
+         ajax_error( jqXHR, textStatus, errorThrown );
+      }
+   });
+}
+
+
+function add_row(table, name, id, start_str, start, stop_str, stop)
+{
+   newRow =  "<tr>" +
+                 "<td style=\"width:70px;\"><div id=\"process_"+id+"\" class=\"pastille ui-widget ui-widget-content ui-corner-all\" style=\"background:gray;\"></div></td>" +
+                 "<td style=\"width:230px;\"><div class=\"process\">"+name+"</div></td>" +
+                 "<td style=\"width:200px;\">" +
+                     "<div class=\"bouton\">";
+   if(start != null)
+   {
+      newRow=newRow+    "<button id=\"bstart"+id+"\">"+start_str+"</button>";
    }
+   if(stop != null)
+   {
+      newRow=newRow+    "<button id=\"bstop"+id+"\">"+stop_str+"</button>";
+   }
+   newRow=newRow+    "</div>" +
+                 "</td>" +
+             "</tr>";
+
+    $("#"+table+" > tbody").before(newRow);
+   $("#bstop"+id).button().click(function(event){stop(id);});
+   $("#bstart"+id).button().click(function(event){start(id);});
+};
+
+
+function load_processes_list(){
+   $("#process").text("START");
+   $.ajax({
+      url: 'CMD/ps.php',
+      async: true,
+      type: 'GET',
+      dataType: 'json',
+      success: function(data){
+         for(var key in data)
+         {
+            if(data[key]['type']==2)
+               continue;
+            if(data[key]['group']==0)
+            {
+               add_row("table_processes", key, data[key]['pid'], "start", start, "stop", stop);
+            }
+            else if(data[key]['group']==2)
+            {
+               add_row("table_reload", key, data[key]['pid'], "reload", start, null, null);
+            }
+            else if(data[key]['group']==1)
+            {
+               add_row("table_interfaces", key, data[key]['pid'], "start", start, "stop", stop);
+            }
+         }
+         anim_status(data);
+         
+      },
+      error: function(jqXHR, textStatus, errorThrown ){
+         ajax_error( jqXHR, textStatus, errorThrown );
+      }
+   });
+}
 
 
 function start_index_controller(port)
@@ -93,7 +257,7 @@ function start_index_controller(port)
        timeout: 5000,
        success: socketio_available,
        error: socketio_unavailable
-   });   
+   });
 }
 
 

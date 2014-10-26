@@ -3,6 +3,7 @@ include "lib/configs.php";
 //
 //  PAGE PRINCIPALE (VIEW) : gestion des utilisateurs de l'application
 //
+
 session_start();
 ?>
 <!DOCTYPE html>
@@ -19,10 +20,12 @@ session_start();
         echo "<script>window.location = \"index.php\";</script>";
         exit();
     }
+//    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=0.99, user-scalable=0, mimimun-scale=0.99, maximum-scale=0.99">
 ?>
 <html>
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=0.99">
     <title>
     <?php echo $TITRE_APPLICATION; ?>
     </title>

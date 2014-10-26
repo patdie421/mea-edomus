@@ -85,9 +85,10 @@ int _readAndSendLine(int nodejs_socket, char *file, long *pos)
       else
       {
          char message[1024];
-
-         sprintf(message,"LOG:%s",line);
-         int ret = mea_socket_send(&nodejs_socket, message);
+         int l_data=strlen(line)+4;
+         sprintf(message,"$$$%c%cLOG:%s###", (char)(l_data%256), (char)(l_data/256), line);
+         
+         int ret = mea_socket_send(&nodejs_socket, message, l_data+12);
          if(ret<0)
          {
             ret=-1;
@@ -153,7 +154,7 @@ void *logServer_thread(void *data)
 }
 
 
-int stop_logServer(int my_id, void *data)
+int stop_logServer(int my_id, void *data, char *errmsg, int l_errmsg)
 {
    if(_logServer_thread)
    {
@@ -166,7 +167,7 @@ int stop_logServer(int my_id, void *data)
 }
 
 
-int start_logServer(int my_id, void *data)
+int start_logServer(int my_id, void *data, char *errmsg, int l_errmsg)
 {
    struct logServerData_s *logServerData = (struct logServerData_s *)data;
 

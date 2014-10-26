@@ -70,11 +70,8 @@ typedef struct plugin_commissionning_queue_elem_s
 } plugin_commissionning_queue_elem_t;
 
 
-//mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, int id_interface, const unsigned char *dev_and_speed, tomysqldb_md_t *md, char *paramters);
-int start_interface_type_002(int my_id, void *data);
-// mea_error_t stop_interface_type_002(interface_type_002_t *it002);
-int stop_interface_type_002(int my_id, void *data);
-//mea_error_t restart_interface_type_002(interface_type_002_t *i002,sqlite3 *db, tomysqldb_md_t *md);
+int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg);
+int stop_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg);
 int restart_interface_type_002(int id);
 int16_t check_status_interface_type_002(interface_type_002_t *it002);
 

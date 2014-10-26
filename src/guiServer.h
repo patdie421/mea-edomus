@@ -17,8 +17,8 @@ struct httpServerData_s
    char **params_list;
 };
 
-int start_guiServer(int my_id, void *data);
-int stop_guiServer(int my_id, void *data);
+int start_guiServer(int my_id, void *data, char *errmsg, int l_errmsg);
+int stop_guiServer(int my_id, void *data, char *errmsg, int l_errmsg);
 int gethttp(char *server, int port, char *url, char *response, int l_response);
 
 #endif

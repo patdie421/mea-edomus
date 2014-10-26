@@ -149,8 +149,10 @@ size_t mea_snprintfcat(char* buf, size_t bufSize, char const* fmt, ...)
    size_t len = strnlen(buf, bufSize);
 
    va_start(args, fmt);
+   
    result = vsnprintf(buf + len, bufSize - len, fmt, args);
-   va_end( args);
+   
+   va_end(args);
 
    return result + len;
 }

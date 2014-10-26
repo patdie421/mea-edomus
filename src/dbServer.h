@@ -80,7 +80,7 @@ int16_t tomysqldb_add_data_to_sensors_values(tomysqldb_md_t *md, uint16_t sensor
 //tomysqldb_md_t *start_dbServer(char **params_list, sqlite3 *sqlite3_param_db);
 //void stop_dbServer(tomysqldb_md_t *md);
 
-int start_dbServer(int my_id, void *data);
-int stop_dbServer(int my_id, void *data);
+int start_dbServer(int my_id, void *data, char *errmsg, int l_errmsg);
+int stop_dbServer(int my_id, void *data, char *errmsg, int l_errmsg);
 
 #endif

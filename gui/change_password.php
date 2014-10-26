@@ -40,6 +40,7 @@ if(isset($_SESSION['change_passwd_flag']))
     <?php echo $TITRE_APPLICATION; ?>
     </title>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=0.99">
     <style>
 .form-chgpasswd {
     position: relative;

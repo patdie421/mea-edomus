@@ -907,7 +907,7 @@ clean_exit:
 
 
 //mea_error_t stop_interface_type_002(interface_type_002_t *i002)
-int stop_interface_type_002(int my_id, void *data)
+int stop_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
 /**
  * \brief     arrêt d'une interface de type 2
  * \details   RAZ de tous les structures de données et libération des mémoires allouées
@@ -1014,9 +1014,9 @@ int stop_interface_type_002(int my_id, void *data)
 
 int restart_interface_type_002(int id)
 {
-   process_stop(id);
+   process_stop(id, NULL, 0);
    sleep(5);
-   return process_start(id);
+   return process_start(id, NULL, 0);
 }
 
 
@@ -1101,7 +1101,7 @@ int16_t check_status_interface_type_002(interface_type_002_t *it002)
 
 
 //mea_error_t start_interface_type_002(interface_type_002_t *i002, sqlite3 *db, int id_interface, const unsigned char *dev_and_speed, tomysqldb_md_t *md, char *parameters)
-int start_interface_type_002(int my_id, void *data)
+int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
 /**
  * \brief     Demarrage d'une interface de type 2
  * \details   ouverture de la communication avec l'xbee point d'entrée MESH, démarrage du thread de gestion des données iodata et xbeedata, mise en place des callback xpl et commissionnement
@@ -1141,7 +1141,17 @@ int start_interface_type_002(int my_id, void *data)
 //   ret=get_dev_and_speed((char *)dev_and_speed, buff, sizeof(buff), &speed);
    ret=get_dev_and_speed((char *)start_stop_params->i002->dev, buff, sizeof(buff), &speed);
    if(!ret)
-      snprintf(dev,sizeof(buff)-1,"/dev/%s",buff);
+   {
+      int n=snprintf(dev,sizeof(buff)-1,"/dev/%s",buff);
+      if(n<0 || n==(sizeof(buff)-1))
+      {
+         VERBOSE(2) {
+            fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);
+            perror("");
+         }
+         goto clean_exit;
+      }
+   }
    else
    {
 //      VERBOSE(2) fprintf (stderr, "%s (%s) : incorrect device/speed interface - %s\n", ERROR_STR,__func__,dev_and_speed);
@@ -1370,7 +1380,7 @@ clean_exit:
    if(start_stop_params->i002->thread)
    {
 //      stop_interface_type_002(i002);
-      stop_interface_type_002(start_stop_params->i002->monitoring_id, start_stop_params);
+      stop_interface_type_002(start_stop_params->i002->monitoring_id, start_stop_params, NULL, 0);
    }
    
    if(interface_parameters)
