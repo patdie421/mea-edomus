@@ -30,7 +30,8 @@
 #define COMIO2_ERR_IN_CALLBACK    10
 #define COMIO2_ERR_STOPFRAME      11
 #define COMIO2_ERR_LDATA          12
-#define COMIO2_MAX_NB_ERROR       13
+#define COMIO2_ERR_DOWN           13
+#define COMIO2_MAX_NB_ERROR       14
 
 // id reservé 
 #define COMIO2_TRAP_ID           254
