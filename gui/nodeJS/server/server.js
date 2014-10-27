@@ -70,10 +70,12 @@ for (var i = 2; i < process.argv.length; i++) {
 
 function process_msg(cmnd, msg)
 {
-   if(cmd=="LOG")
+   if(cmnd=="LOG")
       sendMessage('log', msg);
-   else if(cmd=="MON")
+   else if(cmnd=="MON")
       sendMessage('mon', msg);
+   else if(cmnd=="NOT")
+      sendMessage('not', msg);
    else
    {
       console.log("INFO   socket.on(data) : unknown command - "+cmd);
