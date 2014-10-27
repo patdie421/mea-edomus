@@ -18,9 +18,9 @@ function unserialize_session(str) { // c'est tres tres light mais suffisant pour
    {
       if(variables[i])
       {
-         keyval=variables[i].split('|');
-         key=keyval[0];
-         typevalue=keyval[1].split(':');
+         var keyval=variables[i].split('|');
+         var key=keyval[0];
+         var typevalue=keyval[1].split(':');
          if(typevalue[0]=='s')
          {
             unserialized[key]=typevalue[2].substring(1,typevalue[2].length-1);
@@ -34,7 +34,7 @@ function unserialize_session(str) { // c'est tres tres light mais suffisant pour
    return unserialized;
 }
 
-
+// valeurs par defaut
 var LOCAL_PORT = 5600;
 var SOKET_IO_PORT = 8000;
 var PHPSESSION_PATH = "/tmp";
@@ -86,24 +86,8 @@ function process_msg(cmnd, msg)
 
 
 var server = require('net').createServer(function (socket) {
-/*
-   socket.on('data', function (msg) {
-      var t = msg.toString().split(/\r?\n/);
-      for ( i=0; i<t.length-1; i++)
-      {
-         var cmd = t[i].substring(0, 3);
-         var msg = t[i].slice(4);
-         if(cmd=="LOG")
-            sendMessage('log', msg);
-         else if(cmd=="MON")
-            sendMessage('mon', msg);
-         else
-           console.log("INFO   socket.on(data) : unknown command - "+cmd);
-      }
-   });
-*/
-   socket.on('readable',function() {
 
+   socket.on('readable',function() {
       // format d'une trame :
       // $$$%c%c%3s:%s###
       // avec %c%c : taille de la zone data ("CMD:%s") en little indian
@@ -224,8 +208,6 @@ io.sockets.on('connection', function(socket) {
    clients[socket.id] = [];
    clients[socket.id]['socket'] = socket;
 
-   var address = socket.handshake.address;
-   console.log("INFO  io.sockets.on('connection') : new client : " + socket.id + " from "+ address.address);
    socket.on('disconnect', function() {
       console.log("INFO  socket.on('disconnect') : client "+socket.id+" disconnected");
       delete clients[socket.id];
