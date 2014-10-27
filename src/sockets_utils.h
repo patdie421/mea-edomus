@@ -11,5 +11,6 @@
 
 int mea_socket_connect(int *s, char *hostname, int port);
 int mea_socket_send(int *s, char *message, int l_message);
+int mea_notify(char *hostname, int port, char *notif_str, char notif_type);
 
 #endif

@@ -180,7 +180,7 @@ function start(id)
          else
             type="error";
 
-         liveCom.notify(data["errmsg"],type);
+//         liveCom.notify(data["errmsg"],type);
       },
       error: function(jqXHR, textStatus, errorThrown ){
          ajax_error( jqXHR, textStatus, errorThrown );
@@ -205,7 +205,7 @@ function stop(id)
          else
             type="error";
 
-         liveCom.notify(data["errmsg"],type);
+//         liveCom.notify(data["errmsg"],type);
       },
       error: function(jqXHR, textStatus, errorThrown ){
          ajax_error( jqXHR, textStatus, errorThrown );
@@ -216,7 +216,7 @@ function stop(id)
 
 function start_index_controller(port)
 {
-   if(tyeof(liveCom) != "undefined")
+   if(typeof(liveCom) != "undefined")
    {
       s=liveCom.getSocketio();
       if(null !== s)

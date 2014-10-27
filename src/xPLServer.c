@@ -26,9 +26,9 @@
 #include "processManager.h"
 
 #include "interfacesServer.h"
-//#include "interface_type_001.h"
-//#include "interface_type_002.h"
 
+#include "sockets_utils.h"
+#include "notify.h"
 
 #define XPL_VERSION "0.1a2"
 
@@ -465,7 +465,8 @@ int stop_xPLServer(int my_id, void *data,  char *errmsg, int l_errmsg)
    pthread_cleanup_pop(0);
 
    _xplServer_monitoring_id=-1;
-
+   
+   mea_notify2("XPLSERVER Stopped", 'S');
    return 0;
 }
 
@@ -473,6 +474,7 @@ int stop_xPLServer(int my_id, void *data,  char *errmsg, int l_errmsg)
 int start_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg)
 {
    struct xplServerData_s *xplServerData = (struct xplServerData_s *)data;
+   char err_str[80], notify_str[80];
    
    if(!set_xpl_address(xplServerData->params_list))
    {
@@ -486,6 +488,8 @@ int start_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg)
          VERBOSE(1) {
             fprintf (stderr, "%s (%s) : xPL_initialize - error\n",ERROR_STR,__func__);
          }
+         snprintf(notify_str, strlen(notify_str), "Can't start XPLSERVER - xPL_initialize error\n");
+         mea_notify2(notify_str, 'E');
          return -1;
       }
 
@@ -493,18 +497,25 @@ int start_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg)
 
       if(_xPLServer_thread==NULL)
       {
+         strerror_r(errno, err_str, sizeof(err_str));
          VERBOSE(2) {
-            fprintf(stderr,"%s (%s) : can't start xpl server -\n",ERROR_STR,__func__);
-            perror("");
+            fprintf(stderr,"%s (%s) : can't start xpl server - %s\n",ERROR_STR,__func__,err_str);
          }
+         snprintf(notify_str, strlen(notify_str), "Can't start XPLSERVER - %s\n",err_str);
+         mea_notify2(notify_str, 'E');
          return -1;
       }
       else
+      {
+         mea_notify2("XPLSERVER Started", 'S');
          return 0;
+      }
    }
    else
    {
       VERBOSE(2) fprintf(stderr,"%s (%s) : no valid xPL address.\n",ERROR_STR,__func__);
+      snprintf(notify_str, strlen(notify_str), "Can't start XPLSERVER - no valid xPL address.\n");
+      mea_notify2(notify_str, 'E');
       return -1;
    }
 }

@@ -33,6 +33,7 @@
 		4E5FC660172F0F91004266EB /* interface_type_001_sensors.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E5FC65D172F0F91004266EB /* interface_type_001_sensors.c */; };
 		4E5FC662172F103B004266EB /* interface_type_001_actuators.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E5FC661172F103B004266EB /* interface_type_001_actuators.c */; };
 		4E5FC67917357D72004266EB /* pythonPluginServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E5FC67817357D71004266EB /* pythonPluginServer.c */; };
+		4E60BA7A19FEF40A00D56F21 /* notify.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E60BA7819FEF40A00D56F21 /* notify.c */; };
 		4E76CE98163F120C00A3EBA9 /* xPL-config.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E76CE8F163F120C00A3EBA9 /* xPL-config.c */; };
 		4E76CE9A163F120C00A3EBA9 /* xPL-io.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E76CE91163F120C00A3EBA9 /* xPL-io.c */; };
 		4E76CE9B163F120C00A3EBA9 /* xPL-listeners.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E76CE92163F120C00A3EBA9 /* xPL-listeners.c */; };
@@ -154,7 +155,6 @@
 		4E3F346C19FBD3F90066A9CC /* noty.jquery.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = noty.jquery.json; sourceTree = "<group>"; };
 		4E3F346D19FBD3F90066A9CC /* package.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = package.json; sourceTree = "<group>"; };
 		4E3F346E19FBD3F90066A9CC /* README.markdown */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.markdown; sourceTree = "<group>"; };
-		4E3F346F19FCD8420066A9CC /* mea-event-utils.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "mea-event-utils.js"; sourceTree = "<group>"; };
 		4E3F347019FCD8420066A9CC /* TemplateIcon2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = TemplateIcon2x.png; sourceTree = "<group>"; };
 		4E40668E19F3C0D600468E11 /* uthash.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = uthash.h; path = src/uthash.h; sourceTree = "<group>"; };
 		4E4811A219C37D43001C5F48 /* mea_simulation.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = mea_simulation.py; path = plugins/mea_simulation.py; sourceTree = "<group>"; };
@@ -189,6 +189,9 @@
 		4E5FC661172F103B004266EB /* interface_type_001_actuators.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = interface_type_001_actuators.c; path = src/interface_type_001_actuators.c; sourceTree = "<group>"; };
 		4E5FC67817357D71004266EB /* pythonPluginServer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = pythonPluginServer.c; path = src/pythonPluginServer.c; sourceTree = "<group>"; };
 		4E5FC67A17357DA1004266EB /* pythonPluginServer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = pythonPluginServer.h; path = src/pythonPluginServer.h; sourceTree = "<group>"; };
+		4E60BA7719FECE2F00D56F21 /* mea-livecom-utils.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "mea-livecom-utils.js"; sourceTree = "<group>"; };
+		4E60BA7819FEF40A00D56F21 /* notify.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = notify.c; path = src/notify.c; sourceTree = "<group>"; };
+		4E60BA7919FEF40A00D56F21 /* notify.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = notify.h; path = src/notify.h; sourceTree = "<group>"; };
 		4E76CE8E163F120C00A3EBA9 /* xPL_priv.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = xPL_priv.h; path = "src/xPLLib-mac/xPL_priv.h"; sourceTree = "<group>"; };
 		4E76CE8F163F120C00A3EBA9 /* xPL-config.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "xPL-config.c"; path = "src/xPLLib-mac/xPL-config.c"; sourceTree = "<group>"; };
 		4E76CE91163F120C00A3EBA9 /* xPL-io.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "xPL-io.c"; path = "src/xPLLib-mac/xPL-io.c"; sourceTree = "<group>"; };
@@ -1636,10 +1639,10 @@
 		4E79908919DC9D5500F87593 /* js */ = {
 			isa = PBXGroup;
 			children = (
+				4E60BA7719FECE2F00D56F21 /* mea-livecom-utils.js */,
 				4E79908A19DC9D5500F87593 /* mea-auth-utils.js */,
 				4E79908B19DC9D5500F87593 /* mea-grid-utils.js */,
 				4E79908C19DC9D5500F87593 /* mea-gui-utils.js */,
-				4E3F346F19FCD8420066A9CC /* mea-event-utils.js */,
 				4E79908D19DC9D5500F87593 /* strings.js */,
 				4E3F347019FCD8420066A9CC /* TemplateIcon2x.png */,
 			);
@@ -3835,6 +3838,8 @@
 		4EFBFCAB175E612D007BBFD1 /* gui manager */ = {
 			isa = PBXGroup;
 			children = (
+				4E60BA7819FEF40A00D56F21 /* notify.c */,
+				4E60BA7919FEF40A00D56F21 /* notify.h */,
 				4EFBFCAA175E60F9007BBFD1 /* mongoose.h */,
 				4EFBFCC8175E6BE7007BBFD1 /* mongoose.c */,
 				4EFBFCAC175E6155007BBFD1 /* guiServer.h */,
@@ -3958,6 +3963,7 @@
 				4E76CE98163F120C00A3EBA9 /* xPL-config.c in Sources */,
 				4E76CE9A163F120C00A3EBA9 /* xPL-io.c in Sources */,
 				4E76CE9B163F120C00A3EBA9 /* xPL-listeners.c in Sources */,
+				4E60BA7A19FEF40A00D56F21 /* notify.c in Sources */,
 				4E76CE9C163F120C00A3EBA9 /* xPL-message.c in Sources */,
 				4E76CE9D163F120C00A3EBA9 /* xPL-service.c in Sources */,
 				4E76CE9E163F120C00A3EBA9 /* xPL-store.c in Sources */,
@@ -4013,7 +4019,7 @@
 					"-lpython2.7",
 				);
 				PRODUCT_NAME = "mea-eDomus";
-				SDKROOT = macosx;
+				SDKROOT = macosx10.9;
 			};
 			name = Debug;
 		};
@@ -4041,7 +4047,7 @@
 					"-lpython2.7",
 				);
 				PRODUCT_NAME = "mea-eDomus";
-				SDKROOT = macosx;
+				SDKROOT = macosx10.9;
 			};
 			name = Release;
 		};
@@ -4061,7 +4067,7 @@
 					"-lm",
 					"-lmysqlclient",
 				);
-				SDKROOT = macosx;
+				SDKROOT = macosx10.9;
 			};
 			name = Debug;
 		};
@@ -4079,7 +4085,7 @@
 					"-lm",
 					"-lmysqlclient",
 				);
-				SDKROOT = macosx;
+				SDKROOT = macosx10.9;
 			};
 			name = Release;
 		};

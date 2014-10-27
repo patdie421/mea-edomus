@@ -43,6 +43,9 @@
 #include "interface_type_001_actuators.h"
 #include "interface_type_001_counters.h"
 
+#include "sockets_utils.h"
+
+
 #define TEMPO    5 // 5 secondes 2 read
 
 
@@ -326,12 +329,12 @@ void *_thread_interface_type_001(void *args)
 
       if(interface_type_001_counters_poll_inputs(i001, md)<0)
       {
-         pthread_exit();
+         pthread_exit(NULL);
       }
       
       if(interface_type_001_sensors_poll_inputs(i001, md)<0)
       {
-         pthread_exit();
+         pthread_exit(NULL);
       }
       
       cntr++;
@@ -497,6 +500,8 @@ int start_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
    
    start_stop_params->i001->thread=_interface_type_001_thread;
    
+   mea_notify("hostname", 5600, "Start ...", "S");
+   
    return 0;
    
 start_interface_type_001_clean_exit:
@@ -517,13 +522,6 @@ start_interface_type_001_clean_exit:
       free(ad);
       ad=NULL;
    }
-//   if(start_stop_params)
-//   {
-//      if(start_stop_params->i001)
-//      {
-//         clean_interface_type_001(start_stop_params->i001);
-//      }
-//   }
    
    return -1;
 }

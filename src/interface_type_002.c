@@ -98,7 +98,8 @@ struct thread_params_s
    int                  nb_plugin_params;
    sqlite3_stmt        *stmt;
    data_queue_elem_t   *e;
-   void               **data;
+//   void               **data;
+   int                  monitoring_id;
 };
 
 
@@ -619,6 +620,8 @@ void *_thread_interface_type_002_xbeedata(void *args)
    
    while(1)
    {
+      process_heartbeat(params->monitoring_id);
+      
       pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)(&params->callback_lock) );
       pthread_mutex_lock(&params->callback_lock);
       
@@ -672,8 +675,8 @@ void *_thread_interface_type_002_xbeedata(void *args)
          if(ret)
          {
             VERBOSE(1) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (params_db));
-            raise(SIGQUIT); // erreur du process
-            sleep(5);       // on attend 5 secondes avant de s'arrter seul.
+//            raise(SIGQUIT); // erreur du process
+//            sleep(5);       // on attend 5 secondes avant de s'arrter seul.
             pthread_exit(NULL);
          }
          
@@ -762,8 +765,8 @@ void *_thread_interface_type_002_xbeedata(void *args)
                      fprintf(stderr,"%s (%s) : %s - ", ERROR_STR, __func__, MALLOC_ERROR_STR);
                      perror("");
                   }
-                  raise(SIGQUIT);
-                  sleep(5);
+//                  raise(SIGQUIT);
+//                  sleep(5);
                   pthread_exit(PTHREAD_CANCELED);
                }
                free_parsed_parameters(params->plugin_params, params->nb_plugin_params);
@@ -844,9 +847,10 @@ pthread_t *start_interface_type_002_xbeedata_thread(interface_type_002_t *i002, 
    params->param_db=db;
    pthread_mutex_init(&params->callback_lock, NULL);
    pthread_cond_init(&params->callback_cond, NULL);
-   params->data=(void *)i002;
+//   params->data=(void *)i002;
    params->mainThreadState = NULL;
    params->myThreadState = NULL;
+   params->monitoring_id = i002->monitoring_id;
    
    // préparation des données pour les callback io_data et data_flow dont les données sont traitées par le même thread
    callback_xbeedata=(struct callback_data_s *)malloc(sizeof(struct callback_data_s));

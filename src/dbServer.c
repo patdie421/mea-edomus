@@ -5,16 +5,6 @@
  *  Copyright 2012 -. All rights reserved.
  *
  */
-
-#include "dbServer.h"
-
-#include "globals.h"
-#include "debug.h"
-#include "macros.h"
-#include "memory.h"
-
-#include "processManager.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -30,6 +20,15 @@
 
 #include <errmsg.h>
 
+#include "dbServer.h"
+
+#include "globals.h"
+#include "debug.h"
+#include "macros.h"
+#include "memory.h"
+
+#include "processManager.h"
+#include "notify.h"
 
 tomysqldb_md_t *_md=NULL;
 int _dbServer_monitoring_id=-1;
@@ -732,6 +731,8 @@ int stop_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
 
    _dbServer_monitoring_id=-1;
    
+   mea_notify2("XPLSERVER Stopped", 'S');
+
    return 0;
 }
 
@@ -748,13 +749,17 @@ int start_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
 #ifndef __NO_TOMYSQL__
    struct dbServerData_s *dbServerData = (struct dbServerData_s *)data;
    int16_t ret;
+   char err_str[80], notify_str[80];
+
    _md=(struct tomysqldb_md_s *)malloc(sizeof(struct tomysqldb_md_s));
    if(!_md)
    {
+      strerror_r(errno, err_str, sizeof(err_str));
       VERBOSE(2) {
-         fprintf(stderr,"%s (%s) : %s - ", ERROR_STR, __func__, MALLOC_ERROR_STR);
-         perror("");
+         fprintf(stderr,"%s (%s) : %s - %s\n", ERROR_STR, __func__, MALLOC_ERROR_STR,err_str);
       }
+      snprintf(notify_str, strlen(notify_str), "Can't start DBSERVER - %s\n",err_str);
+      mea_notify2(notify_str, 'E');
       return -1;
    }
    memset(_md,0,sizeof(struct tomysqldb_md_s));
@@ -768,6 +773,8 @@ int start_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
    if(ret==-1)
    {
       VERBOSE(2) fprintf(stderr,"%s (%s) : Can not init data base communication.\n", ERROR_STR, __func__);
+      snprintf(notify_str, strlen(notify_str), "Can't start DBSERVER - Can not init data base communication.\n");
+      mea_notify2(notify_str, 'E');
       return -1;
    }
    _dbServer_monitoring_id=my_id;
@@ -775,6 +782,9 @@ int start_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
 #else
    VERBOSE(9) fprintf(stderr,"%s  (%s) : dbServer desactivated.\n", INFO_STR,__func__);
 #endif
+   
+   mea_notify2("XPLSERVER Started", 'S');
+
    return 0;
 }
 

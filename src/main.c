@@ -46,6 +46,8 @@
 
 #include "processManager.h"
 
+#include "notify.h"
+
 int xplServer_monitoring_id=-1;
 int httpServer_monitoring_id=-1;
 int logServer_monitoring_id=-1;
@@ -769,10 +771,11 @@ int main(int argc, const char * argv[])
    signal(SIGINT,  _signal_STOP);
    signal(SIGQUIT, _signal_STOP);
    signal(SIGTERM, _signal_STOP);
-   signal(SIGHUP,  _signal_HUP);
+//   signal(SIGHUP,  _signal_HUP);
    
    signal(SIGPIPE, signal_callback_handler);
 
+   mea_notify_set_port(atoi(params_list[NODEJSDATA_PORT]));
 
    main_monitoring_id=process_register("MAIN");
    process_set_type(main_monitoring_id, NOTMANAGED);
@@ -780,30 +783,44 @@ int main(int argc, const char * argv[])
    process_add_indicator(main_monitoring_id, "UPTIME", 0);
 
 
+   struct httpServerData_s httpServerData;
+   httpServerData.params_list=params_list;
+   httpServer_monitoring_id=process_register("GUISERVER");
+   process_set_group(httpServer_monitoring_id, 5);
+   process_set_start_stop(httpServer_monitoring_id , start_guiServer, stop_guiServer, (void *)(&httpServerData), 1);
+   VERBOSE(9) fprintf (stderr, "%s  (%s) : starting GUISERVER ... ",INFO_STR,__func__);
+   if(process_start(httpServer_monitoring_id, NULL, 0)<0)
+   {
+      VERBOSE(9) fprintf (stderr, "error !!!\n");
+      VERBOSE(1) fprintf (stderr, "%s (%s) : can't start gui server\n",ERROR_STR,__func__);
+   }
+   VERBOSE(9) fprintf (stderr, "done\n");
+
+
    // démarrage des "services" (les services "majeurs" arrêtent tout (exit) si non démarrage
    struct dbServerData_s dbServerData;
    dbServerData.params_list=params_list;
    dbServer_monitoring_id=process_register("DBSERVER");
-   VERBOSE(9) fprintf (stderr, "%s  (%s) : starting DBSERVER ... ",INFO_STR,__func__);
    process_set_start_stop(dbServer_monitoring_id, start_dbServer, stop_dbServer, (void *)(&dbServerData), 1);
    if(!_b)
    {
+      VERBOSE(9) fprintf (stderr, "%s  (%s) : starting DBSERVER ... ",INFO_STR,__func__);
       if(process_start(dbServer_monitoring_id, NULL, 0)<0)
       {
          VERBOSE(9) fprintf (stderr, "error !!!\n");
          VERBOSE(1) fprintf (stderr, "%s (%s) : can't start database server\n",ERROR_STR,__func__);
          clean_all_and_exit();
       }
+      VERBOSE(9) fprintf (stderr, "done\n");
    }
-   VERBOSE(9) fprintf (stderr, "done\n");
 
 
    struct pythonPluginServerData_s pythonPluginServerData;
    pythonPluginServerData.params_list=params_list;
    pythonPluginServerData.sqlite3_param_db=sqlite3_param_db;
    pythonPluginServer_monitoring_id=process_register("PYTHONPLUGINSERVER");
-   VERBOSE(9) fprintf (stderr, "%s  (%s) : starting PYTHONPLUGINSERVER ... ",INFO_STR,__func__);
    process_set_start_stop(pythonPluginServer_monitoring_id , start_pythonPluginServer, stop_pythonPluginServer, (void *)(&pythonPluginServerData), 1);
+   VERBOSE(9) fprintf (stderr, "%s  (%s) : starting PYTHONPLUGINSERVER ... ",INFO_STR,__func__);
    if(process_start(pythonPluginServer_monitoring_id, NULL, 0)<0)
    {
       VERBOSE(9) fprintf (stderr, "error !!!\n");
@@ -817,7 +834,6 @@ int main(int argc, const char * argv[])
    int interfaces_reload_task_id=process_register("RELOAD");
    process_set_type(interfaces_reload_task_id, TASK);
    process_set_group(interfaces_reload_task_id, 2);
-   process_set_start_stop(xplServer_monitoring_id , NULL, NULL, NULL, 1);
 
    
    struct xplServerData_s xplServerData;
@@ -833,21 +849,6 @@ int main(int argc, const char * argv[])
       clean_all_and_exit();
    }
    VERBOSE(9) fprintf (stderr, "done\n");
-
-
-   struct httpServerData_s httpServerData;
-   httpServerData.params_list=params_list;
-   httpServer_monitoring_id=process_register("GUISERVER");
-   process_set_group(httpServer_monitoring_id, 5);
-   process_set_start_stop(httpServer_monitoring_id , start_guiServer, stop_guiServer, (void *)(&httpServerData), 1);
-   VERBOSE(9) fprintf (stderr, "%s  (%s) : starting GUISERVER ... ",INFO_STR,__func__);
-   if(process_start(httpServer_monitoring_id, NULL, 0)<0)
-   {
-      VERBOSE(9) fprintf (stderr, "error !!!\n");
-      VERBOSE(1) fprintf (stderr, "%s (%s) : can't start gui server\n",ERROR_STR,__func__);
-   }
-   VERBOSE(9) fprintf (stderr, "done\n");
-//   process_set_type(httpServer_monitoring_id, NOTMANAGED);
    
    
    struct logServerData_s logServerData;

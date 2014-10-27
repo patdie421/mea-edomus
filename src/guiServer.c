@@ -34,6 +34,7 @@
 #include "sockets_utils.h"
 
 #include "processManager.h"
+#include "notify.h"
 
 //
 // pour compilation php-cgi :
@@ -723,6 +724,8 @@ httpServer_only:
       {
          httpServer(guiport, httpServerData->params_list[GUI_PATH], phpcgibin, httpServerData->params_list[PHPINI_PATH]);
          _httpServer_monitoring_id=my_id;
+
+         mea_notify2("GUISERVER Started", 'S');
          
          return 0;
       }
@@ -738,6 +741,8 @@ httpServer_only:
    {
       VERBOSE(3) fprintf(stderr,"%s (%s) : can't start GUI Server (parameters errors).\n",ERROR_STR,__func__);
    }
+   
+   mea_notify2("Can't start GUISERVER", 'E');
    
    return -1;
 }

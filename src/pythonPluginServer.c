@@ -25,6 +25,7 @@
 
 #include "pythonPluginServer.h"
 #include "processManager.h"
+#include "notify.h"
 
 //#include "interface_type_002.h"
 
@@ -511,7 +512,9 @@ int stop_pythonPluginServer(int my_id, void *data, char *errmsg, int l_errmsg)
 
 int start_pythonPluginServer(int my_id, void *data, char *errmsg, int l_errmsg)
 {
-struct pythonPluginServerData_s *pythonPluginServerData = (struct pythonPluginServerData_s *)data;  
+   struct pythonPluginServerData_s *pythonPluginServerData = (struct pythonPluginServerData_s *)data;
+
+   char err_str[80], notify_str[80];
 
    if(pythonPluginServerData->params_list[PLUGINS_PATH])
    {
@@ -519,19 +522,29 @@ struct pythonPluginServerData_s *pythonPluginServerData = (struct pythonPluginSe
       _pythonPluginServer_thread=pythonPluginServer();
       if(_pythonPluginServer_thread==NULL)
       {
+         strerror_r(errno, err_str, sizeof(err_str));
          VERBOSE(2) {
-            fprintf(stderr,"%s (%s) : can't start Python Plugin Server (thread error) - ",ERROR_STR,__func__);
-            perror("");
+            fprintf(stderr,"%s (%s) : can't start Python Plugin Server (thread error) - %s\n",ERROR_STR,__func__,notify_str);
          }
+         snprintf(notify_str, strlen(notify_str), "Can't start PYTHONPLUGINSERVER - %s",err_str);
+         mea_notify2("Can't start PYTHONPLUGINSERVER", 'E');
+
          return -1;
       }
       _pythonPluginServer_monitoring_id=my_id;
    }
    else
    {
-      VERBOSE(2) fprintf(stderr,"%s (%s) : can't start Python Plugin Server (incorrect plugin path).\n",ERROR_STR,__func__);
+      VERBOSE(2) {
+         fprintf(stderr,"%s (%s) : can't start Python Plugin Server (incorrect plugin path).\n",ERROR_STR,__func__);
+      }
+      snprintf(notify_str, strlen(notify_str), "Can't start PYTHONPLUGINSERVER - incorrect plugin path");
+      mea_notify2(notify_str, 'E');
       return -1;
    }
+   
+   mea_notify2("PYTHONPLUGINSERVER Started", 'S');
+
    return 0;
 }
 

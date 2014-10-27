@@ -1,13 +1,15 @@
 // objet liveCom à mettre dans un .js
 var liveCom = {
-   socketio: null;
-   _socketio_port = -1;
+   socketio: null,
+   _socketio_port: -1,
+   
    getSocketio: function() {
       return this.socketio;
-   };
+   },
+   
    connect: function(port) {
       this._socketio_port=port;
-      var socketioJsUrl=window.location.protocol + '//' + window.location.hostname + ':'+_socketio_port+'/socket.io/socket.io.js';
+      var socketioJsUrl=window.location.protocol + '//' + window.location.hostname + ':'+this._socketio_port+'/socket.io/socket.io.js';
       $.ajax({
          url: socketioJsUrl,
          dataType: "script",
@@ -15,28 +17,31 @@ var liveCom = {
          success: this._socketio_available,
          error: this._socketio_unavailable
       });
-   };
-   _socketio_available: function ()
+   },
+   
+   _socketio_available: function(data, textStatus, jqXHR)
    {
-      if(this._socketio_port<0)
-         this._socketio_port=8000; // port par defaut
-      var socketioAddr=window.location.protocol + '//' + window.location.hostname + ':'+socketio_port;
-         this.socketio = io.connect(socketioAddr);
-      if(null !== this.socketio)
+      if(liveCom._socketio_port<0)
+         liveCom._socketio_port=8000; // port par defaut
+      var socketioAddr=window.location.protocol + '//' + window.location.hostname + ':'+liveCom._socketio_port;
+         liveCom.socketio = io.connect(socketioAddr);
+      if(null !== liveCom.socketio)
       {
-        this.socketio.on('not', this._notify);
+        liveCom.socketio.on('not', liveCom._notify);
       }
-   };
+   },
+   
    _socketio_unavailable: function(xhr, textStatus, thrownError)
    {
-      jqXHR.abort();
+      xhr.abort();
       alert("responseText="+xhr.responseText+" status="+xhr.status+" thrownError="+thrownError);
       this.socketio=null;
-   };
+   },
+   
    _notify: function(data)
    {
       var type="";
-      var _type = data.substring(0, 0);
+      var _type = data.substring(0, 1);
       var msg = data.slice(2);
       switch(_type)
       {
@@ -48,8 +53,9 @@ var liveCom = {
          case "C" : type="confirmation"; break;
          default  : type="information"; break;
       };
-      this.notify(msg, type);
-   };
+      liveCom.notify(msg, type);
+   },
+   
    notify: function(msg, type)
    {
       if(typeof noty != "undefined")
@@ -63,11 +69,14 @@ var liveCom = {
             "animateOpen":{"height":"toggle"},
             "animateClose":{"height":"toggle"},
             "speed":"500",
-            "timeout":"2000",
+            "timeout":"3000",
             "closable":true,
             "closeOnSelfClick":true
          });
       }
    }
-}
+};
 
+$.noty.defaults.maxVisible=15;
+
+liveCom.connect(8000);

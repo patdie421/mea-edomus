@@ -896,7 +896,7 @@ int16_t xbee_atCmdSend(xbee_xd_t *xd,
 {
    unsigned char xbee_frame[XBEE_MAX_FRAME_SIZE];
    uint16_t l_xbee_frame;
-//   int16_t nerr;
+   int16_t nerr;
    
    if(xd->signal_flag<0)
    {
@@ -1572,7 +1572,7 @@ void *_xbee_thread(void *args)
                   perror("");
                }
                xd->signal_flag=1;
-               raise(SIGHUP);
+//               raise(SIGHUP);
                sleep(5); // on attend 5 secondes avant de s'arrêter seul.
                pthread_exit(NULL);
             case XBEE_ERR_HOSTTABLEFULL:

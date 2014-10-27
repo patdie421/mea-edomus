@@ -249,7 +249,7 @@ int16_t comio2_cmdSend(comio2_ad_t *ad,
    {
       if(comio2_err)
       {
-         comio2_err=COMIO2_ERR_DOWN;
+         *comio2_err=COMIO2_ERR_DOWN;
       }
       return -1;
    }
@@ -313,7 +313,7 @@ int16_t comio2_cmdSendAndWaitResp(comio2_ad_t *ad,
    {
       if(comio2_err)
       {
-         comio2_err=COMIO2_ERR_DOWN;
+         *comio2_err=COMIO2_ERR_DOWN;
       }
       return -1;
    }
@@ -796,11 +796,11 @@ void *_comio2_thread(void *args)
             case COMIO2_ERR_READ:
             case COMIO2_ERR_SYS:
                VERBOSE(1) {
-                  fprintf(stderr,"%s (%s) : communication error (nerr=%d).\n", ERROR_STR,__func__,nerr);
+                  fprintf(stderr,"%s (%s) : communication error (nerr=%d) - ", ERROR_STR,__func__,nerr);
                   perror("");
                }
                ad->signal_flag=1;
-               raise(SIGHUP);
+//               raise(SIGHUP);
                sleep(5); // on attend 5 secondes avant de s'arrêter seul.
                pthread_exit(NULL);
 
@@ -840,7 +840,7 @@ int comio2_call_fn(comio2_ad_t *ad, uint16_t fn, char *data, uint16_t l_data, in
    {
       if(comio2_err)
       {
-         comio2_err=COMIO2_ERR_DOWN;
+         *comio2_err=COMIO2_ERR_DOWN;
       }
       return -1;
    }
@@ -893,7 +893,7 @@ int comio2_call_proc(comio2_ad_t *ad, uint16_t fn, char *data, uint16_t l_data, 
    {
       if(comio2_err)
       {
-         comio2_err=COMIO2_ERR_DOWN;
+         *comio2_err=COMIO2_ERR_DOWN;
       }
       return -1;
    }

@@ -19,7 +19,7 @@
 /* pour timeout sur lecture de socket. Utilisable pour une fonction mea_socket_recv à écrire
 struct timeval tv;
 
-tv.tv_sec = 30;  /* 30 Secs Timeout */
+tv.tv_sec = 30;  // 30 Secs Timeout
 tv.tv_usec = 0;  // Not init'ing this can cause strange errors
 
 setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv,sizeof(struct timeval));
@@ -83,5 +83,3 @@ int mea_socket_send(int *s, char *message, int l_message)
    
    return 0;
 }
-
-

@@ -605,6 +605,7 @@ int16_t interface_type_001_sensors_poll_inputs(interface_type_001_t *i001, tomys
       }
       next_queue(sensors_list);
    }
+   return 0;
 }
 
 

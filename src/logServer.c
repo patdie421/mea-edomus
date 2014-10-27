@@ -25,6 +25,7 @@
 #include "sockets_utils.h"
 #include "string_utils.h"
 #include "consts.h"
+#include "notify.h"
 
 pthread_t *_logServer_thread=NULL;
 int _logServer_monitoring_id=-1;
@@ -163,6 +164,9 @@ int stop_logServer(int my_id, void *data, char *errmsg, int l_errmsg)
       free(_logServer_thread);
       _logServer_thread=NULL;
    }
+   
+   mea_notify2("LOGSERVER Stopped", 'S');
+
    return 0;
 }
 
@@ -171,6 +175,8 @@ int start_logServer(int my_id, void *data, char *errmsg, int l_errmsg)
 {
    struct logServerData_s *logServerData = (struct logServerData_s *)data;
 
+   char err_str[80], notify_str[80];
+
    logServer_thread_data.log_path=logServerData->params_list[LOG_PATH];
    logServer_thread_data.hostname=localhost_const;
    logServer_thread_data.port_socketdata=atoi(logServerData->params_list[NODEJSDATA_PORT]);
@@ -178,18 +184,27 @@ int start_logServer(int my_id, void *data, char *errmsg, int l_errmsg)
    _logServer_thread=(pthread_t *)malloc(sizeof(pthread_t));
    if(!_logServer_thread)
    {
+      strerror_r(errno, err_str, sizeof(err_str));
       VERBOSE(1) {
-         fprintf (stderr, "%s (%s) : malloc - ",ERROR_STR,__func__);
-         perror("");
+         fprintf (stderr, "%s (%s) : malloc - %s",ERROR_STR,__func__,notify_str);
       }
+      snprintf(notify_str, strlen(notify_str), "Can't start LOGSERVER - %s",err_str);
+      mea_notify2(notify_str, 'E');
       return -1;
    }
    if(pthread_create (_logServer_thread, NULL, logServer_thread, (void *)&logServer_thread_data))
    {
-      VERBOSE(1) fprintf(stderr, "%s (%s) : pthread_create - can't start thread\n",ERROR_STR,__func__);
+      strerror_r(errno, err_str, sizeof(err_str));
+      VERBOSE(1) {
+         fprintf(stderr, "%s (%s) : pthread_create - can't start thread - %s",ERROR_STR,__func__,err_str);
+      }
+      snprintf(notify_str, strlen(notify_str), "Can't start LOGSERVER - %s",err_str);
+      mea_notify2(notify_str, 'E');
       return -1;
    }
    _logServer_monitoring_id=my_id;
+   
+   mea_notify2("LOGSERVER Started", 'S');
 
    return 0;
 }

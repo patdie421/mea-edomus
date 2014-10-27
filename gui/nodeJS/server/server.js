@@ -123,7 +123,9 @@ var server = require('net').createServer(function (socket) {
             l_data=size.toString().charCodeAt(0)+size.toString().charCodeAt(1)*256;
          }
          else
+         {
            continue;
+         }
            
          // lecture des données
          var data = socket.read(l_data);
@@ -133,8 +135,9 @@ var server = require('net').createServer(function (socket) {
          // lire fin de trame : ###
          var end = socket.read(3);
          if( end.toString() != "###")
+         {
             continue;
-
+         }
          var t = data.toString();
          var cmnd = t.substring(0, 3);
          var msg = t.slice(4);
