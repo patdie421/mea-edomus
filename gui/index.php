@@ -25,7 +25,6 @@ if(!isset($_SESSION['logged_in']))
     <?php echo $TITRE_APPLICATION; ?>
     </title>
     <?php include "lib/includes.php"; ?>
-    <script type="text/javascript" src="lib/noty-2.2.10/js/noty/packaged/jquery.noty.packaged.min.js"></script>
 </head>
 <body>
     <style>
