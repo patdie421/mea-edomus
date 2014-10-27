@@ -241,7 +241,7 @@ int16_t counter_to_db(tomysqldb_md_t *md, struct electricity_counter_s *counter)
 }
 
 
-void counter_read(comio2_ad_t *ad, struct electricity_counter_s *counter)
+int16_t counter_read(comio2_ad_t *ad, struct electricity_counter_s *counter)
 {
 //   int l1,l2,l3,l4;
    uint32_t c;
@@ -292,7 +292,12 @@ void counter_read(comio2_ad_t *ad, struct electricity_counter_s *counter)
          c=c |  resp[1];
       }
       else
-         retry++;
+      {
+         if(comio2_err == COMIO2_ERR_DOWN)
+         {
+            return -1;
+         }
+      }
 
    }
    while(ret && retry<5);
@@ -304,6 +309,8 @@ void counter_read(comio2_ad_t *ad, struct electricity_counter_s *counter)
       counter->kwh_counter=c / 1000;
       counter->counter=c;
    }
+   
+   return 0;
 }
 
 
@@ -369,7 +376,7 @@ mea_error_t interface_type_001_counters_process_xpl_msg(interface_type_001_t *i0
 }
 
 
-void interface_type_001_counters_poll_inputs(interface_type_001_t *i001, tomysqldb_md_t *md)
+int16_t interface_type_001_counters_poll_inputs(interface_type_001_t *i001, tomysqldb_md_t *md)
 {
    queue_t *counters_list=i001->counters_list;
    struct electricity_counter_s *counter;
@@ -381,7 +388,8 @@ void interface_type_001_counters_poll_inputs(interface_type_001_t *i001, tomysql
 
       pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(counter->lock));
       pthread_mutex_lock(&(counter->lock));
-      if(!test_timer(&(counter->trap_timer)))
+      
+      if(!test_timer(&(counter->trap_timer))) // traitement delai trop long entre 2 traps.
       {
          struct timeval tv;
 
@@ -404,18 +412,16 @@ void interface_type_001_counters_poll_inputs(interface_type_001_t *i001, tomysql
             xPL_releaseMessage(cntrMessageStat);
          }
       }
+      
       pthread_mutex_unlock(&(counter->lock));
       pthread_cleanup_pop(0);
 
       if(!test_timer(&(counter->timer)))
       {
-         //pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)(&i001->operation_lock) );
-
-         //pthread_mutex_lock(&i001->operation_lock);
-         counter_read(i001->ad, counter);
-         //pthread_mutex_unlock(&i001->operation_lock);
-
-         //pthread_cleanup_pop(0);
+         if(counter_read(i001->ad, counter)<0)
+         {
+            return -1;
+         };
 
          if(counter->counter!=counter->last_counter)
          {
@@ -429,6 +435,7 @@ void interface_type_001_counters_poll_inputs(interface_type_001_t *i001, tomysql
          next_queue(counters_list);
       }
    }
+   return 0;
 }
 
 
