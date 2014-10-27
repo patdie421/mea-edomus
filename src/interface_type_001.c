@@ -324,12 +324,20 @@ void *_thread_interface_type_001(void *args)
    {
       process_heartbeat(i001->monitoring_id);
 
-      interface_type_001_counters_poll_inputs(i001, md);
-      interface_type_001_sensors_poll_inputs(i001, md);
+      if(interface_type_001_counters_poll_inputs(i001, md)<0)
+      {
+         pthread_exit();
+      }
+      
+      if(interface_type_001_sensors_poll_inputs(i001, md)<0)
+      {
+         pthread_exit();
+      }
+      
       cntr++;
+      pthread_testcancel();
       sleep(5);
    }
-   pthread_testcancel();
 }
 
 
@@ -352,9 +360,11 @@ int stop_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
 
    if(start_stop_params->i001->thread)
    {
-      pthread_cancel(*(start_stop_params->i001->thread));
-      pthread_join(*(start_stop_params->i001->thread), NULL);
-      
+      if(pthread_kill(*start_stop_params->i001->thread, 0) == 0) // on arrête le thread que s'il tourne encore
+      {
+         pthread_cancel(*(start_stop_params->i001->thread));
+         pthread_join(*(start_stop_params->i001->thread), NULL);
+      }
       free(start_stop_params->i001->thread);
       start_stop_params->i001->thread=NULL;
    }
@@ -363,7 +373,7 @@ int stop_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
    {
       comio2_close(start_stop_params->i001->ad);
       free(start_stop_params->i001->ad);
-      start_stop_params->i001->ad=NULL;
+      start_stop_params->i001->ad=0;
    }
    
    VERBOSE(9) fprintf(stderr,"done.\n");

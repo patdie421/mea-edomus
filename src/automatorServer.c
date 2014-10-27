@@ -498,6 +498,9 @@ pid_t start_automatorServer(char *db_path)
 {
    pid_t automator_pid = -1;
 
+// ajouter ici la création de deux pipes pour une communication bi-directionnelle avec le process
+// utile pour mise en place d'un heartbeat et l'échange d'information entre le moteur et l'automate
+
    automator_pid = fork();
    
    if (automator_pid == 0) // child

@@ -894,15 +894,26 @@ int16_t xbee_atCmdSend(xbee_xd_t *xd,
  * \return    -1 en cas d'erreur, 0 ..., 1 ...
  */
 {
-//   char *fn_name="xbee_atCmdSend";
    unsigned char xbee_frame[XBEE_MAX_FRAME_SIZE];
    uint16_t l_xbee_frame;
-   int16_t nerr;
+//   int16_t nerr;
+   
+   if(xd->signal_flag<0)
+   {
+      if(xbee_err)
+      {
+         *xbee_err=XBEE_ERR_DOWN;
+         return -1;
+      }
+   }
    
    if(pthread_self()==xd->read_thread) // risque de dead lock si appeler par un call back => on interdit
    {
-      nerr=XBEE_ERR_IN_CALLBACK;
-      return -1;
+      if(xbee_err)
+      {
+         *xbee_err=XBEE_ERR_IN_CALLBACK;
+         return -1;
+      }
    }
    
    // construction de la trame xbee a partir de la la destination, la zone data transmise et d'un identifiant de trame "unique"
@@ -916,6 +927,8 @@ int16_t xbee_atCmdSend(xbee_xd_t *xd,
    {
       return 0;
    }
+
+   *xbee_err=nerr;
    return 1;
 }
 
@@ -944,10 +957,19 @@ int16_t xbee_atCmdSendAndWaitResp(xbee_xd_t *xd,
    xbee_queue_elem_t *e;
    int16_t nerr;
    int16_t return_val=1;
-   
+
+   if(xd->signal_flag<0)
+   {
+      if(xbee_err)
+      {
+         *xbee_err=XBEE_ERR_DOWN;
+         return -1;
+      }
+   }
+
    if(pthread_self()==xd->read_thread) // risque de dead lock si appeler par un call back => on interdit
    {
-      nerr=XBEE_ERR_IN_CALLBACK;
+      *xbee_err=XBEE_ERR_IN_CALLBACK;
       return -1;
    }
    
@@ -1055,6 +1077,9 @@ next_or_return:
       }
       while (--boucle);
    }
+   else
+      *xbee_err=nerr;
+
 error_exit:
    return -1;
 }
@@ -1384,7 +1409,7 @@ int xbee_reinit(xbee_xd_t *xd)
    if(!xd)
       return -1;
 
-   strcpy(dev,xd->serial_dev_name);
+   strcpy(dev, xd->serial_dev_name);
    speed=xd->speed;
    
    VERBOSE(9) fprintf(stderr,"%s  (%s) : Réinitialisation de la com (%s).\n",INFO_STR,__func__,dev);

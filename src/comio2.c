@@ -245,6 +245,15 @@ int16_t comio2_cmdSend(comio2_ad_t *ad,
                        uint16_t l_data, // longueur zone donnee
                        int16_t *comio2_err)
 {
+   if(ad->signal_flag==1) // le thread est down pas la peine d'aller plus loin !
+   {
+      if(comio2_err)
+      {
+         comio2_err=COMIO2_ERR_DOWN;
+      }
+      return -1;
+   }
+   
    if(l_data >= COMIO2_MAX_DATA_SIZE)
    {
       *comio2_err=COMIO2_ERR_LDATA;
@@ -299,6 +308,15 @@ int16_t comio2_cmdSendAndWaitResp(comio2_ad_t *ad,
    comio2_queue_elem_t *e;
 //   int16_t nerr;
    int16_t return_val=1;
+
+   if(ad->signal_flag==1) // le thread est down, pas la peine d'aller plus loin
+   {
+      if(comio2_err)
+      {
+         comio2_err=COMIO2_ERR_DOWN;
+      }
+      return -1;
+   }
 
    if(l_data >= COMIO2_MAX_DATA_SIZE)
    {
@@ -818,6 +836,15 @@ int comio2_call_fn(comio2_ad_t *ad, uint16_t fn, char *data, uint16_t l_data, in
    uint16_t l_buffer;
    int ret;
 
+   if(ad->signal_flag==1) // le thread est down, pas la peine d'aller plus loin
+   {
+      if(comio2_err)
+      {
+         comio2_err=COMIO2_ERR_DOWN;
+      }
+      return -1;
+   }
+
    if((l_data+1) >= COMIO2_MAX_DATA_SIZE-6)
    {
       *comio2_err=COMIO2_ERR_LDATA;
@@ -861,6 +888,15 @@ int comio2_call_proc(comio2_ad_t *ad, uint16_t fn, char *data, uint16_t l_data, 
    unsigned char buffer[COMIO2_MAX_FRAME_SIZE];
    uint16_t l_buffer;
    int ret;
+
+   if(ad->signal_flag==1) // le thread est down, pas la peine d'aller plus loin
+   {
+      if(comio2_err)
+      {
+         comio2_err=COMIO2_ERR_DOWN;
+      }
+      return -1;
+   }
 
    if(l_data+1 >= COMIO2_MAX_DATA_SIZE)
    {

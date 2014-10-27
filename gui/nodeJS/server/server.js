@@ -18,9 +18,9 @@ function unserialize_session(str) { // c'est tres tres light mais suffisant pour
    {
       if(variables[i])
       {
-         keyval=variables[i].split('|');
-         key=keyval[0];
-         typevalue=keyval[1].split(':');
+         var keyval=variables[i].split('|');
+         var key=keyval[0];
+         var typevalue=keyval[1].split(':');
          if(typevalue[0]=='s')
          {
             unserialized[key]=typevalue[2].substring(1,typevalue[2].length-1);
@@ -34,7 +34,7 @@ function unserialize_session(str) { // c'est tres tres light mais suffisant pour
    return unserialized;
 }
 
-
+// valeurs par defaut
 var LOCAL_PORT = 5600;
 var SOKET_IO_PORT = 8000;
 var PHPSESSION_PATH = "/tmp";
@@ -67,35 +67,38 @@ for (var i = 2; i < process.argv.length; i++) {
    }
 }
 
+
+function process_msg(cmnd, msg)
+{
+   if(cmnd=="LOG")
+      sendMessage('log', msg);
+   else if(cmnd=="MON")
+      sendMessage('mon', msg);
+   else if(cmnd=="NOT")
+      sendMessage('not', msg);
+   else
+   {
+      console.log("INFO   socket.on(data) : unknown command - "+cmd);
+      return -1;
+   }
+   return 0;
+}
+
+
 var server = require('net').createServer(function (socket) {
-/*
-   socket.on('data', function (msg) {
-      var t = msg.toString().split(/\r?\n/);
-      for ( i=0; i<t.length-1; i++)
-      {
-         var cmd = t[i].substring(0, 3);
-         var msg = t[i].slice(4);
-         if(cmd=="LOG")
-            sendMessage('log', msg);
-         else if(cmd=="MON")
-            sendMessage('mon', msg);
-         else
-           console.log("INFO   socket.on(data) : unknown command - "+cmd);
-      }
-   });
-*/
+
    socket.on('readable',function() {
-      var car;
-      var data="";
-      var counter=0;
-      var found=0;
-      var t=null;
-      
-      // recherche un debut de trame ($$$)
-      car = socket.read(1);
-      while(car)
+      // format d'une trame :
+      // $$$%c%c%3s:%s###
+      // avec %c%c : taille de la zone data ("CMD:%s") en little indian
+      //      %3s  : code commande (ex : LOG, MON, ...)
+      var car = socket.read(1);
+      do
       {
          // recherche un debut de trame ($$$)
+         var counter=0;
+         var start_found=0;
+
          while (car)
          {
             if(car == '$')
@@ -104,57 +107,42 @@ var server = require('net').createServer(function (socket) {
                counter=0;
             if(counter==3)
             {
-               found=1;
+               start_found=1;
                break;
             }
-            car = socket.read(1);
+            car = socket.read(1); // lecture caractère suivant
          }
-         if(found!=1) // pas de début de trame trouvé
-            continue;
+         if(start_found!=1) // pas de début de trame trouvé et plus de caractère à lire
+            break; // sortie de la boucle
 
-         // lecture de la taille des données
-         var size=socket.read(2);
-         var l;
+         // lecture de la taille de la zone de données données
+         var l_data=-1;
+         var size=socket.read(2); // taille sur deux octets
          if(size)
          {
-            l=size.toString().charCodeAt(0)+size.toString().charCodeAt(1)*256;
-         }
-         var buff;
-         var cmd;
-         var msg;
-
-         // lecture des données
-         buff = socket.read(l);
-         if(buff)
-         {
-            var t = buff.toString();
-            cmd = t.substring(0, 3);
-            msg = t.slice(4);
+            l_data=size.toString().charCodeAt(0)+size.toString().charCodeAt(1)*256;
          }
          else
-            return;
+           continue;
+           
+         // lecture des données
+         var data = socket.read(l_data);
+         if(!data)
+            continue;
          
          // lire fin de trame : ###
          var end = socket.read(3);
          if( end.toString() != "###")
-         {
-            return;
-         }
-      
-         if(cmd=="LOG")
-            sendMessage('log', msg);
-         else if(cmd=="MON")
-            sendMessage('mon', msg);
-         else
-            console.log("INFO   socket.on(data) : unknown command - "+cmd);
+            continue;
+
+         var t = data.toString();
+         var cmnd = t.substring(0, 3);
+         var msg = t.slice(4);
+
+         process_msg(cmnd, msg);
       }
-      car = socket.read(1);
+      while( null !== (car = socket.read(1)) ); // encore des caractères à lire ?
    });
-   
-   socket.once('end',function()
-   {
-   });
-   
 }).listen(LOCAL_PORT);
 
 
@@ -220,10 +208,8 @@ io.sockets.on('connection', function(socket) {
    clients[socket.id] = [];
    clients[socket.id]['socket'] = socket;
 
-   var address = socket.handshake.address;
-   console.log("INFO  io.sockets.on('connection') : new client : " + socket.id + " from "+ address.address);
    socket.on('disconnect', function() {
-      console.log("INFO  socket.on('disconnect') : client "+socket.id+" disconnected"); 
+      console.log("INFO  socket.on('disconnect') : client "+socket.id+" disconnected");
       delete clients[socket.id];
   });
 });
