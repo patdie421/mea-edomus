@@ -212,7 +212,6 @@ function add_row(table, name, id, start_str, start, stop_str, stop)
 
 
 function load_processes_list(){
-   $("#process").text("START");
    $.ajax({
       url: 'CMD/ps.php',
       async: true,
@@ -237,7 +236,6 @@ function load_processes_list(){
             }
          }
          anim_status(data);
-         
       },
       error: function(jqXHR, textStatus, errorThrown ){
          ajax_error( jqXHR, textStatus, errorThrown );
