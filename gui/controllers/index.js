@@ -1,55 +1,78 @@
 var whoIsScrollingFlag=0; // 1 = le script, 0 = l'utilisateur
 var scrollOnOffFlag=1;    // 1 = activé par defaut
-var socketio_port=-1;
-
-var _socketio = null;
-var _socketio_port=-1;
 
 
-function _notification(message)
-{
-}
-
-
-function _socketio_available()
-{
-   if(socketio_port<0)
-      socketio_port=8000; // port par defaut
-   var socketio_addr=window.location.protocol + '//' + window.location.hostname + ':'+socketio_port;
-   _socketio = io.connect(socketio_addr);
-   
-   _socketio.on('not', _notify);
-}
-
-
-function _socketio_unavailable(xhr, textStatus, thrownError)
-{
-   jqXHR.abort();
-   $("#console").append("<div>Pas d'iosocket => pas d'info en live ...<div>");
-   alert("responseText="+xhr.responseText+" status="+xhr.status+" thrownError="+thrownError);
-
-   socketio=null;
-}
-
-
-function getSocketio()
-{
-   return _socketio;
-}
-
-
-function socketio_connect(port)
-{
-   _socketio_port=port;
-
-   var socketiojs_url=window.location.protocol + '//' + window.location.hostname + ':'+_socketio_port+'/socket.io/socket.io.js';
-   $.ajax({
-       url: socketiojs_url,
-       dataType: "script",
-       timeout: 5000,
-       success: _socketio_available,
-       error: _socketio_unavailable
-   });
+// objet liveCom à mettre dans un .js
+var liveCom = {
+   socketio: null;
+   _socketio_port = -1;
+   getSocketio: function() {
+      return this.socketio;
+   };
+   connect: function(port) {
+      this._socketio_port=port;
+      var socketioJsUrl=window.location.protocol + '//' + window.location.hostname + ':'+_socketio_port+'/socket.io/socket.io.js';
+      $.ajax({
+         url: socketioJsUrl,
+         dataType: "script",
+         timeout: 5000,
+         success: this._socketio_available,
+         error: this._socketio_unavailable
+      });
+   };
+   _socketio_available: function ()
+   {
+      if(this._socketio_port<0)
+         this._socketio_port=8000; // port par defaut
+      var socketioAddr=window.location.protocol + '//' + window.location.hostname + ':'+socketio_port;
+         this.socketio = io.connect(socketioAddr);
+      if(null !== this.socketio)
+      {
+        this.socketio.on('not', this._notify);
+      }
+   };
+   _socketio_unavailable: function(xhr, textStatus, thrownError)
+   {
+      jqXHR.abort();
+      alert("responseText="+xhr.responseText+" status="+xhr.status+" thrownError="+thrownError);
+      this.socketio=null;
+   };
+   _notify: function(data)
+   {
+      var type="";
+      var _type = data.substring(0, 0);
+      var msg = data.slice(2);
+      switch(_type)
+      {
+         // alert - success - error - warning - information - confirmation
+         case "A" : type="alert"; break;
+         case "S" : type="success"; break;
+         case "W" : type="warning"; break;
+         case "I" : type="information"; break;
+         case "C" : type="confirmation"; break;
+         default  : type="information"; break;
+      };
+      this.notify(msg, type);
+   };
+   notify: function(msg, type)
+   {
+      if(typeof noty != "undefined")
+      {
+         noty({
+            "text":msg,
+            "layout":"topRight",
+            "type":type,
+            "textAlign":"center",
+            "easing":"swing",
+            "animateOpen":{"height":"toggle"},
+            "animateClose":{"height":"toggle"},
+            "speed":"500",
+            "timeout":"2000",
+            "closable":true,
+            "closeOnSelfClick":true
+         });
+      }
+   }
 }
 
 
@@ -210,74 +233,8 @@ function socketio_available(s) { // socket io est chargé, on se connecte
 }
 
 
-/*
-function socketio_available() { // socket io est chargé, on se connecte
-   if(socketio_port<0)
-      socketio_port=8000;
-   var socketio_addr=window.location.protocol + '//' + window.location.hostname + ':'+socketio_port;
-   var socket = io.connect(socketio_addr);
-
-   $("#console").scroll(function() {
-      if(scrollOnOffFlag==0 && whoIsScrollingFlag==0) // si scroll inactif
-      {
-         // le slider a-t-il été poussé jusqu'en bas ?
-         if($(this).scrollTop() + $(this).innerHeight() >= this.scrollHeight) {
-            scrollOnOffFlag=1; // on réactive le scroll (live)
-         }
-      }
-      else if(whoIsScrollingFlag==0) // le scroll est activé et c'est l'utilisateur qui à scroller
-      {
-         scrollOnOffFlag=0; // dans ce cas on désactive le scroll
-      }
-      else
-         whoIsScrollingFlag=0; // remise à 0 du flag.
-   });
-
-
-   socket.on('log', function(message){
-      toLogConsole(message);
-   });
-
-   socket.on('mon', function(message){
-      var data = jQuery.parseJSON( message );
-      anim_status(data);
-   });
-   
-   load_processes_list();
-}
-*/
-
-
-
 function socketio_unavailable() {
    $("#console").append("<div>Pas d'iosocket => pas d'info en live ...<div>");
-}
-
-
-/*
-function socketio_unavailable(jqXHR, textStatus, errorThrown) {
-   jqXHR.abort();
-   $("#console").append("<div>Pas d'iosocket => pas d'info en live ...<div>");
-}
-*/
-
-
-function notify(type, msg)
-{
-   noty({
-        "text":msg,
-        "layout":"topRight",
-        "type":type,
-        "textAlign":"center",
-        "easing":"swing",
-        "animateOpen":{"height":"toggle"},
-        "animateClose":{"height":"toggle"},
-        "speed":"500",
-        "timeout":"2000",
-        "closable":true,
-        "closeOnSelfClick":true
-   });
-   
 }
 
 
@@ -297,7 +254,7 @@ function start(id)
          else
             type="error";
 
-         notify(type,data["errmsg"]);
+         liveCom.notify(data["errmsg"],type);
       },
       error: function(jqXHR, textStatus, errorThrown ){
          ajax_error( jqXHR, textStatus, errorThrown );
@@ -322,7 +279,7 @@ function stop(id)
          else
             type="error";
 
-         notify(type,data["errmsg"]);
+         liveCom.notify(data["errmsg"],type);
       },
       error: function(jqXHR, textStatus, errorThrown ){
          ajax_error( jqXHR, textStatus, errorThrown );
@@ -333,18 +290,7 @@ function stop(id)
 
 function start_index_controller(port)
 {
-//   socketio_port=port;
-/*   
-   var socketiojs_url=window.location.protocol + '//' + window.location.hostname + ':'+port+'/socket.io/socket.io.js';
-   $.ajax({
-       url: socketiojs_url,
-       dataType: "script",
-       timeout: 5000,
-       success: socketio_available,
-       error: socketio_unavailable
-   });
-*/
-  s=getSocketio();
+  s=liveCom.getSocketio();
   if(null !== s)
   {
      socketio_available(s);
@@ -354,6 +300,4 @@ function start_index_controller(port)
      socketio_unavailable();
   }
 }
-
-
 
