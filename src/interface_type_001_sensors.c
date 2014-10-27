@@ -506,7 +506,7 @@ mea_error_t interface_type_001_sensors_process_xpl_msg(interface_type_001_t *i00
 }
 
 
-void interface_type_001_sensors_poll_inputs(interface_type_001_t *i001, tomysqldb_md_t *md)
+int interface_type_001_sensors_poll_inputs(interface_type_001_t *i001, tomysqldb_md_t *md)
 {
    queue_t *sensors_list=i001->sensors_list;
    struct sensor_s *sensor;
@@ -535,6 +535,10 @@ void interface_type_001_sensors_poll_inputs(interface_type_001_t *i001, tomysqld
             {
                VERBOSE(5) {
                   fprintf(stderr,"%s (%s) : comio2 error = %d.\n", ERROR_STR, __func__, comio2_err);
+               }
+               if(comio2_err == COMIO2_ERR_DOWN)
+               {
+                  return -1;
                }
                continue;
             }
