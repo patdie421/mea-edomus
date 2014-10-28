@@ -316,7 +316,7 @@ int16_t _interface_type_002_xPL_callback(xPL_ServicePtr theService, xPL_MessageP
    device  = xPL_getNamedValue(xplBody, get_token_by_id(XPL_DEVICE_ID));
    
    if(!device)
-      return NOERROR;
+      return ERROR;
    
    char sql[1024];
    sqlite3_stmt * stmt;
@@ -326,7 +326,7 @@ int16_t _interface_type_002_xPL_callback(xPL_ServicePtr theService, xPL_MessageP
    if(ret)
    {
       VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (params_db));
-      return NOERROR;
+      return ERROR;
    }
    
    while(1)
@@ -429,7 +429,6 @@ mea_error_t _inteface_type_002_xbeedata_callback(int id, unsigned char *cmd, uin
 mea_error_t _interface_type_002_commissionning_callback(int id, unsigned char *cmd, uint16_t l_cmd, void *data, char *addr_h, char *addr_l)
 {
    struct xbee_node_identification_response_s *nd_resp;
-//   struct xbee_node_identification_nd_data_s *nd_data;
    int rval=0;
    int err;
    
@@ -437,7 +436,6 @@ mea_error_t _interface_type_002_commissionning_callback(int id, unsigned char *c
    sqlite3 *params_db=callback_commissionning->param_db;
    
    nd_resp=(struct xbee_node_identification_response_s *)cmd;
-//   nd_data=(struct xbee_node_identification_nd_data_s *)(nd_resp->nd_data+strlen((char *)nd_resp->nd_data)+1);
    
    char addr[18];
    // pourquoi ne pas utiliser addr_h et addr_l (snprintf(_addr,sizeof(_addr),"%08x-%08x",addr_h,addr_l))
@@ -454,14 +452,7 @@ mea_error_t _interface_type_002_commissionning_callback(int id, unsigned char *c
            nd_resp->addr_64_l[3]);
    
    VERBOSE(9) printf("%s (%s)  : commissionning request received from %s.\n", INFO_STR, __func__, addr);
-   /*
-   DEBUG_SECTION {
-      char *_addr[18];
-      snprintf(_addr,sizeof(_addr),"%08x-%08x",addr_h,addr_l);
-      VERBOSE(9) printf("%s (%s)  : commissionning request received from %s.\n", INFO_STR, __func__, _addr);
-   }
-   */
-   
+    
    char sql[1024];
    sqlite3_stmt * stmt;
    sprintf(sql,"%s WHERE interfaces.dev ='MESH://%s' AND interfaces.state='2';", sql_select_interface_info, addr);
@@ -674,7 +665,7 @@ void *_thread_interface_type_002_xbeedata(void *args)
          ret = sqlite3_prepare_v2(params_db,sql,strlen(sql)+1,&(params->stmt),NULL);
          if(ret)
          {
-            VERBOSE(1) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (params_db));
+            VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (params_db));
 //            raise(SIGQUIT); // erreur du process
 //            sleep(5);       // on attend 5 secondes avant de s'arrter seul.
             pthread_exit(NULL);
@@ -952,7 +943,7 @@ int stop_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
    FREE(i002->xd);
    FREE(i002->local_xbee);
 
-   VERBOSE(9) fprintf(stderr,"%s  (%s) : interface_type_002 thread is down.\n",INFO_STR, __func__);
+   VERBOSE(9) fprintf(stderr,"%s  (%s) : interface_type_002 (%s) thread is down.\n",INFO_STR, __func__, start_stop_params->name);
    
    return NOERROR;
 */
@@ -1009,8 +1000,9 @@ int stop_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
       start_stop_params->i002->local_xbee=NULL;
    }
    
-   VERBOSE(9) fprintf(stderr,"%s  (%s) : interface_type_002 thread is down.\n",INFO_STR, __func__);
-   
+   VERBOSE(9) fprintf(stderr,"%s  (%s) : interface_type_002 (%s) thread is down.\n",INFO_STR, __func__, start_stop_params->name);
+   mea_notify_printf('S', "%s stopped successfully", start_stop_params->name);
+
    return 0;
 
 }
@@ -1135,54 +1127,55 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
    
    struct interface_type_002_data_s *start_stop_params=(struct interface_type_002_data_s *)data;
 
-//   i002->thread=NULL;
    start_stop_params->i002->thread=NULL;
 
    int interface_nb_parameters=0;
    parsed_parameters_t *interface_parameters=NULL;
    
-
-//   ret=get_dev_and_speed((char *)dev_and_speed, buff, sizeof(buff), &speed);
+   char err_str[128], notify_str[256];
+   
    ret=get_dev_and_speed((char *)start_stop_params->i002->dev, buff, sizeof(buff), &speed);
    if(!ret)
    {
       int n=snprintf(dev,sizeof(buff)-1,"/dev/%s",buff);
       if(n<0 || n==(sizeof(buff)-1))
       {
+         strerror_r(errno, err_str, sizeof(err_str));
          VERBOSE(2) {
-            fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);
-            perror("");
+            fprintf (stderr, "%s (%s) : snprintf - %s\n", ERROR_STR, __func__, err_str);
          }
+         mea_notify_printf('E', "%s can't be launched - %s.\n", start_stop_params->i002->name, err_str);
          goto clean_exit;
       }
    }
    else
    {
-//      VERBOSE(2) fprintf (stderr, "%s (%s) : incorrect device/speed interface - %s\n", ERROR_STR,__func__,dev_and_speed);
       VERBOSE(2) fprintf (stderr, "%s (%s) : incorrect device/speed interface - %s\n", ERROR_STR,__func__,start_stop_params->i002->dev);
+      mea_notify_printf('E', "%s can't be launched - incorrect device/speed interface - %s.\n", start_stop_params->i002->name, start_stop_params->i002->dev);
       goto clean_exit;
    }
 
    xd=(xbee_xd_t *)malloc(sizeof(xbee_xd_t));
    if(!xd)
    {
+      strerror_r(errno, err_str, sizeof(err_str));
       VERBOSE(2) {
-         fprintf(stderr,"%s (%s) : %s - ", ERROR_STR, __func__, MALLOC_ERROR_STR);
-         perror("");
+         fprintf(stderr,"%s (%s) : %s - %s\n", ERROR_STR, __func__, MALLOC_ERROR_STR, err_str);
       }
+      mea_notify_printf('E', "%s can't be launched - %s.\n", start_stop_params->i002->name, err_str);
       goto clean_exit;
    }
    
    fd=xbee_init(xd, dev, speed);
    if (fd == -1)
    {
+      strerror_r(errno, err_str, sizeof(err_str));
       VERBOSE(2) {
-         fprintf(stderr,"%s (%s) : init_xbee - Unable to open serial port (%s) : ", ERROR_STR, __func__, dev);
-         perror("");
+         fprintf(stderr,"%s (%s) : init_xbee - Unable to open serial port (%s) : %s\n", ERROR_STR, __func__, dev);
       }
+      mea_notify_printf('E', "%s : unable to open serial port (%s) - %s.\n", start_stop_params->i002->name, dev, err_str);
       goto clean_exit;
    }
-//   i002->xd=xd;
    start_stop_params->i002->xd=xd;
    
    /*
@@ -1191,10 +1184,11 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
    local_xbee=(xbee_host_t *)malloc(sizeof(xbee_host_t)); // description de l'xbee directement connecté
    if(!local_xbee)
    {
+      strerror_r(errno, err_str, sizeof(err_str));
       VERBOSE(2) {
-         fprintf(stderr,"%s (%s) : %s - ", ERROR_STR, __func__, MALLOC_ERROR_STR);
-         perror("");
+         fprintf(stderr,"%s (%s) : %s - %s.\n", ERROR_STR, __func__, MALLOC_ERROR_STR, err_str);
       }
+      mea_notify_printf('E', %s can't be launched - %s.\n", start_stop_params->i002->name, err_str);
       goto clean_exit;
    }
    
@@ -1221,13 +1215,11 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
  
    xbee_get_host_by_addr_64(xd, local_xbee, addr_64_h, addr_64_l, &nerr);
 
-//   i002->local_xbee=local_xbee;
    start_stop_params->i002->local_xbee=local_xbee;
  
    /*
     * exécution du plugin de paramétrage
     */   
-//   interface_parameters=malloc_parsed_parameters(parameters, valid_xbee_plugin_params, &interface_nb_parameters, &err, 0);
    interface_parameters=malloc_parsed_parameters(start_stop_params->parameters, valid_xbee_plugin_params, &interface_nb_parameters, &err, 0);
    if(!interface_parameters || !interface_parameters[XBEE_PLUGIN_PARAMS_PLUGIN].value.s)
    {
@@ -1240,8 +1232,8 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
       }
       else
       {
-//         VERBOSE(2) fprintf(stderr, "%s (%s) : invalid python plugin parameters (%s)\n", ERROR_STR, __func__, parameters);
          VERBOSE(2) fprintf(stderr, "%s (%s) : invalid python plugin parameters (%s)\n", ERROR_STR, __func__, start_stop_params->parameters);
+         mea_notify_printf('E', %s - invalid python plugin parameters (%s), start_stop_params->i002-name, start_stop_params->parameters);
          goto clean_exit;
       }
    }
@@ -1325,7 +1317,6 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
    /*
     * Gestion des sous-interfaces
     */
-//   i002->thread=start_interface_type_002_xbeedata_thread(i002, xd, db, md, (thread_f)_thread_interface_type_002_xbeedata);
    start_stop_params->i002->thread=start_interface_type_002_xbeedata_thread(start_stop_params->i002, xd, start_stop_params->sqlite3_param_db, start_stop_params->myd, (thread_f)_thread_interface_type_002_xbeedata);
 
    //
@@ -1334,14 +1325,14 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
    commissionning_callback_params=(struct callback_commissionning_data_s *)malloc(sizeof(struct callback_commissionning_data_s));
    if(!commissionning_callback_params)
    {
+      strerror_r(errno, err_str, sizeof(err_str));
       VERBOSE(2) {
-         fprintf(stderr,"%s (%s) : %s - ", ERROR_STR, __func__, MALLOC_ERROR_STR);
-         perror("");
+         fprintf(stderr,"%s (%s) : %s - %s", ERROR_STR, __func__, MALLOC_ERROR_STR, err_str);
       }
+      mea_notify_printf('E', "%s can't be launched - %s.\n", start_stop_params->i002->name, err_str);
       goto clean_exit;
    }
    commissionning_callback_params->xd=xd;
-//   commissionning_callback_params->param_db=db;
    commissionning_callback_params->param_db=start_stop_params->sqlite3_param_db;
    commissionning_callback_params->mainThreadState=NULL;
    commissionning_callback_params->myThreadState=NULL;
@@ -1354,10 +1345,11 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
    xpl_callback_params=(struct callback_xpl_data_s *)malloc(sizeof(struct callback_xpl_data_s));
    if(!xpl_callback_params)
    {
+      strerror_r(errno, err_str, sizeof(err_str));
       VERBOSE(2) {
-         fprintf(stderr,"%s (%s) : %s - ", ERROR_STR, __func__, MALLOC_ERROR_STR);
-         perror("");
+         fprintf(stderr,"%s (%s) : %s - %s\n", ERROR_STR, __func__, MALLOC_ERROR_STR, err_str);
       }
+      mea_notify_printf('E', "%s can't be launched - %s.\n", start_stop_params->i002->name, err_str);
       goto clean_exit;
    }
 //   xpl_callback_params->param_db=db;
@@ -1365,10 +1357,10 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
    xpl_callback_params->mainThreadState=NULL;
    xpl_callback_params->myThreadState=NULL;
    
-//   i002->xPL_callback_data=xpl_callback_params;
    start_stop_params->i002->xPL_callback_data=xpl_callback_params;
-//   i002->xPL_callback=_interface_type_002_xPL_callback;
    start_stop_params->i002->xPL_callback=_interface_type_002_xPL_callback;
+   
+   mea_notify_printf('S', "%s launched successfully", start_stop_params->i002->name);
    
    return NOERROR;
    
@@ -1380,10 +1372,8 @@ clean_exit:
       xbee_remove_dataflow_callback(xd);
    }
    
-//   if(i002->thread)
    if(start_stop_params->i002->thread)
    {
-//      stop_interface_type_002(i002);
       stop_interface_type_002(start_stop_params->i002->monitoring_id, start_stop_params, NULL, 0);
    }
    

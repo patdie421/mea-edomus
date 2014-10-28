@@ -358,7 +358,7 @@ int stop_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
 
    struct interface_type_001_data_s *start_stop_params=(struct interface_type_001_data_s *)data;
 
-   VERBOSE(9) fprintf(stderr,"%s  (%s) : shutdown thread ... ",INFO_STR,__func__);
+   VERBOSE(9) fprintf(stderr,"%s  (%s) : shutdown thread ... ", INFO_STR, __func__);
 
    if(start_stop_params->i001->thread)
    {
@@ -378,10 +378,9 @@ int stop_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
       start_stop_params->i001->ad=0;
    }
    
-   VERBOSE(9) fprintf(stderr,"done.\n");
+   VERBOSE(9) fprintf(stderr, "done.\n");
    
-   if(errmsg)
-      snprintf(errmsg, l_errmsg, "interface down");
+   mea_notify_printf('S', "%s stopped successfully", start_stop_params->i001->name);
 
    return 0;
 }
@@ -407,9 +406,8 @@ int start_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
       ret=load_interface_type_001(start_stop_params->i001, start_stop_params->i001->id_interface, start_stop_params->sqlite3_param_db);
       if(ret<0)
       {
-         VERBOSE(2) fprintf (stderr, "%s (%s) : can not load sensors/actuators - %s\n", ERROR_STR,__func__,start_stop_params->dev);
-         if(errmsg)
-            snprintf(errmsg, l_errmsg, "Can not load sensors/actuators");
+         VERBOSE(2) fprintf (stderr, "%s (%s) : can not load sensors/actuators.\n", ERROR_STR,__func__);
+         mea_notify_printf('E', "%s can't be launched - can't load sensors/actuators.", start_stop_params->i001->name);
          return -1;
       }
    }
@@ -423,33 +421,31 @@ int start_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
          int n=snprintf(dev,sizeof(buff)-1,"/dev/%s",buff);
          if( n<0 || n==(sizeof(buff)-1) )
          {
+            strerror_r(errno, err_str, sizeof(err_str));
             VERBOSE(2) {
-               fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);
+               fprintf (stderr, "%s (%s) : snprintf - %s\n", ERROR_STR, __func__, err_str);
                perror("");
             }
-            if(errmsg)
-               snprintf(errmsg, l_errmsg, "internal error (sprintf)");
+            mea_notify_printf('E', "%s can't be launched - %s.", start_stop_params->i001->name, err_str);
             goto start_interface_type_001_clean_exit;
          }
       }
       else
       {
-         VERBOSE(2) fprintf (stderr, "%s (%s) : unknow interface device - %s\n", ERROR_STR,__func__,start_stop_params->dev);
-         if(errmsg)
-            snprintf(errmsg, l_errmsg, "unknow interface device (%s)",start_stop_params->dev);
+         VERBOSE(2) fprintf (stderr, "%s (%s) : unknow interface device - %s\n", ERROR_STR,__func__, start_stop_params->dev);
+         mea_notify_printf('E', "%s can't be launched - unknow interface device (%s).", start_stop_params->i001->name, start_stop_params->dev);
          goto start_interface_type_001_clean_exit;
       }
 
       ad=(comio2_ad_t *)malloc(sizeof(comio2_ad_t));
       if(!ad)
       {
+         strerror_r(errno, err_str, sizeof(err_str));
          VERBOSE(2) {
-            fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
+            fprintf (stderr, "%s (%s) : %s - %s\n", ERROR_STR, __func__, MALLOC_ERROR_STR, err_str);
             perror("");
          }
-         if(errmsg)
-            snprintf(errmsg, l_errmsg, "internal error (malloc)");
-
+         mea_notify_printf('E', "%s can't be launched - %s.", start_stop_params->i001->name, err_str);
          goto start_interface_type_001_clean_exit;
       }
       
@@ -460,9 +456,8 @@ int start_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
             fprintf(stderr,"%s (%s) : init_arduino - Unable to open serial port (%s) - ",ERROR_STR,__func__,start_stop_params->dev);
             perror("");
          }
-         if(errmsg)
-            snprintf(errmsg, l_errmsg, "Unable to open serial port (%s)",start_stop_params->dev);
          fd=0;
+         mea_notify_printf('E', "%s can't be launched - unable to open serial port (%s).", start_stop_params->i001->name, start_stop_params->dev);
          goto start_interface_type_001_clean_exit;
       }
    }
@@ -471,6 +466,8 @@ int start_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
       VERBOSE(5) fprintf(stderr,"%s (%s) : no sensor/actuator active for this interface (%d) - ",ERROR_STR,__func__,start_stop_params->i001->id_interface);
       if(errmsg)
          snprintf(errmsg, l_errmsg, "no sensor/actuator active for this interface");
+      mea_notify_printf('E', "%s can't be launched - no sensor/actuator active for this interface.", start_stop_params->i001->name);
+
       goto start_interface_type_001_clean_exit;
    }
    
