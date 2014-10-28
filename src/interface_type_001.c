@@ -43,8 +43,7 @@
 #include "interface_type_001_actuators.h"
 #include "interface_type_001_counters.h"
 
-#include "sockets_utils.h"
-
+#include "notify.h"
 
 #define TEMPO    5 // 5 secondes 2 read
 
@@ -500,7 +499,7 @@ int start_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
    
    start_stop_params->i001->thread=_interface_type_001_thread;
    
-   mea_notify("hostname", 5600, "Start ...", "S");
+   mea_notify2("Interface xxx Started", 'S');
    
    return 0;
    
