@@ -381,8 +381,7 @@ int stop_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
    
    VERBOSE(9) fprintf(stderr,"done.\n");
    
-   if(errmsg)
-      snprintf(errmsg, l_errmsg, "interface down");
+   mea_notify_printf('S', "%s stopped successfully", start_stop_params->i001->name);
 
    return 0;
 }
@@ -500,7 +499,7 @@ int start_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
    
    start_stop_params->i001->thread=_interface_type_001_thread;
    
-   mea_notify("hostname", 5600, "Start ...", "S");
+   mea_notify_printf('S', "%s launched successfully", start_stop_params->i001->name);
    
    return 0;
    
