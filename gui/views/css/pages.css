@@ -27,7 +27,7 @@
 #menu {
     float:left;
     width:170px;
-	  min-height:200px;
+    min-height:200px;
     position:absolute;
     z-index:10;
     }
