@@ -71,56 +71,47 @@ int _managed_processes_process_to_json(int id, char *s, int s_l, int flag)
    {
       time_t now = time(NULL);
 
-//      DEBUG_SECTION fprintf(stderr, "{");
       if(mea_strncat(s, s_l, "{")<0)
          return -1;
 
       if(flag && managed_processes.processes_table[id]->status==RUNNING)
       {
-//         DEBUG_SECTION fprintf(stderr, "\"heartbeat\":");
          if(mea_strncat(s, s_l, "\"heartbeat\":")<0)
             return -1;
    
          if((now - managed_processes.processes_table[id]->last_heartbeat)<30)
          {
-//            DEBUG_SECTION fprintf(stderr, "\"OK\"");
             if(mea_strncat(s, s_l, "\"OK\"")<0)
                return -1;
          }
          else
          {
-//            DEBUG_SECTION fprintf(stderr, "\"KO\"");
             if(mea_strncat(s, s_l, "\"KO\"")<0)
                return -1;
          }
          
-//         DEBUG_SECTION fprintf(stderr, ",");
          if(mea_strncat(s, s_l, ",")<0)
             return -1;
       }
       
-//      DEBUG_SECTION fprintf(stderr,"\"pid\":%d",id);
       int n=snprintf(buff,sizeof(buff),"\"pid\":%d",id);
       if(n<0 || n==sizeof(buff))
          return -1;
       if(mea_strncat(s, s_l, buff)<0)
          return -1;
       
-//      DEBUG_SECTION fprintf(stderr,",\"status\":%d",managed_processes.processes_table[id]->status);
       n=snprintf(buff,sizeof(buff),",\"status\":%d",managed_processes.processes_table[id]->status);
       if(n<0 || n==sizeof(buff))
          return -1;
       if(mea_strncat(s, s_l, buff)<0)
          return -1;
       
-//      DEBUG_SECTION fprintf(stderr,",\"type\":%d",managed_processes.processes_table[id]->type);
       n=snprintf(buff,sizeof(buff),",\"type\":%d",managed_processes.processes_table[id]->type);
       if(n<0 || n==sizeof(buff))
          return -1;
       if(mea_strncat(s, s_l, buff)<0)
          return -1;
 
-//      DEBUG_SECTION fprintf(stderr,",\"group\":%d",managed_processes.processes_table[id]->group_id);
       n=snprintf(buff,sizeof(buff),",\"group\":%d",managed_processes.processes_table[id]->group_id);
       if(n<0 || n==sizeof(buff))
          return -1;
@@ -133,7 +124,6 @@ int _managed_processes_process_to_json(int id, char *s, int s_l, int flag)
          {
             if(current_queue(managed_processes.processes_table[id]->indicators_list, (void **)&e)==0)
             {
-//               DEBUG_SECTION fprintf(stderr,",\"%s\":%ld",e->name,e->value);
                int n=snprintf(buff,sizeof(buff),",\"%s\":%ld",e->name,e->value);
                if(n<0 || n==sizeof(buff))
                   return -1;
@@ -146,7 +136,6 @@ int _managed_processes_process_to_json(int id, char *s, int s_l, int flag)
          }
       }
 
-//      DEBUG_SECTION fprintf(stderr, "}");
       if(mea_strncat(s,s_l,"}")<0)
          return -1;
    }
@@ -159,13 +148,9 @@ int _managed_processes_processes_to_json(char *message, int l_message)
 {
    char buff[512];
    char json[2048];
-//   char message[2048];
    
    json[0]=0;
    
-//   DEBUG_SECTION fprintf(stderr, "%s (%s) :  json message - ",DEBUG_STR,__func__);
-   
-//   DEBUG_SECTION fprintf(stderr, "{ ");
    if(mea_strncat(json, sizeof(json), "{ ")<0)
       return -1;
    int flag=0;
@@ -175,11 +160,9 @@ int _managed_processes_processes_to_json(char *message, int l_message)
       {
          if(flag==1)
          {
-//            DEBUG_SECTION fprintf(stderr,", ");
             if(mea_strncat(json, sizeof(json), ", ")<0)
                return -1;
          }
-//         DEBUG_SECTION fprintf(stderr,"\"%s\":",managed_processes.processes_table[i]->name);
          int n=snprintf(buff,sizeof(buff),"\"%s\":",managed_processes.processes_table[i]->name);
          if(n<0 || n==sizeof(buff))
             return -1;
@@ -194,7 +177,6 @@ int _managed_processes_processes_to_json(char *message, int l_message)
             return -1;
       }
    }
-//   DEBUG_SECTION fprintf(stderr, " }\n");
    if(mea_strncat(json,sizeof(json)," }\n")<0)
       return -1;
 
@@ -216,9 +198,6 @@ int managed_processes_processes_to_json_mini(char *json, int l_json)
    char buff[512];
    json[0]=0;
    
-//   DEBUG_SECTION fprintf(stderr, "%s (%s) :  json message - ",DEBUG_STR,__func__);
-   
-//   DEBUG_SECTION fprintf(stderr, "{ ");
    if(mea_strncat(json, l_json-1, "{ ")<0)
       return -1;
    int flag=0;
@@ -228,11 +207,9 @@ int managed_processes_processes_to_json_mini(char *json, int l_json)
       {
          if(flag==1)
          {
-//            DEBUG_SECTION fprintf(stderr,", ");
             if(mea_strncat(json, l_json, ", ")<0)
                return -1;
          }
-//         DEBUG_SECTION fprintf(stderr,"\"%s\":",managed_processes.processes_table[i]->name);
          int n=snprintf(buff,sizeof(buff),"\"%s\":",managed_processes.processes_table[i]->name);
          if(n<0 || n==sizeof(buff))
             return -1;
@@ -247,7 +224,6 @@ int managed_processes_processes_to_json_mini(char *json, int l_json)
             return -1;
       }
    }
-//   DEBUG_SECTION fprintf(stderr, " }\n");
    if(mea_strncat(json,l_json-1," }\n")<0)
       return -1;
    
@@ -259,8 +235,6 @@ int process_set_status(int id, process_status_t status)
 {
    int ret=0;
    
-//   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&monitored_processes.lock );
-//   pthread_mutex_lock(&monitored_processes.lock);
    pthread_cleanup_push( (void *)pthread_rwlock_unlock, (void *)&managed_processes.rwlock );
    pthread_rwlock_wrlock(&managed_processes.rwlock);
    
@@ -271,8 +245,6 @@ int process_set_status(int id, process_status_t status)
       managed_processes.processes_table[id]->status=status;
    }
    
-//   pthread_mutex_unlock(&monitored_processes.lock);
-//   pthread_cleanup_pop(0);
    pthread_rwlock_unlock(&managed_processes.rwlock);
    pthread_cleanup_pop(0); 
 
@@ -284,8 +256,6 @@ int process_set_type(int id, process_type_t type)
 {
    int ret=0;
    
-//   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&monitored_processes.lock );
-//   pthread_mutex_lock(&monitored_processes.lock);
    pthread_cleanup_push( (void *)pthread_rwlock_unlock, (void *)&managed_processes.rwlock );
    pthread_rwlock_wrlock(&managed_processes.rwlock);
 
@@ -296,8 +266,6 @@ int process_set_type(int id, process_type_t type)
       managed_processes.processes_table[id]->type=type;
    }
    
-//   pthread_mutex_unlock(&monitored_processes.lock);
-//   pthread_cleanup_pop(0);
    pthread_rwlock_unlock(&managed_processes.rwlock);
    pthread_cleanup_pop(0); 
 
@@ -309,8 +277,6 @@ int process_set_group(int id, int group_id)
 {
    int ret=0;
    
-//   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&monitored_processes.lock );
-//   pthread_mutex_lock(&monitored_processes.lock);
    pthread_cleanup_push( (void *)pthread_rwlock_unlock, (void *)&managed_processes.rwlock );
    pthread_rwlock_wrlock(&managed_processes.rwlock);
 
@@ -321,8 +287,6 @@ int process_set_group(int id, int group_id)
       managed_processes.processes_table[id]->group_id=group_id;
    }
    
-//   pthread_mutex_unlock(&monitored_processes.lock);
-//   pthread_cleanup_pop(0);
    pthread_rwlock_unlock(&managed_processes.rwlock);
    pthread_cleanup_pop(0); 
 
@@ -334,8 +298,6 @@ int process_set_start_stop(int id, process_start_stop_f start, process_start_sto
 {
    int ret=0;
    
-//   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&monitored_processes.lock );
-//   pthread_mutex_lock(&monitored_processes.lock);
    pthread_cleanup_push( (void *)pthread_rwlock_unlock, (void *)&managed_processes.rwlock );
    pthread_rwlock_wrlock(&managed_processes.rwlock);
 
@@ -349,8 +311,6 @@ int process_set_start_stop(int id, process_start_stop_f start, process_start_sto
       managed_processes.processes_table[id]->stop=stop;
       managed_processes.processes_table[id]->start_stop_data=start_stop_data;
    }
-//   pthread_mutex_unlock(&monitored_processes.lock);
-//   pthread_cleanup_pop(0);
    pthread_rwlock_unlock(&managed_processes.rwlock);
    pthread_cleanup_pop(0); 
 
@@ -362,8 +322,6 @@ int process_register(char *name)
 {
    int ret=0;
 
-//   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&monitored_processes.lock );
-//   pthread_mutex_lock(&monitored_processes.lock);
    pthread_cleanup_push( (void *)pthread_rwlock_unlock, (void *)&managed_processes.rwlock );
    pthread_rwlock_wrlock(&managed_processes.rwlock);
 
@@ -397,8 +355,6 @@ int process_register(char *name)
    }
    ret=-1;
 register_process_clean_exit:
-//   pthread_mutex_unlock(&monitored_processes.lock);
-//   pthread_cleanup_pop(0);
    pthread_rwlock_unlock(&managed_processes.rwlock);
    pthread_cleanup_pop(0); 
 
@@ -409,8 +365,6 @@ register_process_clean_exit:
 int process_unregister(int id)
 {
    int ret=-1;
-//   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(monitored_processes.lock) );
-//   pthread_mutex_lock(&(monitored_processes.lock));
    pthread_cleanup_push( (void *)pthread_rwlock_unlock, (void *)&managed_processes.rwlock );
    pthread_rwlock_wrlock(&managed_processes.rwlock);
 
@@ -422,8 +376,6 @@ int process_unregister(int id)
       ret=0;
    }
 
-//   pthread_mutex_unlock(&monitored_processes.lock);
-//   pthread_cleanup_pop(0);
    pthread_rwlock_unlock(&managed_processes.rwlock);
    pthread_cleanup_pop(0); 
 
@@ -433,16 +385,12 @@ int process_unregister(int id)
 
 int clear_managed_processes()
 {
-//   pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(monitored_processes.lock));
-//   pthread_mutex_lock(&monitored_processes.lock);
    pthread_cleanup_push( (void *)pthread_rwlock_unlock, (void *)&managed_processes.rwlock );
    pthread_rwlock_wrlock(&managed_processes.rwlock);
 
    for(int i=0;i<managed_processes.max_processes;i++)
       process_unregister(i);
 
-//   pthread_mutex_unlock(&(monitored_processes.lock));
-//   pthread_cleanup_pop(0);
    pthread_rwlock_unlock(&managed_processes.rwlock);
    pthread_cleanup_pop(0); 
 
@@ -467,7 +415,6 @@ int init_processes_manager(int max_nb_processes)
    init_timer(&managed_processes.timer, 5, 1);
    start_timer(&managed_processes.timer);
 
-//   pthread_mutex_init(&(monitored_processes.lock), NULL);
    pthread_rwlock_init(&(managed_processes.rwlock), NULL);
 
    return 0;
