@@ -466,7 +466,8 @@ int stop_xPLServer(int my_id, void *data,  char *errmsg, int l_errmsg)
 
    _xplServer_monitoring_id=-1;
    
-   mea_notify2("XPLSERVER stopped successfully", 'S');
+   mea_notify_printf('S', "XPLSERVER stopped successfully");
+
    return 0;
 }
 
@@ -489,7 +490,7 @@ int start_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg)
             fprintf (stderr, "%s (%s) : xPL_initialize - error\n",ERROR_STR,__func__);
          }
          snprintf(notify_str, strlen(notify_str), "XPLSERVER Can't be launched - xPL_initialize error.\n");
-         mea_notify2(notify_str, 'E');
+         mea_notify_printf('E', "XPLSERVER Can't be launched - xPL_initialize error.\n");
          return -1;
       }
 
@@ -501,21 +502,21 @@ int start_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg)
          VERBOSE(2) {
             fprintf(stderr,"%s (%s) : can't start xpl server - %s\n",ERROR_STR,__func__,err_str);
          }
-         snprintf(notify_str, strlen(notify_str), "XPLSERVER Can't be launched - %s\n",err_str);
-         mea_notify2(notify_str, 'E');
+         mea_notify_printf('E', "XPLSERVER Can't be launched - %s.",err_str);
+
          return -1;
       }
       else
       {
-         mea_notify2("XPLSERVER launched successfully", 'S');
+         mea_notify_printf('S', "XPLSERVER launched successfully");
+
          return 0;
       }
    }
    else
    {
-      VERBOSE(2) fprintf(stderr,"%s (%s) : no valid xPL address.\n",ERROR_STR,__func__);
-      snprintf(notify_str, strlen(notify_str), "XPLSERVER Can't be launched - no valid xPL address.\n");
-      mea_notify2(notify_str, 'E');
+      VERBOSE(2) fprintf(stderr,"%s (%s) : no valid xPL address.\n", ERROR_STR, __func__);
+      mea_notify_printf('E', "XPLSERVER Can't be launched - no valid xPL address.");
       return -1;
    }
 }
