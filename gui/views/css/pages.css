@@ -3,60 +3,61 @@
 }
     
 #entete {
-    min-width:1024px;
-	max-width:1200px;
-	height:50px;
-    margin:auto;
-	}
+   min-width:1024px;
+	 max-width:1200px;
+   height:50px;
+   margin:auto;
+}
 
 #titre {
     clear:both;
     min-width:1024px;
-	max-width:1300px;
-	height:30px;
+    max-width:1200px;
+    height:30px;
     margin:auto;
-	}
+}
     
 #main {
-    min-width:1024px;
-	max-width:1300px;
-    position:relative;
-    margin:auto;
-    }
+   min-width:1024px;
+   max-width:1200px;
+   position:relative;
+   margin:auto;
+}
     
 #menu {
     float:left;
     width:170px;
-	min-height:200px;
+	  min-height:200px;
     position:absolute;
     z-index:10;
     }
     
 #contenu {
-    margin-left:170px;
-	min-height:500px;
-	}
+   margin-left:170px;
+   min-height:500px;
+}
     
 #contenu-login {
-	min-height:500px;
-	}
+   min-height:500px;
+}
 
 #piedpage {
-    min-width:1024px;
-	max-width:1300px;
-	height:50px;
-    margin:auto;
-    clear:both;
-	}
+   min-width:1024px;
+   max-width:1200px;
+   height:50px;
+   margin:auto;
+   clear:both;
+}
 
-body{
+body {
     font-family: 'Lucida Grande', Tahoma, Verdana, sans-serif;
-    }
+}
 
 div#mapage {
-    text-align:left;
-    }
+   text-align:left;
+}
 
 .ui-jqgrid {
     font-size:20px;
-    }
+}
+
