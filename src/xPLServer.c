@@ -267,11 +267,11 @@ xPL_MessagePtr mea_readXPLResponse(int id)
                   goto readFromQueue_return;
                }
                // theoriquement pour nous mais donnees trop vieilles, on supprime ?
-               DEBUG_SECTION fprintf(stderr,"%s (%s) : data too old\n", DEBUG_STR,__func__);
+               DEBUG_SECTION fprintf(stderr,"%s (%s) : data are too old\n", DEBUG_STR,__func__);
             }
             else
             {
-               DEBUG_SECTION fprintf(stderr,"%s (%s) : not for me (%d != %d)\n", DEBUG_STR,__func__, e->id, id);
+               DEBUG_SECTION fprintf(stderr,"%s (%s) : data aren't for me (%d != %d)\n", DEBUG_STR,__func__, e->id, id);
                e=NULL;
             }
          }
@@ -311,10 +311,10 @@ void _flushExpiredXPLResponses()
             if((tsp - e->tsp) > 5)
             {
                xPL_releaseMessage(e->msg);
-               DEBUG_SECTION fprintf(stderr,"%s (%s) : Je flush\n",DEBUG_STR,__func__);
                free(e);
                e=NULL;
                remove_current_queue(xplRespQueue); // remove current passe sur le suivant
+               DEBUG_SECTION fprintf(stderr,"%s (%s) : responses queue was flushed\n",DEBUG_STR,__func__);
             }
             else
             next_queue(xplRespQueue);
@@ -329,6 +329,22 @@ void _flushExpiredXPLResponses()
 }
 
 
+int16_t set_xpl_address(char **params_list)
+/**
+ * \brief     initialise les données pour l'adresse xPL
+ * \details   positionne vendorID, deviceID et instanceID pour xPLServer
+ * \param     params_liste  liste des parametres.
+ * \return   -1 en cas d'erreur, 0 sinon
+ */
+{
+   mea_setXPLVendorID(params_list[VENDOR_ID]);
+   mea_setXPLDeviceID(params_list[DEVICE_ID]);
+   mea_setXPLInstanceID(params_list[INSTANCE_ID]);
+   
+   return 0;
+}
+
+
 void _xplRespQueue_free_queue_elem(void *d)
 {
    xplRespQueue_elem_t *e=(xplRespQueue_elem_t *)d;
@@ -337,7 +353,7 @@ void _xplRespQueue_free_queue_elem(void *d)
 }
 
 
-void *_xPL_thread(void *data)
+void *xPLServer_thread(void *data)
 {
 //   xPL_setDebugging(TRUE); // xPL en mode debug
 
@@ -358,17 +374,17 @@ void *_xPL_thread(void *data)
    do
    {
       process_heartbeat(_xplServer_monitoring_id);
-   
       VERBOSE(9) {
          static char compteur=0;
          if(compteur>59)
          {
             compteur=0;
-            fprintf(stderr,"%s  (%s) : xPLServer thread actif\n",INFO_STR,__func__);
+            fprintf(stderr,"%s  (%s) : xPLServer thread is running\n",INFO_STR,__func__);
          }
          else
             compteur++;
       }
+
       xPL_processMessages(500);
       
       _flushExpiredXPLResponses();
@@ -404,11 +420,11 @@ pthread_t *xPLServer()
    }
    init_queue(xplRespQueue); // initialisation de la file
 
-   xPL_thread=(pthread_t *)malloc(sizeof(pthread_t));
+   xPLServer_thread=(pthread_t *)malloc(sizeof(pthread_t));
    if(!xPL_thread)
    {
       VERBOSE(1) {
-         fprintf (stderr, "%s (%s) : malloc - ",ERROR_STR,__func__);
+         fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__, MALLOC_ERROR_STR);
          perror("");
       }
       free(xplRespQueue);
@@ -416,29 +432,13 @@ pthread_t *xPLServer()
       return NULL;
    }
 
-   if(pthread_create (xPL_thread, NULL, _xPL_thread, NULL))
+   if(pthread_create (xPL_thread, NULL, xPLServer_thread, NULL))
    {
       VERBOSE(1) fprintf(stderr, "%s (%s) : pthread_create - can't start thread\n",ERROR_STR,__func__);
       return NULL;
    }
       
    return xPL_thread;
-}
-
-
-int16_t set_xpl_address(char **params_list)
-/**
- * \brief     initialise les données pour l'adresse xPL
- * \details   positionne vendorID, deviceID et instanceID pour xPLServer
- * \param     params_liste  liste des parametres.
- * \return   -1 en cas d'erreur, 0 sinon
- */
-{
-   mea_setXPLVendorID(params_list[VENDOR_ID]);
-   mea_setXPLDeviceID(params_list[DEVICE_ID]);
-   mea_setXPLInstanceID(params_list[INSTANCE_ID]);
-   
-   return 0;
 }
 
 
@@ -466,7 +466,7 @@ int stop_xPLServer(int my_id, void *data,  char *errmsg, int l_errmsg)
 
    _xplServer_monitoring_id=-1;
    
-   mea_notify2("XPLSERVER Stopped", 'S');
+   mea_notify2("XPLSERVER stopped successfully", 'S');
    return 0;
 }
 
@@ -488,7 +488,7 @@ int start_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg)
          VERBOSE(1) {
             fprintf (stderr, "%s (%s) : xPL_initialize - error\n",ERROR_STR,__func__);
          }
-         snprintf(notify_str, strlen(notify_str), "Can't start XPLSERVER - xPL_initialize error\n");
+         snprintf(notify_str, strlen(notify_str), "XPLSERVER Can't be launched - xPL_initialize error.\n");
          mea_notify2(notify_str, 'E');
          return -1;
       }
@@ -501,20 +501,20 @@ int start_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg)
          VERBOSE(2) {
             fprintf(stderr,"%s (%s) : can't start xpl server - %s\n",ERROR_STR,__func__,err_str);
          }
-         snprintf(notify_str, strlen(notify_str), "Can't start XPLSERVER - %s\n",err_str);
+         snprintf(notify_str, strlen(notify_str), "XPLSERVER Can't be launched - %s\n",err_str);
          mea_notify2(notify_str, 'E');
          return -1;
       }
       else
       {
-         mea_notify2("XPLSERVER Started", 'S');
+         mea_notify2("XPLSERVER launched successfully", 'S');
          return 0;
       }
    }
    else
    {
       VERBOSE(2) fprintf(stderr,"%s (%s) : no valid xPL address.\n",ERROR_STR,__func__);
-      snprintf(notify_str, strlen(notify_str), "Can't start XPLSERVER - no valid xPL address.\n");
+      snprintf(notify_str, strlen(notify_str), "XPLSERVER Can't be launched - no valid xPL address.\n");
       mea_notify2(notify_str, 'E');
       return -1;
    }
