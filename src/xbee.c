@@ -1511,18 +1511,18 @@ int _xbee_reopen(xbee_xd_t *xd)
 {
    int fd; /* File descriptor for the port */
    uint8_t flag=0;
-   char dev[255];
-   int speed=0;
+//   char dev[255];
+//   int speed=0;
    
    if(!xd)
       return -1;
 
-   strcpy(dev, xd->serial_dev_name);
+   strncpy(dev, xd->serial_dev_name, sizeof(dev));
    speed=xd->speed;
    
    VERBOSE(9) fprintf(stderr,"%s  (%s) : Réinitialisation de la com (%s).\n",INFO_STR,__func__,dev);
    
-   xbee_close(xd);
+   close(xd->fd);
    
    for(int i=0;i<XBEE_NB_RETRY;i++) // 5 tentatives pour rétablir les communications
    {
