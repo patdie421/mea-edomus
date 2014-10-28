@@ -81,7 +81,6 @@ size_t mea_notify_sprintf(int notify_type, char const* fmt, ...)
    char notif_str[256];
    int l_notif;
    
-   size_t result;
    va_list args;
    va_start(args, fmt);
    
