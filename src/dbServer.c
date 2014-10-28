@@ -444,8 +444,7 @@ void *tomysqldb_thread(void *args)
                   VERBOSE(9) fprintf(stderr,"%s  (%s) : Une reconnexion à la base Mysql à eu lieu\n", INFO_STR,__func__);
                }
             }
-         }
-         
+         }      
          
          if(mysql_connected == 0) // jamais connecté ou plus de connexion, on essaye de se connecter
          {
@@ -458,7 +457,6 @@ void *tomysqldb_thread(void *args)
                mysql_connected=1; // ouf, reconnecté
             }
          }
-         
          
          if(mysql_connected == 0) // toujours pas de connexion Mysql. Repli sur sqlite3, ouverture si nécessaire
          {
@@ -493,7 +491,6 @@ void *tomysqldb_thread(void *args)
                md->db=NULL;
             }
          }
-
 
          while(nb>0)
          {
@@ -731,7 +728,7 @@ int stop_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
 
    _dbServer_monitoring_id=-1;
    
-   mea_notify2("XPLSERVER Stopped", 'S');
+   mea_notify_printf('S',"XPLSERVER stopped successfully");
 
    return 0;
 }
@@ -758,8 +755,7 @@ int start_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
       VERBOSE(2) {
          fprintf(stderr,"%s (%s) : %s - %s\n", ERROR_STR, __func__, MALLOC_ERROR_STR,err_str);
       }
-      snprintf(notify_str, strlen(notify_str), "Can't start DBSERVER - %s\n",err_str);
-      mea_notify2(notify_str, 'E');
+      mea_notify_printf('E',"XPLSERVER can't be launched - %s.", err_str);
       return -1;
    }
    memset(_md,0,sizeof(struct tomysqldb_md_s));
@@ -779,12 +775,11 @@ int start_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
    }
    _dbServer_monitoring_id=my_id;
 
+   mea_notify_printf('S',"XPLSERVER Started");
+
 #else
    VERBOSE(9) fprintf(stderr,"%s  (%s) : dbServer desactivated.\n", INFO_STR,__func__);
 #endif
-   
-   mea_notify2("XPLSERVER Started", 'S');
-
    return 0;
 }
 
