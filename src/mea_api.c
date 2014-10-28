@@ -157,19 +157,19 @@ void mea_api_init()
 
 static PyObject *mea_xplGetVendorID()
 {
-   return PyString_FromString("mea");
+   return PyString_FromString(mea_getXPLVendorID());
 }
 
 
 static PyObject *mea_xplGetDeviceID()
 {
-   return  PyString_FromString("edomus");
+   return  PyString_FromString(mea_getXPLDeviceID());
 }
 
 
 static PyObject *mea_xplGetInstanceID()
 {
-   return PyString_FromString("cheznousdev");
+   return PyString_FromString(mea_getXPLInstanceID());
 }
 
 
@@ -316,7 +316,7 @@ static PyObject *mea_xplSendMsg(PyObject *self, PyObject *args)
          
          if(!key || !value)
          {
-            PyErr_SetString(PyExc_RuntimeError, "ERROR (mea_xplMsgSend) : incorrect data in body");
+            PyErr_SetString(PyExc_RuntimeError, "ERROR (mea_xplMsgSend) : incorrect data in body.");
             goto mea_xplSendMsg_exit;
          }
          xPL_setMessageNamedValue(xplMsg, skey, svalue);
@@ -324,7 +324,7 @@ static PyObject *mea_xplSendMsg(PyObject *self, PyObject *args)
    }
    else
    {
-      PyErr_SetString(PyExc_RuntimeError, "ERROR (mea_xplMsgSend) : xpl body data not found");
+      PyErr_SetString(PyExc_RuntimeError, "ERROR (mea_xplMsgSend) : xpl body data not found.");
       goto mea_xplSendMsg_exit;
    }
    
@@ -350,7 +350,7 @@ static PyObject *mea_getMemory(PyObject *self, PyObject *args)
    
    if(PyTuple_Size(args)!=1)
    {
-      VERBOSE(9) fprintf(stderr, "ERROR (mea_get_memory) : arguments error\n");
+      DEBUG_SECTION fprintf(stderr, "%s (%s) :  arguments error.\n", DEBUG_STR ,__func__);
       PyErr_BadArgument(); // à replacer
       return NULL;
    }
@@ -358,7 +358,7 @@ static PyObject *mea_getMemory(PyObject *self, PyObject *args)
    key=PyTuple_GetItem(args, 0);
    if(!key)
    {
-      VERBOSE(9) fprintf(stderr, "ERROR (mea_get_memory) : bad mem id\n");
+      DEBUG_SECTION fprintf(stderr, "%s (%s) :  bad mem id.\n", DEBUG_STR ,__func__);
       PyErr_BadArgument(); // à remplacer
       return NULL;
    }
@@ -465,7 +465,7 @@ static PyObject *mea_sendAtCmdAndWaitResp(PyObject *self, PyObject *args)
    }
    else
    {
-      VERBOSE(3) fprintf(stderr, "%s (%s) : host not found\n",ERROR_STR,__func__);
+      DEBUG_SECTION fprintf(stderr, "%s (%s) : host not found.\n", DEBUG_STR ,__func__);
       if(host)
       {
          free(host);
@@ -479,7 +479,7 @@ static PyObject *mea_sendAtCmdAndWaitResp(PyObject *self, PyObject *args)
    ret=xbee_atCmdSendAndWaitResp(xd, host, at_cmd, l_at_cmd, resp, &l_resp, &nerr);
    if(ret==-1)
    {
-      VERBOSE(9) fprintf(stderr, "%s (%s) : error %d\n",ERROR_STR,__func__,nerr);
+      DEBUG_SECTION fprintf(stderr, "%s (%s) : error %d.\n", DEBUG_STR, __func__, nerr);
       if(host)
       {
          free(host);
@@ -515,7 +515,7 @@ static PyObject *mea_sendAtCmdAndWaitResp(PyObject *self, PyObject *args)
    return t; // return True
    
 mea_AtCmdToXbee_arg_err:
-   VERBOSE(9) fprintf(stderr, "%s (%s) : arguments error\n",ERROR_STR,__func__);
+   DEBUG_SECTION fprintf(stderr, "%s (%s) : arguments error.\n", DEBUG_STR, __func__);
    if(host)
    {
       free(host);
@@ -605,7 +605,7 @@ static PyObject *mea_sendAtCmd(PyObject *self, PyObject *args)
       xbee_get_host_by_addr_64(xd, host, addr_h, addr_l, &err);
       if(err!=XBEE_ERR_NOERR)
       {
-         VERBOSE(9) fprintf(stderr, "%s (%s) : host not found\n", ERROR_STR,__func__);
+         DEBUG_SECTION fprintf(stderr, "%s (%s) : host not found.\n", DEBUG_STR,__func__);
          goto mea_atCmdSend_arg_err;
       }
    }
@@ -624,7 +624,7 @@ static PyObject *mea_sendAtCmd(PyObject *self, PyObject *args)
    return PyLong_FromLong(1L); // return True
 
 mea_atCmdSend_arg_err:
-   VERBOSE(9) fprintf(stderr, "%s (%s) : arguments error\n", ERROR_STR,__func__);
+   DEBUG_SECTION fprintf(stderr, "%s (%s) : arguments error\n", DEBUG_STR,__func__);
    PyErr_BadArgument();
    if(host)
    {
@@ -689,7 +689,7 @@ static PyObject *mea_addDataToSensorsValuesTable(PyObject *self, PyObject *args)
    return PyLong_FromLong(1L); // True
    
 mea_addDataToSensorsValuesTable_arg_err:
-   VERBOSE(9) fprintf(stderr, "%s (%s) : arguments error\n", ERROR_STR,__func__);
+   DEBUG_SECTION fprintf(stderr, "%s (%s) : arguments error\n", DEBUG_STR,__func__);
    PyErr_BadArgument();
    return NULL;
 }
