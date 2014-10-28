@@ -46,8 +46,8 @@ int _readAndSendLine(int nodejs_socket, char *file, long *pos)
    fp = fopen(file, "r");
    if(fp == NULL)
    {
-      VERBOSE(1) {
-         fprintf(stderr, "%s (%s) :  fopen - can't open %s : ",ERROR_STR,__func__,file);
+      VERBOSE(5) {
+         fprintf(stderr, "%s (%s) :  fopen - can't open %s : ", ERROR_STR, __func__, file);
          perror("");
       }
       *pos=0; // le fichier n'existe pas. lorsqu'il sera créé on le lira depuis le debut
@@ -132,7 +132,11 @@ void *logServer_thread(void *data)
             int ret=_readAndSendLine(nodejs_socket, log_file, &pos);
 
             if(ret==-1)
-               break; // erreur de com. on essaye de se reconnecter au prochain tour.
+            {
+               VERBOSE(9) {
+                  fprintf(stderr, "%s (%s) : connection error - retry next time\n", INFO_STR, __func__);
+                  break; // erreur de com. on essayera de se reconnecter au prochain tour.
+            }
 
             if(ret!=1)
                sleep(1);
@@ -144,7 +148,7 @@ void *logServer_thread(void *data)
       else
       {
          VERBOSE(9) {
-            fprintf(stderr, "%s (%s) : connexion - retry next time ...\n",INFO_STR,__func__);
+            fprintf(stderr, "%s (%s) : connection error - retry next time\n", INFO_STR, __func__);
          }
          sleep(5); // on essayera de se reconnecter dans 1 secondes
       }
@@ -165,7 +169,7 @@ int stop_logServer(int my_id, void *data, char *errmsg, int l_errmsg)
       _logServer_thread=NULL;
    }
    
-   mea_notify2("LOGSERVER Stopped", 'S');
+   mea_notif_printf('S', "LOGSERVER  stopped successfully");
 
    return 0;
 }
@@ -188,8 +192,7 @@ int start_logServer(int my_id, void *data, char *errmsg, int l_errmsg)
       VERBOSE(1) {
          fprintf (stderr, "%s (%s) : malloc - %s",ERROR_STR,__func__,notify_str);
       }
-      snprintf(notify_str, strlen(notify_str), "Can't start LOGSERVER - %s",err_str);
-      mea_notify2(notify_str, 'E');
+      mea_notif_printf('E', "LOGSERVER can't be launched - %s", err_str);
       return -1;
    }
    if(pthread_create (_logServer_thread, NULL, logServer_thread, (void *)&logServer_thread_data))
@@ -198,14 +201,13 @@ int start_logServer(int my_id, void *data, char *errmsg, int l_errmsg)
       VERBOSE(1) {
          fprintf(stderr, "%s (%s) : pthread_create - can't start thread - %s",ERROR_STR,__func__,err_str);
       }
-      snprintf(notify_str, strlen(notify_str), "Can't start LOGSERVER - %s",err_str);
-      mea_notify2(notify_str, 'E');
+      mea_notif_printf('E', "LOGSERVER can't be launched - %s", err_str);
+
       return -1;
    }
    _logServer_monitoring_id=my_id;
    
-   mea_notify2("LOGSERVER Started", 'S');
-
+   mea_notif_printf('S', "LOGSERVER launched successfully");
    return 0;
 }
 
