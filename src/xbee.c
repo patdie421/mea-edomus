@@ -1520,7 +1520,7 @@ int _xbee_reopen(xbee_xd_t *xd)
    strncpy(dev, xd->serial_dev_name, sizeof(dev));
    speed=xd->speed;
    
-   VERBOSE(9) fprintf(stderr,"%s  (%s) : Réinitialisation de la com (%s).\n",INFO_STR,__func__,dev);
+   VERBOSE(9) fprintf(stderr,"%s  (%s) : communication reset (%s).\n",INFO_STR,__func__,dev);
    
    close(xd->fd);
    
@@ -1530,7 +1530,7 @@ int _xbee_reopen(xbee_xd_t *xd)
       if (fd == -1)
       {
          VERBOSE(1) {
-            fprintf(stderr,"%s (%s) : Unable to open serial port (%s) - ",ERROR_STR,__func__,dev);
+            fprintf(stderr,"%s (%s) : unable to open serial port (%s) - ",ERROR_STR,__func__,dev);
             perror("");
          }
       }
@@ -1544,11 +1544,11 @@ int _xbee_reopen(xbee_xd_t *xd)
    
    if(!flag)
    {
-      VERBOSE(1) fprintf(stderr,"%s (%s) : récupération impossible\n", ERROR_STR,__func__);
+      VERBOSE(1) fprintf(stderr,"%s (%s) : can't recover now\n", ERROR_STR,__func__);
       return -1;
    }
    
-   VERBOSE(5) fprintf(stderr,"%s  (%s) : Réinitialisation de la com reussie.\n",INFO_STR,__func__);
+   VERBOSE(5) fprintf(stderr,"%s  (%s) : communication reset successful.\n",INFO_STR,__func__);
 
    return 0;
 }	
@@ -1571,7 +1571,7 @@ void *_xbee_thread(void *args)
    
    xbee_xd_t *xd=(xbee_xd_t *)args;
    
-   VERBOSE(5) fprintf(stderr,"%s  (%s) : starting xbee read thread %s\n",INFO_STR,__func__,xd->serial_dev_name);
+   VERBOSE(5) fprintf(stderr,"%s  (%s) : starting xbee reading thread on %s\n",INFO_STR,__func__,xd->serial_dev_name);
    while(1)
    {
       _xbee_flush_old_responses_queue(xd);
@@ -1652,7 +1652,7 @@ void *_xbee_thread(void *args)
             {
                struct xbee_receive_packet_s *mcmd=(struct xbee_receive_packet_s *)cmd;
                
-               DEBUG_SECTION fprintf(stderr,"_xbee_thread : cmd=%s, l_cmd=%d\n",cmd,l_cmd);
+               DEBUG_SECTION fprintf(stderr,"_xbee_thread : frame recept : cmd=%s, size=%d\n",cmd,l_cmd);
 
                if(xd->dataflow_callback)
                      xd->dataflow_callback(0,cmd,l_cmd, xd->dataflow_callback_data, (char *)mcmd->addr_64_h, (char *)mcmd->addr_64_l);
@@ -1662,7 +1662,7 @@ void *_xbee_thread(void *args)
             }
                
             default:
-               VERBOSE(9) fprintf(stderr,"%s  (%s): reception d'une trame (%x) non prise en compte\n",INFO_STR,__func__,cmd[0]);
+               VERBOSE(9) fprintf(stderr,"%s  (%s): Recept unknown frame (%d), skipped\n",INFO_STR,__func__,cmd[0]);
                break;
          }
       }
@@ -1683,7 +1683,7 @@ void *_xbee_thread(void *args)
                if(_xbee_reopen(xd)<0)
                {
                   VERBOSE(1) {
-                     fprintf(stderr,"%s (%s) : xbee thread down\n", ERROR_STR,__func__,nerr);
+                     fprintf(stderr,"%s (%s) : xbee thread is down\n", ERROR_STR,__func__,nerr);
                   }
                   pthread_exit(NULL);
                }
@@ -1691,12 +1691,12 @@ void *_xbee_thread(void *args)
                break;
             case XBEE_ERR_HOSTTABLEFULL:
                VERBOSE(1) {
-                  fprintf(stderr,"%s (%s) : hosts table full (nerr=%d).\n", ERROR_STR,__func__,nerr);
+                  fprintf(stderr,"%s (%s) : hosts table is full (nerr=%d).\n", ERROR_STR,__func__,nerr);
                }
                break;
             default:
                VERBOSE(1) {
-                  fprintf(stderr,"%s (%s) : error=%d.\n", ERROR_STR,__func__,nerr);
+                  fprintf(stderr,"%s (%s) : uncategorized error (%d).\n", ERROR_STR,__func__,nerr);
                }
                break;
          }
