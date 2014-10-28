@@ -34,7 +34,7 @@ int mea_socket_connect(int *s, char *hostname, int port)
    sock = socket(AF_INET, SOCK_STREAM, 0);
    if(sock < 0)
    {
-      VERBOSE(1) {
+      DEBUG_SECTION {
          fprintf(stderr, "%s (%s) :  socket - can't create : ",ERROR_STR,__func__);
          perror("");
       }
@@ -44,7 +44,7 @@ int mea_socket_connect(int *s, char *hostname, int port)
    serv_info = gethostbyname(hostname); // on récupère les informations de l'hôte auquel on veut se connecter
    if(serv_info == NULL)
    {
-      VERBOSE(1) {
+      DEBUG_SECTION {
          fprintf(stderr, "%s (%s) :  gethostbyname - can't get information : ",ERROR_STR,__func__);
          perror("");
       }
@@ -58,7 +58,7 @@ int mea_socket_connect(int *s, char *hostname, int port)
    
    if(connect(sock, (const struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
    {
-      VERBOSE(1) {
+      DEBUG_SECTION {
          fprintf(stderr, "%s (%s) :  connect - can't connect : ",ERROR_STR,__func__);
          perror("");
       }
@@ -74,7 +74,7 @@ int mea_socket_send(int *s, char *message, int l_message)
 {
    if(send(*s, message, l_message, 0) < 0)
    {
-      VERBOSE(1) {
+      DEBUG_SECTION {
          fprintf(stderr, "%s (%s) :  send - can't send : ",ERROR_STR,__func__);
          perror("");
       }
