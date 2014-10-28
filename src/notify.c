@@ -74,3 +74,21 @@ int mea_notify2(char *notif_str, char notif_type)
 {
    return _notify(localhost_const, _port, notif_str, notif_type);
 }
+
+
+size_t mea_notify_sprintf(int notify_type, char const* fmt, ...)
+{
+   char notif_str[256];
+   int l_notif;
+   
+   size_t result;
+   va_list args;
+   va_start(args, fmt);
+   
+   l_notif = vsnprintf(notif_str, sizeof(notif_str), fmt, args);
+   
+   va_end(args);
+
+   return _notify(localhost_const, _port, notif_str, notif_type);
+}
+
