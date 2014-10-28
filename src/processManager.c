@@ -79,7 +79,7 @@ int _managed_processes_process_to_json(int id, char *s, int s_l, int flag)
          if(mea_strncat(s, s_l, "\"heartbeat\":")<0)
             return -1;
    
-         if((now - managed_processes.processes_table[id]->last_heartbeat)<30)
+         if((now - managed_processes.processes_table[id]->last_heartbeat)<15)
          {
             if(mea_strncat(s, s_l, "\"OK\"")<0)
                return -1;
@@ -644,7 +644,10 @@ int process_start(int id, char *errmsg, int l_errmsg)
          if(ret<0)
             managed_processes.processes_table[id]->status=STOPPED;
          else
+         {
             managed_processes.processes_table[id]->status=RUNNING;
+            process_heartbeat(id);
+         }
       }
       else
          return -1;
