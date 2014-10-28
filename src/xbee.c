@@ -737,7 +737,7 @@ mea_error_t xbee_get_host_by_name(xbee_xd_t *xd, xbee_host_t *host, char *name, 
       memcpy(host,h,sizeof(xbee_host_t));
    else
    {
-      DEBUG_SECTION fprintf(stderr,"%s (%s) : %s not found in xbee host table.\n",DEBUG_STR,__func__,name);
+      DEBUG_SECTION fprintf(stderr,"%s (%s) : %s not found in xbee hosts table.\n",DEBUG_STR,__func__,name);
       
       *nerr=XBEE_ERR_HOSTNOTFUND;
       return ERROR;
@@ -768,7 +768,7 @@ mea_error_t xbee_get_host_by_addr_64(xbee_xd_t *xd, xbee_host_t *host, uint32_t 
    {
       _xbee_host_init_addr_64(host, addr_64_h, addr_64_l);
       
-      DEBUG_SECTION fprintf(stderr,"%s (%s) : %08lx-%08lx not found in xbee host table.\n", DEBUG_STR,__func__,(unsigned long int)addr_64_h,(unsigned long int)addr_64_l);
+      DEBUG_SECTION fprintf(stderr,"%s (%s) : %08lx-%08lx not found in xbee hosts table.\n", DEBUG_STR,__func__,(unsigned long int)addr_64_h,(unsigned long int)addr_64_l);
       *nerr=XBEE_ERR_HOSTNOTFUND;
       return ERROR;
    }
@@ -1161,14 +1161,14 @@ int16_t xbee_atCmdSendAndWaitResp(xbee_xd_t *xd,
                      }
                      
                      // theoriquement pour nous mais donnees trop vieilles, on supprime
-                     DEBUG_SECTION fprintf(stderr,"%s (%s) : data too old\n", DEBUG_STR,__func__);
+                     DEBUG_SECTION fprintf(stderr,"%s (%s) : data have been found but are too old\n", DEBUG_STR,__func__);
 //                     remove_current_queue(xd->queue);
 //                     _xbee_free_queue_elem(e);
 //                     e=NULL;
                   }
                   else
                   {
-                     DEBUG_SECTION fprintf(stderr,"%s (%s) : not for me (%d != %d)\n", DEBUG_STR,__func__, e->cmd[1], frame_data_id);
+                     DEBUG_SECTION fprintf(stderr,"%s (%s) : data aren't for me (%d != %d)\n", DEBUG_STR,__func__, e->cmd[1], frame_data_id);
                      e=NULL;
                   }
                }
@@ -1370,14 +1370,14 @@ int _xbee_read_cmd(int fd, char unsigned *frame, uint16_t *l_frame, int16_t *ner
             if(((checksum+c) & 0xFF) == 0xFF)
             {
                 /* DEBUG_SECTION {
-                fprintf(stderr,"%s (%s) : Frame recept\n", DEBUG_STR,__func__);
+                fprintf(stderr,"%s (%s) : new frame recept\n", DEBUG_STR,__func__);
                  _xbee_display_frame(0, frame, *l_frame);
                } */
                return 0;
             }
             else
             {
-               VERBOSE(5) fprintf(stderr,"%s  (%s) : Xbee reponse - checksum error.\n",INFO_STR,__func__);
+               VERBOSE(5) fprintf(stderr,"%s  (%s) : xbee return an error - checksum error.\n",INFO_STR,__func__);
                *nerr=XBEE_ERR_CHECKSUM;
                return -1;
             }
@@ -1520,7 +1520,7 @@ int _xbee_reopen(xbee_xd_t *xd)
    strncpy(dev, xd->serial_dev_name, sizeof(dev));
    speed=xd->speed;
    
-   VERBOSE(9) fprintf(stderr,"%s  (%s) : communication reset (%s).\n",INFO_STR,__func__,dev);
+   VERBOSE(9) fprintf(stderr,"%s  (%s) : try to reset communication (%s).\n",INFO_STR,__func__,dev);
    
    close(xd->fd);
    
@@ -1530,7 +1530,7 @@ int _xbee_reopen(xbee_xd_t *xd)
       if (fd == -1)
       {
          VERBOSE(1) {
-            fprintf(stderr,"%s (%s) : unable to open serial port (%s) - ",ERROR_STR,__func__,dev);
+            fprintf(stderr,"%s (%s) : try #%d/%d, unable to open serial port (%s) - ",ERROR_STR,__func__, i+1, XBEE_NB_RETRY, dev);
             perror("");
          }
       }
@@ -1544,7 +1544,7 @@ int _xbee_reopen(xbee_xd_t *xd)
    
    if(!flag)
    {
-      VERBOSE(1) fprintf(stderr,"%s (%s) : can't recover now\n", ERROR_STR,__func__);
+      VERBOSE(1) fprintf(stderr,"%s (%s) : can't recover communication now\n", ERROR_STR,__func__);
       return -1;
    }
    
@@ -1571,7 +1571,7 @@ void *_xbee_thread(void *args)
    
    xbee_xd_t *xd=(xbee_xd_t *)args;
    
-   VERBOSE(5) fprintf(stderr,"%s  (%s) : starting xbee reading thread on %s\n",INFO_STR,__func__,xd->serial_dev_name);
+   VERBOSE(5) fprintf(stderr,"%s  (%s) : starting \"xbee reading thread\" on %s\n",INFO_STR,__func__,xd->serial_dev_name);
    while(1)
    {
       _xbee_flush_old_responses_queue(xd);
