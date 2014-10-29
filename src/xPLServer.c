@@ -52,13 +52,20 @@ uint32_t requestId = 1;
 pthread_mutex_t requestId_lock;
 pthread_cond_t  xplRespQueue_sync_cond;
 pthread_mutex_t xplRespQueue_sync_lock;
-int             _xPLServer_mutex_initialized;
+int             _xPLServer_mutex_initialized=0;
+volatile sig_atomic_t int _xPLServer_thread_is_running=0;
 queue_t        *xplRespQueue;
 
 
 // declaration des fonctions xPL non exporté par la librairies
 extern xPL_MessagePtr xPL_AllocMessage();
 extern xPL_NameValueListPtr xPL_AllocNVList();
+
+
+void set_xPLServer_isnt_running(void *data)
+{
+   _xPLServer_thread_is_running=0;
+}
 
 
 // duplication de createReceivedMessage de la lib xPL qui est déclarée en static et ne peut donc
@@ -354,6 +361,9 @@ void _xplRespQueue_free_queue_elem(void *d)
 
 void *xPLServer_thread(void *data)
 {
+   pthread_cleanup_push( (void *)set_xPLServer_isnt_running, (void *)NULL );
+  _xPLServer_is_running=1;
+   
 //   xPL_setDebugging(TRUE); // xPL en mode debug
 
    process_add_indicator(_xplServer_monitoring_id, "XPLIN", xplin_indicator);
@@ -390,6 +400,8 @@ void *xPLServer_thread(void *data)
       _flushExpiredXPLResponses();
    }
    while (1);
+
+   pthread_cleanup_pop(1);
 }
 
 
@@ -453,6 +465,18 @@ int stop_xPLServer(int my_id, void *data,  char *errmsg, int l_errmsg)
    if(_xPLServer_thread)
    {
       pthread_cancel(*_xPLServer_thread);
+      counter=100;
+      while(counter--)
+      {
+        if(_xPLServer_thread_is_running)
+        { // pour éviter une attente "trop" active
+           // sleep(0.01f); // will sleep for 1 ms
+           usleep(100); // will sleep for 1 ms
+        }
+        else
+           break;
+      }
+      DEBUG_SECTION fprintf(stderr,"Fin après %d itération\n",100-count);
    }  
    
    pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(xplRespQueue_sync_lock) );
