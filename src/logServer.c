@@ -74,6 +74,7 @@ int _readAndSendLine(int nodejs_socket, char *file, long *pos)
    int ret=0;
    while (1)
    {
+      pthread_testcancel();
       if (fgets(line, sizeof(line), fp) == NULL || nb_loop >= 20)
       {
          // plus de ligne à lire ou déjà 20 ligne transmise on rend la mains, on mémorise la dernière position connue
@@ -87,8 +88,10 @@ int _readAndSendLine(int nodejs_socket, char *file, long *pos)
       {
          char message[1024];
          int l_data=strlen(line)+4;
-         sprintf(message,"$$$%c%cLOG:%s###", (char)(l_data%256), (char)(l_data/256), line);
-         
+
+         sprintf(message,"$$$xxLOG:%s###", line);
+         message[3]=(char)(l_data%128);
+         message[4]=(char)(l_data/128);
          int ret = mea_socket_send(&nodejs_socket, message, l_data+12);
          if(ret<0)
          {
@@ -122,10 +125,13 @@ void *logServer_thread(void *data)
    do
    {
       process_heartbeat(_logServer_monitoring_id);
-      if(mea_socket_connect(&nodejs_socket, (char *)(d->hostname), (d->port_socketdata))==0)
+      pthread_testcancel();
+
+      if( mea_socket_connect(&nodejs_socket, (char *)(d->hostname), (d->port_socketdata))==0)
       {
          do
          {
+            pthread_testcancel();
             if(test_timer(&log_timer)==0)
                process_heartbeat( _logServer_monitoring_id);
             
@@ -136,8 +142,8 @@ void *logServer_thread(void *data)
                VERBOSE(9) {
                   fprintf(stderr, "%s (%s) : connection error - retry next time\n", INFO_STR, __func__);
                   break; // erreur de com. on essayera de se reconnecter au prochain tour.
+               }
             }
-
             if(ret!=1)
                sleep(1);
          }
@@ -161,15 +167,32 @@ void *logServer_thread(void *data)
 
 int stop_logServer(int my_id, void *data, char *errmsg, int l_errmsg)
 {
+   int ret=-1;
    if(_logServer_thread)
    {
+      int count=5; // 5 secondes pour s'arrêter
       pthread_cancel(*_logServer_thread);
-      pthread_join(*_logServer_thread, NULL);
+      while(count)
+      {
+         if(pthread_kill(*_logServer_thread, 0) == 0)
+         {
+            sleep(1);
+            count--;
+         }
+         else
+         {
+            ret=0;
+            break;
+         }
+      }
+//      pthread_join(*_logServer_thread, NULL);
+
       free(_logServer_thread);
       _logServer_thread=NULL;
    }
-   
-   mea_notif_printf('S', "LOGSERVER  stopped successfully");
+
+   VERBOSE(1) fprintf(stderr,"%s (%s) : LOGSERVER  stopped successfully.\n", INFO_STR, __func__);
+   mea_notify_printf('S', "LOGSERVER  stopped successfully (%d).",ret);
 
    return 0;
 }
@@ -179,7 +202,7 @@ int start_logServer(int my_id, void *data, char *errmsg, int l_errmsg)
 {
    struct logServerData_s *logServerData = (struct logServerData_s *)data;
 
-   char err_str[80], notify_str[80];
+   char err_str[80];
 
    logServer_thread_data.log_path=logServerData->params_list[LOG_PATH];
    logServer_thread_data.hostname=localhost_const;
@@ -190,9 +213,9 @@ int start_logServer(int my_id, void *data, char *errmsg, int l_errmsg)
    {
       strerror_r(errno, err_str, sizeof(err_str));
       VERBOSE(1) {
-         fprintf (stderr, "%s (%s) : malloc - %s",ERROR_STR,__func__,notify_str);
+         fprintf (stderr, "%s (%s) : malloc - %s",ERROR_STR,__func__,err_str);
       }
-      mea_notif_printf('E', "LOGSERVER can't be launched - %s", err_str);
+      mea_notify_printf('E', "LOGSERVER can't be launched - %s", err_str);
       return -1;
    }
    if(pthread_create (_logServer_thread, NULL, logServer_thread, (void *)&logServer_thread_data))
@@ -201,13 +224,14 @@ int start_logServer(int my_id, void *data, char *errmsg, int l_errmsg)
       VERBOSE(1) {
          fprintf(stderr, "%s (%s) : pthread_create - can't start thread - %s",ERROR_STR,__func__,err_str);
       }
-      mea_notif_printf('E', "LOGSERVER can't be launched - %s", err_str);
+      mea_notify_printf('E', "LOGSERVER can't be launched - %s", err_str);
 
       return -1;
    }
    _logServer_monitoring_id=my_id;
-   
-   mea_notif_printf('S', "LOGSERVER launched successfully");
+
+   VERBOSE(1) fprintf(stderr,"%s (%s) : LOGSERVER launched successfully.\n", INFO_STR, __func__);
+   mea_notify_printf('S', "LOGSERVER launched successfully.");
    return 0;
 }
 

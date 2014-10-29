@@ -202,6 +202,7 @@ int   xbee_init(xbee_xd_t *xd, char *dev, int speed)
  * \return    -1 en cas d'erreur, 0 sinon
  */
 {
+   int16_t nerr;
 /*
    struct termios options, options_old;
    int fd;
@@ -1511,8 +1512,8 @@ int _xbee_reopen(xbee_xd_t *xd)
 {
    int fd; /* File descriptor for the port */
    uint8_t flag=0;
-//   char dev[255];
-//   int speed=0;
+   char dev[255];
+   int speed=0;
    
    if(!xd)
       return -1;
@@ -1683,11 +1684,11 @@ void *_xbee_thread(void *args)
                if(_xbee_reopen(xd)<0)
                {
                   VERBOSE(1) {
-                     fprintf(stderr,"%s (%s) : xbee thread is down\n", ERROR_STR,__func__,nerr);
+                     fprintf(stderr,"%s (%s) : xbee thread is down\n", ERROR_STR,__func__);
                   }
                   pthread_exit(NULL);
                }
-               xb->signal_flag=0;
+               xd->signal_flag=0;
                break;
             case XBEE_ERR_HOSTTABLEFULL:
                VERBOSE(1) {

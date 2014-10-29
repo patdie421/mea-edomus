@@ -47,6 +47,7 @@ var liveCom = {
       {
          // alert - success - error - warning - information - confirmation
          case "A" : type="alert"; break;
+         case "E" : type="error"; break;
          case "S" : type="success"; break;
          case "W" : type="warning"; break;
          case "I" : type="information"; break;

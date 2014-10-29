@@ -397,7 +397,7 @@ void *xPLServer_thread(void *data)
 
 pthread_t *xPLServer()
 {
-   pthread_t *xPL_thread=NULL;
+//   pthread_t *xPL_thread=NULL;
 
    if(!xpl_deviceID || !xpl_instanceID || !xpl_vendorID)
    {
@@ -420,8 +420,8 @@ pthread_t *xPLServer()
    }
    init_queue(xplRespQueue); // initialisation de la file
 
-   xPLServer_thread=(pthread_t *)malloc(sizeof(pthread_t));
-   if(!xPL_thread)
+   _xPLServer_thread=(pthread_t *)malloc(sizeof(pthread_t));
+   if(!_xPLServer_thread)
    {
       VERBOSE(1) {
          fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__, MALLOC_ERROR_STR);
@@ -432,13 +432,13 @@ pthread_t *xPLServer()
       return NULL;
    }
 
-   if(pthread_create (xPL_thread, NULL, xPLServer_thread, NULL))
+   if(pthread_create (_xPLServer_thread, NULL, xPLServer_thread, NULL))
    {
       VERBOSE(1) fprintf(stderr, "%s (%s) : pthread_create - can't start thread\n",ERROR_STR,__func__);
       return NULL;
    }
       
-   return xPL_thread;
+   return _xPLServer_thread;
 }
 
 
@@ -446,9 +446,28 @@ int stop_xPLServer(int my_id, void *data,  char *errmsg, int l_errmsg)
 {
    if(_xPLServer_thread)
    {
+      int ret=-1;
       xPL_shutdown();
       pthread_cancel(*_xPLServer_thread);
-      pthread_join(*_xPLServer_thread, NULL);
+      
+      int count=5; // 5 secondes pour s'arrêter
+      pthread_cancel(*_xPLServer_thread);
+
+      while(count)
+      {
+         if(pthread_kill(*_xPLServer_thread, 0) == 0)
+         {
+            sleep(1);
+            count--;
+         }
+         else
+         {
+            ret=0;
+            break;
+         }
+      }
+
+//      pthread_join(*_xPLServer_thread, NULL);
       free(_xPLServer_thread);
       _xPLServer_thread=NULL;
    }
@@ -466,6 +485,7 @@ int stop_xPLServer(int my_id, void *data,  char *errmsg, int l_errmsg)
 
    _xplServer_monitoring_id=-1;
    
+   VERBOSE(2) fprintf(stderr,"%s (%s) : XPLSERVER stopped successfully.\n", INFO_STR, __func__);
    mea_notify_printf('S', "XPLSERVER stopped successfully");
 
    return 0;
@@ -475,7 +495,7 @@ int stop_xPLServer(int my_id, void *data,  char *errmsg, int l_errmsg)
 int start_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg)
 {
    struct xplServerData_s *xplServerData = (struct xplServerData_s *)data;
-   char err_str[80], notify_str[80];
+   char err_str[256];
    
    if(!set_xpl_address(xplServerData->params_list))
    {
@@ -489,7 +509,6 @@ int start_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg)
          VERBOSE(1) {
             fprintf (stderr, "%s (%s) : xPL_initialize - error\n",ERROR_STR,__func__);
          }
-         snprintf(notify_str, strlen(notify_str), "XPLSERVER Can't be launched - xPL_initialize error.\n");
          mea_notify_printf('E', "XPLSERVER Can't be launched - xPL_initialize error.\n");
          return -1;
       }
@@ -508,6 +527,7 @@ int start_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg)
       }
       else
       {
+         VERBOSE(2) fprintf(stderr,"%s (%s) : XPLSERVER launched successfully.\n", INFO_STR, __func__);
          mea_notify_printf('S', "XPLSERVER launched successfully");
 
          return 0;

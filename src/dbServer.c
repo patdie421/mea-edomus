@@ -407,19 +407,21 @@ void *tomysqldb_thread(void *args)
    
    while(1)
    {
-      int nb=0;
+      int nb=-1;
       
       process_heartbeat(_dbServer_monitoring_id);
+      pthread_testcancel();
 
       pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(md->lock));
-      if(!pthread_mutex_lock(&(md->lock)))
+      pthread_mutex_lock(&(md->lock));
+      if(md->queue)
       {
          nb=md->queue->nb_elem;
-         pthread_mutex_unlock(&(md->lock));
       }
+      pthread_mutex_unlock(&(md->lock));
       pthread_cleanup_pop(0);
-         
-      if(nb) // s'il y a quelque chose à traiter
+      
+      if(nb>0) // s'il y a quelque chose à traiter
       {
          if(mysql_connected == 1) // on a déjà été connecté un jour ...
          {
@@ -494,6 +496,7 @@ void *tomysqldb_thread(void *args)
 
          while(nb>0)
          {
+            pthread_testcancel();
             pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(md->lock));
             if(!pthread_mutex_lock(&(md->lock)))
             {
@@ -528,9 +531,6 @@ void *tomysqldb_thread(void *args)
       
       pthread_testcancel();
       sleep(10);
-//      DEBUG_SECTION {
-//         printf("Boucle tomysqldb\n");
-//      }
    }
    md->started=0;
    mysql_close(md->conn);
@@ -660,10 +660,27 @@ void tomysqldb_release(tomysqldb_md_t *md)
  * \param     md   descripteur tomysqldb.
  */
 {
+   int ret=-1;
+   
    if(md)
    {
+      int count=5; // 5 secondes pour s'arrêter
       pthread_cancel(md->thread);
-      pthread_join(md->thread,NULL);
+      while(count)
+      {
+         if(pthread_kill(md->thread, 0) == 0)
+         {
+            sleep(1);
+            count--;
+         }
+         else
+         {
+            ret=0;
+            break;
+         }
+      }
+//      pthread_cancel(md->thread);
+//      pthread_join(md->thread,NULL);
 
       md->started=0;
 
@@ -672,13 +689,18 @@ void tomysqldb_release(tomysqldb_md_t *md)
       sqlite3_close(md->db);
       md->db=NULL;
 
+      pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(md->lock));
+      pthread_mutex_lock(&(md->lock));
       clear_queue(md->queue,_tomysqldb_free_queue_elem);
-      
       if(md->queue)
       {
          free(md->queue);
          md->queue=NULL;
       }
+      pthread_mutex_unlock(&(md->lock));
+      pthread_cleanup_pop(0);
+      
+      pthread_mutex_destroy(&(md->lock));
       
       if(md->db_server)
       {
@@ -728,7 +750,8 @@ int stop_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
 
    _dbServer_monitoring_id=-1;
    
-   mea_notify_printf('S',"XPLSERVER stopped successfully");
+   VERBOSE(1) fprintf(stderr,"%s (%s) : DBSERVER stopped successfully.\n", INFO_STR, __func__);
+   mea_notify_printf('S',"DBSERVER stopped successfully.");
 
    return 0;
 }
@@ -755,7 +778,7 @@ int start_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
       VERBOSE(2) {
          fprintf(stderr,"%s (%s) : %s - %s\n", ERROR_STR, __func__, MALLOC_ERROR_STR,err_str);
       }
-      mea_notify_printf('E',"XPLSERVER can't be launched - %s.", err_str);
+      mea_notify_printf('E',"DBSERVER can't be launched - %s.", err_str);
       return -1;
    }
    memset(_md,0,sizeof(struct tomysqldb_md_s));
@@ -775,7 +798,8 @@ int start_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
    }
    _dbServer_monitoring_id=my_id;
 
-   mea_notify_printf('S',"XPLSERVER Started");
+   VERBOSE(1) fprintf(stderr,"%s (%s) : DBSERVER launched successfully.\n", INFO_STR, __func__);
+   mea_notify_printf('S', "DBSERVER launched successfully.");
 
 #else
    VERBOSE(9) fprintf(stderr,"%s  (%s) : dbServer desactivated.\n", INFO_STR,__func__);

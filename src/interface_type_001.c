@@ -358,7 +358,7 @@ int stop_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
 
    struct interface_type_001_data_s *start_stop_params=(struct interface_type_001_data_s *)data;
 
-   VERBOSE(9) fprintf(stderr,"%s  (%s) : shutdown thread ... ", INFO_STR, __func__);
+   VERBOSE(9) fprintf(stderr,"%s  (%s) : %s shutdown thread ... ", INFO_STR, __func__, start_stop_params->i001->name);
 
    if(start_stop_params->i001->thread)
    {
@@ -377,10 +377,8 @@ int stop_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
       free(start_stop_params->i001->ad);
       start_stop_params->i001->ad=0;
    }
-   
    VERBOSE(9) fprintf(stderr, "done.\n");
-   
-   mea_notify_printf('S', "%s stopped successfully", start_stop_params->i001->name);
+   mea_notify_printf('S', "%s stopped successfully.", start_stop_params->i001->name);
 
    return 0;
 }
@@ -395,7 +393,8 @@ int start_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
    speed_t speed;
    int fd = 0;
    comio2_ad_t *ad=NULL;
-   
+   char err_str[80];
+
    pthread_t *_interface_type_001_thread=NULL; // descripteur du thread
    struct thread_interface_type_001_params_s *thread_params=NULL; // parametre à transmettre au thread
 
@@ -456,16 +455,14 @@ int start_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
             fprintf(stderr,"%s (%s) : init_arduino - Unable to open serial port (%s) - ",ERROR_STR,__func__,start_stop_params->dev);
             perror("");
          }
-         fd=0;
          mea_notify_printf('E', "%s can't be launched - unable to open serial port (%s).", start_stop_params->i001->name, start_stop_params->dev);
+         fd=0;
          goto start_interface_type_001_clean_exit;
       }
    }
    else
    {
       VERBOSE(5) fprintf(stderr,"%s (%s) : no sensor/actuator active for this interface (%d) - ",ERROR_STR,__func__,start_stop_params->i001->id_interface);
-      if(errmsg)
-         snprintf(errmsg, l_errmsg, "no sensor/actuator active for this interface");
       mea_notify_printf('E', "%s can't be launched - no sensor/actuator active for this interface.", start_stop_params->i001->name);
 
       goto start_interface_type_001_clean_exit;
@@ -496,7 +493,8 @@ int start_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
    
    start_stop_params->i001->thread=_interface_type_001_thread;
    
-   mea_notify2("Interface xxx Started", 'S');
+   VERBOSE(2) fprintf(stderr,"%s (%s) : %s launched successfully.\n", ERROR_STR, __func__,start_stop_params->i001->name);
+   mea_notify_printf('S', "%s launched successfully", start_stop_params->i001->name);
    
    return 0;
    

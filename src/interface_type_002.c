@@ -37,6 +37,7 @@
 #include "python_api_utils.h"
 
 #include "processManager.h"
+#include "notify.h"
 
 #include "interfacesServer.h"
 #include "interface_type_002.h"
@@ -915,38 +916,8 @@ int stop_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
 
    struct interface_type_002_data_s *start_stop_params=(struct interface_type_002_data_s *)data;
 
-   VERBOSE(9) fprintf(stderr,"%s  (%s) : shutdown interface_type_002 thread.\n",INFO_STR, __func__);
-/*
-   FREE(i002->xPL_callback_data);
-   if(i002->xPL_callback)
-      i002->xPL_callback=NULL;
-   
-   if(i002->xd->dataflow_callback_data)
-   {
-      free(i002->xd->dataflow_callback_data);
-      i002->xd->dataflow_callback_data=NULL;
-      i002->xd->io_callback_data=NULL;
-   }
-   
-   if(i002->thread)
-   {
-      pthread_cancel(*(i002->thread));
-      pthread_join(*(i002->thread), NULL);
-   }
-   FREE(i002->thread);
-   
-   xbee_remove_commissionning_callback(i002->xd);
-   FREE(i002->xd->commissionning_callback_data);
+   VERBOSE(1) fprintf(stderr,"%s  (%s) : %s shutdown thread ... ", INFO_STR, __func__, start_stop_params->i002->name);
 
-   xbee_close(i002->xd);
-
-   FREE(i002->xd);
-   FREE(i002->local_xbee);
-
-   VERBOSE(9) fprintf(stderr,"%s  (%s) : interface_type_002 (%s) thread is down.\n",INFO_STR, __func__, start_stop_params->name);
-   
-   return NOERROR;
-*/
    if(start_stop_params->i002->xPL_callback_data)
    {
       free(start_stop_params->i002->xPL_callback_data);
@@ -1000,11 +971,10 @@ int stop_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
       start_stop_params->i002->local_xbee=NULL;
    }
    
-   VERBOSE(9) fprintf(stderr,"%s  (%s) : interface_type_002 (%s) thread is down.\n",INFO_STR, __func__, start_stop_params->name);
-   mea_notify_printf('S', "%s stopped successfully", start_stop_params->name);
+   VERBOSE(1) fprintf(stderr, "done.\n");
+   mea_notify_printf('S', "%s stopped successfully", start_stop_params->i002->name);
 
    return 0;
-
 }
 
 
@@ -1132,7 +1102,7 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
    int interface_nb_parameters=0;
    parsed_parameters_t *interface_parameters=NULL;
    
-   char err_str[128], notify_str[256];
+   char err_str[128];
    
    ret=get_dev_and_speed((char *)start_stop_params->i002->dev, buff, sizeof(buff), &speed);
    if(!ret)
@@ -1171,7 +1141,7 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
    {
       strerror_r(errno, err_str, sizeof(err_str));
       VERBOSE(2) {
-         fprintf(stderr,"%s (%s) : init_xbee - Unable to open serial port (%s) : %s\n", ERROR_STR, __func__, dev);
+         fprintf(stderr,"%s (%s) : init_xbee - Unable to open serial port (%s).\n", ERROR_STR, __func__, dev);
       }
       mea_notify_printf('E', "%s : unable to open serial port (%s) - %s.\n", start_stop_params->i002->name, dev, err_str);
       goto clean_exit;
@@ -1188,7 +1158,7 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
       VERBOSE(2) {
          fprintf(stderr,"%s (%s) : %s - %s.\n", ERROR_STR, __func__, MALLOC_ERROR_STR, err_str);
       }
-      mea_notify_printf('E', %s can't be launched - %s.\n", start_stop_params->i002->name, err_str);
+      mea_notify_printf('E', "%s can't be launched - %s.\n", start_stop_params->i002->name, err_str);
       goto clean_exit;
    }
    
@@ -1233,7 +1203,7 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
       else
       {
          VERBOSE(2) fprintf(stderr, "%s (%s) : invalid python plugin parameters (%s)\n", ERROR_STR, __func__, start_stop_params->parameters);
-         mea_notify_printf('E', %s - invalid python plugin parameters (%s), start_stop_params->i002-name, start_stop_params->parameters);
+         mea_notify_printf('E', "%s - invalid python plugin parameters (%s)", start_stop_params->i002->name, start_stop_params->parameters);
          goto clean_exit;
       }
    }
@@ -1360,6 +1330,7 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
    start_stop_params->i002->xPL_callback_data=xpl_callback_params;
    start_stop_params->i002->xPL_callback=_interface_type_002_xPL_callback;
    
+   VERBOSE(2) fprintf(stderr,"%s (%s) : %s launched successfully.\n", ERROR_STR, __func__,start_stop_params->i002->name);
    mea_notify_printf('S', "%s launched successfully", start_stop_params->i002->name);
    
    return NOERROR;

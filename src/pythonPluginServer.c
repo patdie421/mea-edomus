@@ -508,6 +508,9 @@ int stop_pythonPluginServer(int my_id, void *data, char *errmsg, int l_errmsg)
 
    _pythonPluginServer_monitoring_id=-1;
 
+   VERBOSE(1) fprintf(stderr,"%s (%s) : PYTHONPLUGINSERVER stopped successfully.\n", INFO_STR, __func__);
+   mea_notify_printf('S', "PYTHONPLUGINSERVER stopped successfully.");
+
    return ret;
 }
 
@@ -536,14 +539,15 @@ int start_pythonPluginServer(int my_id, void *data, char *errmsg, int l_errmsg)
    }
    else
    {
-      VERBOSE(2) {
+      VERBOSE(1) {
          fprintf(stderr,"%s (%s) : can't start Python Plugin Server (incorrect plugin path).\n", ERROR_STR, __func__);
       }
       mea_notify_printf('E', "Can't start PYTHONPLUGINSERVER - incorrect plugin path");
       return -1;
    }
-   
-   mea_notify_printf('S', "PYTHONPLUGINSERVER Started");
+
+   VERBOSE(1) fprintf(stderr,"%s (%s) : PYTHONPLUGINSERVER Started.\n", INFO_STR, __func__);
+   mea_notify_printf('S', "PYTHONPLUGINSERVER Started.");
 
    return 0;
 }

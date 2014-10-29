@@ -79,7 +79,7 @@ int _managed_processes_process_to_json(int id, char *s, int s_l, int flag)
          if(mea_strncat(s, s_l, "\"heartbeat\":")<0)
             return -1;
    
-         if((now - managed_processes.processes_table[id]->last_heartbeat)<15)
+         if((now - managed_processes.processes_table[id]->last_heartbeat)<30)
          {
             if(mea_strncat(s, s_l, "\"OK\"")<0)
                return -1;
@@ -550,7 +550,7 @@ int managed_processes_refresh_now(char *hostname, int port)
    
    char message[2048];
    int l_data=strlen(json)+4;
-   sprintf(message,"$$$%c%cMON:%s###", (char)(l_data%256), (char)(l_data/256), json);
+   sprintf(message,"$$$%c%cMON:%s###", (char)(l_data%128), (char)(l_data/128), json);
    
    ret = mea_socket_send(&sock, message, l_data+12);
    close(sock);
@@ -585,7 +585,7 @@ int _managed_processes_run(char *hostname, int port)
 
       char message[2048];
       int l_data=strlen(json)+4;
-      sprintf(message,"$$$%c%cMON:%s###", (char)(l_data%256), (char)(l_data/256), json);
+      sprintf(message,"$$$%c%cMON:%s###", (char)(l_data%128), (char)(l_data/128), json);
    
       ret = mea_socket_send(&sock, message, l_data+12);
       
@@ -646,7 +646,6 @@ int process_start(int id, char *errmsg, int l_errmsg)
          else
          {
             managed_processes.processes_table[id]->status=RUNNING;
-            process_heartbeat(id);
          }
       }
       else
@@ -655,6 +654,8 @@ int process_start(int id, char *errmsg, int l_errmsg)
 
    pthread_rwlock_unlock(&managed_processes.rwlock);
    pthread_cleanup_pop(0); 
+
+   process_heartbeat(id);
 
    return ret;
 }

@@ -15,6 +15,6 @@ int  mea_notify(char *hostname, int port, char *notif_str, char notif_type);
 
 void mea_notify_set_port(int p);
 int  mea_notify2(char *notif_str, char notif_type);
-int  mea_notify_sprintf(int notify_type, char const* fmt, ...);
+int  mea_notify_printf(int notify_type, char const* fmt, ...);
 
 #endif /* defined(__notify__) */

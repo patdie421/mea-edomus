@@ -124,16 +124,6 @@ int gethttp(char *server, int port, char *url, char *response, int l_response)
       return -1;
    }
    
-   //affichage de la reponse HTTP
-/*
-   if(n)
-   {
-      VERBOSE(9) {
-         fprintf (stderr, "%s  (%s) : recv - ", INFO_STR,__func__);
-         fprintf(stderr, "%s\n",response);
-      }
-   }
-*/
    // fermeture de la socket
    close(sockfd);
    
@@ -631,6 +621,9 @@ int stop_guiServer(int my_id, void *data, char *errmsg, int l_errmsg)
    
    _stop_nodejs();
    
+   VERBOSE(1) fprintf(stderr,"%s (%s) : GUISERVER stopped successfully.\n", INFO_STR, __func__);
+   mea_notify_printf('S', "GUISERVER stopped successfully.");
+   
    return 0;
 }
 
@@ -679,6 +672,8 @@ int start_guiServer(int my_id, void *data, char *errmsg, int l_errmsg)
    }
    pid_nodejs=pid;
    nodejs_started=1;
+
+   sleep(5);
    
 httpServer_only:
    if(!nodejs_started)
@@ -725,7 +720,8 @@ httpServer_only:
          httpServer(guiport, httpServerData->params_list[GUI_PATH], phpcgibin, httpServerData->params_list[PHPINI_PATH]);
          _httpServer_monitoring_id=my_id;
 
-         mea_notify2("GUISERVER Started", 'S');
+         VERBOSE(2) fprintf(stderr,"%s (%s) : GUISERVER launched successfully.\n", INFO_STR, __func__);
+         mea_notify_printf('S', "GUISERVER launched successfully.");
          
          return 0;
       }
@@ -742,7 +738,8 @@ httpServer_only:
       VERBOSE(3) fprintf(stderr,"%s (%s) : can't start GUI Server (parameters errors).\n",ERROR_STR,__func__);
    }
    
-   mea_notify2("Can't start GUISERVER", 'E');
+   VERBOSE(2) fprintf(stderr,"%s (%s) : GUISERVER can't be launched.\n", ERROR_STR, __func__);
+   mea_notify_printf('E', "GUISERVER can't be launched.");
    
    return -1;
 }

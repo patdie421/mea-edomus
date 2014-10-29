@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include<stdarg.h>
 
 #include "notify.h"
 #include "consts.h"
@@ -29,7 +30,7 @@ int mea_notify(char *hostname, int port, char *notif_str, char notif_type)
    int s;
    int ret;
    
-   if(mea_socket_connect(&s, hostname, port)<0)
+   if(mea_socket_connect(&s, hostname, port+1)<0)
    {
       return -1;
    }
@@ -45,28 +46,22 @@ int mea_notify(char *hostname, int port, char *notif_str, char notif_type)
 }
 
 
-int _notify(char *notif_str, char notif_type)
+int _notify( char *hostname, int port, char *notif_str, char notif_type)
 {
-   if(_notify_socket==-1)
-   {
-      if(mea_socket_connect(&_notify_socket, hostname, port)<0)
-      {
-        _notify_socket==-1;
-        return -1;
-      }
+   int ret;
+   int s;
+   
+   if(mea_socket_connect(&s, hostname, port)<0)
+      return -1;
+   
+   int notif_str_l=strlen(notif_str)+6;
+   char message[2048];
+   sprintf(message,"$$$%c%cNOT:%c:%s###", (char)(notif_str_l%256), (char)(notif_str_l/256), notif_type, notif_str);
+   ret = mea_socket_send(&s, message, notif_str_l+12);
 
-      int notif_str_l=strlen(notif_str)+6;
-      char message[2048];
-      sprintf(message,"$$$%c%cNOT:%c:%s###", (char)(notif_str_l%256), (char)(notif_str_l/256), notif_type, notif_str);
-      ret = mea_socket_send(&_notify_socket, message, notif_str_l+12);
-      if(ret<0)
-      {
-         close(_notify_socket);
-         _notify_socket=-1;
-         return -1;
-      }
-   }
-   return 0;
+   close(s);
+
+   return ret;
 }
 
 
@@ -76,7 +71,7 @@ int mea_notify2(char *notif_str, char notif_type)
 }
 
 
-size_t mea_notify_sprintf(int notify_type, char const* fmt, ...)
+int mea_notify_printf(int notif_type, char const* fmt, ...)
 {
    char notif_str[256];
    int l_notif;

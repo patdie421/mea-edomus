@@ -69,10 +69,28 @@ int mea_socket_connect(int *s, char *hostname, int port)
    return 0;
 }
 
+pthread_mutex_t mea_socket_send_lock;
+int mea_socket_send_lock_is_init=0;
 
 int mea_socket_send(int *s, char *message, int l_message)
 {
-   if(send(*s, message, l_message, 0) < 0)
+   int ret;
+   
+   if(mea_socket_send_lock_is_init==0)
+   {
+      pthread_mutex_init(&mea_socket_send_lock, NULL);
+      mea_socket_send_lock_is_init=1;
+   }
+   
+   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&mea_socket_send_lock );
+   pthread_mutex_lock(&mea_socket_send_lock);
+   
+   ret=send(*s, message, l_message, 0);
+
+   pthread_mutex_unlock(&mea_socket_send_lock);
+   pthread_cleanup_pop(0);
+
+   if(ret < 0)
    {
       DEBUG_SECTION {
          fprintf(stderr, "%s (%s) :  send - can't send : ",ERROR_STR,__func__);
@@ -83,3 +101,4 @@ int mea_socket_send(int *s, char *message, int l_message)
    
    return 0;
 }
+

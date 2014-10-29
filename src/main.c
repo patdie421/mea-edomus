@@ -777,6 +777,20 @@ int main(int argc, const char * argv[])
 
    mea_notify_set_port(atoi(params_list[NODEJSDATA_PORT]));
 
+   struct logServerData_s logServerData;
+   logServerData.params_list=params_list;
+   logServer_monitoring_id=process_register("LOGSERVER");
+   VERBOSE(9) fprintf (stderr, "%s (%s) : starting LOGSERVER ... ",INFO_STR,__func__);
+   process_set_start_stop(logServer_monitoring_id , start_logServer, stop_logServer, (void *)(&logServerData), 1);
+   if(process_start(logServer_monitoring_id, NULL, 0)<0)
+   {
+      VERBOSE(9) fprintf (stderr, "error !!!\n");
+      VERBOSE(1) fprintf (stderr, "%s (%s) : can't start log server\n",ERROR_STR,__func__);
+   }
+   VERBOSE(9) fprintf (stderr, "done\n");
+
+   sleep(1);
+   
    main_monitoring_id=process_register("MAIN");
    process_set_type(main_monitoring_id, NOTMANAGED);
    process_set_status(main_monitoring_id, RUNNING);
@@ -811,7 +825,7 @@ int main(int argc, const char * argv[])
          VERBOSE(1) fprintf (stderr, "%s (%s) : can't start database server\n",ERROR_STR,__func__);
          clean_all_and_exit();
       }
-      VERBOSE(9) fprintf (stderr, "done\n");
+      VERBOSE(9) fprintf (stderr, ".. done\n");
    }
 
 
@@ -851,19 +865,6 @@ int main(int argc, const char * argv[])
    VERBOSE(9) fprintf (stderr, "done\n");
    
    
-   struct logServerData_s logServerData;
-   logServerData.params_list=params_list;
-   logServer_monitoring_id=process_register("LOGSERVER");
-   VERBOSE(9) fprintf (stderr, "%s (%s) : starting LOGSERVER ... ",INFO_STR,__func__);
-   process_set_start_stop(logServer_monitoring_id , start_logServer, stop_logServer, (void *)(&logServerData), 1);
-   if(process_start(logServer_monitoring_id, NULL, 0)<0)
-   {
-      VERBOSE(9) fprintf (stderr, "error !!!\n");
-      VERBOSE(1) fprintf (stderr, "%s (%s) : can't start log server\n",ERROR_STR,__func__);
-   }
-   VERBOSE(9) fprintf (stderr, "done\n");
-
-
    time_t start_time;
    long uptime = 0;
 

@@ -73,9 +73,13 @@ function process_msg(cmnd, msg)
    if(cmnd=="LOG")
       sendMessage('log', msg);
    else if(cmnd=="MON")
+   {
       sendMessage('mon', msg);
+   }
    else if(cmnd=="NOT")
+   {
       sendMessage('not', msg);
+   }
    else
    {
       console.log("INFO   socket.on(data) : unknown command - "+cmd);
@@ -120,7 +124,7 @@ var server = require('net').createServer(function (socket) {
          var size=socket.read(2); // taille sur deux octets
          if(size)
          {
-            l_data=size.toString().charCodeAt(0)+size.toString().charCodeAt(1)*256;
+            l_data=size.toString().charCodeAt(0)+size.toString().charCodeAt(1)*128;
          }
          else
          {
