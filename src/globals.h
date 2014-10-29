@@ -50,4 +50,6 @@
 #define UNIT_V  4 // Volt
 #define UNIT_H  5 // pourcentage humidité
 
+#define NOPTHREADJOIN 1
+
 #endif
