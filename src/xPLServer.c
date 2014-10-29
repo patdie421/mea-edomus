@@ -411,6 +411,8 @@ pthread_t *xPLServer()
       _xPLServer_mutex_initialized=1;
    }
 
+   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(xplRespQueue_sync_lock) );
+   pthread_mutex_lock(&(xplRespQueue_sync_lock));
    xplRespQueue=(queue_t *)malloc(sizeof(queue_t));
    if(!xplRespQueue)
    {
@@ -421,6 +423,8 @@ pthread_t *xPLServer()
       return NULL;
    }
    init_queue(xplRespQueue); // initialisation de la file
+   pthread_mutex_unlock(&(xplRespQueue_sync_lock));
+   pthread_cleanup_pop(0);
 
    _xPLServer_thread=(pthread_t *)malloc(sizeof(pthread_t));
    if(!_xPLServer_thread)
