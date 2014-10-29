@@ -39,11 +39,9 @@ char *xpl_vendorID=NULL;
 char *xpl_deviceID=NULL;
 char *xpl_instanceID=NULL;
 
-pthread_t *_xPLServer_thread;
-// pthread_mutex_t xplRespSend_lock;
-
 
 // gestion du thread et des indicateurs
+pthread_t *_xPLServer_thread;
 int _xplServer_monitoring_id = -1;
 long xplin_indicator = 0;
 long xplout_indicator = 0;
@@ -54,7 +52,8 @@ uint32_t requestId = 1;
 pthread_mutex_t requestId_lock;
 pthread_cond_t  xplRespQueue_sync_cond;
 pthread_mutex_t xplRespQueue_sync_lock;
-queue_t         *xplRespQueue;
+int             _xPLServer_mutex_initialized;
+queue_t        *xplRespQueue;
 
 
 // declaration des fonctions xPL non exporté par la librairies
@@ -403,10 +402,14 @@ pthread_t *xPLServer()
       return NULL;
    }
    
-   // préparation synchro consommateur / producteur
-   pthread_cond_init(&xplRespQueue_sync_cond, NULL);
-   pthread_mutex_init(&xplRespQueue_sync_lock, NULL);
-   pthread_mutex_init(&requestId_lock, NULL);
+   // préparation synchro consommateur / producteur si nécessaire
+   if(_xPLServer_mutex_initialized==0)
+   {
+      pthread_cond_init(&xplRespQueue_sync_cond, NULL);
+      pthread_mutex_init(&xplRespQueue_sync_lock, NULL);
+      pthread_mutex_init(&requestId_lock, NULL);
+      _xPLServer_mutex_initialized=1;
+   }
 
    xplRespQueue=(queue_t *)malloc(sizeof(queue_t));
    if(!xplRespQueue)
@@ -446,7 +449,6 @@ int stop_xPLServer(int my_id, void *data,  char *errmsg, int l_errmsg)
    if(_xPLServer_thread)
    {
       pthread_cancel(*_xPLServer_thread);
-      xPL_shutdown();
    }  
    
    pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(xplRespQueue_sync_lock) );
@@ -467,6 +469,8 @@ int stop_xPLServer(int my_id, void *data,  char *errmsg, int l_errmsg)
       free(_xPLServer_thread);
       _xPLServer_thread=NULL;
    }   
+
+   xPL_shutdown();
 
    VERBOSE(2) fprintf(stderr,"%s (%s) : XPLSERVER stopped successfully.\n", INFO_STR, __func__);
    mea_notify_printf('S', "XPLSERVER stopped successfully");
@@ -524,3 +528,4 @@ int start_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg)
       return -1;
    }
 }
+
