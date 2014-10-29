@@ -445,32 +445,9 @@ int stop_xPLServer(int my_id, void *data,  char *errmsg, int l_errmsg)
 {
    if(_xPLServer_thread)
    {
-      int ret=-1;
-      
       pthread_cancel(*_xPLServer_thread);
-#ifdef NOPTHREADJOIN
-      int count=5; // 5 secondes pour s'arrêter
-      while(count)
-      {
-         if(pthread_kill(*_xPLServer_thread, 0) == 0)
-         {
-            sleep(1);
-            count--;
-         }
-         else
-         {
-            ret=0;
-            break;
-         }
-      }
-#endif
-      pthread_join(*_xPLServer_thread, NULL);
-#endif
-      free(_xPLServer_thread);
-      _xPLServer_thread=NULL;
-   }   
-      
-   xPL_shutdown();
+      xPL_shutdown();
+   }  
    
    pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(xplRespQueue_sync_lock) );
    pthread_mutex_lock(&(xplRespQueue_sync_lock));
@@ -484,7 +461,13 @@ int stop_xPLServer(int my_id, void *data,  char *errmsg, int l_errmsg)
    pthread_cleanup_pop(0);
 
    _xplServer_monitoring_id=-1;
-   
+
+   if(_xPLServer_thread)
+   {
+      free(_xPLServer_thread);
+      _xPLServer_thread=NULL;
+   }   
+
    VERBOSE(2) fprintf(stderr,"%s (%s) : XPLSERVER stopped successfully.\n", INFO_STR, __func__);
    mea_notify_printf('S', "XPLSERVER stopped successfully");
 
@@ -527,6 +510,7 @@ int start_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg)
       }
       else
       {
+         pthread_detach(_xPLServer_thread);
          VERBOSE(2) fprintf(stderr,"%s (%s) : XPLSERVER launched successfully.\n", INFO_STR, __func__);
          mea_notify_printf('S', "XPLSERVER launched successfully");
 
