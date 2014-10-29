@@ -447,12 +447,10 @@ int stop_xPLServer(int my_id, void *data,  char *errmsg, int l_errmsg)
    if(_xPLServer_thread)
    {
       int ret=-1;
-      xPL_shutdown();
-      pthread_cancel(*_xPLServer_thread);
       
-      int count=5; // 5 secondes pour s'arrêter
       pthread_cancel(*_xPLServer_thread);
-
+#ifdef NOPTHREADJOIN
+      int count=5; // 5 secondes pour s'arrêter
       while(count)
       {
          if(pthread_kill(*_xPLServer_thread, 0) == 0)
@@ -466,12 +464,15 @@ int stop_xPLServer(int my_id, void *data,  char *errmsg, int l_errmsg)
             break;
          }
       }
-
-//      pthread_join(*_xPLServer_thread, NULL);
+#endif
+      pthread_join(*_xPLServer_thread, NULL);
+#endif
       free(_xPLServer_thread);
       _xPLServer_thread=NULL;
-   }
+   }   
       
+   xPL_shutdown();
+   
    pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(xplRespQueue_sync_lock) );
    pthread_mutex_lock(&(xplRespQueue_sync_lock));
    if(xplRespQueue)
