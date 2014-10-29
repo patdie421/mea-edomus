@@ -689,16 +689,12 @@ void tomysqldb_release(tomysqldb_md_t *md)
       sqlite3_close(md->db);
       md->db=NULL;
 
-      pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(md->lock));
-      pthread_mutex_lock(&(md->lock));
       clear_queue(md->queue,_tomysqldb_free_queue_elem);
       if(md->queue)
       {
          free(md->queue);
          md->queue=NULL;
       }
-      pthread_mutex_unlock(&(md->lock));
-      pthread_cleanup_pop(0);
       
       pthread_mutex_destroy(&(md->lock));
       
