@@ -1,4 +1,4 @@
-   //
+//
 //  xPLServer.c
 //
 //  Created by Patrice DIETSCH on 17/10/12.
@@ -43,6 +43,8 @@ char *xpl_instanceID=NULL;
 // gestion du thread et des indicateurs
 pthread_t *_xPLServer_thread;
 int _xplServer_monitoring_id = -1;
+volatile sig_atomic_t _xPLServer_thread_is_running=0;
+
 long xplin_indicator = 0;
 long xplout_indicator = 0;
 
@@ -50,11 +52,10 @@ long xplout_indicator = 0;
 // gestion de des messages xpl internes
 uint32_t requestId = 1;
 pthread_mutex_t requestId_lock;
+queue_t        *xplRespQueue;
 pthread_cond_t  xplRespQueue_sync_cond;
 pthread_mutex_t xplRespQueue_sync_lock;
 int             _xPLServer_mutex_initialized=0;
-volatile sig_atomic_t int _xPLServer_thread_is_running=0;
-queue_t        *xplRespQueue;
 
 
 // declaration des fonctions xPL non exporté par la librairies
