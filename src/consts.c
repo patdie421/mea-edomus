@@ -9,3 +9,6 @@
 #include "consts.h"
 
 char *localhost_const = "localhost";
+
+char *stopped_successfully_str="stopped successfully";
+char *launched_successfully_str="launched successfully";

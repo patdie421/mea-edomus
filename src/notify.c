@@ -64,12 +64,12 @@ int _notify( char *hostname, int port, char *notif_str, char notif_type)
    return ret;
 }
 
-
+/*
 int mea_notify2(char *notif_str, char notif_type)
 {
    return _notify(localhost_const, _port, notif_str, notif_type);
 }
-
+*/
 
 int mea_notify_printf(int notif_type, char const* fmt, ...)
 {

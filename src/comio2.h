@@ -88,7 +88,7 @@ int16_t      comio2_cmdSend(comio2_ad_t *ad,
                          char *data, // zone donnee d'une trame
                          uint16_t l_data, // longueur zone donnee
                          int16_t *comio2_err);
-void         comoi2_free_ad(comio2_ad_t *ad);
+void         comio2_free_ad(comio2_ad_t *ad);
 comio2_ad_t *comio2_new_ad();
 int16_t      comio2_setTrap(comio2_ad_t *ad, int16_t numTrap, trap_f trap, void *userdata);
 int16_t      comio2_removeTrap(comio2_ad_t *ad, uint16_t numTrap);

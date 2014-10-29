@@ -12,6 +12,7 @@
 #include "xPL.h"
 
 void mea_api_init();
+void mea_api_release();
 
 static PyObject *mea_getMemory(PyObject *self, PyObject *args);
 

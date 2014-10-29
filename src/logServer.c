@@ -27,15 +27,32 @@
 #include "consts.h"
 #include "notify.h"
 
-pthread_t *_logServer_thread=NULL;
-int _logServer_monitoring_id=-1;
+
+char *log_server_name_str="LOGSERVER";
+
 
 struct logServer_thread_data_s
 {
    char *log_path;
    char *hostname;
    int port_socketdata;
-} logServer_thread_data;
+};
+
+
+// Variable globale privée
+pthread_t *_logServer_thread=NULL;
+volatile sig_atomic_t
+           _logServer_thread_is_running=0;
+int        _logServer_monitoring_id=-1;
+struct logServer_thread_data_s
+          _logServer_thread_data;
+
+
+void _set_logServer_isnt_running(void *data)
+{
+   _logServer_thread_is_running=0;
+}
+
 
 int _readAndSendLine(int nodejs_socket, char *file, long *pos)
 {
@@ -115,11 +132,14 @@ void *logServer_thread(void *data)
    long pos = -1;
    char log_file[256];
    mea_timer_t log_timer;
+   struct logServer_thread_data_s *d=(struct logServer_thread_data_s *)data;
+
+   pthread_cleanup_push( (void *)_set_logServer_isnt_running, (void *)NULL );
+   _logServer_thread_is_running=1;
    
    init_timer(&log_timer, 10, 1);
    start_timer(&log_timer);
    
-   struct logServer_thread_data_s *d=(struct logServer_thread_data_s *)data;
    sprintf(log_file,"%s/mea-edomus.log", d->log_path);
 
    do
@@ -160,7 +180,9 @@ void *logServer_thread(void *data)
       }
    }
    while(exit==0);
-   
+
+   pthread_cleanup_pop(1);
+
    return NULL;
 }
 
@@ -170,29 +192,29 @@ int stop_logServer(int my_id, void *data, char *errmsg, int l_errmsg)
    int ret=-1;
    if(_logServer_thread)
    {
-      int count=5; // 5 secondes pour s'arrêter
       pthread_cancel(*_logServer_thread);
-      while(count)
+      int counter=100;
+      int stopped=-1;
+      while(counter--)
       {
-         if(pthread_kill(*_logServer_thread, 0) == 0)
-         {
-            sleep(1);
-            count--;
-         }
-         else
-         {
-            ret=0;
-            break;
-         }
+        if(_logServer_thread_is_running)
+        {
+           usleep(100); // will sleep for 1 ms
+        }
+        else
+        {
+           stopped=0;
+           break;
+        }
       }
-//      pthread_join(*_logServer_thread, NULL);
-
+      DEBUG_SECTION fprintf(stderr,"%s (%s) : %s, fin après %d itération\n", DEBUG_STR, __func__, log_server_name_str, 100-counter);
+      
       free(_logServer_thread);
       _logServer_thread=NULL;
    }
 
-   VERBOSE(1) fprintf(stderr,"%s (%s) : LOGSERVER  stopped successfully.\n", INFO_STR, __func__);
-   mea_notify_printf('S', "LOGSERVER  stopped successfully (%d).",ret);
+   VERBOSE(1) fprintf(stderr,"%s  (%s) : %s %s.\n", INFO_STR, __func__, log_server_name_str, stopped_successfully_str);
+   mea_notify_printf('S', "%s %s (%d).",stopped_successfully_str, log_server_name_str, ret);
 
    return 0;
 }
@@ -204,9 +226,9 @@ int start_logServer(int my_id, void *data, char *errmsg, int l_errmsg)
 
    char err_str[80];
 
-   logServer_thread_data.log_path=logServerData->params_list[LOG_PATH];
-   logServer_thread_data.hostname=localhost_const;
-   logServer_thread_data.port_socketdata=atoi(logServerData->params_list[NODEJSDATA_PORT]);
+   _logServer_thread_data.log_path=logServerData->params_list[LOG_PATH];
+   _logServer_thread_data.hostname=localhost_const;
+   _logServer_thread_data.port_socketdata=atoi(logServerData->params_list[NODEJSDATA_PORT]);
 
    _logServer_thread=(pthread_t *)malloc(sizeof(pthread_t));
    if(!_logServer_thread)
@@ -215,23 +237,24 @@ int start_logServer(int my_id, void *data, char *errmsg, int l_errmsg)
       VERBOSE(1) {
          fprintf (stderr, "%s (%s) : malloc - %s",ERROR_STR,__func__,err_str);
       }
-      mea_notify_printf('E', "LOGSERVER can't be launched - %s", err_str);
+      mea_notify_printf('E', "%s can't be launched - %s", log_server_name_str, err_str);
       return -1;
    }
-   if(pthread_create (_logServer_thread, NULL, logServer_thread, (void *)&logServer_thread_data))
+   if(pthread_create (_logServer_thread, NULL, logServer_thread, (void *)&_logServer_thread_data))
    {
       strerror_r(errno, err_str, sizeof(err_str));
       VERBOSE(1) {
          fprintf(stderr, "%s (%s) : pthread_create - can't start thread - %s",ERROR_STR,__func__,err_str);
       }
-      mea_notify_printf('E', "LOGSERVER can't be launched - %s", err_str);
+      mea_notify_printf('E', "%s can't be launched - %s", log_server_name_str, err_str);
 
       return -1;
    }
+   pthread_detach(*_logServer_thread);
    _logServer_monitoring_id=my_id;
 
-   VERBOSE(1) fprintf(stderr,"%s (%s) : LOGSERVER launched successfully.\n", INFO_STR, __func__);
-   mea_notify_printf('S', "LOGSERVER launched successfully.");
+   VERBOSE(1) fprintf(stderr,"%s  (%s) :  %s %s.\n", INFO_STR, __func__, log_server_name_str, launched_successfully_str);
+   mea_notify_printf('S', "%s %s.", log_server_name_str, launched_successfully_str);
    return 0;
 }
 

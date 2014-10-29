@@ -753,7 +753,7 @@ int main(int argc, const char * argv[])
    dup2(fd, 2);
    close(fd);
 
-   DEBUG_SECTION fprintf(stderr,"Starting MEA-EDOMUS %s\n",__MEA_EDOMUS_VERSION__);
+   DEBUG_SECTION fprintf(stderr,"INFO  Starting MEA-EDOMUS %s\n",__MEA_EDOMUS_VERSION__);
 
    //
    // initialisation du gestionnaire de process
@@ -780,14 +780,12 @@ int main(int argc, const char * argv[])
    struct logServerData_s logServerData;
    logServerData.params_list=params_list;
    logServer_monitoring_id=process_register("LOGSERVER");
-   VERBOSE(9) fprintf (stderr, "%s (%s) : starting LOGSERVER ... ",INFO_STR,__func__);
    process_set_start_stop(logServer_monitoring_id , start_logServer, stop_logServer, (void *)(&logServerData), 1);
    if(process_start(logServer_monitoring_id, NULL, 0)<0)
    {
       VERBOSE(9) fprintf (stderr, "error !!!\n");
       VERBOSE(1) fprintf (stderr, "%s (%s) : can't start log server\n",ERROR_STR,__func__);
    }
-   VERBOSE(9) fprintf (stderr, "done\n");
 
    sleep(1);
    
@@ -802,13 +800,11 @@ int main(int argc, const char * argv[])
    httpServer_monitoring_id=process_register("GUISERVER");
    process_set_group(httpServer_monitoring_id, 5);
    process_set_start_stop(httpServer_monitoring_id , start_guiServer, stop_guiServer, (void *)(&httpServerData), 1);
-   VERBOSE(9) fprintf (stderr, "%s  (%s) : starting GUISERVER ... ",INFO_STR,__func__);
    if(process_start(httpServer_monitoring_id, NULL, 0)<0)
    {
       VERBOSE(9) fprintf (stderr, "error !!!\n");
       VERBOSE(1) fprintf (stderr, "%s (%s) : can't start gui server\n",ERROR_STR,__func__);
    }
-   VERBOSE(9) fprintf (stderr, "done\n");
 
 
    // démarrage des "services" (les services "majeurs" arrêtent tout (exit) si non démarrage
@@ -818,14 +814,12 @@ int main(int argc, const char * argv[])
    process_set_start_stop(dbServer_monitoring_id, start_dbServer, stop_dbServer, (void *)(&dbServerData), 1);
    if(!_b)
    {
-      VERBOSE(9) fprintf (stderr, "%s  (%s) : starting DBSERVER ... ",INFO_STR,__func__);
       if(process_start(dbServer_monitoring_id, NULL, 0)<0)
       {
          VERBOSE(9) fprintf (stderr, "error !!!\n");
          VERBOSE(1) fprintf (stderr, "%s (%s) : can't start database server\n",ERROR_STR,__func__);
          clean_all_and_exit();
       }
-      VERBOSE(9) fprintf (stderr, ".. done\n");
    }
 
 
@@ -834,35 +828,33 @@ int main(int argc, const char * argv[])
    pythonPluginServerData.sqlite3_param_db=sqlite3_param_db;
    pythonPluginServer_monitoring_id=process_register("PYTHONPLUGINSERVER");
    process_set_start_stop(pythonPluginServer_monitoring_id , start_pythonPluginServer, stop_pythonPluginServer, (void *)(&pythonPluginServerData), 1);
-   VERBOSE(9) fprintf (stderr, "%s  (%s) : starting PYTHONPLUGINSERVER ... ",INFO_STR,__func__);
    if(process_start(pythonPluginServer_monitoring_id, NULL, 0)<0)
    {
       VERBOSE(9) fprintf (stderr, "error !!!\n");
       VERBOSE(1) fprintf (stderr, "%s (%s) : can't start python plugin server\n",ERROR_STR,__func__);
       clean_all_and_exit();
    }
-   VERBOSE(9) fprintf (stderr, "done\n");
 
    
    interfaces=start_interfaces(params_list, sqlite3_param_db, dbServer_get_md()); // démarrage des interfaces
-   int interfaces_reload_task_id=process_register("RELOAD");
-   process_set_type(interfaces_reload_task_id, TASK);
-   process_set_group(interfaces_reload_task_id, 2);
 
+   int interfaces_reload_task_id=process_register("RELOAD");
+   process_set_group(interfaces_reload_task_id, 2);
+   process_set_start_stop(interfaces_reload_task_id , restart_interfaces, NULL, (void *)NULL, 1);
+   process_set_type(interfaces_reload_task_id, TASK);
+   
    
    struct xplServerData_s xplServerData;
    xplServerData.params_list=params_list;
    xplServerData.sqlite3_param_db=sqlite3_param_db;
    xplServer_monitoring_id=process_register("XPLSERVER");
    process_set_start_stop(xplServer_monitoring_id , start_xPLServer, stop_xPLServer, (void *)(&xplServerData), 1);
-   VERBOSE(9) fprintf (stderr, "%s  (%s) : starting XPLSERVER ... ",INFO_STR,__func__);
    if(process_start(xplServer_monitoring_id, NULL, 0)<0)
    {
       VERBOSE(9) fprintf (stderr, "error !!!\n");
       VERBOSE(1) fprintf (stderr, "%s (%s) : can't start xpl server\n",ERROR_STR,__func__);
       clean_all_and_exit();
    }
-   VERBOSE(9) fprintf (stderr, "done\n");
    
    
    time_t start_time;
@@ -870,7 +862,7 @@ int main(int argc, const char * argv[])
 
    start_time = time(NULL);
 
-   DEBUG_SECTION fprintf(stderr,"MEA-EDOMUS %s starded\n",__MEA_EDOMUS_VERSION__);
+   DEBUG_SECTION fprintf(stderr,"INFO  MEA-EDOMUS %s starded\n",__MEA_EDOMUS_VERSION__);
 
    // boucle sans fin.
    char response[512];

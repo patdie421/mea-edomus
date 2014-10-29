@@ -2,6 +2,11 @@ var whoIsScrollingFlag=0; // 1 = le script, 0 = l'utilisateur
 var scrollOnOffFlag=1;    // 1 = activé par defaut
 
 
+function ajax_error(xhr, ajaxOptions, thrownError){
+    alert("responseText="+xhr.responseText+" status="+xhr.status+" thrownError="+thrownError);
+}
+
+
 function toLogConsole(line)
 {
    // analyse de la ligne
@@ -95,7 +100,7 @@ function add_row(table, name, id, start_str, start, stop_str, stop)
 };
 
 
-function load_processes_list(){
+function load_all_processes_lists() {
    $.ajax({
       url: 'CMD/ps.php',
       async: true,
@@ -112,9 +117,32 @@ function load_processes_list(){
             }
             else if(data[key]['group']==2)
             {
-               add_row("table_reload", key, data[key]['pid'], "reload", start, null, null);
+               add_row("table_reload", key, data[key]['pid'], "reload", reload, null, null);
             }
             else if(data[key]['group']==1)
+            {
+               add_row("table_interfaces", key, data[key]['pid'], "start", start, "stop", stop);
+            }
+         }
+         anim_status(data);
+      },
+      error: function(jqXHR, textStatus, errorThrown ){
+         ajax_error( jqXHR, textStatus, errorThrown );
+      }
+   });
+}
+
+
+function load_interfaces_list_only() {
+   $.ajax({
+      url: 'CMD/ps.php',
+      async: true,
+      type: 'GET',
+      dataType: 'json',
+      success: function(data){
+         for(var key in data)
+         {
+            if(data[key]['group']==1)
             {
                add_row("table_interfaces", key, data[key]['pid'], "start", start, "stop", stop);
             }
@@ -155,12 +183,40 @@ function socketio_available(s) { // socket io est chargé, on se connecte
       anim_status(data);
    });
    
-   load_processes_list();
+   load_all_processes_lists();
 }
 
 
 function socketio_unavailable() {
    $("#console").append("<div>Pas d'iosocket => pas d'info en live ...<div>");
+}
+
+
+function reload(id)
+{
+   $.ajax({
+      url: 'CMD/startstop.php?process='+id+'&cmnd=task',
+      async: true,
+      type: 'GET',
+      dataType: 'json',
+      success: function(data){
+         var type="";
+         if(data["errno"]==0)
+            type="success";
+         else if(data["errno"]==-1)
+            type="information";
+         else
+            type="error";
+         console.log("Done");
+      },
+      error: function(jqXHR, textStatus, errorThrown ){
+         ajax_error( jqXHR, textStatus, errorThrown );
+      }
+   });
+
+   $("#table_interfaces").empty();
+   $("#table_interfaces").append("<tbody></tbody>");
+   load_interfaces_list_only();
 }
 
 
@@ -227,6 +283,10 @@ function start_index_controller(port)
       {
          socketio_unavailable();
       }
+   }
+   else
+   {
+      socketio_unavailable();
    }
 }
 

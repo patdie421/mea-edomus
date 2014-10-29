@@ -23,6 +23,7 @@
 #include "dbServer.h"
 
 #include "globals.h"
+#include "consts.h"
 #include "debug.h"
 #include "macros.h"
 #include "memory.h"
@@ -30,11 +31,22 @@
 #include "processManager.h"
 #include "notify.h"
 
-tomysqldb_md_t *_md=NULL;
-int _dbServer_monitoring_id=-1;
-
-
 int tomysqldb_connect(tomysqldb_md_t *md, MYSQL **conn);
+
+const char *db_server_name_str="DBSERVER";
+
+// Variable globale privée
+tomysqldb_md_t *_md=NULL;
+int             _dbServer_monitoring_id=-1;
+volatile sig_atomic_t
+                _dbServer_thread_is_running=0;
+
+
+void set_dbServer_isnt_running(void *data)
+{
+   _dbServer_thread_is_running=0;
+   mysql_thread_end();
+}
 
 
 void free_value(void *data)
@@ -395,6 +407,9 @@ void *tomysqldb_thread(void *args)
    md->conn=NULL; // descripteur com. MYSQL
    md->opened=0;
    
+   pthread_cleanup_push( (void *)set_dbServer_isnt_running, (void *)NULL );
+   _dbServer_thread_is_running=1;
+
    ret=tomysqldb_connect(md, &md->conn);
    if(ret)
       mysql_connected=0;
@@ -532,11 +547,15 @@ void *tomysqldb_thread(void *args)
       pthread_testcancel();
       sleep(10);
    }
+   
+   pthread_cleanup_pop(1);
+/*
    md->started=0;
    mysql_close(md->conn);
    sqlite3_close(md->db);
    md->db=NULL;
    pthread_exit(NULL);
+*/
 }
 
 
@@ -646,7 +665,7 @@ int tomysqldb_init(tomysqldb_md_t *md, char *db_server, char *db_server_port, ch
       VERBOSE(1) fprintf(stderr,"%s (%s) : can't create thread.\n", ERROR_STR, __func__);
       return -1;
    }
-   
+   pthread_detach(md->thread);
    md->started=1;
    
    return 0;
@@ -660,27 +679,24 @@ void tomysqldb_release(tomysqldb_md_t *md)
  * \param     md   descripteur tomysqldb.
  */
 {
-   int ret=-1;
-   
    if(md)
    {
-      int count=5; // 5 secondes pour s'arrêter
       pthread_cancel(md->thread);
-      while(count)
+      int counter=100;
+      int stopped=-1;
+      while(counter--)
       {
-         if(pthread_kill(md->thread, 0) == 0)
-         {
-            sleep(1);
-            count--;
+         if(_dbServer_thread_is_running)
+         {  // pour éviter une attente "trop" active
+            usleep(100); // will sleep for 1 ms
          }
          else
          {
-            ret=0;
+            stopped=0;
             break;
          }
       }
-//      pthread_cancel(md->thread);
-//      pthread_join(md->thread,NULL);
+      DEBUG_SECTION fprintf(stderr,"%s (%s) : DBSERVER, fin après %d itération\n",DEBUG_STR, __func__,100-counter);
 
       md->started=0;
 
@@ -746,8 +762,8 @@ int stop_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
 
    _dbServer_monitoring_id=-1;
    
-   VERBOSE(1) fprintf(stderr,"%s (%s) : DBSERVER stopped successfully.\n", INFO_STR, __func__);
-   mea_notify_printf('S',"DBSERVER stopped successfully.");
+   VERBOSE(1) fprintf(stderr,"%s  (%s) : DBSERVER %s.\n", INFO_STR, __func__, stopped_successfully_str);
+   mea_notify_printf('S',"DBSERVER %s.", stopped_successfully_str);
 
    return 0;
 }
@@ -765,7 +781,7 @@ int start_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
 #ifndef __NO_TOMYSQL__
    struct dbServerData_s *dbServerData = (struct dbServerData_s *)data;
    int16_t ret;
-   char err_str[80], notify_str[80];
+   char err_str[256];
 
    _md=(struct tomysqldb_md_s *)malloc(sizeof(struct tomysqldb_md_s));
    if(!_md)
@@ -778,7 +794,7 @@ int start_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
       return -1;
    }
    memset(_md,0,sizeof(struct tomysqldb_md_s));
-   
+
    ret=tomysqldb_init(_md, dbServerData->params_list[MYSQL_DB_SERVER],
                            dbServerData->params_list[MYSQL_DB_PORT],
                            dbServerData->params_list[MYSQL_DATABASE],
@@ -788,18 +804,16 @@ int start_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
    if(ret==-1)
    {
       VERBOSE(2) fprintf(stderr,"%s (%s) : Can not init data base communication.\n", ERROR_STR, __func__);
-      snprintf(notify_str, strlen(notify_str), "Can't start DBSERVER - Can not init data base communication.\n");
-      mea_notify2(notify_str, 'E');
+      mea_notify_printf('E', "DBSERVER : can't init data base communication.");
       return -1;
    }
    _dbServer_monitoring_id=my_id;
 
-   VERBOSE(1) fprintf(stderr,"%s (%s) : DBSERVER launched successfully.\n", INFO_STR, __func__);
-   mea_notify_printf('S', "DBSERVER launched successfully.");
+   VERBOSE(1) fprintf(stderr,"%s  (%s) : DBSERVER %s.\n", INFO_STR, __func__, launched_successfully_str);
+   mea_notify_printf('S', "DBSERVER %s.", launched_successfully_str);
 
 #else
    VERBOSE(9) fprintf(stderr,"%s  (%s) : dbServer desactivated.\n", INFO_STR,__func__);
 #endif
    return 0;
 }
-

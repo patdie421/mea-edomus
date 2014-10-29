@@ -22,8 +22,9 @@
 #include <pthread.h>
 
 #include "globals.h"
-#include "tokens.h"
+#include "consts.h"
 
+#include "tokens.h"
 #include "error.h"
 #include "debug.h"
 #include "macros.h"
@@ -87,21 +88,28 @@ struct callback_xpl_data_s
 
 struct thread_params_s
 {
-   xbee_xd_t           *xd;
-   tomysqldb_md_t      *md;
-   sqlite3             *param_db;
-   queue_t             *queue;
-   pthread_mutex_t      callback_lock;
-   pthread_cond_t       callback_cond;
-   PyThreadState       *mainThreadState;
-   PyThreadState       *myThreadState;
-   parsed_parameters_t *plugin_params;
-   int                  nb_plugin_params;
-   sqlite3_stmt        *stmt;
-   data_queue_elem_t   *e;
-//   void               **data;
-   int                  monitoring_id;
+   xbee_xd_t            *xd;
+   tomysqldb_md_t       *md;
+   sqlite3              *param_db;
+   queue_t              *queue;
+   pthread_mutex_t       callback_lock;
+   pthread_cond_t        callback_cond;
+   PyThreadState        *mainThreadState;
+   PyThreadState        *myThreadState;
+   parsed_parameters_t  *plugin_params;
+   int                   nb_plugin_params;
+   sqlite3_stmt         *stmt;
+   data_queue_elem_t    *e;
+//   int                   monitoring_id;
+   interface_type_002_t *i002;
 };
+
+
+void set_interface_type_002_isnt_running(void *data)
+{
+   interface_type_002_t *i002 = (interface_type_002_t *)data;
+   i002->thread_is_running=0;
+}
 
 
 mea_error_t display_frame(int ret, unsigned char *resp, uint16_t l_resp)
@@ -594,6 +602,9 @@ void *_thread_interface_type_002_xbeedata(void *args)
 {
    struct thread_params_s *params=(struct thread_params_s *)args;
 
+   pthread_cleanup_push( (void *)set_interface_type_002_isnt_running, (void *)params->i002 );
+   params->i002->thread_is_running=1;
+
    sqlite3 *params_db=params->param_db;
    data_queue_elem_t *e;
    int ret;
@@ -612,7 +623,7 @@ void *_thread_interface_type_002_xbeedata(void *args)
    
    while(1)
    {
-      process_heartbeat(params->monitoring_id);
+      process_heartbeat(params->i002->monitoring_id);
       
       pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)(&params->callback_lock) );
       pthread_mutex_lock(&params->callback_lock);
@@ -641,7 +652,6 @@ void *_thread_interface_type_002_xbeedata(void *args)
       
       ret=out_queue_elem(params->queue, (void **)&e);
       
-      // params->e=e;
       pthread_mutex_unlock(&params->callback_lock);
       pthread_cleanup_pop(0);
       
@@ -667,8 +677,6 @@ void *_thread_interface_type_002_xbeedata(void *args)
          if(ret)
          {
             VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (params_db));
-//            raise(SIGQUIT); // erreur du process
-//            sleep(5);       // on attend 5 secondes avant de s'arrter seul.
             pthread_exit(NULL);
          }
          
@@ -757,8 +765,6 @@ void *_thread_interface_type_002_xbeedata(void *args)
                      fprintf(stderr,"%s (%s) : %s - ", ERROR_STR, __func__, MALLOC_ERROR_STR);
                      perror("");
                   }
-//                  raise(SIGQUIT);
-//                  sleep(5);
                   pthread_exit(PTHREAD_CANCELED);
                }
                free_parsed_parameters(params->plugin_params, params->nb_plugin_params);
@@ -788,12 +794,14 @@ void *_thread_interface_type_002_xbeedata(void *args)
       }
       else
       {
-         // pb d'accès aux données de la file
+         // pb d'accès aux données de la file
          DEBUG_SECTION fprintf(stderr,"%s (%s) : out_queue_elem - no data in queue\n", DEBUG_STR, __func__);
       }
       pthread_testcancel();
    }
    
+   pthread_cleanup_pop(1);
+
    return NULL;
 }
 
@@ -839,10 +847,10 @@ pthread_t *start_interface_type_002_xbeedata_thread(interface_type_002_t *i002, 
    params->param_db=db;
    pthread_mutex_init(&params->callback_lock, NULL);
    pthread_cond_init(&params->callback_cond, NULL);
-//   params->data=(void *)i002;
+   params->i002=(void *)i002;
    params->mainThreadState = NULL;
    params->myThreadState = NULL;
-   params->monitoring_id = i002->monitoring_id;
+//   params->monitoring_id = i002->monitoring_id;
    
    // préparation des données pour les callback io_data et data_flow dont les données sont traitées par le même thread
    callback_xbeedata=(struct callback_data_s *)malloc(sizeof(struct callback_data_s));
@@ -944,7 +952,23 @@ int stop_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
    if(start_stop_params->i002->thread)
    {
       pthread_cancel(*(start_stop_params->i002->thread));
-      pthread_join(*(start_stop_params->i002->thread), NULL);
+      
+      int counter=100;
+      int stopped=-1;
+      while(counter--)
+      {
+         if(start_stop_params->i002->thread_is_running)
+         {  // pour éviter une attente "trop" active
+            usleep(100); // will sleep for 10 ms
+         }
+         else
+         {
+            stopped=0;
+            break;
+         }
+      }
+      DEBUG_SECTION fprintf(stderr,"%s (%s) : %s, fin après %d itération\n",DEBUG_STR, __func__,start_stop_params->i002->name,100-counter);
+
       free(start_stop_params->i002->thread);
       start_stop_params->i002->thread=NULL;
    }
@@ -972,7 +996,7 @@ int stop_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
    }
    
    VERBOSE(1) fprintf(stderr, "done.\n");
-   mea_notify_printf('S', "%s stopped successfully", start_stop_params->i002->name);
+   mea_notify_printf('S', "%s %s", start_stop_params->i002->name, stopped_successfully_str);
 
    return 0;
 }
@@ -1330,8 +1354,8 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
    start_stop_params->i002->xPL_callback_data=xpl_callback_params;
    start_stop_params->i002->xPL_callback=_interface_type_002_xPL_callback;
    
-   VERBOSE(2) fprintf(stderr,"%s (%s) : %s launched successfully.\n", ERROR_STR, __func__,start_stop_params->i002->name);
-   mea_notify_printf('S', "%s launched successfully", start_stop_params->i002->name);
+   VERBOSE(2) fprintf(stderr,"%s (%s) : %s %s.\n", ERROR_STR, __func__,start_stop_params->i002->name, launched_successfully_str);
+   mea_notify_printf('S', "%s %s", start_stop_params->i002->name, launched_successfully_str);
    
    return NOERROR;
    

@@ -12,5 +12,7 @@
 #include <stdio.h>
 
 extern char *localhost_const;
+extern char *stopped_successfully_str;
+extern char *launched_successfully_str;
 
 #endif

@@ -317,7 +317,7 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db, tomysql
                      }
                      break;
                   }
-
+                  i001->thread_is_running=0;
                   struct interface_type_001_data_s *i001_start_stop_params=(struct interface_type_001_data_s *)malloc(sizeof(struct interface_type_001_data_s));
                   if(!i001_start_stop_params)
                   {
@@ -381,7 +381,7 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db, tomysql
                         perror(""); }
                      break;
                   }
-
+                  i002->thread_is_running=0;
                   
                   struct interface_type_002_data_s *i002_start_stop_params=(struct interface_type_002_data_s *)malloc(sizeof(struct interface_type_002_data_s));
                   if(!i002_start_stop_params)
@@ -532,4 +532,9 @@ void restart_down_interfaces(sqlite3 *sqlite3_param_db, tomysqldb_md_t *myd)
 }
 
 
+int restart_interfaces(int my_id, void *data, char *errmsg, int l_errmsg)
+{
+   fprintf(stderr, "ESSAI RELOAD\n");
+   return 0;
+}
 

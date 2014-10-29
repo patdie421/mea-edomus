@@ -565,7 +565,7 @@ managed_processes_refresh_now_clean_exit:
 
 int _managed_processes_run(char *hostname, int port)
 {
-   int ret;
+   int ret=0;
    
    pthread_cleanup_push( (void *)pthread_rwlock_unlock, (void *)&managed_processes.rwlock );
    pthread_rwlock_rdlock(&managed_processes.rwlock);
@@ -626,7 +626,6 @@ int process_is_running(int id)
    return ret;
 }
 
-
 int process_start(int id, char *errmsg, int l_errmsg)
 {
    int ret=1;
@@ -647,6 +646,34 @@ int process_start(int id, char *errmsg, int l_errmsg)
          {
             managed_processes.processes_table[id]->status=RUNNING;
          }
+      }
+      else
+         return -1;
+   }
+
+   pthread_rwlock_unlock(&managed_processes.rwlock);
+   pthread_cleanup_pop(0); 
+
+   process_heartbeat(id);
+
+   return ret;
+}
+
+
+int process_task(int id, char *errmsg, int l_errmsg)
+{
+   int ret=1;
+ 
+   pthread_cleanup_push( (void *)pthread_rwlock_unlock, (void *)&managed_processes.rwlock );
+   pthread_rwlock_wrlock(&managed_processes.rwlock);
+
+   if(id>=0 && managed_processes.processes_table[id] &&
+      managed_processes.processes_table[id]->type==TASK)
+   {
+      if(managed_processes.processes_table[id]->start)
+      {
+         // lancer ici la commande dans un thread et non en synchrone
+         ret=managed_processes.processes_table[id]->start(id, managed_processes.processes_table[id]->start_stop_data, errmsg, l_errmsg);
       }
       else
          return -1;

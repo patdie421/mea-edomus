@@ -67,6 +67,7 @@ int   process_heartbeat(int id);
 int   process_start(int id, char *errmsg, int l_errmsg);
 int   process_stop(int id, char *errmsg, int l_errmsg);
 int   process_is_running(int id);
+int   process_task(int id, char *errmsg, int l_errmsg);
 
 int   process_set_start_stop(int id,  process_start_stop_f start, process_start_stop_f stop, void *start_stop_data, int type);
 int   process_set_status(int id, process_status_t status);

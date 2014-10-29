@@ -19,6 +19,8 @@
 #include <termios.h>
 
 #include "globals.h"
+#include "consts.h"
+
 #include "string_utils.h"
 #include "tokens.h"
 #include "debug.h"
@@ -54,6 +56,13 @@ struct thread_interface_type_001_params_s
    interface_type_001_t *it001;
    tomysqldb_md_t *md;
 };
+
+
+void set_interface_type_001_isnt_running(void *data)
+{
+   interface_type_001_t *i001 = (interface_type_001_t *)data;
+   i001->thread_is_running=0;
+}
 
 
 // xPLSend -c control.basic -m cmnd device=RELAY1 type=output current=pulse data1=125
@@ -314,10 +323,14 @@ void *_thread_interface_type_001(void *args)
    struct thread_interface_type_001_params_s *thread_params=(struct thread_interface_type_001_params_s *)args;
    
    interface_type_001_t *i001=thread_params->it001;
+   
+   pthread_cleanup_push( (void *)set_interface_type_001_isnt_running, (void *)i001 );
+   i001->thread_is_running=1;
+   
    tomysqldb_md_t *md=thread_params->md;
    free(thread_params);
    thread_params=NULL;
-
+   
    interface_type_001_counters_init(i001);
    interface_type_001_sensors_init(i001);
 
@@ -340,6 +353,8 @@ void *_thread_interface_type_001(void *args)
       pthread_testcancel();
       sleep(5);
    }
+   
+   pthread_cleanup_pop(1);
 }
 
 
@@ -362,11 +377,23 @@ int stop_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
 
    if(start_stop_params->i001->thread)
    {
-      if(pthread_kill(*start_stop_params->i001->thread, 0) == 0) // on arrête le thread que s'il tourne encore
+      pthread_cancel(*start_stop_params->i001->thread);
+      int counter=100;
+      int stopped=-1;
+      while(counter--)
       {
-         pthread_cancel(*(start_stop_params->i001->thread));
-         pthread_join(*(start_stop_params->i001->thread), NULL);
+         if(start_stop_params->i001->thread_is_running)
+         {  // pour éviter une attente "trop" active
+            usleep(100); // will sleep for 10 ms
+         }
+         else
+         {
+            stopped=0;
+            break;
+         }
       }
+      DEBUG_SECTION fprintf(stderr,"%s (%s) : %s, fin après %d itération\n",DEBUG_STR, __func__,start_stop_params->i001->name,100-counter);
+
       free(start_stop_params->i001->thread);
       start_stop_params->i001->thread=NULL;
    }
@@ -374,11 +401,12 @@ int stop_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
    if(start_stop_params->i001->ad)
    {
       comio2_close(start_stop_params->i001->ad);
-      free(start_stop_params->i001->ad);
+      comio2_free_ad(start_stop_params->i001->ad);
+      //free(start_stop_params->i001->ad);
       start_stop_params->i001->ad=0;
    }
    VERBOSE(9) fprintf(stderr, "done.\n");
-   mea_notify_printf('S', "%s stopped successfully.", start_stop_params->i001->name);
+   mea_notify_printf('S', "%s %s.", start_stop_params->i001->name, stopped_successfully_str);
 
    return 0;
 }
@@ -493,8 +521,8 @@ int start_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
    
    start_stop_params->i001->thread=_interface_type_001_thread;
    
-   VERBOSE(2) fprintf(stderr,"%s (%s) : %s launched successfully.\n", ERROR_STR, __func__,start_stop_params->i001->name);
-   mea_notify_printf('S', "%s launched successfully", start_stop_params->i001->name);
+   VERBOSE(2) fprintf(stderr,"%s  (%s) : %s %s.\n", INFO_STR, __func__, start_stop_params->i001->name, launched_successfully_str);
+   mea_notify_printf('S', "%s %s", start_stop_params->i001->name, launched_successfully_str);
    
    return 0;
    

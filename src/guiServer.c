@@ -60,11 +60,14 @@ char *val_cgi_environment=NULL;
 char *val_cgi_pattern=NULL;
 char *val_num_threads=NULL;
 
-int _httpServer_monitoring_id=-1;
-pid_t pid_nodejs=0;
-int socketio_port=0;
-int socketdata_port=0;
-char php_sessions_path[256];
+
+// Variable globale privée
+int   _httpServer_monitoring_id=-1;
+pid_t _pid_nodejs=0;
+
+int  _socketio_port=0;
+int  _socketdata_port=0;
+char _php_sessions_path[256];
 
 /*
  const char* options[] = {
@@ -132,7 +135,7 @@ int gethttp(char *server, int port, char *url, char *response, int l_response)
 
 
 // fichier "mémoire"
-static const char *open_file_handler(const struct mg_connection *conn, const char *path, size_t *size)
+static const char *_open_file_handler(const struct mg_connection *conn, const char *path, size_t *size)
 {
    /*
     // ne peut pas marcher avec les cgi car le cgi-php va chercher sur disque le fichier ... utile néanmoins pour fournir des pages statiques ...
@@ -151,7 +154,7 @@ static const char *open_file_handler(const struct mg_connection *conn, const cha
 }
 
 
-void httpResponse(struct mg_connection *conn, char *response)
+void _httpResponse(struct mg_connection *conn, char *response)
 {
    mg_printf(conn,
              "HTTP/1.1 200 OK\r\n"
@@ -167,7 +170,7 @@ void httpResponse(struct mg_connection *conn, char *response)
 }
 
 
-void httpErrno(struct mg_connection *conn, int n, char *msg)
+void _httpErrno(struct mg_connection *conn, int n, char *msg)
 {
    char errno_str[100];
    if(msg)
@@ -175,7 +178,7 @@ void httpErrno(struct mg_connection *conn, int n, char *msg)
    else
       snprintf(errno_str, sizeof(errno_str)-1, "{ \"errno\" : %d }",n);
    
-   httpResponse(conn, errno_str);
+   _httpResponse(conn, errno_str);
 }
 
 
@@ -225,7 +228,9 @@ int _findPHPVar(char *phpserial, char *var, int *type, char *value, int l_value)
 
 int _phpsessid_check_loggedin_and_admin(char *phpsessid,char *sessions_files_path)
 {
+   int ret=0;
    char session_file[80];
+   
    int n=snprintf(session_file, sizeof(session_file), "%s/sess_%s",sessions_files_path, phpsessid);
    if(n<0 || n==sizeof(session_file))
    {
@@ -236,7 +241,7 @@ int _phpsessid_check_loggedin_and_admin(char *phpsessid,char *sessions_files_pat
       return -1;
    }
    
-   char *buff;
+   char *buff=NULL;
    struct stat st;
    
    if (stat(session_file, &st) == 0)
@@ -255,7 +260,10 @@ int _phpsessid_check_loggedin_and_admin(char *phpsessid,char *sessions_files_pat
       int n = fread(buff, 1, st.st_size, fd);
       fclose(fd);
       if(!n)
-         return -1;
+      {
+         ret=-1;
+         goto _phpsessid_check_loggedin_and_admin_clean_exit;
+      }
       buff[n]='\0'; // pour eviter les problèmes ...
       
       int logged_in;
@@ -266,20 +274,26 @@ int _phpsessid_check_loggedin_and_admin(char *phpsessid,char *sessions_files_pat
       if(_findPHPVar(buff, "logged_in", &type, value, 80)==0)
          logged_in=atoi(value);
       else
-         return -1;
+      {
+         ret=-1;
+         goto _phpsessid_check_loggedin_and_admin_clean_exit;
+      }
       if(_findPHPVar(buff, "profil", &type, value, 80)==0)
          admin=atoi(value);
       else
-         return -1;
+      {
+         ret=-1;
+         goto _phpsessid_check_loggedin_and_admin_clean_exit;
+      }
       
       if(logged_in==1 && admin==1)
-         return 1;
+         ret=1;
       else
       {
          if(logged_in==1)
-            return 0;
+            ret=0;
          else
-            return -1;
+            ret=-1;
       }
    }
    else
@@ -288,14 +302,22 @@ int _phpsessid_check_loggedin_and_admin(char *phpsessid,char *sessions_files_pat
          fprintf(stderr, "%s (%s) : cannot read %s file - ",ERROR_STR,__func__,session_file);
          perror("");
       }
-      return -1;
+      ret=-1;
    }
+_phpsessid_check_loggedin_and_admin_clean_exit:
+   if(buff)
+   {
+      free(buff);
+      buff=NULL;
+   }
+
+   return ret;
 }
 
 
 #define MAX_BUFFER_SIZE 80
 #define MAX_TOKEN 20
-static int begin_request_handler(struct mg_connection *conn)
+static int _begin_request_handler(struct mg_connection *conn)
 {
    uint32_t id = 0;
    const struct mg_request_info *request_info = mg_get_request_info(conn);
@@ -313,36 +335,36 @@ static int begin_request_handler(struct mg_connection *conn)
    
    if(strlen((char *)request_info->uri)==11 && mea_strncmplower("/CMD/ps.php",(char *)request_info->uri,11)==0)
    {
-      if(!phpsessid[0] || _phpsessid_check_loggedin_and_admin(phpsessid, php_sessions_path)<0)
+      if(!phpsessid[0] || _phpsessid_check_loggedin_and_admin(phpsessid, _php_sessions_path)<0)
       {
-         httpErrno(conn, 2, NULL); // pas habilité
+         _httpErrno(conn, 2, NULL); // pas habilité
          return 1;
       }
       
       char json[2048];
       managed_processes_processes_to_json_mini(json, sizeof(json)-1);
-      httpResponse(conn, json);
+      _httpResponse(conn, json);
       return 1;
    }
    else if(strlen((char *)request_info->uri)==13 &&  mea_strncmplower("/CMD/ping.php",(char *)request_info->uri,13)==0)
    {
       process_heartbeat(_httpServer_monitoring_id);
-      httpErrno(conn, 0, NULL);
+      _httpErrno(conn, 0, NULL);
       return 1;
    }
    else if(mea_strncmplower("/CMD/startstop.php",(char *)request_info->uri,18)==0)
    {
       // on récupère le session_id PHP
-      if(!phpsessid[0] || _phpsessid_check_loggedin_and_admin(phpsessid, php_sessions_path)!=1)
+      if(!phpsessid[0] || _phpsessid_check_loggedin_and_admin(phpsessid, _php_sessions_path)!=1)
       {
-         httpErrno(conn, 2, NULL); // pas habilité
+         _httpErrno(conn, 2, NULL); // pas habilité
          return 1;
       }
       
       // lire les paramètres
       if(strcmp(request_info->request_method, "GET") != 0)
       {
-         httpErrno(conn, 3, NULL); // pas la bonne méthode
+         _httpErrno(conn, 3, NULL); // pas la bonne méthode
          return 1;
       }
       
@@ -360,7 +382,7 @@ static int begin_request_handler(struct mg_connection *conn)
          }
          else
          {
-            httpErrno(conn, 4, NULL);
+            _httpErrno(conn, 4, NULL);
          }
          ret=mg_get_var(request_info->query_string, strlen(request_info->query_string), "cmnd", command, sizeof(command));
          if(ret)
@@ -370,32 +392,40 @@ static int begin_request_handler(struct mg_connection *conn)
             {
                ret=process_start(process_id, errmsg, sizeof(errmsg));
                if(!ret)
-                  httpErrno(conn, 0, "started");
+                  _httpErrno(conn, 0, "started");
                else if(ret!=1)
-                  httpErrno(conn, 7, errmsg);
+                  _httpErrno(conn, 7, errmsg);
                else
-                  httpErrno(conn, -1, "all ready running !");
+                  _httpErrno(conn, -1, "all ready running !");
             }
             else if (mea_strncmplower("stop", command, strlen(command))==0)
             {
                ret=process_stop(process_id, errmsg, sizeof(errmsg));
                if(!ret)
-                  httpErrno(conn, 0, "stopped");
+                  _httpErrno(conn, 0, "stopped");
                else if(ret!=1)
-                  httpErrno(conn, 7, errmsg);
+                  _httpErrno(conn, 7, errmsg);
                else
-                  httpErrno(conn, -1, "all ready not running !");
+                  _httpErrno(conn, -1, "all ready not running !");
+            }
+            else if (mea_strncmplower("task", command, strlen(command))==0)
+            {
+               ret=process_task(process_id, errmsg, sizeof(errmsg));
+               if(!ret)
+                  _httpErrno(conn, 0, "done");
+               else if(ret!=1)
+                  _httpErrno(conn, 7, errmsg);
             }
             else
             {
-               httpErrno(conn, 6, NULL);
+               _httpErrno(conn, 6, NULL);
             }
          }
       }
       else
-         httpErrno(conn, 5, NULL);
+         _httpErrno(conn, 5, NULL);
 
-      managed_processes_refresh_now(localhost_const, socketdata_port);
+      managed_processes_refresh_now(localhost_const, _socketdata_port);
       
       return 1;
    }
@@ -498,7 +528,7 @@ static int begin_request_handler(struct mg_connection *conn)
                   strcpy(reponse,"{ \"errno\" : 1 }");
                }
             }
-            httpResponse(conn, reponse);
+            _httpResponse(conn, reponse);
             return 1;
          }
          else
@@ -512,20 +542,24 @@ static int begin_request_handler(struct mg_connection *conn)
 }
 
 
-void _stop_nodejs()
+void stop_nodejs()
 {
    int status;
    
-   if(pid_nodejs>1)
+   if(_pid_nodejs>0)
    {
-      kill(pid_nodejs, SIGKILL);
+      kill(_pid_nodejs, SIGKILL);
       wait(&status);
-      pid_nodejs=-1;
+      _pid_nodejs=-1;
    }
+   
+   VERBOSE(1) fprintf(stderr,"%s  (%s) : nodejs %s.\n", INFO_STR, __func__,stopped_successfully_str);
+   mea_notify_printf('S', "nodejs %s.",stopped_successfully_str);
+
 }
 
 
-pid_t _start_nodejs(char *nodejs_path, char *eventServer_path, int port_socketio, int port_socketdata, char *phpsession_path)
+pid_t start_nodejs(char *nodejs_path, char *eventServer_path, int port_socketio, int port_socketdata, char *phpsession_path)
 {
    pid_t nodejs_pid = -1;
    nodejs_pid = fork();
@@ -533,9 +567,9 @@ pid_t _start_nodejs(char *nodejs_path, char *eventServer_path, int port_socketio
    if (nodejs_pid == 0) // child
    {
       // Code only executed by child process
-      char str_port_socketio[80];
-      char str_port_socketdata[80];
-      char str_phpsession_path[80];
+      char str_port_socketio[20];
+      char str_port_socketdata[20];
+      char str_phpsession_path[256];
       
       char *params[6];
       
@@ -551,22 +585,34 @@ pid_t _start_nodejs(char *nodejs_path, char *eventServer_path, int port_socketio
       params[5]=0;
       
       execvp(nodejs_path, params);
-      
+
+      VERBOSE(1) fprintf(stderr,"%s (%s) : can't start nodejs Server (execvp).\n", ERROR_STR, __func__);
       perror("");
       
       exit(1);
    }
    else if (nodejs_pid < 0)
    { // failed to fork
+      VERBOSE(1) fprintf(stderr,"%s (%s) : can't start nodejs server (fork).\n", ERROR_STR, __func__);
       perror("");
       return -1;
    }
    // Code only executed by parent process
+   VERBOSE(1) fprintf(stderr,"%s  (%s) : nodejs server %s.\n", INFO_STR, __func__, launched_successfully_str);
+   mea_notify_printf('S', "nodejs server %sy.", launched_successfully_str);
    return nodejs_pid;
 }
 
 
-mea_error_t httpServer(uint16_t port, char *home, char *php_cgi, char *php_ini_path)
+int stop_httpServer()
+{
+   mg_stop(g_mongooseContext);
+   
+   return 0;
+}
+
+
+mea_error_t start_httpServer(uint16_t port, char *home, char *php_cgi, char *php_ini_path)
 {
    if(port==0)
       port=8083;
@@ -604,7 +650,7 @@ mea_error_t httpServer(uint16_t port, char *home, char *php_cgi, char *php_ini_p
    
    struct mg_callbacks callbacks;
    memset(&callbacks,0,sizeof(struct mg_callbacks));
-   callbacks.begin_request = begin_request_handler;
+   callbacks.begin_request = _begin_request_handler;
    //   callbacks.open_file = open_file_handler;
    
    g_mongooseContext = mg_start(&callbacks, NULL, options);
@@ -617,12 +663,10 @@ mea_error_t httpServer(uint16_t port, char *home, char *php_cgi, char *php_ini_p
 
 int stop_guiServer(int my_id, void *data, char *errmsg, int l_errmsg)
 {
-   mg_stop(g_mongooseContext);
-   
-   _stop_nodejs();
-   
-   VERBOSE(1) fprintf(stderr,"%s (%s) : GUISERVER stopped successfully.\n", INFO_STR, __func__);
-   mea_notify_printf('S', "GUISERVER stopped successfully.");
+   stop_nodejs();
+   stop_httpServer();
+   VERBOSE(1) fprintf(stderr,"%s  (%s) : HTTPSERVER %s.\n", INFO_STR, __func__, stopped_successfully_str);
+   mea_notify_printf('S', "HTTPSERVER %s.", stopped_successfully_str);
    
    return 0;
 }
@@ -643,43 +687,44 @@ int start_guiServer(int my_id, void *data, char *errmsg, int l_errmsg)
       VERBOSE(3) {
          fprintf (stderr, "%s (%s) : nodejs - parameters error ...",ERROR_STR,__func__);
       }
-      goto httpServer_only;
    }
-   
-   socketio_port = atoi(httpServerData->params_list[NODEJSIOSOCKET_PORT]);
-   socketdata_port = atoi(httpServerData->params_list[NODEJSDATA_PORT]);
-   char *nodejs_path = httpServerData->params_list[NODEJS_PATH];
-   char *phpsession_path = httpServerData->params_list[PHPSESSIONS_PATH];
-   char serverjs_path[256];
-   
-   int n=snprintf(serverjs_path, sizeof(serverjs_path), "%s/nodeJS/server/server", httpServerData->params_list[GUI_PATH]);
-   if(n<0 || n==sizeof(serverjs_path))
+   else
    {
-      VERBOSE(3) {
-         fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);
-         perror("");
+      _socketio_port = atoi(httpServerData->params_list[NODEJSIOSOCKET_PORT]);
+      _socketdata_port = atoi(httpServerData->params_list[NODEJSDATA_PORT]);
+      char *nodejs_path = httpServerData->params_list[NODEJS_PATH];
+      char *phpsession_path = httpServerData->params_list[PHPSESSIONS_PATH];
+      char serverjs_path[256];
+      
+      int n=snprintf(serverjs_path, sizeof(serverjs_path), "%s/nodeJS/server/server", httpServerData->params_list[GUI_PATH]);
+      if(n<0 || n==sizeof(serverjs_path))
+      {
+         VERBOSE(3) {
+            fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);
+            perror("");
+         }
       }
-      goto httpServer_only;
+      else
+      {
+         pid=start_nodejs(nodejs_path, serverjs_path, _socketio_port, _socketdata_port, phpsession_path);
+         if(!pid)
+         {
+            VERBOSE(3) {
+               fprintf (stderr, "%s (%s) : can't start nodejs",ERROR_STR,__func__);
+            }
+         }
+         else
+         {
+            _pid_nodejs=pid;
+            nodejs_started=1;
+         }
+      }
    }
    
-   pid=_start_nodejs(nodejs_path, serverjs_path, socketio_port, socketdata_port, phpsession_path);
-   if(!pid)
-   {
-      VERBOSE(3) {
-         fprintf (stderr, "%s (%s) : can't start nodejs",ERROR_STR,__func__);
-      }
-      goto httpServer_only;
-   }
-   pid_nodejs=pid;
-   nodejs_started=1;
-
-   sleep(5);
-   
-httpServer_only:
    if(!nodejs_started)
    {
       VERBOSE(1) {
-         fprintf (stderr, "%s (%s) : nodejs not started, httpServer only trying ...",ERROR_STR,__func__);
+         fprintf (stderr, "%s (%s) : nodejs not started, httpServer ...",ERROR_STR,__func__);
       }
    }
    
@@ -690,6 +735,7 @@ httpServer_only:
       httpServerData->params_list[SQLITE3_DB_PARAM_PATH])
    {
       phpcgibin=(char *)malloc(strlen(httpServerData->params_list[PHPCGI_PATH])+10); // 9 = strlen("/cgi-bin") + 1
+      
       sprintf(phpcgibin, "%s/php-cgi",httpServerData->params_list[PHPCGI_PATH]);
       
       long guiport;
@@ -709,7 +755,7 @@ httpServer_only:
          guiport=8083;
       }
       
-      strncpy(php_sessions_path, httpServerData->params_list[PHPSESSIONS_PATH], sizeof(php_sessions_path)-1);
+      strncpy(_php_sessions_path, httpServerData->params_list[PHPSESSIONS_PATH], sizeof(_php_sessions_path)-1);
       
       if(create_configs_php(httpServerData->params_list[GUI_PATH],
                             httpServerData->params_list[SQLITE3_DB_PARAM_PATH],
@@ -717,11 +763,17 @@ httpServer_only:
                             httpServerData->params_list[PHPSESSIONS_PATH],
                             atoi(httpServerData->params_list[NODEJSIOSOCKET_PORT]))==0)
       {
-         httpServer(guiport, httpServerData->params_list[GUI_PATH], phpcgibin, httpServerData->params_list[PHPINI_PATH]);
+         start_httpServer(guiport, httpServerData->params_list[GUI_PATH], phpcgibin, httpServerData->params_list[PHPINI_PATH]);
          _httpServer_monitoring_id=my_id;
-
-         VERBOSE(2) fprintf(stderr,"%s (%s) : GUISERVER launched successfully.\n", INFO_STR, __func__);
-         mea_notify_printf('S', "GUISERVER launched successfully.");
+         
+         if(phpcgibin)
+         {
+            free(phpcgibin);
+            phpcgibin=NULL;
+         }
+         
+         VERBOSE(2) fprintf(stderr,"%s  (%s) : GUISERVER %s.\n", INFO_STR, __func__, launched_successfully_str);
+         mea_notify_printf('S', "GUISERVER %s.", launched_successfully_str);
          
          return 0;
       }

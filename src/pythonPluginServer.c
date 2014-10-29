@@ -18,6 +18,7 @@
 #include <pthread.h>
 
 #include "globals.h"
+#include "consts.h"
 #include "error.h"
 #include "debug.h"
 #include "queue.h"
@@ -31,16 +32,27 @@
 
 #include "mea_api.h"
 
+char *pythonPlugin_server_name_str="PYTHONPLUGINSERVER";
+
 char *plugin_path=NULL;
 
 // globales pour le fonctionnement du thread
 pthread_t *_pythonPluginServer_thread=NULL;
+int _pythonPluginServer_thread_is_running=0;
+int _pythonPluginServer_monitoring_id=-1;
+
 queue_t *pythonPluginCmd_queue;
 pthread_cond_t pythonPluginCmd_queue_cond;
 pthread_mutex_t pythonPluginCmd_queue_lock;
-int _pythonPluginServer_monitoring_id=-1;
 
 PyObject *known_modules;
+
+
+void set_pythonPluginServer_isnt_running(void *data)
+{
+   _pythonPluginServer_thread_is_running=0;
+}
+
 
 void _pythonPlugin_thread_cleanup_PyEval_AcquireLock(void *arg)
 {
@@ -140,7 +152,9 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
    {
       pModule = PyImport_Import(pName);
       if(pModule)
+      {
          PyDict_SetItem(known_modules, pName, pModule);
+      }
       else
       {
          VERBOSE(5) fprintf(stderr, "%s (%s) : module %s not found.\n", ERROR_STR, __func__, module);
@@ -164,7 +178,9 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
       {
          pModule = PyImport_ReloadModule(pModule);
          if(pModule)
+         {
             PyDict_SetItem(known_modules, pName, pModule);
+         }
          else
          {
             VERBOSE(5) {
@@ -264,16 +280,39 @@ call_pythonPlugin_clean_exit:
 }
 
 
+void _pythonPluginServer_clean_threadState(void *data)
+{
+   Py_DECREF(known_modules);
+   mea_api_release();
+   
+   if(data)
+   {
+      PyThreadState *myThreadState = (PyThreadState *)data;
+      
+      PyThreadState_Clear(myThreadState);
+      PyThreadState_Delete(myThreadState);
+   }
+}
+
+
 void *_pythonPlugin_thread(void *data)
 {
    int ret;
-   pythonPlugin_cmd_t *e;
-   PyThreadState *mainThreadState, *myThreadState;
    
-   PyEval_AcquireLock(); // DEBUG_PyEval_AcquireLock(fn_name, &local_last_time);
+   pythonPlugin_cmd_t *e;
+   PyThreadState *mainThreadState, *myThreadState=NULL;
+   
+   
+   pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
+   PyEval_AcquireLock();
    mainThreadState = PyThreadState_Get();
    myThreadState = PyThreadState_New(mainThreadState->interp);
    PyEval_ReleaseLock();
+   pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+   
+   pthread_cleanup_push( (void *)_pythonPluginServer_clean_threadState, (void *)myThreadState );
+   pthread_cleanup_push( (void *)set_pythonPluginServer_isnt_running, (void *)NULL );
+   _pythonPluginServer_thread_is_running=1;
    
    // chemin vers les plugins rajoutés dans le path de l'interpréteur Python
    PyObject* sysPath = PySys_GetObject((char*)"path");
@@ -340,7 +379,7 @@ void *_pythonPlugin_thread(void *data)
          plugin_queue_elem_t *data = (plugin_queue_elem_t *)e->data;
 
          PyThreadState *tempState=NULL;
-         pthread_cleanup_push(_pythonPlugin_thread_cleanup_PyEval_AcquireLock,tempState);
+         pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
          PyEval_AcquireLock(); // DEBUG_PyEval_AcquireLock(fn_name, &local_last_time);
          tempState = PyThreadState_Swap(myThreadState);
          
@@ -352,8 +391,8 @@ void *_pythonPlugin_thread(void *data)
          
          PyThreadState_Swap(tempState);
          PyEval_ReleaseLock(); // DEBUG_PyEval_ReleaseLock(fn_name, &local_last_time);
-         pthread_cleanup_pop(0);
-         
+         pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+
          if(e)
          {
             if(e->python_module)
@@ -380,8 +419,8 @@ void *_pythonPlugin_thread(void *data)
       pthread_testcancel();
    }
    
-   PyThreadState_Clear(myThreadState);
-   PyThreadState_Delete(myThreadState);
+   pthread_cleanup_pop(1);
+   pthread_cleanup_pop(1);
 
    pthread_exit(NULL);
    
@@ -429,7 +468,8 @@ pthread_t *pythonPluginServer()
       goto pythonPluginServer_clean_exit;
 
    }
-
+   pthread_detach(*pythonPlugin_thread);
+   
    if(pythonPlugin_thread)   
       return pythonPlugin_thread;
 
@@ -469,24 +509,26 @@ void pythonPluginCmd_queue_free_queue_elem(void *d)
 int stop_pythonPluginServer(int my_id, void *data, char *errmsg, int l_errmsg)
 {
    int ret=-1;
+   
    if(_pythonPluginServer_thread)
    {
-      int count=5; // 5 secondes pour s'arrêter
       pthread_cancel(*_pythonPluginServer_thread);
-      while(count)
+      int counter=100;
+      int stopped=-1;
+      while(counter--)
       {
-         if(pthread_kill(*_pythonPluginServer_thread, 0) == 0)
+         if(_pythonPluginServer_thread_is_running)
          {
-            sleep(1);
-            count--;
+            usleep(100); // will sleep for 1 ms
          }
          else
          {
-            ret=0;
+            stopped=0;
             break;
          }
       }
-//      pthread_join(*_pythonPluginServer_thread, NULL);
+      DEBUG_SECTION fprintf(stderr,"%s (%s) : %s, fin après %d itération\n",DEBUG_STR, __func__, pythonPlugin_server_name_str, 100-counter);
+
       
       free(_pythonPluginServer_thread);
       _pythonPluginServer_thread=NULL;
@@ -508,8 +550,8 @@ int stop_pythonPluginServer(int my_id, void *data, char *errmsg, int l_errmsg)
 
    _pythonPluginServer_monitoring_id=-1;
 
-   VERBOSE(1) fprintf(stderr,"%s (%s) : PYTHONPLUGINSERVER stopped successfully.\n", INFO_STR, __func__);
-   mea_notify_printf('S', "PYTHONPLUGINSERVER stopped successfully.");
+   VERBOSE(1) fprintf(stderr,"%s  (%s) : %s %s.\n", INFO_STR, __func__, pythonPlugin_server_name_str, stopped_successfully_str);
+   mea_notify_printf('S', "%s %s.", pythonPlugin_server_name_str, stopped_successfully_str);
 
    return ret;
 }
@@ -529,9 +571,9 @@ int start_pythonPluginServer(int my_id, void *data, char *errmsg, int l_errmsg)
       {
          strerror_r(errno, err_str, sizeof(err_str));
          VERBOSE(2) {
-            fprintf(stderr,"%s (%s) : can't start Python Plugin Server (thread error) - %s\n", ERROR_STR, __func__, notify_str);
+            fprintf(stderr,"%s (%s) : can't start %s (thread error) - %s\n", ERROR_STR, __func__, pythonPlugin_server_name_str, notify_str);
          }
-         mea_notify_printf('E', "Can't start PYTHONPLUGINSERVER - %s", err_str);
+         mea_notify_printf('E', "Can't start %s - %s", pythonPlugin_server_name_str, err_str);
 
          return -1;
       }
@@ -540,14 +582,14 @@ int start_pythonPluginServer(int my_id, void *data, char *errmsg, int l_errmsg)
    else
    {
       VERBOSE(1) {
-         fprintf(stderr,"%s (%s) : can't start Python Plugin Server (incorrect plugin path).\n", ERROR_STR, __func__);
+         fprintf(stderr,"%s (%s) : can't start %s (incorrect plugin path).\n", ERROR_STR, __func__, pythonPlugin_server_name_str);
       }
-      mea_notify_printf('E', "Can't start PYTHONPLUGINSERVER - incorrect plugin path");
+      mea_notify_printf('E', "Can't start %s - incorrect plugin path", pythonPlugin_server_name_str);
       return -1;
    }
 
-   VERBOSE(1) fprintf(stderr,"%s (%s) : PYTHONPLUGINSERVER Started.\n", INFO_STR, __func__);
-   mea_notify_printf('S', "PYTHONPLUGINSERVER Started.");
+   VERBOSE(1) fprintf(stderr,"%s  (%s) : %s %s.\n", INFO_STR, __func__, pythonPlugin_server_name_str, launched_successfully_str);
+   mea_notify_printf('S', "%s %s.", pythonPlugin_server_name_str, launched_successfully_str);
 
    return 0;
 }

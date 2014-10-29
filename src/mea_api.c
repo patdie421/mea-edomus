@@ -19,7 +19,7 @@
 
 #include "mea_api.h"
 
-PyObject *mea_memory;
+PyObject *mea_memory=NULL;
 
 static PyMethodDef MeaMethods[] = {
    {"getMemory",              mea_getMemory,            METH_VARARGS, "Return a dictionary"},
@@ -152,6 +152,14 @@ void mea_api_init()
    mea_memory=PyDict_New(); // initialisation de la mémoire
    
    Py_InitModule("mea", MeaMethods);  
+}
+
+
+void mea_api_release()
+{
+// /!\ a ecrire pour librérer tous le contenu de la memoire partagé ...
+   if(mea_memory)
+      Py_DECREF(mea_memory);
 }
 
 

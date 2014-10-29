@@ -97,7 +97,7 @@ session_start() ?>
       <div style="margin-left:20px;">Gestion des interfaces</div>
    </div>
       <p></p>
-      <div>
+      <div id="montest">
          <table id="table_interfaces">
             <tbody>
             </tbody>

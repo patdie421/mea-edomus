@@ -46,6 +46,7 @@ typedef struct interface_type_002_s
    xbee_xd_t       *xd;
    xbee_host_t     *local_xbee;
    pthread_t       *thread;
+   volatile sig_atomic_t thread_is_running;
    xpl_f            xPL_callback;
    void            *xPL_callback_data;
 } interface_type_002_t;
