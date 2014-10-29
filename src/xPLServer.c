@@ -373,6 +373,7 @@ void *xPLServer_thread(void *data)
 
    do
    {
+      pthread_testcancel();
       process_heartbeat(_xplServer_monitoring_id);
       VERBOSE(9) {
          static char compteur=0;
@@ -386,10 +387,8 @@ void *xPLServer_thread(void *data)
       }
 
       xPL_processMessages(500);
-      
-      _flushExpiredXPLResponses();
 
-      pthread_testcancel();
+      _flushExpiredXPLResponses();
    }
    while (1);
 }
