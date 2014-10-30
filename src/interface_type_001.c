@@ -51,7 +51,7 @@
 
 
 // structure contenant les parametres du thread de gestion des capteurs
-struct thread_interface_type_001_params_s
+struct interface_type_001_thread_params_s
 {
    interface_type_001_t *it001;
    tomysqldb_md_t *md;
@@ -130,7 +130,7 @@ int16_t check_status_interface_type_001(interface_type_001_t *i001)
 }
 
 
-int load_interface_type_001(interface_type_001_t *i001, int id_interface, sqlite3 *db)
+int load_interface_type_001(interface_type_001_t *i001, int interface_id, sqlite3 *db)
 {
    sqlite3_stmt * stmt;
    int16_t nb_sensors_actuators=0;
@@ -138,7 +138,7 @@ int load_interface_type_001(interface_type_001_t *i001, int id_interface, sqlite
    int ret;
    
    // préparation des éléments de contexte de l'interface
-   i001->id_interface=id_interface;
+   i001->interface_id=interface_id;
    i001->xPL_callback=NULL;
    i001->counters_list=NULL;
    i001->sensors_list=NULL;
@@ -183,7 +183,7 @@ int load_interface_type_001(interface_type_001_t *i001, int id_interface, sqlite
 
    
    // préparation de la requete permettant d'obtenir les capteurs associés à l'interface
-   sprintf(sql_request,"SELECT * FROM sensors_actuators WHERE id_interface=%d", id_interface);
+   sprintf(sql_request,"SELECT * FROM sensors_actuators WHERE id_interface=%d", interface_id);
    ret = sqlite3_prepare_v2(db,sql_request,strlen(sql_request)+1,&stmt,NULL);
    if(ret)
    {
@@ -320,16 +320,16 @@ int clean_interface_type_001(interface_type_001_t *i001)
 
 void *_thread_interface_type_001(void *args)
 {
-   struct thread_interface_type_001_params_s *thread_params=(struct thread_interface_type_001_params_s *)args;
+   struct interface_type_001_thread_params_s *interface_type_001_thread_params=(struct interface_type_001_thread_params_s *)args;
    
-   interface_type_001_t *i001=thread_params->it001;
+   interface_type_001_t *i001=interface_type_001_thread_params->it001;
    
    pthread_cleanup_push( (void *)set_interface_type_001_isnt_running, (void *)i001 );
    i001->thread_is_running=1;
    
-   tomysqldb_md_t *md=thread_params->md;
-   free(thread_params);
-   thread_params=NULL;
+   tomysqldb_md_t *md=interface_type_001_thread_params->md;
+   free(interface_type_001_thread_params);
+   interface_type_001_thread_params=NULL;
    
    interface_type_001_counters_init(i001);
    interface_type_001_sensors_init(i001);
@@ -375,9 +375,9 @@ int stop_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
 
    VERBOSE(9) fprintf(stderr,"%s  (%s) : %s shutdown thread ... ", INFO_STR, __func__, start_stop_params->i001->name);
 
-   if(start_stop_params->i001->thread)
+   if(start_stop_params->i001->thread_id)
    {
-      pthread_cancel(*start_stop_params->i001->thread);
+      pthread_cancel(*start_stop_params->i001->thread_id);
       int counter=100;
       int stopped=-1;
       while(counter--)
@@ -394,8 +394,8 @@ int stop_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
       }
       DEBUG_SECTION fprintf(stderr,"%s (%s) : %s, fin après %d itération\n",DEBUG_STR, __func__,start_stop_params->i001->name,100-counter);
 
-      free(start_stop_params->i001->thread);
-      start_stop_params->i001->thread=NULL;
+      free(start_stop_params->i001->thread_id);
+      start_stop_params->i001->thread_id=NULL;
    }
    
    if(start_stop_params->i001->ad)
@@ -417,20 +417,20 @@ int start_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
    int16_t ret;
    
    char dev[81];
-   char buff[80];
+   char buff[81];
    speed_t speed;
    int fd = 0;
    comio2_ad_t *ad=NULL;
-   char err_str[80];
+   char err_str[81];
 
-   pthread_t *_interface_type_001_thread=NULL; // descripteur du thread
-   struct thread_interface_type_001_params_s *thread_params=NULL; // parametre à transmettre au thread
+   pthread_t *interface_type_001_thread_id=NULL; // descripteur du thread
+   struct interface_type_001_thread_params_s *interface_type_001_thread_params=NULL; // parametre à transmettre au thread
 
    struct interface_type_001_data_s *start_stop_params=(struct interface_type_001_data_s *)data;
 
    if(start_stop_params->i001->loaded!=1)
    {
-      ret=load_interface_type_001(start_stop_params->i001, start_stop_params->i001->id_interface, start_stop_params->sqlite3_param_db);
+      ret=load_interface_type_001(start_stop_params->i001, start_stop_params->i001->interface_id, start_stop_params->sqlite3_param_db);
       if(ret<0)
       {
          VERBOSE(2) fprintf (stderr, "%s (%s) : can not load sensors/actuators.\n", ERROR_STR,__func__);
@@ -490,7 +490,7 @@ int start_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
    }
    else
    {
-      VERBOSE(5) fprintf(stderr,"%s (%s) : no sensor/actuator active for this interface (%d) - ",ERROR_STR,__func__,start_stop_params->i001->id_interface);
+      VERBOSE(5) fprintf(stderr,"%s (%s) : no sensor/actuator active for this interface (%d) - ",ERROR_STR,__func__,start_stop_params->i001->interface_id);
       mea_notify_printf('E', "%s can't be launched - no sensor/actuator active for this interface.", start_stop_params->i001->name);
 
       goto start_interface_type_001_clean_exit;
@@ -498,20 +498,20 @@ int start_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
    
    start_stop_params->i001->ad=ad;
    
-   thread_params=malloc(sizeof(struct thread_interface_type_001_params_s));
-   if(!thread_params)
+   interface_type_001_thread_params=malloc(sizeof(struct interface_type_001_thread_params_s));
+   if(!interface_type_001_thread_params)
       goto start_interface_type_001_clean_exit;
    
-   thread_params->it001=start_stop_params->i001;
-   thread_params->md=start_stop_params->myd;
+   interface_type_001_thread_params->it001=start_stop_params->i001;
+   interface_type_001_thread_params->md=start_stop_params->myd;
    
-   _interface_type_001_thread=(pthread_t *)malloc(sizeof(pthread_t));
-   if(!_interface_type_001_thread)
+   interface_type_001_thread_id=(pthread_t *)malloc(sizeof(pthread_t));
+   if(!interface_type_001_thread_id)
       goto start_interface_type_001_clean_exit;
    
    start_stop_params->i001->xPL_callback=interface_type_001_xPL_callback;
 
-   if(pthread_create (_interface_type_001_thread, NULL, _thread_interface_type_001, (void *)thread_params))
+   if(pthread_create (interface_type_001_thread_id, NULL, _thread_interface_type_001, (void *)interface_type_001_thread_params))
    {
       VERBOSE(2) fprintf(stderr, "%s (%s) : pthread_create - can't start thread\n",ERROR_STR,__func__);
       if(errmsg)
@@ -519,9 +519,9 @@ int start_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
       goto start_interface_type_001_clean_exit;
    }
   
-   start_stop_params->i001->thread=_interface_type_001_thread;
+   start_stop_params->i001->thread_id=interface_type_001_thread_id;
    
-   pthread_detach(_interface_type_001_thread);
+   pthread_detach(interface_type_001_thread_id);
    
    VERBOSE(2) fprintf(stderr,"%s  (%s) : %s %s.\n", INFO_STR, __func__, start_stop_params->i001->name, launched_successfully_str);
    mea_notify_printf('S', "%s %s", start_stop_params->i001->name, launched_successfully_str);
@@ -529,15 +529,15 @@ int start_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
    return 0;
    
 start_interface_type_001_clean_exit:
-   if(thread_params)
+   if(interface_type_001_thread_params)
    {
-      free(thread_params);
-      thread_params=NULL;
+      free(interface_type_001_thread_params);
+      interface_type_001_thread_params=NULL;
    }
-   if(_interface_type_001_thread)
+   if(interface_type_001_thread_id)
    {
-      free(_interface_type_001_thread);
-      _interface_type_001_thread=NULL;
+      free(interface_type_001_thread_id);
+      interface_type_001_thread_id=NULL;
    }
    if(fd)
       comio2_close(ad);
