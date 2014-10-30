@@ -125,7 +125,8 @@ jQuery(document).ready(function(){
    echo $IOSOCKET_PORT;
    echo ";\n";
    ?>
-
+   liveCom.connect(socketio_port);
+   
    $( "#tabs1" ).tabs();
    start_index_controller(socketio_port);
 });
