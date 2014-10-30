@@ -28,7 +28,7 @@ typedef struct interfaces_queue_elem_s
 
 struct interfacesServerData_s
 {
-   char **params_lis;
+   char **params_list;
    sqlite3 *sqlite3_param_db;
    tomysqldb_md_t *myd;
 };  
