@@ -22,9 +22,9 @@
 
 typedef struct interface_type_001_s
 {
-   uint16_t id_interface;
+   uint16_t interface_id;
    char name[41];
-   pthread_t  *thread; // thread id
+   pthread_t  *thread_id; // thread id
    volatile sig_atomic_t thread_is_running;
    int monitoring_id;
    comio2_ad_t *ad; // comio descriptor
