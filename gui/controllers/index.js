@@ -235,8 +235,6 @@ function start(id)
             type="information";
          else
             type="error";
-
-//         liveCom.notify(data["errmsg"],type);
       },
       error: function(jqXHR, textStatus, errorThrown ){
          ajax_error( jqXHR, textStatus, errorThrown );
@@ -260,8 +258,6 @@ function stop(id)
             type="information";
          else
             type="error";
-
-//         liveCom.notify(data["errmsg"],type);
       },
       error: function(jqXHR, textStatus, errorThrown ){
          ajax_error( jqXHR, textStatus, errorThrown );
@@ -270,7 +266,33 @@ function stop(id)
 }
 
 
-function start_index_controller(port)
+var _intervalId;
+var _intervalCounter;
+function start_index_controller()
+{
+   _intervalCounter=0;
+   _intervalId=setInterval(function() {
+      if(typeof(liveCom) != "undefined") {
+         clearInterval(_intervalId);
+         var s=liveCom.getSocketio();
+         if(s!=null)
+            socketio_available(s);
+         else
+            socketio_unavailable();
+      }
+      else {
+         _intervalCounter++;
+         if(_intervalCounter>20) { // 2 secondes max pour s'initialiser
+            clearIntrerval(_intervalId);
+            socketio_unavailable();
+         }
+      }
+   },
+   100);
+}
+
+/*
+function start_index_controller()
 {
    if(typeof(liveCom) != "undefined")
    {
@@ -289,4 +311,4 @@ function start_index_controller(port)
       socketio_unavailable();
    }
 }
-
+*/
