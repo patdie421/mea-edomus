@@ -31,7 +31,7 @@
 typedef enum {XBEEDATA=1, XPLMSG=2, COMMISSIONNING=3} pythonPlugin_type;
 
 
-struct pythonPluginServerData_s
+struct pythonPluginServer_start_stop_params_s
 {
    char **params_list;
    sqlite3 *sqlite3_param_db;
