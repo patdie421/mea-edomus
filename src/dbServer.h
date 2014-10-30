@@ -33,36 +33,12 @@ struct sensor_value_s
 };
 
 
-typedef struct tomysqldb_queue_elem_s
+typedef struct dbServer_queue_elem_s
 {
    unsigned char type;
    void *data;
    void (*freedata)();
-} tomysqldb_queue_elem_t;
-
-
-typedef struct tomysqldb_md_s
-{
-   pthread_t thread;
-   pthread_mutex_t lock;
-   int16_t started;
-   
-   queue_t *queue;
-
-   char *db_server;
-   char *db_server_port;
-   char *base;
-   char *user;
-   char *passwd;
-   
-   char *sqlite3_db_path;
-
-   int16_t opened;
-   
-   sqlite3 *db;
-   MYSQL *conn;
-
-} tomysqldb_md_t;
+} dbServer_queue_elem_t;
 
 
 struct dbServerData_s
@@ -70,15 +46,8 @@ struct dbServerData_s
    char **params_list;
 };
 
-tomysqldb_md_t *dbServer_get_md();
 
-int  tomysqldb_init(tomysqldb_md_t *md, char *db_server, char *db_server_port, char *base, char *user, char *passwd, char *sqlite3_db_path);
-void tomysqldb_release(tomysqldb_md_t *md);
-
-int16_t tomysqldb_add_data_to_sensors_values(tomysqldb_md_t *md, uint16_t sensor_id, double value1, uint16_t unit, double value2, char *complement);
-
-//tomysqldb_md_t *start_dbServer(char **params_list, sqlite3 *sqlite3_param_db);
-//void stop_dbServer(tomysqldb_md_t *md);
+int16_t dbServer_add_data_to_sensors_values(uint16_t sensor_id, double value1, uint16_t unit, double value2, char *complement);
 
 int start_dbServer(int my_id, void *data, char *errmsg, int l_errmsg);
 int stop_dbServer(int my_id, void *data, char *errmsg, int l_errmsg);
