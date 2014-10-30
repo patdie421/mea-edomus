@@ -818,14 +818,17 @@ int main(int argc, const char * argv[])
       clean_all_and_exit();
    }
 
+   struct interfacesServerData_s interfacesServerData;
+   interfacesServerData.params_list=params_list;
+   interfacesServerData.sqlite3_param_db=sqlite3_param_db;
+   interfacesServerData.myd=dbServer_get_md();
    
    interfaces=start_interfaces(params_list, sqlite3_param_db, dbServer_get_md()); // démarrage des interfaces
 
    int interfaces_reload_task_id=process_register("RELOAD");
    process_set_group(interfaces_reload_task_id, 2);
-   process_set_start_stop(interfaces_reload_task_id , restart_interfaces, NULL, (void *)NULL, 1);
+   process_set_start_stop(interfaces_reload_task_id , restart_interfaces, NULL, (void *)(&interfacesServerData), 1);
    process_set_type(interfaces_reload_task_id, TASK);
-   
    
    struct xplServerData_s xplServerData;
    xplServerData.params_list=params_list;
