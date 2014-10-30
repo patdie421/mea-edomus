@@ -31,13 +31,38 @@
 #include "processManager.h"
 #include "notify.h"
 
+
+typedef struct dbServer_md_s
+{
+   pthread_t thread;
+   pthread_mutex_t lock;
+   int16_t started;
+   
+   queue_t *queue;
+
+   char *db_server;
+   char *db_server_port;
+   char *base;
+   char *user;
+   char *passwd;
+   
+   char *sqlite3_db_path;
+
+   int16_t opened;
+   
+   sqlite3 *db;
+   MYSQL *conn;
+
+} dbServer_md_t;
+
+
 //int tomysqldb_connect(tomysqldb_md_t *md, MYSQL **conn);
 int tomysqldb_connect(MYSQL **conn);
 
 const char *db_server_name_str="DBSERVER";
 
 // Variable globale privée
-tomysqldb_md_t *_md=NULL;
+dbServer_md_t *_md=NULL;
 int             _dbServer_monitoring_id=-1;
 volatile sig_atomic_t
                 _dbServer_thread_is_running=0;
@@ -70,7 +95,7 @@ void free_value(void *data)
 
 
 //int16_t tomysqldb_add_data_to_sensors_values(tomysqldb_md_t *md, uint16_t sensor_id, double value1, uint16_t unit, double value2, char *complement)
-int16_t tomysqldb_add_data_to_sensors_values(uint16_t sensor_id, double value1, uint16_t unit, double value2, char *complement)
+int16_t dbServer_add_data_to_sensors_values(uint16_t sensor_id, double value1, uint16_t unit, double value2, char *complement)
 /**
  * \brief     Récupère les données de type "sensors values" pour stockage dans la table sensors_values de la base mysql.
  * \details   En dehors des données en provenance des capteurs la date courrante est rajoutée par cette fonction.
@@ -474,7 +499,7 @@ void *dbServer_thread(void *args)
       mysql_connected=0;
    else
    {
-      md->opened=1;
+      _md->opened=1;
       mysql_connected=1;
    }
 
