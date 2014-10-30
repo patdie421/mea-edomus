@@ -19,15 +19,23 @@ session_start()
 
 <script type="text/javascript">
 jQuery(document).ready(function(){
-    function resizeGrid(){
-        var grid='utilisateurs';
-        
-        gridParentWidth = $('#gbox_' + 'table_'+grid).parent().width();
-        $('#table_'+grid).jqGrid('setGridWidth',gridParentWidth, false);
-    }
+<?php
+   echo "var socketio_port=";
+   echo $IOSOCKET_PORT;
+   echo ";\n";
+   ?>
+   liveCom.connect(socketio_port);
+php>
 
-    $(window).on('resize',resizeGrid).trigger('resize');
+   function resizeGrid(){
+      var grid='utilisateurs';
+       
+      gridParentWidth = $('#gbox_' + 'table_'+grid).parent().width();
+      $('#table_'+grid).jqGrid('setGridWidth',gridParentWidth, false);
+   }
 
-    grid_utilisateurs();
+   $(window).on('resize',resizeGrid).trigger('resize');
+
+   grid_utilisateurs();
 });
 </script>
