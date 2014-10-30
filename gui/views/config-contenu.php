@@ -232,6 +232,14 @@ switch(check_admin()){
 <script type="text/javascript">
 jQuery(document).ready(function(){
 
+<?php
+   echo "var socketio_port=";
+   echo $IOSOCKET_PORT;
+   echo ";\n";
+   ?>
+   liveCom.connect(socketio_port);
+php>
+
     msg_txt1=str_format_info1;
     msg_txt2=str_format_info2;
     
