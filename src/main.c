@@ -324,22 +324,6 @@ static void _signal_STOP(int signal_number)
 }
 
 
-static void _signal_HUP(int signal_number)
-/**
- * \brief     Traitement des signaux HUP
- * \details   Un signal HUP peut être est émis par les threads de gestion des interfaces lorsqu'ils détectent une anomalie bloquante.
- *            Le gestionnaire de signal, lorsqu'il est appelé, doit déterminer quelle interface à émis le signal et forcer un arrêt/relance de cette l'interface.
- * \param     signal_number  numéro du signal (pas utilisé mais nécessaire pour la déclaration du handler).
- */
-{
-   VERBOSE(9) fprintf(stderr,"%s  (%s) : communication error signal (signal = %d).\n", INFO_STR, __func__, signal_number);
-  
-   // on cherche qui est à l'origine du signal et on le relance
-   restart_down_interfaces(sqlite3_param_db, dbServer_get_md());
-   return;
-}
-
-
 int main(int argc, const char * argv[])
 /**
  * \brief     Point d'entrée du mea-edomus
@@ -771,7 +755,6 @@ int main(int argc, const char * argv[])
    signal(SIGINT,  _signal_STOP);
    signal(SIGQUIT, _signal_STOP);
    signal(SIGTERM, _signal_STOP);
-//   signal(SIGHUP,  _signal_HUP);
    
    signal(SIGPIPE, signal_callback_handler);
 
