@@ -43,7 +43,7 @@ char *xpl_instanceID=NULL;
 
 
 // gestion du thread et des indicateurs
-pthread_t *_xPLServer_thread;
+pthread_t *_xPLServer_thread_id;
 int _xplServer_monitoring_id = -1;
 volatile sig_atomic_t _xPLServer_thread_is_running=0;
 
@@ -467,7 +467,7 @@ int stop_xPLServer(int my_id, void *data,  char *errmsg, int l_errmsg)
 {
    if(_xPLServer_thread)
    {
-      pthread_cancel(*_xPLServer_thread);
+      pthread_cancel(*_xPLServer_thread_id);
       int counter=100;
       int stopped=-1;
       while(counter--)
@@ -515,10 +515,10 @@ int stop_xPLServer(int my_id, void *data,  char *errmsg, int l_errmsg)
 
 int start_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg)
 {
-   struct xplServerData_s *xplServerData = (struct xplServerData_s *)data;
+   struct xplServer_start_stop_params_s *xplServer_start_stop_params = (xplServer_start_stop_params_s *)data;
    char err_str[256];
    
-   if(!set_xpl_address(xplServerData->params_list))
+   if(!set_xpl_address(xplServer_start_stop_params->params_list))
    {
       _xplServer_monitoring_id=my_id;
 
@@ -534,9 +534,9 @@ int start_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg)
          return -1;
       }
 
-      _xPLServer_thread=xPLServer();
+      _xPLServer_thread_id=xPLServer();
 
-      if(_xPLServer_thread==NULL)
+      if(_xPLServer_thread_id==NULL)
       {
          strerror_r(errno, err_str, sizeof(err_str));
          VERBOSE(2) {
@@ -548,7 +548,7 @@ int start_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg)
       }
       else
       {
-         pthread_detach(*_xPLServer_thread);
+         pthread_detach(*_xPLServer_thread_id);
          VERBOSE(2) fprintf(stderr,"%s  (%s) : %s launched successfully.\n", INFO_STR, __func__, xpl_server_name_str);
          mea_notify_printf('S', "%s launched successfully", xpl_server_name_str);
 
