@@ -27,7 +27,7 @@ typedef struct xplRespQueue_elem_s
 } xplRespQueue_elem_t;
 
 
-struct xplServerData_s
+struct xplServer_start_stop_params_s
 {
    char **params_list;
    sqlite3 *sqlite3_param_db;
