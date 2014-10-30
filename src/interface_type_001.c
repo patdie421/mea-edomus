@@ -518,8 +518,10 @@ int start_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
          snprintf(errmsg, l_errmsg, "internal error (pthread_create)");
       goto start_interface_type_001_clean_exit;
    }
-   
+  
    start_stop_params->i001->thread=_interface_type_001_thread;
+   
+   pthread_detach(_interface_type_001_thread);
    
    VERBOSE(2) fprintf(stderr,"%s  (%s) : %s %s.\n", INFO_STR, __func__, start_stop_params->i001->name, launched_successfully_str);
    mea_notify_printf('S', "%s %s", start_stop_params->i001->name, launched_successfully_str);
