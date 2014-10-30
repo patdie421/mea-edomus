@@ -80,4 +80,3 @@ var liveCom = {
 
 $.noty.defaults.maxVisible=15;
 
-liveCom.connect(8000);
