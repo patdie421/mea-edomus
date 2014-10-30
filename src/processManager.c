@@ -660,6 +660,40 @@ int process_start(int id, char *errmsg, int l_errmsg)
 }
 
 
+struct task_thread_data_s
+{
+   int id;
+   process_start_stop_f task;
+   void *task_data;
+};
+
+
+void *_task_thread(void *data)
+{
+   struct task_thread_data_s *task_thread_data=(struct task_thread_data_s *)data;
+   
+   pthread_cleanup_push( (void *)pthread_rwlock_unlock, (void *)&managed_processes.rwlock );
+   pthread_rwlock_wrlock(&managed_processes.rwlock);
+   managed_processes.processes_table[id]->status=RUNNING;
+   pthread_rwlock_unlock(&managed_processes.rwlock);
+   pthread_cleanup_pop(0);
+
+   task_threak_data->task(task_threak_data->id, task_threak_data->task_data, NULL, 0);
+   
+   pthread_cleanup_push( (void *)pthread_rwlock_unlock, (void *)&managed_processes.rwlock );
+   pthread_rwlock_wrlock(&managed_processes.rwlock);
+   managed_processes.processes_table[id]->status=STOPPED;
+   pthread_rwlock_unlock(&managed_processes.rwlock);
+   pthread_cleanup_pop(0);
+   
+   if(data)
+   {
+      free(data);
+      data=NULL;
+   }   
+}
+
+
 int process_task(int id, char *errmsg, int l_errmsg)
 {
    int ret=1;
@@ -672,17 +706,28 @@ int process_task(int id, char *errmsg, int l_errmsg)
    {
       if(managed_processes.processes_table[id]->start)
       {
-         // lancer ici la commande dans un thread et non en synchrone
-         ret=managed_processes.processes_table[id]->start(id, managed_processes.processes_table[id]->start_stop_data, errmsg, l_errmsg);
+         struct task_tread_data_s *task_threak_data=(struct task_tread_data_s *)malloc(sizeof(struct struct task_tread_data_s *));
+         task_threak_data->task=managed_processes.processes_table[id]->start;
+         task_threak_data->task_data=managed_processes.processes_table[id]->start_stop_data;
+         task_threak_data->id=id;
+         pthread_t process_task_thread;
+         if(pthread_create (process_task_thread, NULL, _task_thread, (void *)task_threak_data))
+         {
+            VERBOSE(2) fprintf(stderr, "%s (%s) : pthread_create - can't start thread\n",ERROR_STR,__func__);
+            if(errmsg)
+            {
+               snprintf(errmsg, l_errmsg, "internal error (pthread_create)");
+               ret=-1;
+               goto process_task_clean_exit;
+            }
+         }
+         pthread_detach(process_task_thread);
       }
-      else
-         return -1;
    }
 
+process_task_clean_exit:
    pthread_rwlock_unlock(&managed_processes.rwlock);
    pthread_cleanup_pop(0); 
-
-   process_heartbeat(id);
 
    return ret;
 }
