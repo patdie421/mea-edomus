@@ -760,6 +760,14 @@ int main(int argc, const char * argv[])
 
    mea_notify_set_port(atoi(params_list[NODEJSDATA_PORT]));
 
+   main_monitoring_id=process_register("MAIN");
+   process_set_type(main_monitoring_id, NOTMANAGED);
+   process_set_status(main_monitoring_id, RUNNING);
+   process_add_indicator(main_monitoring_id, "UPTIME", 0);
+
+   //
+   // LogServer
+   //
    struct logServerData_s logServerData;
    logServerData.params_list=params_list;
    logServer_monitoring_id=process_register("LOGSERVER");
@@ -770,14 +778,9 @@ int main(int argc, const char * argv[])
       VERBOSE(1) fprintf (stderr, "%s (%s) : can't start log server\n",ERROR_STR,__func__);
    }
 
-   sleep(1);
-   
-   main_monitoring_id=process_register("MAIN");
-   process_set_type(main_monitoring_id, NOTMANAGED);
-   process_set_status(main_monitoring_id, RUNNING);
-   process_add_indicator(main_monitoring_id, "UPTIME", 0);
-
-
+   //
+   // httpServer
+   //
    struct httpServerData_s httpServerData;
    httpServerData.params_list=params_list;
    httpServer_monitoring_id=process_register("GUISERVER");
@@ -789,8 +792,9 @@ int main(int argc, const char * argv[])
       VERBOSE(1) fprintf (stderr, "%s (%s) : can't start gui server\n",ERROR_STR,__func__);
    }
 
-
-   // démarrage des "services" (les services "majeurs" arrêtent tout (exit) si non démarrage
+   //
+   // dbServer
+   //
    struct dbServerData_s dbServerData;
    dbServerData.params_list=params_list;
    dbServer_monitoring_id=process_register("DBSERVER");
@@ -805,7 +809,9 @@ int main(int argc, const char * argv[])
       }
    }
 
-
+   //
+   // pythonPluginServer
+   //
    struct pythonPluginServerData_s pythonPluginServerData;
    pythonPluginServerData.params_list=params_list;
    pythonPluginServerData.sqlite3_param_db=sqlite3_param_db;
@@ -818,6 +824,9 @@ int main(int argc, const char * argv[])
       clean_all_and_exit();
    }
 
+   //
+   // interfacesServer
+   //
    struct interfacesServerData_s interfacesServerData;
    interfacesServerData.params_list=params_list;
    interfacesServerData.sqlite3_param_db=sqlite3_param_db;
@@ -830,11 +839,14 @@ int main(int argc, const char * argv[])
    process_set_start_stop(interfaces_reload_task_id , restart_interfaces, NULL, (void *)(&interfacesServerData), 1);
    process_set_type(interfaces_reload_task_id, TASK);
    
-   struct xplServerData_s xplServerData;
-   xplServerData.params_list=params_list;
-   xplServerData.sqlite3_param_db=sqlite3_param_db;
+   //
+   // xPLServer
+   //
+   struct xplServer_start_stop_params_s xplServer_start_stop_params;
+   xplServer_start_stop_params.params_list=params_list;
+   xplServer_start_stop_params.sqlite3_param_db=sqlite3_param_db;
    xplServer_monitoring_id=process_register("XPLSERVER");
-   process_set_start_stop(xplServer_monitoring_id , start_xPLServer, stop_xPLServer, (void *)(&xplServerData), 1);
+   process_set_start_stop(xplServer_monitoring_id , start_xPLServer, stop_xPLServer, (void *)(&xplServer_start_stop_params), 1);
    if(process_start(xplServer_monitoring_id, NULL, 0)<0)
    {
       VERBOSE(9) fprintf (stderr, "error !!!\n");
@@ -860,7 +872,8 @@ int main(int argc, const char * argv[])
       gethttp(localhost_const, guiport, "/CMD/ping.php", response, sizeof(response));
  
       uptime = (long)(time(NULL)-start_time);
-      process_update_indicator(main_monitoring_id, "UPTIME", uptime);
+      process_update_indicator(main_monitori 
+      ng_id, "UPTIME", uptime);
 
       managed_processes_loop(localhost_const, nodejsdata_port);
 
