@@ -30,15 +30,6 @@
 
 <script type="text/javascript" src="controllers/grid_inputs.js"></script>
 
-<script>
-
-jQuery(document).ready(function(){
-   $( "#tabs1" ).tabs();
-   grid_inputs();
-});
-</script>
-
-
 <style>
    .ui-widget{font-size:14px;}
 
@@ -175,3 +166,20 @@ jQuery(document).ready(function(){
  
    </div>
 </div>
+
+<script>
+
+jQuery(document).ready(function(){
+<?php
+   echo "var socketio_port=";
+   echo $IOSOCKET_PORT;
+   echo ";\n";
+   ?>
+   liveCom.connect(socketio_port);
+php>
+   $( "#tabs1" ).tabs();
+   grid_inputs();
+});
+</script>
+
+
