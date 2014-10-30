@@ -37,7 +37,7 @@ char *pythonPlugin_server_name_str="PYTHONPLUGINSERVER";
 char *plugin_path=NULL;
 
 // globales pour le fonctionnement du thread
-pthread_t *_pythonPluginServer_thread=NULL;
+pthread_t *_pythonPluginServer_thread_id=NULL;
 int _pythonPluginServer_thread_is_running=0;
 int _pythonPluginServer_monitoring_id=-1;
 
@@ -461,14 +461,14 @@ pthread_t *pythonPluginServer()
    PyEval_ReleaseLock();
    py_init_flag=1;
 
-   if(pthread_create (pythonPlugin_thread, NULL, _pythonPlugin_thread, (void *)pythonPluginCmd_queue))
+   if(pthread_create (pythonPlugin_thread, NULL, _pythonPlugin_thread_id, (void *)pythonPluginCmd_queue))
    {
       VERBOSE(2) fprintf(stderr, "%s (%s) : pthread_create - can't start thread - ", FATAL_ERROR_STR, __func__);
       perror("");
       goto pythonPluginServer_clean_exit;
 
    }
-   pthread_detach(*pythonPlugin_thread);
+   pthread_detach(*pythonPlugin_thread_id);
    
    if(pythonPlugin_thread)   
       return pythonPlugin_thread;
@@ -510,9 +510,9 @@ int stop_pythonPluginServer(int my_id, void *data, char *errmsg, int l_errmsg)
 {
    int ret=-1;
    
-   if(_pythonPluginServer_thread)
+   if(_pythonPluginServer_thread_id)
    {
-      pthread_cancel(*_pythonPluginServer_thread);
+      pthread_cancel(*_pythonPluginServer_thread_id);
       int counter=100;
       int stopped=-1;
       while(counter--)
@@ -530,8 +530,8 @@ int stop_pythonPluginServer(int my_id, void *data, char *errmsg, int l_errmsg)
       DEBUG_SECTION fprintf(stderr,"%s (%s) : %s, fin après %d itération\n",DEBUG_STR, __func__, pythonPlugin_server_name_str, 100-counter);
 
       
-      free(_pythonPluginServer_thread);
-      _pythonPluginServer_thread=NULL;
+      free(_pythonPluginServer_thread_id);
+      _pythonPluginServer_thread_id=NULL;
    }
 
    pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&pythonPluginCmd_queue_lock);
@@ -559,15 +559,15 @@ int stop_pythonPluginServer(int my_id, void *data, char *errmsg, int l_errmsg)
 
 int start_pythonPluginServer(int my_id, void *data, char *errmsg, int l_errmsg)
 {
-   struct pythonPluginServerData_s *pythonPluginServerData = (struct pythonPluginServerData_s *)data;
+   struct pythonPluginServer_start_stop_params_s *pythonPluginServer_start_stop_params = (struct pythonPluginServer_start_stop_params_s *)data;
 
    char err_str[80], notify_str[256];
 
-   if(pythonPluginServerData->params_list[PLUGINS_PATH])
+   if(pythonPluginServer_start_stop_params->params_list[PLUGINS_PATH])
    {
-      setPythonPluginPath(pythonPluginServerData->params_list[PLUGINS_PATH]);
-      _pythonPluginServer_thread=pythonPluginServer();
-      if(_pythonPluginServer_thread==NULL)
+      setPythonPluginPath(pythonPluginServer_start_stop_params->params_list[PLUGINS_PATH]);
+      _pythonPluginServer_thread_id=pythonPluginServer();
+      if(_pythonPluginServer_thread_id==NULL)
       {
          strerror_r(errno, err_str, sizeof(err_str));
          VERBOSE(2) {
@@ -593,10 +593,4 @@ int start_pythonPluginServer(int my_id, void *data, char *errmsg, int l_errmsg)
 
    return 0;
 }
-
-
-
-
-
-
 
