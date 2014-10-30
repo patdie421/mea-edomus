@@ -371,7 +371,7 @@ int stop_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
    if(!data)
       return -1;
 
-   struct interface_type_001_data_s *start_stop_params=(struct interface_type_001_data_s *)data;
+   struct interface_type_001_start_stop_params_s *start_stop_params=(struct interface_type_001_start_stop_params_s *)data;
 
    VERBOSE(9) fprintf(stderr,"%s  (%s) : %s shutdown thread ... ", INFO_STR, __func__, start_stop_params->i001->name);
 
@@ -424,9 +424,9 @@ int start_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
    char err_str[81];
 
    pthread_t *interface_type_001_thread_id=NULL; // descripteur du thread
+   
    struct interface_type_001_thread_params_s *interface_type_001_thread_params=NULL; // parametre à transmettre au thread
-
-   struct interface_type_001_data_s *start_stop_params=(struct interface_type_001_data_s *)data;
+   struct interface_type_001_start_stop_params_s *start_stop_params=(struct interface_type_001_start_stop_params_s *)data;
 
    if(start_stop_params->i001->loaded!=1)
    {
