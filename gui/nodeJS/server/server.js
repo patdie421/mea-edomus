@@ -80,6 +80,11 @@ function process_msg(cmnd, msg)
    {
       sendMessage('not', msg);
    }
+   else if(cmnd=="REL")
+   {
+      console.log("REL recu");
+      sendMessage('rel', msg);
+   }
    else
    {
       console.log("INFO   socket.on(data) : unknown command - "+cmd);
@@ -135,7 +140,7 @@ var server = require('net').createServer(function (socket) {
          var data = socket.read(l_data);
          if(!data)
             continue;
-         
+
          // lire fin de trame : ###
          var end = socket.read(3);
          if( end.toString() != "###")

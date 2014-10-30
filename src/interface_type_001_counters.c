@@ -235,9 +235,10 @@ void counter_to_xpl(struct electricity_counter_s *counter)
 }
 
 
-int16_t counter_to_db(tomysqldb_md_t *md, struct electricity_counter_s *counter)
+//int16_t counter_to_db(tomysqldb_md_t *md, struct electricity_counter_s *counter)
+int16_t counter_to_db(struct electricity_counter_s *counter)
 {
-   return tomysqldb_add_data_to_sensors_values(md, counter->sensor_id, (double)counter->wh_counter, UNIT_WH, (double)counter->kwh_counter, "WH");
+   return dbServer_add_data_to_sensors_values(counter->sensor_id, (double)counter->wh_counter, UNIT_WH, (double)counter->kwh_counter, "WH");
 }
 
 
@@ -376,7 +377,7 @@ mea_error_t interface_type_001_counters_process_xpl_msg(interface_type_001_t *i0
 }
 
 
-int16_t interface_type_001_counters_poll_inputs(interface_type_001_t *i001, tomysqldb_md_t *md)
+int16_t interface_type_001_counters_poll_inputs(interface_type_001_t *i001)
 {
    queue_t *counters_list=i001->counters_list;
    struct electricity_counter_s *counter;
@@ -425,7 +426,7 @@ int16_t interface_type_001_counters_poll_inputs(interface_type_001_t *i001, tomy
 
          if(counter->counter!=counter->last_counter)
          {
-            counter_to_db(md, counter);
+            counter_to_db(counter);
          }
 
          counter_to_xpl(counter);

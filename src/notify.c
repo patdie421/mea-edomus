@@ -37,7 +37,7 @@ int mea_notify(char *hostname, int port, char *notif_str, char notif_type)
 
    int notif_str_l=strlen(notif_str)+6;
    char message[2048];
-   sprintf(message,"$$$%c%cNOT:%c:%s###", (char)(notif_str_l%256), (char)(notif_str_l/256), notif_type, notif_str);
+   sprintf(message,"$$$%c%cNOT:%c:%s###", (char)(notif_str_l%128), (char)(notif_str_l/128), notif_type, notif_str);
    ret = mea_socket_send(&s, message, notif_str_l+12);
 
    close(s);
@@ -56,7 +56,7 @@ int _notify( char *hostname, int port, char *notif_str, char notif_type)
    
    int notif_str_l=strlen(notif_str)+6;
    char message[2048];
-   sprintf(message,"$$$%c%cNOT:%c:%s###", (char)(notif_str_l%256), (char)(notif_str_l/256), notif_type, notif_str);
+   sprintf(message,"$$$%c%cNOT:%c:%s###", (char)(notif_str_l%128), (char)(notif_str_l/128), notif_type, notif_str);
    ret = mea_socket_send(&s, message, notif_str_l+12);
 
    close(s);

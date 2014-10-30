@@ -812,11 +812,11 @@ int main(int argc, const char * argv[])
    //
    // pythonPluginServer
    //
-   struct pythonPluginServerData_s pythonPluginServerData;
-   pythonPluginServerData.params_list=params_list;
-   pythonPluginServerData.sqlite3_param_db=sqlite3_param_db;
+   struct pythonPluginServer_start_stop_params_s pythonPluginServer_start_stop_params;
+   pythonPluginServer_start_stop_params.params_list=params_list;
+   pythonPluginServer_start_stop_params.sqlite3_param_db=sqlite3_param_db;
    pythonPluginServer_monitoring_id=process_register("PYTHONPLUGINSERVER");
-   process_set_start_stop(pythonPluginServer_monitoring_id , start_pythonPluginServer, stop_pythonPluginServer, (void *)(&pythonPluginServerData), 1);
+   process_set_start_stop(pythonPluginServer_monitoring_id , start_pythonPluginServer, stop_pythonPluginServer, (void *)(&pythonPluginServer_start_stop_params), 1);
    if(process_start(pythonPluginServer_monitoring_id, NULL, 0)<0)
    {
       VERBOSE(9) fprintf (stderr, "error !!!\n");
@@ -830,9 +830,9 @@ int main(int argc, const char * argv[])
    struct interfacesServerData_s interfacesServerData;
    interfacesServerData.params_list=params_list;
    interfacesServerData.sqlite3_param_db=sqlite3_param_db;
-   interfacesServerData.myd=dbServer_get_md();
+//   interfacesServerData.myd=dbServer_get_md();
    
-   interfaces=start_interfaces(params_list, sqlite3_param_db, dbServer_get_md()); // démarrage des interfaces
+   interfaces=start_interfaces(params_list, sqlite3_param_db); // démarrage des interfaces
 
    int interfaces_reload_task_id=process_register("RELOAD");
    process_set_group(interfaces_reload_task_id, 2);
@@ -872,8 +872,7 @@ int main(int argc, const char * argv[])
       gethttp(localhost_const, guiport, "/CMD/ping.php", response, sizeof(response));
  
       uptime = (long)(time(NULL)-start_time);
-      process_update_indicator(main_monitori 
-      ng_id, "UPTIME", uptime);
+      process_update_indicator(main_monitoring_id, "UPTIME", uptime);
 
       managed_processes_loop(localhost_const, nodejsdata_port);
 

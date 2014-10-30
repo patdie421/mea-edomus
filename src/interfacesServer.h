@@ -30,14 +30,15 @@ struct interfacesServerData_s
 {
    char **params_list;
    sqlite3 *sqlite3_param_db;
-   tomysqldb_md_t *myd;
+//   dbServer_md_t *myd;
 };  
 
 
 int16_t get_dev_and_speed(char *device, char *dev, int16_t dev_l, speed_t *speed);
 int32_t get_speed_from_speed_t(speed_t speed);
-queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db, tomysqldb_md_t *myd);
-void restart_down_interfaces(sqlite3 *sqlite3_param_db, tomysqldb_md_t *myd);
+//queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db, tomysqldb_md_t *myd);
+queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db);
+//void restart_down_interfaces(sqlite3 *sqlite3_param_db, tomysqldb_md_t *myd);
 void stop_interfaces();
 void dispatchXPLMessageToInterfaces(xPL_ServicePtr theService, xPL_MessagePtr theMessage);
 int restart_interfaces(int my_id, void *data, char *errmsg, int l_errmsg);

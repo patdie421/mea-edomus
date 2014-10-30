@@ -19,13 +19,13 @@ session_start()
 
 <script type="text/javascript">
 jQuery(document).ready(function(){
+
 <?php
    echo "var socketio_port=";
    echo $IOSOCKET_PORT;
    echo ";\n";
-   ?>
+?>
    liveCom.connect(socketio_port);
-php>
 
    function resizeGrid(){
       var grid='utilisateurs';

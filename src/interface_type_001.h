@@ -42,7 +42,7 @@ struct interface_type_001_start_stop_params_s
    sqlite3 *sqlite3_param_db;
 //   int16_t id_interface;
    char dev[81];
-   tomysqldb_md_t *myd;
+//   tomysqldb_md_t *myd;
 };  
 
 

@@ -2,6 +2,7 @@
 //
 //  SOUS-PAGE (SUB-VIEW) de parametrages.php : 
 //
+include_once('../lib/configs.php');
 ?>
 <div style="text-align:center; margin:auto;">
 <div id="tabs1">
@@ -52,8 +53,7 @@ jQuery(document).ready(function(){
    echo $IOSOCKET_PORT;
    echo ";\n";
    ?>
-   liveCom.connect(socketio_port);
-php>
+//   liveCom.connect(socketio_port);
 
    // redimentionnement des grilles
    function resizeGrid(){

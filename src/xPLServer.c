@@ -441,8 +441,8 @@ pthread_t *xPLServer()
    pthread_mutex_unlock(&(xplRespQueue_sync_lock));
    pthread_cleanup_pop(0);
 
-   _xPLServer_thread=(pthread_t *)malloc(sizeof(pthread_t));
-   if(!_xPLServer_thread)
+   _xPLServer_thread_id=(pthread_t *)malloc(sizeof(pthread_t));
+   if(!_xPLServer_thread_id)
    {
       VERBOSE(1) {
          fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__, MALLOC_ERROR_STR);
@@ -453,19 +453,19 @@ pthread_t *xPLServer()
       return NULL;
    }
 
-   if(pthread_create (_xPLServer_thread, NULL, xPLServer_thread, NULL))
+   if(pthread_create (_xPLServer_thread_id, NULL, xPLServer_thread, NULL))
    {
       VERBOSE(1) fprintf(stderr, "%s (%s) : pthread_create - can't start thread\n",ERROR_STR,__func__);
       return NULL;
    }
       
-   return _xPLServer_thread;
+   return _xPLServer_thread_id;
 }
 
 
 int stop_xPLServer(int my_id, void *data,  char *errmsg, int l_errmsg)
 {
-   if(_xPLServer_thread)
+   if(_xPLServer_thread_id)
    {
       pthread_cancel(*_xPLServer_thread_id);
       int counter=100;
@@ -498,10 +498,10 @@ int stop_xPLServer(int my_id, void *data,  char *errmsg, int l_errmsg)
 
    _xplServer_monitoring_id=-1;
 
-   if(_xPLServer_thread)
+   if(_xPLServer_thread_id)
    {
-      free(_xPLServer_thread);
-      _xPLServer_thread=NULL;
+      free(_xPLServer_thread_id);
+      _xPLServer_thread_id=NULL;
    }   
 
    xPL_shutdown();
@@ -515,7 +515,7 @@ int stop_xPLServer(int my_id, void *data,  char *errmsg, int l_errmsg)
 
 int start_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg)
 {
-   struct xplServer_start_stop_params_s *xplServer_start_stop_params = (xplServer_start_stop_params_s *)data;
+   struct xplServer_start_stop_params_s *xplServer_start_stop_params = (struct xplServer_start_stop_params_s *)data;
    char err_str[256];
    
    if(!set_xpl_address(xplServer_start_stop_params->params_list))

@@ -461,14 +461,14 @@ pthread_t *pythonPluginServer()
    PyEval_ReleaseLock();
    py_init_flag=1;
 
-   if(pthread_create (pythonPlugin_thread, NULL, _pythonPlugin_thread_id, (void *)pythonPluginCmd_queue))
+   if(pthread_create (pythonPlugin_thread, NULL, _pythonPlugin_thread, (void *)pythonPluginCmd_queue))
    {
       VERBOSE(2) fprintf(stderr, "%s (%s) : pthread_create - can't start thread - ", FATAL_ERROR_STR, __func__);
       perror("");
       goto pythonPluginServer_clean_exit;
 
    }
-   pthread_detach(*pythonPlugin_thread_id);
+   pthread_detach(*pythonPlugin_thread);
    
    if(pythonPlugin_thread)   
       return pythonPlugin_thread;

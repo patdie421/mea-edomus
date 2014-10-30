@@ -108,7 +108,7 @@ int16_t dbServer_add_data_to_sensors_values(uint16_t sensor_id, double value1, u
  */
 {
    struct sensor_value_s *value;
-   tomysqldb_queue_elem_t *elem;
+   dbServer_queue_elem_t *elem;
    struct timeval tv;
    gettimeofday(&tv, NULL);
 
@@ -140,7 +140,7 @@ int16_t dbServer_add_data_to_sensors_values(uint16_t sensor_id, double value1, u
       strcpy(value->complement,complement);
    }
    
-   elem=malloc(sizeof(tomysqldb_queue_elem_t));
+   elem=malloc(sizeof(dbServer_queue_elem_t));
    if(!elem)
    {
       VERBOSE(1) {
@@ -163,12 +163,12 @@ int16_t dbServer_add_data_to_sensors_values(uint16_t sensor_id, double value1, u
    elem->data=(void *)value;
    elem->freedata=free_value;
 
-   pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(md->lock));
-   if(!pthread_mutex_lock(&(md->lock)))
+   pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(_md->lock));
+   if(!pthread_mutex_lock(&(_md->lock)))
    {
-      VERBOSE(9) fprintf (stderr, "%s  (%s) : data to queue(%ld) (sensor_id=%d, value1=%f)\n",INFO_STR,__func__,md->queue->nb_elem,sensor_id,value1);
-      in_queue_elem(md->queue,(void *)elem);
-      pthread_mutex_unlock(&(md->lock));
+      VERBOSE(9) fprintf (stderr, "%s  (%s) : data to queue(%ld) (sensor_id=%d, value1=%f)\n",INFO_STR,__func__,_md->queue->nb_elem,sensor_id,value1);
+      in_queue_elem(_md->queue,(void *)elem);
+      pthread_mutex_unlock(&(_md->lock));
    }
    else
    {
@@ -182,13 +182,13 @@ int16_t dbServer_add_data_to_sensors_values(uint16_t sensor_id, double value1, u
 }  
 
 
-void _tomysqldb_free_queue_elem(void *d) // pour vider_file2()
+void _dbServer_free_queue_elem(void *d) // pour vider_file2()
 /**
  * \brief     libère proprement le contenu d'un élément de file.
  * \details   fonction appelée par le gestionnaire de file.
  */
 {
-   tomysqldb_queue_elem_t *e=(tomysqldb_queue_elem_t *)d;
+   dbServer_queue_elem_t *e=(dbServer_queue_elem_t *)d;
    
    if(e)
    {
@@ -375,7 +375,7 @@ uint16_t build_query_for_sensors_values(char *sql_query, uint16_t l_sql_query, v
 
 
 // int write_data_to_db(tomysqldb_md_t *md, int mysql_connected, MYSQL *conn, sqlite3 *db, tomysqldb_queue_elem_t *elem)
-int write_data_to_db(int mysql_connected, MYSQL *conn, sqlite3 *db, tomysqldb_queue_elem_t *elem)
+int write_data_to_db(int mysql_connected, MYSQL *conn, sqlite3 *db, dbServer_queue_elem_t *elem)
 /**
  * \brief     écrit les données vers une table en fonction du type d'élément récupéré dans la file de traitement
  * \param     md              descripteur du gestionnaire. Il est alloué par l'appelant.
@@ -441,12 +441,12 @@ int _connect(MYSQL **conn)
    // récupération du port si disponible
    char *end;
    uint16_t port=3306;
-   if(md->db_server_port[0])
+   if(_md->db_server_port[0])
    {
       port=strtol(_md->db_server_port,&end,10);
       if(*end!=0 || errno==ERANGE)
       {
-         VERBOSE(1) fprintf(stderr,"%s (%s) : port (%s) incorrect\n", ERROR_STR,__func__,md->db_server_port);
+         VERBOSE(1) fprintf(stderr,"%s (%s) : port (%s) incorrect\n", ERROR_STR,__func__,_md->db_server_port);
          port=0;
       }
    }
@@ -481,7 +481,7 @@ void *dbServer_thread(void *args)
 {
    int ret;
    
-   tomysqldb_queue_elem_t *elem;
+   dbServer_queue_elem_t *elem;
 //   tomysqldb_md_t *md=(tomysqldb_md_t *)args;
 
    int mysql_connected=0; // indicateur connexion active (1) ou inactive (0)
@@ -494,7 +494,7 @@ void *dbServer_thread(void *args)
    pthread_cleanup_push( (void *)set_dbServer_isnt_running, (void *)NULL );
    _dbServer_thread_is_running=1;
 
-   ret=tomysqldb_connect(_md, &_md->conn);
+   ret=_connect(&_md->conn);
    if(ret)
       mysql_connected=0;
    else
@@ -549,7 +549,7 @@ void *dbServer_thread(void *args)
          
          if(mysql_connected == 0) // jamais connecté ou plus de connexion, on essaye de se connecter
          {
-            ret=_connect(_md, &_md->conn);
+            ret=_connect(&_md->conn);
             if(ret)
                mysql_connected=0; // toujours pas connecté
             else
@@ -564,11 +564,11 @@ void *dbServer_thread(void *args)
             // DEBUG_SECTION fprintf(stderr,"SQLITE3_DB_PATH = %s\n",md->sqlite3_db_path);
             if(!_md->db) // sqlite n'est pas ouverte
             {
-               ret = sqlite3_open (md->sqlite3_db_path, &md->db);
+               ret = sqlite3_open (_md->sqlite3_db_path, &_md->db);
                if(ret)
                {
                   _md->db=NULL;
-                  VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_open - %s\n", ERROR_STR,__func__,sqlite3_errmsg (md->db));
+                  VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_open - %s\n", ERROR_STR,__func__,sqlite3_errmsg (_md->db));
                }
             }
          }
@@ -580,13 +580,13 @@ void *dbServer_thread(void *args)
             ret=exec_mysql_query(_md->conn, sql_query);
             if(ret)
             {
-               VERBOSE(2) fprintf (stderr, "%s (%s) : sql_query - %u: %s\n", ERROR_STR,__func__,mysql_errno(md->conn), mysql_error(_md->conn));
+               VERBOSE(2) fprintf (stderr, "%s (%s) : sql_query - %u: %s\n", ERROR_STR,__func__,mysql_errno(_md->conn), mysql_error(_md->conn));
             }
 
             if(_md->db) // sqlite est encore ouvert, il faut vider la table des requetes si elle n'est pas vide
             {
                // transferer le contenu de la base sqlite vers la base mysql ici :
-               move_sqlite3_queries_to_mysql(md->db, md->conn);
+               move_sqlite3_queries_to_mysql(_md->db, _md->conn);
                
                sqlite3_close(_md->db); // et on la referme
                _md->db=NULL;
@@ -600,9 +600,9 @@ void *dbServer_thread(void *args)
             if(!pthread_mutex_lock(&(_md->lock)))
             {
                last_queue(_md->queue); // on se positionne en fin de queue
-               current_queue(md->queue,(void **)&elem); // on lit le dernier element de la file sans le sortir (on le sortira s'il est inséré dans une base
+               current_queue(_md->queue,(void **)&elem); // on lit le dernier element de la file sans le sortir (on le sortira s'il est inséré dans une base
                   
-               ret=write_data_to_db(_md, mysql_connected, _md->conn, _md->db, elem);
+               ret=write_data_to_db(mysql_connected, _md->conn, _md->db, elem);
                if(!ret)
                {
                   out_queue_elem(_md->queue,(void **)&elem);
@@ -662,22 +662,22 @@ int dbServer(char *db_server, char *db_server_port, char *base, char *user, char
       return -1;
 
    _md->db_server=string_malloc_and_copy(db_server,1);
-   IF_NULL_RETURN(md->db_server,-1);
+   IF_NULL_RETURN(_md->db_server,-1);
    
    _md->db_server_port=string_malloc_and_copy(db_server_port,1);
-   IF_NULL_RETURN(md->db_server,-1);
+   IF_NULL_RETURN(_md->db_server,-1);
    
    _md->base=string_malloc_and_copy(base,1);
-   IF_NULL_RETURN(md->db_server,-1);
+   IF_NULL_RETURN(_md->db_server,-1);
 
    _md->user=string_malloc_and_copy(user,1);
-   IF_NULL_RETURN(md->user,-1);
+   IF_NULL_RETURN(_md->user,-1);
    
    _md->passwd=string_malloc_and_copy(passwd,1);
-   IF_NULL_RETURN(md->passwd,-1);
+   IF_NULL_RETURN(_md->passwd,-1);
    
    _md->sqlite3_db_path=string_malloc_and_copy(sqlite3_db_path,1);
-   IF_NULL_RETURN(md->sqlite3_db_path,-1);
+   IF_NULL_RETURN(_md->sqlite3_db_path,-1);
    
    
    _md->queue=(queue_t *)malloc(sizeof(queue_t));
@@ -729,21 +729,21 @@ void dbServer_release()
       }
       DEBUG_SECTION fprintf(stderr,"%s (%s) : DBSERVER, fin après %d itération\n",DEBUG_STR, __func__,100-counter);
 
-     _ md->started=0;
+      _md->started=0;
 
       mysql_close(_md->conn);
       _md->conn=NULL;
       sqlite3_close(_md->db);
       _md->db=NULL;
 
-      clear_queue(_md->queue,_tomysqldb_free_queue_elem);
+      clear_queue(_md->queue,_dbServer_free_queue_elem);
       if(_md->queue)
       {
          free(_md->queue);
          _md->queue=NULL;
       }
       
-      pthread_mutex_destroy(&(md->lock));
+      pthread_mutex_destroy(&(_md->lock));
       
       if(_md->db_server)
       {
@@ -760,7 +760,7 @@ void dbServer_release()
       if(_md->base)
       {
          free(_md->base);
-         md->base=NULL;
+         _md->base=NULL;
       }
       
       if(_md->user)
@@ -819,14 +819,14 @@ int stop_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
       sqlite3_close(_md->db);
       _md->db=NULL;
 
-      clear_queue(_md->queue,_tomysqldb_free_queue_elem);
+      clear_queue(_md->queue,_dbServer_free_queue_elem);
       if(_md->queue)
       {
          free(_md->queue);
          _md->queue=NULL;
       }
       
-      pthread_mutex_destroy(&(md->lock));
+      pthread_mutex_destroy(&(_md->lock));
       
       if(_md->db_server)
       {
@@ -843,7 +843,7 @@ int stop_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
       if(_md->base)
       {
          free(_md->base);
-         md->base=NULL;
+         _md->base=NULL;
       }
       
       if(_md->user)
@@ -884,7 +884,7 @@ int start_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
    int16_t ret;
    char err_str[256];
 
-   _md=(struct tomysqldb_md_s *)malloc(sizeof(struct tomysqldb_md_s));
+   _md=(struct dbServer_md_s *)malloc(sizeof(struct dbServer_md_s));
    if(!_md)
    {
       strerror_r(errno, err_str, sizeof(err_str));
@@ -894,14 +894,14 @@ int start_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
       mea_notify_printf('E',"DBSERVER can't be launched - %s.", err_str);
       return -1;
    }
-   memset(_md,0,sizeof(struct tomysqldb_md_s));
+   memset(_md,0,sizeof(struct dbServer_md_s));
 
-   ret=dbServer(_md, dbServerData->params_list[MYSQL_DB_SERVER],
-                     dbServerData->params_list[MYSQL_DB_PORT],
-                     dbServerData->params_list[MYSQL_DATABASE],
-                     dbServerData->params_list[MYSQL_USER],
-                     dbServerData->params_list[MYSQL_PASSWD],
-                     dbServerData->params_list[SQLITE3_DB_BUFF_PATH]);
+   ret=dbServer(dbServerData->params_list[MYSQL_DB_SERVER],
+                dbServerData->params_list[MYSQL_DB_PORT],
+                dbServerData->params_list[MYSQL_DATABASE],
+                dbServerData->params_list[MYSQL_USER],
+                dbServerData->params_list[MYSQL_PASSWD],
+                dbServerData->params_list[SQLITE3_DB_BUFF_PATH]);
    if(ret==-1)
    {
       VERBOSE(2) fprintf(stderr,"%s (%s) : Can not init data base communication.\n", ERROR_STR, __func__);

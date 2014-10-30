@@ -57,7 +57,7 @@ struct interface_type_002_data_s
    interface_type_002_t *i002;
    sqlite3 *sqlite3_param_db;
 //   int16_t id_interface;
-   tomysqldb_md_t *myd;
+//   tomysqldb_md_t *myd;
    char *parameters;
 };  
 

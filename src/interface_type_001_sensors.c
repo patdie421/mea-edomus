@@ -506,7 +506,7 @@ mea_error_t interface_type_001_sensors_process_xpl_msg(interface_type_001_t *i00
 }
 
 
-int16_t interface_type_001_sensors_poll_inputs(interface_type_001_t *i001, tomysqldb_md_t *md)
+int16_t interface_type_001_sensors_poll_inputs(interface_type_001_t *i001)
 {
    queue_t *sensors_list=i001->sensors_list;
    struct sensor_s *sensor;
@@ -562,7 +562,7 @@ int16_t interface_type_001_sensors_poll_inputs(interface_type_001_t *i001, tomys
                if(sensor->compute==XPL_TEMP_ID)
                {
                   VERBOSE(9) fprintf(stderr,"%s  (%s) : temperature sensor %s =  %.1f °C (%d) \n",INFO_STR,__func__,sensor->name,sensor->computed_val,sensor->val);
-                  tomysqldb_add_data_to_sensors_values(md, sensor->sensor_id, sensor->computed_val, UNIT_C, sensor->val, "");
+                  dbServer_add_data_to_sensors_values(sensor->sensor_id, sensor->computed_val, UNIT_C, sensor->val, "");
                }
                else if(sensor->compute==XPL_VOLTAGE_ID)
                {

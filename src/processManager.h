@@ -18,7 +18,6 @@ struct process_indicator_s
 };
 
 typedef int (*process_start_stop_f)(int, void *, char *, int);
-
 typedef enum process_status_e { STOPPED = 0,   RUNNING = 1 } process_status_t;
 typedef enum process_type_e   { AUTOSTART = 0, ONSHOT = 1, NOTMANAGED = 2, TASK = 3 } process_type_t;
 

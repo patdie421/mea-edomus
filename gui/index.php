@@ -16,6 +16,7 @@ if(!isset($_SESSION['logged_in']))
     exit();
 }
 ?>
+</style>
 
 <html>
 <head>

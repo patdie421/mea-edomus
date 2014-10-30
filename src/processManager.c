@@ -18,7 +18,6 @@
 #include "sockets_utils.h"
 #include "string_utils.h"
 
-
 struct managed_processes_s menaged_processes;
 
 
@@ -79,7 +78,8 @@ int _managed_processes_process_to_json(int id, char *s, int s_l, int flag)
          if(mea_strncat(s, s_l, "\"heartbeat\":")<0)
             return -1;
    
-         if((now - managed_processes.processes_table[id]->last_heartbeat)<30)
+         if( ((now - managed_processes.processes_table[id]->last_heartbeat)<30) ||
+            (managed_processes.processes_table[id]->type == TASK) )
          {
             if(mea_strncat(s, s_l, "\"OK\"")<0)
                return -1;
@@ -674,15 +674,19 @@ void *_task_thread(void *data)
    
    pthread_cleanup_push( (void *)pthread_rwlock_unlock, (void *)&managed_processes.rwlock );
    pthread_rwlock_wrlock(&managed_processes.rwlock);
-   managed_processes.processes_table[id]->status=RUNNING;
+   managed_processes.processes_table[task_thread_data->id]->status=RUNNING;
    pthread_rwlock_unlock(&managed_processes.rwlock);
    pthread_cleanup_pop(0);
 
-   task_threak_data->task(task_threak_data->id, task_threak_data->task_data, NULL, 0);
-   
+   managed_processes_refresh_now("localhost", 5600);
+
+   task_thread_data->task(task_thread_data->id, task_thread_data->task_data, NULL, 0);
+
+   managed_processes_refresh_now("localhost", 5600);
+
    pthread_cleanup_push( (void *)pthread_rwlock_unlock, (void *)&managed_processes.rwlock );
    pthread_rwlock_wrlock(&managed_processes.rwlock);
-   managed_processes.processes_table[id]->status=STOPPED;
+   managed_processes.processes_table[task_thread_data->id]->status=STOPPED;
    pthread_rwlock_unlock(&managed_processes.rwlock);
    pthread_cleanup_pop(0);
    
@@ -690,7 +694,9 @@ void *_task_thread(void *data)
    {
       free(data);
       data=NULL;
-   }   
+   }
+   
+   return NULL;
 }
 
 
@@ -706,12 +712,12 @@ int process_task(int id, char *errmsg, int l_errmsg)
    {
       if(managed_processes.processes_table[id]->start)
       {
-         struct task_tread_data_s *task_threak_data=(struct task_tread_data_s *)malloc(sizeof(struct struct task_tread_data_s *));
-         task_threak_data->task=managed_processes.processes_table[id]->start;
-         task_threak_data->task_data=managed_processes.processes_table[id]->start_stop_data;
-         task_threak_data->id=id;
+         struct task_thread_data_s *task_thread_data=(struct task_thread_data_s *)malloc(sizeof(struct task_thread_data_s));
+         task_thread_data->task=managed_processes.processes_table[id]->start;
+         task_thread_data->task_data=managed_processes.processes_table[id]->start_stop_data;
+         task_thread_data->id=id;
          pthread_t process_task_thread;
-         if(pthread_create (process_task_thread, NULL, _task_thread, (void *)task_threak_data))
+         if(pthread_create (&process_task_thread, NULL, _task_thread, (void *)task_thread_data))
          {
             VERBOSE(2) fprintf(stderr, "%s (%s) : pthread_create - can't start thread\n",ERROR_STR,__func__);
             if(errmsg)
@@ -722,6 +728,7 @@ int process_task(int id, char *errmsg, int l_errmsg)
             }
          }
          pthread_detach(process_task_thread);
+         ret=0;
       }
    }
 

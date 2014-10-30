@@ -2,6 +2,7 @@
 //
 //  SOUS-PAGE (SUB-VIEW) de automate.php :
 //
+include_once('../lib/configs.php');
 ?>
 <div style="text-align:center; margin:auto;">
 <div id="tabs1">

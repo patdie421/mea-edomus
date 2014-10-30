@@ -18,6 +18,7 @@
 #include "queue.h"
 #include "debug.h"
 #include "xPL.h"
+#include "sockets_utils.h"
 
 #include "processManager.h"
 
@@ -176,7 +177,7 @@ void stop_interfaces()
             case INTERFACE_TYPE_001:
             {
                interface_type_001_t *i001=(interface_type_001_t *)(iq->context);
-               VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping #%d\n",INFO_STR,__func__,i001->id_interface);
+               VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping #%d\n",INFO_STR,__func__,i001->interface_id);
                
                if(i001->xPL_callback)
                   i001->xPL_callback=NULL;
@@ -247,7 +248,7 @@ void stop_interfaces()
 }
 
 
-queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db, tomysqldb_md_t *myd)
+queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
 {
    char sql[255];
    sqlite3_stmt * stmt;
@@ -318,7 +319,7 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db, tomysql
                      break;
                   }
                   i001->thread_is_running=0;
-                  struct interface_type_001_data_s *i001_start_stop_params=(struct interface_type_001_data_s *)malloc(sizeof(struct interface_type_001_data_s));
+                  struct interface_type_001_start_stop_params_s *i001_start_stop_params=(struct interface_type_001_start_stop_params_s *)malloc(sizeof(struct interface_type_001_start_stop_params_s));
                   if(!i001_start_stop_params)
                   {
                      free(i001);
@@ -332,14 +333,14 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db, tomysql
                   
                   i001_start_stop_params->i001=i001;
                   i001_start_stop_params->sqlite3_param_db = sqlite3_param_db;
-                  i001_start_stop_params->myd = myd;
+//                  i001_start_stop_params->myd = myd;
                   strncpy(i001_start_stop_params->dev, (char *)dev, sizeof(i001_start_stop_params->dev)-1);
                   
                   strncpy(i001->name, (char *)name, sizeof(i001->name)-1);
                   i001->loaded=0;
                   i001->monitoring_id=process_register((char *)name);
                   process_set_group(i001->monitoring_id, 1);
-                  i001->id_interface=id_interface;
+                  i001->interface_id=id_interface;
                   process_set_start_stop(i001->monitoring_id, start_interface_type_001, stop_interface_type_001, (void *)i001_start_stop_params, 1);
                   ret=process_start(i001->monitoring_id, NULL, 0);
 /*
@@ -402,7 +403,7 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db, tomysql
 
                   process_set_group(i002->monitoring_id, 1);
                   i002_start_stop_params->sqlite3_param_db = sqlite3_param_db;
-                  i002_start_stop_params->myd = myd;
+//                  i002_start_stop_params->myd = myd;
                   i002_start_stop_params->parameters = (char *)parameters;
                   i002_start_stop_params->i002=i002;
 
@@ -471,14 +472,34 @@ start_interfaces_clean_exit:
 }
 
 
+int send_reload( char *hostname, int port)
+{
+   int ret;
+   int s;
+   char reload_str[80];
+   
+   if(mea_socket_connect(&s, hostname, port)<0)
+      return -1;
+   
+   int reload_str_l=strlen(reload_str)+4;
+   char message[2048];
+   sprintf(message,"$$$%c%cREL:%s###", (char)(reload_str_l%128), (char)(reload_str_l/128), reload_str);
+   ret = mea_socket_send(&s, message, reload_str_l+12);
+
+   close(s);
+
+   return ret;
+}
+
+
 int restart_interfaces(int my_id, void *data, char *errmsg, int l_errmsg)
 {
    struct interfacesServerData_s *interfacesServerData = (struct interfacesServerData_s *)data;
 
    stop_interfaces();
    sleep(1);
-   interfaces=start_interfaces(interfacesServerData->params_list, interfacesServerData->sqlite3_param_db, interfacesServerData->myd);
-
+   start_interfaces(interfacesServerData->params_list, interfacesServerData->sqlite3_param_db);
+   send_reload("localhost",5600);
    return 0;
 }
 

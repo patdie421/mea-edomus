@@ -52,7 +52,8 @@ int16_t      interface_type_001_counters_process_traps(int16_t numTrap, char *bu
 mea_error_t interface_type_001_counters_process_xpl_msg(interface_type_001_t *i001, xPL_ServicePtr theService, xPL_MessagePtr msg, char *device, char *type);
 
 
-int16_t      interface_type_001_counters_poll_inputs(interface_type_001_t *i001, tomysqldb_md_t *md);
+//int16_t      interface_type_001_counters_poll_inputs(interface_type_001_t *i001, tomysqldb_md_t *md);
+int16_t      interface_type_001_counters_poll_inputs(interface_type_001_t *i001);
 void         interface_type_001_counters_init(interface_type_001_t *i001);
 
 #endif

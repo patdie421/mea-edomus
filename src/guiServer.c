@@ -1,4 +1,4 @@
-//
+  //
 //  httpServer.c
 //  mea-eDomus
 //
@@ -84,6 +84,12 @@ char _php_sessions_path[256];
 
 const char *options[15];
 struct mg_context* g_mongooseContext = 0;
+
+
+int get_socketio_port()
+{
+   return _socketio_port;
+}
 
 
 int gethttp(char *server, int port, char *url, char *response, int l_response)

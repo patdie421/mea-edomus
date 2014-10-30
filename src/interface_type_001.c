@@ -54,7 +54,7 @@
 struct interface_type_001_thread_params_s
 {
    interface_type_001_t *it001;
-   tomysqldb_md_t *md;
+//   tomysqldb_md_t *md;
 };
 
 
@@ -327,7 +327,7 @@ void *_thread_interface_type_001(void *args)
    pthread_cleanup_push( (void *)set_interface_type_001_isnt_running, (void *)i001 );
    i001->thread_is_running=1;
    
-   tomysqldb_md_t *md=interface_type_001_thread_params->md;
+//   tomysqldb_md_t *md=interface_type_001_thread_params->md;
    free(interface_type_001_thread_params);
    interface_type_001_thread_params=NULL;
    
@@ -339,12 +339,12 @@ void *_thread_interface_type_001(void *args)
    {
       process_heartbeat(i001->monitoring_id);
 
-      if(interface_type_001_counters_poll_inputs(i001, md)<0)
+      if(interface_type_001_counters_poll_inputs(i001)<0)
       {
          pthread_exit(NULL);
       }
       
-      if(interface_type_001_sensors_poll_inputs(i001, md)<0)
+      if(interface_type_001_sensors_poll_inputs(i001)<0)
       {
          pthread_exit(NULL);
       }
@@ -503,7 +503,7 @@ int start_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
       goto start_interface_type_001_clean_exit;
    
    interface_type_001_thread_params->it001=start_stop_params->i001;
-   interface_type_001_thread_params->md=start_stop_params->myd;
+//   interface_type_001_thread_params->md=start_stop_params->myd;
    
    interface_type_001_thread_id=(pthread_t *)malloc(sizeof(pthread_t));
    if(!interface_type_001_thread_id)
@@ -521,7 +521,7 @@ int start_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
   
    start_stop_params->i001->thread_id=interface_type_001_thread_id;
    
-   pthread_detach(interface_type_001_thread_id);
+   pthread_detach(*interface_type_001_thread_id);
    
    VERBOSE(2) fprintf(stderr,"%s  (%s) : %s %s.\n", INFO_STR, __func__, start_stop_params->i001->name, launched_successfully_str);
    mea_notify_printf('S', "%s %s", start_stop_params->i001->name, launched_successfully_str);

@@ -182,6 +182,13 @@ function socketio_available(s) { // socket io est chargé, on se connecte
       var data = jQuery.parseJSON( message );
       anim_status(data);
    });
+
+   s.on('rel', function(message){
+      $("#table_interfaces").empty();
+      $("#table_interfaces").append("<tbody></tbody>");
+      load_interfaces_list_only();
+      anim_status(data);
+   });
    
    load_all_processes_lists();
 }
@@ -207,17 +214,16 @@ function reload(id)
             type="information";
          else
             type="error";
-         console.log("Done");
       },
       error: function(jqXHR, textStatus, errorThrown ){
          ajax_error( jqXHR, textStatus, errorThrown );
       }
    });
-
    $("#table_interfaces").empty();
    $("#table_interfaces").append("<tbody></tbody>");
-   load_interfaces_list_only();
+   $("#table_interfaces > tbody").before("<tr><td style=\"width:100%; margin:auto;\" align=\"center\" valign=\"top\"><div class=\"wait_ball\"></div></td></tr>");
 }
+
 
 
 function start(id)
@@ -282,7 +288,7 @@ function start_index_controller()
       }
       else {
          _intervalCounter++;
-         if(_intervalCounter>20) { // 2 secondes max pour s'initialiser
+         if(_intervalCounter>50) { // 5 secondes max pour s'initialiser
             clearIntrerval(_intervalId);
             socketio_unavailable();
          }

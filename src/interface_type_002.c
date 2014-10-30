@@ -89,7 +89,7 @@ struct callback_xpl_data_s
 struct thread_params_s
 {
    xbee_xd_t            *xd;
-   tomysqldb_md_t       *md;
+//   tomysqldb_md_t       *md;
    sqlite3              *param_db;
    queue_t              *queue;
    pthread_mutex_t       callback_lock;
@@ -807,7 +807,7 @@ void *_thread_interface_type_002_xbeedata(void *args)
 
 
 // xd est déjà dans i002 pourquoi le passer en parametre ...
-pthread_t *start_interface_type_002_xbeedata_thread(interface_type_002_t *i002, xbee_xd_t *xd, sqlite3 *db, tomysqldb_md_t *md,thread_f function)
+pthread_t *start_interface_type_002_xbeedata_thread(interface_type_002_t *i002, xbee_xd_t *xd, sqlite3 *db, thread_f function)
 /**  
  * \brief     Demarrage du thread de gestion des données (non solicitées) en provenance des xbee
  * \param     i002           descripteur de l'interface
@@ -843,7 +843,7 @@ pthread_t *start_interface_type_002_xbeedata_thread(interface_type_002_t *i002, 
    init_queue(params->queue);
 
    params->xd=xd;
-   params->md=md;
+//   params->md=md;
    params->param_db=db;
    pthread_mutex_init(&params->callback_lock, NULL);
    pthread_cond_init(&params->callback_cond, NULL);
@@ -1311,7 +1311,7 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
    /*
     * Gestion des sous-interfaces
     */
-   start_stop_params->i002->thread=start_interface_type_002_xbeedata_thread(start_stop_params->i002, xd, start_stop_params->sqlite3_param_db, start_stop_params->myd, (thread_f)_thread_interface_type_002_xbeedata);
+   start_stop_params->i002->thread=start_interface_type_002_xbeedata_thread(start_stop_params->i002, xd, start_stop_params->sqlite3_param_db, (thread_f)_thread_interface_type_002_xbeedata);
 
    //
    // gestion du commissionnement : mettre une zone donnees specifique au commissionnement
