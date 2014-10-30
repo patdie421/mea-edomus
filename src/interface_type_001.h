@@ -36,7 +36,7 @@ typedef struct interface_type_001_s
 } interface_type_001_t;
 
 
-struct interface_type_001_data_s
+struct interface_type_001_start_stop_params_s
 {
    interface_type_001_t *i001;
    sqlite3 *sqlite3_param_db;
