@@ -471,70 +471,14 @@ start_interfaces_clean_exit:
 }
 
 
-void restart_down_interfaces(sqlite3 *sqlite3_param_db, tomysqldb_md_t *myd)
-{
-   interfaces_queue_elem_t *iq;
-   int16_t ret;
-
-   pthread_cleanup_push( (void *)pthread_rwlock_unlock, (void *)&interfaces_queue_rwlock);
-   pthread_rwlock_wrlock(&interfaces_queue_rwlock);
-
-   if(_interfaces && _interfaces->nb_elem)
-   {
-      first_queue(_interfaces);
-      while(1)
-      {
-         current_queue(_interfaces, (void **)&iq);
-         switch (iq->type)
-         {
-            case INTERFACE_TYPE_001:
-            {
-               interface_type_001_t *i001 = (interface_type_001_t *)(iq->context);
-               ret=check_status_interface_type_001(i001);
-               if( ret != 0)
-               {
-                  if(i001->xPL_callback)
-                     i001->xPL_callback=NULL;
-                  sleep(1);
-                  VERBOSE(9) fprintf(stderr,"%s  (%s) : restart interface type_001 (interface_id=%d).\n", INFO_STR, __func__, i001->id_interface);
-                  restart_interface_type_001(i001->monitoring_id);
-               }
-               break;
-            }
-            case INTERFACE_TYPE_002:
-            {
-               interface_type_002_t *i002 = (interface_type_002_t *)(iq->context);
-               ret=check_status_interface_type_002(i002);
-               if( ret != 0)
-               {
-                  if(i002->xPL_callback)
-                     i002->xPL_callback=NULL;
-                  sleep(1);
-                  VERBOSE(9) fprintf(stderr,"%s  (%s) : restart interface type_002 (interface_id=%d).\n", INFO_STR, __func__, i002->id_interface);
-                  restart_interface_type_002(i002->monitoring_id);
-               }
-               break;
-            }
-            
-            default:
-               break;
-         }
-         ret=next_queue(_interfaces);
-         if(ret<0)
-            break;
-      }
-   }
-
-   pthread_rwlock_unlock(&interfaces_queue_rwlock);
-   pthread_cleanup_pop(0); 
-   
-   return;
-}
-
-
 int restart_interfaces(int my_id, void *data, char *errmsg, int l_errmsg)
 {
-   fprintf(stderr, "ESSAI RELOAD\n");
+   struct interfacesServerData_s *interfacesServerData = (struct interfacesServerData_s *)data;
+
+   stop_interfaces();
+   sleep(1);
+   interfaces=start_interfaces(interfacesServerData->params_list, interfacesServerData->sqlite3_param_db, interfacesServerData->myd);
+
    return 0;
 }
 
