@@ -76,7 +76,7 @@ int   process_set_group(int id, int group_id);
 void* process_get_data_ptr(int id);
 
 int   init_processes_manager(int max_nb_processes);
-int   destroy_managed_processes();
+int   clean_managed_processes();
 
 int   managed_processes_check_heartbeat();
 int   managed_processes_loop(char *hostname, int port);
