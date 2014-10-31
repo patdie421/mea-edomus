@@ -335,7 +335,7 @@ int process_set_group(int id, int group_id)
 }
 
 
-int   process_set_heartbeat_recovery(id, managed_processes_process_f recovery_task, void *recovery_task_data)
+int   process_set_watchdog_recovery(id, managed_processes_process_f recovery_task, void *recovery_task_data)
 {
    pthread_cleanup_push( (void *)pthread_rwlock_unlock, (void *)&managed_processes.rwlock );
    pthread_rwlock_wrlock(&managed_processes.rwlock);
