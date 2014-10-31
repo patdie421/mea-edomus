@@ -739,11 +739,7 @@ int main(int argc, const char * argv[])
 
    DEBUG_SECTION fprintf(stderr,"INFO  Starting MEA-EDOMUS %s\n",__MEA_EDOMUS_VERSION__);
 
-   //
-   // initialisation du gestionnaire de process
-   //
-   init_processes_manager(40);
-
+   
    //   
    // demarrage du processus de l'automate
    //
@@ -758,7 +754,18 @@ int main(int argc, const char * argv[])
    
    signal(SIGPIPE, signal_callback_handler);
 
-   mea_notify_set_port(atoi(params_list[NODEJSDATA_PORT]));
+   //
+   // pour la gestion des notifications
+   //
+   int notif_port = atoi(params_list[NODEJSDATA_PORT]);
+   mea_notify_set_port(notif_port);
+
+   //
+   // initialisation du gestionnaire de process
+   //
+   init_processes_manager(40);
+   managed_processes_set_notification_hostname(localhost_str);
+   managed_processes_set_notification_port(notif_port);
 
    main_monitoring_id=process_register("MAIN");
    process_set_type(main_monitoring_id, NOTMANAGED);
@@ -864,7 +871,6 @@ int main(int argc, const char * argv[])
 
    // boucle sans fin.
    char response[512];
-   int nodejsdata_port = atoi(params_list[NODEJSDATA_PORT]);
    int guiport = atoi(params_list[GUIPORT]);
    while(1)
    {
@@ -874,7 +880,7 @@ int main(int argc, const char * argv[])
       uptime = (long)(time(NULL)-start_time);
       process_update_indicator(main_monitoring_id, "UPTIME", uptime);
 
-      managed_processes_loop(localhost_const, nodejsdata_port);
+      managed_processes_loop();
 
       sleep(5);
    }
