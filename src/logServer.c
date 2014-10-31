@@ -27,6 +27,9 @@
 #include "consts.h"
 #include "notify.h"
 
+// pour la detection de changement d'un fichier voir :
+// linux : http://www.ibm.com/developerworks/linux/library/l-inotify/
+// mac os x : https://github.com/dmatveev/libinotify-kqueue (lib pour simuler inotify)
 
 char *log_server_name_str="LOGSERVER";
 
