@@ -76,11 +76,11 @@ int   process_set_group(int id, int group_id);
 void* process_get_data_ptr(int id);
 
 int   init_processes_manager(int max_nb_processes);
-int   clear_managed_processes();
-int   managed_processes_loop(char *hostname, int port);
-int   managed_processes_processes_to_json_mini(char *json, int l_json);
-int   managed_processes_refresh_now(char *hostname, int port);
-int   managed_processes_check_heartbeat();
+int   destroy_managed_processes();
 
+int   managed_processes_check_heartbeat();
+int   managed_processes_loop(char *hostname, int port);
+
+int   managed_processes_send_stats_now(char *hostname, int port);
 
 #endif
