@@ -680,16 +680,17 @@ int _managed_processes_send_stats(char *hostname, int port)
 
 int managed_processes_processes_check_heartbeats(int doRecovery)
 {
+   int ret=0;
    pthread_cleanup_push( (void *)pthread_rwlock_unlock, (void *)&managed_processes.rwlock );
    pthread_rwlock_wrlock(&managed_processes.rwlock);
 
-  for(i=0;i<managed_processes.max_processes;i++)
-  {
-    if(managed_processes.processes_table[id] &&
-       managed_processes.processes_table[id]->status==RUNNING)
+   for(i=0;i<managed_processes.max_processes;i++)
    {
-      if( ((now - managed_processes.processes_table[id]->last_heartbeat)<managed_processes.processes_table[id]->heartbeat_interval) ||
-         (managed_processes.processes_table[id]->type == TASK) )
+      if(managed_processes.processes_table[id] &&
+         managed_processes.processes_table[id]->status==RUNNING)
+      {
+         if( ((now - managed_processes.processes_table[id]->last_heartbeat)<managed_processes.processes_table[id]->heartbeat_interval) ||
+            (managed_processes.processes_table[id]->type == TASK) )
          {
             managed_processes.processes_table[id]->heartbeat_status=1;
             managed_processes.processes_table[id]->heartbeat_counter=0;
@@ -702,9 +703,26 @@ int managed_processes_processes_check_heartbeats(int doRecovery)
                if(managed_processes.processes_table[id]->heartbeat_counter<=5)
                {
                   char errmsg[80];
-                  
-                  managed_processes.processes_table[id]->heartbeat_status=managed_processes.processes_table[id]->heartbeat_recovery(id, managed_processes.processes_table[id]->heartbeat_recovery_data, errmsg, sizeof(errmsg));
-                  managed_processes.processes_table[id]->last_heartbeat = time(NULL);
+                  if(managed_processes.processes_table[id]->heartbeat_recovery)
+                  {
+                     pthread_cleanup_push( (void *)pthread_rwlock_wrlock, (void *)&managed_processes.rwlock ); // /!\ inversion par rapport à l'habiture ... unlock en cas de fin de thread d'abord.
+                     pthread_rwlock_unlock(&managed_processes.rwlock); // on delock
+                     managed_processes.processes_table[id]->heartbeat_status=managed_processes.processes_table[id]->heartbeat_recovery(id, managed_processes.processes_table[id]->heartbeat_recovery_data, errmsg, sizeof(errmsg));
+                     pthread_rwlock_wrlock(&managed_processes.rwlock); // on relock
+                     pthread_cleanup_pop(0);
+                     
+                     if(managed_processes.processes_table[id])
+                     {
+                        managed_processes.processes_table[id]->last_heartbeat = time(NULL);
+                        managed_processes.processes_table[id]->heartbeat_status=1;
+                     }
+                  }
+               }
+               else
+               {
+                  // traiter l'erreur
+                  managed_processes.processes_table[id]->heartbeat_status=RECOVERY_ERROR;
+                  ret=-1;
                }
             }
             else
@@ -712,18 +730,21 @@ int managed_processes_processes_check_heartbeats(int doRecovery)
          }
       }
    }
-   
+ 
    pthread_rwlock_unlock(&managed_processes.rwlock);
    pthread_cleanup_pop(0);
+   
+   return ret;
 }
 
 
 int managed_processes_loop()
 {
-  managed_processes_processes_check_heartbeats(1);
+   ret=0;
+   ret=managed_processes_processes_check_heartbeats(1);
   _managed_processes_send_stats(notif_hostname, notif_port);
   
-  return 0;
+  return ret; // -1 si un process en erreur definitif ... à traiter par le programme
 }
 
 
@@ -756,8 +777,10 @@ int process_is_running(int id)
 
 int process_start(int id, char *errmsg, int l_errmsg)
 {
-   int ret=1;
- 
+   int ret=0;
+   start_stop_f f;
+   void *d;
+   
    pthread_cleanup_push( (void *)pthread_rwlock_unlock, (void *)&managed_processes.rwlock );
    pthread_rwlock_wrlock(&managed_processes.rwlock);
 
@@ -769,22 +792,36 @@ int process_start(int id, char *errmsg, int l_errmsg)
    {
       if(managed_processes.processes_table[id]->start)
       {
-         ret=managed_processes.processes_table[id]->start(id, managed_processes.processes_table[id]->start_stop_data, errmsg, l_errmsg);
-         if(ret<0)
-            managed_processes.processes_table[id]->status=STOPPED;
-         else
-         {
-            managed_processes.processes_table[id]->status=RUNNING;
-         }
+         f=managed_processes.processes_table[id]->start;
+         d=managed_processes.processes_table[id]->start_stop_data;
       }
       else
-         return -1;
+         ret=-1;
    }
 
    pthread_rwlock_unlock(&managed_processes.rwlock);
    pthread_cleanup_pop(0); 
 
-   process_heartbeat(id);
+   if(ret!=-1)
+   {
+      ret=f(id, d, errmsg, l_errmsg); // lancement du process
+
+      pthread_cleanup_push( (void *)pthread_rwlock_unlock, (void *)&managed_processes.rwlock );
+      pthread_rwlock_wrlock(&managed_processes.rwlock);
+      
+      if(managed_processes.processes_table[id])
+      {
+         if(ret<0)
+            managed_processes.processes_table[id]->status=STOPPED;
+         else
+         {
+            managed_processes.processes_table[id]->status=RUNNING;
+            managed_processes.processes_table[id]->last_heartbeat = time(NULL);
+         }
+      }
+      pthread_rwlock_unlock(&managed_processes.rwlock);
+      pthread_cleanup_pop(0);
+   }
 
    return ret;
 }
@@ -875,6 +912,8 @@ process_task_clean_exit:
 int process_stop(int id, char *errmsg, int l_errmsg)
 {
    int ret=1;
+   start_stop_f f;
+   void *d;
 
    pthread_cleanup_push( (void *)pthread_rwlock_unlock, (void *)&managed_processes.rwlock );
    pthread_rwlock_wrlock(&managed_processes.rwlock);
@@ -885,13 +924,24 @@ int process_stop(int id, char *errmsg, int l_errmsg)
       managed_processes.processes_table[id]->status==RUNNING &&
       managed_processes.processes_table[id]->type!=NOTMANAGED)
    {
-      managed_processes.processes_table[id]->status=0;
-      ret=managed_processes.processes_table[id]->stop(id, managed_processes.processes_table[id]->start_stop_data, errmsg, l_errmsg);
+      f=managed_processes.processes_table[id]->start;
+      d=managed_processes.processes_table[id]->start_stop_data;
    }
 
    pthread_rwlock_unlock(&managed_processes.rwlock);
-   pthread_cleanup_pop(0); 
+   pthread_cleanup_pop(0);
    
+   ret=f(id, d, errmsg, l_errmsg);
+
+   pthread_cleanup_push( (void *)pthread_rwlock_unlock, (void *)&managed_processes.rwlock );
+   pthread_rwlock_wrlock(&managed_processes.rwlock);
+
+   if(managed_processes.processes_table[id])
+      managed_processes.processes_table[id]->status=0;
+
+   pthread_rwlock_unlock(&managed_processes.rwlock);
+   pthread_cleanup_pop(0);
+
    return ret;
 }
 
