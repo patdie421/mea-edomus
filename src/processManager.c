@@ -289,6 +289,29 @@ int process_set_status(int id, process_status_t status)
 }
 
 
+int process_set_heartbeat_interval(int id, int interval)
+{
+   int ret=0;
+   
+   pthread_cleanup_push( (void *)pthread_rwlock_unlock, (void *)&managed_processes.rwlock );
+   pthread_rwlock_wrlock(&managed_processes.rwlock);
+   
+   if(id<0 ||
+      id>=managed_processes.max_processes ||
+      !managed_processes.processes_table[id])
+      ret=-1;
+   else
+   {
+      managed_processes.processes_table[id]->interval=interval;
+   }
+   
+   pthread_rwlock_unlock(&managed_processes.rwlock);
+   pthread_cleanup_pop(0);
+
+   return ret;
+}
+
+
 int process_set_type(int id, process_type_t type)
 {
    int ret=0;
