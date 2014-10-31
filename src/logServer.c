@@ -57,7 +57,26 @@ void _set_logServer_isnt_running(void *data)
 }
 
 
-int _readAndSendLine(int nodejs_socket, char *file, long *pos)
+int file_changed(char *file, time_t last_mtime, time_t *new_mtime)
+{
+  struct stat sb;
+  
+  if (stat(file, &sb) == -1)
+    return -1;
+  time_t t = last_time;  
+  *new_time = t;
+  if(sb->st_mtime > t)
+  {
+     return 1;
+  }
+  else
+  {
+     return 0;
+  }
+}
+
+
+int _read_and_send_lines(int nodejs_socket, char *file, long *pos)
 {
    FILE *fp=NULL;
    char line[4096];
@@ -74,20 +93,20 @@ int _readAndSendLine(int nodejs_socket, char *file, long *pos)
       return 0;
    }
 
-   fseek(fp,0,SEEK_END);
+   fseek(fp, 0, SEEK_END); // on se met à la fin du fichier
    if(*pos>=0)
    {
-      long current=ftell(fp);
+      long current=ftell(fp); // position dans le fichier = taille du fichier
 
-      if(*pos > current) // le fichier a diminué, on le relie depuis le debut
+      if(*pos >= current) // le fichier a diminué ou est identique en taille, on le relira depuis le debut (on sait qu'il a changé)
       {
+         fprintf(stderr, "Fichier reduit ...\n");
          fseek(fp, 0, SEEK_SET);
          *pos=0;
       }
-      else // le fichier a grossie ou est resté identique (en taille).
+      else // le fichier a grossie (en taille).
       {
-         if(current != *pos) // il a grossie
-            fseek(fp, *pos, SEEK_SET);
+         fseek(fp, *pos, SEEK_SET);
       }
    }
 
@@ -134,6 +153,8 @@ void *logServer_thread(void *data)
    int nodejs_socket=-1;
    long pos = -1;
    char log_file[256];
+   time_t last_time = 0;
+   
    mea_timer_t log_timer;
    struct logServer_thread_data_s *d=(struct logServer_thread_data_s *)data;
 
@@ -157,18 +178,32 @@ void *logServer_thread(void *data)
             pthread_testcancel();
             if(test_timer(&log_timer)==0)
                process_heartbeat( _logServer_monitoring_id);
+               
+            int ret=file_changed(log_file, last_mtime, &last_mtime)
+            if(ret==1)
+            {
+              ret=_read_and_send_lines(nodejs_socket, log_file, &pos);
+            }
+            else if(ret == 0)
+            {
+            }
+            else
+            {
+               VERBOSE(9) {
+                  fprintf(stderr, "%s (%s) : stat error - retry next time\n", INFO_STR, __func__);
+               }
+               break;
+            }
             
-            int ret=_readAndSendLine(nodejs_socket, log_file, &pos);
-
             if(ret==-1)
             {
                VERBOSE(9) {
                   fprintf(stderr, "%s (%s) : connection error - retry next time\n", INFO_STR, __func__);
-                  break; // erreur de com. on essayera de se reconnecter au prochain tour.
                }
+               break; // erreur de com. on essayera de se reconnecter au prochain tour.
             }
             if(ret!=1)
-               sleep(1);
+               usleep(500);
          }
          while(1);
 
