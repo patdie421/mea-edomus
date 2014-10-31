@@ -19,7 +19,7 @@ struct process_indicator_s
 
 typedef int (*process_start_stop_f)(int, void *, char *, int);
 typedef enum process_status_e { STOPPED = 0,   RUNNING = 1 } process_status_t;
-typedef enum process_type_e   { AUTOSTART = 0, ONSHOT = 1, NOTMANAGED = 2, TASK = 3 } process_type_t;
+typedef enum process_type_e   { AUTOSTART = 0, NOTMANAGED = 1, TASK = 2 } process_type_t;
 
 #define DEFAULTGROUP 0
 
@@ -29,6 +29,7 @@ struct process_s
 
    time_t last_heartbeat;
    int heartbeat_interval; // second
+   int heartheat_status; // (0 = KO, 1 = OK)
 
    queue_t *indicators_list;
    
@@ -79,6 +80,7 @@ int   clear_managed_processes();
 int   managed_processes_loop(char *hostname, int port);
 int   managed_processes_processes_to_json_mini(char *json, int l_json);
 int   managed_processes_refresh_now(char *hostname, int port);
+int   managed_processes_check_heartbeat();
 
 
 #endif
