@@ -853,7 +853,9 @@ int main(int argc, const char * argv[])
    xplServer_start_stop_params.params_list=params_list;
    xplServer_start_stop_params.sqlite3_param_db=sqlite3_param_db;
    xplServer_monitoring_id=process_register("XPLSERVER");
-   process_set_start_stop(xplServer_monitoring_id , start_xPLServer, stop_xPLServer, (void *)(&xplServer_start_stop_params), 1);
+   process_set_start_stop(xplServer_monitoring_id, start_xPLServer, stop_xPLServer, (void *)(&xplServer_start_stop_params), 1);
+   process_set_watchdog_recovery(xplServer_monitoring_id, restart_xPLServer, (void *)(&xplServer_start_stop_params));
+
    if(process_start(xplServer_monitoring_id, NULL, 0)<0)
    {
       VERBOSE(9) fprintf (stderr, "error !!!\n");
