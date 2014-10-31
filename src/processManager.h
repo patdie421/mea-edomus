@@ -30,6 +30,7 @@ struct managed_processes_process_s
    time_t last_heartbeat;
    int heartbeat_interval; // en second
    int heartheat_status; // (0 = KO, 1 = OK)
+   int heartbeat_counter;
 
    queue_t *indicators_list;
    
