@@ -53,6 +53,11 @@ struct arduino_digital_pins arduino_uno_list[]={
 
 
 int16_t mea_getArduinoPin(char *spin)
+/**
+ * \brief     retourne un numéro de pin Arduino en fonction du contenu de spin
+ * \param     spin   nom de l'entrée/sortie Arduino.
+ * \return    numéro de pin
+ */
 {
    for(int i=0;arduino_uno_list[i].name;i++)
    {
