@@ -74,7 +74,7 @@ int   process_is_running(int id);
 int   process_run_task(int id, char *errmsg, int l_errmsg);
 
 int   process_set_start_stop(int id,  managed_processes_process_f start, managed_processes_process_f stop, void *start_stop_data, int type);
-int   process_set_heartbeat_recovery(id, managed_processes_process_f recovery_task, void *recovery_data);
+int   process_set_watchdog_recovery(id, managed_processes_process_f recovery_task, void *recovery_data);
 int   process_set_status(int id, process_status_t status);
 int   process_set_type(int id, process_type_t type);
 int   process_set_group(int id, int group_id);
