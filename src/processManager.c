@@ -108,8 +108,6 @@ int _managed_processes_process_to_json(int id, char *s, int s_l, int flag)
       id<managed_processes.max_processes &&
       managed_processes.processes_table[id])
    {
-      time_t now = time(NULL);
-
       if(mea_strncat(s, s_l, "{")<0)
          return -1;
 
@@ -712,6 +710,8 @@ int managed_processes_processes_check_heartbeats(int doRecovery)
       if(managed_processes.processes_table[id] &&
          managed_processes.processes_table[id]->status==RUNNING)
       {
+         time_t now = time(NULL);
+
          if( ((now - managed_processes.processes_table[id]->last_heartbeat)<managed_processes.processes_table[id]->heartbeat_interval) ||
             (managed_processes.processes_table[id]->type == TASK) )
          {
