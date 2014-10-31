@@ -386,7 +386,8 @@ void *xPLServer_thread(void *data)
    do
    {
       pthread_testcancel();
-      process_heartbeat(_xplServer_monitoring_id);
+// /!\ en commentaire juste pour test le heartbeat recovery
+//      process_heartbeat(_xplServer_monitoring_id);
       VERBOSE(9) {
          static char compteur=0;
          if(compteur>59)
@@ -465,6 +466,8 @@ pthread_t *xPLServer()
 
 int stop_xPLServer(int my_id, void *data,  char *errmsg, int l_errmsg)
 {
+   int ret=0;
+   
    if(_xPLServer_thread_id)
    {
       pthread_cancel(*_xPLServer_thread_id);
@@ -483,6 +486,7 @@ int stop_xPLServer(int my_id, void *data,  char *errmsg, int l_errmsg)
          }
       }
       DEBUG_SECTION fprintf(stderr,"%s (%s) : %s, fin après %d itération\n",DEBUG_STR, __func__,xpl_server_name_str,100-counter);
+      ret=stopped;
    }
 
    pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(xplRespQueue_sync_lock) );
@@ -506,10 +510,17 @@ int stop_xPLServer(int my_id, void *data,  char *errmsg, int l_errmsg)
 
    xPL_shutdown();
 
-   VERBOSE(2) fprintf(stderr,"%s  (%s) : %s %s.\n", INFO_STR, __func__, xpl_server_name_str, stopped_successfully_str);
-   mea_notify_printf('S', "%s %s", xpl_server_name_str, stopped_successfully_str);
-
-   return 0;
+   if(ret==0)
+   {
+      VERBOSE(2) fprintf(stderr,"%s  (%s) : %s %s.\n", INFO_STR, __func__, xpl_server_name_str, stopped_successfully_str);
+      mea_notify_printf('S', "%s %s", xpl_server_name_str, stopped_successfully_str);
+   }
+   else
+   {
+      VERBOSE(2) fprintf(stderr,"%s  (%s) : %s can't cancel thread.\n", INFO_STR, __func__, xpl_server_name_str);
+      mea_notify_printf('S', "%s can't cancel thread", xpl_server_name_str);
+   }
+   return ret;
 }
 
 
@@ -561,5 +572,17 @@ int start_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg)
       mea_notify_printf('E', "%s Can't be launched - no valid xPL address.", xpl_server_name_str);
       return -1;
    }
+}
+
+
+int restart_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg)
+{
+   int ret=0;
+   ret=stop_xPLServer(my_id, data, char *errmsg, int l_errmsg);
+   if(ret==0)
+   {
+      return start_xPLServer(my_id, data, char *errmsg, int l_errmsg);
+   }
+   return ret;
 }
 
