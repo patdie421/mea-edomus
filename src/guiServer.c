@@ -235,7 +235,7 @@ int _findPHPVar(char *phpserial, char *var, int *type, char *value, int l_value)
 int _phpsessid_check_loggedin_and_admin(char *phpsessid,char *sessions_files_path)
 {
    int ret=0;
-   char session_file[80];
+   char session_file[256];
    
    int n=snprintf(session_file, sizeof(session_file), "%s/sess_%s",sessions_files_path, phpsessid);
    if(n<0 || n==sizeof(session_file))
