@@ -796,13 +796,13 @@ int stop_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
    if(_md)
    {
       pthread_cancel(_md->thread);
-      int counter=100;
+      int counter=500; // 5 secondes environ
       int stopped=-1;
       while(counter--)
       {
          if(_dbServer_thread_is_running)
          {  // pour éviter une attente "trop" active
-            usleep(100); // will sleep for 1 ms
+            usleep(10000); // will sleep for 10 ms
          }
          else
          {
@@ -810,7 +810,7 @@ int stop_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
             break;
          }
       }
-      DEBUG_SECTION fprintf(stderr,"%s (%s) : DBSERVER, fin après %d itération\n",DEBUG_STR, __func__,100-counter);
+      DEBUG_SECTION fprintf(stderr,"%s (%s) : DBSERVER, fin après %d itération\n",DEBUG_STR, __func__,500-counter);
 
       _md->started=0;
 

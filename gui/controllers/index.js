@@ -54,7 +54,7 @@ function anim_status(data)
    {
       if(data[key]['status']==1)
       {
-         if(data[key]['heartbeat']=='KO')
+         if(data[key]['heartbeat']=='KO' && data[key]['type']!=2)
          {
             $("#process_"+data[key]['pid']).css("background","black");
          }
@@ -63,7 +63,7 @@ function anim_status(data)
             $("#process_"+data[key]['pid']).css("background","green");
          }
       }
-      else if(data[key]['status']==0 && data[key]['type']!=3)
+      else if(data[key]['status']==0 && data[key]['type']!=2)
       {
          $("#process_"+data[key]['pid']).css("background","red");
       }
@@ -79,7 +79,7 @@ function add_row(table, name, id, start_str, start, stop_str, stop)
 {
    newRow =  "<tr>" +
                  "<td style=\"width:70px;\"><div id=\"process_"+id+"\" class=\"pastille ui-widget ui-widget-content ui-corner-all\" style=\"background:gray;\"></div></td>" +
-                 "<td style=\"width:230px;\"><div class=\"process\">"+name+"</div></td>" +
+                 "<td style=\"width:230px;\"><div class=\"process\"><dib>"+name+"</div></div></td>" +
                  "<td style=\"width:200px;\">" +
                      "<div class=\"bouton\">";
    if(start != null)
@@ -109,7 +109,7 @@ function load_all_processes_lists() {
       success: function(data){
          for(var key in data)
          {
-            if(data[key]['type']==2)
+            if(data[key]['type']==1)
                continue;
             if(data[key]['group']==0)
             {
@@ -187,9 +187,8 @@ function socketio_available(s) { // socket io est chargé, on se connecte
       $("#table_interfaces").empty();
       $("#table_interfaces").append("<tbody></tbody>");
       load_interfaces_list_only();
-      anim_status(data);
    });
-   
+
    load_all_processes_lists();
 }
 
@@ -201,6 +200,9 @@ function socketio_unavailable() {
 
 function reload(id)
 {
+   $("#table_interfaces").empty();
+   $("#table_interfaces").append("<tbody></tbody>");
+   $("#table_interfaces > tbody").before("<tr><td style=\"width:100%; margin:auto;\" align=\"center\" valign=\"top\"><div class=\"wait_ball\"></div></td></tr>");
    $.ajax({
       url: 'CMD/startstop.php?process='+id+'&cmnd=task',
       async: true,
@@ -219,9 +221,6 @@ function reload(id)
          ajax_error( jqXHR, textStatus, errorThrown );
       }
    });
-   $("#table_interfaces").empty();
-   $("#table_interfaces").append("<tbody></tbody>");
-   $("#table_interfaces > tbody").before("<tr><td style=\"width:100%; margin:auto;\" align=\"center\" valign=\"top\"><div class=\"wait_ball\"></div></td></tr>");
 }
 
 
@@ -274,17 +273,35 @@ function stop(id)
 
 var _intervalId;
 var _intervalCounter;
+
+
 function start_index_controller()
 {
+   function wait_socketio_available()
+   {
+      _intervalCounter=0;
+      _intervalId=setInterval(function() {
+         var s=liveCom.getSocketio();
+         if(s!=null) {
+            clearInterval(_intervalId);
+               socketio_available(s);
+         }
+         else {
+            _intervalCounter++;
+            if(_intervalCounter>50) { // 5 secondes max pour s'initialiser
+               clearIntrerval(_intervalId);
+               socketio_unavailable();
+            }
+         }
+      },
+      100);
+   }
+
    _intervalCounter=0;
    _intervalId=setInterval(function() {
       if(typeof(liveCom) != "undefined") {
          clearInterval(_intervalId);
-         var s=liveCom.getSocketio();
-         if(s!=null)
-            socketio_available(s);
-         else
-            socketio_unavailable();
+         wait_socketio_available();
       }
       else {
          _intervalCounter++;
@@ -297,24 +314,4 @@ function start_index_controller()
    100);
 }
 
-/*
-function start_index_controller()
-{
-   if(typeof(liveCom) != "undefined")
-   {
-      s=liveCom.getSocketio();
-      if(null !== s)
-      {
-         socketio_available(s);
-      }
-      else
-      {
-         socketio_unavailable();
-      }
-   }
-   else
-   {
-      socketio_unavailable();
-   }
-}
-*/
+

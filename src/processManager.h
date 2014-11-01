@@ -17,7 +17,8 @@ struct process_indicator_s
    long value;
 };
 
-typedef int (*process_f)(int, void *, char *, int);
+typedef int (*managed_processes_process_f)(int, void *, char *, int);
+
 typedef enum process_status_e { STOPPED = 0,   RUNNING = 1, RECOVERY_ERROR } process_status_t;
 typedef enum process_type_e   { AUTOSTART = 0, NOTMANAGED = 1, TASK = 2 } process_type_t;
 
@@ -29,7 +30,7 @@ struct managed_processes_process_s
 
    time_t last_heartbeat;
    int heartbeat_interval; // en second
-   int heartheat_status; // (0 = KO, 1 = OK)
+   int heartbeat_status; // (0 = KO, 1 = OK)
    int heartbeat_counter;
 
    queue_t *indicators_list;
@@ -43,14 +44,14 @@ struct managed_processes_process_s
    void *start_stop_data;
    
    managed_processes_process_f heartbeat_recovery;
-   void *recovery_data;
+   void *heartbeat_recovery_data;
 };
 
 
 struct managed_processes_s
 {
    int max_processes;
-   struct process_s **processes_table;
+   struct managed_processes_process_s **processes_table;
    
    mea_timer_t timer;
 //   pthread_mutex_t lock;
@@ -74,17 +75,23 @@ int   process_is_running(int id);
 int   process_run_task(int id, char *errmsg, int l_errmsg);
 
 int   process_set_start_stop(int id,  managed_processes_process_f start, managed_processes_process_f stop, void *start_stop_data, int type);
-int   process_set_watchdog_recovery(id, managed_processes_process_f recovery_task, void *recovery_data);
+int   process_set_watchdog_recovery(int id, managed_processes_process_f recovery_task, void *recovery_data);
 int   process_set_status(int id, process_status_t status);
 int   process_set_type(int id, process_type_t type);
 int   process_set_group(int id, int group_id);
 void* process_get_data_ptr(int id);
+
 int   process_set_heartbeat_interval(int id, int interval);
 int   init_processes_manager(int max_nb_processes);
 int   clean_managed_processes();
 
+int   managed_processes_processes_to_json_mini(char *json, int l_json);
+
+void  managed_processes_set_notification_hostname(char *hostname);
+void  managed_processes_set_notification_port(int port);
+
 int   managed_processes_check_heartbeat(int doRecovery);
-int   managed_processes_loop(char *hostname, int port);
+int   managed_processes_loop();
 
 int   managed_processes_send_stats_now(char *hostname, int port);
 

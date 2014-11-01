@@ -386,8 +386,7 @@ void *xPLServer_thread(void *data)
    do
    {
       pthread_testcancel();
-// /!\ en commentaire juste pour test le heartbeat recovery
-//      process_heartbeat(_xplServer_monitoring_id);
+      process_heartbeat(_xplServer_monitoring_id);
       VERBOSE(9) {
          static char compteur=0;
          if(compteur>59)
@@ -578,10 +577,10 @@ int start_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg)
 int restart_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg)
 {
    int ret=0;
-   ret=stop_xPLServer(my_id, data, char *errmsg, int l_errmsg);
+   ret=stop_xPLServer(my_id, data, errmsg, l_errmsg);
    if(ret==0)
    {
-      return start_xPLServer(my_id, data, char *errmsg, int l_errmsg);
+      return start_xPLServer(my_id, data, errmsg, l_errmsg);
    }
    return ret;
 }

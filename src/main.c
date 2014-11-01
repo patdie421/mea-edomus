@@ -217,75 +217,75 @@ void clean_all_and_exit()
 {
    if(xplServer_monitoring_id!=-1)
    {
-      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping xPLServer... ",INFO_STR,__func__);
+//      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping xPLServer... ",INFO_STR,__func__);
       process_stop(xplServer_monitoring_id, NULL, 0);
       process_unregister(xplServer_monitoring_id);
       xplServer_monitoring_id=-1;
-      VERBOSE(9) fprintf(stderr,"done\n");
+//      VERBOSE(9) fprintf(stderr,"done\n");
    }
 
    if(httpServer_monitoring_id!=-1)
    {
-      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping httpServer... ",INFO_STR,__func__);
+//      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping httpServer... ",INFO_STR,__func__);
       process_stop(httpServer_monitoring_id, NULL, 0);
       process_unregister(httpServer_monitoring_id);
       httpServer_monitoring_id=-1;
-      VERBOSE(9) fprintf(stderr,"done\n");
+//      VERBOSE(9) fprintf(stderr,"done\n");
    }
    
    if(interfaces)
    {
-      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping interfaces...\n",INFO_STR,__func__);
+//      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping interfaces...\n",INFO_STR,__func__);
       stop_interfaces();
-      VERBOSE(9) fprintf(stderr,"%s  (%s) : done\n",INFO_STR,__func__);
+//      VERBOSE(9) fprintf(stderr,"%s  (%s) : done\n",INFO_STR,__func__);
    }
    
    if(pythonPluginServer_monitoring_id!=-1)
    {
-      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping pythonPluginServer... ",INFO_STR,__func__);
+//      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping pythonPluginServer... ",INFO_STR,__func__);
       process_stop(pythonPluginServer_monitoring_id, NULL, 0);
       process_unregister(pythonPluginServer_monitoring_id);
       pythonPluginServer_monitoring_id=-1;
-      VERBOSE(9) fprintf(stderr,"done\n");
+//      VERBOSE(9) fprintf(stderr,"done\n");
    }
 
    if(dbServer_monitoring_id!=-1)
    {
-      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping dbServer... ",INFO_STR,__func__);
+//      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping dbServer... ",INFO_STR,__func__);
       process_stop(dbServer_monitoring_id, NULL, 0);
       process_unregister(dbServer_monitoring_id);
       dbServer_monitoring_id=-1;
-      VERBOSE(9) fprintf(stderr,"done\n");
+//      VERBOSE(9) fprintf(stderr,"done\n");
    }
    
    if(logServer_monitoring_id!=-1)
    {
-      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping logServer... ",INFO_STR,__func__);
+//      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping logServer... ",INFO_STR,__func__);
       process_stop(logServer_monitoring_id, NULL, 0);
       process_unregister(logServer_monitoring_id);
       logServer_monitoring_id=-1;
-      VERBOSE(9) fprintf(stderr,"done\n");
+//      VERBOSE(9) fprintf(stderr,"done\n");
    }
    
    if(httpServer_monitoring_id!=-1)
    {
-      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping guiServer... ",INFO_STR,__func__);
+//      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping guiServer... ",INFO_STR,__func__);
       process_stop(httpServer_monitoring_id, NULL, 0);
       process_unregister(httpServer_monitoring_id);
       httpServer_monitoring_id=-1;
-      VERBOSE(9) fprintf(stderr,"done\n");
+//      VERBOSE(9) fprintf(stderr,"done\n");
    }
    
    if(automator_pid>0)
    {
       int status;
       
-      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping automatorServer... (%d)",INFO_STR,__func__,automator_pid);
+//      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping automatorServer... (%d)",INFO_STR,__func__,automator_pid);
 
       kill(automator_pid, SIGTERM);
       //waitpid(automator_pid, &status, 0);
       wait(&status);
-      VERBOSE(9) fprintf(stderr,"done\n");
+//      VERBOSE(9) fprintf(stderr,"done\n");
    }
    
    process_unregister(main_monitoring_id);
@@ -764,7 +764,7 @@ int main(int argc, const char * argv[])
    // initialisation du gestionnaire de process
    //
    init_processes_manager(40);
-   managed_processes_set_notification_hostname(localhost_str);
+   managed_processes_set_notification_hostname(localhost_const);
    managed_processes_set_notification_port(notif_port);
 
    main_monitoring_id=process_register("MAIN");
@@ -854,7 +854,7 @@ int main(int argc, const char * argv[])
    xplServer_start_stop_params.sqlite3_param_db=sqlite3_param_db;
    xplServer_monitoring_id=process_register("XPLSERVER");
    process_set_start_stop(xplServer_monitoring_id, start_xPLServer, stop_xPLServer, (void *)(&xplServer_start_stop_params), 1);
-   process_set_watchdog_recovery(xplServer_monitoring_id, restart_xPLServer, (void *)(&xplServer_start_stop_params));
+//   process_set_watchdog_recovery(xplServer_monitoring_id, restart_xPLServer, (void *)(&xplServer_start_stop_params));
 
    if(process_start(xplServer_monitoring_id, NULL, 0)<0)
    {

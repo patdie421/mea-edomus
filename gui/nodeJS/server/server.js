@@ -82,7 +82,6 @@ function process_msg(cmnd, msg)
    }
    else if(cmnd=="REL")
    {
-      console.log("REL recu");
       sendMessage('rel', msg);
    }
    else
@@ -101,59 +100,65 @@ var server = require('net').createServer(function (socket) {
       // $$$%c%c%3s:%s###
       // avec %c%c : taille de la zone data ("CMD:%s") en little indian
       //      %3s  : code commande (ex : LOG, MON, ...)
-      var car = socket.read(1);
-      do
-      {
-         // recherche un debut de trame ($$$)
-         var counter=0;
-         var start_found=0;
-
-         while (car)
+      try {
+         var car = socket.read(1);
+         do
          {
-            if(car == '$')
-               counter++;
-            else
-               counter=0;
-            if(counter==3)
+            // recherche un debut de trame ($$$)
+            var counter=0;
+            var start_found=0;
+
+            while (car)
             {
-               start_found=1;
-               break;
+               if(car == '$')
+                  counter++;
+               else
+                  counter=0;
+               if(counter==3)
+               {
+                  start_found=1;
+                  break;
+               }
+               car = socket.read(1); // lecture caractère suivant
             }
-            car = socket.read(1); // lecture caractère suivant
-         }
-         if(start_found!=1) // pas de début de trame trouvé et plus de caractère à lire
-            break; // sortie de la boucle
+            if(start_found!=1) // pas de début de trame trouvé et plus de caractère à lire
+               break; // sortie de la boucle
 
-         // lecture de la taille de la zone de données données
-         var l_data=-1;
-         var size=socket.read(2); // taille sur deux octets
-         if(size)
-         {
-            l_data=size.toString().charCodeAt(0)+size.toString().charCodeAt(1)*128;
-         }
-         else
-         {
-           continue;
-         }
+            // lecture de la taille de la zone de données données
+            var l_data=-1;
+            var size=socket.read(2); // taille sur deux octets
+            if(size)
+            {
+               l_data=size.toString().charCodeAt(0)+size.toString().charCodeAt(1)*128;
+            }
+            else
+            {
+               continue;
+            }
            
-         // lecture des données
-         var data = socket.read(l_data);
-         if(!data)
-            continue;
+            // lecture des données
+            var data = socket.read(l_data);
+            if(!data)
+               continue;
 
-         // lire fin de trame : ###
-         var end = socket.read(3);
-         if( end.toString() != "###")
-         {
-            continue;
+            // lire fin de trame : ###
+            var end = socket.read(3);
+            if( end.toString() != "###")
+            {
+               continue;
+            }
+            var t = data.toString();
+            var cmnd = t.substring(0, 3);
+            var msg = t.slice(4);
+
+            process_msg(cmnd, msg);
          }
-         var t = data.toString();
-         var cmnd = t.substring(0, 3);
-         var msg = t.slice(4);
-
-         process_msg(cmnd, msg);
+         while( null !== (car = socket.read(1)) ); // encore des caractères à lire ?
       }
-      while( null !== (car = socket.read(1)) ); // encore des caractères à lire ?
+      catch(err)
+      {
+         console.log("ERROR : socket.on('readable',function(){})");
+      }
    });
 }).listen(LOCAL_PORT);
 

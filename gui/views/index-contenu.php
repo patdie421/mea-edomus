@@ -20,10 +20,11 @@ session_start() ?>
  
 .pastille
 {
- height:40px;
- width:40px;
- margin-right:15px;
- margin-left:15px;
+ height:24px;
+ width:24px;
+ margin-right:10px;
+ margin-left:10px;
+ border-radius: 24px;
 }
  
 .process

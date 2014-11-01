@@ -63,9 +63,9 @@ int file_changed(char *file, time_t last_mtime, time_t *new_mtime)
   
   if (stat(file, &sb) == -1)
     return -1;
-  time_t t = last_time;  
-  *new_time = t;
-  if(sb->st_mtime > t)
+  time_t t = last_mtime;
+  *new_mtime = sb.st_mtime;
+  if(sb.st_mtime > t)
   {
      return 1;
   }
@@ -100,7 +100,6 @@ int _read_and_send_lines(int nodejs_socket, char *file, long *pos)
 
       if(*pos >= current) // le fichier a diminué ou est identique en taille, on le relira depuis le debut (on sait qu'il a changé)
       {
-         fprintf(stderr, "Fichier reduit ...\n");
          fseek(fp, 0, SEEK_SET);
          *pos=0;
       }
@@ -153,7 +152,7 @@ void *logServer_thread(void *data)
    int nodejs_socket=-1;
    long pos = -1;
    char log_file[256];
-   time_t last_time = 0;
+   time_t last_mtime = 0;
    
    mea_timer_t log_timer;
    struct logServer_thread_data_s *d=(struct logServer_thread_data_s *)data;
@@ -179,7 +178,7 @@ void *logServer_thread(void *data)
             if(test_timer(&log_timer)==0)
                process_heartbeat( _logServer_monitoring_id);
                
-            int ret=file_changed(log_file, last_mtime, &last_mtime)
+            int ret=file_changed(log_file, last_mtime, &last_mtime);
             if(ret==1)
             {
               ret=_read_and_send_lines(nodejs_socket, log_file, &pos);
@@ -203,7 +202,7 @@ void *logServer_thread(void *data)
                break; // erreur de com. on essayera de se reconnecter au prochain tour.
             }
             if(ret!=1)
-               usleep(500);
+               usleep(10000); // 10 ms
          }
          while(1);
 

@@ -373,8 +373,6 @@ int stop_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
 
    struct interface_type_001_start_stop_params_s *start_stop_params=(struct interface_type_001_start_stop_params_s *)data;
 
-   VERBOSE(9) fprintf(stderr,"%s  (%s) : %s shutdown thread ... ", INFO_STR, __func__, start_stop_params->i001->name);
-
    if(start_stop_params->i001->thread_id)
    {
       pthread_cancel(*start_stop_params->i001->thread_id);
@@ -402,10 +400,9 @@ int stop_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
    {
       comio2_close(start_stop_params->i001->ad);
       comio2_free_ad(start_stop_params->i001->ad);
-      //free(start_stop_params->i001->ad);
       start_stop_params->i001->ad=0;
    }
-   VERBOSE(9) fprintf(stderr, "done.\n");
+   VERBOSE(2) fprintf(stderr,"%s  (%s) : %s %s.\n", INFO_STR, __func__, start_stop_params->i001->name, stopped_successfully_str);
    mea_notify_printf('S', "%s %s.", start_stop_params->i001->name, stopped_successfully_str);
 
    return 0;

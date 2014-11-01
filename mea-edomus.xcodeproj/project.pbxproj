@@ -941,8 +941,6 @@
 		4E79945C19DC9D5600F87593 /* Readme.md */ = {isa = PBXFileReference; lastKnownFileType = text; path = Readme.md; sourceTree = "<group>"; };
 		4E79945D19DC9D5600F87593 /* server.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = server.js; sourceTree = "<group>"; };
 		4E79945E19DC9D5600F87593 /* parametrages.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; path = parametrages.php; sourceTree = "<group>"; };
-		4E79945F19DC9D5600F87593 /* test.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = test.html; sourceTree = "<group>"; };
-		4E79946019DC9D5600F87593 /* test.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; path = test.php; sourceTree = "<group>"; };
 		4E79946119DC9D5600F87593 /* utilisateurs.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; path = utilisateurs.php; sourceTree = "<group>"; };
 		4E79946319DC9D5600F87593 /* automate-contenu.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; path = "automate-contenu.php"; sourceTree = "<group>"; };
 		4E79946519DC9D5600F87593 /* login-entete.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; path = "login-entete.php"; sourceTree = "<group>"; };
@@ -1380,8 +1378,6 @@
 				4E79909119DC9D5500F87593 /* models */,
 				4E7990B519DC9D5500F87593 /* nodeJS */,
 				4E79945E19DC9D5600F87593 /* parametrages.php */,
-				4E79945F19DC9D5600F87593 /* test.html */,
-				4E79946019DC9D5600F87593 /* test.php */,
 				4E79946119DC9D5600F87593 /* utilisateurs.php */,
 				4E79946219DC9D5600F87593 /* views */,
 			);

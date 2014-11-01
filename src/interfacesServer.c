@@ -177,7 +177,7 @@ void stop_interfaces()
             case INTERFACE_TYPE_001:
             {
                interface_type_001_t *i001=(interface_type_001_t *)(iq->context);
-               VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping #%d\n",INFO_STR,__func__,i001->interface_id);
+//               VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping #%d\n",INFO_STR,__func__,i001->interface_id);
                
                if(i001->xPL_callback)
                   i001->xPL_callback=NULL;
@@ -186,7 +186,7 @@ void stop_interfaces()
                {
                   struct interface_type_001_Data_s *interface_type_001Data = process_get_data_ptr(i001->monitoring_id);
 
-                  VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping %s... ",INFO_STR,__func__,i001->name);
+//                  VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping %s... ",INFO_STR,__func__,i001->name);
                   process_stop(i001->monitoring_id, NULL, 0);
                   process_unregister(i001->monitoring_id);
                   i001->monitoring_id=-1;
@@ -195,7 +195,7 @@ void stop_interfaces()
                      free(interface_type_001Data);
                      interface_type_001Data=NULL;
                   }
-                  VERBOSE(9) fprintf(stderr,"done\n");
+//                  VERBOSE(9) fprintf(stderr,"done\n");
                } 
 
                free(i001);
@@ -205,7 +205,7 @@ void stop_interfaces()
             case INTERFACE_TYPE_002:
             {
                interface_type_002_t *i002=(interface_type_002_t *)(iq->context);
-               VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping #%d\n",INFO_STR,__func__,i002->id_interface);
+//               VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping #%d\n",INFO_STR,__func__,i002->id_interface);
                
                if(i002->xPL_callback)
                   i002->xPL_callback=NULL;
@@ -214,7 +214,7 @@ void stop_interfaces()
                {
                   struct interface_type_002_Data_s *interface_type_002Data = process_get_data_ptr(i002->monitoring_id);
 
-                  VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping %s... ",INFO_STR,__func__,i002->name);
+//                  VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping %s... ",INFO_STR,__func__,i002->name);
                   process_stop(i002->monitoring_id, NULL, 0);
                   process_unregister(i002->monitoring_id);
                   i002->monitoring_id=-1;
@@ -223,7 +223,7 @@ void stop_interfaces()
                      free(interface_type_002Data);
                      interface_type_002Data=NULL;
                   }
-                  VERBOSE(9) fprintf(stderr,"done\n");
+//                  VERBOSE(9) fprintf(stderr,"done\n");
                } 
 
                free(i002);
@@ -333,7 +333,6 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                   
                   i001_start_stop_params->i001=i001;
                   i001_start_stop_params->sqlite3_param_db = sqlite3_param_db;
-//                  i001_start_stop_params->myd = myd;
                   strncpy(i001_start_stop_params->dev, (char *)dev, sizeof(i001_start_stop_params->dev)-1);
                   
                   strncpy(i001->name, (char *)name, sizeof(i001->name)-1);
@@ -343,26 +342,7 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                   i001->interface_id=id_interface;
                   process_set_start_stop(i001->monitoring_id, start_interface_type_001, stop_interface_type_001, (void *)i001_start_stop_params, 1);
                   ret=process_start(i001->monitoring_id, NULL, 0);
-/*
-                  if(!ret)
-                  {
-                     iq=(interfaces_queue_elem_t *)malloc(sizeof(interfaces_queue_elem_t));
-                     iq->type=id_type;
-                     iq->context=i001;
-                     in_queue_elem(_interfaces, iq);
-                  }
-                  else
-                  {
-                     VERBOSE(2) {
-                        fprintf (stderr, "%s (%s) : start_interface_type_001 - can't start interface (%d).\n",ERROR_STR,__func__,id_interface);
-                     }
-                     process_unregister(i001->monitoring_id);
-                     free(i001_start_stop_params);
-                     i001_start_stop_params=NULL;
-                     free(i001);
-                     i001=NULL;
-                  }
-*/
+
                   iq=(interfaces_queue_elem_t *)malloc(sizeof(interfaces_queue_elem_t));
                   iq->type=id_type;
                   iq->context=i001;
@@ -403,31 +383,12 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
 
                   process_set_group(i002->monitoring_id, 1);
                   i002_start_stop_params->sqlite3_param_db = sqlite3_param_db;
-//                  i002_start_stop_params->myd = myd;
                   i002_start_stop_params->parameters = (char *)parameters;
                   i002_start_stop_params->i002=i002;
 
                   process_set_start_stop(i002->monitoring_id, start_interface_type_002, stop_interface_type_002, (void *)i002_start_stop_params, 1);
                   ret=process_start(i002->monitoring_id, NULL, 0);
-/*
-                  if(!ret)
-                  {
-                     interfaces_queue_elem_t *iq=(interfaces_queue_elem_t *)malloc(sizeof(interfaces_queue_elem_t));
-                     iq->type=id_type;
-                     iq->context=i002;
-                     in_queue_elem(_interfaces, iq);
-                  }
-                  else
-                  {
-                     VERBOSE(2) {
-                        fprintf (stderr, "%s (%s) : start_interface_type_002 - can't start interface (%d).\n",ERROR_STR,__func__,id_interface);
-                     }
-                     free(i002_start_stop_params);
-                     i002_start_stop_params=NULL;
-                     free(i002);
-                     i002=NULL;
-                  }
-*/
+
                   interfaces_queue_elem_t *iq=(interfaces_queue_elem_t *)malloc(sizeof(interfaces_queue_elem_t));
                   iq->type=id_type;
                   iq->context=i002;

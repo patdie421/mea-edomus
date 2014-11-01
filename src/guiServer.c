@@ -416,7 +416,7 @@ static int _begin_request_handler(struct mg_connection *conn)
             }
             else if (mea_strncmplower("task", command, strlen(command))==0)
             {
-               ret=process_task(process_id, errmsg, sizeof(errmsg));
+               ret=process_run_task(process_id, errmsg, sizeof(errmsg));
                if(!ret)
                   _httpErrno(conn, 0, "done");
                else if(ret!=1)
@@ -431,7 +431,7 @@ static int _begin_request_handler(struct mg_connection *conn)
       else
          _httpErrno(conn, 5, NULL);
 
-      managed_processes_refresh_now(localhost_const, _socketdata_port);
+      managed_processes_send_stats_now(localhost_const, _socketdata_port);
       
       return 1;
    }
