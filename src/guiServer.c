@@ -247,7 +247,6 @@ int _phpsessid_check_loggedin_and_admin(char *phpsessid,char *sessions_files_pat
       return -1;
    }
    
-   fprintf(stderr,"Session file %s\n",session_file);
    char *buff=NULL;
    struct stat st;
    
@@ -339,7 +338,6 @@ static int _begin_request_handler(struct mg_connection *conn)
    }
    else
       phpsessid[0]=0;
-   fprintf(stderr,"phpsessid = %s\n",phpsessid);
    
    if(strlen((char *)request_info->uri)==11 && mea_strncmplower("/CMD/ps.php",(char *)request_info->uri,11)==0)
    {
