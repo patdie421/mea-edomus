@@ -247,6 +247,7 @@ int _phpsessid_check_loggedin_and_admin(char *phpsessid,char *sessions_files_pat
       return -1;
    }
    
+   fprintf(stderr,"Session file %s\n",session_file);
    char *buff=NULL;
    struct stat st;
    
