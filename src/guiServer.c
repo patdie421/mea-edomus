@@ -237,7 +237,7 @@ int _phpsessid_check_loggedin_and_admin(char *phpsessid,char *sessions_files_pat
    int ret=0;
    char session_file[256];
    
-   int n=snprintf(session_file, sizeof(session_file), "%s/sess_%s",sessions_files_path, phpsessid);
+   int n=snprintf(session_file, sizeof(session_file), "%s/sess_%s", sessions_files_path, phpsessid);
    if(n<0 || n==sizeof(session_file))
    {
       VERBOSE(2) {
@@ -339,6 +339,7 @@ static int _begin_request_handler(struct mg_connection *conn)
    }
    else
       phpsessid[0]=0;
+   fprintf(stderr,"phpsessid = %s\n",phpsessid);
    
    if(strlen((char *)request_info->uri)==11 && mea_strncmplower("/CMD/ps.php",(char *)request_info->uri,11)==0)
    {
