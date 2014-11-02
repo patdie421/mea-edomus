@@ -37,3 +37,20 @@ function check_auth() {
             return true;
     }
 }
+
+
+function check_admin() {
+   authdata=get_auth_data();
+   if(authdata==false) {
+      mea_alert2(str_Error+str_double_dot, str_not_connected, function(){window.location = "login.php";} );
+         return false;
+   }
+   else {
+      if(authdata.profil!=1) {
+         return false;
+      }
+      else {
+         return true;
+      }
+   }
+}

@@ -29,12 +29,14 @@ session_start() ?>
  
 .process
 {
+// border: dotted 1px black;
  height:40px;
  line-height:40px;
 }
  
 .bouton
 {
+// border: dotted 1px red;
  height:40px;
  line-height:40px;
  text-align:center;
@@ -129,7 +131,7 @@ session_start() ?>
    <p></p>
    <div style="margin:auto;" class="cadre ui-widget ui-widget-content ui-corner-all">
    <div class="ui-widget-header titre">
-      <div style="margin-left:20px;">Gestion des interfaces</div>
+      <div style="margin-left:20px;">Etat des interfaces</div>
    </div>
       <p></p>
       <div id="montest">
@@ -143,7 +145,7 @@ session_start() ?>
    <p></p>
    <div style="margin:auto;" class="cadre ui-widget ui-widget-content ui-corner-all">
    <div class="ui-widget-header titre">
-      <div style="margin-left:20px;">Gestion des processus de mea-edomus</div>
+      <div style="margin-left:20px;">Etat des processus de mea-edomus</div>
    </div>
       <p></p>
       <div>

@@ -1,6 +1,6 @@
 var whoIsScrollingFlag=0; // 1 = le script, 0 = l'utilisateur
 var scrollOnOffFlag=1;    // 1 = activé par defaut
-
+var isadmin=1;
 
 function ajax_error(xhr, ajaxOptions, thrownError){
     alert("responseText="+xhr.responseText+" status="+xhr.status+" thrownError="+thrownError);
@@ -75,23 +75,26 @@ function anim_status(data)
 }
 
 
-function add_row(table, name, id, start_str, start, stop_str, stop)
+function add_row(table, name, id, start_str, start, stop_str, stop, isadmin)
 {
    newRow =  "<tr>" +
                  "<td style=\"width:70px;\"><div id=\"process_"+id+"\" class=\"pastille ui-widget ui-widget-content ui-corner-all\" style=\"background:gray;\"></div></td>" +
                  "<td style=\"width:230px;\"><div class=\"process\"><dib>"+name+"</div></div></td>" +
-                 "<td style=\"width:200px;\">" +
-                     "<div class=\"bouton\">";
-   if(start != null)
+                 "<td style=\"width:200px;\">";
+   if(isadmin==1)
    {
-      newRow=newRow+    "<button id=\"bstart"+id+"\">"+start_str+"</button>";
+      newRow=newRow+ "<div class=\"bouton\">";
+      if(start != null)
+      {
+         newRow=newRow+    "<button id=\"bstart"+id+"\">"+start_str+"</button>";
+      }
+      if(stop != null)
+      {
+         newRow=newRow+    "<button id=\"bstop"+id+"\">"+stop_str+"</button>";
+      }
+      newRow=newRow+ "</div>";
    }
-   if(stop != null)
-   {
-      newRow=newRow+    "<button id=\"bstop"+id+"\">"+stop_str+"</button>";
-   }
-   newRow=newRow+    "</div>" +
-                 "</td>" +
+   newRow=newRow+"</td>" +
              "</tr>";
 
     $("#"+table+" > tbody").before(newRow);
@@ -100,7 +103,7 @@ function add_row(table, name, id, start_str, start, stop_str, stop)
 };
 
 
-function load_all_processes_lists() {
+function load_all_processes_lists(isadmin) {
    $.ajax({
       url: 'CMD/ps.php',
       async: true,
@@ -113,15 +116,15 @@ function load_all_processes_lists() {
                continue;
             if(data[key]['group']==0)
             {
-               add_row("table_processes", key, data[key]['pid'], "start", start, "stop", stop);
+               add_row("table_processes", key, data[key]['pid'], "start", start, "stop", stop, isadmin);
             }
             else if(data[key]['group']==2)
             {
-               add_row("table_reload", key, data[key]['pid'], "reload", reload, null, null);
+               add_row("table_reload", key, data[key]['pid'], "reload", reload, null, null, isadmin);
             }
             else if(data[key]['group']==1)
             {
-               add_row("table_interfaces", key, data[key]['pid'], "start", start, "stop", stop);
+               add_row("table_interfaces", key, data[key]['pid'], "start", start, "stop", stop, isadmin);
             }
          }
          anim_status(data);
@@ -133,7 +136,7 @@ function load_all_processes_lists() {
 }
 
 
-function load_interfaces_list_only() {
+function load_interfaces_list_only(isadmin) {
    $.ajax({
       url: 'CMD/ps.php',
       async: true,
@@ -144,7 +147,7 @@ function load_interfaces_list_only() {
          {
             if(data[key]['group']==1)
             {
-               add_row("table_interfaces", key, data[key]['pid'], "start", start, "stop", stop);
+               add_row("table_interfaces", key, data[key]['pid'], "start", start, "stop", stop, isadmin);
             }
          }
          anim_status(data);
@@ -183,13 +186,13 @@ function socketio_available(s) { // socket io est chargé, on se connecte
       anim_status(data);
    });
 
-   s.on('rel', function(message){
+   s.on('rel', function(message){ // reload
       $("#table_interfaces").empty();
       $("#table_interfaces").append("<tbody></tbody>");
-      load_interfaces_list_only();
+      load_interfaces_list_only(isadmin);
    });
 
-   load_all_processes_lists();
+   load_all_processes_lists(isadmin);
 }
 
 
@@ -209,16 +212,20 @@ function reload(id)
       type: 'GET',
       dataType: 'json',
       success: function(data){
-         var type="";
-         if(data["errno"]==0)
-            type="success";
-         else if(data["errno"]==-1)
-            type="information";
-         else
-            type="error";
+         errno=data["errno"];
+         if(data["errno"]>0)
+         {
+            $("#table_interfaces").empty();
+            $("#table_interfaces").append("<tbody></tbody>");
+            if(errno==2)
+            {
+            }
+         }
       },
       error: function(jqXHR, textStatus, errorThrown ){
          ajax_error( jqXHR, textStatus, errorThrown );
+         $("#table_interfaces").empty();
+         $("#table_interfaces").append("<tbody></tbody>");
       }
    });
 }
@@ -233,13 +240,7 @@ function start(id)
       type: 'GET',
       dataType: 'json',
       success: function(data){
-         var type="";
-         if(data["errno"]==0)
-            type="success";
-         else if(data["errno"]==-1)
-            type="information";
-         else
-            type="error";
+      // traiter les erreur ici.
       },
       error: function(jqXHR, textStatus, errorThrown ){
          ajax_error( jqXHR, textStatus, errorThrown );
@@ -256,13 +257,6 @@ function stop(id)
       type: 'GET',
       dataType: 'json',
       success: function(data){
-         var type="";
-         if(data["errno"]==0)
-            type="success";
-         else if(data["errno"]==-1)
-            type="information";
-         else
-            type="error";
       },
       error: function(jqXHR, textStatus, errorThrown ){
          ajax_error( jqXHR, textStatus, errorThrown );
@@ -277,6 +271,18 @@ var _intervalCounter;
 
 function start_index_controller()
 {
+   authdata=get_auth_data();
+   if(authdata==false) {
+      mea_alert2(str_Error+str_double_dot, str_not_connected, function(){window.location = "login.php";} );
+      return false;
+   } else {
+      if(authdata.profil!=1) {
+         isadmin=0;
+      } else {
+         isadmin=1;
+      }
+   }
+
    function wait_socketio_available()
    {
       _intervalCounter=0;
