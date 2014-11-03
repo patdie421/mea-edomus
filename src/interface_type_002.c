@@ -604,7 +604,8 @@ void *_thread_interface_type_002_xbeedata(void *args)
 
    pthread_cleanup_push( (void *)set_interface_type_002_isnt_running, (void *)params->i002 );
    params->i002->thread_is_running=1;
-
+   process_heartbeat(params->i002->monitoring_id);
+   
    sqlite3 *params_db=params->param_db;
    data_queue_elem_t *e;
    int ret;
@@ -620,6 +621,7 @@ void *_thread_interface_type_002_xbeedata(void *args)
    params->myThreadState = PyThreadState_New(params->mainThreadState->interp);
    PyEval_ReleaseLock();
    pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+   pthread_testcancel();
    
    while(1)
    {
