@@ -99,29 +99,36 @@ function anim_status(data)
 }
 
 
-function add_row(table, name, id, start_str, start, stop_str, stop, isadmin)
+function add_row(table, name, desc, id, start_str, start, stop_str, stop, isadmin)
 {
    newRow =  "<tr>" +
-                 "<td style=\"width:70px;\"><div id=\"process_"+id+"\" class=\"pastille ui-widget ui-widget-content ui-corner-all\" style=\"background:gray;\"></div></td>" +
-                 "<td style=\"width:230px;\"><div class=\"process\"><dib>"+name+"</div></div></td>" +
-                 "<td style=\"width:200px;\">";
+                 "<td style=\"width:10%;\"><div id=\"process_"+id+"\" class=\"pastille ui-widget ui-widget-content ui-corner-all\" style=\"background:gray;\"></div></td>" +
+                 "<td style=\"width:60%;\">" +
+                     "<div class=\"process\">" +
+                        "<div class=\"name\">"+name+"</div>";
+   if(desc!="" && desc!=='undefined')
+   {
+                newRow+="<div class=\"description\">"+desc+"</div>";
+   }
+                newRow+="</div></td>" +
+                 "<td style=\"width:30%;\">";
    if(isadmin==1)
    {
-      newRow=newRow+ "<div class=\"bouton\">";
+                newRow+="<div class=\"bouton\">";
       if(start != null)
       {
-         newRow=newRow+    "<button id=\"bstart"+id+"\">"+start_str+"</button>";
+                   newRow+="<button id=\"bstart"+id+"\">"+start_str+"</button>";
       }
       if(stop != null)
       {
-         newRow=newRow+    "<button id=\"bstop"+id+"\">"+stop_str+"</button>";
+                   newRow+="<button id=\"bstop"+id+"\">"+stop_str+"</button>";
       }
-      newRow=newRow+ "</div>";
+                newRow+="</div>";
    }
-   newRow=newRow+"</td>" +
+         newRow+="</td>" +
              "</tr>";
 
-    $("#"+table+" > tbody").before(newRow);
+   $("#"+table+" > tbody").before(newRow);
    $("#bstop"+id).button().click(function(event){stop(id);});
    $("#bstart"+id).button().click(function(event){start(id);});
 };
@@ -140,15 +147,15 @@ function load_all_processes_lists(isadmin) {
                continue;
             if(data[key]['group']==0)
             {
-               add_row("table_processes", key, data[key]['pid'], "start", start, "stop", stop, isadmin);
+              add_row("table_processes", key, data[key]['desc'], data[key]['pid'], "start", start, "stop", stop, isadmin);
             }
             else if(data[key]['group']==2)
             {
-               add_row("table_reload", key, data[key]['pid'], "reload", reload, null, null, isadmin);
+               add_row("table_reload", key, data[key]['desc'], data[key]['pid'], "reload", reload, null, null, isadmin);
             }
             else if(data[key]['group']==1)
             {
-               add_row("table_interfaces", key, data[key]['pid'], "start", start, "stop", stop, isadmin);
+               add_row("table_interfaces", key, data[key]['desc'], data[key]['pid'], "start", start, "stop", stop, isadmin);
             }
          }
          anim_status(data);
@@ -171,7 +178,7 @@ function load_interfaces_list_only(isadmin) {
          {
             if(data[key]['group']==1)
             {
-               add_row("table_interfaces", key, data[key]['pid'], "start", start, "stop", stop, isadmin);
+               add_row("table_interfaces", key, data[key]['desc'], data[key]['pid'], "start", start, "stop", stop, isadmin);
             }
          }
          anim_status(data);
@@ -361,7 +368,7 @@ function start_index_controller()
 
    _intervalCounter=0;
    _intervalId=setInterval(function() {
-      if(typeof(liveCom) != "undefined") {
+      if(typeof(liveCom) !== 'undefined') {
          clearInterval(_intervalId);
          wait_socketio_available();
       }
