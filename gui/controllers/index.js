@@ -52,9 +52,9 @@ function anim_status(data)
 {
    for(var key in data)
    {
-      if(data[key]['status']==1)
+      if(data[key]['status']==1) // process démarré
       {
-         if(data[key]['heartbeat']=='KO' && data[key]['type']!=2)
+         if(data[key]['heartbeat']=='KO' && data[key]['type']!=2) // type = 2 => tache donc pas de "black" possible
          {
             $("#process_"+data[key]['pid']).css("background","black");
          }
@@ -62,10 +62,17 @@ function anim_status(data)
          {
             $("#process_"+data[key]['pid']).css("background","green");
          }
+         if(data[key]['type']!=2)
+         {
+            $("#bstart"+data[key]['pid']).enable();
+            $("#bstop"+data[key]['pid']).disable();
+         }
       }
-      else if(data[key]['status']==0 && data[key]['type']!=2)
+      else if(data[key]['status']==0 && data[key]['type']!=2) // non demarré
       {
          $("#process_"+data[key]['pid']).css("background","red");
+         $("#bstart"+data[key]['pid']).disable();
+         $("#bstop"+data[key]['pid']).enable();
       }
       else
       {
@@ -159,6 +166,98 @@ function load_interfaces_list_only(isadmin) {
 }
 
 
+function checkError(data)
+{
+  errno=data["errno"];
+  
+  switch(errno)
+  {
+     case 0:
+        return true;
+        break;
+     case 2: // pas habilité
+        window.location = "index.php";
+        return false; // rechargement de la page index qui décidera ce qu'il faut faire (cf. start_index_controler).
+        break;
+     case 4: // param process non trouvé
+        return false;
+        break;
+     case 5: // pas de parametre
+        return false;
+        break;
+     case 6: // commande inconnue (doit être start/stop/reload)
+        return false;
+        break;
+     case 7: // erreur de l'opération
+        return false;
+        break;
+     case -1: // opération incohérente (déjà lancé ou déjà arrêté).
+        return false;
+        break;
+     default:
+      return false;
+      break;
+  }
+}
+
+function reload(id)
+{
+   $("#table_interfaces").empty();
+   $("#table_interfaces").append("<tbody></tbody>");
+   $("#table_interfaces > tbody").before("<tr><td style=\"width:100%; margin:auto;\" align=\"center\" valign=\"top\"><div class=\"wait_ball\"></div></td></tr>");
+   $.ajax({
+      url: 'CMD/startstop.php?process='+id+'&cmnd=task',
+      async: true,
+      type: 'GET',
+      dataType: 'json',
+      success: function(data){
+         checkError(data);
+         $("#table_interfaces").empty();
+         $("#table_interfaces").append("<tbody></tbody>");
+      },
+      error: function(jqXHR, textStatus, errorThrown ){
+         $("#table_interfaces").empty();
+         $("#table_interfaces").append("<tbody></tbody>");
+         ajax_error( jqXHR, textStatus, errorThrown );
+      }
+   });
+}
+
+
+function start(id)
+{
+   $.ajax({
+      url: 'CMD/startstop.php?process='+id+'&cmnd=start',
+      async: true,
+      type: 'GET',
+      dataType: 'json',
+      success: function(data){
+         checkError(data);
+      },
+      error: function(jqXHR, textStatus, errorThrown ){
+         ajax_error( jqXHR, textStatus, errorThrown );
+      }
+   });
+}
+
+
+function stop(id)
+{
+   $.ajax({
+      url: 'CMD/startstop.php?process='+id+'&cmnd=stop',
+      async: true,
+      type: 'GET',
+      dataType: 'json',
+      success: function(data){
+         checkError(data);
+      },
+      error: function(jqXHR, textStatus, errorThrown ){
+         ajax_error( jqXHR, textStatus, errorThrown );
+      }
+   });
+}
+
+
 function socketio_available(s) { // socket io est chargé, on se connecte
    $("#console").scroll(function() {
       if(scrollOnOffFlag==0 && whoIsScrollingFlag==0) // si scroll inactif
@@ -197,78 +296,13 @@ function socketio_available(s) { // socket io est chargé, on se connecte
 
 
 function socketio_unavailable() {
+   // trouver un "visuel" pour pas de live sur la console
    $("#console").append("<div>Pas d'iosocket => pas d'info en live ...<div>");
-}
-
-
-function reload(id)
-{
-   $("#table_interfaces").empty();
-   $("#table_interfaces").append("<tbody></tbody>");
-   $("#table_interfaces > tbody").before("<tr><td style=\"width:100%; margin:auto;\" align=\"center\" valign=\"top\"><div class=\"wait_ball\"></div></td></tr>");
-   $.ajax({
-      url: 'CMD/startstop.php?process='+id+'&cmnd=task',
-      async: true,
-      type: 'GET',
-      dataType: 'json',
-      success: function(data){
-         errno=data["errno"];
-         if(data["errno"]>0)
-         {
-            $("#table_interfaces").empty();
-            $("#table_interfaces").append("<tbody></tbody>");
-            if(errno==2)
-            {
-            }
-         }
-      },
-      error: function(jqXHR, textStatus, errorThrown ){
-         ajax_error( jqXHR, textStatus, errorThrown );
-         $("#table_interfaces").empty();
-         $("#table_interfaces").append("<tbody></tbody>");
-      }
-   });
-}
-
-
-
-function start(id)
-{
-   $.ajax({
-      url: 'CMD/startstop.php?process='+id+'&cmnd=start',
-      async: true,
-      type: 'GET',
-      dataType: 'json',
-      success: function(data){
-      // traiter les erreur ici.
-      },
-      error: function(jqXHR, textStatus, errorThrown ){
-         ajax_error( jqXHR, textStatus, errorThrown );
-      }
-   });
-}
-
-
-function stop(id)
-{
-   $.ajax({
-      url: 'CMD/startstop.php?process='+id+'&cmnd=stop',
-      async: true,
-      type: 'GET',
-      dataType: 'json',
-      success: function(data){
-      },
-      error: function(jqXHR, textStatus, errorThrown ){
-         ajax_error( jqXHR, textStatus, errorThrown );
-      }
-   });
 }
 
 
 var _intervalId;
 var _intervalCounter;
-
-
 function start_index_controller()
 {
    authdata=get_auth_data();
