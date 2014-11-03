@@ -326,6 +326,7 @@ void *_thread_interface_type_001(void *args)
    
    pthread_cleanup_push( (void *)set_interface_type_001_isnt_running, (void *)i001 );
    i001->thread_is_running=1;
+   process_heartbeat(i001->monitoring_id);
    
 //   tomysqldb_md_t *md=interface_type_001_thread_params->md;
    free(interface_type_001_thread_params);
