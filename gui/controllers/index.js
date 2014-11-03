@@ -167,6 +167,16 @@ function load_all_processes_lists(isadmin) {
 }
 
 
+function messageListeInterfaceVide()
+{
+   var newRow="";
+   newRow = "<tr>" +
+               "<td style=\"width:100%; height:40px; text-align:center;\"><div>Aune interface disponible</div></td>" +
+            "</tr>";
+   $("#table_interfaces > tbody").before(newRow);
+}
+
+
 function load_interfaces_list_only(isadmin) {
    $.ajax({
       url: 'CMD/ps.php',
@@ -174,14 +184,20 @@ function load_interfaces_list_only(isadmin) {
       type: 'GET',
       dataType: 'json',
       success: function(data){
+         int nb=0;
          for(var key in data)
          {
             if(data[key]['group']==1)
             {
                add_row("table_interfaces", key, data[key]['desc'], data[key]['pid'], "start", start, "stop", stop, isadmin);
+               nb++;
             }
          }
-         anim_status(data);
+         if(nb>0)
+            anim_status(data);
+         else
+            messageListeInterfaceVide();
+            
       },
       error: function(jqXHR, textStatus, errorThrown ){
          ajax_error( jqXHR, textStatus, errorThrown );
@@ -323,10 +339,24 @@ function socketio_available(s) { // socket io est chargé, on se connecte
 }
 
 
+function unavailableMessage()
+{
+   var message="";
+   
+   message="<div>"+
+           "Erreur : fonctionnalité indisponible. Consultez les messages d'erreur du serveur."+
+           "</div>";
+   
+   return message;
+}
+
 function socketio_unavailable() {
-   // trouver un "visuel" pour pas de live sur la console
-   // on drop tous les onglets ? on met une page d'info. On fait sans live ? ...
-   $("#console").append("<div>Pas d'iosocket => pas d'info en live ...<div>");
+   $("#tabs1-1").remove();
+   $("#tabs1-3").remove();
+   $("#tabs1-4").remove();
+   $("#tabs1").destroy();
+   $("#tabs1").empty();
+   $("#tabs1").append(unavailableMessage());
 }
 
 
