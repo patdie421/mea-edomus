@@ -22,4 +22,6 @@ int stop_guiServer(int my_id, void *data, char *errmsg, int l_errmsg);
 int gethttp(char *server, int port, char *url, char *response, int l_response);
 int get_socketio_port();
 
+int nodejs_cmnd(char *hostname, int port, char cmnd, char *str);
+
 #endif

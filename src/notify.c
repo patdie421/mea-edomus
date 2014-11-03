@@ -18,6 +18,7 @@
 
 int _port=5600;
 int _notify_socket=-1;
+int _notify_enable=0;
 
 void mea_notify_set_port(int p)
 {
@@ -25,10 +26,25 @@ void mea_notify_set_port(int p)
 }
 
 
+void mea_notify_enable()
+{
+   _notify_enable=1;
+}
+
+
+void mea_notify_disable()
+{
+   _notify_enable=0;
+}
+
+
 int mea_notify(char *hostname, int port, char *notif_str, char notif_type)
 {
    int s;
    int ret;
+   
+   if(_notify_enable==0)
+      return 0;
    
    if(mea_socket_connect(&s, hostname, port+1)<0)
    {
@@ -51,6 +67,9 @@ int _notify( char *hostname, int port, char *notif_str, char notif_type)
    int ret;
    int s;
    
+   if(_notify_enable==0)
+      return 0;
+
    if(mea_socket_connect(&s, hostname, port)<0)
       return -1;
    
@@ -76,6 +95,9 @@ int mea_notify_printf(int notif_type, char const* fmt, ...)
    char notif_str[256];
    int l_notif;
    
+   if(_notify_enable==0)
+      return 0;
+
    va_list args;
    va_start(args, fmt);
    

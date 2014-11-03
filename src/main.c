@@ -43,6 +43,7 @@
 #include "guiServer.h"
 #include "logServer.h"
 #include "automatorServer.h"
+#include "sockets_utils.h"
 
 #include "processManager.h"
 
@@ -739,8 +740,7 @@ int main(int argc, const char * argv[])
 
    DEBUG_SECTION fprintf(stderr,"INFO  Starting MEA-EDOMUS %s\n",__MEA_EDOMUS_VERSION__);
 
-   
-   //   
+   //
    // demarrage du processus de l'automate
    //
 //   automator_pid = start_automatorServer(params_list[SQLITE3_DB_PARAM_PATH]);
@@ -751,14 +751,17 @@ int main(int argc, const char * argv[])
    signal(SIGINT,  _signal_STOP);
    signal(SIGQUIT, _signal_STOP);
    signal(SIGTERM, _signal_STOP);
-   
-   signal(SIGPIPE, signal_callback_handler);
+   signal(SIGPIPE, SIG_IGN);
+//   signal(SIGPIPE, signal_callback_handler);
 
    //
    // pour la gestion des notifications
    //
+   nodejs_cmnd(localhost_const, atoi(params_list[NODEJSDATA_PORT]), 'S', "SHUTDOWN");
+
    int notif_port = atoi(params_list[NODEJSDATA_PORT]);
    mea_notify_set_port(notif_port);
+   mea_notify_disable();
 
    //
    // initialisation du gestionnaire de process
@@ -773,19 +776,6 @@ int main(int argc, const char * argv[])
    process_add_indicator(main_monitoring_id, "UPTIME", 0);
 
    //
-   // LogServer
-   //
-   struct logServerData_s logServerData;
-   logServerData.params_list=params_list;
-   logServer_monitoring_id=process_register("LOGSERVER");
-   process_set_start_stop(logServer_monitoring_id , start_logServer, stop_logServer, (void *)(&logServerData), 1);
-   if(process_start(logServer_monitoring_id, NULL, 0)<0)
-   {
-      VERBOSE(9) fprintf (stderr, "error !!!\n");
-      VERBOSE(1) fprintf (stderr, "%s (%s) : can't start log server\n",ERROR_STR,__func__);
-   }
-
-   //
    // httpServer
    //
    struct httpServerData_s httpServerData;
@@ -797,6 +787,31 @@ int main(int argc, const char * argv[])
    {
       VERBOSE(9) fprintf (stderr, "error !!!\n");
       VERBOSE(1) fprintf (stderr, "%s (%s) : can't start gui server\n",ERROR_STR,__func__);
+   }
+   
+   int s;
+   int nb=0;
+   do
+   {
+      sleep(1);
+      nb++;
+      if(nb>30) // 30 secondes pour demarrer nodejs
+         clean_all_and_exit();
+   }
+   while(mea_socket_connect(&s, localhost_const, notif_port));
+   mea_notify_enable();
+
+   //
+   // LogServer
+   //
+   struct logServerData_s logServerData;
+   logServerData.params_list=params_list;
+   logServer_monitoring_id=process_register("LOGSERVER");
+   process_set_start_stop(logServer_monitoring_id , start_logServer, stop_logServer, (void *)(&logServerData), 1);
+   if(process_start(logServer_monitoring_id, NULL, 0)<0)
+   {
+      VERBOSE(9) fprintf (stderr, "error !!!\n");
+      VERBOSE(1) fprintf (stderr, "%s (%s) : can't start log server\n",ERROR_STR,__func__);
    }
 
    //
@@ -883,7 +898,7 @@ int main(int argc, const char * argv[])
       process_update_indicator(main_monitoring_id, "UPTIME", uptime);
 
       managed_processes_loop();
-
+      
       sleep(5);
    }
 }

@@ -139,7 +139,6 @@ int _managed_processes_process_to_json(int id, char *s, int s_l, int flag)
             return -1;
          if(mea_strncat(s, s_l, buff)<0)
             return -1;
-         }
       }
       
       n=snprintf(buff,sizeof(buff),"\"pid\":%d",id);

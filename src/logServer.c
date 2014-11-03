@@ -1,3 +1,4 @@
+
 //
 //  logServer.c
 //  mea-edomus
@@ -164,7 +165,7 @@ void *logServer_thread(void *data)
    
    mea_timer_t log_timer;
    struct logServer_thread_data_s *d=(struct logServer_thread_data_s *)data;
-
+   sprintf(log_file, "%s/mea-edomus.log", d->log_path);
    pthread_cleanup_push( (void *)_set_logServer_isnt_running, (void *)NULL );
    _logServer_thread_is_running=1;
    process_heartbeat(_logServer_monitoring_id);

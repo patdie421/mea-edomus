@@ -81,7 +81,7 @@ int   process_set_status(int id, process_status_t status);
 int   process_set_type(int id, process_type_t type);
 int   process_set_group(int id, int group_id);
 void* process_get_data_ptr(int id);
-
+int   process_set_description(int id, char *description);
 int   process_set_heartbeat_interval(int id, int interval);
 int   init_processes_manager(int max_nb_processes);
 int   clean_managed_processes();

@@ -321,6 +321,37 @@ _phpsessid_check_loggedin_and_admin_clean_exit:
 }
 
 
+int nodejs_cmnd(char *hostname, int port, char cmnd, char *str)
+{
+   int s;
+   if( mea_socket_connect(&s, hostname, port)==0 )
+   {
+      int str_l=strlen(str)+6;
+      char message[256];
+      snprintf(message,sizeof(message)-8,"$$$%c%cINT:%c:%s###", (char)(str_l%128), (char)(str_l/128), cmnd, str);
+      int ret = mea_socket_send(&s, message, str_l+8);
+      if(ret==0)
+      {
+         int l=mea_socket_read(&s, message, sizeof(message), 1); // avec timeout de 1s
+         message[l]=0;
+         if(l<0)
+         {
+            VERBOSE(1) {
+               fprintf(stderr,"%s (%s) : nodejs not responding.\n", ERROR_STR, __func__);
+            }
+         }
+         close(s);
+      }
+      else
+      {
+         close(s);
+         return -1;
+      }
+   }
+   return -1;
+}
+
+
 #define MAX_BUFFER_SIZE 80
 #define MAX_TOKEN 20
 static int _begin_request_handler(struct mg_connection *conn)
@@ -355,6 +386,13 @@ static int _begin_request_handler(struct mg_connection *conn)
    else if(strlen((char *)request_info->uri)==13 &&  mea_strncmplower("/CMD/ping.php",(char *)request_info->uri,13)==0)
    {
       process_heartbeat(_httpServer_monitoring_id); // le heartbeat est fait de l'extérieur ...
+      
+      // heartbeat du nodejs ...
+      if(nodejs_cmnd("localhost", 5600, 'P', "PING")<0)
+      {
+         // traiter l'erreur ...
+      }
+
       _httpErrno(conn, 0, NULL);
       return 1;
    }

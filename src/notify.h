@@ -17,4 +17,7 @@ void mea_notify_set_port(int p);
 // int  mea_notify2(char *notif_str, char notif_type);
 int  mea_notify_printf(int notify_type, char const* fmt, ...);
 
+void mea_notify_enable();
+void mea_notify_disable();
+
 #endif /* defined(__notify__) */

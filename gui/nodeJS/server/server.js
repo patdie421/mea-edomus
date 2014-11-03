@@ -68,7 +68,7 @@ for (var i = 2; i < process.argv.length; i++) {
 }
 
 
-function internalCmnd(msg)
+function internalCmnd(s, msg)
 {
    var cmnd = msg.substring(0, 1);
    var data = msg.slice(2);
@@ -128,7 +128,7 @@ var server = require('net').createServer(function (socket) {
       // $$$%c%c%3s:%s###
       // avec %c%c : taille de la zone data ("CMD:%s") en little indian
       //      %3s  : code commande (ex : LOG, MON, ...)
-      try {
+//      try {
          var car = socket.read(1);
          do
          {
@@ -183,11 +183,11 @@ var server = require('net').createServer(function (socket) {
             process_msg(socket, cmnd, msg);
          }
          while( null !== (car = socket.read(1)) ); // encore des caractères à lire ?
-      }
-      catch(err)
-      {
-         console.log("ERROR : socket.on('readable',function(){})");
-      }
+//      }
+//      catch(err)
+//      {
+//         console.log("ERROR : socket.on('readable',function(){})");
+//      }
    });
 }).listen(LOCAL_PORT);
 

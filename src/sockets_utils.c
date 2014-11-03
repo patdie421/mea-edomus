@@ -16,14 +16,6 @@
 #include "globals.h"
 #include "debug.h"
 
-/* pour timeout sur lecture de socket. Utilisable pour une fonction mea_socket_recv à écrire
-struct timeval tv;
-
-tv.tv_sec = 30;  // 30 Secs Timeout
-tv.tv_usec = 0;  // Not init'ing this can cause strange errors
-
-setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv,sizeof(struct timeval));
-*/
 
 int mea_socket_connect(int *s, char *hostname, int port)
 {
@@ -34,20 +26,20 @@ int mea_socket_connect(int *s, char *hostname, int port)
    sock = socket(AF_INET, SOCK_STREAM, 0);
    if(sock < 0)
    {
-      DEBUG_SECTION {
-         fprintf(stderr, "%s (%s) :  socket - can't create : ",ERROR_STR,__func__);
-         perror("");
-      }
+//      DEBUG_SECTION {
+//         fprintf(stderr, "%s (%s) :  socket - can't create : ",ERROR_STR,__func__);
+//         perror("");
+//      }
       return -1;
    }
 
    serv_info = gethostbyname(hostname); // on récupère les informations de l'hôte auquel on veut se connecter
    if(serv_info == NULL)
    {
-      DEBUG_SECTION {
-         fprintf(stderr, "%s (%s) :  gethostbyname - can't get information : ",ERROR_STR,__func__);
-         perror("");
-      }
+//      DEBUG_SECTION {
+//         fprintf(stderr, "%s (%s) :  gethostbyname - can't get information : ",ERROR_STR,__func__);
+//         perror("");
+//      }
       return -1;
    }
 
@@ -58,10 +50,10 @@ int mea_socket_connect(int *s, char *hostname, int port)
    
    if(connect(sock, (const struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
    {
-      DEBUG_SECTION {
-         fprintf(stderr, "%s (%s) :  connect - can't connect : ",ERROR_STR,__func__);
-         perror("");
-      }
+//      DEBUG_SECTION {
+//         fprintf(stderr, "%s (%s) :  connect - can't connect : ",ERROR_STR,__func__);
+//         perror("");
+//      }
       return -1;
    }
 
@@ -69,9 +61,9 @@ int mea_socket_connect(int *s, char *hostname, int port)
    return 0;
 }
 
+
 pthread_mutex_t mea_socket_send_lock;
 int mea_socket_send_lock_is_init=0;
-
 int mea_socket_send(int *s, char *message, int l_message)
 {
    int ret;
@@ -102,3 +94,41 @@ int mea_socket_send(int *s, char *message, int l_message)
    return 0;
 }
 
+
+int mea_socket_read(int *s, char *message, int l_message, int t)
+{
+   fd_set input_set;
+   struct timeval timeout;
+   char buff[80];
+   int16_t ret=0;
+   
+   if(t)
+   {
+      timeout.tv_sec  = t; // timeout après 5 secondes
+      timeout.tv_usec = 0;
+   
+      FD_ZERO(&input_set);
+      FD_SET(*s, &input_set);
+   
+      ret = (int16_t)select(*s+1, &input_set, NULL, NULL, &timeout);
+      if(ret<0)
+      {
+         return -1;
+      }
+   }
+   
+   ssize_t l = recv(*s, buff, sizeof(buff), 0);
+   if(l<0)
+      return -1;
+
+   if(l>l_message)
+   {
+      memcpy(message, buff, l_message);
+      return l_message;
+   }
+   else
+   {
+      memcpy(message, buff, (int)l);
+      return (int)l;
+   }
+}

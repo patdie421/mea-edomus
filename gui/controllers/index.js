@@ -81,15 +81,15 @@ function anim_status(data)
          }
          if(data[key]['type']!=2)
          {
-            $("#bstart"+data[key]['pid']).enable();
-            $("#bstop"+data[key]['pid']).disable();
+            $("#bstart"+data[key]['pid']).button("option", "disabled", true );
+            $("#bstop"+data[key]['pid']).button( "option", "disabled", false );
          }
       }
       else if(data[key]['status']==0 && data[key]['type']!=2) // non demarré
       {
          $("#process_"+data[key]['pid']).css("background","red");
-         $("#bstart"+data[key]['pid']).disable();
-         $("#bstop"+data[key]['pid']).enable();
+         $("#bstart"+data[key]['pid']).button("option", "disabled", false );
+         $("#bstop"+data[key]['pid']).button( "option", "disabled", true );
       }
       else
       {
@@ -106,7 +106,7 @@ function add_row(table, name, desc, id, start_str, start, stop_str, stop, isadmi
                  "<td style=\"width:60%;\">" +
                      "<div class=\"process\">" +
                         "<div class=\"name\">"+name+"</div>";
-   if(desc!="" && desc!=='undefined')
+   if(desc!="" && desc!==undefined)
    {
                 newRow+="<div class=\"description\">"+desc+"</div>";
    }
@@ -184,7 +184,7 @@ function load_interfaces_list_only(isadmin) {
       type: 'GET',
       dataType: 'json',
       success: function(data){
-         int nb=0;
+         var nb=0;
          for(var key in data)
          {
             if(data[key]['group']==1)
@@ -197,7 +197,7 @@ function load_interfaces_list_only(isadmin) {
             anim_status(data);
          else
             messageListeInterfaceVide();
-            
+//         $("#bstart"+id).button("option", "disabled", false);
       },
       error: function(jqXHR, textStatus, errorThrown ){
          ajax_error( jqXHR, textStatus, errorThrown );
@@ -240,25 +240,30 @@ function checkError(data)
   }
 }
 
+
 function reload(id)
 {
    $("#table_interfaces").empty();
    $("#table_interfaces").append("<tbody></tbody>");
    $("#table_interfaces > tbody").before("<tr><td style=\"width:100%; margin:auto;\" align=\"center\" valign=\"top\"><div class=\"wait_ball\"></div></td></tr>");
+   // $("#bstart"+id).button("option", "disabled", true );
    $.ajax({
       url: 'CMD/startstop.php?process='+id+'&cmnd=task',
       async: true,
       type: 'GET',
       dataType: 'json',
       success: function(data){
+         // $("#bstart"+id).button("option", "disabled", false );
          if(checkError(data)==false)
          {
             // on enleve juste la roue qui tourne ...
             $("#table_interfaces").empty();
             $("#table_interfaces").append("<tbody></tbody>");
          }
+
       },
       error: function(jqXHR, textStatus, errorThrown ){
+         // $("#bstart"+id).button("option", "disabled", false );
          $("#table_interfaces").empty();
          $("#table_interfaces").append("<tbody></tbody>");
          ajax_error( jqXHR, textStatus, errorThrown );
@@ -398,7 +403,7 @@ function start_index_controller()
 
    _intervalCounter=0;
    _intervalId=setInterval(function() {
-      if(typeof(liveCom) !== 'undefined') {
+      if(typeof(liveCom) != "undefined") {
          clearInterval(_intervalId);
          wait_socketio_available();
       }
