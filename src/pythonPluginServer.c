@@ -303,17 +303,19 @@ void *_pythonPlugin_thread(void *data)
    PyThreadState *mainThreadState, *myThreadState=NULL;
    
    
+   pthread_cleanup_push( (void *)_pythonPluginServer_clean_threadState, (void *)myThreadState );
+   pthread_cleanup_push( (void *)set_pythonPluginServer_isnt_running, (void *)NULL );
+   _pythonPluginServer_thread_is_running=1;
+   process_heartbeat(_pythonPluginServer_monitoring_id);
+
    pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
    PyEval_AcquireLock();
    mainThreadState = PyThreadState_Get();
    myThreadState = PyThreadState_New(mainThreadState->interp);
    PyEval_ReleaseLock();
    pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
-   
-   pthread_cleanup_push( (void *)_pythonPluginServer_clean_threadState, (void *)myThreadState );
-   pthread_cleanup_push( (void *)set_pythonPluginServer_isnt_running, (void *)NULL );
-   _pythonPluginServer_thread_is_running=1;
-   
+   pthread_testcancel();
+
    // chemin vers les plugins rajoutés dans le path de l'interpréteur Python
    PyObject* sysPath = PySys_GetObject((char*)"path");
    PyObject* pluginsDir = PyString_FromString(plugin_path);
