@@ -391,7 +391,7 @@ int process_set_description(int id, char *description)
 }
 
 
-int   process_set_watchdog_recovery(int id, managed_processes_process_f recovery_task, void *recovery_task_data)
+int process_set_watchdog_recovery(int id, managed_processes_process_f recovery_task, void *recovery_task_data)
 {
    int ret=-1;
    
@@ -882,7 +882,7 @@ int process_start(int id, char *errmsg, int l_errmsg)
          else
          {
             managed_processes.processes_table[id]->status=RUNNING;
-            managed_processes.processes_table[id]->last_heartbeat = time(NULL);
+//            managed_processes.processes_table[id]->last_heartbeat = time(NULL);
          }
       }
       pthread_rwlock_unlock(&managed_processes.rwlock);
