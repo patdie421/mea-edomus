@@ -354,7 +354,7 @@ static int _begin_request_handler(struct mg_connection *conn)
    }
    else if(strlen((char *)request_info->uri)==13 &&  mea_strncmplower("/CMD/ping.php",(char *)request_info->uri,13)==0)
    {
-      process_heartbeat(_httpServer_monitoring_id);
+      process_heartbeat(_httpServer_monitoring_id); // le heartbeat est fait de l'extérieur ...
       _httpErrno(conn, 0, NULL);
       return 1;
    }
@@ -673,7 +673,6 @@ int stop_guiServer(int my_id, void *data, char *errmsg, int l_errmsg)
    stop_httpServer();
    VERBOSE(1) fprintf(stderr,"%s  (%s) : HTTPSERVER %s.\n", INFO_STR, __func__, stopped_successfully_str);
    mea_notify_printf('S', "HTTPSERVER %s.", stopped_successfully_str);
-   
    return 0;
 }
 
@@ -780,7 +779,7 @@ int start_guiServer(int my_id, void *data, char *errmsg, int l_errmsg)
          
          VERBOSE(2) fprintf(stderr,"%s  (%s) : GUISERVER %s.\n", INFO_STR, __func__, launched_successfully_str);
          mea_notify_printf('S', "GUISERVER %s.", launched_successfully_str);
-         
+         process_heartbeat(_httpServer_monitoring_id); // un premier heartbeat pour le faire au plus vite ...
          return 0;
       }
       else
