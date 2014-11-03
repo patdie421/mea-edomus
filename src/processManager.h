@@ -19,7 +19,7 @@ struct process_indicator_s
 
 typedef int (*managed_processes_process_f)(int, void *, char *, int);
 
-typedef enum process_status_e { STOPPED = 0,   RUNNING = 1, RECOVERY_ERROR } process_status_t;
+typedef enum process_status_e { STOPPED = 0,   RUNNING = 1, RECOVERY_ERROR = 2 } process_status_t;
 typedef enum process_type_e   { AUTOSTART = 0, NOTMANAGED = 1, TASK = 2 } process_type_t;
 
 #define DEFAULTGROUP 0
