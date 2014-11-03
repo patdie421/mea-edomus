@@ -157,6 +157,7 @@ var server = require('net').createServer(function (socket) {
             var size=socket.read(2); // taille sur deux octets
             if(size)
             {
+               // voir buf.readUInt8(offset, [noAssert])# pour lire les données.
                l_data=size.toString().charCodeAt(0)+size.toString().charCodeAt(1)*128;
             }
             else
