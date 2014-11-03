@@ -27,6 +27,7 @@ typedef enum process_type_e   { AUTOSTART = 0, NOTMANAGED = 1, TASK = 2 } proces
 struct managed_processes_process_s
 {
    char name[41];
+   char description[256];
 
    time_t last_heartbeat;
    int heartbeat_interval; // en second
