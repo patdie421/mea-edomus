@@ -20,6 +20,7 @@ session_start() ?>
  
 .pastille
 {
+ border: dotted 1px green;
  height:24px;
  width:24px;
  margin-right:10px;
@@ -29,14 +30,34 @@ session_start() ?>
  
 .process
 {
-// border: dotted 1px black;
- height:40px;
- line-height:40px;
+ border: dotted 1px black;
+ font-family:"Lucida Console", Monaco, monospace;
+ max-height: 40px;
+ margin: auto;
 }
- 
+
+.name
+{
+ border: dotted 1px yellow;
+ font-size:14px;
+ line-height:100%;
+ max-height:20px;
+ overflow: hidden;   
+}
+
+.description
+{
+ border: dotted 1px blue;
+ line-height:100%;
+ max-height:17px;
+ font-size:10px;
+ margin-left:20px;
+ overflow: hidden;
+}
+
 .bouton
 {
-// border: dotted 1px red;
+ border: dotted 1px red;
  height:40px;
  line-height:40px;
  text-align:center;
