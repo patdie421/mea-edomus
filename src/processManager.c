@@ -102,6 +102,7 @@ int _managed_processes_process_to_json(int id, char *s, int s_l, int flag)
 {
    struct process_indicator_s *e;
    char buff[256];
+   int n;
    
    s[0]=0;
    if(id>=0 &&
@@ -131,7 +132,17 @@ int _managed_processes_process_to_json(int id, char *s, int s_l, int flag)
             return -1;
       }
       
-      int n=snprintf(buff,sizeof(buff),"\"pid\":%d",id);
+      if(managed_processes.processes_table[id]->description[0])
+      {
+         n=snprintf(buff,sizeof(buff),"\"desc\":\"%s\",",managed_processes.processes_table[id]->description);
+         if(n<0 || n==sizeof(buff))
+            return -1;
+         if(mea_strncat(s, s_l, buff)<0)
+            return -1;
+         }
+      }
+      
+      n=snprintf(buff,sizeof(buff),"\"pid\":%d",id);
       if(n<0 || n==sizeof(buff))
          return -1;
       if(mea_strncat(s, s_l, buff)<0)
@@ -356,6 +367,30 @@ int process_set_group(int id, int group_id)
 }
 
 
+int process_set_description(int id, char *description)
+{
+   int ret=0;
+   
+   pthread_cleanup_push( (void *)pthread_rwlock_unlock, (void *)&managed_processes.rwlock );
+   pthread_rwlock_wrlock(&managed_processes.rwlock);
+
+   if(id<0 ||
+      id>=managed_processes.max_processes ||
+      !managed_processes.processes_table[id])
+      ret=-1;
+   else
+   {
+      strncpy(managed_processes.processes_table[id]->description, description, sizeof(managed_processes.processes_table[id]->description)-2);
+      managed_processes.processes_table[id]->description[sizeof(managed_processes.processes_table[id]->description)-1]=0; // pour être sur d'avoir une chaine terminée
+   }
+   
+   pthread_rwlock_unlock(&managed_processes.rwlock);
+   pthread_cleanup_pop(0);
+
+   return ret;
+}
+
+
 int   process_set_watchdog_recovery(int id, managed_processes_process_f recovery_task, void *recovery_task_data)
 {
    int ret=-1;
@@ -427,6 +462,7 @@ int process_register(char *name)
          else
          {
             strncpy(managed_processes.processes_table[i]->name, name, sizeof(managed_processes.processes_table[i]->name)-1);
+            managed_processes.processes_table[i]->description[0]=0;
             managed_processes.processes_table[i]->last_heartbeat=time(NULL);
             managed_processes.processes_table[i]->indicators_list=(queue_t *)malloc(sizeof(queue_t));
             init_queue(managed_processes.processes_table[i]->indicators_list);
