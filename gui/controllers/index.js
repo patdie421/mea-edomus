@@ -48,6 +48,23 @@ function toLogConsole(line)
 }
 
 
+function tabsActive(event,ui) {
+   active = $("#tabs1").tabs("option", "active");
+   if(active == 2) // activation de la console
+   {
+      // et on active le scroll auto
+      scrollOnOffFlag=1;
+      whoIsScrollingFlag=1;
+
+      // on se met en bas de la log
+      $("#console").scrollTop($("#console").height()); // on scroll à la fin de la div
+
+      // ou :
+      // $("#console").scrollIntoView(false);
+   }
+}
+
+
 function anim_status(data)
 {
    for(var key in data)
@@ -176,8 +193,8 @@ function checkError(data)
         return true;
         break;
      case 2: // pas habilité
-        window.location = "index.php";
-        return false; // rechargement de la page index qui décidera ce qu'il faut faire (cf. start_index_controler).
+        window.location = "index.php"; // rechargement de la page index qui décidera ce qu'il faut faire (cf. start_index_controler).
+        return false;
         break;
      case 4: // param process non trouvé
         return false;
@@ -211,9 +228,12 @@ function reload(id)
       type: 'GET',
       dataType: 'json',
       success: function(data){
-         checkError(data);
-         $("#table_interfaces").empty();
-         $("#table_interfaces").append("<tbody></tbody>");
+         if(checkError(data)==false)
+         {
+            // on enleve juste la roue qui tourne ...
+            $("#table_interfaces").empty();
+            $("#table_interfaces").append("<tbody></tbody>");
+         }
       },
       error: function(jqXHR, textStatus, errorThrown ){
          $("#table_interfaces").empty();
@@ -275,6 +295,7 @@ function socketio_available(s) { // socket io est chargé, on se connecte
          whoIsScrollingFlag=0; // remise à 0 du flag.
    });
 
+   $("#tabs1").tabs({activate:tabsActive}); // detection des activations d'onglets.
 
    s.on('log', function(message){
       toLogConsole(message);
@@ -297,6 +318,7 @@ function socketio_available(s) { // socket io est chargé, on se connecte
 
 function socketio_unavailable() {
    // trouver un "visuel" pour pas de live sur la console
+   // on drop tous les onglets ? on met une page d'info. On fait sans live ? ...
    $("#console").append("<div>Pas d'iosocket => pas d'info en live ...<div>");
 }
 
@@ -324,11 +346,11 @@ function start_index_controller()
          var s=liveCom.getSocketio();
          if(s!=null) {
             clearInterval(_intervalId);
-               socketio_available(s);
+            socketio_available(s);
          }
          else {
             _intervalCounter++;
-            if(_intervalCounter>50) { // 5 secondes max pour s'initialiser
+            if(_intervalCounter>50) { // 5 secondes max pour s'initialiser (50 x 100 ms)
                clearIntrerval(_intervalId);
                socketio_unavailable();
             }
