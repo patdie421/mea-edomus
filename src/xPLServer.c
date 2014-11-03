@@ -365,7 +365,8 @@ void _xplRespQueue_free_queue_elem(void *d)
 void *xPLServer_thread(void *data)
 {
    pthread_cleanup_push( (void *)set_xPLServer_isnt_running, (void *)NULL );
-  _xPLServer_thread_is_running=1;
+   _xPLServer_thread_is_running=1;
+   process_heartbeat(_xplServer_monitoring_id); // 1er heartbeat après démarrage.
    
 //   xPL_setDebugging(TRUE); // xPL en mode debug
 
@@ -386,7 +387,7 @@ void *xPLServer_thread(void *data)
    do
    {
       pthread_testcancel();
-      process_heartbeat(_xplServer_monitoring_id);
+      process_heartbeat(_xplServer_monitoring_id); // heartbeat après chaque boucle
       VERBOSE(9) {
          static char compteur=0;
          if(compteur>59)
