@@ -51,12 +51,12 @@ struct logServer_thread_data_s
           _logServer_thread_data;
 
 
-// pour envoyer les x dernieres ligne à la connexion d'un client
-// prévoir une fonction send last x line avec comme position de lecture la derniere valeur de pos (à mettre en globale donc)
-// cette fonction est appeler par le consommateur avant l'initialisation du gestionnaire d'événement
-// cette fonction, par l'intermédiaire d'un verrou, bloque toutes les lectures/emissions de ligne (encadrer fpget/mea_send_socket avec le verrou).
-// lire les x dernier ligne
-// envoyer les x derniere ligne au demandeur
+// pour envoyer les x dernieres lignes à la connexion d'un client
+// prévoir une fonction send last x lines avec comme position de lecture la derniere valeur de pos (à mettre en globale donc)
+// cette fonction est appeler par le consommateur avant l'initialisation du gestionnaire d'événement. Lette fonction, par l'intermédiaire d'un verrou,
+// bloque toutes les lectures/emissions de lignes (encadrer fpget/mea_send_socket avec le verrou).
+// elle lit ensuite les x dernieres lignes sans repositionner pos
+// envoyer les x dernieres lignes au demandeur
 // débloquer les envoies
 
 void _set_logServer_isnt_running(void *data)
