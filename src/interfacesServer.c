@@ -292,11 +292,13 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
          const unsigned char *dev;
          const unsigned char *parameters;
          const unsigned char *name;
+         const unsigned char *description;
          int16_t state;
          
          id_interface = sqlite3_column_int(stmt, 1);
          id_type = sqlite3_column_int(stmt, 2);
          name = sqlite3_column_text(stmt, 3);
+         description = sqlite3_column_text(stmt, 4);
          dev = sqlite3_column_text(stmt, 5);
          parameters = sqlite3_column_text(stmt, 6);
          state = sqlite3_column_int(stmt, 7);
@@ -341,6 +343,7 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                   process_set_group(i001->monitoring_id, 1);
                   i001->interface_id=id_interface;
                   process_set_start_stop(i001->monitoring_id, start_interface_type_001, stop_interface_type_001, (void *)i001_start_stop_params, 1);
+                  process_set_description(i001->monitoring_id, description);
                   ret=process_start(i001->monitoring_id, NULL, 0);
 
                   iq=(interfaces_queue_elem_t *)malloc(sizeof(interfaces_queue_elem_t));
@@ -387,6 +390,7 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                   i002_start_stop_params->i002=i002;
 
                   process_set_start_stop(i002->monitoring_id, start_interface_type_002, stop_interface_type_002, (void *)i002_start_stop_params, 1);
+                  process_set_description(i002->monitoring_id, description);
                   ret=process_start(i002->monitoring_id, NULL, 0);
 
                   interfaces_queue_elem_t *iq=(interfaces_queue_elem_t *)malloc(sizeof(interfaces_queue_elem_t));
