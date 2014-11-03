@@ -159,16 +159,15 @@ void *logServer_thread(void *data)
 
    pthread_cleanup_push( (void *)_set_logServer_isnt_running, (void *)NULL );
    _logServer_thread_is_running=1;
+   process_heartbeat(_logServer_monitoring_id);
    
-   init_timer(&log_timer, 10, 1);
+   init_timer(&log_timer, 5, 1); // heartbeat toutes les 5 secondes
    start_timer(&log_timer);
    
-   sprintf(log_file,"%s/mea-edomus.log", d->log_path);
-
    do
    {
-      process_heartbeat(_logServer_monitoring_id);
       pthread_testcancel();
+      process_heartbeat(_logServer_monitoring_id);
 
       if( mea_socket_connect(&nodejs_socket, (char *)(d->hostname), (d->port_socketdata))==0)
       {
@@ -201,8 +200,9 @@ void *logServer_thread(void *data)
                }
                break; // erreur de com. on essayera de se reconnecter au prochain tour.
             }
+
             if(ret!=1)
-               usleep(10000); // 10 ms
+               usleep(50000); // 50 ms
          }
          while(1);
 
@@ -213,7 +213,7 @@ void *logServer_thread(void *data)
          VERBOSE(9) {
             fprintf(stderr, "%s (%s) : connection error - retry next time\n", INFO_STR, __func__);
          }
-         sleep(5); // on essayera de se reconnecter dans 1 secondes
+         sleep(1); // on essayera de se reconnecter dans 1 secondes
       }
    }
    while(exit==0);
