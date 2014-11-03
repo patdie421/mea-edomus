@@ -68,7 +68,31 @@ for (var i = 2; i < process.argv.length; i++) {
 }
 
 
-function process_msg(cmnd, msg)
+function internalCmnd(msg)
+{
+   var cmnd = msg.substring(0, 1);
+   var data = msg.slice(2);
+  
+   switch(cmnd)
+   {
+      case "S" : // demande d'arret du moteur
+         console.log("INFO  : OK Chef, nodejs goes done");
+         process.exit(0);
+         break;
+      case "P" : // envoyer un retour sur s
+         s.write("OK");
+         break;
+      case "D"  : // déconnexion d'un client
+         console.log("INFO  : send deconnection request to %s", data);
+         clients[phpsessids[data]].socket.emit("dct","now");
+         break;
+     default:
+         break;     
+   }
+}
+
+
+function process_msg(s, cmnd, msg)
 {
    if(cmnd=="LOG")
       sendMessage('log', msg);
@@ -83,6 +107,10 @@ function process_msg(cmnd, msg)
    else if(cmnd=="REL")
    {
       sendMessage('rel', msg);
+   }
+   else if(cmnd=="INT")
+   {
+      internalCmnd(s, msg);
    }
    else
    {
@@ -151,7 +179,7 @@ var server = require('net').createServer(function (socket) {
             var cmnd = t.substring(0, 3);
             var msg = t.slice(4);
 
-            process_msg(cmnd, msg);
+            process_msg(socket, cmnd, msg);
          }
          while( null !== (car = socket.read(1)) ); // encore des caractères à lire ?
       }
@@ -169,6 +197,8 @@ server.on('listening', function () {
 
 
 var clients = [];
+var phpsessids = [];
+
 var io = require('socket.io').listen(SOKET_IO_PORT);
 var fs = require('fs');
 
@@ -185,7 +215,8 @@ io.use(function(socket, next) {
       cookies[parts[0].trim()] = (parts[1] || '').trim()
    }
 
-   var phpSessionFile = PHPSESSION_PATH+"/sess_"+cookies['PHPSESSID'];
+   var phpsessid=cookies['PHPSESSID'];
+   var phpSessionFile = PHPSESSION_PATH+"/sess_"+phpsessid;
 
    try {
       data = fs.readFileSync(phpSessionFile,'utf8');
@@ -209,6 +240,8 @@ io.use(function(socket, next) {
 
    if(sess['logged_in']==1) {
       console.log("INFO  io.use() : authorized");
+      phpsessids[phpsessid]=socket.id; // on garde trace de la session pour pouvoir deconnecter le client lorsque la session est expirer (coté serveur).
+      socket.phpsessid=phpsessid;      // et dans l'autre sens pour éviter les recherches par boucle lors de la deconnexion.
       next();
       return;
    }
@@ -228,6 +261,7 @@ io.sockets.on('connection', function(socket) {
    socket.on('disconnect', function() {
       console.log("INFO  socket.on('disconnect') : client "+socket.id+" disconnected");
       delete clients[socket.id];
+      delete phpsessids[socket.phpsessid];
   });
 });
 
