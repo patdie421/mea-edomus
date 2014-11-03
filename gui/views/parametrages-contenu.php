@@ -115,9 +115,9 @@ jQuery(document).ready(function(){
    $("#interfaces").text(str_interfaces.capitalize());
    $("#locations").text(str_locations.capitalize());
    $("#types").text(str_types.capitalize());
-   $("#tabs1").tabs({activate:activeGrids});
 
    // affichage grille
+   $("#tabs1").tabs({activate:activeGrids});
    activeGrids();
     
    // évenements
