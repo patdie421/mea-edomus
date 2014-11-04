@@ -755,28 +755,33 @@ int main(int argc, const char * argv[])
 //   signal(SIGPIPE, signal_callback_handler);
 
    //
-   // pour la gestion des notifications
+   // démarrage de nodejs
    //
+   
+   // arrêt d'un ancien notejs si encore présent en mémoire (ne devrait pas arriver)
    nodejs_cmnd(localhost_const, atoi(params_list[NODEJSDATA_PORT]), 'S', "SHUTDOWN");
 
-   int notif_port = atoi(params_list[NODEJSDATA_PORT]);
-   mea_notify_set_port(notif_port);
-   mea_notify_disable();
+   mea_notify_disable(); // système de notification desactivé
+   int nodejs_data_port = atoi(params_list[NODEJSDATA_PORT]);
+   mea_notify_set_port(nodejs_data_port);
 
    //
    // initialisation du gestionnaire de process
    //
    init_processes_manager(40);
    managed_processes_set_notification_hostname(localhost_const);
-   managed_processes_set_notification_port(notif_port);
+   managed_processes_set_notification_port(nodejs_data_port);
 
+   //
+   // déclaration du process principal
+   //
    main_monitoring_id=process_register("MAIN");
    process_set_type(main_monitoring_id, NOTMANAGED);
    process_set_status(main_monitoring_id, RUNNING);
    process_add_indicator(main_monitoring_id, "UPTIME", 0);
 
    //
-   // httpServer
+   // guiServer
    //
    struct httpServerData_s httpServerData;
    httpServerData.params_list=params_list;
@@ -789,6 +794,7 @@ int main(int argc, const char * argv[])
       VERBOSE(1) fprintf (stderr, "%s (%s) : can't start gui server\n",ERROR_STR,__func__);
    }
    
+   // on attend la fin du démarrage de nodejs pendant 30s
    int s;
    int nb=0;
    do
@@ -798,8 +804,10 @@ int main(int argc, const char * argv[])
       if(nb>30) // 30 secondes pour demarrer nodejs
          clean_all_and_exit();
    }
-   while(mea_socket_connect(&s, localhost_const, notif_port));
-   mea_notify_enable();
+   while(mea_socket_connect(&s, localhost_const, nodejs_data_port));
+   close(s);
+   
+   mea_notify_enable(); // les notifications sont activées
 
    //
    // LogServer
