@@ -58,7 +58,8 @@ int nodejsServer_send_cmnd(char *hostname, int port, char cmnd, char *str)
 }
 
 
-void stop_nodejsServer()
+// void stop_nodejsServer()
+int stop_nodejsServer(int my_id, void *data, char *errmsg, int l_errmsg)
 {
    int status;
    
@@ -75,12 +76,13 @@ void stop_nodejsServer()
 }
 
 
-pid_t start_nodejsServer(char *nodejs_path, char *eventServer_path, int port_socketio, int port_socketdata, char *phpsession_path)
+// pid_t start_nodejsServer(char *nodejs_path, char *eventServer_path, int port_socketio, int port_socketdata, char *phpsession_path)
+int stop_guiServer(int my_id, void *data, char *errmsg, int l_errmsg)
 {
-   pid_t nodejs_pid = -1;
-   nodejs_pid = fork();
+//   pid_t nodejs_pid = -1;
+   _nodejs_pid = fork();
    
-   if (nodejs_pid == 0) // child
+   if (_nodejs_pid == 0) // child
    {
       // Code only executed by child process
       char str_port_socketio[20];
@@ -107,16 +109,31 @@ pid_t start_nodejsServer(char *nodejs_path, char *eventServer_path, int port_soc
      
       exit(1);
    }
-   else if (nodejs_pid < 0)
+   else if (_nodejs_pid < 0)
    { // failed to fork
       VERBOSE(1) fprintf(stderr,"%s (%s) : can't start nodejs server (fork).\n", ERROR_STR, __func__);
       perror("");
       return -1;
    }
+   
    // Code only executed by parent process
+   // attendre le démarrage de nodejs (port de data ouvert)
+   int s;
+   int nb=0;
+   do
+   {
+      sleep(1);
+      nb++;
+      if(nb>30) // 30 secondes pour demarrer nodejs
+         return -1;
+   }
+   while(mea_socket_connect(&s, localhost_const, port_socketdata));
+   close(s);
+
    VERBOSE(1) fprintf(stderr,"%s  (%s) : nodejs server %s.\n", INFO_STR, __func__, launched_successfully_str);
    mea_notify_printf('S', "nodejs server %sy.", launched_successfully_str);
-   return nodejs_pid;
+   
+   return 0;
 }
 
 
