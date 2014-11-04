@@ -54,6 +54,7 @@ int httpServer_monitoring_id=-1;
 int logServer_monitoring_id=-1;
 int pythonPluginServer_monitoring_id=-1;
 int dbServer_monitoring_id=-1;
+int nodejsServer_monitoring_id=-1;
 
 queue_t *interfaces=NULL;                  /*!< liste (file) des interfaces. Variable globale car doit être accessible par les gestionnaires de signaux. */
 sqlite3 *sqlite3_param_db=NULL;            /*!< descripteur pour la base sqlite de paramétrage. Variable globale car doit être accessible par les gestionnaires de signaux. */
@@ -218,75 +219,64 @@ void clean_all_and_exit()
 {
    if(xplServer_monitoring_id!=-1)
    {
-//      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping xPLServer... ",INFO_STR,__func__);
       process_stop(xplServer_monitoring_id, NULL, 0);
       process_unregister(xplServer_monitoring_id);
       xplServer_monitoring_id=-1;
-//      VERBOSE(9) fprintf(stderr,"done\n");
    }
 
    if(httpServer_monitoring_id!=-1)
    {
-//      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping httpServer... ",INFO_STR,__func__);
       process_stop(httpServer_monitoring_id, NULL, 0);
       process_unregister(httpServer_monitoring_id);
       httpServer_monitoring_id=-1;
-//      VERBOSE(9) fprintf(stderr,"done\n");
    }
    
    if(interfaces)
    {
-//      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping interfaces...\n",INFO_STR,__func__);
       stop_interfaces();
-//      VERBOSE(9) fprintf(stderr,"%s  (%s) : done\n",INFO_STR,__func__);
    }
    
    if(pythonPluginServer_monitoring_id!=-1)
    {
-//      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping pythonPluginServer... ",INFO_STR,__func__);
       process_stop(pythonPluginServer_monitoring_id, NULL, 0);
       process_unregister(pythonPluginServer_monitoring_id);
       pythonPluginServer_monitoring_id=-1;
-//      VERBOSE(9) fprintf(stderr,"done\n");
    }
 
    if(dbServer_monitoring_id!=-1)
    {
-//      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping dbServer... ",INFO_STR,__func__);
       process_stop(dbServer_monitoring_id, NULL, 0);
       process_unregister(dbServer_monitoring_id);
       dbServer_monitoring_id=-1;
-//      VERBOSE(9) fprintf(stderr,"done\n");
    }
    
    if(logServer_monitoring_id!=-1)
    {
-//      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping logServer... ",INFO_STR,__func__);
       process_stop(logServer_monitoring_id, NULL, 0);
       process_unregister(logServer_monitoring_id);
       logServer_monitoring_id=-1;
-//      VERBOSE(9) fprintf(stderr,"done\n");
    }
    
    if(httpServer_monitoring_id!=-1)
    {
-//      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping guiServer... ",INFO_STR,__func__);
       process_stop(httpServer_monitoring_id, NULL, 0);
       process_unregister(httpServer_monitoring_id);
       httpServer_monitoring_id=-1;
-//      VERBOSE(9) fprintf(stderr,"done\n");
+   }
+
+   if(nodejsServer_monitoring_id!=-1)
+   {
+      process_stop(nodejsServer_monitoring_id, NULL, 0);
+      process_unregister(nodejsServer_monitoring_id);
+      nodejsServer_monitoring_id=-1;
    }
    
    if(automator_pid>0)
    {
       int status;
-      
-//      VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping automatorServer... (%d)",INFO_STR,__func__,automator_pid);
 
       kill(automator_pid, SIGTERM);
-      //waitpid(automator_pid, &status, 0);
       wait(&status);
-//      VERBOSE(9) fprintf(stderr,"done\n");
    }
    
    process_unregister(main_monitoring_id);
@@ -303,12 +293,6 @@ void clean_all_and_exit()
    VERBOSE(9) fprintf(stderr,"%s  (%s) : mea-edomus down ...\n",INFO_STR,__func__);
 
    exit(0);
-}
-
-
-void signal_callback_handler(int signum)
-{
-   fprintf(stderr, "%s  (%s) : Caught signal SIGPIPE %d\n", INFO_STR, __func__, signum);
 }
 
 
@@ -381,6 +365,7 @@ int main(int argc, const char * argv[])
    //
    // initialisation
    //
+
    sqlite3_config(SQLITE_CONFIG_SERIALIZED); // pour le multithreading
    // initialisation des noms des parametres dans la base
    init_param_names(params_names);
@@ -673,7 +658,7 @@ int main(int argc, const char * argv[])
    int16_t cause;
    if(checkParamsDb(params_list[SQLITE3_DB_PARAM_PATH], &cause))
    {
-      VERBOSE(1) fprintf (stderr, "%s (%s) : checkParamsDb - parameters database error\n", ERROR_STR, __func__);
+      VERBOSE(1) fprintf (stderr, "%s (%s) : checkParamsDb - parameters database error (%d)\n", ERROR_STR, __func__, cause);
       clean_all_and_exit();
    }
 
@@ -700,7 +685,6 @@ int main(int argc, const char * argv[])
    //
    // strout et stderr vers fichier log
    //
-
    char log_file[255];
    int16_t n;
 
@@ -752,7 +736,7 @@ int main(int argc, const char * argv[])
    signal(SIGQUIT, _signal_STOP);
    signal(SIGTERM, _signal_STOP);
    signal(SIGPIPE, SIG_IGN);
-//   signal(SIGPIPE, signal_callback_handler);
+
 
    //
    // démarrage de nodejs
@@ -779,7 +763,7 @@ int main(int argc, const char * argv[])
    process_add_indicator(main_monitoring_id, "UPTIME", 0);
 
    //
-   // guiServer
+   // nodejsServer (1er lancé, il est utilisé par les autres serveurs pour les notifications ou les log)
    //
    struct nodejsServerData_s nodejsServerData;
    nodejsServerData.params_list=params_list;
@@ -837,7 +821,6 @@ int main(int argc, const char * argv[])
       {
          VERBOSE(9) fprintf (stderr, "error !!!\n");
          VERBOSE(1) fprintf (stderr, "%s (%s) : can't start database server\n",ERROR_STR,__func__);
-         clean_all_and_exit();
       }
    }
 
@@ -857,21 +840,6 @@ int main(int argc, const char * argv[])
    }
 
    //
-   // interfacesServer
-   //
-   struct interfacesServerData_s interfacesServerData;
-   interfacesServerData.params_list=params_list;
-   interfacesServerData.sqlite3_param_db=sqlite3_param_db;
-//   interfacesServerData.myd=dbServer_get_md();
-   
-   interfaces=start_interfaces(params_list, sqlite3_param_db); // démarrage des interfaces
-
-   int interfaces_reload_task_id=process_register("RELOAD");
-   process_set_group(interfaces_reload_task_id, 2);
-   process_set_start_stop(interfaces_reload_task_id , restart_interfaces, NULL, (void *)(&interfacesServerData), 1);
-   process_set_type(interfaces_reload_task_id, TASK);
-   
-   //
    // xPLServer
    //
    struct xplServer_start_stop_params_s xplServer_start_stop_params;
@@ -879,7 +847,7 @@ int main(int argc, const char * argv[])
    xplServer_start_stop_params.sqlite3_param_db=sqlite3_param_db;
    xplServer_monitoring_id=process_register("XPLSERVER");
    process_set_start_stop(xplServer_monitoring_id, start_xPLServer, stop_xPLServer, (void *)(&xplServer_start_stop_params), 1);
-//   process_set_watchdog_recovery(xplServer_monitoring_id, restart_xPLServer, (void *)(&xplServer_start_stop_params));
+   process_set_watchdog_recovery(xplServer_monitoring_id, restart_xPLServer, (void *)(&xplServer_start_stop_params));
 
    if(process_start(xplServer_monitoring_id, NULL, 0)<0)
    {
@@ -887,27 +855,49 @@ int main(int argc, const char * argv[])
       VERBOSE(1) fprintf (stderr, "%s (%s) : can't start xpl server\n",ERROR_STR,__func__);
       clean_all_and_exit();
    }
-   
-   
-   time_t start_time;
-   long uptime = 0;
 
-   start_time = time(NULL);
+
+   //
+   // interfacesServer
+   //
+   struct interfacesServerData_s interfacesServerData;
+   interfacesServerData.params_list=params_list;
+   interfacesServerData.sqlite3_param_db=sqlite3_param_db;
+
+   interfaces=start_interfaces(params_list, sqlite3_param_db); // démarrage des interfaces
+
+   int interfaces_reload_task_id=process_register("RELOAD"); // mise en place de la tâche de rechargement des paramètrages des interfaces
+   process_set_group(interfaces_reload_task_id, 2);
+   process_set_start_stop(interfaces_reload_task_id , restart_interfaces, NULL, (void *)(&interfacesServerData), 1);
+   process_set_type(interfaces_reload_task_id, TASK);
+
 
    DEBUG_SECTION fprintf(stderr,"INFO  MEA-EDOMUS %s starded\n",__MEA_EDOMUS_VERSION__);
 
-   // boucle sans fin.
-   char response[512];
+   time_t start_time;
+   long uptime = 0;
+   start_time = time(NULL);
    int guiport = atoi(params_list[GUIPORT]);
-   while(1)
+   while(1) // boucle principale
    {
-      // interrogation du serveur HTTP Interne pour heartbeat ... (voir le passage d'un parametre pour sécuriser ...)
-      gethttp(localhost_const, guiport, "/CMD/ping.php", response, sizeof(response));
- 
+      // supervision "externe" des process
+      if(process_is_running(httpServer_monitoring_id)==RUNNING)
+      {
+         char response[512];
+         // interrogation du serveur HTTP Interne pour heartbeat ... (voir le passage d'un parametre pour sécuriser ...)
+         gethttp(localhost_const, guiport, "/CMD/ping.php", response, sizeof(response)); // a remplacer par un guiServer_ping();
+      }
+      
+      if(process_is_running(nodejsServer_monitoring_id)==RUNNING)
+      {
+         nodejsServer_ping(); // pour mettre à jour le heartbeat de nodejs
+      }
+      
+      // indicateur de fonctionnement de mea-edomus
       uptime = (long)(time(NULL)-start_time);
       process_update_indicator(main_monitoring_id, "UPTIME", uptime);
 
-      managed_processes_loop();
+      managed_processes_loop(); // watchdog et indicateurs
       
       sleep(5);
    }
