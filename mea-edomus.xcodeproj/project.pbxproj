@@ -47,6 +47,7 @@
 		4E76CEB2163F175100A3EBA9 /* tokens.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E76CEB0163F175100A3EBA9 /* tokens.c */; };
 		4E798FF919D4871400F87593 /* processManager.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E798FF819D4871400F87593 /* processManager.c */; };
 		4E8787E61816732800A87FF0 /* sqlite3db_utils.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E8787E51816732800A87FF0 /* sqlite3db_utils.c */; };
+		4E8A87B01A095D4A00A99E80 /* nodejsServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E8A87AE1A095D4A00A99E80 /* nodejsServer.c */; };
 		4E8E533818429724006FB9D3 /* automatorServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E8E533718429724006FB9D3 /* automatorServer.c */; };
 		4E8F781C178B44490099A751 /* string_utils.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E8F781B178B44490099A751 /* string_utils.c */; };
 		4E8F781E178B47C80099A751 /* timer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E8F781D178B47C80099A751 /* timer.c */; };
@@ -958,6 +959,8 @@
 		4E79947919DF223000F87593 /* index.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = index.js; path = gui/controllers/index.js; sourceTree = "<group>"; };
 		4E8787E51816732800A87FF0 /* sqlite3db_utils.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = sqlite3db_utils.c; path = src/sqlite3db_utils.c; sourceTree = "<group>"; };
 		4E8787E71816733F00A87FF0 /* sqlite3db_utils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = sqlite3db_utils.h; path = src/sqlite3db_utils.h; sourceTree = "<group>"; };
+		4E8A87AE1A095D4A00A99E80 /* nodejsServer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = nodejsServer.c; path = src/nodejsServer.c; sourceTree = "<group>"; };
+		4E8A87AF1A095D4A00A99E80 /* nodejsServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = nodejsServer.h; path = src/nodejsServer.h; sourceTree = "<group>"; };
 		4E8E5336184296F6006FB9D3 /* automatorServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = automatorServer.h; path = src/automatorServer.h; sourceTree = "<group>"; };
 		4E8E533718429724006FB9D3 /* automatorServer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = automatorServer.c; path = src/automatorServer.c; sourceTree = "<group>"; };
 		4E8F781A178B443E0099A751 /* string_utils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = string_utils.h; path = src/string_utils.h; sourceTree = "<group>"; };
@@ -3834,6 +3837,8 @@
 		4EFBFCAB175E612D007BBFD1 /* gui manager */ = {
 			isa = PBXGroup;
 			children = (
+				4E8A87AE1A095D4A00A99E80 /* nodejsServer.c */,
+				4E8A87AF1A095D4A00A99E80 /* nodejsServer.h */,
 				4E60BA7819FEF40A00D56F21 /* notify.c */,
 				4E60BA7919FEF40A00D56F21 /* notify.h */,
 				4EFBFCAA175E60F9007BBFD1 /* mongoose.h */,
@@ -3972,6 +3977,7 @@
 				4E76CEB2163F175100A3EBA9 /* tokens.c in Sources */,
 				4E207BB519F0529D00410B40 /* logServer.c in Sources */,
 				4E5FC65F172F0F91004266EB /* interface_type_001_counters.c in Sources */,
+				4E8A87B01A095D4A00A99E80 /* nodejsServer.c in Sources */,
 				4E5FC660172F0F91004266EB /* interface_type_001_sensors.c in Sources */,
 				4E5FC662172F103B004266EB /* interface_type_001_actuators.c in Sources */,
 				4E5FC67917357D72004266EB /* pythonPluginServer.c in Sources */,

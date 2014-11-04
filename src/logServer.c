@@ -31,7 +31,7 @@
 // linux : http://www.ibm.com/developerworks/linux/library/l-inotify/
 // mac os x : https://github.com/dmatveev/libinotify-kqueue (lib pour simuler inotify)
 
-// char *log_server_name_str="LOGSERVER"; // voir si utilisé
+char *log_server_name_str="LOGSERVER"; // voir si utilisé
 
 int _livelog_enable=0;
 
@@ -50,7 +50,7 @@ volatile sig_atomic_t
            _logServer_thread_is_running=0;
 int        _logServer_monitoring_id=-1;
 struct logServer_thread_data_s
-          _logServer_thread_data;
+           _logServer_thread_data;
 
 
 // pour envoyer les x dernieres lignes à la connexion d'un client
@@ -200,7 +200,7 @@ void *logServer_thread(void *data)
       pthread_testcancel();
       process_heartbeat(_logServer_monitoring_id);
 
-      if(_livelog == 0) // pas de livelog pas de connexion nécessaire
+      if(_livelog_enable == 0) // pas de livelog pas de connexion nécessaire
       {
          pos=-1; // réinitialisation de la lecture (pas de rattrapage).
       }
@@ -214,7 +214,7 @@ void *logServer_thread(void *data)
                if(test_timer(&log_timer)==0)
                   process_heartbeat(_logServer_monitoring_id);
 
-               if(_livelog == 0) // plus de livelog sortie et deconnexion
+               if(_livelog_enable == 0) // plus de livelog sortie et deconnexion
                   break;
 
                int ret=file_changed(log_file, last_mtime, &last_mtime);
@@ -237,6 +237,7 @@ void *logServer_thread(void *data)
                {
                   VERBOSE(9) {
                      fprintf(stderr, "%s (%s) : connection error - retry next time\n", INFO_STR, __func__);
+                  }
                   break; // erreur de com. on essayera de se reconnecter au prochain tour.
                }
                else if(ret==-2)

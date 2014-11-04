@@ -17,6 +17,7 @@
 
 #include "processManager.h"
 #include "notify.h"
+#include "nodejsServer.h"
 
 
 pid_t _pid_nodejs=0;
@@ -29,7 +30,7 @@ int nodejsServer_ping()
    // heartbeat du nodejs ...
    if(_socketio_port<0)
       return -1;
-   if(nodejs_cmnd(localhost_const, _socketio_port, 'P', "PING")<0)
+   if(nodejsServer_send_cmnd(localhost_const, _socketio_port, 'P', "PING")<0)
    {
       return -1;
    }
@@ -95,13 +96,18 @@ int stop_nodejsServer(int my_id, void *data, char *errmsg, int l_errmsg)
    
    VERBOSE(1) fprintf(stderr,"%s  (%s) : nodejsServer %s.\n", INFO_STR, __func__,stopped_successfully_str);
    mea_notify_printf('S', "nodejsServer %s.",stopped_successfully_str);
+   
+   return 0;
 }
 
 
 // pid_t start_nodejsServer(char *nodejs_path, char *eventServer_path, int port_socketio, int port_socketdata, char *phpsession_path)
-int stop_guiServer(int my_id, void *data, char *errmsg, int l_errmsg)
+int start_nodejsServer(int my_id, void *data, char *errmsg, int l_errmsg)
 {
    struct nodejsServerData_s *nodejsServerData = (struct nodejsServerData_s *)data;
+   char *nodejs_path;
+   char *phpsession_path;
+   char serverjs_path[256];
 
    if(nodejsServerData->params_list[NODEJSIOSOCKET_PORT] == NULL ||
       nodejsServerData->params_list[NODEJSDATA_PORT] == NULL     ||
@@ -116,10 +122,9 @@ int stop_guiServer(int my_id, void *data, char *errmsg, int l_errmsg)
    {
       _socketio_port = atoi(nodejsServerData->params_list[NODEJSIOSOCKET_PORT]);
       _socketdata_port = atoi(nodejsServerData->params_list[NODEJSDATA_PORT]);
-      char *nodejs_path = nodejsServerData->params_list[NODEJS_PATH];
-      char *phpsession_path = nodejsServerData->params_list[PHPSESSIONS_PATH];
+      nodejs_path = nodejsServerData->params_list[NODEJS_PATH];
+      phpsession_path = nodejsServerData->params_list[PHPSESSIONS_PATH];
       
-      char serverjs_path[256];
       int n=snprintf(serverjs_path, sizeof(serverjs_path), "%s/nodeJS/server/server", nodejsServerData->params_list[GUI_PATH]);
       if(n<0 || n==sizeof(serverjs_path))
       {
@@ -128,10 +133,11 @@ int stop_guiServer(int my_id, void *data, char *errmsg, int l_errmsg)
             perror("");
          }
       }
-
-   _nodejs_pid = fork();
+   }
    
-   if (_nodejs_pid == 0) // child
+   _pid_nodejs = fork();
+   
+   if (_pid_nodejs == 0) // child
    {
       // Code only executed by child process
       char str_port_socketio[40];
@@ -140,12 +146,12 @@ int stop_guiServer(int my_id, void *data, char *errmsg, int l_errmsg)
      
       char *cmd_line_params[6];
      
-      sprintf(str_port_socketio,"--iosocketport=%d",port_socketio);
-      sprintf(str_port_socketdata,"--dataport=%d",port_socketdata);
+      sprintf(str_port_socketio,"--iosocketport=%d",_socketio_port);
+      sprintf(str_port_socketdata,"--dataport=%d",_socketdata_port);
       sprintf(str_phpsession_path,"--phpsession_path=%s",phpsession_path);
      
       cmd_line_params[0]="mea-edomus[nodejs]";
-      cmd_line_params[1]=eventServer_path;
+      cmd_line_params[1]=serverjs_path;
       cmd_line_params[2]=str_port_socketio;
       cmd_line_params[3]=str_port_socketdata;
       cmd_line_params[4]=str_phpsession_path;
@@ -158,7 +164,7 @@ int stop_guiServer(int my_id, void *data, char *errmsg, int l_errmsg)
      
       exit(1);
    }
-   else if (_nodejs_pid < 0)
+   else if (_pid_nodejs < 0)
    { // failed to fork
       VERBOSE(1) fprintf(stderr,"%s (%s) : can't start nodejs server (fork).\n", ERROR_STR, __func__);
       perror("");
@@ -176,7 +182,7 @@ int stop_guiServer(int my_id, void *data, char *errmsg, int l_errmsg)
       if(nb>30) // 30 secondes pour demarrer nodejs
          return -1;
    }
-   while(mea_socket_connect(&s, localhost_const, port_socketdata));
+   while(mea_socket_connect(&s, localhost_const, _socketdata_port));
    close(s);
 
    _nodejsServer_monitoring_id=my_id;

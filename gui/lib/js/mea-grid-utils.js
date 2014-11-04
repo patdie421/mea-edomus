@@ -1,5 +1,5 @@
 function ajax_error(xhr, ajaxOptions, thrownError){
-    alert("responseText="+xhr.responseText+" status="+xhr.status+" thrownError="+thrownError);
+    alert("mea-grid-utils.js : responseText="+xhr.responseText+" status="+xhr.status+" thrownError="+thrownError);
 }
 
 

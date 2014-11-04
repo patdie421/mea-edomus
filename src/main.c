@@ -46,7 +46,7 @@
 #include "sockets_utils.h"
 
 #include "processManager.h"
-
+#include "nodejsServer.h"
 #include "notify.h"
 
 int xplServer_monitoring_id=-1;
@@ -366,6 +366,12 @@ int main(int argc, const char * argv[])
    // initialisation
    //
 
+   // XCODE
+   // pour debugger sans être interrompu par les SIGPIPE
+   // rajouter ici un breakpoint, l'éditer et rajouter une action "Command debugger" avec la ligne suivante :
+   // process handle SIGPIPE -n true -p true -s false
+   // cocher ensuite "Automatically continue after evaluating"
+   
    sqlite3_config(SQLITE_CONFIG_SERIALIZED); // pour le multithreading
    // initialisation des noms des parametres dans la base
    init_param_names(params_names);
@@ -742,9 +748,7 @@ int main(int argc, const char * argv[])
    // démarrage de nodejs
    //
    
-   // arrêt d'un ancien notejs si encore présent en mémoire (ne devrait pas arriver)
-   nodejs_cmnd(localhost_const, atoi(params_list[NODEJSDATA_PORT]), 'S', "SHUTDOWN");
-
+   
    mea_notify_disable(); // système de notification desactivé
 
    //
@@ -752,7 +756,7 @@ int main(int argc, const char * argv[])
    //
    init_processes_manager(40);
    managed_processes_set_notification_hostname(localhost_const);
-   managed_processes_set_notification_port(nodejs_data_port);
+   managed_processes_set_notification_port(get_nodejsServer_socketdata_port());
 
    //
    // déclaration du process principal

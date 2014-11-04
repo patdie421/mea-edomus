@@ -68,7 +68,27 @@ session_start() ?>
  height:30px;
  line-height:30px;
 }
+
+.display {
+  display:none;
+}
+
+.conteneur
+{
+ min-height:500px;
+ height:500px;
+ line-height:500px;
+ text-align:center; /* centrage horizontal */
+}
+
+.contenu
+{
+ vertical-align:middle;
+ display:inline-block;
+ line-height:auto;
+}
 </style>
+
 
 <style>
 .wait_ball {
@@ -77,15 +97,14 @@ session_start() ?>
     opacity: .9;
     border-top: 5px solid rgba(0,0,0,0);
     border-left: 5px solid rgba(0,0,0,0);
-    border-radius: 32px;
+    border-radius: 30px;
     box-shadow: 0 0 3px #2187e7;
-    width: 32px;
-    height: 32px;
+    width: 30px;
+    height: 30px;
     margin: 0 auto;
     -moz-animation: spin .75s infinite linear;
     -webkit-animation: spin .75s infinite linear;
 }
-
 
 @-moz-keyframes spin {
     0% {
@@ -124,65 +143,84 @@ session_start() ?>
 }
 </style>
 
-<div id="tabs1">
-<ul>
-<li><a href="#tabs1-1" id='synthese'>Synthèse</a></li>
-<li><a href="#tabs1-3" id='interfaces'>Interfaces/processus</a></li>
-<li><a href="#tabs1-4" id='log'>Journal</a></li>
-</ul>
 
-<div id="tabs1-1">
-</div>
-
-<div id="tabs1-3">
-   <p></p>
-   <div style="margin:auto;" class="cadre ui-widget ui-widget-content ui-corner-all">
-   <div class="ui-widget-header titre">
-      <div style="margin-left:20px;">Rechargement des configurations des interfaces</div>
-   </div>
-      <p></p>
-      <div>
-         <table id="table_reload" style="width:100%;">
-            <tbody>
-            </tbody>
-         </table>
+<div id="wait" class="display ui-corner-all ui-widget-content">
+   <div class="conteneur">
+      <div class="contenu">
+         <div class="wait_ball" style="margin:auto;"></div>
       </div>
-      <p></p>
-   </div>
-   <p></p>
-   <div style="margin:auto;" class="cadre ui-widget ui-widget-content ui-corner-all">
-   <div class="ui-widget-header titre">
-      <div style="margin-left:20px;">Etat des interfaces</div>
-   </div>
-      <p></p>
-      <div id="montest">
-         <table id="table_interfaces" style="width:100%;">
-            <tbody>
-            </tbody>
-         </table>
-      </div>
-      <p></p>
-   </div>
-   <p></p>
-   <div style="margin:auto;" class="cadre ui-widget ui-widget-content ui-corner-all">
-   <div class="ui-widget-header titre">
-      <div style="margin-left:20px;">Etat des processus de mea-edomus</div>
-   </div>
-      <p></p>
-      <div>
-         <table id="table_processes" style="width:100%;">
-            <tbody>
-            </tbody>
-         </table>
-      </div>
-      <p></p>
    </div>
 </div>
 
-<div id="tabs1-4">
-  <div class="ui-corner-all ui-widget-content" style="padding: 10px;">
-     <div id="console" class="console" style="margin:auto; min-height:400px; height:400px;"></div>
-  </div>
+<div id="unavailable" class="display ui-corner-all ui-widget-content">
+   <div class="conteneur">
+      <div class="contenu">
+      live communication unavailable
+      </div>
+   </div>
+</div>
+
+<div id="available" class="display">
+   <div id="tabs1">
+   <ul>
+   <li><a href="#tabs1-1" id='synthese'>Synthèse</a></li>
+   <li><a href="#tabs1-3" id='interfaces'>Interfaces/processus</a></li>
+   <li><a href="#tabs1-4" id='log'>Journal</a></li>
+   </ul>
+
+   <div id="tabs1-1">
+   </div>
+
+   <div id="tabs1-3">
+      <p></p>
+      <div style="margin:auto;" class="cadre ui-widget ui-widget-content ui-corner-all">
+         <div class="ui-widget-header titre">
+            <div style="margin-left:20px;">Rechargement des configurations des interfaces</div>
+         </div>
+         <p></p>
+         <div>
+            <table id="table_reload" style="width:100%;">
+               <tbody>
+               </tbody>
+            </table>
+         </div>
+         <p></p>
+      </div>
+      <p></p>
+      <div style="margin:auto;" class="cadre ui-widget ui-widget-content ui-corner-all">
+         <div class="ui-widget-header titre">
+            <div style="margin-left:20px;">Etat des interfaces</div>
+         </div>
+         <p></p>
+         <div id="montest">
+            <table id="table_interfaces" style="width:100%;">
+               <tbody>
+               </tbody>
+            </table>
+         </div>
+         <p></p>
+      </div>
+      <p></p>
+      <div style="margin:auto;" class="cadre ui-widget ui-widget-content ui-corner-all">
+         <div class="ui-widget-header titre">
+            <div style="margin-left:20px;">Etat des processus de mea-edomus</div>
+         </div>
+         <p></p>
+         <div>
+            <table id="table_processes" style="width:100%;">
+               <tbody>
+               </tbody>
+            </table>
+         </div>
+         <p></p>
+      </div>
+   </div>
+
+   <div id="tabs1-4">
+      <div class="ui-corner-all ui-widget-content" style="padding: 10px;">
+         <div id="console" class="console" style="margin:auto; min-height:400px; height:400px;"></div>
+      </div>
+   </div>
 </div>
 
 
@@ -197,9 +235,8 @@ jQuery(document).ready(function(){
    echo $IOSOCKET_PORT;
    echo ";\n";
    ?>
+   $("#wait").show();
    liveCom.connect(socketio_port);
-   
-   $( "#tabs1" ).tabs();
    start_index_controller(socketio_port);
 });
 </script>

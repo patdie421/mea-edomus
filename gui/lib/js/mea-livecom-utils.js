@@ -34,7 +34,7 @@ var liveCom = {
    _socketio_unavailable: function(xhr, textStatus, thrownError)
    {
       xhr.abort();
-      alert("responseText="+xhr.responseText+" status="+xhr.status+" thrownError="+thrownError);
+      // alert("responseText="+xhr.responseText+" status="+xhr.status+" thrownError="+thrownError);
       this.socketio=null;
    },
    

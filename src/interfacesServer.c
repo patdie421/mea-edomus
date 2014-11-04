@@ -375,11 +375,10 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                      VERBOSE(2) {
                         fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
                         perror("");
-                     }
+                     }  
                      break;
                   }
-                  
-                  strncpy(i002_start_stop_params->i002->dev, (char *)dev, sizeof(i002_start_stop_params->i002->dev)-1);
+                  strncpy(i002->dev, (char *)dev, sizeof(i002->dev)-1);
                   strncpy(i002->name, (char *)name, sizeof(i002->name)-1);
                   i002->id_interface=id_interface;
                   i002->monitoring_id=process_register((char *)name);

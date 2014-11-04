@@ -35,6 +35,7 @@
 
 #include "processManager.h"
 #include "notify.h"
+#include "nodejsServer.h"
 
 //
 // pour compilation php-cgi :
@@ -389,12 +390,6 @@ static int _begin_request_handler(struct mg_connection *conn)
    {
       process_heartbeat(_httpServer_monitoring_id); // le heartbeat est fait de l'extérieur ...
       
-      // heartbeat du nodejs ...
-      if(nodejs_cmnd("localhost", 5600, 'P', "PING")<0)
-      {
-         // traiter l'erreur ...
-      }
-
       _httpErrno(conn, 0, NULL);
       return 1;
    }
@@ -471,7 +466,7 @@ static int _begin_request_handler(struct mg_connection *conn)
       else
          _httpErrno(conn, 5, NULL);
 
-      managed_processes_send_stats_now(localhost_const, _socketdata_port);
+      managed_processes_send_stats_now(localhost_const, get_nodejsServer_socketdata_port());
       
       return 1;
    }
@@ -709,7 +704,7 @@ mea_error_t start_httpServer(uint16_t port, char *home, char *php_cgi, char *php
 
 int stop_guiServer(int my_id, void *data, char *errmsg, int l_errmsg)
 {
-   stop_nodejs();
+//   stop_nodejs();
    stop_httpServer();
    VERBOSE(1) fprintf(stderr,"%s  (%s) : HTTPSERVER %s.\n", INFO_STR, __func__, stopped_successfully_str);
    mea_notify_printf('S', "HTTPSERVER %s.", stopped_successfully_str);

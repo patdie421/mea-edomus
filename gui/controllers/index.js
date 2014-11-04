@@ -3,7 +3,7 @@ var scrollOnOffFlag=1;    // 1 = activé par defaut
 var isadmin=1;
 
 function ajax_error(xhr, ajaxOptions, thrownError){
-    alert("responseText="+xhr.responseText+" status="+xhr.status+" thrownError="+thrownError);
+    alert("index.js : responseText="+xhr.responseText+" status="+xhr.status+" thrownError="+thrownError);
 }
 
 /* ligne à ajouter si pas d'interface
@@ -147,6 +147,7 @@ function load_all_processes_lists(isadmin) {
       type: 'GET',
       dataType: 'json',
       success: function(data){
+         var nb=0;
          for(var key in data)
          {
             if(data[key]['type']==1)
@@ -161,9 +162,12 @@ function load_all_processes_lists(isadmin) {
             }
             else if(data[key]['group']==1)
             {
+               nb++;
                add_row("table_interfaces", key, data[key]['desc'], data[key]['pid'], "start", start, "stop", stop, isadmin);
             }
          }
+         if(nb==0)
+            messageListeInterfaceVide();
          anim_status(data);
       },
       error: function(jqXHR, textStatus, errorThrown ){
@@ -177,7 +181,7 @@ function messageListeInterfaceVide()
 {
    var newRow="";
    newRow = "<tr>" +
-               "<td style=\"width:100%; height:40px; text-align:center;\"><div>Aune interface disponible</div></td>" +
+               "<td style=\"width:100%; height:40px; text-align:center;\"><div>Aucune interface disponible</div></td>" +
             "</tr>";
    $("#table_interfaces > tbody").before(newRow);
 }
@@ -313,6 +317,11 @@ function stop(id)
 
 
 function socketio_available(s) { // socket io est chargé, on se connecte
+
+   $("#wait").hide();
+   $( "#tabs1" ).tabs();
+   $("#available").show();
+
    $("#console").scroll(function() {
       if(scrollOnOffFlag==0 && whoIsScrollingFlag==0) // si scroll inactif
       {
@@ -362,12 +371,8 @@ function unavailableMessage()
 }
 
 function socketio_unavailable() {
-   $("#tabs1-1").remove();
-   $("#tabs1-3").remove();
-   $("#tabs1-4").remove();
-   $("#tabs1").destroy();
-   $("#tabs1").empty();
-   $("#tabs1").append(unavailableMessage());
+   $("#wait").hide();
+   $("#unavailable").show();
 }
 
 
@@ -392,14 +397,15 @@ function start_index_controller()
       _intervalCounter=0;
       _intervalId=setInterval(function() {
          var s=liveCom.getSocketio();
-         if(s!=null) {
-            clearInterval(_intervalId);
+         console.log(typeof(s));
+         if(s!==null) {
+            window.clearInterval(_intervalId);
             socketio_available(s);
          }
          else {
             _intervalCounter++;
-            if(_intervalCounter>50) { // 5 secondes max pour s'initialiser (50 x 100 ms)
-               clearIntrerval(_intervalId);
+            if(_intervalCounter>25) { // 2,5 secondes max pour s'initialiser (50 x 100 ms)
+               window.clearInterval(_intervalId);
                socketio_unavailable();
             }
          }
@@ -410,13 +416,14 @@ function start_index_controller()
    _intervalCounter=0;
    _intervalId=setInterval(function() {
       if(typeof(liveCom) != "undefined") {
-         clearInterval(_intervalId);
+         console.log(typeof(liveCom));
+         window.clearInterval(_intervalId);
          wait_socketio_available();
       }
       else {
          _intervalCounter++;
-         if(_intervalCounter>50) { // 5 secondes max pour s'initialiser
-            clearIntrerval(_intervalId);
+         if(_intervalCounter>25) { // 2,5 secondes max pour s'initialiser
+            window.clearInterval(_intervalId);
             socketio_unavailable();
          }
       }

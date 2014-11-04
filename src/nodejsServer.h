@@ -15,8 +15,10 @@ struct nodejsServerData_s
 
 int get_nodejsServer_socketio_port();
 int get_nodejsServer_socketdata_port();
-int send_nodejsServer_cmnd(char *hostname, int port, char cmnd, char *str);
+int nodejsServer_send_cmnd(char *hostname, int port, char cmnd, char *str);
 int stop_nodejsServer(int my_id, void *data, char *errmsg, int l_errmsg);
+int start_nodejsServer(int my_id, void *data, char *errmsg, int l_errmsg);
+int nodejsServer_ping();
 
 #endif
 

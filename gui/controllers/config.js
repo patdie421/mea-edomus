@@ -1,5 +1,5 @@
 function ajax_error(xhr, ajaxOptions, thrownError){
-    alert("responseText="+xhr.responseText+" status="+xhr.status+" thrownError="+thrownError);
+    alert("config.js responseText="+xhr.responseText+" status="+xhr.status+" thrownError="+thrownError);
 }
 
 
@@ -44,8 +44,8 @@ function ceate_querydb(querydb,loading,info){
                 return;
             }
         },
-        error: function() { $(loading).dialog('close');
-            ajax_error();
+        error: function(jqXHR, textStatus, errorThrown) { $(loading).dialog('close');
+            ajax_error(jqXHR, textStatus, errorThrown);
         }
     });
 }
@@ -144,9 +144,9 @@ function save_config(loading){
                 return;
             }
         },
-        error: function(){
+        error: function(jqXHR, textStatus, errorThrown){
             $(loading).dialog('close');
-            ajax_error();
+            ajax_error(jqXHR, textStatus, errorThrown);
         }
     });
 }

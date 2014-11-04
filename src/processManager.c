@@ -100,7 +100,8 @@ int _indicator_exist(int id, char *name)
 
 int _managed_processes_indicators_list(char *message, int l_message)
 {
-   char buff[512};
+   struct process_indicator_s *e;
+   char buff[512];
    char json[2048];
    json[0]=0;
 
@@ -121,25 +122,25 @@ int _managed_processes_indicators_list(char *message, int l_message)
          if(mea_strncat(json,sizeof(json),buff)<0)
             return -1;
 
-         if(managed_processes.processes_table[id]->indicators_list &&
-            first_queue(managed_processes.processes_table[id]->indicators_list)==0)
+         if(managed_processes.processes_table[i]->indicators_list &&
+            first_queue(managed_processes.processes_table[i]->indicators_list)==0)
          {
             if(mea_strncat(json, sizeof(json), "[")<0)
                return -1;
             int first_value=1;
             while(1)
             {
-               if(current_queue(managed_processes.processes_table[id]->indicators_list, (void **)&e)==0)
+               if(current_queue(managed_processes.processes_table[i]->indicators_list, (void **)&e)==0)
                {
                   if(first_value==0) // ajout d'une virgule avant si pas le premier élément.
                      if(mea_strncat(json,sizeof(json),",")<0)
                         return -1;
-                  int n=snprintf(buff,sizeof(buff),",\"%s\",e->name);
+                  int n=snprintf(buff,sizeof(buff),",\"%s\"",e->name);
                   if(n<0 || n==sizeof(buff))
                      return -1;
                   if(mea_strncat(json,sizeof(json),buff)<0)
                      return -1;
-                  next_queue(managed_processes.processes_table[id]->indicators_list);
+                  next_queue(managed_processes.processes_table[i]->indicators_list);
                   first_value=1;
                }
                else
