@@ -98,6 +98,76 @@ int _indicator_exist(int id, char *name)
 }
 
 
+int _managed_processes_indicators_list(char *message, int l_message)
+{
+   char buff[512};
+   char json[2048];
+   json[0]=0;
+
+   if(mea_strncat(json, sizeof(json), "{ ")<0)
+     return -1;
+
+   int first_process=1;
+   for(int i=0;i<managed_processes.max_processes;i++)
+   {
+      if(managed_processes.processes_table[i])
+      {
+         if(first_process==0)
+            if(mea_strncat(json,sizeof(json),",")<0)
+               return -1;
+         int n=snprintf(buff,sizeof(buff),"\"%s\":",managed_processes.processes_table[i]->name);
+         if(n<0 || n==sizeof(buff))
+            return -1;
+         if(mea_strncat(json,sizeof(json),buff)<0)
+            return -1;
+
+         if(managed_processes.processes_table[id]->indicators_list &&
+            first_queue(managed_processes.processes_table[id]->indicators_list)==0)
+         {
+            if(mea_strncat(json, sizeof(json), "[")<0)
+               return -1;
+            int first_value=1;
+            while(1)
+            {
+               if(current_queue(managed_processes.processes_table[id]->indicators_list, (void **)&e)==0)
+               {
+                  if(first_value==0) // ajout d'une virgule avant si pas le premier élément.
+                     if(mea_strncat(json,sizeof(json),",")<0)
+                        return -1;
+                  int n=snprintf(buff,sizeof(buff),",\"%s\",e->name);
+                  if(n<0 || n==sizeof(buff))
+                     return -1;
+                  if(mea_strncat(json,sizeof(json),buff)<0)
+                     return -1;
+                  next_queue(managed_processes.processes_table[id]->indicators_list);
+                  first_value=1;
+               }
+               else
+                  break;
+            }
+            if(mea_strncat(json, sizeof(json), "]")<0)
+               return -1;
+         }
+         else
+         {
+            if(mea_strncat(json,sizeof(json),"{}")<0)
+               return -1;
+         }
+         first_process=1;
+      }
+   }
+   
+   if(mea_strncat(json, sizeof(json), "}")<0)
+     return -1;
+     
+   strcpy(message,"");
+   if(mea_strncat(message,l_message,json)<0)
+      return -1;
+
+   return 0;
+}
+
+
 int _managed_processes_process_to_json(int id, char *s, int s_l, int flag)
 {
    struct process_indicator_s *e;
@@ -211,6 +281,7 @@ int _managed_processes_processes_to_json(char *message, int l_message)
             if(mea_strncat(json, sizeof(json), ", ")<0)
                return -1;
          }
+         
          int n=snprintf(buff,sizeof(buff),"\"%s\":",managed_processes.processes_table[i]->name);
          if(n<0 || n==sizeof(buff))
             return -1;
