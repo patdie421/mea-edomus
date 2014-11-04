@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <inttypes.h>
 #include <string.h>
-#include <unistd.h> // close
+#include <unistd.h>
 #include <signal.h>
 #include <sys/wait.h>
 
@@ -93,9 +93,8 @@ int stop_nodejsServer(int my_id, void *data, char *errmsg, int l_errmsg)
       _pid_nodejs=-1;
    }
    
-   VERBOSE(1) fprintf(stderr,"%s  (%s) : nodejs %s.\n", INFO_STR, __func__,stopped_successfully_str);
-   mea_notify_printf('S', "nodejs %s.",stopped_successfully_str);
-
+   VERBOSE(1) fprintf(stderr,"%s  (%s) : nodejsServer %s.\n", INFO_STR, __func__,stopped_successfully_str);
+   mea_notify_printf('S', "nodejsServer %s.",stopped_successfully_str);
 }
 
 
@@ -115,13 +114,13 @@ int stop_guiServer(int my_id, void *data, char *errmsg, int l_errmsg)
    }
    else
    {
-      _socketio_port = atoi(httpServerData->params_list[NODEJSIOSOCKET_PORT]);
-      _socketdata_port = atoi(httpServerData->params_list[NODEJSDATA_PORT]);
-      char *nodejs_path = httpServerData->params_list[NODEJS_PATH];
-      char *phpsession_path = httpServerData->params_list[PHPSESSIONS_PATH];
+      _socketio_port = atoi(nodejsServerData->params_list[NODEJSIOSOCKET_PORT]);
+      _socketdata_port = atoi(nodejsServerData->params_list[NODEJSDATA_PORT]);
+      char *nodejs_path = nodejsServerData->params_list[NODEJS_PATH];
+      char *phpsession_path = nodejsServerData->params_list[PHPSESSIONS_PATH];
+      
       char serverjs_path[256];
-     
-      int n=snprintf(serverjs_path, sizeof(serverjs_path), "%s/nodeJS/server/server", httpServerData->params_list[GUI_PATH]);
+      int n=snprintf(serverjs_path, sizeof(serverjs_path), "%s/nodeJS/server/server", nodejsServerData->params_list[GUI_PATH]);
       if(n<0 || n==sizeof(serverjs_path))
       {
          VERBOSE(3) {
@@ -152,7 +151,7 @@ int stop_guiServer(int my_id, void *data, char *errmsg, int l_errmsg)
       cmd_line_params[4]=str_phpsession_path;
       cmd_line_params[5]=0;
      
-      execvp(nodejs_path, params);
+      execvp(nodejs_path, cmd_line_params);
 
       VERBOSE(1) fprintf(stderr,"%s (%s) : can't start nodejs Server (execvp).\n", ERROR_STR, __func__);
       perror("");
@@ -183,7 +182,7 @@ int stop_guiServer(int my_id, void *data, char *errmsg, int l_errmsg)
    _nodejsServer_monitoring_id=my_id;
    
    VERBOSE(1) fprintf(stderr,"%s  (%s) : nodejs server %s.\n", INFO_STR, __func__, launched_successfully_str);
-   mea_notify_printf('S', "nodejs server %sy.", launched_successfully_str);
+   mea_notify_printf('S', "nodejs server %s.", launched_successfully_str);
    
    return 0;
 }
