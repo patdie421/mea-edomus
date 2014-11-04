@@ -76,7 +76,7 @@ function internalCmnd(s, msg)
    switch(cmnd)
    {
       case "S" : // demande d'arret du moteur
-         console.log("INFO  : OK Chef, nodejs goes done");
+         console.log("INFO  : (internalCmnd) OK Chef, nodejs goes done");
          process.exit(0);
          break;
       case "P" : // envoyer un retour sur s
@@ -128,7 +128,7 @@ var server = require('net').createServer(function (socket) {
       // $$$%c%c%3s:%s###
       // avec %c%c : taille de la zone data ("CMD:%s") en little indian
       //      %3s  : code commande (ex : LOG, MON, ...)
-//      try {
+     try {
          var car = socket.read(1);
          do
          {
@@ -183,11 +183,11 @@ var server = require('net').createServer(function (socket) {
             process_msg(socket, cmnd, msg);
          }
          while( null !== (car = socket.read(1)) ); // encore des caractères à lire ?
-//      }
-//      catch(err)
-//      {
-//         console.log("ERROR : socket.on('readable',function(){})");
-//      }
+     }
+     catch(err)
+     {
+        console.log("ERROR : socket.on('readable',function(){})");
+     }
    });
 }).listen(LOCAL_PORT);
 
@@ -203,7 +203,7 @@ var phpsessids = [];
 var io = require('socket.io').listen(SOKET_IO_PORT);
 var fs = require('fs');
 
-// déclaration d'une fonction qui sera activée lors de la connexion (à vérifier). On traite ici l'authorisation ou non
+// déclaration d'une fonction qui sera activée lors de la connexion. On traite ici l'authorisation ou non
 io.use(function(socket, next) {
    var handshakeData = socket.request;
 
