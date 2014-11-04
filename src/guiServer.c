@@ -62,12 +62,14 @@ char *val_num_threads=NULL;
 
 
 // Variable globale privée
-int   _httpServer_monitoring_id=-1;
-pid_t _pid_nodejs=0;
+int  _httpServer_monitoring_id=-1;
+char _php_sessions_path[256];
 
+/* old nodejs
+pid_t _pid_nodejs=0;
 int  _socketio_port=0;
 int  _socketdata_port=0;
-char _php_sessions_path[256];
+*/
 
 /*
  const char* options[] = {
@@ -85,12 +87,12 @@ char _php_sessions_path[256];
 const char *options[15];
 struct mg_context* g_mongooseContext = 0;
 
-
+/* old nodejs
 int get_socketio_port()
 {
    return _socketio_port;
 }
-
+*/
 
 int gethttp(char *server, int port, char *url, char *response, int l_response)
 {
@@ -320,7 +322,7 @@ _phpsessid_check_loggedin_and_admin_clean_exit:
    return ret;
 }
 
-
+/* old nodejs
 int nodejs_cmnd(char *hostname, int port, char cmnd, char *str)
 {
    int s;
@@ -350,7 +352,7 @@ int nodejs_cmnd(char *hostname, int port, char cmnd, char *str)
    }
    return -1;
 }
-
+*/
 
 #define MAX_BUFFER_SIZE 80
 #define MAX_TOKEN 20
@@ -585,7 +587,7 @@ static int _begin_request_handler(struct mg_connection *conn)
    return 0;
 }
 
-
+/* old nodejs
 void stop_nodejs()
 {
    int status;
@@ -601,8 +603,8 @@ void stop_nodejs()
    mea_notify_printf('S', "nodejs %s.",stopped_successfully_str);
 
 }
-
-
+*/
+/* oldnodejs
 pid_t start_nodejs(char *nodejs_path, char *eventServer_path, int port_socketio, int port_socketdata, char *phpsession_path)
 {
    pid_t nodejs_pid = -1;
@@ -646,7 +648,7 @@ pid_t start_nodejs(char *nodejs_path, char *eventServer_path, int port_socketio,
    mea_notify_printf('S', "nodejs server %sy.", launched_successfully_str);
    return nodejs_pid;
 }
-
+*/
 
 int stop_httpServer()
 {
@@ -719,6 +721,7 @@ int stop_guiServer(int my_id, void *data, char *errmsg, int l_errmsg)
 int start_guiServer(int my_id, void *data, char *errmsg, int l_errmsg)
 {
    struct httpServerData_s *httpServerData = (struct httpServerData_s *)data;
+/* old nodejs
    int nodejs_started=0;
    pid_t pid;
    
@@ -770,7 +773,7 @@ int start_guiServer(int my_id, void *data, char *errmsg, int l_errmsg)
          fprintf (stderr, "%s (%s) : nodejs not started, httpServer ...",ERROR_STR,__func__);
       }
    }
-   
+*/   
    char *phpcgibin=NULL;
    if(httpServerData->params_list[PHPCGI_PATH] &&
       httpServerData->params_list[PHPINI_PATH] &&
