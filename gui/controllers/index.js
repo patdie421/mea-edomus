@@ -6,6 +6,12 @@ function ajax_error(xhr, ajaxOptions, thrownError){
     alert("responseText="+xhr.responseText+" status="+xhr.status+" thrownError="+thrownError);
 }
 
+/* ligne à ajouter si pas d'interface
+var newRow = "<tr>" +
+                "<td colspan=\"3\" style=\"width:100%; height:40px; text-align:center; border: dotted 1px green;\"><div>Aucne interface disponible</div></td>" +
+             "</tr>";
+$("#table_reload > tbody").before(newRow);
+*/
 
 function toLogConsole(line)
 {
