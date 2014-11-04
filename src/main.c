@@ -762,8 +762,6 @@ int main(int argc, const char * argv[])
    nodejs_cmnd(localhost_const, atoi(params_list[NODEJSDATA_PORT]), 'S', "SHUTDOWN");
 
    mea_notify_disable(); // système de notification desactivé
-   int nodejs_data_port = atoi(params_list[NODEJSDATA_PORT]);
-   mea_notify_set_port(nodejs_data_port);
 
    //
    // initialisation du gestionnaire de process
@@ -783,6 +781,25 @@ int main(int argc, const char * argv[])
    //
    // guiServer
    //
+   struct nodejsServerData_s nodejsServerData;
+   nodejsServerData.params_list=params_list;
+   nodejsServer_monitoring_id=process_register("NODEJSSERVER");
+   process_set_group(nodejsServer_monitoring_id, 5); // voir si on permet de desactiver (supprimer le groupe). Si desactivation il faut aussi desactiver les notifications ... (utilisation de wrap des fonctions start/stop pour intégrer l'arrêt/relance des notifications.
+   process_set_start_stop(nodejsServer_monitoring_id , start_nodejsServer, stop_nodejsServer, (void *)(&nodejsServerData), 1);
+   if(process_start(nodejsServer_monitoring_id, NULL, 0)<0)
+   {
+      VERBOSE(9) fprintf (stderr, "error !!!\n");
+      VERBOSE(1) fprintf (stderr, "%s (%s) : can't start nodejs server\n",ERROR_STR,__func__);
+   }
+   else
+   {
+      mea_notify_set_port(get_nodejsServer_socketdata_port());
+      mea_notify_enable(); // les notifications sont activées
+   }
+
+   //
+   // guiServer
+   //
    struct httpServerData_s httpServerData;
    httpServerData.params_list=params_list;
    httpServer_monitoring_id=process_register("GUISERVER");
@@ -793,21 +810,6 @@ int main(int argc, const char * argv[])
       VERBOSE(9) fprintf (stderr, "error !!!\n");
       VERBOSE(1) fprintf (stderr, "%s (%s) : can't start gui server\n",ERROR_STR,__func__);
    }
-   
-   // on attend la fin du démarrage de nodejs pendant 30s
-   int s;
-   int nb=0;
-   do
-   {
-      sleep(1);
-      nb++;
-      if(nb>30) // 30 secondes pour demarrer nodejs
-         clean_all_and_exit();
-   }
-   while(mea_socket_connect(&s, localhost_const, nodejs_data_port));
-   close(s);
-   
-   mea_notify_enable(); // les notifications sont activées
 
    //
    // LogServer
