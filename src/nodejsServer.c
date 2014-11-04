@@ -6,6 +6,8 @@
 #include <signal.h>
 #include <sys/wait.h>
 
+#include "nodejsServer.h"
+
 #include "globals.h"
 #include "consts.h"
 #include "debug.h"
@@ -32,6 +34,7 @@ int nodejsServer_ping()
       return -1;
    }
    process_heartbeat(_nodejsServer_monitoring_id); // le heartbeat est fait de l'extérieur ...
+   return 0;
 }
 
 
