@@ -1,4 +1,3 @@
-
 //
 //  logServer.c
 //  mea-edomus
@@ -32,7 +31,9 @@
 // linux : http://www.ibm.com/developerworks/linux/library/l-inotify/
 // mac os x : https://github.com/dmatveev/libinotify-kqueue (lib pour simuler inotify)
 
-char *log_server_name_str="LOGSERVER";
+// char *log_server_name_str="LOGSERVER"; // voir si utilisé
+
+int _livelog_enable=0;
 
 
 struct logServer_thread_data_s
@@ -59,6 +60,19 @@ struct logServer_thread_data_s
 // elle lit ensuite les x dernieres lignes sans repositionner pos
 // envoyer les x dernieres lignes au demandeur
 // débloquer les envoies
+
+
+void mea_livelog_enable()
+{
+   _livelog_enable=1;
+}
+
+
+void mea_livelog_disable()
+{
+   _livelog_enable=0;
+}
+
 
 void _set_logServer_isnt_running(void *data)
 {
@@ -122,6 +136,11 @@ int _read_and_send_lines(int nodejs_socket, char *file, long *pos)
    while (1)
    {
       pthread_testcancel();
+      if(_livelog_enable==0)
+      {
+          ret=-2; // log desactivée
+          break; // plus de communication live ...
+      }
       if (fgets(line, sizeof(line), fp) == NULL || nb_loop >= 20)
       {
          // plus de ligne à lire ou déjà 20 ligne transmise on rend la mains, on mémorise la dernière position connue
@@ -164,12 +183,15 @@ void *logServer_thread(void *data)
    time_t last_mtime = 0;
    
    mea_timer_t log_timer;
+   
    struct logServer_thread_data_s *d=(struct logServer_thread_data_s *)data;
-   sprintf(log_file, "%s/mea-edomus.log", d->log_path);
+   
+   snprintf(log_file, sizeof(log_file)-1, "%s/mea-edomus.log", d->log_path);
+   
    pthread_cleanup_push( (void *)_set_logServer_isnt_running, (void *)NULL );
    _logServer_thread_is_running=1;
    process_heartbeat(_logServer_monitoring_id);
-   
+      _livelog_enable=1;
    init_timer(&log_timer, 5, 1); // heartbeat toutes les 5 secondes
    start_timer(&log_timer);
    
@@ -178,52 +200,67 @@ void *logServer_thread(void *data)
       pthread_testcancel();
       process_heartbeat(_logServer_monitoring_id);
 
-      if( mea_socket_connect(&nodejs_socket, (char *)(d->hostname), (d->port_socketdata))==0)
+      if(_livelog == 0) // pas de livelog pas de connexion nécessaire
       {
-         do
-         {
-            pthread_testcancel();
-            if(test_timer(&log_timer)==0)
-               process_heartbeat( _logServer_monitoring_id);
-               
-            int ret=file_changed(log_file, last_mtime, &last_mtime);
-            if(ret==1)
-            {
-              ret=_read_and_send_lines(nodejs_socket, log_file, &pos);
-            }
-            else if(ret == 0)
-            {
-            }
-            else
-            {
-               VERBOSE(9) {
-                  fprintf(stderr, "%s (%s) : stat error - retry next time\n", INFO_STR, __func__);
-               }
-               break;
-            }
-            
-            if(ret==-1)
-            {
-               VERBOSE(9) {
-                  fprintf(stderr, "%s (%s) : connection error - retry next time\n", INFO_STR, __func__);
-               }
-               break; // erreur de com. on essayera de se reconnecter au prochain tour.
-            }
-
-            if(ret!=1)
-               usleep(50000); // 50 ms
-         }
-         while(1);
-
-         close(nodejs_socket);
+         pos=-1; // réinitialisation de la lecture (pas de rattrapage).
       }
       else
       {
-         VERBOSE(9) {
-            fprintf(stderr, "%s (%s) : connection error - retry next time\n", INFO_STR, __func__);
+         if( mea_socket_connect(&nodejs_socket, (char *)(d->hostname), (d->port_socketdata))==0)
+         {
+            do
+            {
+               pthread_testcancel();
+               if(test_timer(&log_timer)==0)
+                  process_heartbeat(_logServer_monitoring_id);
+
+               if(_livelog == 0) // plus de livelog sortie et deconnexion
+                  break;
+
+               int ret=file_changed(log_file, last_mtime, &last_mtime);
+               if(ret==1)
+               {
+                  ret=_read_and_send_lines(nodejs_socket, log_file, &pos);
+               }
+               else if(ret == 0)
+               {
+               }
+               else
+               {
+                  VERBOSE(9) {
+                     fprintf(stderr, "%s (%s) : stat error - retry next time\n", INFO_STR, __func__);
+                  }
+                  break;
+               }
+               
+               if(ret==-1)
+               {
+                  VERBOSE(9) {
+                     fprintf(stderr, "%s (%s) : connection error - retry next time\n", INFO_STR, __func__);
+                  break; // erreur de com. on essayera de se reconnecter au prochain tour.
+               }
+               else if(ret==-2)
+               {
+                  VERBOSE(9) {
+                     fprintf(stderr, "%s (%s) : livelog disabled\n", INFO_STR, __func__);
+                  }
+                  break; // on revoie la situation au prochain tour.
+               }
+               else if(ret==0)
+                  usleep(100000); // 100 ms
+            }
+            while(1);
+
+            close(nodejs_socket);
          }
-         sleep(1); // on essayera de se reconnecter dans 1 secondes
+         else
+         {
+            VERBOSE(9) {
+               fprintf(stderr, "%s (%s) : connection error - retry next time\n", INFO_STR, __func__);
+            }
+         }
       }
+      sleep(1); // on essayera de se reconnecter dans 1 secondes
    }
    while(exit==0);
 
@@ -259,6 +296,7 @@ int stop_logServer(int my_id, void *data, char *errmsg, int l_errmsg)
       _logServer_thread=NULL;
    }
 
+   _livelog_enable=0;
    VERBOSE(1) fprintf(stderr,"%s  (%s) : %s %s.\n", INFO_STR, __func__, log_server_name_str, stopped_successfully_str);
    mea_notify_printf('S', "%s %s (%d).",stopped_successfully_str, log_server_name_str, ret);
 
@@ -286,6 +324,7 @@ int start_logServer(int my_id, void *data, char *errmsg, int l_errmsg)
       mea_notify_printf('E', "%s can't be launched - %s", log_server_name_str, err_str);
       return -1;
    }
+   
    if(pthread_create (_logServer_thread, NULL, logServer_thread, (void *)&_logServer_thread_data))
    {
       strerror_r(errno, err_str, sizeof(err_str));
