@@ -444,10 +444,12 @@ int send_reload( char *hostname, int port)
    
    if(mea_socket_connect(&s, hostname, port)<0)
       return -1;
+   fprintf(stderr,"send_reload %d\n",s);
    
    int reload_str_l=strlen(reload_str)+4;
    char message[2048];
    sprintf(message,"$$$%c%cREL:%s###", (char)(reload_str_l%128), (char)(reload_str_l/128), reload_str);
+
    ret = mea_socket_send(&s, message, reload_str_l+12);
 
    close(s);

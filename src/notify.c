@@ -72,7 +72,7 @@ int _notify( char *hostname, int port, char *notif_str, char notif_type)
 
    if(mea_socket_connect(&s, hostname, port)<0)
       return -1;
-   
+
    int notif_str_l=strlen(notif_str)+6;
    char message[2048];
    sprintf(message,"$$$%c%cNOT:%c:%s###", (char)(notif_str_l%128), (char)(notif_str_l/128), notif_type, notif_str);

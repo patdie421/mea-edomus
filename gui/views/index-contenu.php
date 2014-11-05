@@ -217,7 +217,7 @@ session_start() ?>
    <div id="tabs1-1">
       <p></p>
       <div id="indicators" style="margin:auto;" class="cadre ui-widget ui-widget-content ui-corner-all">
-         <table id="table_indicateurs" style="width:100%;" class="table_processes">
+         <table id="table_indicateurs" style="width:100%; margin:10px;" class="table_processes">
          </table>
       </div>
       <div id="noindicators" class="display">

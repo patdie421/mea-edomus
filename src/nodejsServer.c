@@ -118,6 +118,7 @@ int start_nodejsServer(int my_id, void *data, char *errmsg, int l_errmsg)
       VERBOSE(3) {
          fprintf (stderr, "%s (%s) : parameters error ...",ERROR_STR,__func__);
       }
+      return -1;
    }
    else
    {
@@ -133,6 +134,7 @@ int start_nodejsServer(int my_id, void *data, char *errmsg, int l_errmsg)
             fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);
             perror("");
          }
+         return -1;
       }
    }
    

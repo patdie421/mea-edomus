@@ -207,7 +207,7 @@ void *logServer_thread(void *data)
       }
       else
       {
-         if( mea_socket_connect(&nodejs_socket, (char *)(d->hostname), (d->port_socketdata))==0)
+         if(mea_socket_connect(&nodejs_socket, (char *)(d->hostname), (d->port_socketdata))==0)
          {
             do
             {

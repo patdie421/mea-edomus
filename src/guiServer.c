@@ -372,7 +372,7 @@ static int _begin_request_handler(struct mg_connection *conn)
       }
       
       char json[2048];
-      int managed_processes_indicators_list(json, sizeof(json)-1);
+      managed_processes_indicators_list(json, sizeof(json)-1);
       _httpResponse(conn, json);
       return 1;
    }
@@ -425,7 +425,7 @@ static int _begin_request_handler(struct mg_connection *conn)
                if(!ret)
                   _httpErrno(conn, 0, "started");
                else if(ret!=1)
-                  _httpErrno(conn, 7, errmsg);
+                  _httpErrno(conn, 7, "can't start");
                else
                   _httpErrno(conn, -1, "all ready running !");
             }
@@ -435,7 +435,7 @@ static int _begin_request_handler(struct mg_connection *conn)
                if(!ret)
                   _httpErrno(conn, 0, "stopped");
                else if(ret!=1)
-                  _httpErrno(conn, 7, errmsg);
+                  _httpErrno(conn, 7, "can't start");
                else
                   _httpErrno(conn, -1, "all ready not running !");
             }
@@ -679,8 +679,8 @@ int start_guiServer(int my_id, void *data, char *errmsg, int l_errmsg)
                             httpServerData->params_list[PHPSESSIONS_PATH],
                             atoi(httpServerData->params_list[NODEJSIOSOCKET_PORT]))==0)
       {
-         start_httpServer(guiport, httpServerData->params_list[GUI_PATH], phpcgibin, httpServerData->params_list[PHPINI_PATH]);
          _httpServer_monitoring_id=my_id;
+         start_httpServer(guiport, httpServerData->params_list[GUI_PATH], phpcgibin, httpServerData->params_list[PHPINI_PATH]);
          
          if(phpcgibin)
          {

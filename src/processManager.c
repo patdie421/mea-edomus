@@ -114,8 +114,10 @@ int managed_processes_indicators_list(char *message, int l_message)
       if(managed_processes.processes_table[i])
       {
          if(first_process==0)
+         {
             if(mea_strncat(json,sizeof(json),",")<0)
                return -1;
+         }
          int n=snprintf(buff,sizeof(buff),"\"%s\":",managed_processes.processes_table[i]->name);
          if(n<0 || n==sizeof(buff))
             return -1;
@@ -135,13 +137,13 @@ int managed_processes_indicators_list(char *message, int l_message)
                   if(first_value==0) // ajout d'une virgule avant si pas le premier élément.
                      if(mea_strncat(json,sizeof(json),",")<0)
                         return -1;
-                  int n=snprintf(buff,sizeof(buff),",\"%s\"",e->name);
+                  int n=snprintf(buff,sizeof(buff),"\"%s\"",e->name);
                   if(n<0 || n==sizeof(buff))
                      return -1;
                   if(mea_strncat(json,sizeof(json),buff)<0)
                      return -1;
                   next_queue(managed_processes.processes_table[i]->indicators_list);
-                  first_value=1;
+                  first_value=0;
                }
                else
                   break;
@@ -151,10 +153,10 @@ int managed_processes_indicators_list(char *message, int l_message)
          }
          else
          {
-            if(mea_strncat(json,sizeof(json),"{}")<0)
+            if(mea_strncat(json,sizeof(json),"[]")<0)
                return -1;
          }
-         first_process=1;
+         first_process=0;
       }
    }
    
@@ -737,7 +739,7 @@ int process_update_indicator(int id, char *name, long value)
 
 int managed_processes_send_stats_now(char *hostname, int port)
 {
-   int ret;
+   int ret=-1;
 
    char json[2048];
    int sock;
@@ -755,6 +757,7 @@ int managed_processes_send_stats_now(char *hostname, int port)
       }
       else
       {
+         fprintf(stderr,"managed_processes_send_stats_now %d\n",sock);
          char message[2048];
          int l_data=strlen(json)+4;
          sprintf(message,"$$$%c%cMON:%s###", (char)(l_data%128), (char)(l_data/128), json);

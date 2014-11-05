@@ -512,8 +512,6 @@ int start_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
    if(pthread_create (interface_type_001_thread_id, NULL, _thread_interface_type_001, (void *)interface_type_001_thread_params))
    {
       VERBOSE(2) fprintf(stderr, "%s (%s) : pthread_create - can't start thread\n",ERROR_STR,__func__);
-      if(errmsg)
-         snprintf(errmsg, l_errmsg, "internal error (pthread_create)");
       goto start_interface_type_001_clean_exit;
    }
   

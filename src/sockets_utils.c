@@ -33,10 +33,6 @@ int mea_socket_connect(int *s, char *hostname, int port)
       return -1;
    }
    
-   DEBUG_SECTION {
-     fprintf(stderr,"SOCKET FD = %d\n",sock);
-   }
-   
    serv_info = gethostbyname(hostname); // on récupère les informations de l'hôte auquel on veut se connecter
    if(serv_info == NULL)
    {
@@ -58,6 +54,7 @@ int mea_socket_connect(int *s, char *hostname, int port)
 //         fprintf(stderr, "%s (%s) :  connect - can't connect : ",ERROR_STR,__func__);
 //         perror("");
 //      }
+      close(sock);
       return -1;
    }
 
@@ -106,6 +103,7 @@ int mea_socket_read(int *s, char *message, int l_message, int t)
    fd_set input_set;
    struct timeval timeout;
    char buff[80];
+   ssize_t l;
    
    if(mea_socket_read_lock_is_init==0)
    {
@@ -129,11 +127,11 @@ int mea_socket_read(int *s, char *message, int l_message, int t)
 
    if(ret>=0)
    {
-      ssize_t l = recv(*s, buff, sizeof(buff), 0);
+      l = recv(*s, buff, sizeof(buff), 0);
       if(l<0)
          ret=-1;
    }
-   pthread_mutex_unlock(&mea_socket_send_lock);
+   pthread_mutex_unlock(&mea_socket_read_lock);
    pthread_cleanup_pop(0);
 
    if(ret<0)

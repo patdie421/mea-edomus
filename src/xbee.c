@@ -1037,7 +1037,8 @@ int16_t xbee_atCmdSend(xbee_xd_t *xd,
       return 0;
    }
 
-   *xbee_err=nerr;
+   if(xbee_err)
+      *xbee_err=nerr;
    return 1;
 }
 

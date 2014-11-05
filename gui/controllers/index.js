@@ -15,7 +15,7 @@ $("#table_reload > tbody").before(newRow);
 
 var indicatorsTable = {
    compteur: 0,
-   add_interface: function _add_interface(table, name)
+   add_interface: function (table, name)
    {
       newRow = "<tr>" +
                    "<td class=\"interface_section\"><div>"+name+"</div></td>" +
@@ -41,14 +41,15 @@ var indicatorsTable = {
       $("#"+process).append(newRow);
       this.compteur++;
    },
-   build_table: function (processes)
+   build_table: function (table, processes)
    {
+      console.log(table);
       var nb=0;
       for(var process in processes)
       {
          if(processes[process].length>0)
           {
-             this.add_interface("table",process);
+             this.add_interface(table, process);
              for(var indicator in processes[process])
              {
                 this.add_indicator(process, processes[process][indicator], processes[process][indicator]);
@@ -56,6 +57,7 @@ var indicatorsTable = {
              }
          }
       }
+      console.log(nb);
       return nb;
    },
    update_indicator: function (process, indicateur, value)
@@ -153,6 +155,9 @@ function anim_status(data)
       {
          $("#process_"+data[key]['pid']).css("background","gray");
       }
+      
+      // ajouter ici l'annimation des indicateurs
+      
    }
 }
 
@@ -368,7 +373,7 @@ function stop(id)
 }
 
 
-function load_indicators_table()
+function load_indicators_table(table)
 {
    $.ajax({
       url: 'CMD/indicators.php',
@@ -376,9 +381,10 @@ function load_indicators_table()
       type: 'GET',
       dataType: 'json',
       success: function(data){
-         var ret=indicatorsTable.build_table(data);
+         var ret=indicatorsTable.build_table(table, data);
          if(ret<=0)
          {
+            console.log("erreur");
             // mettre un not available ...
          }
       },
@@ -429,7 +435,7 @@ function socketio_available(s) { // socket io est chargé, on se connecte
    });
 
    load_all_processes_lists(isadmin);
-   load_indicators_table();
+   load_indicators_table("table_indicateurs");
 }
 
 

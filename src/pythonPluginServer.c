@@ -346,7 +346,7 @@ void *_pythonPlugin_thread(void *data)
          ts.tv_nsec = 0;
          
          ret=pthread_cond_timedwait(&pythonPluginCmd_queue_cond, &pythonPluginCmd_queue_lock, &ts);
-         if(ret)
+         if(ret!=0)
          {
             if(ret==ETIMEDOUT)
             {

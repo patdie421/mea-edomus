@@ -1012,73 +1012,6 @@ int restart_interface_type_002(int id)
 }
 
 
-//mea_error_t restart_interface_type_002(interface_type_002_t *i002,sqlite3 *db, tomysqldb_md_t *md)
-/**  
- * \brief     Re-demarrage d'une interface de type 2
- * \details   appel stop_interface_type_002 puis start_interface_type_002 en ayant pris soit de récupérer les différentes données nécessaires.
- * \param     db             descripteur ouvert de la base de paramétrage  
- * \param     md             descripteur ouvert de la base d'historique
- * \return    ERROR ou NOERROR
- **/
- /*
-{
-   char full_dev[80];
-   char dev[80];
-   int id_interface;
-   int ret;
-   char *parameters;
-   
-   sscanf(i002->xd->serial_dev_name,"/dev/%s",full_dev);
-   sprintf(dev,"SERIAL://%s:%ld",full_dev,(long)get_speed_from_speed_t(i002->xd->speed));
-
-   id_interface=i002->id_interface;
-   
-   stop_interface_type_002(i002);
-
-   // récupération des (nouveaux) paramètres dans la base
-   char sql_request[255];
-   sqlite3_stmt * stmt;
-   snprintf(sql_request,sizeof(sql_request),"SELECT parameters FROM interfaces WHERE id_interface=%d", id_interface);
-   // traiter l'erreur éventuelle snprintf ici
-   ret = sqlite3_prepare_v2(db,sql_request,strlen(sql_request)+1,&stmt,NULL);
-   if(ret)
-   {
-      VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg(db));
-      return ERROR;
-   }
-   parameters=NULL;
-   while(1)
-   {
-      int s=sqlite3_step(stmt);
-      if(s==SQLITE_ROW)
-      {
-         parameters=(char *)sqlite3_column_text(stmt, 0);
-      }
-      else if(s==SQLITE_DONE)
-      {
-         sqlite3_finalize(stmt);
-         break;
-      } 
-      else 
-      {
-         VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg(db));
-         sqlite3_finalize(stmt);
-         return ERROR;
-      }
-   }   
-   
-   for(int16_t i=0;i<5;i++)
-   {
-      ret=start_interface_type_002(i002, db, id_interface, (const unsigned char *)dev, md, parameters);
-      if(ret!=-1)
-         break;
-      sleep(5);
-   }
-   
-   return ret;
-}
-*/
-
 int16_t check_status_interface_type_002(interface_type_002_t *it002)
 /**  
  * \brief     indique si une anomalie a généré l'emission d'un signal SIGHUP
@@ -1110,7 +1043,7 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
    char buff[80];
    speed_t speed;
 
-   int fd=0;
+   int fd=-1;
    int16_t nerr;
    int err;
    int ret;
@@ -1359,7 +1292,7 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
    VERBOSE(2) fprintf(stderr,"%s (%s) : %s %s.\n", ERROR_STR, __func__,start_stop_params->i002->name, launched_successfully_str);
    mea_notify_printf('S', "%s %s", start_stop_params->i002->name, launched_successfully_str);
    
-   return NOERROR;
+   return 0;
    
 clean_exit:
    if(xd)
@@ -1373,6 +1306,7 @@ clean_exit:
    {
       stop_interface_type_002(start_stop_params->i002->monitoring_id, start_stop_params, NULL, 0);
    }
+
    
    if(interface_parameters)
    {
@@ -1403,7 +1337,7 @@ clean_exit:
    
    if(xd)
    {
-      if(fd)
+      if(fd>=0)
          xbee_close(xd);
       xbee_free_xd(xd);
       xd=NULL;

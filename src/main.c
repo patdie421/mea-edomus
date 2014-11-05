@@ -755,8 +755,6 @@ int main(int argc, const char * argv[])
    // initialisation du gestionnaire de process
    //
    init_processes_manager(40);
-   managed_processes_set_notification_hostname(localhost_const);
-   managed_processes_set_notification_port(get_nodejsServer_socketdata_port());
 
    //
    // déclaration du process principal
@@ -783,6 +781,8 @@ int main(int argc, const char * argv[])
    {
       mea_notify_set_port(get_nodejsServer_socketdata_port());
       mea_notify_enable(); // les notifications sont activées
+      managed_processes_set_notification_hostname(localhost_const);
+      managed_processes_set_notification_port(get_nodejsServer_socketdata_port());
    }
 
    //
