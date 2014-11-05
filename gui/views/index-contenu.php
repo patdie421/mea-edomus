@@ -169,6 +169,8 @@ session_start() ?>
    </ul>
 
    <div id="tabs1-1">
+      <table id="table_indicateurs" style="width:100%;" class="table_processes">
+      </table> 
    </div>
 
    <div id="tabs1-3">
