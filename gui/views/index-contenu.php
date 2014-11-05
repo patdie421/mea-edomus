@@ -87,6 +87,52 @@ session_start() ?>
  display:inline-block;
  line-height:auto;
 }
+
+.table_processes
+{
+   border: solid 1px black;
+   border-collapse:collapse;
+}
+
+.interface_section
+{
+  min-width:200px;
+  border: solid 1px black;
+}
+
+.indicators_section
+{
+  padding: 0px;
+  border: solid 1px black;
+}
+
+.indicator_value
+{
+  text-align: center;
+  min-width: 100px;
+  width: 100%;
+}
+
+.indicator_name
+{
+  min-width: 200px;
+  width: 200px;
+}
+
+.table_indicators
+{
+   border-collapse:collapse;
+}
+
+.couleur_1
+{
+    background: #3cf0c7;
+}
+
+.couleur_2
+{
+    background: #8cf0b9;
+}
 </style>
 
 
@@ -169,8 +215,15 @@ session_start() ?>
    </ul>
 
    <div id="tabs1-1">
-      <table id="table_indicateurs" style="width:100%;" class="table_processes">
-      </table> 
+      <p></p>
+      <div id="indicators" style="margin:auto;" class="cadre ui-widget ui-widget-content ui-corner-all">
+         <table id="table_indicateurs" style="width:100%;" class="table_processes">
+         </table>
+      </div>
+      <div id="noindicators" class="display">
+      No indicators provided
+      </div>
+      <p></p>
    </div>
 
    <div id="tabs1-3">
