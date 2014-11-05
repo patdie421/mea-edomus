@@ -87,6 +87,7 @@ int   init_processes_manager(int max_nb_processes);
 int   clean_managed_processes();
 
 int   managed_processes_processes_to_json_mini(char *json, int l_json);
+int   managed_processes_indicators_list(char *json, int l_json);
 
 void  managed_processes_set_notification_hostname(char *hostname);
 void  managed_processes_set_notification_port(int port);
