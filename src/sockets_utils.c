@@ -104,7 +104,7 @@ int mea_socket_read(int *s, char *message, int l_message, int t)
    
    if(t)
    {
-      timeout.tv_sec  = t; // timeout après 5 secondes
+      timeout.tv_sec  = t;
       timeout.tv_usec = 0;
    
       FD_ZERO(&input_set);
