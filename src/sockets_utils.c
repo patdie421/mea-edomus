@@ -32,7 +32,11 @@ int mea_socket_connect(int *s, char *hostname, int port)
 //      }
       return -1;
    }
-
+   
+   DEBUG_SECTION {
+     fprintf(stderr,"SOCKET FD = %d\n",sock);
+   }
+   
    serv_info = gethostbyname(hostname); // on récupère les informations de l'hôte auquel on veut se connecter
    if(serv_info == NULL)
    {
