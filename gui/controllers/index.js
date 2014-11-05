@@ -29,7 +29,7 @@ var indicatorsTable = {
    add_indicator: function (process, name, indicateur)
    {
       var couleur;
-      if(this.compteur/2 == Math.round(this.compteur/2))
+      if(this.compteur % 2 == 0)
           couleur=1;
        else
           couleur=2;
