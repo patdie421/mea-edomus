@@ -13,6 +13,58 @@ var newRow = "<tr>" +
 $("#table_reload > tbody").before(newRow);
 */
 
+var indicatorsTable = {
+   compteur: 0,
+   add_interface: function _add_interface(table, name)
+   {
+      newRow = "<tr>" +
+                   "<td class=\"interface_section\"><div>"+name+"</div></td>" +
+                   "<td class=\"indicators_section\"><div>" +
+                      "<table class=\"table_indicators\" id=\""+name+"\">" +
+                      "</table>" +
+                   "</div></td>" +
+               "</tr>";
+      $("#"+table).append(newRow);
+   },
+   add_indicator: function (process, name, indicateur)
+   {
+      var couleur;
+      if(this.compteur/2 == Math.round(this.compteur/2))
+          couleur=1;
+       else
+          couleur=2;
+
+      newRow =  "<tr class=\"couleur_"+couleur+"\">" +
+                    "<td class=\"indicator_name\"><div>"+name+"</div></td>"+
+                    "<td class=\"indicator_value\"><div id=\""+process+"_"+indicateur+"\"\">VAL</div></td>" +
+                "</tr>";
+      $("#"+process).append(newRow);
+      this.compteur++;
+   },
+   build_table: function (processes)
+   {
+      var nb=0;
+      for(var process in processes)
+      {
+         if(processes[process].length>0)
+          {
+             this.add_interface("table",process);
+             for(var indicator in processes[process])
+             {
+                this.add_indicator(process, processes[process][indicator], processes[process][indicator]);
+                nb++;
+             }
+         }
+      }
+      return nb;
+   },
+   update_indicator: function (process, indicateur, value)
+   {
+      $("#"+process+"_"+indicateur).text(value);
+   }
+}   
+
+
 function toLogConsole(line)
 {
    // analyse de la ligne
@@ -316,6 +368,27 @@ function stop(id)
 }
 
 
+function load_indicators_table()
+{
+   $.ajax({
+      url: 'CMD/indicators.php',
+      async: true,
+      type: 'GET',
+      dataType: 'json',
+      success: function(data){
+         var ret=indicatorsTable.build_table(data);
+         if(ret<=0)
+         {
+            // mettre un not available ...
+         }
+      },
+      error: function(jqXHR, textStatus, errorThrown ){
+         ajax_error( jqXHR, textStatus, errorThrown );
+      }
+   });
+}
+  
+  
 function socketio_available(s) { // socket io est chargé, on se connecte
 
    $("#wait").hide();
@@ -356,6 +429,7 @@ function socketio_available(s) { // socket io est chargé, on se connecte
    });
 
    load_all_processes_lists(isadmin);
+   load_indicators_table();
 }
 
 
