@@ -634,7 +634,6 @@ mea_error_t start_httpServer(uint16_t port, char *home, char *php_cgi, char *php
 
 int stop_guiServer(int my_id, void *data, char *errmsg, int l_errmsg)
 {
-//   stop_nodejs();
    stop_httpServer();
    VERBOSE(1) fprintf(stderr,"%s  (%s) : HTTPSERVER %s.\n", INFO_STR, __func__, stopped_successfully_str);
    mea_notify_printf('S', "HTTPSERVER %s.", stopped_successfully_str);
@@ -642,63 +641,9 @@ int stop_guiServer(int my_id, void *data, char *errmsg, int l_errmsg)
 }
 
 
-//int start_httpServer(char **params_list, queue_t *interfaces)
 int start_guiServer(int my_id, void *data, char *errmsg, int l_errmsg)
 {
    struct httpServerData_s *httpServerData = (struct httpServerData_s *)data;
-/* old nodejs
-   int nodejs_started=0;
-   pid_t pid;
-   
-   if(httpServerData->params_list[NODEJSIOSOCKET_PORT] == NULL ||
-      httpServerData->params_list[NODEJSDATA_PORT] == NULL     ||
-      httpServerData->params_list[NODEJS_PATH] == NULL         ||
-      httpServerData->params_list[LOG_PATH] == NULL)
-   {
-      VERBOSE(3) {
-         fprintf (stderr, "%s (%s) : nodejs - parameters error ...",ERROR_STR,__func__);
-      }
-   }
-   else
-   {
-      _socketio_port = atoi(httpServerData->params_list[NODEJSIOSOCKET_PORT]);
-      _socketdata_port = atoi(httpServerData->params_list[NODEJSDATA_PORT]);
-      char *nodejs_path = httpServerData->params_list[NODEJS_PATH];
-      char *phpsession_path = httpServerData->params_list[PHPSESSIONS_PATH];
-      char serverjs_path[256];
-      
-      int n=snprintf(serverjs_path, sizeof(serverjs_path), "%s/nodeJS/server/server", httpServerData->params_list[GUI_PATH]);
-      if(n<0 || n==sizeof(serverjs_path))
-      {
-         VERBOSE(3) {
-            fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);
-            perror("");
-         }
-      }
-      else
-      {
-         pid=start_nodejs(nodejs_path, serverjs_path, _socketio_port, _socketdata_port, phpsession_path);
-         if(!pid)
-         {
-            VERBOSE(3) {
-               fprintf (stderr, "%s (%s) : can't start nodejs",ERROR_STR,__func__);
-            }
-         }
-         else
-         {
-            _pid_nodejs=pid;
-            nodejs_started=1;
-         }
-      }
-   }
-   
-   if(!nodejs_started)
-   {
-      VERBOSE(1) {
-         fprintf (stderr, "%s (%s) : nodejs not started, httpServer ...",ERROR_STR,__func__);
-      }
-   }
-*/   
    char *phpcgibin=NULL;
    if(httpServerData->params_list[PHPCGI_PATH] &&
       httpServerData->params_list[PHPINI_PATH] &&
