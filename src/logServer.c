@@ -186,12 +186,13 @@ void *logServer_thread(void *data)
    
    struct logServer_thread_data_s *d=(struct logServer_thread_data_s *)data;
    
-   snprintf(log_file, sizeof(log_file)-1, "%s/mea-edomus.log", d->log_path);
-   
    pthread_cleanup_push( (void *)_set_logServer_isnt_running, (void *)NULL );
    _logServer_thread_is_running=1;
+
    process_heartbeat(_logServer_monitoring_id);
-      _livelog_enable=1;
+
+   snprintf(log_file, sizeof(log_file)-1, "%s/mea-edomus.log", d->log_path);
+   _livelog_enable=1;
    init_timer(&log_timer, 5, 1); // heartbeat toutes les 5 secondes
    start_timer(&log_timer);
    
