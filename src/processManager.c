@@ -98,7 +98,7 @@ int _indicator_exist(int id, char *name)
 }
 
 
-int _managed_processes_indicators_list(char *message, int l_message)
+int managed_processes_indicators_list(char *message, int l_message)
 {
    struct process_indicator_s *e;
    char buff[512];
