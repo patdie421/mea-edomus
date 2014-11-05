@@ -386,6 +386,20 @@ static int _begin_request_handler(struct mg_connection *conn)
       _httpResponse(conn, json);
       return 1;
    }
+   else if(strlen((char *)request_info->uri)==19 && mea_strncmplower("/CMD/indicators.php",(char *)request_info->uri,11)==0)
+   {
+      if(!phpsessid[0])
+      {
+         _httpErrno(conn, 2, NULL); // pas habilité
+         return 1;
+      }
+      
+      char json[2048];
+      int managed_processes_indicators_list(json, sizeof(json)-1);
+      _httpResponse(conn, json);
+      return 1;
+   }
+
    else if(strlen((char *)request_info->uri)==13 &&  mea_strncmplower("/CMD/ping.php",(char *)request_info->uri,13)==0)
    {
       process_heartbeat(_httpServer_monitoring_id); // le heartbeat est fait de l'extérieur ...
