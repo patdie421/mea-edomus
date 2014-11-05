@@ -71,6 +71,7 @@ int nodejsServer_send_cmnd(char *hostname, int port, char cmnd, char *str)
             }
          }
          close(s);
+         return 0;
       }
       else
       {
