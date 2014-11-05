@@ -433,17 +433,6 @@ function socketio_available(s) { // socket io est chargé, on se connecte
 }
 
 
-function unavailableMessage()
-{
-   var message="";
-   
-   message="<div>"+
-           "Erreur : fonctionnalité indisponible. Consultez les messages d'erreur du serveur."+
-           "</div>";
-   
-   return message;
-}
-
 function socketio_unavailable() {
    $("#wait").hide();
    $("#unavailable").show();
