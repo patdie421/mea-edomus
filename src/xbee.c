@@ -1508,7 +1508,6 @@ int16_t _xbee_add_response_to_queue(xbee_xd_t *xd, unsigned char *cmd, uint16_t 
 }
 
 
-
 int _xbee_reopen(xbee_xd_t *xd)
 {
    int fd; /* File descriptor for the port */
@@ -1557,12 +1556,21 @@ int _xbee_reopen(xbee_xd_t *xd)
 
 
 uint32_t _xbee_get_timestamp()
+/**
+ * \brief     retourne un "timestamp" qui pourra être utilisé pour horodaté les trames reçues
+ * \details   c'est actuellement juste un wrapping de la fonction time.
+ */
 {
     return (uint32_t)time(NULL); 
 }
 
 
 void *_xbee_thread(void *args)
+/**
+ * \brief     thread assurant la lecture des données en provenance d'un xbee
+ * \details   Le thread attends l'arrivée de données sur le port serie/usb, décode les informations et dispatch les données en fonction de la nature des trames reçues.
+ * \param     args   pointeur sur la structure contenant les informations nécessaires au fonctionnement du thread. Args est ici simplement un pointeur sur une structure du type xbee_xd_t
+ */
 {
    unsigned char cmd[255];
    uint16_t l_cmd;
