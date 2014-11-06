@@ -24,6 +24,10 @@
 #include "comio2.h"
 #include "debug.h"
 
+
+#define COMIO2_TIMEOUT_DELAY 1
+#define COMIO2_NB_RETRY 5
+
 typedef struct comio2_queue_elem_s
 {
    char frame[COMIO2_MAX_FRAME_SIZE];
@@ -70,6 +74,88 @@ uint16_t _comio2_get_frame_data_id(comio2_ad_t *ad)
 }
 
 
+int16_t _comio2_open(comio2_ad_t *ad, char *dev, speed_t speed)
+{
+   struct termios options, options_old;
+   int fd;
+   
+   // ouverture du port
+   int flags;
+   
+   memset (ad,0,sizeof(comio2_ad_t));
+   
+   flags=O_RDWR | O_NOCTTY | O_NDELAY | O_EXCL;
+#ifdef O_CLOEXEC
+   flags |= O_CLOEXEC;
+#endif
+   
+   fd = open(dev, flags);
+   if (fd == -1)
+   {
+      // ouverture du port serie impossible
+      return -1;
+   }
+   strcpy(ad->serial_dev_name, dev);
+   ad->speed=speed;
+   
+   // sauvegarde des caractéristiques du port serie
+   tcgetattr(fd, &options_old);
+   
+   // initialisation à 0 de la structure des options (termios)
+   memset(&options, 0, sizeof(struct termios));
+   
+   // paramétrage du débit
+   if(cfsetispeed(&options, speed)<0)
+   {
+      // modification du debit d'entrée impossible
+      return -1;
+   }
+   if(cfsetospeed(&options, speed)<0)
+   {
+      // modification du debit de sortie impossible
+      return -1;
+   }
+   
+   // ???
+   options.c_cflag |= (CLOCAL | CREAD); // mise à 1 du CLOCAL et CREAD
+   
+   // 8 bits de données, pas de parité, 1 bit de stop (8N1):
+   options.c_cflag &= ~PARENB; // pas de parité (N)
+   options.c_cflag &= ~CSTOPB; // 1 bit de stop seulement (1)
+   options.c_cflag &= ~CSIZE;
+   options.c_cflag |= CS8; // 8 bits (8)
+   
+   // bit ICANON = 0 => port en RAW (au lieu de canonical)
+   // bit ECHO =   0 => pas d'écho des caractères
+   // bit ECHOE =  0 => pas de substitution du caractère d'"erase"
+   // bit ISIG =   0 => interruption non autorisées
+   options.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
+   
+   // pas de contrôle de parité
+   options.c_iflag &= ~INPCK;
+   
+   // pas de contrôle de flux
+   options.c_iflag &= ~(IXON | IXOFF | IXANY);
+   
+   // parce qu'on est en raw
+   options.c_oflag &=~ OPOST;
+   
+   // VMIN : Nombre minimum de caractère à lire
+   // VTIME : temps d'attentes de données (en 10eme de secondes)
+   // à 0 car O_NDELAY utilisé
+   options.c_cc[VMIN] = 0;
+   options.c_cc[VTIME] = 0;
+   
+   // réécriture des options
+   tcsetattr(fd, TCSANOW, &options);
+   
+   // préparation du descripteur
+   ad->fd=fd;
+
+   return fd;
+}
+
+
 int16_t comio2_init(comio2_ad_t *ad, char *dev, speed_t speed)
 /**
  * \brief     Initialise les mécanismes de communication avec un periphérique serie COMIO
@@ -82,9 +168,9 @@ int16_t comio2_init(comio2_ad_t *ad, char *dev, speed_t speed)
  * \return    -1 en cas d'erreur, descripteur du périphérique sinon
  */
 {
+/*
    struct termios options, options_old;
    int fd;
-   //   int16_t nerr;
    
    // ouverture du port
    int flags;
@@ -158,7 +244,10 @@ int16_t comio2_init(comio2_ad_t *ad, char *dev, speed_t speed)
    
    // préparation du descripteur
    ad->fd=fd;
-   
+*/
+   if(_comio2_open(ad, dev, speed)<0)
+     return -1;
+
    // préparation synchro consommateur / producteur
    pthread_cond_init(&ad->sync_cond, NULL);
    pthread_mutex_init(&ad->sync_lock, NULL);
@@ -166,12 +255,12 @@ int16_t comio2_init(comio2_ad_t *ad, char *dev, speed_t speed)
    // verrou de mutex écriture vers mcu
    pthread_mutex_init(&ad->write_lock, NULL);
 
-// verrou de section critique interne
+   // verrou de section critique interne
    pthread_mutex_init(&ad->ad_lock, NULL);
    
    ad->queue=(queue_t *)malloc(sizeof(queue_t));
    if(!ad->queue)
-   return -1;
+      return -1;
    
    init_queue(ad->queue); // initialisation de la file
 
@@ -517,7 +606,7 @@ int16_t _comio2_read_frame(int fd, char *cmd_data, uint16_t *l_cmd_data, int16_t
    uint16_t i=0;
    uint16_t checksum=0;
    
-   timeout.tv_sec  = 1; // timeout après 1 secondes
+   timeout.tv_sec  = COMIO2_TIMEOUT_DELAY;
    timeout.tv_usec = 0;
    
    FD_ZERO(&input_set);
@@ -741,6 +830,53 @@ int16_t _comio2_add_response_to_queue(comio2_ad_t *ad, char *frame, uint16_t l_f
 }
 
 
+int _comio2_reopen(comio2_ad_t *ad)
+{
+   int fd; /* File descriptor for the port */
+   uint8_t flag=0;
+   char dev[255];
+   int speed=0;
+   
+   if(!ad)
+      return -1;
+
+   strncpy(dev, ad->serial_dev_name, sizeof(dev));
+   speed=xd->speed;
+   
+   VERBOSE(9) fprintf(stderr,"%s  (%s) : try to reset communication (%s).\n",INFO_STR,__func__,dev);
+   
+   close(ad->fd);
+   
+   for(int i=0;i<COMIO2_NB_RETRY;i++) // 5 tentatives pour rétablir les communications
+   {
+      fd = _comio2_open(ad, dev, speed);
+      if (fd == -1)
+      {
+         VERBOSE(1) {
+            fprintf(stderr,"%s (%s) : try #%d/%d, unable to open serial port (%s) - ",ERROR_STR,__func__, i+1, COMIO2_NB_RETRY, dev);
+            perror("");
+         }
+      }
+      else
+      {
+         flag=1;
+         break;
+      }
+      sleep(5);
+   }
+   
+   if(!flag)
+   {
+      VERBOSE(1) fprintf(stderr,"%s (%s) : can't recover communication now\n", ERROR_STR,__func__);
+      return -1;
+   }
+   
+   VERBOSE(5) fprintf(stderr,"%s  (%s) : communication reset successful.\n",INFO_STR,__func__);
+
+   return 0;
+} 
+
+
 uint32_t _comio2_get_timestamp()
 {
    return (uint32_t)time(NULL);
@@ -797,13 +933,19 @@ void *_comio2_thread(void *args)
             case COMIO2_ERR_READ:
             case COMIO2_ERR_SYS:
                VERBOSE(1) {
-                  fprintf(stderr,"%s (%s) : communication error (nerr=%d) - ", ERROR_STR,__func__,nerr);
+                  fprintf(stderr,"%s (%s) : communication error (nerr=%d).\n", ERROR_STR,__func__,nerr);
                   perror("");
                }
                ad->signal_flag=1;
-//               raise(SIGHUP);
-               sleep(5); // on attend 5 secondes avant de s'arrêter seul.
-               pthread_exit(NULL);
+               if(_comio2_reopen(ad)<0)
+               {
+                  VERBOSE(1) {
+                     fprintf(stderr,"%s (%s) : comio2 thread is down\n", ERROR_STR,__func__);
+                  }
+                  pthread_exit(NULL);
+               }
+               ad->signal_flag=0;
+               break;
 
             default:
                VERBOSE(1) {
