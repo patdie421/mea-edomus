@@ -596,3 +596,17 @@ int start_pythonPluginServer(int my_id, void *data, char *errmsg, int l_errmsg)
    return 0;
 }
 
+
+int restart_pythonPluginServer(int my_id, void *data, char *errmsg, int l_errmsg)
+{
+   int ret=0;
+   ret=stop_pythonPluginServer(my_id, data, errmsg, l_errmsg);
+   if(ret==0)
+   {
+      return start_pythonPluginServer(my_id, data, errmsg, l_errmsg);
+   }
+   return ret;
+}
+
+
+
