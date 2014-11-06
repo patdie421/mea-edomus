@@ -120,7 +120,7 @@ int16_t interface_type_001_xPL_callback(xPL_ServicePtr theService, xPL_MessagePt
    return 0;
 }
 
-
+/*
 int16_t check_status_interface_type_001(interface_type_001_t *i001)
 {
    if(i001->ad->signal_flag!=0)
@@ -128,7 +128,7 @@ int16_t check_status_interface_type_001(interface_type_001_t *i001)
    
    return 0;
 }
-
+*/
 
 int load_interface_type_001(interface_type_001_t *i001, int interface_id, sqlite3 *db)
 {
