@@ -767,11 +767,12 @@ int main(int argc, const char * argv[])
    //
    // nodejsServer (1er lancé, il est utilisé par les autres serveurs pour les notifications ou les log)
    //
-   struct nodejsServerData_s nodejsServerData;
-   nodejsServerData.params_list=params_list;
+   struct nodejsServerData_s nodejsServer_start_stop_params;
+   nodejsServer_start_stop_params.params_list=params_list;
    nodejsServer_monitoring_id=process_register("NODEJSSERVER");
    process_set_group(nodejsServer_monitoring_id, 5); // voir si on permet de desactiver (supprimer le groupe). Si desactivation il faut aussi desactiver les notifications ... (utilisation de wrap des fonctions start/stop pour intégrer l'arrêt/relance des notifications.
-   process_set_start_stop(nodejsServer_monitoring_id , start_nodejsServer, stop_nodejsServer, (void *)(&nodejsServerData), 1);
+   process_set_start_stop(nodejsServer_monitoring_id , start_nodejsServer, stop_nodejsServer, (void *)(&nodejsServer_start_stop_params), 1);
+   process_set_watchdog_recovery(nodejsServer_monitoring_id, restart_nodejsServer, (void *)(&nodejsServer_start_stop_params));
    if(process_start(nodejsServer_monitoring_id, NULL, 0)<0)
    {
       VERBOSE(9) fprintf (stderr, "error !!!\n");
@@ -788,11 +789,15 @@ int main(int argc, const char * argv[])
    //
    // guiServer
    //
-   struct httpServerData_s httpServerData;
-   httpServerData.params_list=params_list;
+   struct httpServerData_s httpServer_start_stop_params;
+   httpServer_start_stop_params.params_list=params_list;
    httpServer_monitoring_id=process_register("GUISERVER");
    process_set_group(httpServer_monitoring_id, 5);
-   process_set_start_stop(httpServer_monitoring_id , start_guiServer, stop_guiServer, (void *)(&httpServerData), 1);
+   process_set_start_stop(httpServer_monitoring_id , start_guiServer, stop_guiServer, (void *)(&httpServer_start_stop_params), 1);
+   process_set_watchdog_recovery(guiServer_monitoring_id, restart_httpServer, (void *)(&httpServer_start_stop_params));
+   process_add_indicator(httpServer_monitoring_id, "HTTPIN", 0);
+   process_add_indicator(httpServer_monitoring_id, "HTTPOUT", 0);
+
    if(process_start(httpServer_monitoring_id, NULL, 0)<0)
    {
       VERBOSE(9) fprintf (stderr, "error !!!\n");
@@ -802,10 +807,11 @@ int main(int argc, const char * argv[])
    //
    // LogServer
    //
-   struct logServerData_s logServerData;
-   logServerData.params_list=params_list;
+   struct logServerData_s logServer_start_stop_params;
+   logServer_start_stop_params.params_list=params_list;
    logServer_monitoring_id=process_register("LOGSERVER");
-   process_set_start_stop(logServer_monitoring_id , start_logServer, stop_logServer, (void *)(&logServerData), 1);
+   process_set_start_stop(logServer_monitoring_id , start_logServer, stop_logServer, (void *)(&logServer_start_stop_params), 1);
+   process_set_watchdog_recovery(logServer_monitoring_id, restart_logServer, (void *)(&logServer_start_stop_params));
    if(process_start(logServer_monitoring_id, NULL, 0)<0)
    {
       VERBOSE(9) fprintf (stderr, "error !!!\n");
@@ -815,10 +821,11 @@ int main(int argc, const char * argv[])
    //
    // dbServer
    //
-   struct dbServerData_s dbServerData;
-   dbServerData.params_list=params_list;
+   struct dbServerData_s dbServer_start_stop_params;
+   dbServer_start_stop_params.params_list=params_list;
    dbServer_monitoring_id=process_register("DBSERVER");
-   process_set_start_stop(dbServer_monitoring_id, start_dbServer, stop_dbServer, (void *)(&dbServerData), 1);
+   process_set_start_stop(dbServer_monitoring_id, start_dbServer, stop_dbServer, (void *)(&dbServer_start_stop_params), 1);
+   process_set_watchdog_recovery(dbServer_monitoring_id, restart_dbServer, (void *)(&dbServer_start_stop_params));
    if(!_b)
    {
       if(process_start(dbServer_monitoring_id, NULL, 0)<0)
@@ -836,6 +843,7 @@ int main(int argc, const char * argv[])
    pythonPluginServer_start_stop_params.sqlite3_param_db=sqlite3_param_db;
    pythonPluginServer_monitoring_id=process_register("PYTHONPLUGINSERVER");
    process_set_start_stop(pythonPluginServer_monitoring_id , start_pythonPluginServer, stop_pythonPluginServer, (void *)(&pythonPluginServer_start_stop_params), 1);
+   process_set_watchdog_recovery(xplServer_monitoring_id, restart_pythonPluginServer, (void *)(&pythonPluginServer_start_stop_params));
    if(process_start(pythonPluginServer_monitoring_id, NULL, 0)<0)
    {
       VERBOSE(9) fprintf (stderr, "error !!!\n");
@@ -852,6 +860,8 @@ int main(int argc, const char * argv[])
    xplServer_monitoring_id=process_register("XPLSERVER");
    process_set_start_stop(xplServer_monitoring_id, start_xPLServer, stop_xPLServer, (void *)(&xplServer_start_stop_params), 1);
    process_set_watchdog_recovery(xplServer_monitoring_id, restart_xPLServer, (void *)(&xplServer_start_stop_params));
+   process_add_indicator(xplServer_monitoring_id, "XPLIN", 0);
+   process_add_indicator(xplServer_monitoring_id, "XPLOUT", 0);
 
    if(process_start(xplServer_monitoring_id, NULL, 0)<0)
    {
