@@ -16,6 +16,8 @@ struct logServerData_s
 
 int start_logServer(int my_id, void *data, char *errmsg, int l_errmsg);
 int stop_logServer(int my_id, void *data, char *errmsg, int l_errmsg);
+int restart_logServer(int my_id, void *data, char *errmsg, int l_errmsg);
+
 void mea_livelog_enable();
 void mea_livelog_disable();
 
