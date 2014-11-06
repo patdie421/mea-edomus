@@ -918,3 +918,15 @@ int start_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
 #endif
    return 0;
 }
+
+int restart_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
+{
+   int ret=0;
+   ret=stop_dbServer(my_id, data, errmsg, l_errmsg);
+   if(ret==0)
+   {
+      return start_dbServer(my_id, data, errmsg, l_errmsg);
+   }
+   return ret;
+}
+
