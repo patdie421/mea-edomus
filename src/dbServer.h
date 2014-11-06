@@ -51,5 +51,6 @@ int16_t dbServer_add_data_to_sensors_values(uint16_t sensor_id, double value1, u
 
 int start_dbServer(int my_id, void *data, char *errmsg, int l_errmsg);
 int stop_dbServer(int my_id, void *data, char *errmsg, int l_errmsg);
+int restart_dbServer(int my_id, void *data, char *errmsg, int l_errmsg);
 
 #endif
