@@ -362,7 +362,7 @@ void *_thread_interface_type_001(void *args)
 int restart_interface_type_001(int id)
 {
    process_stop(id, NULL, 0);
-   sleep(5);
+//   sleep(5);
    return process_start(id, NULL, 0);
 }
 
