@@ -370,9 +370,6 @@ void *xPLServer_thread(void *data)
    
 //   xPL_setDebugging(TRUE); // xPL en mode debug
 
-   process_add_indicator(_xplServer_monitoring_id, "XPLIN", xplin_indicator);
-   process_add_indicator(_xplServer_monitoring_id, "XPLOUT", xplout_indicator);
-   
    xPLService = xPL_createService(xpl_vendorID, xpl_deviceID, xpl_instanceID);
    xPL_setServiceVersion(xPLService, XPL_VERSION);
    
