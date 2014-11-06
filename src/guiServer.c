@@ -621,9 +621,6 @@ mea_error_t start_httpServer(uint16_t port, char *home, char *php_cgi, char *php
    callbacks.begin_request = _begin_request_handler;
    //   callbacks.open_file = open_file_handler;
    
-   process_add_indicator(_httpServer_monitoring_id, "HTTPIN", httpin_indicator);
-   process_add_indicator(_httpServer_monitoring_id, "HTTPOUT", httpout_indicator);
-
    g_mongooseContext = mg_start(&callbacks, NULL, options);
    if (g_mongooseContext == NULL)
       return ERROR;
