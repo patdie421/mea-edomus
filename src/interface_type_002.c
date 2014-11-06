@@ -1007,7 +1007,7 @@ int stop_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
 int restart_interface_type_002(int id)
 {
    process_stop(id, NULL, 0);
-   sleep(5);
+//   sleep(5);
    return process_start(id, NULL, 0);
 }
 
