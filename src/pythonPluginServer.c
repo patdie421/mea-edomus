@@ -47,6 +47,8 @@ pthread_mutex_t pythonPluginCmd_queue_lock;
 
 PyObject *known_modules;
 
+long nbpycall_indicator = 0;
+long nbpycallerr_indicator = 0;
 
 void set_pythonPluginServer_isnt_running(void *data)
 {
@@ -222,7 +224,9 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
          PyTuple_SetItem(pArgs, 0, data_dict);
          pValue = PyObject_CallObject(pFunc, pArgs);
          Py_DECREF(pArgs);
-         
+
+         process_update_indicator(_httpServer_monitoring_id, "PYCALL", ++pycall_indicator);
+
          if (pValue != NULL)
          {
             DEBUG_SECTION fprintf(stderr, "%s (%s) : result of call of %s : %ld\n", DEBUG_STR, __func__, fx, PyInt_AsLong(pValue));
@@ -234,6 +238,7 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
                PyErr_Print();
                fprintf(stderr,"\n");
             }
+            process_update_indicator(_httpServer_monitoring_id, "PYCALLERR", ++pycallerr_indicator);
             return_code=ERROR;
             goto call_pythonPlugin_clean_exit;
          }
