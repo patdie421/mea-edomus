@@ -1,4 +1,3 @@
-// objet liveCom à mettre dans un .js
 var liveCom = {
    socketio: null,
    _socketio_port: -1,
@@ -8,53 +7,48 @@ var liveCom = {
    },
    
    connect: function(port) {
-      this._socketio_port=port;
-      var socketioJsUrl=window.location.protocol + '//' + window.location.hostname + ':'+this._socketio_port+'/socket.io/socket.io.js';
+      _liveCom = this;
+     this._socketio_port=port;
+       var socketioJsUrl=window.location.protocol + '//' + window.location.hostname + ':'+this._socketio_port+'/socket.io/socket.io.js';
       $.ajax({
          url: socketioJsUrl,
          dataType: "script",
          timeout: 5000,
-         success: this._socketio_available,
-         error: this._socketio_unavailable
+         success: function(data, textStatus, jqXHR) // _socket_available
+                  {
+                     if(_liveCom._socketio_port<0)
+                     _liveCom._socketio_port=8000; // port par defaut
+                     var socketioAddr=window.location.protocol + '//' + window.location.hostname + ':'+_liveCom._socketio_port;
+                     _liveCom.socketio = io.connect(socketioAddr);
+                     if(null !== _liveCom.socketio)
+                     {
+                        _liveCom.socketio.on('not', function(data)
+                        {
+                           var type="";
+                           var _type = data.substring(0, 1);
+                           var msg = data.slice(2);
+                           switch(_type)
+                           {
+                              // alert - success - error - warning - information - confirmation
+                              case "A" : type="alert"; break;
+                              case "E" : type="error"; break;
+                              case "S" : type="success"; break;
+                              case "W" : type="warning"; break;
+                              case "I" : type="information"; break;
+                              case "C" : type="confirmation"; break;
+                              default  : type="information"; break;
+                           };
+                           _liveCom.notify(msg, type);
+                        });
+                     }
+                  },
+         error:   function(xhr, textStatus, thrownError)
+                  {
+                     xhr.abort();
+                     // alert("responseText="+xhr.responseText+" status="+xhr.status+" thrownError="+thrownError);
+                     _liveCom.socketio=null;
+                  }
       });
-   },
-   
-   _socketio_available: function(data, textStatus, jqXHR)
-   {
-      if(liveCom._socketio_port<0)
-         liveCom._socketio_port=8000; // port par defaut
-      var socketioAddr=window.location.protocol + '//' + window.location.hostname + ':'+liveCom._socketio_port;
-         liveCom.socketio = io.connect(socketioAddr);
-      if(null !== liveCom.socketio)
-      {
-        liveCom.socketio.on('not', liveCom._notify);
-      }
-   },
-   
-   _socketio_unavailable: function(xhr, textStatus, thrownError)
-   {
-      xhr.abort();
-      // alert("responseText="+xhr.responseText+" status="+xhr.status+" thrownError="+thrownError);
-      this.socketio=null;
-   },
-   
-   _notify: function(data)
-   {
-      var type="";
-      var _type = data.substring(0, 1);
-      var msg = data.slice(2);
-      switch(_type)
-      {
-         // alert - success - error - warning - information - confirmation
-         case "A" : type="alert"; break;
-         case "E" : type="error"; break;
-         case "S" : type="success"; break;
-         case "W" : type="warning"; break;
-         case "I" : type="information"; break;
-         case "C" : type="confirmation"; break;
-         default  : type="information"; break;
-      };
-      liveCom.notify(msg, type);
    },
    
    notify: function(msg, type)
