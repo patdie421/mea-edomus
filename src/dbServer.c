@@ -67,6 +67,8 @@ int             _dbServer_monitoring_id=-1;
 volatile sig_atomic_t
                 _dbServer_thread_is_running=0;
 
+long insqlite_indicator = 0;
+long mysqlwrite_indicator = 0;
 
 void set_dbServer_isnt_running(void *data)
 {
@@ -263,6 +265,7 @@ int move_sqlite3_queries_to_mysql(sqlite3 *db, MYSQL *conn)
          else
          {
             VERBOSE(9) fprintf(stderr,"%s  (%s) : mysql_query = %s\n",INFO_STR,__func__,query);
+            mysqlwrite_indicator++;
          }
 
          sprintf(sql,"DELETE FROM queries WHERE id=%s", id);
@@ -271,6 +274,10 @@ int move_sqlite3_queries_to_mysql(sqlite3 *db, MYSQL *conn)
          {
             VERBOSE(1) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", ERROR_STR,__func__,sqlite3_errmsg (db));
             return -1;
+         }
+         else
+         {
+            insqlite_indicator--;
          }
       }
       else
@@ -321,6 +328,8 @@ int move_mysql_query_to_sqlite3(sqlite3 *db, char *sql_query)
       VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", ERROR_STR,__func__,sqlite3_errmsg(db));
       return -1;
    }
+   insqlite_indicator++;
+
    return 0;
 }
 
@@ -403,7 +412,10 @@ int write_data_to_db(int mysql_connected, MYSQL *conn, sqlite3 *db, dbServer_que
    }
    
    if(mysql_connected==1)
-      exec_mysql_query(conn, query);
+      if(exec_mysql_query(conn, query)==0)
+         mysqlwrite_indicator++;
+      else
+         return -1;
    else
       if(db)
          move_mysql_query_to_sqlite3(db, query);
@@ -509,6 +521,7 @@ void *dbServer_thread(void *args)
       int nb=-1;
       
       process_heartbeat(_dbServer_monitoring_id);
+
       pthread_testcancel();
 
       pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(_md->lock));
@@ -519,7 +532,11 @@ void *dbServer_thread(void *args)
       }
       pthread_mutex_unlock(&(_md->lock));
       pthread_cleanup_pop(0);
-      
+
+      process_update_indicator(_dbServer_monitoring_id, "DBSERVERINMEM", nb);
+      process_update_indicator(_dbServer_monitoring_id, "DBSERVERINSQLITE", insqlite_indicator);
+      process_update_indicator(_dbServer_monitoring_id, "DBSERVERMYWRITE", mysqlwrite_indicator);
+
       if(nb>0) // s'il y a quelque chose à traiter
       {
          if(mysql_connected == 1) // on a déjà été connecté un jour ...

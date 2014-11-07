@@ -42,7 +42,7 @@ session_start() ?>
  font-size:14px;
  line-height:100%;
  max-height:20px;
- overflow: hidden;   
+ overflow: hidden;  
 }
 
 .description
@@ -90,24 +90,36 @@ session_start() ?>
 
 .table_processes
 {
-   border: solid 1px black;
+//   border: solid 1px black;
    border-collapse:collapse;
 }
 
-.interface_section
+.processes_section
 {
   min-width:200px;
-  border: solid 1px black;
+  border: solid 1px;
+}
+
+.processes_name
+{
+   margin-left:10px;
+}
+
+.processes_description
+{
+   font-size:10px;
+   margin-left:10px;
 }
 
 .indicators_section
 {
   padding: 0px;
-  border: solid 1px black;
+  border: solid 1px;
 }
 
 .indicator_value
 {
+  padding:7.5px;
   text-align: center;
   min-width: 100px;
   width: 100%;
@@ -115,6 +127,7 @@ session_start() ?>
 
 .indicator_name
 {
+  padding:7.5px;
   min-width: 200px;
   width: 200px;
 }
@@ -133,10 +146,7 @@ session_start() ?>
 {
     background: #8cf0b9;
 }
-</style>
 
-
-<style>
 .wait_ball {
     background-color: rgba(0,0,0,0);
     border: 5px solid rgba(75, 165, 202,0.9);
@@ -209,19 +219,22 @@ session_start() ?>
 <div id="available" class="display">
    <div id="tabs1">
    <ul>
-   <li><a href="#tabs1-1" id='synthese'>Synthèse</a></li>
-   <li><a href="#tabs1-3" id='interfaces'>Interfaces/processus</a></li>
-   <li><a href="#tabs1-4" id='log'>Journal</a></li>
+   <li><a href="#tabs1-1" id='synthese'>Indicateurs de fonctionnement</a></li>
+   <li><a href="#tabs1-3" id='interfaces'>Pilotage interfaces/processus</a></li>
+   <li><a href="#tabs1-4" id='log'>Journal des messages</a></li>
    </ul>
 
    <div id="tabs1-1">
       <p></p>
-      <div id="indicators" style="margin:auto;" class="cadre ui-widget ui-widget-content ui-corner-all">
-         <table id="table_indicateurs" style="width:100%; margin:10px;" class="table_processes">
+      <div id="indicators" style="margin:auto; padding:10px;" class="cadre ui-widget ui-widget-content ui-corner-all">
+         <div class="ui-widget-header titre">
+            <div style="margin-left:20px;">Indicateurs de fonctionnement</div>
+         </div>
+         <table id="table_indicateurs" style="width:100%;" class="table_processes">
          </table>
-      </div>
-      <div id="noindicators" class="display">
-      No indicators provided
+         <div id="noindicators" class="display">
+            No indicators provided
+         </div>
       </div>
       <p></p>
    </div>

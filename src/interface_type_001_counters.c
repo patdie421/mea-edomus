@@ -76,6 +76,8 @@ int16_t interface_type_001_counters_process_traps(int16_t numTrap, char *buff, i
    struct electricity_counter_s *counter;
    counter=(struct electricity_counter_s *)args;
 
+   *(counters->nbstraps)++;
+   
    // prise du chrono
    gettimeofday(&tv, NULL); 
    pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(counter->lock));
@@ -187,6 +189,7 @@ struct electricity_counter_s *interface_type_001_sensors_valid_and_malloc_counte
    counter->t=-1.0;
    start_timer(&(counter->timer));
    counter->lock=(pthread_mutex_t)PTHREAD_MUTEX_INITIALIZER;
+   counter->nbtraps=NULL;
    
    return counter;
    
@@ -210,7 +213,7 @@ valid_and_malloc_counter_clean_exit:
 }
 
 
-void counter_to_xpl(struct electricity_counter_s *counter)
+void counter_to_xpl(interface_type_001_t *i001, struct electricity_counter_s *counter)
 {
    char value[20];
    
@@ -229,59 +232,35 @@ void counter_to_xpl(struct electricity_counter_s *counter)
       // Broadcast the message
       //xPL_sendMessage(cntrMessageStat);
       mea_sendXPLMessage(cntrMessageStat);
-
+      (i001->indicators.nbcountersxplsent)++;
       xPL_releaseMessage(cntrMessageStat);
    }
 }
 
 
-//int16_t counter_to_db(tomysqldb_md_t *md, struct electricity_counter_s *counter)
 int16_t counter_to_db(struct electricity_counter_s *counter)
 {
    return dbServer_add_data_to_sensors_values(counter->sensor_id, (double)counter->wh_counter, UNIT_WH, (double)counter->kwh_counter, "WH");
 }
 
 
-int16_t counter_read(comio2_ad_t *ad, struct electricity_counter_s *counter)
+int16_t counter_read(interface_type_001_t *i001, struct electricity_counter_s *counter)
 {
-//   int l1,l2,l3,l4;
    uint32_t c;
-//   int err=0;
+
    char buffer[4];
-//   uint16_t l_buffer=0;
+
    char resp[5];
    uint16_t l_resp;
    int16_t comio2_err;
    int ret=0;
 
-/* a convertir
-   do
-   {
-      l1=0;l2=0;l3=0;l4=0;
-      // lecture des compteurs stockés dans les variables partagées
-      l1=comio2_operation(ad, OP_LECTURE, counter->sensor_mem_addr[0], TYPE_MEMOIRE, 0, &err);
-      if(l1<0)
-         goto _thread_interface_type_001_operation_abord;
-      l2=comio2_operation(ad, OP_LECTURE, counter->sensor_mem_addr[1], TYPE_MEMOIRE, 0, &err);
-      if(l2<0)
-         goto _thread_interface_type_001_operation_abord;
-      l3=comio2_operation(ad, OP_LECTURE, counter->sensor_mem_addr[2], TYPE_MEMOIRE, 0, &err);
-      if(l3<0)
-         goto _thread_interface_type_001_operation_abord;
-      l4=comio2_operation(ad, OP_LECTURE, counter->sensor_mem_addr[3], TYPE_MEMOIRE, 0, &err);
-   
-   _thread_interface_type_001_operation_abord:
-      continue;
-   }
-   while(l1<0 || l2<0 || l3<0 || l4<0);
-*/
    int retry = 0;
    for(int i=0;i<4;i++)
       buffer[i]=counter->sensor_mem_addr[i];
    do
    {
-      ret=comio2_cmdSendAndWaitResp(ad, COMIO2_CMD_READMEMORY, buffer, 4, resp, &l_resp, &comio2_err);
-
+      ret=comio2_cmdSendAndWaitResp(i001->ad, COMIO2_CMD_READMEMORY, buffer, 4, resp, &l_resp, &comio2_err);
       if(ret==0)
       {
          c=     resp[4];
@@ -291,9 +270,12 @@ int16_t counter_read(comio2_ad_t *ad, struct electricity_counter_s *counter)
          c=c |  resp[2];
          c=c <<  8;
          c=c |  resp[1];
+         
+         (i001->indicators.nbcountersread)++;
       }
       else
       {
+         (i001->indicators.nbcountersreaderr)++;
          if(comio2_err == COMIO2_ERR_DOWN)
          {
             return -1;
@@ -321,8 +303,7 @@ mea_error_t interface_type_001_counters_process_xpl_msg(interface_type_001_t *i0
    struct electricity_counter_s *counter;
    int type_id;
 
-//   xPL_NameValueListPtr ListNomsValeursPtr = xPL_getMessageBody(msg);
-
+   (i001->indicators.nbcountersxplrecv)++;
    if(type)
       type_id=get_id_by_string(type);
    else
@@ -368,7 +349,8 @@ mea_error_t interface_type_001_counters_process_xpl_msg(interface_type_001_t *i0
          // Broadcast the message
          //xPL_sendMessage(cntrMessageStat);
          mea_sendXPLMessage(cntrMessageStat);
- 
+         (i001->indicators.nbcountersxplsent)++;
+         
          xPL_releaseMessage(cntrMessageStat);
       }
       next_queue(counters_list);
@@ -381,6 +363,12 @@ int16_t interface_type_001_counters_poll_inputs(interface_type_001_t *i001)
 {
    queue_t *counters_list=i001->counters_list;
    struct electricity_counter_s *counter;
+
+   process_update_indicator(i001->monitoring_id, "NBCTRAPS",    i001->indicators.nbcounterstraps);
+   process_update_indicator(i001->monitoring_id, "NBCREADS",    i001->indicators.nbcountersread);
+   process_update_indicator(i001->monitoring_id, "NBCREADSERR", i001->indicators.nbcountersreaderr);
+   process_update_indicator(i001->monitoring_id, "NBCXPLOUT",   i001->indicators.nbcountersxplsent);
+   process_update_indicator(i001->monitoring_id, "NBCXPLIN",    i001->indicators.nbcountersxplrecv);
 
    first_queue(counters_list);
    for(int16_t i=0; i<counters_list->nb_elem; i++)
@@ -411,6 +399,7 @@ int16_t interface_type_001_counters_poll_inputs(interface_type_001_t *i001)
             xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_CURRENT_ID), "0");
             mea_sendXPLMessage(cntrMessageStat);
             xPL_releaseMessage(cntrMessageStat);
+            (i001->indicators.nbcountersxplsent)++;
          }
       }
       
@@ -419,17 +408,17 @@ int16_t interface_type_001_counters_poll_inputs(interface_type_001_t *i001)
 
       if(!test_timer(&(counter->timer)))
       {
-         if(counter_read(i001->ad, counter)<0)
+         if(counter_read(i001, counter)<0)
          {
             return -1;
          };
 
          if(counter->counter!=counter->last_counter)
          {
-            counter_to_db(counter);
+            counter_to_db(i001, counter);
          }
 
-         counter_to_xpl(counter);
+         counter_to_xpl(i001, counter);
 
          VERBOSE(9) fprintf(stderr,"%s  (%s) : counter %s %ld (WH=%ld KWH=%ld)\n",INFO_STR,__func__,counter->name, (long)counter->counter, (long)counter->wh_counter,(long)counter->kwh_counter);
 
@@ -450,9 +439,7 @@ void interface_type_001_counters_init(interface_type_001_t *i001)
    for(int16_t i=0; i<counters_list->nb_elem; i++)
    {
       current_queue(counters_list, (void **)&counter);
-/* a convertir
-      comio_set_trap2(i001->ad, counter->trap, interface_type_001_counters_process_traps, (void *)counter);
-*/
+      counter->nbtraps=&(i001->indicators.nbcounterstraps);
       comio2_setTrap(i001->ad, counter->trap, interface_type_001_counters_process_traps, (void *)counter);
 
       start_timer(&(counter->timer));

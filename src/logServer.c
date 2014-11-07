@@ -52,6 +52,8 @@ int        _logServer_monitoring_id=-1;
 struct logServer_thread_data_s
            _logServer_thread_data;
 
+long logsent_indicator = 0;
+long logsenterr_indicator = 0;
 
 // pour envoyer les x dernieres lignes à la connexion d'un client
 // prévoir une fonction send last x lines avec comme position de lecture la derniere valeur de pos (à mettre en globale donc)
@@ -161,9 +163,13 @@ int _read_and_send_lines(int nodejs_socket, char *file, long *pos)
          int ret = mea_socket_send(&nodejs_socket, message, l_data+12);
          if(ret<0)
          {
+         
+         logsenterr_indicator
+            process_update_indicator(_logServer_monitoring_id, "LOGSENTERR", ++logsenterr_indicator);
             ret=-1;
             break;
          }
+         process_update_indicator(_logServer_monitoring_id, "LOGSENT", ++logsent_indicator);
          nb_loop++;
       }
    }

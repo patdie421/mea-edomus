@@ -812,6 +812,9 @@ int main(int argc, const char * argv[])
    logServer_monitoring_id=process_register("LOGSERVER");
    process_set_start_stop(logServer_monitoring_id , start_logServer, stop_logServer, (void *)(&logServer_start_stop_params), 1);
    process_set_watchdog_recovery(logServer_monitoring_id, restart_logServer, (void *)(&logServer_start_stop_params));
+   process_add_indicator(httpServer_monitoring_id, "LOGSENT", 0);
+   process_add_indicator(httpServer_monitoring_id, "LOGSENTERR", 0);
+
    if(process_start(logServer_monitoring_id, NULL, 0)<0)
    {
       VERBOSE(9) fprintf (stderr, "error !!!\n");
@@ -826,6 +829,10 @@ int main(int argc, const char * argv[])
    dbServer_monitoring_id=process_register("DBSERVER");
    process_set_start_stop(dbServer_monitoring_id, start_dbServer, stop_dbServer, (void *)(&dbServer_start_stop_params), 1);
    process_set_watchdog_recovery(dbServer_monitoring_id, restart_dbServer, (void *)(&dbServer_start_stop_params));
+   process_add_indicator(dbServer_monitoring_id, "DBSERVERINMEM", 0);
+   process_add_indicator(dbServer_monitoring_id, "DBSERVERINSQLITE", 0);
+   process_add_indicator(dbServer_monitoring_id, "DBSERVERMYWRITE", 0);
+
    if(!_b)
    {
       if(process_start(dbServer_monitoring_id, NULL, 0)<0)
@@ -844,6 +851,8 @@ int main(int argc, const char * argv[])
    pythonPluginServer_monitoring_id=process_register("PYTHONPLUGINSERVER");
    process_set_start_stop(pythonPluginServer_monitoring_id , start_pythonPluginServer, stop_pythonPluginServer, (void *)(&pythonPluginServer_start_stop_params), 1);
    process_set_watchdog_recovery(xplServer_monitoring_id, restart_pythonPluginServer, (void *)(&pythonPluginServer_start_stop_params));
+   process_add_indicator(pythonPluginServer_monitoring_id, "PYCALL", 0);
+   process_add_indicator(pythonPluginServer_monitoring_id, "PYCALLERR", 0);
    if(process_start(pythonPluginServer_monitoring_id, NULL, 0)<0)
    {
       VERBOSE(9) fprintf (stderr, "error !!!\n");

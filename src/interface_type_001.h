@@ -19,6 +19,25 @@
 
 #include "interface_type_001.h"
 
+struct interface_type_001_indicators_s
+{
+   long nbxplin;
+   long nbactuatorsout;
+   long nbactuatorsxplrecv;
+   long nbactuatorsouterr;
+   
+   long nbsensorstraps;
+   long nbsensorsread;
+   long nbsensorsreaderr;
+   long nbsensorsxplsent;
+   long nbsensorsxplrecv;
+  
+   long nbcounterstraps;
+   long nbcountersread;
+   long nbcounterssreaderr;
+   long nbcountersxplsent;
+   long nbcountersxplrecv;
+};
 
 typedef struct interface_type_001_s
 {
@@ -33,6 +52,9 @@ typedef struct interface_type_001_s
    queue_t *actuators_list;
    queue_t *sensors_list;
    xpl_f xPL_callback;
+   
+   struct interface_type_001_indicators_s indicators;
+
 } interface_type_001_t;
 
 
@@ -48,7 +70,7 @@ struct interface_type_001_start_stop_params_s
 
 typedef float (*compute_f)(unsigned int value);
 
-void counters_stop(pthread_t *counters_thread, comio2_ad_t *ad, int signal_number);
+//void counters_stop(pthread_t *counters_thread, comio2_ad_t *ad, int signal_number);
 
 int stop_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg);
 int start_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg);

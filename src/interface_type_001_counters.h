@@ -40,19 +40,15 @@ struct electricity_counter_s
    
    mea_timer_t timer;
    mea_timer_t trap_timer;
+   
+   long *nbtraps;
 };
 
 struct electricity_counter_s
             *interface_type_001_sensors_valid_and_malloc_counter(int id_sensor_actuator, char *name, char *parameters);
 void         interface_type_001_free_counters_queue_elem(void *d);
-//mea_error_t  interface_type_001_counters_process_traps(int numTrap, void *args, char *buff);
 int16_t      interface_type_001_counters_process_traps(int16_t numTrap, char *buff, int16_t l_buff, void * args);
-//mea_error_t  interface_type_001_counters_process_xpl_msg(interface_type_001_t *i001, xPL_ServicePtr theService, xPL_NameValueListPtr ListNomsValeursPtr,
-//                                                         char *device, char *type);
-mea_error_t interface_type_001_counters_process_xpl_msg(interface_type_001_t *i001, xPL_ServicePtr theService, xPL_MessagePtr msg, char *device, char *type);
-
-
-//int16_t      interface_type_001_counters_poll_inputs(interface_type_001_t *i001, tomysqldb_md_t *md);
+mea_error_t  interface_type_001_counters_process_xpl_msg(interface_type_001_t *i001, xPL_ServicePtr theService, xPL_MessagePtr msg, char *device, char *type);
 int16_t      interface_type_001_counters_poll_inputs(interface_type_001_t *i001);
 void         interface_type_001_counters_init(interface_type_001_t *i001);
 
