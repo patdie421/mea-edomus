@@ -47,6 +47,7 @@ var liveCom = {
                      xhr.abort();
                      // alert("responseText="+xhr.responseText+" status="+xhr.status+" thrownError="+thrownError);
                      _liveCom.socketio=null;
+                     _liveCom._socketio_port=-1;
                   }
       });
    },
