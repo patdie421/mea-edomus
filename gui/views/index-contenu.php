@@ -42,7 +42,7 @@ session_start() ?>
  font-size:14px;
  line-height:100%;
  max-height:20px;
- overflow: hidden;   
+ overflow: hidden;  
 }
 
 .description
@@ -90,24 +90,36 @@ session_start() ?>
 
 .table_processes
 {
-   border: solid 1px black;
+//   border: solid 1px black;
    border-collapse:collapse;
 }
 
-.interface_section
+.processes_section
 {
   min-width:200px;
-  border: solid 1px black;
+  border: solid 1px;
+}
+
+.processes_name
+{
+   margin-left:10px;
+}
+
+.processes_description
+{
+   font-size:10px;
+   margin-left:10px;
 }
 
 .indicators_section
 {
   padding: 0px;
-  border: solid 1px black;
+  border: solid 1px;
 }
 
 .indicator_value
 {
+  padding:7.5px;
   text-align: center;
   min-width: 100px;
   width: 100%;
@@ -115,6 +127,7 @@ session_start() ?>
 
 .indicator_name
 {
+  padding:7.5px;
   min-width: 200px;
   width: 200px;
 }
@@ -133,10 +146,7 @@ session_start() ?>
 {
     background: #8cf0b9;
 }
-</style>
 
-
-<style>
 .wait_ball {
     background-color: rgba(0,0,0,0);
     border: 5px solid rgba(75, 165, 202,0.9);
