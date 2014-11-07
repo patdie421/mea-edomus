@@ -111,7 +111,8 @@ int managed_processes_indicators_list(char *message, int l_message)
    int first_process=1;
    for(int i=0;i<managed_processes.max_processes;i++)
    {
-      if(managed_processes.processes_table[i])
+      if(managed_processes.processes_table[i] &&
+         managed_processes.processes_table[i]->type!=TASK)
       {
          if(first_process==0)
          {
@@ -124,38 +125,33 @@ int managed_processes_indicators_list(char *message, int l_message)
          if(mea_strncat(json,sizeof(json),buff)<0)
             return -1;
 
+         if(mea_strncat(json, sizeof(json), "[")<0)
+            return -1;
+
+         if(mea_strncat(json, sizeof(json), "\"WDCOUNTER\"")<0)
+            return -1;
+
          if(managed_processes.processes_table[i]->indicators_list &&
             first_queue(managed_processes.processes_table[i]->indicators_list)==0)
          {
-            if(mea_strncat(json, sizeof(json), "[")<0)
-               return -1;
-            int first_value=1;
             while(1)
             {
                if(current_queue(managed_processes.processes_table[i]->indicators_list, (void **)&e)==0)
                {
-                  if(first_value==0) // ajout d'une virgule avant si pas le premier élément.
-                     if(mea_strncat(json,sizeof(json),",")<0)
-                        return -1;
-                  int n=snprintf(buff,sizeof(buff),"\"%s\"",e->name);
+                  int n=snprintf(buff,sizeof(buff),",\"%s\"",e->name);
                   if(n<0 || n==sizeof(buff))
                      return -1;
                   if(mea_strncat(json,sizeof(json),buff)<0)
                      return -1;
                   next_queue(managed_processes.processes_table[i]->indicators_list);
-                  first_value=0;
                }
                else
                   break;
             }
-            if(mea_strncat(json, sizeof(json), "]")<0)
-               return -1;
          }
-         else
-         {
-            if(mea_strncat(json,sizeof(json),"[]")<0)
-               return -1;
-         }
+         if(mea_strncat(json, sizeof(json), "]")<0)
+            return -1;
+
          first_process=0;
       }
    }
@@ -219,13 +215,19 @@ int _managed_processes_process_to_json(int id, char *s, int s_l, int flag)
          return -1;
       if(mea_strncat(s, s_l, buff)<0)
          return -1;
-      
+
       n=snprintf(buff,sizeof(buff),",\"status\":%d",managed_processes.processes_table[id]->status);
       if(n<0 || n==sizeof(buff))
          return -1;
       if(mea_strncat(s, s_l, buff)<0)
          return -1;
       
+      n=snprintf(buff,sizeof(buff),",\"WDCOUNTER\":%d",managed_processes.processes_table[id]->heartbeat_wdcounter);
+      if(n<0 || n==sizeof(buff))
+         return -1;
+      if(mea_strncat(s, s_l, buff)<0)
+         return -1;
+
       n=snprintf(buff,sizeof(buff),",\"type\":%d",managed_processes.processes_table[id]->type);
       if(n<0 || n==sizeof(buff))
          return -1;
@@ -539,7 +541,7 @@ int process_register(char *name)
             managed_processes.processes_table[i]->last_heartbeat=time(NULL);
             managed_processes.processes_table[i]->indicators_list=(queue_t *)malloc(sizeof(queue_t));
             init_queue(managed_processes.processes_table[i]->indicators_list);
-            managed_processes.processes_table[i]->heartbeat_interval=30; // 30 secondes par defaut
+            managed_processes.processes_table[i]->heartbeat_interval=20; // 20 secondes par defaut
             managed_processes.processes_table[i]->heartbeat_counter=0; // nombre d'abscence de heartbeat entre de recovery.
             managed_processes.processes_table[i]->type=AUTOSTART;
             managed_processes.processes_table[i]->status=STOPPED; // arrêté par défaut
@@ -548,6 +550,7 @@ int process_register(char *name)
             managed_processes.processes_table[i]->start_stop_data=NULL;
             managed_processes.processes_table[i]->heartbeat_recovery=NULL;
             managed_processes.processes_table[i]->heartbeat_recovery_data=NULL;
+            managed_processes.processes_table[i]->heartbeat_wdcounter=0;
             managed_processes.processes_table[i]->group_id=DEFAULTGROUP;
             ret=i;
             goto register_process_clean_exit;
@@ -757,7 +760,6 @@ int managed_processes_send_stats_now(char *hostname, int port)
       }
       else
       {
-         fprintf(stderr,"managed_processes_send_stats_now %d\n",sock);
          char message[2048];
          int l_data=strlen(json)+4;
          sprintf(message,"$$$%c%cMON:%s###", (char)(l_data%128), (char)(l_data/128), json);
@@ -827,7 +829,7 @@ int managed_processes_processes_check_heartbeats(int doRecovery)
       {
          time_t now = time(NULL);
 
-         if( ((now - managed_processes.processes_table[i]->last_heartbeat)<managed_processes.processes_table[i]->heartbeat_interval) ||
+         if( ((now - managed_processes.processes_table[i]->last_heartbeat) < managed_processes.processes_table[i]->heartbeat_interval) ||
             (managed_processes.processes_table[i]->type == TASK) )
          {
             managed_processes.processes_table[i]->heartbeat_status=1;
@@ -846,6 +848,7 @@ int managed_processes_processes_check_heartbeats(int doRecovery)
                      pthread_cleanup_push( (void *)pthread_rwlock_wrlock, (void *)&managed_processes.rwlock ); // /!\ inversion par rapport à l'habiture ... unlock en cas de fin de thread d'abord.
                      pthread_rwlock_unlock(&managed_processes.rwlock); // on delock
                      managed_processes.processes_table[i]->heartbeat_status=managed_processes.processes_table[i]->heartbeat_recovery(i, managed_processes.processes_table[i]->heartbeat_recovery_data, errmsg, sizeof(errmsg));
+                     managed_processes.processes_table[i]->heartbeat_wdcounter++;
                      pthread_rwlock_wrlock(&managed_processes.rwlock); // on relock
                      pthread_cleanup_pop(0);
                      

@@ -82,8 +82,6 @@ int16_t _comio2_open(comio2_ad_t *ad, char *dev, speed_t speed)
    // ouverture du port
    int flags;
    
-   memset (ad,0,sizeof(comio2_ad_t));
-   
    flags=O_RDWR | O_NOCTTY | O_NDELAY | O_EXCL;
 #ifdef O_CLOEXEC
    flags |= O_CLOEXEC;
@@ -168,10 +166,10 @@ int16_t comio2_init(comio2_ad_t *ad, char *dev, speed_t speed)
  * \return    -1 en cas d'erreur, descripteur du périphérique sinon
  */
 {
+   int fd;
 /*
    struct termios options, options_old;
-   int fd;
-   
+ 
    // ouverture du port
    int flags;
    
@@ -245,6 +243,8 @@ int16_t comio2_init(comio2_ad_t *ad, char *dev, speed_t speed)
    // préparation du descripteur
    ad->fd=fd;
 */
+   memset (ad,0,sizeof(comio2_ad_t));
+
    if(_comio2_open(ad, dev, speed)<0)
      return -1;
 
@@ -841,7 +841,7 @@ int _comio2_reopen(comio2_ad_t *ad)
       return -1;
 
    strncpy(dev, ad->serial_dev_name, sizeof(dev));
-   speed=xd->speed;
+   speed=ad->speed;
    
    VERBOSE(9) fprintf(stderr,"%s  (%s) : try to reset communication (%s).\n",INFO_STR,__func__,dev);
    
@@ -933,14 +933,14 @@ void *_comio2_thread(void *args)
             case COMIO2_ERR_READ:
             case COMIO2_ERR_SYS:
                VERBOSE(1) {
-                  fprintf(stderr,"%s (%s) : communication error (nerr=%d).\n", ERROR_STR,__func__,nerr);
+                  fprintf(stderr,"%s (%s) : communication error (nerr=%d) - ", ERROR_STR,__func__,nerr);
                   perror("");
                }
-               ad->signal_flag=1;
                if(_comio2_reopen(ad)<0)
                {
+                  ad->signal_flag=1;
                   VERBOSE(1) {
-                     fprintf(stderr,"%s (%s) : comio2 thread is down\n", ERROR_STR,__func__);
+                     fprintf(stderr,"%s (%s) : comio2 thread goes down\n", ERROR_STR,__func__);
                   }
                   pthread_exit(NULL);
                }

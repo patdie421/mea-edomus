@@ -794,7 +794,7 @@ int main(int argc, const char * argv[])
    httpServer_monitoring_id=process_register("GUISERVER");
    process_set_group(httpServer_monitoring_id, 5);
    process_set_start_stop(httpServer_monitoring_id , start_guiServer, stop_guiServer, (void *)(&httpServer_start_stop_params), 1);
-   process_set_watchdog_recovery(guiServer_monitoring_id, restart_httpServer, (void *)(&httpServer_start_stop_params));
+   process_set_watchdog_recovery(httpServer_monitoring_id, restart_guiServer, (void *)(&httpServer_start_stop_params));
    process_add_indicator(httpServer_monitoring_id, "HTTPIN", 0);
    process_add_indicator(httpServer_monitoring_id, "HTTPOUT", 0);
 

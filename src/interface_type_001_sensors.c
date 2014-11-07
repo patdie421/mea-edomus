@@ -542,7 +542,7 @@ int16_t interface_type_001_sensors_poll_inputs(interface_type_001_t *i001)
                }
                continue;
             }
-            else if (ret>0)
+            else if(ret>0)
             {
                VERBOSE(5) {
                   fprintf(stderr,"%s (%s) : function %d return error = %d.\n", ERROR_STR, __func__, sensor->arduino_function, comio2_err);

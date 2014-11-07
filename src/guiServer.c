@@ -192,7 +192,6 @@ void _httpErrno(struct mg_connection *conn, int n, char *msg)
       snprintf(errno_str, sizeof(errno_str)-1, "{ \"errno\" : %d }",n);
    
    _httpResponse(conn, errno_str);
-   process_update_indicator(_httpServer_monitoring_id, "HTTPOUT", httpout_indicator++);
 }
 
 

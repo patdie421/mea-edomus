@@ -342,11 +342,13 @@ void *_thread_interface_type_001(void *args)
 
       if(interface_type_001_counters_poll_inputs(i001)<0)
       {
+         VERBOSE(2) fprintf(stderr,"%s (%s) : %s - thread goes down.\n", ERROR_STR, __func__, i001->name);
          pthread_exit(NULL);
       }
       
       if(interface_type_001_sensors_poll_inputs(i001)<0)
       {
+         VERBOSE(2) fprintf(stderr,"%s (%s) : %s - thread goes down.\n", ERROR_STR, __func__, i001->name);
          pthread_exit(NULL);
       }
       
@@ -359,11 +361,11 @@ void *_thread_interface_type_001(void *args)
 }
 
 
-int restart_interface_type_001(int id)
+int restart_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
 {
-   process_stop(id, NULL, 0);
-//   sleep(5);
-   return process_start(id, NULL, 0);
+   process_stop(my_id, data, 0);
+   sleep(5);
+   return process_start(my_id, data, 0);
 }
 
 

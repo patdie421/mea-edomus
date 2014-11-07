@@ -116,8 +116,6 @@ int   _xbee_open(xbee_xd_t *xd, char *dev, int speed)
    // ouverture du port
    int flags;
    
-   memset (xd,0,sizeof(xbee_xd_t));
-   
    flags=O_RDWR | O_NOCTTY | O_NDELAY | O_EXCL;
 #ifdef O_CLOEXEC
    flags |= O_CLOEXEC;
@@ -281,6 +279,8 @@ int   xbee_init(xbee_xd_t *xd, char *dev, int speed)
    // préparation du descripteur
    xd->fd=fd;
 */
+   memset (xd,0,sizeof(xbee_xd_t));
+
    if(_xbee_open(xd, dev, speed)<0)
      return -1;
      

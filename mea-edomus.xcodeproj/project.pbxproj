@@ -961,6 +961,7 @@
 		4E8787E71816733F00A87FF0 /* sqlite3db_utils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = sqlite3db_utils.h; path = src/sqlite3db_utils.h; sourceTree = "<group>"; };
 		4E8A87AE1A095D4A00A99E80 /* nodejsServer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = nodejsServer.c; path = src/nodejsServer.c; sourceTree = "<group>"; };
 		4E8A87AF1A095D4A00A99E80 /* nodejsServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = nodejsServer.h; path = src/nodejsServer.h; sourceTree = "<group>"; };
+		4E8A87B11A0BF82400A99E80 /* tmp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = tmp; sourceTree = "<group>"; };
 		4E8E5336184296F6006FB9D3 /* automatorServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = automatorServer.h; path = src/automatorServer.h; sourceTree = "<group>"; };
 		4E8E533718429724006FB9D3 /* automatorServer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = automatorServer.c; path = src/automatorServer.c; sourceTree = "<group>"; };
 		4E8F781A178B443E0099A751 /* string_utils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = string_utils.h; path = src/string_utils.h; sourceTree = "<group>"; };
@@ -1002,6 +1003,7 @@
 		08FB7794FE84155DC02AAC07 /* Comio */ = {
 			isa = PBXGroup;
 			children = (
+				4E8A87B11A0BF82400A99E80 /* tmp */,
 				4E4811A619C37D96001C5F48 /* Makefile.linux */,
 				4E4811A719C37D96001C5F48 /* Makefile.macosx */,
 				4E207BB919F1BA5900410B40 /* commands */,
