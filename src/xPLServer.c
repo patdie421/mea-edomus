@@ -72,8 +72,8 @@ void set_xPLServer_isnt_running(void *data)
 
 
 // duplication de createReceivedMessage de la lib xPL qui est déclarée en static et ne peut donc
-// pas normalement être utilisée. On a besoin de cette fonction pour pouvoir utiliser mettre
-// une adresse source différente de l'adresse normale du soft.
+// pas normalement être utilisée. On a besoin de cette fonction pour pouvoir mettre
+// une adresse source différente de l'adresse normale du soft (besoin pour les echanges internes).
 xPL_MessagePtr mea_createReceivedMessage(xPL_MessageType messageType)
 {
   xPL_MessagePtr theMessage;
@@ -160,7 +160,8 @@ uint16_t mea_sendXPLMessage(xPL_MessagePtr xPLMsg)
    char *addr;
    xPL_MessagePtr newXPLMsg = NULL;
    xplRespQueue_elem_t *e;
-   xplout_indicator++;
+
+   process_update_indicator(_xplServer_monitoring_id, "XPLOUT", ++xplout_indicator);
 
    addr = xPL_getSourceDeviceID(xPLMsg);
    if(addr && strcmp(addr,"internal")==0) // source interne => dispatching sans passer par le réseau
@@ -175,8 +176,6 @@ uint16_t mea_sendXPLMessage(xPL_MessagePtr xPLMsg)
       int id;
       
       sscanf(xPL_getTargetInstanceID(xPLMsg), "%d", &id);
-
-//      DEBUG_SECTION fprintf(stderr,"Retour de la demande interne à mettre dans la file (id demande = %d)\n",id);
 
       // duplication du message xPL
       newXPLMsg = xPL_createBroadcastMessage(xPLService, xPL_getMessageType(xPLMsg));
@@ -297,7 +296,7 @@ readFromQueue_return:
 
 void _cmndXPLMessageHandler(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
 {
-   xplin_indicator++;
+   process_update_indicator(_xplServer_monitoring_id, "XPLIN", ++xplin_indicator);
 
    dispatchXPLMessageToInterfaces(theService, theMessage);
 }
