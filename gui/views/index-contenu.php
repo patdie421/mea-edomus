@@ -219,19 +219,22 @@ session_start() ?>
 <div id="available" class="display">
    <div id="tabs1">
    <ul>
-   <li><a href="#tabs1-1" id='synthese'>Synthèse</a></li>
-   <li><a href="#tabs1-3" id='interfaces'>Interfaces/processus</a></li>
-   <li><a href="#tabs1-4" id='log'>Journal</a></li>
+   <li><a href="#tabs1-1" id='synthese'>Indicateurs de fonctionnement</a></li>
+   <li><a href="#tabs1-3" id='interfaces'>Pilotage interfaces/processus</a></li>
+   <li><a href="#tabs1-4" id='log'>Journal des messages</a></li>
    </ul>
 
    <div id="tabs1-1">
       <p></p>
-      <div id="indicators" style="margin:auto;" class="cadre ui-widget ui-widget-content ui-corner-all">
-         <table id="table_indicateurs" style="width:100%; margin:10px;" class="table_processes">
+      <div id="indicators" style="margin:auto; padding:10px;" class="cadre ui-widget ui-widget-content ui-corner-all">
+         <div class="ui-widget-header titre">
+            <div style="margin-left:20px;">Indicateurs de fonctionnement</div>
+         </div>
+         <table id="table_indicateurs" style="width:100%;" class="table_processes">
          </table>
-      </div>
-      <div id="noindicators" class="display">
-      No indicators provided
+         <div id="noindicators" class="display">
+            No indicators provided
+         </div>
       </div>
       <p></p>
    </div>
