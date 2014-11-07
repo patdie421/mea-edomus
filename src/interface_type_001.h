@@ -21,6 +21,7 @@
 
 struct interface_type_001_indicators_s
 {
+   long nbxplin;
    long nbactuatorsout;
    long nbactuatorsxplrecv;
    long nbactuatorsouterr;
