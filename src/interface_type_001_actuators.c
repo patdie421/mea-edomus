@@ -162,6 +162,8 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
    unsigned char sval[2];
    int16_t comio2_err;
 
+   process_update_indicator(i001->monitoring_id, "NBAXPLIN", ++nbactuatorsxplrecv_indicator);
+   
    type_id=get_id_by_string(type);
    if(type_id != XPL_OUTPUT_ID && type_id !=VARIABLE_ID)
       return ERROR;
@@ -205,8 +207,12 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
                   if(ret!=0)
                   {
                      VERBOSE(9) fprintf(stderr,"%s  (%s) : comio2_call_proc error (comio2_err=%d)\n",INFO_STR, __func__,comio2_err);
+                     process_update_indicator(i001->monitoring_id, "NBAOUTERR", ++nbactuatorsouterr_indicator);
+
                      return ERROR;
                   }
+                  process_update_indicator(i001->monitoring_id, "NBAOUT", ++nbactuatorsout_indicator);
+
                   return NOERROR;
                   break;
                }
@@ -227,8 +233,11 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
                   if(ret!=0)
                   {
                      VERBOSE(9) fprintf(stderr,"%s  (%s) : comio2_call_proc error (comio2_err=%d)\n",INFO_STR, __func__,comio2_err);
+                     process_update_indicator(i001->monitoring_id, "NBAOUTERR", ++nbactuatorsouterr_indicator);
+
                      return ERROR;
                   }
+                  process_update_indicator(i001->monitoring_id, "NBAOUT", ++nbactuatorsout_indicator);
                   return NOERROR;
                   break;
                }
@@ -301,8 +310,10 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
             if(ret!=0)
             {
                VERBOSE(9) fprintf(stderr,"%s  (%s) : comio2_call_proc error (comio2_err=%d)\n",INFO_STR, __func__,comio2_err);
+               process_update_indicator(i001->monitoring_id, "NBAOUTERR", ++nbactuatorsouterr_indicator);
                return ERROR;
             }
+            process_update_indicator(i001->monitoring_id, "NBAOUT", ++nbactuatorsout_indicator);
             return NOERROR;
          }
          return ERROR;
