@@ -362,15 +362,15 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                   
                   process_add_indicator(i001->monitoring_id, "NBSTRAPS", 0);
                   process_add_indicator(i001->monitoring_id, "NBSREADS", 0);
-                  process_add_indicator(i001->monitoring_id, "NBSREADERR", 0);
+                  process_add_indicator(i001->monitoring_id, "NBSREADSERR", 0);
                   process_add_indicator(i001->monitoring_id, "NBSXPLOUT", 0);
                   process_add_indicator(i001->monitoring_id, "NBSXPLIN", 0);
                   process_add_indicator(i001->monitoring_id, "NBAOUTERR", 0);
                   process_add_indicator(i001->monitoring_id, "NBAOUT", 0);
-                  process_add_indicator(i001->monitoring_id, "NBCXPLIN", 0);
+                  process_add_indicator(i001->monitoring_id, "NBAXPLIN", 0);
                   process_add_indicator(i001->monitoring_id, "NBCTRAPS", 0);
                   process_add_indicator(i001->monitoring_id, "NBCREADS", 0);
-                  process_add_indicator(i001->monitoring_id, "NBCREADERR", 0);
+                  process_add_indicator(i001->monitoring_id, "NBCREADSERR", 0);
                   process_add_indicator(i001->monitoring_id, "NBCXPLOUT", 0);
                   process_add_indicator(i001->monitoring_id, "NBCXPLIN", 0);
                   
