@@ -1,4 +1,4 @@
-var isadmin=1;
+var isadmin=-1;
 
 
 function ajax_error(xhr, ajaxOptions, thrownError){
