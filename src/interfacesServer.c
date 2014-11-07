@@ -353,6 +353,7 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                   i001->indicators.nbcounterssreaderr = 0;
                   i001->indicators.nbcountersxplsent = 0;
                   i001->indicators.nbcountersxplrecv = 0;
+                  i001->indicators.nbxplin = 0;
                   
                   process_set_group(i001->monitoring_id, 1);
                   i001->interface_id=id_interface;
@@ -360,6 +361,7 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                   process_set_watchdog_recovery(i001->monitoring_id, start_interface_type_001, (void *)i001_start_stop_params);
                   process_set_description(i001->monitoring_id, (char *)description);
                   
+                  process_add_indicator(i001->monitoring_id, "NBXPLIN", 0);
                   process_add_indicator(i001->monitoring_id, "NBSTRAPS", 0);
                   process_add_indicator(i001->monitoring_id, "NBSREADS", 0);
                   process_add_indicator(i001->monitoring_id, "NBSREADSERR", 0);
