@@ -844,6 +844,8 @@ int main(int argc, const char * argv[])
    pythonPluginServer_monitoring_id=process_register("PYTHONPLUGINSERVER");
    process_set_start_stop(pythonPluginServer_monitoring_id , start_pythonPluginServer, stop_pythonPluginServer, (void *)(&pythonPluginServer_start_stop_params), 1);
    process_set_watchdog_recovery(xplServer_monitoring_id, restart_pythonPluginServer, (void *)(&pythonPluginServer_start_stop_params));
+   process_add_indicator(pythonPluginServer_monitoring_id, "PYCALL", 0);
+   process_add_indicator(pythonPluginServer_monitoring_id, "PYCALLERR", 0);
    if(process_start(pythonPluginServer_monitoring_id, NULL, 0)<0)
    {
       VERBOSE(9) fprintf (stderr, "error !!!\n");
