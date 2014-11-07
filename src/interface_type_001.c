@@ -28,7 +28,6 @@
 #include "macros.h"
 #include "error.h"
 
-//#include "comio.h"
 #include "comio2.h"
 
 #include "arduino_pins.h"
