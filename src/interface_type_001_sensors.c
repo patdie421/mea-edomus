@@ -60,13 +60,6 @@ struct assoc_s compute_algo_assocs_i001_sensors[] = {
 };
 
 
-long nbsnesorstraps_indicator = 0;
-long nbsensorsread_indicator = 0;
-long nbsensorsreaderr_indicator = 0;
-long nbsensorsxplsent_indicator = 0;
-long nbsensorsxplrecv_indicator = 0;
-
-
 float _compute_tmp36(unsigned int value)
 {
    return (value * 1.1/1024.0-0.5)*100.0;
@@ -190,7 +183,7 @@ int16_t interface_type_001_sensors_process_traps(int16_t numTrap, char *data, in
    sensor->val=(unsigned char)data[0];
    
    {
-      nbsnesorstraps_indicator++;
+      *(sensor->nbtrap_indicator)++;
       
       char value[20];
       xPL_ServicePtr servicePtr;
@@ -315,7 +308,7 @@ struct sensor_s *interface_type_001_sensors_valid_and_malloc_sensor(int id_senso
             init_timer(&(sensor->timer),60,1); // lecture toutes les 5 minutes par défaut
          }
          // start_timer(&(sensor->timer));
-         
+         sensor->nbtrap_indicator=NULL;
          free_parsed_parameters(sensor_params, nb_sensor_params);
          free(sensor_params);
          sensor_params=NULL;
@@ -377,7 +370,7 @@ mea_error_t interface_type_001_sensors_process_xpl_msg(interface_type_001_t *i00
    int16_t no_type=0;
 
 //   xPL_NameValueListPtr ListNomsValeursPtr = xPL_getMessageBody(msg);
-   nbsensorsxplrecv_indicator++;
+   i001->nbsensorsxplrecv_indicator++;
    if(type)
    {
       type_id=get_id_by_string(type);
@@ -501,7 +494,7 @@ mea_error_t interface_type_001_sensors_process_xpl_msg(interface_type_001_t *i00
 
             ///xPL_sendMessage(cntrMessageStat);
             mea_sendXPLMessage(cntrMessageStat);
-            nbsensorsxplsent_indicator++;
+            i001->nbsensorsxplsent_indicator++;
             
             xPL_releaseMessage(cntrMessageStat);
          }
@@ -522,11 +515,11 @@ int16_t interface_type_001_sensors_poll_inputs(interface_type_001_t *i001)
 
    int16_t comio2_err;
 
-   process_update_indicator(i001->monitoring_id, "NBSTRAPS",   nbsnesorstraps_indicator);
-   process_update_indicator(i001->monitoring_id, "NBSREADS",   nbsensorsread_indicator);
-   process_update_indicator(i001->monitoring_id, "NBSREADERR", nbsensorsreaderr_indicator);
-   process_update_indicator(i001->monitoring_id, "NBSXPLOUT",  nbsensorsxplsent_indicator);
-   process_update_indicator(i001->monitoring_id, "NBSXPLIN",   nbsensorsxplrecv_indicator);
+   process_update_indicator(i001->monitoring_id, "NBSTRAPS",   i001->nbsnesorstraps_indicator);
+   process_update_indicator(i001->monitoring_id, "NBSREADS",   i001->nbsensorsread_indicator);
+   process_update_indicator(i001->monitoring_id, "NBSREADERR", i001->nbsensorsreaderr_indicator);
+   process_update_indicator(i001->monitoring_id, "NBSXPLOUT",  i001->nbsensorsxplsent_indicator);
+   process_update_indicator(i001->monitoring_id, "NBSXPLIN",   i001->nbsensorsxplrecv_indicator);
 
    first_queue(sensors_list);
    for(int16_t i=0; i<sensors_list->nb_elem; i++)
@@ -551,7 +544,7 @@ int16_t interface_type_001_sensors_poll_inputs(interface_type_001_t *i001)
                VERBOSE(5) {
                   fprintf(stderr,"%s (%s) : comio2 error = %d.\n", ERROR_STR, __func__, comio2_err);
                }
-               nbsensorsread_indicator++;
+               i001->nbsensorsread_indicator++;
                if(comio2_err == COMIO2_ERR_DOWN)
                {
                   return -1;
@@ -563,7 +556,7 @@ int16_t interface_type_001_sensors_poll_inputs(interface_type_001_t *i001)
                VERBOSE(5) {
                   fprintf(stderr,"%s (%s) : function %d return error = %d.\n", ERROR_STR, __func__, sensor->arduino_function, comio2_err);
                }
-               nbsensorsread_indicator++;
+               i001->nbsensorsread_indicator++;
                continue;
             }
             
@@ -571,7 +564,7 @@ int16_t interface_type_001_sensors_poll_inputs(interface_type_001_t *i001)
             {
                int16_t last=sensor->val;
                float computed_last;
-               nbsensorsread_indicator++;
+               i001->nbsensorsread_indicator++;
                
                sensor->val=v;
                sensor->computed_val=sensor->compute_fn(v);
@@ -637,6 +630,7 @@ void interface_type_001_sensors_init(interface_type_001_t *i001)
    {
       current_queue(sensors_list, (void **)&sensor);
 
+      sensor->nbtrap_indicator=&(i001->nbsnesorstraps_indicator);
       comio2_setTrap(i001->ad, sensor->arduino_pin+10, interface_type_001_sensors_process_traps, (void *)sensor);
 
       start_timer(&(sensor->timer));
