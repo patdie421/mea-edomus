@@ -19,7 +19,7 @@
 
 #include "interface_type_001.h"
 
-struct indicators_s
+struct interface_type_001_indicators_s
 {
    long nbactuatorsout;
    long nbactuatorsxplrecv;
@@ -52,7 +52,7 @@ typedef struct interface_type_001_s
    queue_t *sensors_list;
    xpl_f xPL_callback;
    
-   struct indicators_s indicators;
+   struct interface_type_001_indicators_s indicators;
 
 } interface_type_001_t;
 
