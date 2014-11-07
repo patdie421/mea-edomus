@@ -340,6 +340,7 @@ void *_thread_interface_type_001(void *args)
    while(1)
    {
       process_heartbeat(i001->monitoring_id);
+      process_update_indicator(i001->monitoring_id, "XPLIN", ++(i001->indicators.xplin));
 
       if(interface_type_001_counters_poll_inputs(i001)<0)
       {
