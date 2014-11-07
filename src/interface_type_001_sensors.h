@@ -33,6 +33,8 @@ struct sensor_s
    float computed_val;
    
    mea_timer_t timer;
+   
+   long *nbtrap_indicator;
 };
 
 void interface_type_001_sensors_free_queue_elem(void *d);
