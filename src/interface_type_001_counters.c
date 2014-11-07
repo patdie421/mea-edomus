@@ -189,6 +189,7 @@ struct electricity_counter_s *interface_type_001_sensors_valid_and_malloc_counte
    counter->t=-1.0;
    start_timer(&(counter->timer));
    counter->lock=(pthread_mutex_t)PTHREAD_MUTEX_INITIALIZER;
+   counter->nbtraps=NULL;
    
    return counter;
    
