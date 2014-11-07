@@ -336,16 +336,44 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                   i001_start_stop_params->i001=i001;
                   i001_start_stop_params->sqlite3_param_db = sqlite3_param_db;
                   strncpy(i001_start_stop_params->dev, (char *)dev, sizeof(i001_start_stop_params->dev)-1);
-                  
                   strncpy(i001->name, (char *)name, sizeof(i001->name)-1);
                   i001->loaded=0;
                   i001->monitoring_id=process_register((char *)name);
+                  
+                  i001->indicators.nbactuatorsout = 0;
+                  i001->indicators.nbactuatorsxplrecv = 0;
+                  i001->indicators.nbactuatorsouterr = 0;
+                  i001->indicators.nbsnesorstraps = 0;
+                  i001->indicators.nbsensorsread = 0;
+                  i001->indicators.nbsensorsreaderr = 0;
+                  i001->indicators.nbsensorsxplsent = 0;
+                  i001->indicators.nbsensorsxplrecv = 0;
+                  i001->indicators.nbcounterstraps = 0;
+                  i001->indicators.nbcountersread = 0;
+                  i001->indicators.nbcounterssreaderr = 0;
+                  i001->indicators.nbcountersxplsent = 0;
+                  i001->indicators.nbcountersxplrecv = 0;
+                  
                   process_set_group(i001->monitoring_id, 1);
                   i001->interface_id=id_interface;
                   process_set_start_stop(i001->monitoring_id, start_interface_type_001, stop_interface_type_001, (void *)i001_start_stop_params, 1);
                   process_set_watchdog_recovery(i001->monitoring_id, start_interface_type_001, (void *)i001_start_stop_params);
-
                   process_set_description(i001->monitoring_id, (char *)description);
+                  
+                  process_add_indicator(i001->monitoring_id, "NBSTRAPS", 0);
+                  process_add_indicator(i001->monitoring_id, "NBSREADS", 0);
+                  process_add_indicator(i001->monitoring_id, "NBSREADERR", 0);
+                  process_add_indicator(i001->monitoring_id, "NBSXPLOUT", 0);
+                  process_add_indicator(i001->monitoring_id, "NBSXPLIN", 0);
+                  process_add_indicator(i001->monitoring_id, "NBAOUTERR", 0);
+                  process_add_indicator(i001->monitoring_id, "NBAOUT", 0);
+                  process_add_indicator(i001->monitoring_id, "NBCXPLIN", 0);
+                  process_add_indicator(i001->monitoring_id, "NBCTRAPS", 0);
+                  process_add_indicator(i001->monitoring_id, "NBCREADS", 0);
+                  process_add_indicator(i001->monitoring_id, "NBCREADERR", 0);
+                  process_add_indicator(i001->monitoring_id, "NBCXPLOUT", 0);
+                  process_add_indicator(i001->monitoring_id, "NBCXPLIN", 0);
+                  
                   ret=process_start(i001->monitoring_id, NULL, 0);
 
                   iq=(interfaces_queue_elem_t *)malloc(sizeof(interfaces_queue_elem_t));
