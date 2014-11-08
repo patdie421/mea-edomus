@@ -73,7 +73,8 @@ typedef struct plugin_commissionning_queue_elem_s
 
 int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg);
 int stop_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg);
-int restart_interface_type_002(int id);
+//int restart_interface_type_002(int id);
+int restart_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg);
 int16_t check_status_interface_type_002(interface_type_002_t *it002);
 
 #endif
