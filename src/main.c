@@ -812,8 +812,8 @@ int main(int argc, const char * argv[])
    logServer_monitoring_id=process_register("LOGSERVER");
    process_set_start_stop(logServer_monitoring_id , start_logServer, stop_logServer, (void *)(&logServer_start_stop_params), 1);
    process_set_watchdog_recovery(logServer_monitoring_id, restart_logServer, (void *)(&logServer_start_stop_params));
-   process_add_indicator(httpServer_monitoring_id, "LOGSENT", 0);
-   process_add_indicator(httpServer_monitoring_id, "LOGSENTERR", 0);
+   process_add_indicator(logServer_monitoring_id, "LOGSENT", 0);
+   process_add_indicator(logServer_monitoring_id, "LOGSENTERR", 0);
 
    if(process_start(logServer_monitoring_id, NULL, 0)<0)
    {

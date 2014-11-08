@@ -34,7 +34,7 @@ struct sensor_s
    
    mea_timer_t timer;
    
-   long *nbtrap_indicator;
+   long *nbtrap;
 };
 
 void interface_type_001_sensors_free_queue_elem(void *d);

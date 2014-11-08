@@ -25,6 +25,7 @@
 #include "interface_type_001.h"
 #include "interface_type_001_actuators.h"
 
+#include "processManager.h"
 
 // PIN=D5;TYPE=DIGITAL_OUT
 char *valid_relay_params[]={"S:PIN","S:TYPE",NULL};
@@ -313,7 +314,7 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
                process_update_indicator(i001->monitoring_id, "NBAOUTERR", ++(i001->indicators.nbactuatorsouterr));
                return ERROR;
             }
-            process_update_indicator(i001->monitoring_id, "NBAOUT", ++(i001->nbactuatorsout));
+            process_update_indicator(i001->monitoring_id, "NBAOUT", ++(i001->indicators.nbactuatorsout));
             return NOERROR;
          }
          return ERROR;

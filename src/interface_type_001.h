@@ -34,7 +34,7 @@ struct interface_type_001_indicators_s
   
    long nbcounterstraps;
    long nbcountersread;
-   long nbcounterssreaderr;
+   long nbcountersreaderr;
    long nbcountersxplsent;
    long nbcountersxplrecv;
 };

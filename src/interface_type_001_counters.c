@@ -32,6 +32,8 @@
 #include "interface_type_001.h"
 #include "interface_type_001_counters.h"
 
+#include "processManager.h"
+
 uint16_t counters_mem[2][4]={
    {0,1,2,3},
    {10,11,12,13}
@@ -76,7 +78,7 @@ int16_t interface_type_001_counters_process_traps(int16_t numTrap, char *buff, i
    struct electricity_counter_s *counter;
    counter=(struct electricity_counter_s *)args;
 
-   *(counters->nbstraps)++;
+   *(counter->nbtrap)++;
    
    // prise du chrono
    gettimeofday(&tv, NULL); 
@@ -189,7 +191,7 @@ struct electricity_counter_s *interface_type_001_sensors_valid_and_malloc_counte
    counter->t=-1.0;
    start_timer(&(counter->timer));
    counter->lock=(pthread_mutex_t)PTHREAD_MUTEX_INITIALIZER;
-   counter->nbtraps=NULL;
+   counter->nbtrap=NULL;
    
    return counter;
    
@@ -415,7 +417,7 @@ int16_t interface_type_001_counters_poll_inputs(interface_type_001_t *i001)
 
          if(counter->counter!=counter->last_counter)
          {
-            counter_to_db(i001, counter);
+            counter_to_db(counter);
          }
 
          counter_to_xpl(i001, counter);
@@ -439,7 +441,7 @@ void interface_type_001_counters_init(interface_type_001_t *i001)
    for(int16_t i=0; i<counters_list->nb_elem; i++)
    {
       current_queue(counters_list, (void **)&counter);
-      counter->nbtraps=&(i001->indicators.nbcounterstraps);
+      counter->nbtrap=&(i001->indicators.nbcounterstraps);
       comio2_setTrap(i001->ad, counter->trap, interface_type_001_counters_process_traps, (void *)counter);
 
       start_timer(&(counter->timer));

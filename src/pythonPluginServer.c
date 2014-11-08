@@ -225,7 +225,7 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
          pValue = PyObject_CallObject(pFunc, pArgs);
          Py_DECREF(pArgs);
 
-         process_update_indicator(_pythonPluginServer_monitoring_id, "PYCALL", ++pycall_indicator);
+         process_update_indicator(_pythonPluginServer_monitoring_id, "PYCALL", ++nbpycall_indicator);
 
          if (pValue != NULL)
          {
@@ -238,7 +238,7 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
                PyErr_Print();
                fprintf(stderr,"\n");
             }
-            process_update_indicator(_pythonPluginServer_monitoring_id, "PYCALLERR", ++pycallerr_indicator);
+            process_update_indicator(_pythonPluginServer_monitoring_id, "PYCALLERR", ++nbpycallerr_indicator);
             return_code=ERROR;
             goto call_pythonPlugin_clean_exit;
          }

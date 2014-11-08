@@ -163,8 +163,6 @@ int _read_and_send_lines(int nodejs_socket, char *file, long *pos)
          int ret = mea_socket_send(&nodejs_socket, message, l_data+12);
          if(ret<0)
          {
-         
-         logsenterr_indicator
             process_update_indicator(_logServer_monitoring_id, "LOGSENTERR", ++logsenterr_indicator);
             ret=-1;
             break;

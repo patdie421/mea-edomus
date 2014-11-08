@@ -12,9 +12,17 @@ var indicatorsTable = {
    add_process: function (table, name)
    {
       newRow = "<tr>" +
-                   "<td class=\"processes_section\"><div class=\"processes_name\">"+name+"</div><div id=\"desc_name\" class=\"processes_description\"></div></td>" +
-                   "<td class=\"indicators_section\"><div>" +
-                      "<table class=\"table_indicators\" id=\""+name+"\">" +
+                   "<td class=\"processes_column cell_table_indicateurs\">" +
+                      "<div class=\"process_name\">"+name+"</div>" +
+                      "<div id=\"desc_"+name+"\" class=\"process_description\"></div>" +
+                   "</td>" +
+                   "<td class=\"status_column cell_table_indicateurs\">" +
+                      "<div class=\"process_status\">" +
+                         "<div id=\"status_"+name+"\" class=\"pastille ui-widget ui-widget-content ui-corner-all\" style=\"background:gray; margin:auto;\"></div>" +
+                      "</div>" +
+                   "</td>" +
+                   "<td class=\"indicators_column cell_table_indicateurs\"><div>" +
+                      "<table border=\"0\" class=\"indicators_list\" id=\""+name+"\">" +
                       "</table>" +
                    "</div></td>" +
                "</tr>";
@@ -93,11 +101,22 @@ var indicatorsTable = {
    {
       for(process in data)
       {
-          for(indicator in data[process])
-          {
-              if(this.indicatorsToExclude.indexOf(indicator) == -1)
-                 indicatorsTable.update_indicator(process, indicator, data[process][indicator]);
-          }
+         if(data[process]['status']==1) // process démarré
+            if(data[process]['heartbeat']=='KO' && data[process]['type']!=2) // type = 2 => tache donc pas de "black" possible
+               $("#status_"+process).css("background","black");
+            else
+               $("#status_"+process).css("background","green");
+         else if(data[process]['status']==0 && data[process]['type']!=2) // non demarré
+            $("#status_"+process).css("background","red");
+         else
+            $("#status_"+process).css("background","gray");
+         
+         console.log("#status_"+process);
+         for(indicator in data[process])
+         {
+            if(this.indicatorsToExclude.indexOf(indicator) == -1)
+               indicatorsTable.update_indicator(process, indicator, data[process][indicator]);
+         }
       }
    }
 }  
@@ -411,7 +430,6 @@ var logViewer = {
          if(_logViewer.scrollOnOffFlag==0 && _logViewer.whoIsScrollingFlag==0) // si scroll inactif
          {
             // le slider a-t-il été poussé jusqu'en bas ?
-//            console.log($(this).scrollTop()+" "+$(this).innerHeight()+" "+$(this)[0].scrollHeight);
             if($(this).scrollTop() + $(this).innerHeight() >= $(this)[0].scrollHeight)
             { // scroller[0].scrollHeight
                _logViewer.scrollOnOffFlag=1; // on réactive le scroll (live)

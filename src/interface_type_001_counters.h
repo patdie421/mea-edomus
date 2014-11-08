@@ -41,7 +41,7 @@ struct electricity_counter_s
    mea_timer_t timer;
    mea_timer_t trap_timer;
    
-   long *nbtraps;
+   long *nbtrap;
 };
 
 struct electricity_counter_s

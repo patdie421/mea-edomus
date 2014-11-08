@@ -79,7 +79,7 @@ int16_t interface_type_001_xPL_callback(xPL_ServicePtr theService, xPL_MessagePt
    device             = xPL_getNamedValue(ListNomsValeursPtr, get_token_by_id(XPL_DEVICE_ID));
    type               = xPL_getNamedValue(ListNomsValeursPtr, get_token_by_id(XPL_TYPE_ID));
    
-   (i001->indicators.xplin)++;
+   (i001->indicators.nbxplin)++;
    
    VERBOSE(9) fprintf(stderr,"%s  (%s) : xPL Message to process : %s.%s\n",INFO_STR,__func__,schema_class,schema_type);
 
@@ -339,7 +339,7 @@ void *_thread_interface_type_001(void *args)
    while(1)
    {
       process_heartbeat(i001->monitoring_id);
-      process_update_indicator(i001->monitoring_id, "XPLIN", ++(i001->indicators.xplin));
+      process_update_indicator(i001->monitoring_id, "XPLIN", ++(i001->indicators.nbxplin));
 
       if(interface_type_001_counters_poll_inputs(i001)<0)
       {
