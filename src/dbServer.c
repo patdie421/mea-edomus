@@ -14,7 +14,7 @@
 #include <time.h>
 #include <sys/time.h>
 #include <pthread.h>
-
+#include <signal.h>
 #include <mysql.h>
 #include <sqlite3.h>
 
