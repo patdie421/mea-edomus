@@ -78,7 +78,7 @@ int16_t interface_type_001_counters_process_traps(int16_t numTrap, char *buff, i
    struct electricity_counter_s *counter;
    counter=(struct electricity_counter_s *)args;
 
-   *(counter->nbtrap)++;
+   *(counter->nbtrap)=*(counter->nbtrap)+1;
    
    // prise du chrono
    gettimeofday(&tv, NULL); 
@@ -259,7 +259,7 @@ int16_t counter_read(interface_type_001_t *i001, struct electricity_counter_s *c
 
    int retry = 0;
    for(int i=0;i<4;i++)
-      buffer[i]=counter->sensor_mem_addr[i];
+      buffer[i]=(char)counter->sensor_mem_addr[i];
    do
    {
       ret=comio2_cmdSendAndWaitResp(i001->ad, COMIO2_CMD_READMEMORY, buffer, 4, resp, &l_resp, &comio2_err);

@@ -21,22 +21,22 @@
 
 struct interface_type_001_indicators_s
 {
-   long nbxplin;
-   long nbactuatorsout;
-   long nbactuatorsxplrecv;
-   long nbactuatorsouterr;
+   uint32_t nbxplin;
+   uint32_t nbactuatorsout;
+   uint32_t nbactuatorsxplrecv;
+   uint32_t nbactuatorsouterr;
    
-   long nbsensorstraps;
-   long nbsensorsread;
-   long nbsensorsreaderr;
-   long nbsensorsxplsent;
-   long nbsensorsxplrecv;
+   uint32_t nbsensorstraps;
+   uint32_t nbsensorsread;
+   uint32_t nbsensorsreaderr;
+   uint32_t nbsensorsxplsent;
+   uint32_t nbsensorsxplrecv;
   
-   long nbcounterstraps;
-   long nbcountersread;
-   long nbcountersreaderr;
-   long nbcountersxplsent;
-   long nbcountersxplrecv;
+   uint32_t nbcounterstraps;
+   uint32_t nbcountersread;
+   uint32_t nbcountersreaderr;
+   uint32_t nbcountersxplsent;
+   uint32_t nbcountersxplrecv;
 };
 
 typedef struct interface_type_001_s

@@ -255,7 +255,7 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
             switch(current_id)
             {
                case DEC_ID:
-                  o=iq->old_val-1;
+                  o=(int)iq->old_val-1;
                   break;
                case INC_ID:
                   o=iq->old_val+1;
@@ -277,14 +277,14 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
                   else str=current;
                         
                   int n;
-                  ret=sscanf(str,"%d%n",&o,&n);
+                  ret=sscanf(str,"%d%n", &o, &n);
                   if(o>255) o=255;
                         
                   if(ret==1 && !(strlen(str)-n))
                   {
                      if(inc_dec)
                      {
-                        o=iq->old_val+o*inc_dec;
+                        o=iq->old_val+(uint16_t)o*(uint16_t)inc_dec;
                      }
                      if(o>255) o=255;
                      if(o<  0) o=0;
@@ -301,7 +301,7 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
                o=255;
             else if(o<0)
                o=0;
-            iq->old_val=o;
+            iq->old_val=(uint16_t)o;
                   
             VERBOSE(9) fprintf(stderr,"%s  (%s) : %s set %d on pin %d\n",INFO_STR, __func__,device,o,iq->arduino_pin);
                   

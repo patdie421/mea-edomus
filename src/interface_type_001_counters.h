@@ -21,7 +21,7 @@
 struct electricity_counter_s
 {
    char name[20];
-   int sensor_id;
+   int16_t sensor_id;
    
    uint32_t wh_counter;
    uint32_t kwh_counter;
@@ -35,13 +35,13 @@ struct electricity_counter_s
    
    pthread_mutex_t lock;
    
-   int sensor_mem_addr[4]; // sensor data addr
-   int trap; // comio trap number
+   int16_t sensor_mem_addr[4]; // sensor data addr
+   uint32_t trap; // comio trap number
    
    mea_timer_t timer;
    mea_timer_t trap_timer;
    
-   long *nbtrap;
+   uint32_t *nbtrap;
 };
 
 struct electricity_counter_s

@@ -31,8 +31,8 @@ typedef struct parsed_parameters_s
 
 struct assoc_s
 {
-   int val1;
-   int val2;
+   int16_t val1;
+   int16_t val2;
 };
 
 parsed_parameters_t *malloc_parsed_parameters(char *parameters_string, char *parameters_to_find[], int *nb_params, int *err, int value_to_upper)

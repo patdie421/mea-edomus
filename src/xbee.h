@@ -142,7 +142,7 @@ typedef struct xbee_xd_s
    xbee_hosts_table_t
                   *hosts;
    uint16_t        frame_id;
-   int             signal_flag;
+   int16_t         signal_flag;
 } xbee_xd_t;
 
 

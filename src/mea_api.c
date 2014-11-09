@@ -688,11 +688,7 @@ static PyObject *mea_addDataToSensorsValuesTable(PyObject *self, PyObject *args)
    else
       goto mea_addDataToSensorsValuesTable_arg_err;
 
-//   tomysqldb_md_t *md=dbServer_get_md();
-//   if(md)
-//   {
-      dbServer_add_data_to_sensors_values(sensor_id, value1, unit, value2, complement);
-//   }
+   dbServer_add_data_to_sensors_values(sensor_id, value1, unit, value2, complement);
 
    return PyLong_FromLong(1L); // True
    

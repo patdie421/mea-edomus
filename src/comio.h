@@ -74,7 +74,7 @@ typedef struct comio_ad_s
    queue_t        *queue;
    struct comio_trap_def_s
                    tabTrap[MAX_TRAP];
-   int             signal_flag;
+   int16_t         signal_flag;
    
 } comio_ad_t;
 
