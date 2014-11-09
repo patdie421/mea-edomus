@@ -13,6 +13,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <sqlite3.h>
+#include <signal.h>
 
 #include "string_utils.h"
 #include "queue.h"
