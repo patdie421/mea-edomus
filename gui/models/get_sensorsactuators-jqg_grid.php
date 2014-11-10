@@ -110,7 +110,7 @@ foreach ($result as $result_elem){
     echo "<cell><![CDATA[".$result_elem['parameters']."]]></cell>";
     echo "<cell><![CDATA[".$result_elem['lname']."]]></cell>";
     echo "<cell>".$result_elem['state']."</cell>";
-  //    echo "<cell>".$result_elem['todbflag']."</cell>";
+//    echo "<cell>".$result_elem['todbflag']."</cell>";
     echo "<cell>".$result_elem['id_type']."</cell>";
     echo "<cell>".$result_elem['id_interface']."</cell>";
     echo "<cell>".$result_elem['id_location']."</cell>";
