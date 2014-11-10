@@ -57,7 +57,7 @@ int dbServer_monitoring_id=-1;
 int nodejsServer_monitoring_id=-1;
 
 queue_t *interfaces=NULL;                  /*!< liste (file) des interfaces. Variable globale car doit être accessible par les gestionnaires de signaux. */
-sqlite3 *sqlite3_param_db=NULL;            /*!< descripteur pour la base sqlite de paramétrage. Variable globale car doit être accessible par les gestionnaires de signaux. */
+sqlite3 *sqlite3_param_db=NULL;            /*!< descripteur pour la base sqlite de paramétrage. */
 pthread_t *monitoringServer_thread=NULL;   /*!< Adresse du thread de surveillance interne. Variable globale car doit être accessible par les gestionnaires de signaux.*/
 
 char *params_names[MAX_LIST_SIZE];          /*!< liste des noms (chaines) de paramètres dans la base sqlite3 de paramétrage.*/
@@ -65,6 +65,12 @@ char *params_list[MAX_LIST_SIZE];          /*!< liste des valeurs de paramètres
 
 pid_t automator_pid = 0;
 int main_monitoring_id = -1;
+
+
+sqlite3 *get_sqlite3_param_db()
+{
+   return sqlite3_param_db;
+}
 
 
 void usage(char *cmd)
