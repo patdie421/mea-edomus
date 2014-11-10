@@ -41,7 +41,9 @@ struct electricity_counter_s
    mea_timer_t timer;
    mea_timer_t trap_timer;
    
+   // indicateur à traiter dans le trap
    uint32_t *nbtrap;
+   uint32_t *nbxplout;
 };
 
 struct electricity_counter_s
