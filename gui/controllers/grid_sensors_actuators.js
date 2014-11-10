@@ -48,7 +48,7 @@ function grid_sensors_actuators(){
     jQuery("#table_sensors_actuators").jqGrid(
     { url:'models/get_sensorsactuators-jqg_grid.php',
         datatype: "xml",
-        colNames:['id',str_num.capitalize(), str_name.capitalize(), str_type.capitalize(), str_description.capitalize(), str_interface.capitalize(), str_parameters.capitalize(),str_location.capitalize(),str_stat.capitalize(),'id_type','id_interface','id_location'],
+        colNames:['id',str_num.capitalize(), str_name.capitalize(), str_type.capitalize(), str_description.capitalize(), str_interface.capitalize(), str_parameters.capitalize(),str_location.capitalize(),str_stat.capitalize(), /*,'todbflag' */, 'id_type','id_interface','id_location'],
         colModel:[ {name:'id',index:'id', align:"center", width:10, hidden: true
                    },
                    {name:'id_sensor_actuator',index:'id_sensor_actuator', align:"center", width:35, fixed: true, editable: true,
@@ -78,6 +78,10 @@ function grid_sensors_actuators(){
                         editoptions:{value:{0:"disable",1:"enable",2:"delegate"}},
                         formoptions:{label: str_stat.capitalize(), rowpos:8}
                    },
+//                   {name:'databaselogflag', index:'todbflag', align:"center", width:30, editable: true, edittype:"checkbox",
+//                        editoptions:{value:"Yes:No"},
+//                        formoptions:{label: str_todb.capitalize(), rowpos:9}
+//                   },
                    {name:'id_type',index:'id_type', width:30, editable: true, edittype:"select",
                         editoptions:{dataUrl:'models/get_type-jqg_select.php'},
                         editrules:{required:true, edithidden:true}, hidden: true,
