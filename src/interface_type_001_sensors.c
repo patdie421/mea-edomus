@@ -214,8 +214,9 @@ int16_t interface_type_001_sensors_process_traps(int16_t numTrap, char *data, in
       xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_CURRENT_ID),value);
       
       // Broadcast the message
-      //xPL_sendMessage(cntrMessageStat);
       mea_sendXPLMessage(cntrMessageStat);
+      
+      *(sensor->nbxplout)=*(sensor->nbxplout)+1;
       
       xPL_releaseMessage(cntrMessageStat);
    }
@@ -493,8 +494,8 @@ mea_error_t interface_type_001_sensors_process_xpl_msg(interface_type_001_t *i00
 
             xPL_setTarget(cntrMessageStat, xPL_getSourceVendor(msg), xPL_getSourceDeviceID(msg), xPL_getSourceInstanceID(msg));
 
-            ///xPL_sendMessage(cntrMessageStat);
             mea_sendXPLMessage(cntrMessageStat);
+            
             i001->indicators.nbsensorsxplsent++;
             
             xPL_releaseMessage(cntrMessageStat);
@@ -597,9 +598,10 @@ int16_t interface_type_001_sensors_poll_inputs(interface_type_001_t *i001)
                   xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_LAST_ID),str_last);
                      
                   // Broadcast the message
-                  //xPL_sendMessage(cntrMessageStat);
                   mea_sendXPLMessage(cntrMessageStat);
-                     
+                  
+                  (i001->indicators.nbsensorsxplsent)++;
+                  
                   xPL_releaseMessage(cntrMessageStat);
                }
             }
@@ -626,6 +628,8 @@ void interface_type_001_sensors_init(interface_type_001_t *i001)
       current_queue(sensors_list, (void **)&sensor);
 
       sensor->nbtrap=&(i001->indicators.nbsensorstraps);
+      sensor->nbxplout=&(i001->indicators.nbsensorsxplsent);
+      
       comio2_setTrap(i001->ad, sensor->arduino_pin+10, interface_type_001_sensors_process_traps, (void *)sensor);
 
       start_timer(&(sensor->timer));
