@@ -1176,3 +1176,133 @@ exit_updateMeaEdomus:
 }
 
 
+// une fonction pour chaque changement de version.
+int16_t upgrade_params_db_from_0_to_1(sqlite3 *sqlite3_param_db, struct upgrade_params_s *upgrade_params)
+{
+ int rc=0;
+ char sql[256];
+ int16_t n;
+ 
+   // ajout d'une colonne à la table des capteurs/actioneurs
+   ret = sqlite3_exec(sqlite3_param_db, "ALTER TABLE sensors_actuators ADD COLUMN todbflag INTEGER", NULL, NULL, &err);
+   if( ret != SQLITE_OK )
+   {
+      VERBOSE(9) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
+      sqlite3_free(err);
+      return -1;
+   }
+
+   // mise en place d'une valeur par defaut 1 = historisation activée
+   ret = sqlite3_exec(sqlite3_param_db, "UPDATE sensors_actuators SET 'todbflag' = '1'", NULL, NULL, &err);
+   if( ret != SQLITE_OK )
+   {
+      VERBOSE(9) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
+      sqlite3_free(err);
+      return -1;
+   }
+
+   // ajout de nodejs
+   // chemin
+   n=snprintf(sql, sizeof(sql), "REPLACE INTO 'application_parameters' (id, key, value, complement) VALUES ('%d', 'NODEJS_PATH', '%s/bin/node', '')", NODEJS_PATH, upgrade_params[MEA_PATH]);
+   if(n<0 || n==sizeof(sql_query))
+   {
+      VERBOSE(9) {
+         fprintf (stderr, "%s (%s) : snprintf - ", DEBUG_STR,__func__);
+         perror("");
+      }
+      return -1;
+   }
+   ret = sqlite3_exec(sqlite3_param_db, sql, NULL, NULL, &err);
+   if( ret != SQLITE_OK )
+   {
+      VERBOSE(9) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__, sqlite3_errmsg(sqlite3_param_db));
+      sqlite3_free(err);
+      return -1;
+   }
+
+   //
+   // port socket data
+   //
+   n=snprintf(sql, sizeof(sql), "REPLACE INTO 'application_parameters' (id, key, value, complement) VALUES ('%d','NODEJSDATA_PORT','%d','')",NODEJSDATA_PORT, 5600);
+   if(n<0 || n==sizeof(sql))
+   {
+      VERBOSE(9) {
+         fprintf (stderr, "%s (%s) : snprintf - ", DEBUG_STR,__func__);
+         perror("");
+      }
+      return -1;
+   }
+   ret = sqlite3_exec(sqlite3_param_db, sql, NULL, NULL, &err);
+   if( ret != SQLITE_OK )
+   {
+      VERBOSE(9) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
+      sqlite3_free(err);
+      return -1;
+   }
+
+   //
+   // port socket io
+   //
+   n=snprintf(sql, sizeof(sql), "REPLACE INTO 'application_parameters' (id, key, value, complement) VALUES ('%d', 'NODEJSIOSOCKET_PORT', '%d', '')", NODEJSIOSOCKET_PORT, 8000);
+   if(n<0 || n==sizeof(sql))
+   {
+      VERBOSE(9) {
+         fprintf (stderr, "%s (%s) : snprintf - ", DEBUG_STR,__func__);
+         perror("");
+      }
+      return -1;
+   }
+   ret = sqlite3_exec(sqlite3_param_db, sql, NULL, NULL, &err);
+   if( ret != SQLITE_OK )
+   {
+      VERBOSE(9) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
+      sqlite3_free(err);
+      return -1;
+   }
+
+   //
+   // mise à jour de la version (spécifique car version n'exitait pas, update simplement pour les autres upgrade)
+   //
+   n=snprintf(sql, sizeof(sql), "REPLACE INTO 'application_parameters' (id,key,value,complement) VALUES ('%d','PARAMSDBVERSION','1','')",PARAMSDBVERSION);
+   if(n<0 || n==sizeof(sql))
+   {
+      VERBOSE(9) {
+         fprintf (stderr, "%s (%s) : snprintf - ", DEBUG_STR,__func__);
+         perror("");
+      }
+      return -1;
+   }
+   ret = sqlite3_exec(sqlite3_param_db, sql, NULL, NULL, &err);
+   if( ret != SQLITE_OK )
+   {
+      VERBOSE(9) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
+      sqlite3_free(err);
+      return -1;
+   }
+}
+
+typedef int16_t (*upgrade_params_db_from_x_to_y_f)(sqlite3 *, struct upgrade_params_s *);
+
+upgrade_params_db_from_x_to_y_f upgrade_params_db_from_x_to_y[]= { upgrade_params_db_from_0_to_1, NULL };
+#define NB_UPGRADE_FN 1;
+
+int16_t upgrade_params_db(sqlite3 *sqlite3_param_db, uint16_t fromVersion, uint16_t toVersion, struct upgrade_params_s *upgrade_params)
+{
+   int ret=0;
+   for(i=fromVersion;i<NB_UPGRADE_FN && i<toVersion;i++)
+   {
+     if(upgrade_params_db_from_x_to_y_f[i](sqlite3_param_db, data)<0)
+     {
+       ret=-1;
+       break;
+     }
+   }
+   if(ret==-1)
+   {
+      VERBOSE(9) fprintf (stderr, "%s (%s) : upgrade error at stage %d\n", DEBUG_STR,__func__,i);
+      return -1;
+   }
+   
+   return ret;
+}
+
