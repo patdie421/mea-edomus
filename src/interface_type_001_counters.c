@@ -366,12 +366,6 @@ int16_t interface_type_001_counters_poll_inputs(interface_type_001_t *i001)
    queue_t *counters_list=i001->counters_list;
    struct electricity_counter_s *counter;
 
-   process_update_indicator(i001->monitoring_id, "NBCTRAPS",    i001->indicators.nbcounterstraps);
-   process_update_indicator(i001->monitoring_id, "NBCREADS",    i001->indicators.nbcountersread);
-   process_update_indicator(i001->monitoring_id, "NBCREADSERR", i001->indicators.nbcountersreaderr);
-   process_update_indicator(i001->monitoring_id, "NBCXPLOUT",   i001->indicators.nbcountersxplsent);
-   process_update_indicator(i001->monitoring_id, "NBCXPLIN",    i001->indicators.nbcountersxplrecv);
-
    first_queue(counters_list);
    for(int16_t i=0; i<counters_list->nb_elem; i++)
    {
