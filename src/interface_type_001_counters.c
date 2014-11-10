@@ -97,7 +97,8 @@ int16_t interface_type_001_counters_process_traps(int16_t numTrap, char *buff, i
          start_timer(&(counter->trap_timer)); // réinitialisation du timer à chaque trap
 
          /* à revoir */
-         // tomysqldb_add_data_to_sensors_values(myd, counter->sensor_id, counter->power, UNIT_W, (float)counter->t-t_old, "");
+//         if(counter->todbflag==1)
+//            tomysqldb_add_data_to_sensors_values(counter->sensor_id, counter->power, UNIT_W, (float)counter->t-t_old, "");
 
          char value[20];
          xPL_ServicePtr servicePtr = mea_getXPLServicePtr();
@@ -113,7 +114,7 @@ int16_t interface_type_001_counters_process_traps(int16_t numTrap, char *buff, i
 
             mea_sendXPLMessage(cntrMessageStat);
 
-            *(counter->nbxplou)=*(counter->nbxplout)+1;
+            *(counter->nbxplout)=*(counter->nbxplout)+1;
 
             xPL_releaseMessage(cntrMessageStat);
          }
@@ -245,7 +246,7 @@ void counter_to_xpl(interface_type_001_t *i001, struct electricity_counter_s *co
 
 int16_t counter_to_db(struct electricity_counter_s *counter)
 {
-   return dbServer_add_data_to_sensors_values(counter->sensor_id, (double)counter->wh_counter, UNIT_WH, (double)counter->kwh_counter, "WH");
+   return dbServer_add_data_to_sensors_values(counter->sensor_id, (double)counter->wh_counter, UNIT_WH, (double)counter->kwh_counter, "KWH");
 }
 
 
@@ -387,6 +388,9 @@ int16_t interface_type_001_counters_poll_inputs(interface_type_001_t *i001)
          counter->last_power=counter->power;
          counter->power=0;
 
+//            if(counter->todbflag==1) // attention seulement si puissance logger
+//               counter_to_db(counter);
+
          // envoyer un message xpl 0W
          xPL_ServicePtr servicePtr = mea_getXPLServicePtr();
          if(servicePtr)
@@ -417,6 +421,7 @@ int16_t interface_type_001_counters_poll_inputs(interface_type_001_t *i001)
 
          if(counter->counter!=counter->last_counter)
          {
+//            if(counter->todbflag==1)
             counter_to_db(counter);
          }
 
