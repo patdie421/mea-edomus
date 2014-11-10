@@ -86,7 +86,7 @@ static void _automator_stop(int signal_number)
    exit(0);
 }
 
-uint16_t digital_inputs[255];
+uint8_t digital_inputs[255];
 float analog_inputs[255];
 int n;
 
@@ -156,6 +156,19 @@ int16_t set_input(int input_type, int input_index, char *input_value, xPL_NameVa
    }
    
    return 0;
+}
+
+
+void print_digital_inputs()
+{
+   for(i=0;i<16;i++)
+   {
+      fprintf(stderr, "%03d : ",i);
+      for(j=0;j<16;j++)
+      {
+         fprintf(stderr, "%03d", digital_inputs[i*j];
+      }
+   }
 }
 
                
@@ -378,20 +391,21 @@ int16_t find_and_process_rules(sqlite3 *db, xPL_MessagePtr theMessage)
          {
             int conditions_id_rule;
             char *rules_name;
-//            int input_type;
-//            int input_index;
-//            char *input_value;
+            int input_type;
+            int input_index;
+            char *input_value;
 
             conditions_id_rule = sqlite3_column_int(stmt, 0);
             rules_name = (char *)sqlite3_column_text(stmt, 1);
-//            input_type = sqlite3_column_int(stmt, 2);
-//            input_index = sqlite3_column_int(stmt, 3);
-//            input_value = (char *)sqlite3_column_text(stmt, 1);
+            input_type = sqlite3_column_int(stmt, 2);
+            input_index = sqlite3_column_int(stmt, 3);
+            input_value = (char *)sqlite3_column_text(stmt, 1);
             
             if(check_conditions(conditions_id_rule, xpl_body)==0)
             {
                VERBOSE(9) fprintf (stderr, "%s (%s) : RULE %s MATCH :-)\n", INFO_STR,__func__,rules_name);
-               // ret=set_input(input_type, input_index, input_value, xpl_body);
+               ret=set_input(input_type, input_index, input_value, xpl_body);
+               print_digital_inputs();
                // si ret==0 déclenchement de l'automate (synchro a définir : signal, condition, ...)
             }
             else
