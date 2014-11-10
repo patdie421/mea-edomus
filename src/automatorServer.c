@@ -88,7 +88,18 @@ static void _automator_stop(int signal_number)
 
 uint8_t digital_inputs[255];
 float analog_inputs[255];
+uint8_t steps[255]; // les étape
+uint8_t evaluation_digital_inputs[255];
+float evaluation_analog_inputs[255];
+
 int n;
+
+
+int16_t InputsToEvaluationBuffer()
+{
+   memcpy(evaluation_digital_inputs, digital_inputs, 255*sizeof(uint8_t));
+   memcpy(evaluation_analog_inputs, analog_inputs, 255*sizeof(float));
+}
 
 
 int16_t set_input(int input_type, int input_index, char *input_value, xPL_NameValueListPtr xpl_body)
