@@ -173,7 +173,12 @@ int load_interface_type_001(interface_type_001_t *i001, int interface_id, sqlite
 
    
    // préparation de la requete permettant d'obtenir les capteurs associés à l'interface
-   sprintf(sql_request,"SELECT * FROM sensors_actuators WHERE id_interface=%d", interface_id);
+//   sprintf(sql_request,"SELECT * FROM sensors_actuators WHERE id_interface=%d", interface_id);
+   
+   // /!\ on ne tient pas compte de l'état du capteur => à ajouter ...
+   //     essayer "SELECT * FROM sensors_actuators WHERE id_interface=%d" and sensors_actuators.state='1'"
+   sprintf(sql_request,"SELECT * FROM sensors_actuators WHERE id_interface=%d and sensors_actuators.state='1'", interface_id);
+   
    ret = sqlite3_prepare_v2(db,sql_request,strlen(sql_request)+1,&stmt,NULL);
    if(ret)
    {
@@ -192,6 +197,7 @@ int load_interface_type_001(interface_type_001_t *i001, int interface_id, sqlite
          int id_type=sqlite3_column_int(stmt, 2);
          const unsigned char *name=sqlite3_column_text(stmt, 4);
          const unsigned char *parameters=sqlite3_column_text(stmt, 7);
+         int todbflag=sqlite3_column_int(stmt, 9);
          
          switch (id_type)
          {
@@ -205,6 +211,7 @@ int load_interface_type_001(interface_type_001_t *i001, int interface_id, sqlite
                   counter->counter=0;
                   counter->last_power=0.0;
                   counter->last_counter=0;
+                  counter->todbflag = todbflag;
                   in_queue_elem(i001->counters_list, counter);
                }
                nb_sensors_actuators++;
@@ -217,6 +224,7 @@ int load_interface_type_001(interface_type_001_t *i001, int interface_id, sqlite
                actuator=valid_and_malloc_actuator(id_sensor_actuator, (char *)name, (char *)parameters);
                if(actuator)
                   in_queue_elem(i001->actuators_list, actuator);
+               actuator->todbflag = todbflag;
                nb_sensors_actuators++;
                break;
             }
@@ -225,6 +233,7 @@ int load_interface_type_001(interface_type_001_t *i001, int interface_id, sqlite
             {
                struct sensor_s *sensor;
                sensor=interface_type_001_sensors_valid_and_malloc_sensor(id_sensor_actuator, (char *)name, (char *)parameters);
+               sensor->todbflag = todbflag;
                if(sensor)
                   in_queue_elem(i001->sensors_list, sensor);
                nb_sensors_actuators++;
@@ -327,8 +336,27 @@ void *_thread_interface_type_001(void *args)
    uint32_t cntr=0;
    while(1)
    {
+      // maj indicateurs process
       process_heartbeat(i001->monitoring_id);
-      process_update_indicator(i001->monitoring_id, "XPLIN", ++(i001->indicators.nbxplin));
+
+      process_update_indicator(i001->monitoring_id, I001_XPLINNB,    i001->indicators.nbxplin);
+      
+      process_update_indicator(i001->monitoring_id, I001_SNBTRAPS,   i001->indicators.nbsensorstraps);
+      process_update_indicator(i001->monitoring_id, I001_SNBREADS,   i001->indicators.nbsensorsread);
+      process_update_indicator(i001->monitoring_id, I001_SNBREADSERR,i001->indicators.nbsensorsreaderr);
+      process_update_indicator(i001->monitoring_id, I001_SNBXPLOUT,  i001->indicators.nbsensorsxplsent);
+      process_update_indicator(i001->monitoring_id, I001_SNBXPLIN,   i001->indicators.nbsensorsxplrecv);
+
+      process_update_indicator(i001->monitoring_id, I001_ANBXPLIN,   i001->indicators.nbactuatorsxplrecv);
+      process_update_indicator(i001->monitoring_id, I001_ANBOUTERR,  i001->indicators.nbactuatorsouterr);
+      process_update_indicator(i001->monitoring_id, I001_ANBOUT,     i001->indicators.nbactuatorsout);
+
+      process_update_indicator(i001->monitoring_id, I001_CNBTRAPS,   i001->indicators.nbcounterstraps);
+      process_update_indicator(i001->monitoring_id, I001_CNBREADS,   i001->indicators.nbcountersread);
+      process_update_indicator(i001->monitoring_id, I001_CNBREADSERR,i001->indicators.nbcountersreaderr);
+      process_update_indicator(i001->monitoring_id, I001_CNBXPLOUT,  i001->indicators.nbcountersxplsent);
+      process_update_indicator(i001->monitoring_id, I001_CNBXPLIN,   i001->indicators.nbcountersxplrecv);
+
 
       if(interface_type_001_counters_poll_inputs(i001)<0)
       {

@@ -46,7 +46,7 @@ function grid_inputs() {
                mea_alert2(str_Error.capitalize()+" : ", str_not_connected, function(){window.location = "login.php";} );
                return false;
             }
-            if(authdata.profil==98) {
+            if(data.error==98) {
                mea_alert2(str_Error.capitalize()+" : ", str_not_allowed, function(){window.location = "index.php";} );
                return false;
             }

@@ -3,7 +3,7 @@
  * \author    patdie421
  * \version   0.1
  * \date      30 octobre 2013
- * \brief     Ensemble des fonctions qui permettent la gestion de l'initialisation de l'application.
+ * \brief     Ensemble des fonctions qui permettent la gestion de l'initialisation et la mise à jour de l'application.
  * \details   initialisation automatique, initialisation interactive et mise à jour des paramètres de l'application.
  */
 
@@ -36,7 +36,7 @@
 char const *usr_str="/usr";
 
 
-int16_t lineToFile(char *file, char *lines[])
+int16_t linesToFile(char *file, char *lines[])
  /**
   * \brief     Création d'un fichier (texte) avec les lignes passées en paramètres (tableau de chaine).
   * \details   Le dernier élément du tableau de lignes doit être NULL.
@@ -366,7 +366,7 @@ int16_t create_php_ini(char *phpini_path)
       return 1;
    }
 
-   int16_t rc=lineToFile(phpini,lines);
+   int16_t rc=linesToFile(phpini,lines);
    if(rc)
    {
       VERBOSE(5) {
@@ -478,6 +478,7 @@ int16_t createMeaTables(sqlite3 *sqlite3_param_db)
       "CREATE TABLE interfaces(id INTEGER PRIMARY KEY,id_interface INTEGER,id_type INTEGER,name TEXT,description TEXT,dev TEXT,parameters TEXT,state INTEGER)",
       "CREATE TABLE locations(id INTEGER PRIMARY KEY,id_location INTEGER,name TEXT,description TEXT)",
       "CREATE TABLE sensors_actuators(id INTEGER PRIMARY KEY,id_sensor_actuator INTEGER,id_type INTEGER,id_interface INTERGER,name TEXT,description TEXT,id_location INTEGER,parameters TEXT,state INTEGER)",
+//      "CREATE TABLE sensors_actuators(id INTEGER PRIMARY KEY,id_sensor_actuator INTEGER,id_type INTEGER,id_interface INTERGER,name TEXT,description TEXT,id_location INTEGER,parameters TEXT,state INTEGER, todbflag INTEGER)",
       "CREATE TABLE types(id INTEGER PRIMARY KEY,id_type INTEGER,name TEXT,description TEXT,parameters TEXT,flag INTEGER)",
       "CREATE TABLE sessions (id INTEGER PRIMARY KEY, userid TEXT, sessionid INTEGER, lastaccess DATETIME)",
       "CREATE TABLE users (id INTEGER PRIMARY KEY, id_user INTEGER, name TEXT, password TEXT, description TEXT, profil INTEGER, flag INTEGER)",
@@ -669,6 +670,7 @@ int16_t init_db(char **params_list, char **keys)
 
    // initialisation des paramètres de l'application
    char *value;
+
    for(int16_t i=0;i<MAX_LIST_SIZE;i++)
    {
       if(keys[i])
@@ -893,6 +895,11 @@ int16_t autoInit(char **params_list, char **keys)
    //
    // Mise à jour de params_list avec les valeurs par defaut pour les entrées "vide" (NULL)
    //
+   char db_version[10];
+   sprintf(db_version,"%d",CURRENT_PARAMS_DB_VERSION);
+   
+   _construct_string(params_list, PARAMSDBVERSION, db_version);
+   
    _construct_string(params_list, VENDOR_ID,       "mea");
    _construct_string(params_list, DEVICE_ID,       "edomus");
    _construct_string(params_list, INSTANCE_ID,     "home");
@@ -995,6 +1002,11 @@ int16_t interactiveInit(char **params_list, char **keys)
       p_str=params_list[MEA_PATH];
       sessions_str="var/sessions";
    }
+
+   char db_version[10];
+   sprintf(db_version,"%d",CURRENT_PARAMS_DB_VERSION);
+
+   _construct_string(params_list, PARAMSDBVERSION, db_version);
 
    // Récupération des données
    _read_string(params_list, VENDOR_ID,        "mea",       "xPL Vendor ID");
@@ -1174,4 +1186,140 @@ exit_updateMeaEdomus:
    return retcode;
 }
 
+
+// une fonction pour chaque changement de version.
+int16_t upgrade_params_db_from_0_to_1(sqlite3 *sqlite3_param_db, struct upgrade_params_s *upgrade_params)
+{
+// int rc=0;
+ char sql[256];
+ int16_t n;
+ int ret;
+ char *err = NULL;
+ 
+   // ajout d'une colonne à la table des capteurs/actioneurs
+   ret = sqlite3_exec(sqlite3_param_db, "ALTER TABLE sensors_actuators ADD COLUMN todbflag INTEGER", NULL, NULL, &err);
+   if( ret != SQLITE_OK )
+   {
+      VERBOSE(9) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
+      sqlite3_free(err);
+//      return -1;
+   }
+
+   // mise en place d'une valeur par defaut 1 = historisation activée
+   ret = sqlite3_exec(sqlite3_param_db, "UPDATE sensors_actuators SET 'todbflag' = '1'", NULL, NULL, &err);
+   if( ret != SQLITE_OK )
+   {
+      VERBOSE(9) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
+      sqlite3_free(err);
+      return -1;
+   }
+
+   // ajout de nodejs
+   // chemin
+   n=snprintf(sql, sizeof(sql), "REPLACE INTO 'application_parameters' (id, key, value, complement) VALUES ('%d', 'NODEJSPATH', '%s/bin/node', '')", NODEJS_PATH, upgrade_params->params_list[MEA_PATH]);
+   if(n<0 || n==sizeof(sql))
+   {
+      VERBOSE(9) {
+         fprintf (stderr, "%s (%s) : snprintf - ", DEBUG_STR,__func__);
+         perror("");
+      }
+      return -1;
+   }
+   ret = sqlite3_exec(sqlite3_param_db, sql, NULL, NULL, &err);
+   if( ret != SQLITE_OK )
+   {
+      VERBOSE(9) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__, sqlite3_errmsg(sqlite3_param_db));
+      sqlite3_free(err);
+      return -1;
+   }
+
+   //
+   // port socket data
+   //
+   n=snprintf(sql, sizeof(sql), "REPLACE INTO 'application_parameters' (id, key, value, complement) VALUES ('%d','NODEJSDATAPORT','%d','')",NODEJSDATA_PORT, 5600);
+   if(n<0 || n==sizeof(sql))
+   {
+      VERBOSE(9) {
+         fprintf (stderr, "%s (%s) : snprintf - ", DEBUG_STR,__func__);
+         perror("");
+      }
+      return -1;
+   }
+   ret = sqlite3_exec(sqlite3_param_db, sql, NULL, NULL, &err);
+   if( ret != SQLITE_OK )
+   {
+      VERBOSE(9) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
+      sqlite3_free(err);
+      return -1;
+   }
+
+   //
+   // port socket io
+   //
+   n=snprintf(sql, sizeof(sql), "REPLACE INTO 'application_parameters' (id, key, value, complement) VALUES ('%d', 'NODEJSSOCKETIOPORT', '%d', '')", NODEJSIOSOCKET_PORT, 8000);
+   if(n<0 || n==sizeof(sql))
+   {
+      VERBOSE(9) {
+         fprintf (stderr, "%s (%s) : snprintf - ", DEBUG_STR,__func__);
+         perror("");
+      }
+      return -1;
+   }
+   ret = sqlite3_exec(sqlite3_param_db, sql, NULL, NULL, &err);
+   if( ret != SQLITE_OK )
+   {
+      VERBOSE(9) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
+      sqlite3_free(err);
+      return -1;
+   }
+
+   //
+   // mise à jour de la version (spécifique car version n'exitait pas, update simplement pour les autres upgrade)
+   //
+   n=snprintf(sql, sizeof(sql), "REPLACE INTO 'application_parameters' (id,key,value,complement) VALUES ('%d','PARAMSDBVERSION','1','')",PARAMSDBVERSION);
+   if(n<0 || n==sizeof(sql))
+   {
+      VERBOSE(9) {
+         fprintf (stderr, "%s (%s) : snprintf - ", DEBUG_STR,__func__);
+         perror("");
+      }
+      return -1;
+   }
+   ret = sqlite3_exec(sqlite3_param_db, sql, NULL, NULL, &err);
+   if( ret != SQLITE_OK )
+   {
+      VERBOSE(9) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
+      sqlite3_free(err);
+      return -1;
+   }
+   
+   return 0;
+}
+
+
+typedef int16_t (*upgrade_params_db_from_x_to_y_f)(sqlite3 *, struct upgrade_params_s *);
+
+upgrade_params_db_from_x_to_y_f upgrade_params_db_from_x_to_y[]= { upgrade_params_db_from_0_to_1, NULL };
+#define NB_UPGRADE_FN 1
+
+int16_t upgrade_params_db(sqlite3 *sqlite3_param_db, uint16_t fromVersion, uint16_t toVersion, struct upgrade_params_s *upgrade_params)
+{
+   int ret=0;
+   int i=0;
+   for(i=fromVersion; (i<NB_UPGRADE_FN && i<toVersion); i++)
+   {
+     if(upgrade_params_db_from_x_to_y[i](sqlite3_param_db, upgrade_params)<0)
+     {
+       ret=-1;
+       break;
+     }
+   }
+   if(ret==-1)
+   {
+      VERBOSE(9) fprintf (stderr, "%s (%s) : upgrade error at stage %d\n", DEBUG_STR,__func__,i);
+      return -1;
+   }
+   
+   return ret;
+}
 

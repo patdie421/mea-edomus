@@ -19,6 +19,21 @@
 
 #include "interface_type_001.h"
 
+#define I001_XPLINNB     "NBXPLIN"
+#define I001_SNBTRAPS    "SNBTRAPS"
+#define I001_SNBREADS    "SNBREADS"
+#define I001_SNBREADSERR "SNBREADSERR"
+#define I001_SNBXPLOUT   "SNBXPLOUT"
+#define I001_SNBXPLIN    "SNBXPLIN"
+#define I001_ANBOUTERR   "ANBOUTERR"
+#define I001_ANBOUT      "ANBOUT"
+#define I001_ANBXPLIN    "ANBXPLIN"
+#define I001_CNBTRAPS    "CNBTRAPS"
+#define I001_CNBREADS    "CNBREADS"
+#define I001_CNBREADSERR "CNBREADSERR"
+#define I001_CNBXPLOUT   "CNBXPLOUT"
+#define I001_CNBXPLIN    "CNBXPLIN"
+
 struct interface_type_001_indicators_s
 {
    uint32_t nbxplin;

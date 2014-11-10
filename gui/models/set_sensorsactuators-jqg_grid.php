@@ -3,6 +3,8 @@ include_once('../lib/configs.php');
 include_once('../lib/php/auth_utils.php');
 session_start();
 
+header('Content-type: application/json');
+
 switch(check_admin()){
     case 98:
         echo json_encode(array("result"=>"KO","error"=>98,"error_msg"=>"pas habilité" ));
@@ -17,9 +19,12 @@ switch(check_admin()){
         exit(1);
 }
 
+
+
 if(isset($_POST['oper'])){
     $oper = $_POST['oper'];
-    $fields=array('oper','id_sensor_actuator','id_interface','id_type','name','description','parameters','state','id_location');
+//    $fields=array('oper','id_sensor_actuator','id_interface','id_type','name','description','parameters','state','id_location');
+    $fields=array('oper','id_sensor_actuator','id_interface','id_type','name','description','parameters','state','todbflag','id_location');
     if($oper==='edit')
         $fields[]='id';
     if($oper==='del')
@@ -50,7 +55,9 @@ $name = strtoupper($_POST['name']);
 $description = $_POST['description'];
 $parameters = $_POST['parameters'];
 $state = $_POST['state'];
+$todbflag = $_POST['todbflag'];
 $id_location = $_POST['id_location'];
+
 
 try {
     $file_db = new PDO($PARAMS_DB_PATH);
@@ -64,9 +71,11 @@ $file_db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION); // ERRMODE_WA
 
 
 if($oper === 'add'){
-    $sql_insert="INSERT INTO sensors_actuators (id_sensor_actuator,id_interface,id_type,name,description,parameters,state,id_location) "
-               ."VALUES(:id_sensor_actuator, :id_interface, :id_type, :name, :description, :parameters, :state, :id_location)";
+    $sql_insert="INSERT INTO sensors_actuators (id_sensor_actuator,id_interface,id_type,name,description,parameters,state,todbflag,id_location) "
+//               ."VALUES(:id_sensor_actuator, :id_interface, :id_type, :name, :description, :parameters, :state, :id_location)";
+               ."VALUES(:id_sensor_actuator, :id_interface, :id_type, :name, :description, :parameters, :state, :todbflag, :id_location)";
     try{
+
         $stmt = $file_db->prepare($sql_insert);
         $stmt->execute(
             array(
@@ -77,15 +86,18 @@ if($oper === 'add'){
                 ":description"        => $description,
                 ":parameters"         => $parameters,
                 ":state"              => $state,
+                ":todbflag"           => $todbflag,
                 ":id_location"        => $id_location
             )
         );
+
      }catch(PDOException $e){
         echo json_encode(array("result"=>"KO","error"=>5,"error_msg"=>$e->getMessage() ));
         $file_db=null;
         exit(1);
      }
 }elseif($oper === 'edit'){
+
     $sql_update="UPDATE sensors_actuators SET "
                                  ."id_sensor_actuator=:id_sensor_actuator, "
                                  ."id_interface=:id_interface, "
@@ -94,6 +106,7 @@ if($oper === 'add'){
                                  ."description=:description, "
                                  ."parameters=:parameters, "
                                  ."state=:state, "
+                                 ."todbflag=:todbflag, "
                                  ."id_location=:id_location "
                ."WHERE id=:id";
     try{
@@ -108,6 +121,7 @@ if($oper === 'add'){
                 ":description"        => $description,
                 ":parameters"         => $parameters,
                 ":state"              => $state,
+                ":todbflag"           => $todbflag,
                 ":id_location"        => $id_location
             )
         );
@@ -132,5 +146,7 @@ if($oper === 'add'){
         exit(1);
     }
 }
+
+echo json_encode(array("result"=>"OK","error"=>0,"error_msg"=>"" ));
 
 $file_db = null;

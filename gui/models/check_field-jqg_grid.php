@@ -47,7 +47,7 @@ try {
     else{
         $SQL="SELECT count(*) AS exist FROM $table WHERE $index=\"$value\"";
     }
-    error_log($SQL);
+    
     $stmt = $file_db->prepare($SQL);
     $stmt->execute();
     $result = $stmt->fetchAll();

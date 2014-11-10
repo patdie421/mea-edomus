@@ -57,14 +57,21 @@ int dbServer_monitoring_id=-1;
 int nodejsServer_monitoring_id=-1;
 
 queue_t *interfaces=NULL;                  /*!< liste (file) des interfaces. Variable globale car doit être accessible par les gestionnaires de signaux. */
-sqlite3 *sqlite3_param_db=NULL;            /*!< descripteur pour la base sqlite de paramétrage. Variable globale car doit être accessible par les gestionnaires de signaux. */
+sqlite3 *sqlite3_param_db=NULL;            /*!< descripteur pour la base sqlite de paramétrage. */
 pthread_t *monitoringServer_thread=NULL;   /*!< Adresse du thread de surveillance interne. Variable globale car doit être accessible par les gestionnaires de signaux.*/
 
+uint16_t params_db_version=0;
 char *params_names[MAX_LIST_SIZE];          /*!< liste des noms (chaines) de paramètres dans la base sqlite3 de paramétrage.*/
 char *params_list[MAX_LIST_SIZE];          /*!< liste des valeurs de paramètres.*/
 
 pid_t automator_pid = 0;
 int main_monitoring_id = -1;
+
+
+sqlite3 *get_sqlite3_param_db()
+{
+   return sqlite3_param_db;
+}
 
 
 void usage(char *cmd)
@@ -163,6 +170,7 @@ void init_param_names(char *param_names[])
    param_names[NODEJS_PATH]          = "NODEJSPATH";
    param_names[NODEJSIOSOCKET_PORT]  = "NODEJSSOCKETIOPORT";
    param_names[NODEJSDATA_PORT]      = "NODEJSDATAPORT";
+   param_names[PARAMSDBVERSION]      = "PARAMSDBVERSION";
 }
 
 
@@ -687,7 +695,30 @@ int main(int argc, const char * argv[])
       clean_all_and_exit();
    }
 
+   if(params_list[PARAMSDBVERSION]!=NULL)
+   {
+      params_db_version=atoi(params_list[PARAMSDBVERSION]);
+   }
 
+   if(params_db_version != CURRENT_PARAMS_DB_VERSION)
+   {
+      struct upgrade_params_s upgrade_params;
+      
+      upgrade_params.params_list = params_list;
+      
+      // mise à jour de la base
+      upgrade_params_db(sqlite3_param_db, params_db_version, CURRENT_PARAMS_DB_VERSION, &upgrade_params);
+      // rechargement des parametres
+      ret=read_all_application_parameters(sqlite3_param_db);
+      if(ret)
+      {
+         VERBOSE(1) fprintf (stderr, "%s (%s) : can't reload parameters\n",ERROR_STR,__func__);
+         sqlite3_close(sqlite3_param_db);
+         clean_all_and_exit();
+      }
+   }
+   
+   
    //
    // strout et stderr vers fichier log
    //
@@ -922,6 +953,6 @@ int main(int argc, const char * argv[])
 
       managed_processes_loop(); // watchdog et indicateurs
       
-      sleep(5);
+      sleep(1);
    }
 }

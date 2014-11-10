@@ -121,7 +121,7 @@ function grid_utilisateurs(){
                     mea_alert2(str_error.capitalize()+str_double_dot, str_not_connected, function(){window.location = "login.php";} );
                     return false;
                 }
-                if(authdata.profil==98) {
+                if(data.error==98) {
                     mea_alert2(str_error.capitalize()+str_double_dot, str_not_allowed, function(){window.location = "index.php";} );
                     return false;
                 }

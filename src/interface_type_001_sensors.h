@@ -35,6 +35,9 @@ struct sensor_s
    mea_timer_t timer;
    
    uint32_t *nbtrap;
+   uint32_t *nbxplout;
+   
+   int16_t todbflag;
 };
 
 void interface_type_001_sensors_free_queue_elem(void *d);

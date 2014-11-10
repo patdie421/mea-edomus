@@ -110,7 +110,7 @@ function grid_locations(){
                     mea_alert2(str_Error.capitalize()+" : ", str_not_connected.capitalize(), function(){window.location = "login.php";} );
                     return false;
                 }
-                if(authdata.profil==98) {
+                if(data.error==98) {
                     mea_alert2(str_Error.capitalize()+" : ", str_not_allowed.capitalize(), function(){window.location = "index.php";} );
                     return false;
                 }

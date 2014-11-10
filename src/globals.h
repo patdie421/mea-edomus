@@ -16,6 +16,8 @@
 
 #define __MEA_EDOMUS_VERSION__ "0.1aplha4-ondev"
 
+// base de paramétrage
+
 #define MEA_PATH               1
 #define SQLITE3_DB_PARAM_PATH  2
 #define CONFIG_FILE            3
@@ -39,9 +41,11 @@
 #define NODEJS_PATH           21
 #define NODEJSIOSOCKET_PORT   22
 #define NODEJSDATA_PORT       23
-#define MAX_LIST_SIZE         24
+#define PARAMSDBVERSION       24
+#define MAX_LIST_SIZE         25
 
-//queue_t * get_interfaces();
+#define CURRENT_PARAMS_DB_VERSION 1
+sqlite3 *get_sqlite3_param_db();
 
 // voir ou mettre
 #define UNIT_WH 1 // Watt/Heure

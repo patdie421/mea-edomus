@@ -58,7 +58,7 @@ function _DataInit(element,flag,ws){
 }
 
 
-function _editRow(grid,fx,fx2) {
+function _editRow(grid, fx, fx2) {
     var grid = jQuery("#"+grid);
     var rowKey = grid.getGridParam("selrow");
     

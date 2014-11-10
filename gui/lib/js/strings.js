@@ -45,6 +45,8 @@ var str_login="connexion";
 var str_change="changer";
 var str_admin="administration";
 var str_warning="attention";
+var str_todb="historiser";
+
 // articles
 var str_the1="l'";
 var str_the2="le";
@@ -66,6 +68,7 @@ var str_interface_s=str_interface+"(s)";
 
 // config
 var str_application_prefs="préférence de l'application";
+
 // config-contenu
 var str_vendor_id=str_vendor+" "+str_ID+str_double_dot;
 var str_device_id=str_device2+" "+str_ID+str_double_dot;

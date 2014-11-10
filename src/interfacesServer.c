@@ -28,7 +28,7 @@
 #include "interface_type_002.h"
 
 queue_t *_interfaces=NULL;
-//pthread_mutex_t interfaces_queue_lock;
+
 pthread_rwlock_t interfaces_queue_rwlock;
 
 
@@ -178,7 +178,6 @@ void stop_interfaces()
             case INTERFACE_TYPE_001:
             {
                interface_type_001_t *i001=(interface_type_001_t *)(iq->context);
-//               VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping #%d\n",INFO_STR,__func__,i001->interface_id);
                
                if(i001->xPL_callback)
                   i001->xPL_callback=NULL;
@@ -187,7 +186,6 @@ void stop_interfaces()
                {
                   struct interface_type_001_Data_s *interface_type_001Data = process_get_data_ptr(i001->monitoring_id);
 
-//                  VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping %s... ",INFO_STR,__func__,i001->name);
                   process_stop(i001->monitoring_id, NULL, 0);
                   process_unregister(i001->monitoring_id);
                   i001->monitoring_id=-1;
@@ -196,7 +194,6 @@ void stop_interfaces()
                      free(interface_type_001Data);
                      interface_type_001Data=NULL;
                   }
-//                  VERBOSE(9) fprintf(stderr,"done\n");
                } 
 
                free(i001);
@@ -206,7 +203,6 @@ void stop_interfaces()
             case INTERFACE_TYPE_002:
             {
                interface_type_002_t *i002=(interface_type_002_t *)(iq->context);
-//               VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping #%d\n",INFO_STR,__func__,i002->id_interface);
                
                if(i002->xPL_callback)
                   i002->xPL_callback=NULL;
@@ -215,7 +211,6 @@ void stop_interfaces()
                {
                   struct interface_type_002_Data_s *interface_type_002Data = process_get_data_ptr(i002->monitoring_id);
 
-//                  VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping %s... ",INFO_STR,__func__,i002->name);
                   process_stop(i002->monitoring_id, NULL, 0);
                   process_unregister(i002->monitoring_id);
                   i002->monitoring_id=-1;
@@ -224,7 +219,6 @@ void stop_interfaces()
                      free(interface_type_002Data);
                      interface_type_002Data=NULL;
                   }
-//                  VERBOSE(9) fprintf(stderr,"done\n");
                } 
 
                free(i002);
@@ -312,6 +306,7 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                {
                   interface_type_001_t *i001;
                   
+                  // allocation du contexte de l'inteface
                   i001=(interface_type_001_t *)malloc(sizeof(interface_type_001_t));
                   if(!i001)
                   {
@@ -321,6 +316,8 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                      }
                      break;
                   }
+
+                  // initialisation contexte de l'interface
                   i001->thread_is_running=0;
                   struct interface_type_001_start_stop_params_s *i001_start_stop_params=(struct interface_type_001_start_stop_params_s *)malloc(sizeof(struct interface_type_001_start_stop_params_s));
                   if(!i001_start_stop_params)
@@ -333,14 +330,12 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                      }
                      break;
                   } 
-                  
                   i001_start_stop_params->i001=i001;
                   i001_start_stop_params->sqlite3_param_db = sqlite3_param_db;
                   strncpy(i001_start_stop_params->dev, (char *)dev, sizeof(i001_start_stop_params->dev)-1);
                   strncpy(i001->name, (char *)name, sizeof(i001->name)-1);
+                  i001->monitoring_id=0;
                   i001->loaded=0;
-                  i001->monitoring_id=process_register((char *)name);
-                  
                   i001->indicators.nbactuatorsout = 0;
                   i001->indicators.nbactuatorsxplrecv = 0;
                   i001->indicators.nbactuatorsouterr = 0;
@@ -355,28 +350,31 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                   i001->indicators.nbcountersxplsent = 0;
                   i001->indicators.nbcountersxplrecv = 0;
                   i001->indicators.nbxplin = 0;
-                  
-                  process_set_group(i001->monitoring_id, 1);
                   i001->interface_id=id_interface;
+                  
+                  // initialisation du process
+                  i001->monitoring_id=process_register((char *)name);
+                  process_set_group(i001->monitoring_id, 1);
                   process_set_start_stop(i001->monitoring_id, start_interface_type_001, stop_interface_type_001, (void *)i001_start_stop_params, 1);
                   process_set_watchdog_recovery(i001->monitoring_id, start_interface_type_001, (void *)i001_start_stop_params);
                   process_set_description(i001->monitoring_id, (char *)description);
                   
-                  process_add_indicator(i001->monitoring_id, "NBXPLIN", 0);
-                  process_add_indicator(i001->monitoring_id, "NBSTRAPS", 0);
-                  process_add_indicator(i001->monitoring_id, "NBSREADS", 0);
-                  process_add_indicator(i001->monitoring_id, "NBSREADSERR", 0);
-                  process_add_indicator(i001->monitoring_id, "NBSXPLOUT", 0);
-                  process_add_indicator(i001->monitoring_id, "NBSXPLIN", 0);
-                  process_add_indicator(i001->monitoring_id, "NBAOUTERR", 0);
-                  process_add_indicator(i001->monitoring_id, "NBAOUT", 0);
-                  process_add_indicator(i001->monitoring_id, "NBAXPLIN", 0);
-                  process_add_indicator(i001->monitoring_id, "NBCTRAPS", 0);
-                  process_add_indicator(i001->monitoring_id, "NBCREADS", 0);
-                  process_add_indicator(i001->monitoring_id, "NBCREADSERR", 0);
-                  process_add_indicator(i001->monitoring_id, "NBCXPLOUT", 0);
-                  process_add_indicator(i001->monitoring_id, "NBCXPLIN", 0);
-                  
+                  process_add_indicator(i001->monitoring_id, I001_XPLINNB, 0);
+                  process_add_indicator(i001->monitoring_id, I001_SNBTRAPS, 0);
+                  process_add_indicator(i001->monitoring_id, I001_SNBREADS, 0);
+                  process_add_indicator(i001->monitoring_id, I001_SNBREADSERR, 0);
+                  process_add_indicator(i001->monitoring_id, I001_SNBXPLOUT, 0);
+                  process_add_indicator(i001->monitoring_id, I001_SNBXPLIN, 0);
+                  process_add_indicator(i001->monitoring_id, I001_ANBOUTERR, 0);
+                  process_add_indicator(i001->monitoring_id, I001_ANBOUT, 0);
+                  process_add_indicator(i001->monitoring_id, I001_ANBXPLIN, 0);
+                  process_add_indicator(i001->monitoring_id, I001_CNBTRAPS, 0);
+                  process_add_indicator(i001->monitoring_id, I001_CNBREADS, 0);
+                  process_add_indicator(i001->monitoring_id, I001_CNBREADSERR, 0);
+                  process_add_indicator(i001->monitoring_id, I001_CNBXPLOUT, 0);
+                  process_add_indicator(i001->monitoring_id, I001_CNBXPLIN, 0);
+ 
+                  // lancement du process
                   ret=process_start(i001->monitoring_id, NULL, 0);
 
                   iq=(interfaces_queue_elem_t *)malloc(sizeof(interfaces_queue_elem_t));
@@ -424,6 +422,7 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                   process_set_start_stop(i002->monitoring_id, start_interface_type_002, stop_interface_type_002, (void *)i002_start_stop_params, 1);
                   process_set_watchdog_recovery(i002->monitoring_id, restart_interface_type_002, (void *)i002_start_stop_params);
                   process_set_description(i002->monitoring_id, (char *)description);
+                  process_set_heartbeat_interval(i002->monitoring_id, 60); // chien de garde au bout de 60 secondes sans heartbeat
                   ret=process_start(i002->monitoring_id, NULL, 0);
 
                   interfaces_queue_elem_t *iq=(interfaces_queue_elem_t *)malloc(sizeof(interfaces_queue_elem_t));

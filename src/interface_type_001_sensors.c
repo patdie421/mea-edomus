@@ -494,8 +494,8 @@ mea_error_t interface_type_001_sensors_process_xpl_msg(interface_type_001_t *i00
 
             xPL_setTarget(cntrMessageStat, xPL_getSourceVendor(msg), xPL_getSourceDeviceID(msg), xPL_getSourceInstanceID(msg));
 
-            ///xPL_sendMessage(cntrMessageStat);
             mea_sendXPLMessage(cntrMessageStat);
+            
             i001->indicators.nbsensorsxplsent++;
             
             xPL_releaseMessage(cntrMessageStat);
@@ -516,12 +516,7 @@ int16_t interface_type_001_sensors_poll_inputs(interface_type_001_t *i001)
    struct sensor_s *sensor;
 
    int16_t comio2_err;
-
-   process_update_indicator(i001->monitoring_id, "NBSTRAPS",    i001->indicators.nbsensorstraps);
-   process_update_indicator(i001->monitoring_id, "NBSREADS",    i001->indicators.nbsensorsread);
-   process_update_indicator(i001->monitoring_id, "NBSREADSERR", i001->indicators.nbsensorsreaderr);
-   process_update_indicator(i001->monitoring_id, "NBSXPLOUT",   i001->indicators.nbsensorsxplsent);
-   process_update_indicator(i001->monitoring_id, "NBSXPLIN",    i001->indicators.nbsensorsxplrecv);
+   int unit;
 
    first_queue(sensors_list);
    for(int16_t i=0; i<sensors_list->nb_elem; i++)
@@ -575,11 +570,12 @@ int16_t interface_type_001_sensors_poll_inputs(interface_type_001_t *i001)
                if(sensor->compute==XPL_TEMP_ID)
                {
                   VERBOSE(9) fprintf(stderr,"%s  (%s) : temperature sensor %s =  %.1f °C (%d) \n",INFO_STR,__func__,sensor->name,sensor->computed_val,sensor->val);
-                  dbServer_add_data_to_sensors_values(sensor->sensor_id, sensor->computed_val, UNIT_C, sensor->val, "");
+                  unit = UNIT_C;
                }
                else if(sensor->compute==XPL_VOLTAGE_ID)
                {
                   VERBOSE(9) fprintf(stderr,"%s  (%s) : voltage sensor %s =  %.1f V (%d) \n",INFO_STR,__func__,sensor->name,sensor->computed_val,sensor->val);
+                  unit = UNIT_V;
                }
                else
                {
@@ -588,7 +584,10 @@ int16_t interface_type_001_sensors_poll_inputs(interface_type_001_t *i001)
                   
                char str_value[20];
                char str_last[20];
-                  
+               
+               if(sensor->todbflag == 1)
+                  dbServer_add_data_to_sensors_values(sensor->sensor_id, sensor->computed_val, unit, sensor->val, "");
+
                xPL_ServicePtr servicePtr = mea_getXPLServicePtr();
                if(servicePtr)
                {
@@ -603,12 +602,10 @@ int16_t interface_type_001_sensors_poll_inputs(interface_type_001_t *i001)
                   xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_CURRENT_ID),str_value);
                   xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_LAST_ID),str_last);
                      
-                  // Broadcast the message
                   mea_sendXPLMessage(cntrMessageStat);
                   
-// ajouter maj indicateur xplout
-// (i001->indicators.nbcountersxplsent)++;
-
+                  (i001->indicators.nbsensorsxplsent)++;
+                  
                   xPL_releaseMessage(cntrMessageStat);
                }
             }
@@ -635,6 +632,8 @@ void interface_type_001_sensors_init(interface_type_001_t *i001)
       current_queue(sensors_list, (void **)&sensor);
 
       sensor->nbtrap=&(i001->indicators.nbsensorstraps);
+      sensor->nbxplout=&(i001->indicators.nbsensorsxplsent);
+      
       comio2_setTrap(i001->ad, sensor->arduino_pin+10, interface_type_001_sensors_process_traps, (void *)sensor);
 
       start_timer(&(sensor->timer));

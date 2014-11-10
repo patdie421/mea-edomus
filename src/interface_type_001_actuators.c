@@ -163,7 +163,7 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
    unsigned char sval[2];
    int16_t comio2_err;
 
-   process_update_indicator(i001->monitoring_id, "NBAXPLIN", ++(i001->indicators.nbactuatorsxplrecv));
+   (i001->indicators.nbactuatorsxplrecv)++;
    
    type_id=get_id_by_string(type);
    if(type_id != XPL_OUTPUT_ID && type_id !=VARIABLE_ID)
@@ -208,12 +208,13 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
                   if(ret!=0)
                   {
                      VERBOSE(9) fprintf(stderr,"%s  (%s) : comio2_call_proc error (comio2_err=%d)\n",INFO_STR, __func__,comio2_err);
-                     process_update_indicator(i001->monitoring_id, "NBAOUTERR", ++(i001->indicators.nbactuatorsouterr));
+                     (i001->indicators.nbactuatorsouterr)++;
 
                      return ERROR;
                   }
-                  process_update_indicator(i001->monitoring_id, "NBAOUT", ++(i001->indicators.nbactuatorsout));
-
+                  
+                  (i001->indicators.nbactuatorsout)++;
+                  dbServer_add_data_to_sensors_values(iq->actuator_id, 1, 0, sval[1], "pulse");
                   return NOERROR;
                   break;
                }
@@ -234,11 +235,14 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
                   if(ret!=0)
                   {
                      VERBOSE(9) fprintf(stderr,"%s  (%s) : comio2_call_proc error (comio2_err=%d)\n",INFO_STR, __func__,comio2_err);
-                     process_update_indicator(i001->monitoring_id, "NBAOUTERR", ++(i001->indicators.nbactuatorsouterr));
+                     (i001->indicators.nbactuatorsouterr)++;
 
                      return ERROR;
                   }
-                  process_update_indicator(i001->monitoring_id, "NBAOUT", ++(i001->indicators.nbactuatorsout));
+                  (i001->indicators.nbactuatorsout)++;
+                  if(iq->todbflag == 1)
+                     dbServer_add_data_to_sensors_values(iq->actuator_id, o, 0, 0, "");
+
                   return NOERROR;
                   break;
                }
@@ -311,10 +315,12 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
             if(ret!=0)
             {
                VERBOSE(9) fprintf(stderr,"%s  (%s) : comio2_call_proc error (comio2_err=%d)\n",INFO_STR, __func__,comio2_err);
-               process_update_indicator(i001->monitoring_id, "NBAOUTERR", ++(i001->indicators.nbactuatorsouterr));
+               (i001->indicators.nbactuatorsouterr)++;
                return ERROR;
             }
-            process_update_indicator(i001->monitoring_id, "NBAOUT", ++(i001->indicators.nbactuatorsout));
+            (i001->indicators.nbactuatorsout)++;
+            dbServer_add_data_to_sensors_values(iq->actuator_id, o, 0, 0, "");
+
             return NOERROR;
          }
          return ERROR;

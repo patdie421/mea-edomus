@@ -688,6 +688,8 @@ static PyObject *mea_addDataToSensorsValuesTable(PyObject *self, PyObject *args)
    else
       goto mea_addDataToSensorsValuesTable_arg_err;
 
+   // /?\ checker ici si todbflag ok pour le capteur ? (faire ou ne pas faire confience au plugin ...)
+   
    dbServer_add_data_to_sensors_values(sensor_id, value1, unit, value2, complement);
 
    return PyLong_FromLong(1L); // True
