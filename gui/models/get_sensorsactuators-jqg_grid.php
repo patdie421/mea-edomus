@@ -60,8 +60,8 @@ $SQL="SELECT sensors_actuators.id AS id,
              sensors_actuators.description AS description,
              interfaces.id_interface AS id_interface,
              sensors_actuators.id_location AS id_location,
-             sensors_actuators.state AS state," +
-//            "sensors_actuators.todbflag AS todbflag," +
+             sensors_actuators.state AS state,".
+//            "sensors_actuators.todbflag AS todbflag,".
             "sensors_actuators.parameters AS parameters,
              locations.name AS lname,
              interfaces.name AS iname,
