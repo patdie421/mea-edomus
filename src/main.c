@@ -709,7 +709,13 @@ int main(int argc, const char * argv[])
       // mise à jour de la base
       upgrade_params_db(sqlite3_param_db, params_db_version, CURRENT_PARAMS_DB_VERSION, &upgrade_params);
       // rechargement des parametres
-      read_all_application_parameters(sqlite3_param_db);
+      ret=read_all_application_parameters(sqlite3_param_db);
+      if(ret)
+      {
+         VERBOSE(1) fprintf (stderr, "%s (%s) : can't reload parameters\n",ERROR_STR,__func__);
+         sqlite3_close(sqlite3_param_db);
+         clean_all_and_exit();
+      }
    }
    
    
@@ -947,6 +953,6 @@ int main(int argc, const char * argv[])
 
       managed_processes_loop(); // watchdog et indicateurs
       
-      sleep(5);
+      sleep(1);
    }
 }
