@@ -516,12 +516,6 @@ int16_t interface_type_001_sensors_poll_inputs(interface_type_001_t *i001)
 
    int16_t comio2_err;
 
-   process_update_indicator(i001->monitoring_id, "NBSTRAPS",    i001->indicators.nbsensorstraps);
-   process_update_indicator(i001->monitoring_id, "NBSREADS",    i001->indicators.nbsensorsread);
-   process_update_indicator(i001->monitoring_id, "NBSREADSERR", i001->indicators.nbsensorsreaderr);
-   process_update_indicator(i001->monitoring_id, "NBSXPLOUT",   i001->indicators.nbsensorsxplsent);
-   process_update_indicator(i001->monitoring_id, "NBSXPLIN",    i001->indicators.nbsensorsxplrecv);
-
    first_queue(sensors_list);
    for(int16_t i=0; i<sensors_list->nb_elem; i++)
    {
