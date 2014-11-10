@@ -3,7 +3,7 @@
  * \author    patdie421
  * \version   0.1
  * \date      30 octobre 2013
- * \brief     Ensemble des fonctions qui permettent la gestion de l'initialisation de l'application.
+ * \brief     Ensemble des fonctions qui permettent la gestion de l'initialisation et la mise à jour de l'application.
  * \details   initialisation automatique, initialisation interactive et mise à jour des paramètres de l'application.
  */
 
@@ -670,6 +670,7 @@ int16_t init_db(char **params_list, char **keys)
 
    // initialisation des paramètres de l'application
    char *value;
+
    for(int16_t i=0;i<MAX_LIST_SIZE;i++)
    {
       if(keys[i])
@@ -894,6 +895,11 @@ int16_t autoInit(char **params_list, char **keys)
    //
    // Mise à jour de params_list avec les valeurs par defaut pour les entrées "vide" (NULL)
    //
+   char db_version[10];
+   sprintf(db_version,"%d",CURRENT_PARAMS_DB_VERSION);
+   
+   _construct_string(params_list, PARAMSDBVERSION, db_version);
+   
    _construct_string(params_list, VENDOR_ID,       "mea");
    _construct_string(params_list, DEVICE_ID,       "edomus");
    _construct_string(params_list, INSTANCE_ID,     "home");
@@ -996,6 +1002,11 @@ int16_t interactiveInit(char **params_list, char **keys)
       p_str=params_list[MEA_PATH];
       sessions_str="var/sessions";
    }
+
+   char db_version[10];
+   sprintf(db_version,"%d",CURRENT_PARAMS_DB_VERSION);
+
+   _construct_string(params_list, PARAMSDBVERSION, db_version);
 
    // Récupération des données
    _read_string(params_list, VENDOR_ID,        "mea",       "xPL Vendor ID");
