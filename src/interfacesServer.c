@@ -362,21 +362,21 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                   process_set_watchdog_recovery(i001->monitoring_id, start_interface_type_001, (void *)i001_start_stop_params);
                   process_set_description(i001->monitoring_id, (char *)description);
                   
-                  process_add_indicator(i001->monitoring_id, "NBXPLIN", 0);
-                  process_add_indicator(i001->monitoring_id, "NBSTRAPS", 0);
-                  process_add_indicator(i001->monitoring_id, "NBSREADS", 0);
-                  process_add_indicator(i001->monitoring_id, "NBSREADSERR", 0);
-                  process_add_indicator(i001->monitoring_id, "NBSXPLOUT", 0);
-                  process_add_indicator(i001->monitoring_id, "NBSXPLIN", 0);
-                  process_add_indicator(i001->monitoring_id, "NBAOUTERR", 0);
-                  process_add_indicator(i001->monitoring_id, "NBAOUT", 0);
-                  process_add_indicator(i001->monitoring_id, "NBAXPLIN", 0);
-                  process_add_indicator(i001->monitoring_id, "NBCTRAPS", 0);
-                  process_add_indicator(i001->monitoring_id, "NBCREADS", 0);
-                  process_add_indicator(i001->monitoring_id, "NBCREADSERR", 0);
-                  process_add_indicator(i001->monitoring_id, "NBCXPLOUT", 0);
-                  process_add_indicator(i001->monitoring_id, "NBCXPLIN", 0);
-                  
+                  process_add_indicator(i001->monitoring_id, I001_XPLINNB, 0);
+                  process_add_indicator(i001->monitoring_id, I001_STNBRAP, 0);
+                  process_add_indicator(i001->monitoring_id, I001_SNBREAD, 0);
+                  process_add_indicator(i001->monitoring_id, I001_SNBREADERR, 0);
+                  process_add_indicator(i001->monitoring_id, I001_SNBXPLOUT, 0);
+                  process_add_indicator(i001->monitoring_id, I001_SNBXPLIN, 0);
+                  process_add_indicator(i001->monitoring_id, I001_ANBOUTERR, 0);
+                  process_add_indicator(i001->monitoring_id, I001_ANBOUT, 0);
+                  process_add_indicator(i001->monitoring_id, I001_ANBXPLIN, 0);
+                  process_add_indicator(i001->monitoring_id, I001_CTNBRAP, 0);
+                  process_add_indicator(i001->monitoring_id, I001_CNBREAD, 0);
+                  process_add_indicator(i001->monitoring_id, I001_CNBREADERR, 0);
+                  process_add_indicator(i001->monitoring_id, I001_CNBXPLOUT, 0);
+                  process_add_indicator(i001->monitoring_id, I001_CNBXPLIN, 0);
+ 
                   ret=process_start(i001->monitoring_id, NULL, 0);
 
                   iq=(interfaces_queue_elem_t *)malloc(sizeof(interfaces_queue_elem_t));
