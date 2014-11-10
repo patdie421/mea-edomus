@@ -113,7 +113,7 @@ int16_t interface_type_001_counters_process_traps(int16_t numTrap, char *buff, i
 
             mea_sendXPLMessage(cntrMessageStat);
 
-            *(counter->nbtrap)=*(counter->xplout)+1;
+            *(counter->nbxplou)=*(counter->nbxplout)+1;
 
             xPL_releaseMessage(cntrMessageStat);
          }
@@ -442,7 +442,7 @@ void interface_type_001_counters_init(interface_type_001_t *i001)
    {
       current_queue(counters_list, (void **)&counter);
       counter->nbtrap=&(i001->indicators.nbcounterstraps);
-      counter->xplout=&(i001->indicators.nbcountersxplsent);
+      counter->nbxplout=&(i001->indicators.nbcountersxplsent);
       
       comio2_setTrap(i001->ad, counter->trap, interface_type_001_counters_process_traps, (void *)counter);
 
