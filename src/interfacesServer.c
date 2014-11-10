@@ -28,7 +28,7 @@
 #include "interface_type_002.h"
 
 queue_t *_interfaces=NULL;
-//pthread_mutex_t interfaces_queue_lock;
+
 pthread_rwlock_t interfaces_queue_rwlock;
 
 
@@ -178,7 +178,6 @@ void stop_interfaces()
             case INTERFACE_TYPE_001:
             {
                interface_type_001_t *i001=(interface_type_001_t *)(iq->context);
-//               VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping #%d\n",INFO_STR,__func__,i001->interface_id);
                
                if(i001->xPL_callback)
                   i001->xPL_callback=NULL;
@@ -187,7 +186,6 @@ void stop_interfaces()
                {
                   struct interface_type_001_Data_s *interface_type_001Data = process_get_data_ptr(i001->monitoring_id);
 
-//                  VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping %s... ",INFO_STR,__func__,i001->name);
                   process_stop(i001->monitoring_id, NULL, 0);
                   process_unregister(i001->monitoring_id);
                   i001->monitoring_id=-1;
@@ -196,7 +194,6 @@ void stop_interfaces()
                      free(interface_type_001Data);
                      interface_type_001Data=NULL;
                   }
-//                  VERBOSE(9) fprintf(stderr,"done\n");
                } 
 
                free(i001);
@@ -206,7 +203,6 @@ void stop_interfaces()
             case INTERFACE_TYPE_002:
             {
                interface_type_002_t *i002=(interface_type_002_t *)(iq->context);
-//               VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping #%d\n",INFO_STR,__func__,i002->id_interface);
                
                if(i002->xPL_callback)
                   i002->xPL_callback=NULL;
@@ -215,7 +211,6 @@ void stop_interfaces()
                {
                   struct interface_type_002_Data_s *interface_type_002Data = process_get_data_ptr(i002->monitoring_id);
 
-//                  VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping %s... ",INFO_STR,__func__,i002->name);
                   process_stop(i002->monitoring_id, NULL, 0);
                   process_unregister(i002->monitoring_id);
                   i002->monitoring_id=-1;
@@ -224,7 +219,6 @@ void stop_interfaces()
                      free(interface_type_002Data);
                      interface_type_002Data=NULL;
                   }
-//                  VERBOSE(9) fprintf(stderr,"done\n");
                } 
 
                free(i002);
