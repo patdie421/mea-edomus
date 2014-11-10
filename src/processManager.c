@@ -845,7 +845,7 @@ int managed_processes_processes_check_heartbeats(int doRecovery)
                   char errmsg[80];
                   if(managed_processes.processes_table[i]->heartbeat_recovery)
                   {
-                     pthread_cleanup_push( (void *)pthread_rwlock_wrlock, (void *)&managed_processes.rwlock ); // /!\ inversion par rapport à l'habiture ... unlock en cas de fin de thread d'abord.
+                     pthread_cleanup_push( (void *)pthread_rwlock_wrlock, (void *)&managed_processes.rwlock ); // /!\ inversion par rapport à l'habitude ... lock en cas de fin de thread d'abord.
                      pthread_rwlock_unlock(&managed_processes.rwlock); // on delock
                      managed_processes.processes_table[i]->heartbeat_status=managed_processes.processes_table[i]->heartbeat_recovery(i, managed_processes.processes_table[i]->heartbeat_recovery_data, errmsg, sizeof(errmsg));
                      managed_processes.processes_table[i]->heartbeat_wdcounter++;
