@@ -44,6 +44,8 @@ struct electricity_counter_s
    // indicateur à traiter dans le trap
    uint32_t *nbtrap;
    uint32_t *nbxplout;
+   
+   int16_t todbflag;
 };
 
 struct electricity_counter_s
