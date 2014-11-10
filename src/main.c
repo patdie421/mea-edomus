@@ -702,8 +702,12 @@ int main(int argc, const char * argv[])
 
    if(param_db_version != CURRENT_PARAMS_DB_VERSION)
    {
+      struct upgrade_params_s upgrade_params;
+      
+      upgrade_params.params_list = params_list;
+      
       // mise à jour de la base
-      upgrade_params_db(params_db_version, CURRENT_PARAMS_DB_VERSION);
+      upgrade_params_db(sqlite3_param_db, params_db_version, CURRENT_PARAMS_DB_VERSION, &upgrade_params);
       // rechargement des parametres
       read_all_application_parameters(sqlite3_param_db);
    }
