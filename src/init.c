@@ -36,7 +36,7 @@
 char const *usr_str="/usr";
 
 
-int16_t lineToFile(char *file, char *lines[])
+int16_t linesToFile(char *file, char *lines[])
  /**
   * \brief     Création d'un fichier (texte) avec les lignes passées en paramètres (tableau de chaine).
   * \details   Le dernier élément du tableau de lignes doit être NULL.
