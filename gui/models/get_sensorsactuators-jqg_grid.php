@@ -60,8 +60,9 @@ $SQL="SELECT sensors_actuators.id AS id,
              sensors_actuators.description AS description,
              interfaces.id_interface AS id_interface,
              sensors_actuators.id_location AS id_location,
-             sensors_actuators.state AS state,
-             sensors_actuators.parameters AS parameters,
+             sensors_actuators.state AS state," +
+//            "sensors_actuators.todbflag AS todbflag," +
+            "sensors_actuators.parameters AS parameters,
              locations.name AS lname,
              interfaces.name AS iname,
              types.name AS tname
@@ -109,6 +110,7 @@ foreach ($result as $result_elem){
     echo "<cell><![CDATA[".$result_elem['parameters']."]]></cell>";
     echo "<cell><![CDATA[".$result_elem['lname']."]]></cell>";
     echo "<cell>".$result_elem['state']."</cell>";
+  //    echo "<cell>".$result_elem['todbflag']."</cell>";
     echo "<cell>".$result_elem['id_type']."</cell>";
     echo "<cell>".$result_elem['id_interface']."</cell>";
     echo "<cell>".$result_elem['id_location']."</cell>";
