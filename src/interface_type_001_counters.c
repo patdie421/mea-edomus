@@ -111,8 +111,9 @@ int16_t interface_type_001_counters_process_traps(int16_t numTrap, char *buff, i
             xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_CURRENT_ID), value);
             // Broadcast the message
 
-            //xPL_sendMessage(cntrMessageStat);
             mea_sendXPLMessage(cntrMessageStat);
+
+            *(counter->nbtrap)=*(counter->xplout)+1;
 
             xPL_releaseMessage(cntrMessageStat);
          }
@@ -232,9 +233,11 @@ void counter_to_xpl(interface_type_001_t *i001, struct electricity_counter_s *co
       xPL_setMessageNamedValue(cntrMessageStat,  get_token_by_id(XPL_CURRENT_ID),value);
       
       // Broadcast the message
-      //xPL_sendMessage(cntrMessageStat);
+
       mea_sendXPLMessage(cntrMessageStat);
+      
       (i001->indicators.nbcountersxplsent)++;
+      
       xPL_releaseMessage(cntrMessageStat);
    }
 }
@@ -349,8 +352,8 @@ mea_error_t interface_type_001_counters_process_xpl_msg(interface_type_001_t *i0
          xPL_setTarget(cntrMessageStat, xPL_getSourceVendor(msg), xPL_getSourceDeviceID(msg), xPL_getSourceInstanceID(msg));
    
          // Broadcast the message
-         //xPL_sendMessage(cntrMessageStat);
          mea_sendXPLMessage(cntrMessageStat);
+
          (i001->indicators.nbcountersxplsent)++;
          
          xPL_releaseMessage(cntrMessageStat);
@@ -393,9 +396,12 @@ int16_t interface_type_001_counters_poll_inputs(interface_type_001_t *i001)
             xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_DEVICE_ID), counter->name);
             xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_TYPE_ID), get_token_by_id(XPL_POWER_ID));
             xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_CURRENT_ID), "0");
+            
             mea_sendXPLMessage(cntrMessageStat);
-            xPL_releaseMessage(cntrMessageStat);
+
             (i001->indicators.nbcountersxplsent)++;
+
+            xPL_releaseMessage(cntrMessageStat);
          }
       }
       
@@ -436,6 +442,8 @@ void interface_type_001_counters_init(interface_type_001_t *i001)
    {
       current_queue(counters_list, (void **)&counter);
       counter->nbtrap=&(i001->indicators.nbcounterstraps);
+      counter->xplout=&(i001->indicators.nbcountersxplsent);
+      
       comio2_setTrap(i001->ad, counter->trap, interface_type_001_counters_process_traps, (void *)counter);
 
       start_timer(&(counter->timer));
