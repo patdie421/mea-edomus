@@ -177,10 +177,8 @@ int16_t interface_type_001_sensors_process_traps(int16_t numTrap, char *data, in
 {
    struct sensor_s *sensor;
    
-//   sensor=(struct sensor_s *)args;
    sensor=(struct sensor_s *)userdata;
    
-//   sensor->val=(unsigned char)buff[0];
    sensor->val=(unsigned char)data[0];
    
    {
@@ -217,6 +215,9 @@ int16_t interface_type_001_sensors_process_traps(int16_t numTrap, char *data, in
       //xPL_sendMessage(cntrMessageStat);
       mea_sendXPLMessage(cntrMessageStat);
       
+// ajouter maj indicateur xplout
+// (i001->indicators.nbcountersxplsent)++;
+
       xPL_releaseMessage(cntrMessageStat);
    }
    
@@ -603,9 +604,11 @@ int16_t interface_type_001_sensors_poll_inputs(interface_type_001_t *i001)
                   xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_LAST_ID),str_last);
                      
                   // Broadcast the message
-                  //xPL_sendMessage(cntrMessageStat);
                   mea_sendXPLMessage(cntrMessageStat);
-                     
+                  
+// ajouter maj indicateur xplout
+// (i001->indicators.nbcountersxplsent)++;
+
                   xPL_releaseMessage(cntrMessageStat);
                }
             }

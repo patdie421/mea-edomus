@@ -53,7 +53,6 @@
 struct interface_type_001_thread_params_s
 {
    interface_type_001_t *it001;
-//   tomysqldb_md_t *md;
 };
 
 
@@ -120,15 +119,6 @@ int16_t interface_type_001_xPL_callback(xPL_ServicePtr theService, xPL_MessagePt
    return 0;
 }
 
-/*
-int16_t check_status_interface_type_001(interface_type_001_t *i001)
-{
-   if(i001->ad->signal_flag!=0)
-      return -1;
-   
-   return 0;
-}
-*/
 
 int load_interface_type_001(interface_type_001_t *i001, int interface_id, sqlite3 *db)
 {
@@ -328,7 +318,6 @@ void *_thread_interface_type_001(void *args)
    i001->thread_is_running=1;
    process_heartbeat(i001->monitoring_id);
    
-//   tomysqldb_md_t *md=interface_type_001_thread_params->md;
    free(interface_type_001_thread_params);
    interface_type_001_thread_params=NULL;
    
@@ -504,7 +493,6 @@ int start_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
       goto start_interface_type_001_clean_exit;
    
    interface_type_001_thread_params->it001=start_stop_params->i001;
-//   interface_type_001_thread_params->md=start_stop_params->myd;
    
    interface_type_001_thread_id=(pthread_t *)malloc(sizeof(pthread_t));
    if(!interface_type_001_thread_id)

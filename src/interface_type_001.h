@@ -62,21 +62,15 @@ struct interface_type_001_start_stop_params_s
 {
    interface_type_001_t *i001;
    sqlite3 *sqlite3_param_db;
-//   int16_t id_interface;
    char dev[81];
-//   tomysqldb_md_t *myd;
-};  
+};
 
 
 typedef float (*compute_f)(unsigned int value);
 
-//void counters_stop(pthread_t *counters_thread, comio2_ad_t *ad, int signal_number);
-
 int stop_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg);
 int start_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg);
 int restart_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg);
-
-int16_t check_status_interface_type_001(interface_type_001_t *i001);
 
 int clean_interface_type_001(interface_type_001_t *i001);
 

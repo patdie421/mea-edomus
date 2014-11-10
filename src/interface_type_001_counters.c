@@ -64,11 +64,7 @@ void interface_type_001_free_counters_queue_elem(void *d)
 }
 
 
-// pour la reception d'un trap à chaque changement du compteur
-
-
 // int16_t (*trap_f)(int16_t, char *, int16_t, void *);
-
 
 
 int16_t interface_type_001_counters_process_traps(int16_t numTrap, char *buff, int16_t l_buff, void * args)
@@ -109,10 +105,12 @@ int16_t interface_type_001_counters_process_traps(int16_t numTrap, char *buff, i
             xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_DEVICE_ID), counter->name);
             xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_TYPE_ID), get_token_by_id(XPL_POWER_ID));
             xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_CURRENT_ID), value);
-            // Broadcast the message
 
-            //xPL_sendMessage(cntrMessageStat);
+            // Broadcast the message
             mea_sendXPLMessage(cntrMessageStat);
+
+// ajouter maj indicateur xplout
+// (i001->indicators.nbcountersxplsent)++;
 
             xPL_releaseMessage(cntrMessageStat);
          }
@@ -231,10 +229,10 @@ void counter_to_xpl(interface_type_001_t *i001, struct electricity_counter_s *co
       xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_TYPE_ID), get_token_by_id(XPL_ENERGY_ID));
       xPL_setMessageNamedValue(cntrMessageStat,  get_token_by_id(XPL_CURRENT_ID),value);
       
-      // Broadcast the message
-      //xPL_sendMessage(cntrMessageStat);
       mea_sendXPLMessage(cntrMessageStat);
+
       (i001->indicators.nbcountersxplsent)++;
+
       xPL_releaseMessage(cntrMessageStat);
    }
 }
@@ -399,9 +397,12 @@ int16_t interface_type_001_counters_poll_inputs(interface_type_001_t *i001)
             xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_DEVICE_ID), counter->name);
             xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_TYPE_ID), get_token_by_id(XPL_POWER_ID));
             xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_CURRENT_ID), "0");
+            
             mea_sendXPLMessage(cntrMessageStat);
-            xPL_releaseMessage(cntrMessageStat);
+
             (i001->indicators.nbcountersxplsent)++;
+
+            xPL_releaseMessage(cntrMessageStat);
          }
       }
       
