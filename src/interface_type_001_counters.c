@@ -109,8 +109,7 @@ int16_t interface_type_001_counters_process_traps(int16_t numTrap, char *buff, i
             // Broadcast the message
             mea_sendXPLMessage(cntrMessageStat);
 
-// ajouter maj indicateur xplout
-// (i001->indicators.nbcountersxplsent)++;
+            *(counter->nbxplout)=*(counter->nbxplout)+1;
 
             xPL_releaseMessage(cntrMessageStat);
          }
@@ -440,6 +439,7 @@ void interface_type_001_counters_init(interface_type_001_t *i001)
    for(int16_t i=0; i<counters_list->nb_elem; i++)
    {
       current_queue(counters_list, (void **)&counter);
+      
       counter->nbtrap=&(i001->indicators.nbcounterstraps);
       counter->nbxplout=&(i001->indicators.nbcountersxplsent);
       

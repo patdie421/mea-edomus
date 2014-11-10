@@ -241,7 +241,7 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
                   }
                   (i001->indicators.nbactuatorsout)++;
                   if(iq->todbflag == 1)
-                     dbServer_add_data_to_sensors_values(iq->actuator_id, o, 0, 0, "");
+                     dbServer_add_data_to_sensors_values(iq->actuator_id, (double)o, 0, 0.0, "");
 
                   return NOERROR;
                   break;
@@ -319,7 +319,8 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
                return ERROR;
             }
             (i001->indicators.nbactuatorsout)++;
-            dbServer_add_data_to_sensors_values(iq->actuator_id, o, 0, 0, "");
+            if(iq->todbflag==1)
+               dbServer_add_data_to_sensors_values(iq->actuator_id, (double)o, 0, 0.0, "");
 
             return NOERROR;
          }

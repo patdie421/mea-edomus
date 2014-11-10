@@ -63,6 +63,7 @@ void set_interface_type_001_isnt_running(void *data)
 }
 
 
+//
 // xPLSend -c control.basic -m cmnd device=RELAY1 type=output current=pulse data1=125
 // xPLSend -c sensor.request -m cmnd request=current device=CONSO type=POWER => dernière puissance instantannée
 // xPLSend -c sensor.request -m cmnd request=current device=CONSO type=ENERGY => valeur du compteur ERDF
@@ -213,8 +214,8 @@ int load_interface_type_001(interface_type_001_t *i001, int interface_id, sqlite
                   counter->last_counter=0;
                   counter->todbflag = todbflag;
                   in_queue_elem(i001->counters_list, counter);
+                  nb_sensors_actuators++;
                }
-               nb_sensors_actuators++;
                break;
             }
                
@@ -223,9 +224,11 @@ int load_interface_type_001(interface_type_001_t *i001, int interface_id, sqlite
                struct actuator_s *actuator;
                actuator=valid_and_malloc_actuator(id_sensor_actuator, (char *)name, (char *)parameters);
                if(actuator)
+               {
+                  actuator->todbflag = todbflag;
                   in_queue_elem(i001->actuators_list, actuator);
-               actuator->todbflag = todbflag;
-               nb_sensors_actuators++;
+                  nb_sensors_actuators++;
+               }
                break;
             }
             
@@ -233,10 +236,12 @@ int load_interface_type_001(interface_type_001_t *i001, int interface_id, sqlite
             {
                struct sensor_s *sensor;
                sensor=interface_type_001_sensors_valid_and_malloc_sensor(id_sensor_actuator, (char *)name, (char *)parameters);
-               sensor->todbflag = todbflag;
                if(sensor)
+               {
+                  sensor->todbflag = todbflag;
                   in_queue_elem(i001->sensors_list, sensor);
-               nb_sensors_actuators++;
+                  nb_sensors_actuators++;
+               }
                break;
             }
 

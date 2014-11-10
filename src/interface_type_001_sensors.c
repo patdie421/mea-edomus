@@ -212,11 +212,12 @@ int16_t interface_type_001_sensors_process_traps(int16_t numTrap, char *data, in
       xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_CURRENT_ID),value);
       
       // Broadcast the message
-      //xPL_sendMessage(cntrMessageStat);
       mea_sendXPLMessage(cntrMessageStat);
       
-// ajouter maj indicateur xplout
-// (i001->indicators.nbcountersxplsent)++;
+      *(sensor->nbxplout)=*(sensor->nbxplout)+1;
+
+      if(sensor->todbflag==1)
+         dbServer_add_data_to_sensors_values(sensor->sensor_id, (double)data[0], 0, 0, "");
 
       xPL_releaseMessage(cntrMessageStat);
    }
@@ -528,9 +529,6 @@ int16_t interface_type_001_sensors_poll_inputs(interface_type_001_t *i001)
          {
             int v;
 
-            //pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)(&i001->operation_lock) );
-            //pthread_mutex_lock(&i001->operation_lock);
-
             unsigned char buffer[8], resp[8];
             uint16_t l_resp;
             buffer[0]=sensor->arduino_pin;
@@ -586,7 +584,7 @@ int16_t interface_type_001_sensors_poll_inputs(interface_type_001_t *i001)
                char str_last[20];
                
                if(sensor->todbflag == 1)
-                  dbServer_add_data_to_sensors_values(sensor->sensor_id, sensor->computed_val, unit, sensor->val, "");
+                  dbServer_add_data_to_sensors_values(sensor->sensor_id, (double)sensor->computed_val, unit, (double)sensor->val, "");
 
                xPL_ServicePtr servicePtr = mea_getXPLServicePtr();
                if(servicePtr)
