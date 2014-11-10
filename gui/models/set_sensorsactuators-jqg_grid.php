@@ -20,6 +20,7 @@ switch(check_admin()){
 if(isset($_POST['oper'])){
     $oper = $_POST['oper'];
     $fields=array('oper','id_sensor_actuator','id_interface','id_type','name','description','parameters','state','id_location');
+//    $fields=array('oper','id_sensor_actuator','id_interface','id_type','name','description','parameters','state','todbflag','id_location');
     if($oper==='edit')
         $fields[]='id';
     if($oper==='del')
@@ -50,6 +51,7 @@ $name = strtoupper($_POST['name']);
 $description = $_POST['description'];
 $parameters = $_POST['parameters'];
 $state = $_POST['state'];
+// $todbflag = $_POST['todbflag'];
 $id_location = $_POST['id_location'];
 
 try {
@@ -66,6 +68,7 @@ $file_db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION); // ERRMODE_WA
 if($oper === 'add'){
     $sql_insert="INSERT INTO sensors_actuators (id_sensor_actuator,id_interface,id_type,name,description,parameters,state,id_location) "
                ."VALUES(:id_sensor_actuator, :id_interface, :id_type, :name, :description, :parameters, :state, :id_location)";
+//               ."VALUES(:id_sensor_actuator, :id_interface, :id_type, :name, :description, :parameters, :state, :todbflag, :id_location)";
     try{
         $stmt = $file_db->prepare($sql_insert);
         $stmt->execute(
@@ -77,6 +80,7 @@ if($oper === 'add'){
                 ":description"        => $description,
                 ":parameters"         => $parameters,
                 ":state"              => $state,
+//                ":todbflag"           => $todbflag,
                 ":id_location"        => $id_location
             )
         );
@@ -94,6 +98,7 @@ if($oper === 'add'){
                                  ."description=:description, "
                                  ."parameters=:parameters, "
                                  ."state=:state, "
+//                                 ."todbflag=:totdbflag, "
                                  ."id_location=:id_location "
                ."WHERE id=:id";
     try{
@@ -108,6 +113,7 @@ if($oper === 'add'){
                 ":description"        => $description,
                 ":parameters"         => $parameters,
                 ":state"              => $state,
+//                ":todbflag" => $todbflag,
                 ":id_location"        => $id_location
             )
         );
