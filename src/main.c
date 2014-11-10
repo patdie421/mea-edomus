@@ -60,6 +60,7 @@ queue_t *interfaces=NULL;                  /*!< liste (file) des interfaces. Var
 sqlite3 *sqlite3_param_db=NULL;            /*!< descripteur pour la base sqlite de paramétrage. */
 pthread_t *monitoringServer_thread=NULL;   /*!< Adresse du thread de surveillance interne. Variable globale car doit être accessible par les gestionnaires de signaux.*/
 
+uint16_t params_db_version=0;
 char *params_names[MAX_LIST_SIZE];          /*!< liste des noms (chaines) de paramètres dans la base sqlite3 de paramétrage.*/
 char *params_list[MAX_LIST_SIZE];          /*!< liste des valeurs de paramètres.*/
 
@@ -169,6 +170,7 @@ void init_param_names(char *param_names[])
    param_names[NODEJS_PATH]          = "NODEJSPATH";
    param_names[NODEJSIOSOCKET_PORT]  = "NODEJSSOCKETIOPORT";
    param_names[NODEJSDATA_PORT]      = "NODEJSDATAPORT";
+   param_names[PARAMSDBVERSION]      = "PARAMSDBVERSION";
 }
 
 
@@ -693,7 +695,20 @@ int main(int argc, const char * argv[])
       clean_all_and_exit();
    }
 
+   if(params_list[PARAMSDBVERSION]!=NULL)
+   {
+      params_db_version=atoi(params_list[PARAMSDBVERSION]);
+   }
 
+   if(param_db_version != CURRENT_PARAMS_DB_VERSION)
+   {
+      // mise à jour de la base
+      upgrade_params_db(params_db_version, CURRENT_PARAMS_DB_VERSION);
+      // rechargement des parametres
+      read_all_application_parameters(sqlite3_param_db);
+   }
+   
+   
    //
    // strout et stderr vers fichier log
    //
