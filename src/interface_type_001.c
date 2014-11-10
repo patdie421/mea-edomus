@@ -338,8 +338,27 @@ void *_thread_interface_type_001(void *args)
    uint32_t cntr=0;
    while(1)
    {
+      // maj indicateurs process
       process_heartbeat(i001->monitoring_id);
-      process_update_indicator(i001->monitoring_id, "XPLIN", ++(i001->indicators.nbxplin));
+
+      process_update_indicator(i001->monitoring_id, I001_XPLINNB,    i001->indicators.nbxplin);
+      
+      process_update_indicator(i001->monitoring_id, I001_STNBRAP,    i001->indicators.nbsensorstraps);
+      process_update_indicator(i001->monitoring_id, I001_SNBREAD,    i001->indicators.nbsensorsread);
+      process_update_indicator(i001->monitoring_id, I001_SNBREADERR, i001->indicators.nbsensorsreaderr);
+      process_update_indicator(i001->monitoring_id, I001_SNBXPLOUT,  i001->indicators.nbsensorsxplsent);
+      process_update_indicator(i001->monitoring_id, I001_SNBXPLIN,   i001->indicators.nbsensorsxplrecv);
+
+      process_update_indicator(i001->monitoring_id, I001_ANBXPLIN,   i001->indicators.nbactuatorsxplrecv);
+      process_update_indicator(i001->monitoring_id, I001_ANBOUTERR,  i001->indicators.nbactuatorsouterr);
+      process_update_indicator(i001->monitoring_id, I001_ANBOUT,     i001->indicators.nbactuatorsout);
+
+      process_update_indicator(i001->monitoring_id, I001_CTNBRAP,    i001->indicators.nbcounterstraps);
+      process_update_indicator(i001->monitoring_id, I001_CNBREAD,    i001->indicators.nbcountersread);
+      process_update_indicator(i001->monitoring_id, I001_CNBREADERR, i001->indicators.nbcountersreaderr);
+      process_update_indicator(i001->monitoring_id, I001_CNBXPLOUT,  i001->indicators.nbcountersxplsent);
+      process_update_indicator(i001->monitoring_id, I001_CNBXPLIN,   i001->indicators.nbcountersxplrecv);
+
 
       if(interface_type_001_counters_poll_inputs(i001)<0)
       {
