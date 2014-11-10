@@ -22,6 +22,8 @@ struct actuator_s
    char arduino_pin_type;
    
    int16_t old_val;
+   
+   int16_t todbflag;
 };
 
 void _interface_type_001_free_actuators_queue_elem(void *d);
