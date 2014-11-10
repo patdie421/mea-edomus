@@ -174,6 +174,10 @@ int load_interface_type_001(interface_type_001_t *i001, int interface_id, sqlite
    
    // préparation de la requete permettant d'obtenir les capteurs associés à l'interface
    sprintf(sql_request,"SELECT * FROM sensors_actuators WHERE id_interface=%d", interface_id);
+   
+   // /!\ on ne tient pas compte de l'état du capteur => à ajouter ...
+   //     essayer "SELECT * FROM sensors_actuators WHERE id_interface=%d" and sensors_actuators.state='1'"
+   
    ret = sqlite3_prepare_v2(db,sql_request,strlen(sql_request)+1,&stmt,NULL);
    if(ret)
    {
@@ -192,6 +196,7 @@ int load_interface_type_001(interface_type_001_t *i001, int interface_id, sqlite
          int id_type=sqlite3_column_int(stmt, 2);
          const unsigned char *name=sqlite3_column_text(stmt, 4);
          const unsigned char *parameters=sqlite3_column_text(stmt, 7);
+//         int todbflag=sqlite3_column_int(stmt, 9);
          
          switch (id_type)
          {
@@ -205,6 +210,7 @@ int load_interface_type_001(interface_type_001_t *i001, int interface_id, sqlite
                   counter->counter=0;
                   counter->last_power=0.0;
                   counter->last_counter=0;
+//                  counter->todbflag = todbflag;
                   in_queue_elem(i001->counters_list, counter);
                }
                nb_sensors_actuators++;
@@ -217,6 +223,7 @@ int load_interface_type_001(interface_type_001_t *i001, int interface_id, sqlite
                actuator=valid_and_malloc_actuator(id_sensor_actuator, (char *)name, (char *)parameters);
                if(actuator)
                   in_queue_elem(i001->actuators_list, actuator);
+//               actuator->todbflag = todbflag;
                nb_sensors_actuators++;
                break;
             }
@@ -225,6 +232,7 @@ int load_interface_type_001(interface_type_001_t *i001, int interface_id, sqlite
             {
                struct sensor_s *sensor;
                sensor=interface_type_001_sensors_valid_and_malloc_sensor(id_sensor_actuator, (char *)name, (char *)parameters);
+//               sensor->todbflag = todbflag;
                if(sensor)
                   in_queue_elem(i001->sensors_list, sensor);
                nb_sensors_actuators++;
