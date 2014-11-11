@@ -298,7 +298,8 @@ void clean_all_and_exit()
       }
    }
    
-   VERBOSE(9) fprintf(stderr,"%s  (%s) : mea-edomus down ...\n",INFO_STR,__func__);
+//   VERBOSE(9) fprintf(stderr,"%s  (%s) : mea-edomus down ...\n",INFO_STR,__func__);
+   VERBOSE(9) mea_logprintf("%s  (%s) : mea-edomus down ...\n",INFO_STR,__func__);
 
    exit(0);
 }
@@ -312,7 +313,9 @@ static void _signal_STOP(int signal_number)
  * \param     signal_number  numéro du signal (pas utilisé mais nécessaire pour la déclaration du handler).
  */
 {
-   VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping mea-edomus requested (signal = %d).\n",INFO_STR,__func__,signal_number);
+//   VERBOSE(9) fprintf(stderr,"%s  (%s) : Stopping mea-edomus requested (signal = %d).\n",INFO_STR,__func__,signal_number);
+   VERBOSE(9) mea_logprintf("%s  (%s) : Stopping mea-edomus requested (signal = %d).\n",INFO_STR,__func__,signal_number);
+
    clean_all_and_exit();
 }
 
@@ -449,12 +452,13 @@ int main(int argc, const char * argv[])
    if(!params_list[MEA_PATH])
    {
       VERBOSE(1) {
-         fprintf (stderr, "%s (%s) : malloc - ", ERROR_STR,__func__);
+//         fprintf (stderr, "%s (%s) : malloc - ", ERROR_STR,__func__);
+         mea_logprintf("%s (%s) : malloc - ", ERROR_STR,__func__);
          perror("");
       }
       clean_all_and_exit();
    }
- 
+
    //
    // récupération des paramètres de la ligne de commande
    //
@@ -482,7 +486,8 @@ int main(int argc, const char * argv[])
             if(!params_list[MEA_PATH])
             {
                VERBOSE(1) {
-                  fprintf (stderr, "%s (%s) : malloc - ", ERROR_STR,__func__);
+//                  fprintf (stderr, "%s (%s) : malloc - ", ERROR_STR,__func__);
+                  mea_logprintf("%s (%s) : malloc - ", ERROR_STR,__func__);
                   perror("");
                }
                clean_all_and_exit();
@@ -602,7 +607,8 @@ int main(int argc, const char * argv[])
 
       if(c>'!') // parametre non attendu trouvé (! = premier caractère imprimable).
       {
-         VERBOSE(1) fprintf(stderr,"%s (%s) : Paramètre \"%s\" inconnu.\n",ERROR_STR,__func__,optarg);
+//         VERBOSE(1) fprintf(stderr,"%s (%s) : Paramètre \"%s\" inconnu.\n",ERROR_STR,__func__,optarg);
+         VERBOSE(1) mea_logprintf("%s (%s) : Paramètre \"%s\" inconnu.\n",ERROR_STR,__func__,optarg);
          usage((char *)argv[0]);
          clean_all_and_exit();
       }
@@ -615,7 +621,8 @@ int main(int argc, const char * argv[])
          if(params_list[c]==NULL)
          {
             VERBOSE(1) {
-               fprintf (stderr, "%s (%s) : malloc - ", ERROR_STR,__func__);
+//               fprintf (stderr, "%s (%s) : malloc - ", ERROR_STR,__func__);
+               mea_logprintf("%s (%s) : malloc - ", ERROR_STR,__func__);
                perror("");
             }
             clean_all_and_exit();
@@ -628,7 +635,8 @@ int main(int argc, const char * argv[])
    //
    if((_i+_a+_u)>1)
    {
-      VERBOSE(1) fprintf(stderr,"%s (%s) : --init (-i), --autoinit (-a), et --update (-u) incompatible\n",ERROR_STR,__func__);
+//      VERBOSE(1) fprintf(stderr,"%s (%s) : --init (-i), --autoinit (-a), et --update (-u) incompatible\n",ERROR_STR,__func__);
+      VERBOSE(1) mea_logprintf("%s (%s) : --init (-i), --autoinit (-a), et --update (-u) incompatible\n",ERROR_STR,__func__);
       usage((char *)argv[0]);
       clean_all_and_exit();
    }
@@ -642,7 +650,8 @@ int main(int argc, const char * argv[])
       if(!params_list[SQLITE3_DB_PARAM_PATH])
       {
          VERBOSE(1) {
-            fprintf (stderr, "%s (%s) : malloc - ", ERROR_STR,__func__);
+//            fprintf (stderr, "%s (%s) : malloc - ", ERROR_STR,__func__);
+            mea_logprintf("%s (%s) : malloc - ", ERROR_STR,__func__);
             perror("");
          }
          clean_all_and_exit();
@@ -671,7 +680,8 @@ int main(int argc, const char * argv[])
 
    if(_o)
    {
-      VERBOSE(1) fprintf(stderr,"%s (%s) : options complémentaires uniquement utilisable avec --init (-i), --autoinit (-a), et --update (-u)\n", ERROR_STR, __func__);
+//      VERBOSE(1) fprintf(stderr,"%s (%s) : options complémentaires uniquement utilisable avec --init (-i), --autoinit (-a), et --update (-u)\n", ERROR_STR, __func__);
+      VERBOSE(1) mea_logprintf("%s (%s) : options complémentaires uniquement utilisable avec --init (-i), --autoinit (-a), et --update (-u)\n", ERROR_STR, __func__);
       usage((char *)argv[0]);
       clean_all_and_exit();
    }
@@ -683,7 +693,8 @@ int main(int argc, const char * argv[])
    int16_t cause;
    if(checkParamsDb(params_list[SQLITE3_DB_PARAM_PATH], &cause))
    {
-      VERBOSE(1) fprintf (stderr, "%s (%s) : checkParamsDb - parameters database error (%d)\n", ERROR_STR, __func__, cause);
+//      VERBOSE(1) fprintf (stderr, "%s (%s) : checkParamsDb - parameters database error (%d)\n", ERROR_STR, __func__, cause);
+      VERBOSE(1) mea_logprintf("%s (%s) : checkParamsDb - parameters database error (%d)\n", ERROR_STR, __func__, cause);
       clean_all_and_exit();
    }
 
@@ -692,7 +703,8 @@ int main(int argc, const char * argv[])
    ret = sqlite3_open_v2(params_list[SQLITE3_DB_PARAM_PATH], &sqlite3_param_db, SQLITE_OPEN_READWRITE, NULL);
    if(ret)
    {
-      VERBOSE(1) fprintf (stderr, "%s (%s) : sqlite3_open - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
+//      VERBOSE(1) fprintf (stderr, "%s (%s) : sqlite3_open - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
+      VERBOSE(1) mea_logprintf("%s (%s) : sqlite3_open - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
       clean_all_and_exit();
    }
 
@@ -701,7 +713,8 @@ int main(int argc, const char * argv[])
    ret = read_all_application_parameters(sqlite3_param_db);
    if(ret)
    {
-      VERBOSE(1) fprintf (stderr, "%s (%s) : can't load parameters\n",ERROR_STR,__func__);
+//      VERBOSE(1) fprintf (stderr, "%s (%s) : can't load parameters\n",ERROR_STR,__func__);
+      VERBOSE(1) mea_logprintf("%s (%s) : can't load parameters\n",ERROR_STR,__func__);
       sqlite3_close(sqlite3_param_db);
       clean_all_and_exit();
    }
@@ -723,7 +736,8 @@ int main(int argc, const char * argv[])
       ret=read_all_application_parameters(sqlite3_param_db);
       if(ret)
       {
-         VERBOSE(1) fprintf (stderr, "%s (%s) : can't reload parameters\n",ERROR_STR,__func__);
+//         VERBOSE(1) fprintf (stderr, "%s (%s) : can't reload parameters\n",ERROR_STR,__func__);
+         VERBOSE(1) mea_logprintf("%s (%s) : can't reload parameters\n",ERROR_STR,__func__);
          sqlite3_close(sqlite3_param_db);
          clean_all_and_exit();
       }
@@ -741,7 +755,8 @@ int main(int argc, const char * argv[])
       params_list[LOG_PATH]=(char *)malloc(strlen("/var/log"));
       if(params_list[LOG_PATH]==NULL)
       VERBOSE(1) {
-         fprintf (stderr, "%s (%s) : malloc - ", ERROR_STR,__func__);
+//         fprintf (stderr, "%s (%s) : malloc - ", ERROR_STR,__func__);
+         mea_logprintf("%s (%s) : malloc - ", ERROR_STR,__func__);
          perror("");
          clean_all_and_exit();
       }
@@ -752,7 +767,8 @@ int main(int argc, const char * argv[])
    if(n<0 || n==sizeof(log_file))
    {
       VERBOSE(1) {
-         fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);
+//         fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);
+         mea_logprintf("%s (%s) : snprintf - ", ERROR_STR,__func__);
          perror("");
          clean_all_and_exit();
       }
@@ -761,7 +777,8 @@ int main(int argc, const char * argv[])
    int fd=open(log_file, O_CREAT | O_APPEND | O_RDWR,  S_IWUSR | S_IRUSR);
    if(fd<0)
    {
-      VERBOSE(1) fprintf (stderr, "%s (%s) : can't open log file - ",ERROR_STR,__func__);
+//      VERBOSE(1) fprintf (stderr, "%s (%s) : can't open log file - ",ERROR_STR,__func__);
+      VERBOSE(1) mea_logprintf("%s (%s) : can't open log file - ",ERROR_STR,__func__);
       perror("");
       clean_all_and_exit();
    }
@@ -770,7 +787,8 @@ int main(int argc, const char * argv[])
    dup2(fd, 2);
    close(fd);
 
-   DEBUG_SECTION fprintf(stderr,"INFO  Starting MEA-EDOMUS %s\n",__MEA_EDOMUS_VERSION__);
+//   DEBUG_SECTION fprintf(stderr,"INFO  Starting MEA-EDOMUS %s\n",__MEA_EDOMUS_VERSION__);
+   DEBUG_SECTION mea_logprintf("INFO  Starting MEA-EDOMUS %s\n",__MEA_EDOMUS_VERSION__);
 
    //
    // demarrage du processus de l'automate
@@ -818,8 +836,8 @@ int main(int argc, const char * argv[])
    process_set_watchdog_recovery(nodejsServer_monitoring_id, restart_nodejsServer, (void *)(&nodejsServer_start_stop_params));
    if(process_start(nodejsServer_monitoring_id, NULL, 0)<0)
    {
-      VERBOSE(9) fprintf (stderr, "error !!!\n");
-      VERBOSE(1) fprintf (stderr, "%s (%s) : can't start nodejs server\n",ERROR_STR,__func__);
+//      VERBOSE(1) fprintf (stderr, "%s (%s) : can't start nodejs server\n",ERROR_STR,__func__);
+      VERBOSE(1) mea_logprintf("%s (%s) : can't start nodejs server\n",ERROR_STR,__func__);
    }
    else
    {
@@ -843,8 +861,8 @@ int main(int argc, const char * argv[])
 
    if(process_start(httpServer_monitoring_id, NULL, 0)<0)
    {
-      VERBOSE(9) fprintf (stderr, "error !!!\n");
-      VERBOSE(1) fprintf (stderr, "%s (%s) : can't start gui server\n",ERROR_STR,__func__);
+//      VERBOSE(1) fprintf (stderr, "%s (%s) : can't start gui server\n",ERROR_STR,__func__);
+      VERBOSE(1) mea_logprintf("%s (%s) : can't start gui server\n",ERROR_STR,__func__);
    }
 
    //
@@ -860,8 +878,8 @@ int main(int argc, const char * argv[])
 
    if(process_start(logServer_monitoring_id, NULL, 0)<0)
    {
-      VERBOSE(9) fprintf (stderr, "error !!!\n");
-      VERBOSE(1) fprintf (stderr, "%s (%s) : can't start log server\n",ERROR_STR,__func__);
+//      VERBOSE(1) fprintf (stderr, "%s (%s) : can't start log server\n",ERROR_STR,__func__);
+      VERBOSE(1) mea_logprintf("%s (%s) : can't start log server\n",ERROR_STR,__func__);
    }
 
    //
@@ -872,6 +890,7 @@ int main(int argc, const char * argv[])
    dbServer_monitoring_id=process_register("DBSERVER");
    process_set_start_stop(dbServer_monitoring_id, start_dbServer, stop_dbServer, (void *)(&dbServer_start_stop_params), 1);
    process_set_watchdog_recovery(dbServer_monitoring_id, restart_dbServer, (void *)(&dbServer_start_stop_params));
+   process_set_heartbeat_interval(dbServer_monitoring_id, 60);
    process_add_indicator(dbServer_monitoring_id, "DBSERVERINMEM", 0);
    process_add_indicator(dbServer_monitoring_id, "DBSERVERINSQLITE", 0);
    process_add_indicator(dbServer_monitoring_id, "DBSERVERMYWRITE", 0);
@@ -880,8 +899,8 @@ int main(int argc, const char * argv[])
    {
       if(process_start(dbServer_monitoring_id, NULL, 0)<0)
       {
-         VERBOSE(9) fprintf (stderr, "error !!!\n");
-         VERBOSE(1) fprintf (stderr, "%s (%s) : can't start database server\n",ERROR_STR,__func__);
+//         VERBOSE(1) fprintf (stderr, "%s (%s) : can't start database server\n",ERROR_STR,__func__);
+         VERBOSE(1) mea_logprintf("%s (%s) : can't start database server\n",ERROR_STR,__func__);
       }
    }
 
@@ -898,8 +917,8 @@ int main(int argc, const char * argv[])
    process_add_indicator(pythonPluginServer_monitoring_id, "PYCALLERR", 0);
    if(process_start(pythonPluginServer_monitoring_id, NULL, 0)<0)
    {
-      VERBOSE(9) fprintf (stderr, "error !!!\n");
-      VERBOSE(1) fprintf (stderr, "%s (%s) : can't start python plugin server\n",ERROR_STR,__func__);
+//      VERBOSE(1) fprintf (stderr, "%s (%s) : can't start python plugin server\n",ERROR_STR,__func__);
+      VERBOSE(1) mea_logprintf("%s (%s) : can't start python plugin server\n",ERROR_STR,__func__);
       clean_all_and_exit();
    }
 
@@ -917,8 +936,8 @@ int main(int argc, const char * argv[])
 
    if(process_start(xplServer_monitoring_id, NULL, 0)<0)
    {
-      VERBOSE(9) fprintf (stderr, "error !!!\n");
-      VERBOSE(1) fprintf (stderr, "%s (%s) : can't start xpl server\n",ERROR_STR,__func__);
+//      VERBOSE(1) fprintf (stderr, "%s (%s) : can't start xpl server\n",ERROR_STR,__func__);
+      VERBOSE(1) mea_logprintf("%s (%s) : can't start xpl server\n",ERROR_STR,__func__);
       clean_all_and_exit();
    }
 
@@ -938,7 +957,8 @@ int main(int argc, const char * argv[])
    process_set_type(interfaces_reload_task_id, TASK);
 
 
-   DEBUG_SECTION fprintf(stderr,"INFO  MEA-EDOMUS %s starded\n",__MEA_EDOMUS_VERSION__);
+//   DEBUG_SECTION fprintf(stderr,"INFO  MEA-EDOMUS %s starded\n",__MEA_EDOMUS_VERSION__);
+   DEBUG_SECTION mea_logprintf("INFO  MEA-EDOMUS %s starded\n",__MEA_EDOMUS_VERSION__);
 
    time_t start_time;
    long uptime = 0;

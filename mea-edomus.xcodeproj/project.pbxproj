@@ -967,6 +967,35 @@
 		4E8F781B178B44490099A751 /* string_utils.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = string_utils.c; path = src/string_utils.c; sourceTree = "<group>"; };
 		4E8F781D178B47C80099A751 /* timer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = timer.c; path = src/timer.c; sourceTree = "<group>"; };
 		4E8F781F178B47F80099A751 /* timer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = timer.h; path = src/timer.h; sourceTree = "<group>"; };
+		4EC421A91A12747300D94204 /* interface_type_001.ino */ = {isa = PBXFileReference; lastKnownFileType = text; path = interface_type_001.ino; sourceTree = "<group>"; };
+		4EC421AB1A12747300D94204 /* interface_type_002_dht22.ino */ = {isa = PBXFileReference; lastKnownFileType = text; path = interface_type_002_dht22.ino; sourceTree = "<group>"; };
+		4EC421AE1A12747300D94204 /* AltSoftSerial.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AltSoftSerial.cpp; sourceTree = "<group>"; };
+		4EC421AF1A12747300D94204 /* AltSoftSerial.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AltSoftSerial.h; sourceTree = "<group>"; };
+		4EC421B11A12747300D94204 /* known_boards.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = known_boards.h; sourceTree = "<group>"; };
+		4EC421B21A12747300D94204 /* known_timers.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = known_timers.h; sourceTree = "<group>"; };
+		4EC421B51A12747300D94204 /* Test.pde */ = {isa = PBXFileReference; lastKnownFileType = text; path = Test.pde; sourceTree = "<group>"; };
+		4EC421B61A12747300D94204 /* keywords.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = keywords.txt; sourceTree = "<group>"; };
+		4EC421B81A12747300D94204 /* Comio.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Comio.cpp; sourceTree = "<group>"; };
+		4EC421B91A12747300D94204 /* Comio.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Comio.h; sourceTree = "<group>"; };
+		4EC421BB1A12747300D94204 /* Comio2.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Comio2.cpp; sourceTree = "<group>"; };
+		4EC421BC1A12747300D94204 /* Comio2.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Comio2.h; sourceTree = "<group>"; };
+		4EC421BE1A12747300D94204 /* DHT22.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = DHT22.cpp; sourceTree = "<group>"; };
+		4EC421BF1A12747300D94204 /* DHT22.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DHT22.h; sourceTree = "<group>"; };
+		4EC421C21A12747300D94204 /* Serial.ino */ = {isa = PBXFileReference; lastKnownFileType = text; path = Serial.ino; sourceTree = "<group>"; };
+		4EC421C31A12747300D94204 /* keywords.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = keywords.txt; sourceTree = "<group>"; };
+		4EC421C41A12747300D94204 /* README */ = {isa = PBXFileReference; lastKnownFileType = text; path = README; sourceTree = "<group>"; };
+		4EC421C81A12747300D94204 /* basic.ino */ = {isa = PBXFileReference; lastKnownFileType = text; path = basic.ino; sourceTree = "<group>"; };
+		4EC421C91A12747300D94204 /* InterfaceCompteurERDF.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = InterfaceCompteurERDF.cpp; sourceTree = "<group>"; };
+		4EC421CA1A12747300D94204 /* InterfaceCompteurERDF.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InterfaceCompteurERDF.h; sourceTree = "<group>"; };
+		4EC421CB1A12747300D94204 /* keywords.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = keywords.txt; sourceTree = "<group>"; };
+		4EC421CC1A12747300D94204 /* LICENSE.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE.txt; sourceTree = "<group>"; };
+		4EC421D01A12747300D94204 /* powerDownWakeExternalInterrupt.pde */ = {isa = PBXFileReference; lastKnownFileType = text; path = powerDownWakeExternalInterrupt.pde; sourceTree = "<group>"; };
+		4EC421D21A12747300D94204 /* powerDownWakePeriodic.pde */ = {isa = PBXFileReference; lastKnownFileType = text; path = powerDownWakePeriodic.pde; sourceTree = "<group>"; };
+		4EC421D31A12747300D94204 /* keywords.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = keywords.txt; sourceTree = "<group>"; };
+		4EC421D41A12747300D94204 /* LowPower.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = LowPower.cpp; sourceTree = "<group>"; };
+		4EC421D51A12747300D94204 /* LowPower.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LowPower.h; sourceTree = "<group>"; };
+		4EC421D71A12747300D94204 /* Pulses.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Pulses.cpp; sourceTree = "<group>"; };
+		4EC421D81A12747300D94204 /* Pulses.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Pulses.h; sourceTree = "<group>"; };
 		4EF3D8FA19B3C02200892F29 /* comio2.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = comio2.c; path = src/comio2.c; sourceTree = "<group>"; };
 		4EF3D8FB19B3C02200892F29 /* comio2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = comio2.h; path = src/comio2.h; sourceTree = "<group>"; };
 		4EF3F6C21828400F00959B93 /* interfacesServer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = interfacesServer.c; path = src/interfacesServer.c; sourceTree = "<group>"; };
@@ -1002,6 +1031,7 @@
 		08FB7794FE84155DC02AAC07 /* Comio */ = {
 			isa = PBXGroup;
 			children = (
+				4EC421A71A12747200D94204 /* arduino */,
 				4E4811A619C37D96001C5F48 /* Makefile.linux */,
 				4E4811A719C37D96001C5F48 /* Makefile.macosx */,
 				4E207BB919F1BA5900410B40 /* commands */,
@@ -3783,6 +3813,202 @@
 				4E8E533718429724006FB9D3 /* automatorServer.c */,
 			);
 			name = "automator manager";
+			sourceTree = "<group>";
+		};
+		4EC421A71A12747200D94204 /* arduino */ = {
+			isa = PBXGroup;
+			children = (
+				4EC421A81A12747300D94204 /* interface_type_001 */,
+				4EC421AA1A12747300D94204 /* interface_type_002_dht22 */,
+				4EC421AC1A12747300D94204 /* Libraries */,
+			);
+			path = arduino;
+			sourceTree = "<group>";
+		};
+		4EC421A81A12747300D94204 /* interface_type_001 */ = {
+			isa = PBXGroup;
+			children = (
+				4EC421A91A12747300D94204 /* interface_type_001.ino */,
+			);
+			path = interface_type_001;
+			sourceTree = "<group>";
+		};
+		4EC421AA1A12747300D94204 /* interface_type_002_dht22 */ = {
+			isa = PBXGroup;
+			children = (
+				4EC421AB1A12747300D94204 /* interface_type_002_dht22.ino */,
+			);
+			path = interface_type_002_dht22;
+			sourceTree = "<group>";
+		};
+		4EC421AC1A12747300D94204 /* Libraries */ = {
+			isa = PBXGroup;
+			children = (
+				4EC421AD1A12747300D94204 /* AltSoftSerial */,
+				4EC421B71A12747300D94204 /* Comio */,
+				4EC421BA1A12747300D94204 /* Comio2 */,
+				4EC421BD1A12747300D94204 /* DHT22 */,
+				4EC421C51A12747300D94204 /* InterfaceCompteurERDF */,
+				4EC421CD1A12747300D94204 /* LowPower */,
+				4EC421D61A12747300D94204 /* Pulses */,
+			);
+			path = Libraries;
+			sourceTree = "<group>";
+		};
+		4EC421AD1A12747300D94204 /* AltSoftSerial */ = {
+			isa = PBXGroup;
+			children = (
+				4EC421AE1A12747300D94204 /* AltSoftSerial.cpp */,
+				4EC421AF1A12747300D94204 /* AltSoftSerial.h */,
+				4EC421B01A12747300D94204 /* config */,
+				4EC421B31A12747300D94204 /* examples */,
+				4EC421B61A12747300D94204 /* keywords.txt */,
+			);
+			path = AltSoftSerial;
+			sourceTree = "<group>";
+		};
+		4EC421B01A12747300D94204 /* config */ = {
+			isa = PBXGroup;
+			children = (
+				4EC421B11A12747300D94204 /* known_boards.h */,
+				4EC421B21A12747300D94204 /* known_timers.h */,
+			);
+			path = config;
+			sourceTree = "<group>";
+		};
+		4EC421B31A12747300D94204 /* examples */ = {
+			isa = PBXGroup;
+			children = (
+				4EC421B41A12747300D94204 /* Test */,
+			);
+			path = examples;
+			sourceTree = "<group>";
+		};
+		4EC421B41A12747300D94204 /* Test */ = {
+			isa = PBXGroup;
+			children = (
+				4EC421B51A12747300D94204 /* Test.pde */,
+			);
+			path = Test;
+			sourceTree = "<group>";
+		};
+		4EC421B71A12747300D94204 /* Comio */ = {
+			isa = PBXGroup;
+			children = (
+				4EC421B81A12747300D94204 /* Comio.cpp */,
+				4EC421B91A12747300D94204 /* Comio.h */,
+			);
+			path = Comio;
+			sourceTree = "<group>";
+		};
+		4EC421BA1A12747300D94204 /* Comio2 */ = {
+			isa = PBXGroup;
+			children = (
+				4EC421BB1A12747300D94204 /* Comio2.cpp */,
+				4EC421BC1A12747300D94204 /* Comio2.h */,
+			);
+			path = Comio2;
+			sourceTree = "<group>";
+		};
+		4EC421BD1A12747300D94204 /* DHT22 */ = {
+			isa = PBXGroup;
+			children = (
+				4EC421BE1A12747300D94204 /* DHT22.cpp */,
+				4EC421BF1A12747300D94204 /* DHT22.h */,
+				4EC421C01A12747300D94204 /* examples */,
+				4EC421C31A12747300D94204 /* keywords.txt */,
+				4EC421C41A12747300D94204 /* README */,
+			);
+			path = DHT22;
+			sourceTree = "<group>";
+		};
+		4EC421C01A12747300D94204 /* examples */ = {
+			isa = PBXGroup;
+			children = (
+				4EC421C11A12747300D94204 /* Serial */,
+			);
+			path = examples;
+			sourceTree = "<group>";
+		};
+		4EC421C11A12747300D94204 /* Serial */ = {
+			isa = PBXGroup;
+			children = (
+				4EC421C21A12747300D94204 /* Serial.ino */,
+			);
+			path = Serial;
+			sourceTree = "<group>";
+		};
+		4EC421C51A12747300D94204 /* InterfaceCompteurERDF */ = {
+			isa = PBXGroup;
+			children = (
+				4EC421C61A12747300D94204 /* Examples */,
+				4EC421C91A12747300D94204 /* InterfaceCompteurERDF.cpp */,
+				4EC421CA1A12747300D94204 /* InterfaceCompteurERDF.h */,
+				4EC421CB1A12747300D94204 /* keywords.txt */,
+				4EC421CC1A12747300D94204 /* LICENSE.txt */,
+			);
+			path = InterfaceCompteurERDF;
+			sourceTree = "<group>";
+		};
+		4EC421C61A12747300D94204 /* Examples */ = {
+			isa = PBXGroup;
+			children = (
+				4EC421C71A12747300D94204 /* basic */,
+			);
+			path = Examples;
+			sourceTree = "<group>";
+		};
+		4EC421C71A12747300D94204 /* basic */ = {
+			isa = PBXGroup;
+			children = (
+				4EC421C81A12747300D94204 /* basic.ino */,
+			);
+			path = basic;
+			sourceTree = "<group>";
+		};
+		4EC421CD1A12747300D94204 /* LowPower */ = {
+			isa = PBXGroup;
+			children = (
+				4EC421CE1A12747300D94204 /* Examples */,
+				4EC421D31A12747300D94204 /* keywords.txt */,
+				4EC421D41A12747300D94204 /* LowPower.cpp */,
+				4EC421D51A12747300D94204 /* LowPower.h */,
+			);
+			path = LowPower;
+			sourceTree = "<group>";
+		};
+		4EC421CE1A12747300D94204 /* Examples */ = {
+			isa = PBXGroup;
+			children = (
+				4EC421CF1A12747300D94204 /* powerDownWakeExternalInterrupt */,
+				4EC421D11A12747300D94204 /* powerDownWakePeriodic */,
+			);
+			path = Examples;
+			sourceTree = "<group>";
+		};
+		4EC421CF1A12747300D94204 /* powerDownWakeExternalInterrupt */ = {
+			isa = PBXGroup;
+			children = (
+				4EC421D01A12747300D94204 /* powerDownWakeExternalInterrupt.pde */,
+			);
+			path = powerDownWakeExternalInterrupt;
+			sourceTree = "<group>";
+		};
+		4EC421D11A12747300D94204 /* powerDownWakePeriodic */ = {
+			isa = PBXGroup;
+			children = (
+				4EC421D21A12747300D94204 /* powerDownWakePeriodic.pde */,
+			);
+			path = powerDownWakePeriodic;
+			sourceTree = "<group>";
+		};
+		4EC421D61A12747300D94204 /* Pulses */ = {
+			isa = PBXGroup;
+			children = (
+				4EC421D71A12747300D94204 /* Pulses.cpp */,
+				4EC421D81A12747300D94204 /* Pulses.h */,
+			);
+			path = Pulses;
 			sourceTree = "<group>";
 		};
 		4EE28E95162F4A550090B5B3 /* xPLLib */ = {

@@ -862,8 +862,6 @@ int managed_processes_processes_check_heartbeats(int doRecovery)
                   ret=-1;
                }
             }
-            else
-               managed_processes.processes_table[i]->heartbeat_status=0;
          }
       }
    }

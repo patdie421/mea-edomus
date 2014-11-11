@@ -5,10 +5,11 @@
  *  Copyright 2012 -. All rights reserved.
  *
  */
-
+#include <stdio.h>
 #include <time.h>
 #include <sys/time.h>
 #include <inttypes.h>
+#include <stdarg.h>
 
 #include "debug.h"
 
@@ -95,3 +96,16 @@ uint32_t take_chrono(uint32_t *_last_time)
 
    return ret;
 }
+
+
+void mea_logprintf(char const* fmt, ...)
+{
+   va_list args;
+
+   fprintf(stderr,"HH:MM:SS JJ/MM/YY : ");
+
+   va_start(args, fmt);
+   vfprintf(stderr, fmt, args);
+   va_end(args);
+}
+

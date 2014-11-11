@@ -325,21 +325,21 @@ int16_t comio2_cmdSendAndWaitResp(comio2_ad_t *ad,
    if(ad->signal_flag==1) // le thread est down, pas la peine d'aller plus loin
    {
       if(comio2_err)
-      {
          *comio2_err=COMIO2_ERR_DOWN;
-      }
       return -1;
    }
 
    if(l_data >= COMIO2_MAX_DATA_SIZE)
    {
-      *comio2_err=COMIO2_ERR_LDATA;
+      if(comio2_err)
+         *comio2_err=COMIO2_ERR_LDATA;
       return -1;
    }
 
    if(pthread_self()==ad->read_thread) // risque de dead lock si appeler par un call back => on interdit
    {
-      *comio2_err=COMIO2_ERR_IN_CALLBACK;
+      if(comio2_err)
+         *comio2_err=COMIO2_ERR_IN_CALLBACK;
       return -1;
    }
    
@@ -387,7 +387,8 @@ int16_t comio2_cmdSendAndWaitResp(comio2_ad_t *ad,
             {
                if(ret!=ETIMEDOUT)
                {
-                  *comio2_err=COMIO2_ERR_SYS;
+                  if(comio2_err)
+                     *comio2_err=COMIO2_ERR_SYS;
                   return_val=-1;
                   goto next_or_return;
                }
@@ -405,7 +406,8 @@ int16_t comio2_cmdSendAndWaitResp(comio2_ad_t *ad,
                   {
                      if(e->comio2_err!=COMIO2_ERR_NOERR) // la reponse est une erreur
                      {
-                        *comio2_err=e->comio2_err; // on la retourne directement
+                        if(comio2_err)
+                           *comio2_err=e->comio2_err; // on la retourne directement
                         
                         // et on fait le menage avant de sortir
                         remove_current_queue(ad->queue);
@@ -424,7 +426,8 @@ int16_t comio2_cmdSendAndWaitResp(comio2_ad_t *ad,
                         memcpy(resp,&(e->frame[1]),e->l_frame-1); // on retire juste l'id
                         *l_resp=e->l_frame-1;
 
-                        *comio2_err=e->comio2_err;
+                        if(comio2_err)
+                           *comio2_err=e->comio2_err;
                         
                         // et on fait le menage avant de sortir
                         _comio2_free_queue_elem(e);

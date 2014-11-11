@@ -403,19 +403,19 @@ int16_t interface_type_001_counters_poll_inputs(interface_type_001_t *i001)
       {
          if(counter_read(i001, counter)<0)
          {
-            return -1;
-         };
-
-         if(counter->counter!=counter->last_counter)
-         {
-            if(counter->todbflag==1)
-               counter_to_db(counter);
          }
+         else
+         {
+            if(counter->counter!=counter->last_counter)
+            {
+               if(counter->todbflag==1)
+                  counter_to_db(counter);
+            }
 
-         counter_to_xpl(i001, counter);
+            counter_to_xpl(i001, counter);
 
-         VERBOSE(9) fprintf(stderr,"%s  (%s) : counter %s %ld (WH=%ld KWH=%ld)\n",INFO_STR,__func__,counter->name, (long)counter->counter, (long)counter->wh_counter,(long)counter->kwh_counter);
-
+            VERBOSE(9) fprintf(stderr,"%s  (%s) : counter %s %ld (WH=%ld KWH=%ld)\n",INFO_STR,__func__,counter->name, (long)counter->counter, (long)counter->wh_counter,(long)counter->kwh_counter);
+         }
          next_queue(counters_list);
       }
    }

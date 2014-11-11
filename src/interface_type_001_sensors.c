@@ -312,6 +312,7 @@ struct sensor_s *interface_type_001_sensors_valid_and_malloc_sensor(int16_t id_s
          }
          // start_timer(&(sensor->timer));
          sensor->nbtrap=NULL;
+         sensor->nbxplout=NULL;
          free_parsed_parameters(sensor_params, nb_sensor_params);
          free(sensor_params);
          sensor_params=NULL;
@@ -555,11 +556,11 @@ int16_t interface_type_001_sensors_poll_inputs(interface_type_001_t *i001)
                continue;
             }
             
+            i001->indicators.nbsensorsread++;
             if(sensor->val!=v)
             {
                int16_t last=sensor->val;
                float computed_last;
-               i001->indicators.nbsensorsread++;
                
                sensor->val=v;
                sensor->computed_val=sensor->compute_fn(v);

@@ -247,6 +247,7 @@ int move_sqlite3_queries_to_mysql(sqlite3 *db, MYSQL *conn)
    while (1)
    {
       int s;
+      process_heartbeat(_dbServer_monitoring_id);
       
       s = sqlite3_step (stmt);
       if (s == SQLITE_ROW)
@@ -503,6 +504,8 @@ void *dbServer_thread(void *args)
    _md->conn=NULL; // descripteur com. MYSQL
    _md->opened=0;
    
+   process_heartbeat(_dbServer_monitoring_id);
+
    pthread_cleanup_push( (void *)set_dbServer_isnt_running, (void *)NULL );
    _dbServer_thread_is_running=1;
 

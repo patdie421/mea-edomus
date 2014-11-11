@@ -10,6 +10,7 @@
 #define __debug_h
 
 #include <inttypes.h>
+#include <stdarg.h>
 
 #define DEBUG_SECTION if(debug_msg)
 #define VERBOSE(v) if(v <= verbose_level)
@@ -24,5 +25,7 @@ void set_verbose_level(int level);
 
 uint32_t start_chrono(uint32_t *_last_time);
 uint32_t take_chrono(uint32_t *_last_time);
+
+void mea_logprintf(char const* fmt, ...);
 
 #endif

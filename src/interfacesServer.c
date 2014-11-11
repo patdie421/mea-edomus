@@ -360,16 +360,20 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                   process_set_start_stop(i001->monitoring_id, start_interface_type_001, stop_interface_type_001, (void *)i001_start_stop_params, 1);
                   process_set_watchdog_recovery(i001->monitoring_id, start_interface_type_001, (void *)i001_start_stop_params);
                   process_set_description(i001->monitoring_id, (char *)description);
-                  
+                  process_set_heartbeat_interval(i001->monitoring_id, 60); // chien de garde au bout de 60 secondes sans heartbeat
+
                   process_add_indicator(i001->monitoring_id, I001_XPLINNB, 0);
+                  
                   process_add_indicator(i001->monitoring_id, I001_SNBTRAPS, 0);
                   process_add_indicator(i001->monitoring_id, I001_SNBREADS, 0);
                   process_add_indicator(i001->monitoring_id, I001_SNBREADSERR, 0);
-                  process_add_indicator(i001->monitoring_id, I001_SNBXPLOUT, 0);
                   process_add_indicator(i001->monitoring_id, I001_SNBXPLIN, 0);
+                  process_add_indicator(i001->monitoring_id, I001_SNBXPLOUT, 0);
+                  
                   process_add_indicator(i001->monitoring_id, I001_ANBOUTERR, 0);
                   process_add_indicator(i001->monitoring_id, I001_ANBOUT, 0);
                   process_add_indicator(i001->monitoring_id, I001_ANBXPLIN, 0);
+                  
                   process_add_indicator(i001->monitoring_id, I001_CNBTRAPS, 0);
                   process_add_indicator(i001->monitoring_id, I001_CNBREADS, 0);
                   process_add_indicator(i001->monitoring_id, I001_CNBREADSERR, 0);
