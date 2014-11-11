@@ -34,4 +34,4 @@ clean:
 
 fullclean: clean
 	rm $(DOWNLOAD)/$(COMP_TAR_FILE)
-   rm -r COMP_SRC_PATH=$(COMP_PATH)/src
+	rm -r COMP_SRC_PATH=$(COMP_PATH)/src

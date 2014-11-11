@@ -166,83 +166,6 @@ int16_t comio2_init(comio2_ad_t *ad, char *dev, speed_t speed)
  * \return    -1 en cas d'erreur, descripteur du périphérique sinon
  */
 {
-   int fd;
-/*
-   struct termios options, options_old;
- 
-   // ouverture du port
-   int flags;
-   
-   memset (ad,0,sizeof(comio2_ad_t));
-   
-   flags=O_RDWR | O_NOCTTY | O_NDELAY | O_EXCL;
-#ifdef O_CLOEXEC
-   flags |= O_CLOEXEC;
-#endif
-   
-   fd = open(dev, flags);
-   if (fd == -1)
-   {
-      // ouverture du port serie impossible
-      return -1;
-   }
-   strcpy(ad->serial_dev_name,dev);
-   ad->speed=speed;
-   
-   // sauvegarde des caractéristiques du port serie
-   tcgetattr(fd, &options_old);
-   
-   // initialisation à 0 de la structure des options (termios)
-   memset(&options, 0, sizeof(struct termios));
-   
-   // paramétrage du débit
-   if(cfsetispeed(&options, speed)<0)
-   {
-      // modification du debit d'entrée impossible
-      return -1;
-   }
-   if(cfsetospeed(&options, speed)<0)
-   {
-      // modification du debit de sortie impossible
-      return -1;
-   }
-   
-   // ???
-   options.c_cflag |= (CLOCAL | CREAD); // mise à 1 du CLOCAL et CREAD
-   
-   // 8 bits de données, pas de parité, 1 bit de stop (8N1):
-   options.c_cflag &= ~PARENB; // pas de parité (N)
-   options.c_cflag &= ~CSTOPB; // 1 bit de stop seulement (1)
-   options.c_cflag &= ~CSIZE;
-   options.c_cflag |= CS8; // 8 bits (8)
-   
-   // bit ICANON = 0 => port en RAW (au lieu de canonical)
-   // bit ECHO =   0 => pas d'écho des caractères
-   // bit ECHOE =  0 => pas de substitution du caractère d'"erase"
-   // bit ISIG =   0 => interruption non autorisées
-   options.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
-   
-   // pas de contrôle de parité
-   options.c_iflag &= ~INPCK;
-   
-   // pas de contrôle de flux
-   options.c_iflag &= ~(IXON | IXOFF | IXANY);
-   
-   // parce qu'on est en raw
-   options.c_oflag &=~ OPOST;
-   
-   // VMIN : Nombre minimum de caractère à lire
-   // VTIME : temps d'attentes de données (en 10eme de secondes)
-   // à 0 car O_NDELAY utilisé
-   options.c_cc[VMIN] = 0;
-   options.c_cc[VTIME] = 0;
-   
-   // réécriture des options
-   tcsetattr(fd, TCSANOW, &options);
-   
-   // préparation du descripteur
-   ad->fd=fd;
-*/
    memset (ad,0,sizeof(comio2_ad_t));
 
    if(_comio2_open(ad, dev, speed)<0)
@@ -268,9 +191,9 @@ int16_t comio2_init(comio2_ad_t *ad, char *dev, speed_t speed)
    ad->signal_flag=0;
    
    if(pthread_create (&(ad->read_thread), NULL, _comio2_thread, (void *)ad))
-   return -1;
+      return -1;
    
-   return fd;
+   return ad->fd;
 }
 
 

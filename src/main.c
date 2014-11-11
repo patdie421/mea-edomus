@@ -317,6 +317,17 @@ static void _signal_STOP(int signal_number)
 }
 
 
+static void _signal_SIGCHLD(int signal_number)
+{
+	/* Wait for all dead processes.
+	 * We use a non-blocking call to be sure this signal handler will not
+	 * block if a child was cleaned up in another part of the program. */
+	while (waitpid(-1, NULL, WNOHANG) > 0)
+   {
+	}
+}
+
+
 int main(int argc, const char * argv[])
 /**
  * \brief     Point d'entrée du mea-edomus
@@ -722,7 +733,6 @@ int main(int argc, const char * argv[])
    //
    // strout et stderr vers fichier log
    //
-/*
    char log_file[255];
    int16_t n;
 
@@ -759,7 +769,7 @@ int main(int argc, const char * argv[])
    dup2(fd, 1);
    dup2(fd, 2);
    close(fd);
-*/
+
    DEBUG_SECTION fprintf(stderr,"INFO  Starting MEA-EDOMUS %s\n",__MEA_EDOMUS_VERSION__);
 
    //
@@ -773,6 +783,7 @@ int main(int argc, const char * argv[])
    signal(SIGINT,  _signal_STOP);
    signal(SIGQUIT, _signal_STOP);
    signal(SIGTERM, _signal_STOP);
+   signal(SIGCHLD, _signal_SIGCHLD); // pour eviter les zombis
    signal(SIGPIPE, SIG_IGN);
 
 
