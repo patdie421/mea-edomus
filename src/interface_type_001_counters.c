@@ -92,9 +92,6 @@ int16_t interface_type_001_counters_process_traps(int16_t numTrap, char *buff, i
          counter->power=3600/(counter->t-t_old);
          start_timer(&(counter->trap_timer)); // réinitialisation du timer à chaque trap
 
-         /* à revoir */
-         // tomysqldb_add_data_to_sensors_values(myd, counter->sensor_id, counter->power, UNIT_W, (float)counter->t-t_old, "");
-
          char value[20];
          xPL_ServicePtr servicePtr = mea_getXPLServicePtr();
          if(servicePtr)
@@ -380,9 +377,6 @@ int16_t interface_type_001_counters_poll_inputs(interface_type_001_t *i001)
          counter->t=(double)tv.tv_sec+(double)tv.tv_usec/1000000.0;
          counter->last_power=counter->power;
          counter->power=0;
-
-//            if(counter->todbflag==1) // attention seulement si puissance logger
-//               counter_to_db(counter);
 
          // envoyer un message xpl 0W
          xPL_ServicePtr servicePtr = mea_getXPLServicePtr();

@@ -20,8 +20,10 @@
 #include "debug.h"
 #include "xPL.h"
 #include "sockets_utils.h"
+#include "consts.h"
 
 #include "processManager.h"
+#include "nodejsServer.h"
 
 #include "interfacesServer.h"
 #include "interface_type_001.h"
@@ -477,7 +479,6 @@ int send_reload( char *hostname, int port)
    
    if(mea_socket_connect(&s, hostname, port)<0)
       return -1;
-   fprintf(stderr,"send_reload %d\n",s);
    
    int reload_str_l=strlen(reload_str)+4;
    char message[2048];
@@ -498,7 +499,9 @@ int restart_interfaces(int my_id, void *data, char *errmsg, int l_errmsg)
    stop_interfaces();
    sleep(1);
    start_interfaces(interfacesServerData->params_list, interfacesServerData->sqlite3_param_db);
-   send_reload("localhost",5600);
+
+   send_reload(localhost_const, get_nodejsServer_socketdata_port());
+
    return 0;
 }
 

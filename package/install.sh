@@ -2,7 +2,7 @@
 
 # à lancer de préférence en sudo
 
-if [ $# -ne 1 ] || [ $# -ne 2 ]
+if [ $# -ne 1 ] && [ $# -ne 2 ]
 then
    echo "usage : $0 BASEPATH [ INTERFACE ]"
    echo "suggestion : $0 /usr/local/mea-edomus"
@@ -19,10 +19,11 @@ BASEPATH="$1"
 if [ $# -eq 2 ]
 then
    if [ -f ./etc/init.d/xplhub ]
+   then
       INTERFACE="$2"
    else
       echo "ERROR : no xplhub in package. Try without INTERFACE !"
-   exit 1
+      exit 1
    fi
 fi
 
@@ -103,10 +104,10 @@ fi
 # un node.js est fourni dans le package
 if [ -f ./bin/node ]
 then
-   OPTIONS="$OPTIONS --nodejspath=$BASEPATH/bin/node"
+   OPTIONS="$OPTIONS --nodejspath=\"$BASEPATH/bin/node\""
 fi
 
-sudo ./bin/mea-edomus --autoinit --basepath="$BASEPATH" "$OPTIONS"
+sudo ./bin/mea-edomus --autoinit --basepath="$BASEPATH" $OPTIONS
 
 sudo chown -R "$MEAUSER":"$MEAGROUP" "$BASEPATH"/lib/mea-gui
 sudo chmod -R 775 "$BASEPATH"/lib/mea-gui
@@ -123,6 +124,7 @@ sudo chmod -R 775 "$BASEPATH"/etc
 
 # pour l'instant on install pas de service Mac OS X
 if [ "$ARCH" == "Darwin" ]
+then
    exit 0
 fi
 

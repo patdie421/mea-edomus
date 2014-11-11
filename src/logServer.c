@@ -241,7 +241,7 @@ void *logServer_thread(void *data)
                if(ret==-1)
                {
                   VERBOSE(9) {
-                     fprintf(stderr, "%s (%s) : connection error - retry next time\n", INFO_STR, __func__);
+                     fprintf(stderr, "%s (%s) : connection error - retry next time (1)\n", INFO_STR, __func__);
                   }
                   break; // erreur de com. on essayera de se reconnecter au prochain tour.
                }
@@ -262,7 +262,7 @@ void *logServer_thread(void *data)
          else
          {
             VERBOSE(9) {
-               fprintf(stderr, "%s (%s) : connection error - retry next time\n", INFO_STR, __func__);
+               fprintf(stderr, "%s (%s) : connection error - retry next time (2)\n", INFO_STR, __func__);
             }
          }
       }

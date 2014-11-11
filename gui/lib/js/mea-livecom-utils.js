@@ -16,8 +16,6 @@ var liveCom = {
          timeout: 5000,
          success: function(data, textStatus, jqXHR) // _socket_available
                   {
-                     if(_liveCom._socketio_port<0)
-                     _liveCom._socketio_port=8000; // port par defaut
                      var socketioAddr=window.location.protocol + '//' + window.location.hostname + ':'+_liveCom._socketio_port;
                      _liveCom.socketio = io.connect(socketioAddr);
                      if(null !== _liveCom.socketio)
