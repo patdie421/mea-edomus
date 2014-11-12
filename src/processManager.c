@@ -850,7 +850,7 @@ int managed_processes_processes_check_heartbeats(int doRecovery)
                      VERBOSE(5) mea_log_printf("%s  (%s) : watchdog recovery started for %s\n",INFO_STR,__func__,managed_processes.processes_table[i]->name);
                      pthread_cleanup_push( (void *)pthread_rwlock_wrlock, (void *)&managed_processes.rwlock ); // /!\ inversion par rapport à l'habitude ... lock en cas de fin de thread d'abord.
                      pthread_rwlock_unlock(&managed_processes.rwlock); // on delock
-                     //managed_processes.processes_table[i]->last_heartbeat = time(NULL);
+                     managed_processes.processes_table[i]->last_heartbeat = time(NULL);
                      managed_processes.processes_table[i]->heartbeat_status=managed_processes.processes_table[i]->heartbeat_recovery(i, managed_processes.processes_table[i]->heartbeat_recovery_data, errmsg, sizeof(errmsg));
                      managed_processes.processes_table[i]->heartbeat_wdcounter++;
                      pthread_rwlock_wrlock(&managed_processes.rwlock); // on relock
