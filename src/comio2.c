@@ -191,7 +191,11 @@ int16_t comio2_init(comio2_ad_t *ad, char *dev, speed_t speed)
    ad->signal_flag=0;
    
    if(pthread_create (&(ad->read_thread), NULL, _comio2_thread, (void *)ad))
+   {
+      free(ad->queue);
+      ad->queue=NULL;
       return -1;
+   }
    
    return ad->fd;
 }
