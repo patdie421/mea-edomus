@@ -444,11 +444,13 @@ int16_t comio2_cmdSendAndWaitResp(comio2_ad_t *ad,
                      }
                      
                      // theoriquement pour nous mais donnees trop vieilles, on supprime ?
-                     DEBUG_SECTION fprintf(stderr,"%s (%s) : data too old\n", DEBUG_STR,__func__);
+//                     DEBUG_SECTION fprintf(stderr,"%s (%s) : data too old\n", DEBUG_STR,__func__);
+                     DEBUG_SECTION mea_log_printf("%s (%s) : data too old\n", DEBUG_STR,__func__);
                   }
                   else
                   {
-                     DEBUG_SECTION fprintf(stderr,"%s (%s) : not for me (%d != %d)\n", DEBUG_STR,__func__, e->frame[1], frame_data_id);
+//                     DEBUG_SECTION fprintf(stderr,"%s (%s) : not for me (%d != %d)\n", DEBUG_STR,__func__, e->frame[1], frame_data_id);
+                     DEBUG_SECTION mea_log_printf("%s (%s) : not for me (%d != %d)\n", DEBUG_STR,__func__, e->frame[1], frame_data_id);
                      e=NULL;
                   }
                }
@@ -579,6 +581,7 @@ int16_t _comio2_read_frame(int fd, char *cmd_data, uint16_t *l_cmd_data, int16_t
                break;
             }
             *nerr=COMIO2_ERR_STARTFRAME;
+            DEBUG_SECTION fprintf(stderr,"%s  (%s) : recept : %d [%c]\n",INFO_STR,__func__,(int)c, c);
             goto on_error_exit_comio2_read;
             
          case 1:
@@ -604,7 +607,8 @@ int16_t _comio2_read_frame(int fd, char *cmd_data, uint16_t *l_cmd_data, int16_t
             }
             else
             {
-               VERBOSE(5) fprintf(stderr,"%s  (%s) : Comio reponse - checksum error.\n",INFO_STR,__func__);
+//               VERBOSE(5) fprintf(stderr,"%s  (%s) : Comio reponse - checksum error.\n",INFO_STR,__func__);
+               VERBOSE(5) mea_log_printf("%s  (%s) : Comio reponse - checksum error.\n",INFO_STR,__func__);
                *nerr=COMIO2_ERR_CHECKSUM;
                goto on_error_exit_comio2_read;
             }
@@ -773,7 +777,8 @@ int _comio2_reopen(comio2_ad_t *ad)
    strncpy(dev, ad->serial_dev_name, sizeof(dev));
    speed=ad->speed;
    
-   VERBOSE(9) fprintf(stderr,"%s  (%s) : try to reset communication (%s).\n",INFO_STR,__func__,dev);
+//   VERBOSE(9) fprintf(stderr,"%s  (%s) : try to reset communication (%s).\n",INFO_STR,__func__,dev);
+   VERBOSE(9) mea_log_printf("%s  (%s) : try to reset communication (%s).\n",INFO_STR,__func__,dev);
    
    close(ad->fd);
    
@@ -783,7 +788,8 @@ int _comio2_reopen(comio2_ad_t *ad)
       if (fd == -1)
       {
          VERBOSE(1) {
-            fprintf(stderr,"%s (%s) : try #%d/%d, unable to open serial port (%s) - ",ERROR_STR,__func__, i+1, COMIO2_NB_RETRY, dev);
+//            fprintf(stderr,"%s (%s) : try #%d/%d, unable to open serial port (%s) - ",ERROR_STR,__func__, i+1, COMIO2_NB_RETRY, dev);
+            mea_log_printf("%s (%s) : try #%d/%d, unable to open serial port (%s) - ",ERROR_STR,__func__, i+1, COMIO2_NB_RETRY, dev);
             perror("");
          }
       }
@@ -797,11 +803,13 @@ int _comio2_reopen(comio2_ad_t *ad)
    
    if(!flag)
    {
-      VERBOSE(1) fprintf(stderr,"%s (%s) : can't recover communication now\n", ERROR_STR,__func__);
+//      VERBOSE(1) fprintf(stderr,"%s (%s) : can't recover communication now\n", ERROR_STR,__func__);
+      VERBOSE(1) mea_log_printf("%s (%s) : can't recover communication now\n", ERROR_STR,__func__);
       return -1;
    }
    
-   VERBOSE(5) fprintf(stderr,"%s  (%s) : communication reset successful.\n",INFO_STR,__func__);
+//   VERBOSE(5) fprintf(stderr,"%s  (%s) : communication reset successful.\n",INFO_STR,__func__);
+   VERBOSE(5) mea_log_printf("%s  (%s) : communication reset successful.\n",INFO_STR,__func__);
 
    return 0;
 } 
@@ -822,7 +830,8 @@ void *_comio2_thread(void *args)
    
    comio2_ad_t *ad=(comio2_ad_t *)args;
    
-   VERBOSE(5) fprintf(stderr,"%s  (%s) : starting comio2 read thread %s\n",INFO_STR,__func__,ad->serial_dev_name);
+//   VERBOSE(5) fprintf(stderr,"%s  (%s) : starting comio2 read thread %s\n",INFO_STR,__func__,ad->serial_dev_name);
+   VERBOSE(5) mea_log_printf("%s  (%s) : starting comio2 read thread %s\n",INFO_STR,__func__,ad->serial_dev_name);
    while(1)
    {
       _comio2_flush_old_responses_queue(ad); // a chaque passage on fait le ménage
@@ -837,14 +846,17 @@ void *_comio2_thread(void *args)
                case COMIO2_TRAP_ID:
                   if( (frame[1]-1) < COMIO2_MAX_TRAP )
                   {
-                     VERBOSE(9) fprintf(stderr,"%s  (%s) : Trap #%d catched\n",INFO_STR,__func__,frame[1]);
+//                     VERBOSE(9) fprintf(stderr,"%s  (%s) : Trap #%d catched\n",INFO_STR,__func__,frame[1]);
+                     VERBOSE(9) mea_log_printf("%s  (%s) : Trap #%d catched\n",INFO_STR,__func__,frame[1]);
                      if(ad->tabTraps[frame[1]-1].trap != NULL)
                         ad->tabTraps[frame[1]-1].trap(frame[1]-1, (char *)&(frame[2]), l_frame-2, ad->tabTraps[frame[1]-1].userdata);
                      else
-                        VERBOSE(5) fprintf(stderr,"%s  (%s) : no callback defined for trap %d\n",INFO_STR,__func__,frame[1]);
+//                        VERBOSE(5) fprintf(stderr,"%s  (%s) : no callback defined for trap %d\n",INFO_STR,__func__,frame[1]);
+                        VERBOSE(5) mea_log_printf("%s  (%s) : no callback defined for trap %d\n",INFO_STR,__func__,frame[1]);
                   }
                   else
-                     VERBOSE(5) fprintf(stderr,"%s  (%s) : trap#(%d) > COMIO2_MAX_TRAP\n",INFO_STR,__func__,frame[1]);
+//                     VERBOSE(5) fprintf(stderr,"%s  (%s) : trap#(%d) > COMIO2_MAX_TRAP\n",INFO_STR,__func__,frame[1]);
+                     VERBOSE(5) mea_log_printf("%s  (%s) : trap#(%d) > COMIO2_MAX_TRAP\n",INFO_STR,__func__,frame[1]);
                   break;
             }
          }
@@ -863,14 +875,16 @@ void *_comio2_thread(void *args)
             case COMIO2_ERR_READ:
             case COMIO2_ERR_SYS:
                VERBOSE(1) {
-                  fprintf(stderr,"%s (%s) : communication error (nerr=%d) - ", ERROR_STR,__func__,nerr);
+//                  fprintf(stderr,"%s (%s) : communication error (nerr=%d) - ", ERROR_STR,__func__,nerr);
+                  mea_log_printf("%s (%s) : communication error (nerr=%d) - ", ERROR_STR,__func__,nerr);
                   perror("");
                }
                if(_comio2_reopen(ad)<0)
                {
                   ad->signal_flag=1;
                   VERBOSE(1) {
-                     fprintf(stderr,"%s (%s) : comio2 thread goes down\n", ERROR_STR,__func__);
+//                     fprintf(stderr,"%s (%s) : comio2 thread goes down\n", ERROR_STR,__func__);
+                     mea_log_printf("%s (%s) : comio2 thread goes down\n", ERROR_STR,__func__);
                   }
                   pthread_exit(NULL);
                }
@@ -879,7 +893,8 @@ void *_comio2_thread(void *args)
 
             default:
                VERBOSE(1) {
-                  fprintf(stderr,"%s (%s) : error=%d.\n", ERROR_STR,__func__,nerr);
+//                  fprintf(stderr,"%s (%s) : error=%d.\n", ERROR_STR,__func__,nerr);
+                  mea_log_printf("%s (%s) : error=%d.\n", ERROR_STR,__func__,nerr);
                   break;
                }
          }

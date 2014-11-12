@@ -6,8 +6,32 @@
 // passer les ports et sessions_path
 //
 
-
 // voir ici : http://stackoverflow.com/questions/6502031/authenticate-user-for-socket-io-nodejs pour récupérer l'id session PHP dans les cookies
+
+function getDateTime()
+{
+// [2014-11-12 21:52:30]
+    var date = new Date();
+
+    var hour = date.getHours();
+    hour = (hour < 10 ? "0" : "") + hour;
+
+    var min  = date.getMinutes();
+    min = (min < 10 ? "0" : "") + min;
+
+    var sec  = date.getSeconds();
+    sec = (sec < 10 ? "0" : "") + sec;
+
+    var year = date.getFullYear();
+
+    var month = date.getMonth() + 1;
+    month = (month < 10 ? "0" : "") + month;
+
+    var day  = date.getDate();
+    day = (day < 10 ? "0" : "") + day;
+
+    return "["+year+"-"+month+"-"+day+" "+hour+":"+min+":"+sec+"]";
+}
 
 
 function unserialize_session(str) { // c'est tres tres light mais suffisant pour l'appli ...
@@ -33,6 +57,7 @@ function unserialize_session(str) { // c'est tres tres light mais suffisant pour
    }
    return unserialized;
 }
+
 
 // valeurs par defaut
 var LOCAL_PORT = 5600;
@@ -63,7 +88,7 @@ for (var i = 2; i < process.argv.length; i++) {
    }
    else
    {
-      console.log("WARNING unknow parameter "+opt[0]);
+      console.log(getDateTime()+" WARNING unknow parameter "+opt[0]);
    }
 }
 
@@ -76,14 +101,14 @@ function internalCmnd(s, msg)
    switch(cmnd)
    {
       case "S" : // demande d'arret du moteur
-         console.log("INFO  : (internalCmnd) OK Chef, nodejs goes done");
+         console.log(getDateTime()+" INFO  : (internalCmnd) OK Chef, nodejs goes done");
          process.exit(0);
          break;
       case "P" : // envoyer un retour sur s
          s.write("OK");
          break;
       case "D"  : // déconnexion d'un client
-         console.log("INFO  : send deconnection request to %s", data);
+         console.log(getDateTime()+" INFO  : send deconnection request to %s", data);
          clients[phpsessids[data]].socket.emit("dct","now");
          break;
      default:
@@ -114,7 +139,7 @@ function process_msg(s, cmnd, msg)
    }
    else
    {
-      console.log("INFO   socket.on(data) : unknown command - "+cmd);
+      console.log(getDateTime()+" INFO   socket.on(data) : unknown command - "+cmd);
       return -1;
    }
    return 0;
@@ -186,14 +211,14 @@ var server = require('net').createServer(function (socket) {
      }
      catch(err)
      {
-        console.log("ERROR : socket.on('readable',function(){})");
+        console.log(getDateTime()+" ERROR : socket.on('readable',function(){})");
      }
    });
 }).listen(LOCAL_PORT);
 
 
 server.on('listening', function () {
-   console.log("INFO  server.on(listening) : Server accepting connection on port: " + LOCAL_PORT);
+   console.log(getDateTime()+" INFO  server.on(listening) : Server accepting connection on port: " + LOCAL_PORT);
 });
 
 
@@ -221,11 +246,11 @@ io.use(function(socket, next) {
 
    try {
       data = fs.readFileSync(phpSessionFile,'utf8');
-      console.log("INFO  fs.readFile("+phpSessionFile+") = "+data);
+      console.log(getDateTime()+" INFO  fs.readFile("+phpSessionFile+") = "+data);
       sess={};
    }
    catch(e) {
-      console.log("ERROR fs.readFileSync("+phpSessionFile+") : "+e.message);
+      console.log(getDateTime()+" ERROR fs.readFileSync("+phpSessionFile+") : "+e.message);
       next(new Error('not authorized'));
       return;
    }
@@ -234,13 +259,13 @@ io.use(function(socket, next) {
       sess=unserialize_session(data.toString());
    }
    catch(e) {
-      console.log("ERROR unserialize_session() : "+e.message);
+      console.log(getDateTime()+" ERROR unserialize_session() : "+e.message);
       next(new Error('not authorized'));
       return;
    }
 
    if(sess['logged_in']==1) {
-      console.log("INFO  io.use() : authorized");
+      console.log(getDateTime()+" INFO  io.use() : authorized");
       phpsessids[phpsessid]=socket.id; // on garde trace de la session pour pouvoir deconnecter le client lorsque la session est expirer (coté serveur).
       socket.phpsessid=phpsessid;      // et dans l'autre sens pour éviter les recherches par boucle lors de la deconnexion.
       next();
@@ -248,7 +273,7 @@ io.use(function(socket, next) {
    }
    else
    {
-      console.log("INFO  io.use() : not authorized");
+      console.log(getDateTime()+" INFO  io.use() : not authorized");
       next(new Error('not authorized'));
       return;
    }
@@ -260,7 +285,7 @@ io.sockets.on('connection', function(socket) {
    clients[socket.id]['socket'] = socket;
 
    socket.on('disconnect', function() {
-      console.log("INFO  socket.on('disconnect') : client "+socket.id+" disconnected");
+      console.log(getDateTime()+" INFO  socket.on('disconnect') : client "+socket.id+" disconnected");
       delete clients[socket.id];
       delete phpsessids[socket.phpsessid];
   });
