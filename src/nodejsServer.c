@@ -67,7 +67,8 @@ int nodejsServer_send_cmnd(char *hostname, int port, char cmnd, char *str)
          if(l<0)
          {
             VERBOSE(1) {
-               fprintf(stderr,"%s (%s) : nodejs not responding.\n", ERROR_STR, __func__);
+//               fprintf(stderr,"%s (%s) : nodejs not responding.\n", ERROR_STR, __func__);
+               mea_log_printf("%s (%s) : nodejs not responding.\n", ERROR_STR, __func__);
             }
          }
          close(s);
@@ -95,7 +96,8 @@ int stop_nodejsServer(int my_id, void *data, char *errmsg, int l_errmsg)
       _pid_nodejs=-1;
    }
    
-   VERBOSE(1) fprintf(stderr,"%s  (%s) : nodejsServer %s.\n", INFO_STR, __func__,stopped_successfully_str);
+//   VERBOSE(1) fprintf(stderr,"%s  (%s) : nodejsServer %s.\n", INFO_STR, __func__,stopped_successfully_str);
+   VERBOSE(1) mea_log_printf("%s  (%s) : nodejsServer %s.\n", INFO_STR, __func__,stopped_successfully_str);
    mea_notify_printf('S', "nodejsServer %s.",stopped_successfully_str);
    
    return 0;
@@ -116,7 +118,8 @@ int start_nodejsServer(int my_id, void *data, char *errmsg, int l_errmsg)
       nodejsServerData->params_list[LOG_PATH] == NULL)
    {
       VERBOSE(3) {
-         fprintf (stderr, "%s (%s) : parameters error ...",ERROR_STR,__func__);
+//         fprintf (stderr, "%s (%s) : parameters error ...",ERROR_STR,__func__);
+         mea_log_printf("%s (%s) : parameters error ...",ERROR_STR,__func__);
       }
       return -1;
    }
@@ -131,7 +134,8 @@ int start_nodejsServer(int my_id, void *data, char *errmsg, int l_errmsg)
       if(n<0 || n==sizeof(serverjs_path))
       {
          VERBOSE(3) {
-            fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);
+//            fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);
+            mea_log_printf("%s (%s) : snprintf - ", ERROR_STR,__func__);
             perror("");
          }
          return -1;
@@ -162,14 +166,16 @@ int start_nodejsServer(int my_id, void *data, char *errmsg, int l_errmsg)
      
       execvp(nodejs_path, cmd_line_params);
 
-      VERBOSE(1) fprintf(stderr,"%s (%s) : can't start nodejs Server (execvp).\n", ERROR_STR, __func__);
+//      VERBOSE(1) fprintf(stderr,"%s (%s) : can't start nodejs Server (execvp).\n", ERROR_STR, __func__);
+      VERBOSE(1) mea_log_printf("%s (%s) : can't start nodejs Server (execvp).\n", ERROR_STR, __func__);
       perror("");
      
       exit(1);
    }
    else if (_pid_nodejs < 0)
    { // failed to fork
-      VERBOSE(1) fprintf(stderr,"%s (%s) : can't start nodejs server (fork).\n", ERROR_STR, __func__);
+//      VERBOSE(1) fprintf(stderr,"%s (%s) : can't start nodejs server (fork).\n", ERROR_STR, __func__);
+      VERBOSE(1) mea_log_printf("%s (%s) : can't start nodejs server (fork).\n", ERROR_STR, __func__);
       perror("");
       return -1;
    }
@@ -190,7 +196,8 @@ int start_nodejsServer(int my_id, void *data, char *errmsg, int l_errmsg)
 
    _nodejsServer_monitoring_id=my_id;
    
-   VERBOSE(1) fprintf(stderr,"%s  (%s) : nodejs server %s.\n", INFO_STR, __func__, launched_successfully_str);
+//   VERBOSE(1) fprintf(stderr,"%s  (%s) : nodejs server %s.\n", INFO_STR, __func__, launched_successfully_str);
+   VERBOSE(1) mea_log_printf("%s  (%s) : nodejs server %s.\n", INFO_STR, __func__, launched_successfully_str);
    mea_notify_printf('S', "nodejs server %s.", launched_successfully_str);
    
    return 0;
