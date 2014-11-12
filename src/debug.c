@@ -10,6 +10,7 @@
 #include <sys/time.h>
 #include <inttypes.h>
 #include <stdarg.h>
+#include <time.h>
 
 #include "debug.h"
 
@@ -101,20 +102,21 @@ uint32_t take_chrono(uint32_t *_last_time)
 void mea_log_printf(char const* fmt, ...)
 {
    va_list args;
-   char *date_format="%Y-%m-%d %H:%M:%S.%02u";
+   char *date_format="%Y-%m-%d %H:%M:%S";
 
    char date_str[40];
    time_t t;
-   struct tm *t_tm;
+   struct tm t_tm;
 
-   t = time(NULL);
-   t_tm = localtime(&t);
-   if (t_tm == NULL) {
-      perror("localtime");
+   t=time();
+
+   if (localtime_r(&t, &t_tm) == NULL)
+   {
+      perror("");
       return;
    }
 
-   if (strftime(date_str, sizeof(date_str), argv[1], tmp) == 0)
+   if (strftime(date_str, sizeof(date_str), date_format, &t_tm) == 0)
    {
       fprintf(stderr, "strftime returned 0");
       return;
