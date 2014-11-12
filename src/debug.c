@@ -98,7 +98,7 @@ uint32_t take_chrono(uint32_t *_last_time)
 }
 
 
-void mea_logprintf(char const* fmt, ...)
+void mea_log_printf(char const* fmt, ...)
 {
    va_list args;
 
