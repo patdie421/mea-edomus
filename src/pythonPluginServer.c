@@ -159,7 +159,8 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
       }
       else
       {
-         VERBOSE(5) fprintf(stderr, "%s (%s) : module %s not found.\n", ERROR_STR, __func__, module);
+//         VERBOSE(5) fprintf(stderr, "%s (%s) : module %s not found.\n", ERROR_STR, __func__, module);
+         VERBOSE(5) mea_logprintf("%s (%s) : module %s not found.\n", ERROR_STR, __func__, module);
          return NOERROR;
       }
    }
@@ -186,7 +187,8 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
          else
          {
             VERBOSE(5) {
-               fprintf(stderr, "%s (%s) : python error - ", ERROR_STR, __func__ );
+//               fprintf(stderr, "%s (%s) : python error - ", ERROR_STR, __func__ );
+               mea_logprintf("%s (%s) : python error - ", ERROR_STR, __func__ );
                PyErr_Print();
                fprintf(stderr,"\n");
             }
@@ -229,12 +231,14 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
 
          if (pValue != NULL)
          {
-            DEBUG_SECTION fprintf(stderr, "%s (%s) : result of call of %s : %ld\n", DEBUG_STR, __func__, fx, PyInt_AsLong(pValue));
+//            DEBUG_SECTION fprintf(stderr, "%s (%s) : result of call of %s : %ld\n", DEBUG_STR, __func__, fx, PyInt_AsLong(pValue));
+            DEBUG_SECTION mea_logprintf("%s (%s) : result of call of %s : %ld\n", DEBUG_STR, __func__, fx, PyInt_AsLong(pValue));
          }
          else
          {
             VERBOSE(5) {
-               fprintf(stderr, "%s (%s) : python error - ", ERROR_STR, __func__ );
+//               fprintf(stderr, "%s (%s) : python error - ", ERROR_STR, __func__ );
+               mea_logprintf("%s (%s) : python error - ", ERROR_STR, __func__ );
                PyErr_Print();
                fprintf(stderr,"\n");
             }
@@ -250,7 +254,8 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
          if (PyErr_Occurred())
          {
             VERBOSE(5) {
-               fprintf(stderr, "%s (%s) : python error - (%s/%s) - ", ERROR_STR, __func__, module, fx);
+//               fprintf(stderr, "%s (%s) : python error - (%s/%s) - ", ERROR_STR, __func__, module, fx);
+               mea_logprintf("%s (%s) : python error - (%s/%s) - ", ERROR_STR, __func__, module, fx);
                PyErr_Print();
                fprintf(stderr,"\n");
             }
@@ -260,7 +265,8 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
          else
          {
             VERBOSE(5) {
-               fprintf(stderr, "%s (%s) : python unknown error\n", ERROR_STR, __func__);
+//               fprintf(stderr, "%s (%s) : python unknown error\n", ERROR_STR, __func__);
+               mea_logprintf("%s (%s) : python unknown error\n", ERROR_STR, __func__);
             }
             return_code=ERROR;
             goto call_pythonPlugin_clean_exit;
@@ -270,7 +276,8 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
    else
    {
       VERBOSE(5) {
-         fprintf(stderr, "%s (%s) : 4-python error - ", ERROR_STR, __func__);
+//         fprintf(stderr, "%s (%s) : 4-python error - ", ERROR_STR, __func__);
+         mea_logprintf("%s (%s) : 4-python error - ", ERROR_STR, __func__);
          PyErr_Print();
          fprintf(stderr,"\n");
       }
@@ -360,7 +367,8 @@ void *_pythonPlugin_thread(void *data)
             else
             {
                // autres erreurs à traiter
-               DEBUG_SECTION fprintf(stderr,"%s (%s) : pthread_cond_timedwait error - ",DEBUG_STR, __func__);
+//               DEBUG_SECTION fprintf(stderr,"%s (%s) : pthread_cond_timedwait error - ",DEBUG_STR, __func__);
+               DEBUG_SECTION mea_logprintf("%s (%s) : pthread_cond_timedwait error - ",DEBUG_STR, __func__);
                perror("");
                pass=1;
             }
@@ -420,7 +428,8 @@ void *_pythonPlugin_thread(void *data)
       else
       {
          // pb d'accés aux données de la file
-         VERBOSE(5) fprintf(stderr,"%s (%s) : out_queue_elem - can't access queue element\n", ERROR_STR, __func__);
+//         VERBOSE(5) fprintf(stderr,"%s (%s) : out_queue_elem - can't access queue element\n", ERROR_STR, __func__);
+         VERBOSE(5) mea_logprintf("%s (%s) : out_queue_elem - can't access queue element\n", ERROR_STR, __func__);
       }
       
       pthread_testcancel();
@@ -444,7 +453,8 @@ pthread_t *pythonPluginServer()
    if(!pythonPluginCmd_queue)
    {
       VERBOSE(1) {
-         fprintf (stderr, "%s (%s) : %s - ", ERROR_STR, __func__, MALLOC_ERROR_STR);
+//         fprintf (stderr, "%s (%s) : %s - ", ERROR_STR, __func__, MALLOC_ERROR_STR);
+         mea_logprintf("%s (%s) : %s - ", ERROR_STR, __func__, MALLOC_ERROR_STR);
          perror("");
       }
       return NULL;
@@ -457,7 +467,8 @@ pthread_t *pythonPluginServer()
    if(!pythonPlugin_thread)
    {
       VERBOSE(1) {
-         fprintf (stderr, "%s (%s) : %s - ",FATAL_ERROR_STR, __func__, MALLOC_ERROR_STR);
+//         fprintf (stderr, "%s (%s) : %s - ",FATAL_ERROR_STR, __func__, MALLOC_ERROR_STR);
+         mea_logprintf("%s (%s) : %s - ",FATAL_ERROR_STR, __func__, MALLOC_ERROR_STR);
          perror("");
       }
       goto pythonPluginServer_clean_exit;
@@ -470,7 +481,8 @@ pthread_t *pythonPluginServer()
 
    if(pthread_create (pythonPlugin_thread, NULL, _pythonPlugin_thread, (void *)pythonPluginCmd_queue))
    {
-      VERBOSE(2) fprintf(stderr, "%s (%s) : pthread_create - can't start thread - ", FATAL_ERROR_STR, __func__);
+//      VERBOSE(2) fprintf(stderr, "%s (%s) : pthread_create - can't start thread - ", FATAL_ERROR_STR, __func__);
+      VERBOSE(2) mea_logprintf("%s (%s) : pthread_create - can't start thread - ", FATAL_ERROR_STR, __func__);
       perror("");
       goto pythonPluginServer_clean_exit;
 
@@ -534,7 +546,8 @@ int stop_pythonPluginServer(int my_id, void *data, char *errmsg, int l_errmsg)
             break;
          }
       }
-      DEBUG_SECTION fprintf(stderr,"%s (%s) : %s, fin après %d itération\n",DEBUG_STR, __func__, pythonPlugin_server_name_str, 100-counter);
+//      DEBUG_SECTION fprintf(stderr,"%s (%s) : %s, fin après %d itération\n",DEBUG_STR, __func__, pythonPlugin_server_name_str, 100-counter);
+      DEBUG_SECTION mea_logprintf("%s (%s) : %s, fin après %d itération\n",DEBUG_STR, __func__, pythonPlugin_server_name_str, 100-counter);
 
       
       free(_pythonPluginServer_thread_id);
@@ -557,7 +570,8 @@ int stop_pythonPluginServer(int my_id, void *data, char *errmsg, int l_errmsg)
 
    _pythonPluginServer_monitoring_id=-1;
 
-   VERBOSE(1) fprintf(stderr,"%s  (%s) : %s %s.\n", INFO_STR, __func__, pythonPlugin_server_name_str, stopped_successfully_str);
+//   VERBOSE(1) fprintf(stderr,"%s  (%s) : %s %s.\n", INFO_STR, __func__, pythonPlugin_server_name_str, stopped_successfully_str);
+   VERBOSE(1) mea_logprintf("%s  (%s) : %s %s.\n", INFO_STR, __func__, pythonPlugin_server_name_str, stopped_successfully_str);
    mea_notify_printf('S', "%s %s.", pythonPlugin_server_name_str, stopped_successfully_str);
 
    return ret;
@@ -578,7 +592,8 @@ int start_pythonPluginServer(int my_id, void *data, char *errmsg, int l_errmsg)
       {
          strerror_r(errno, err_str, sizeof(err_str));
          VERBOSE(2) {
-            fprintf(stderr,"%s (%s) : can't start %s (thread error) - %s\n", ERROR_STR, __func__, pythonPlugin_server_name_str, notify_str);
+//            fprintf(stderr,"%s (%s) : can't start %s (thread error) - %s\n", ERROR_STR, __func__, pythonPlugin_server_name_str, notify_str);
+            mea_logprintf("%s (%s) : can't start %s (thread error) - %s\n", ERROR_STR, __func__, pythonPlugin_server_name_str, notify_str);
          }
          mea_notify_printf('E', "Can't start %s - %s", pythonPlugin_server_name_str, err_str);
 
@@ -589,13 +604,15 @@ int start_pythonPluginServer(int my_id, void *data, char *errmsg, int l_errmsg)
    else
    {
       VERBOSE(1) {
-         fprintf(stderr,"%s (%s) : can't start %s (incorrect plugin path).\n", ERROR_STR, __func__, pythonPlugin_server_name_str);
+//         fprintf(stderr,"%s (%s) : can't start %s (incorrect plugin path).\n", ERROR_STR, __func__, pythonPlugin_server_name_str);
+         mea_logprintf("%s (%s) : can't start %s (incorrect plugin path).\n", ERROR_STR, __func__, pythonPlugin_server_name_str);
       }
       mea_notify_printf('E', "Can't start %s - incorrect plugin path", pythonPlugin_server_name_str);
       return -1;
    }
 
-   VERBOSE(1) fprintf(stderr,"%s  (%s) : %s %s.\n", INFO_STR, __func__, pythonPlugin_server_name_str, launched_successfully_str);
+//   VERBOSE(1) fprintf(stderr,"%s  (%s) : %s %s.\n", INFO_STR, __func__, pythonPlugin_server_name_str, launched_successfully_str);
+   VERBOSE(1) mea_logprintf("%s  (%s) : %s %s.\n", INFO_STR, __func__, pythonPlugin_server_name_str, launched_successfully_str);
    mea_notify_printf('S', "%s %s.", pythonPlugin_server_name_str, launched_successfully_str);
 
    return 0;
