@@ -26,20 +26,22 @@ int mea_socket_connect(int *s, char *hostname, int port)
    sock = socket(AF_INET, SOCK_STREAM, 0);
    if(sock < 0)
    {
-//      DEBUG_SECTION {
+      DEBUG_SECTION {
 //         fprintf(stderr, "%s (%s) :  socket - can't create : ",ERROR_STR,__func__);
-//         perror("");
-//      }
+         mea_logprintf("%s (%s) :  socket - can't create : ",ERROR_STR,__func__);
+         perror("");
+      }
       return -1;
    }
    
    serv_info = gethostbyname(hostname); // on récupère les informations de l'hôte auquel on veut se connecter
    if(serv_info == NULL)
    {
-//      DEBUG_SECTION {
+      DEBUG_SECTION {
 //         fprintf(stderr, "%s (%s) :  gethostbyname - can't get information : ",ERROR_STR,__func__);
-//         perror("");
-//      }
+         mea_logprintf("%s (%s) :  gethostbyname - can't get information : ",ERROR_STR,__func__);
+         perror("");
+      }
       return -1;
    }
 
@@ -50,10 +52,11 @@ int mea_socket_connect(int *s, char *hostname, int port)
    
    if(connect(sock, (const struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
    {
-//      DEBUG_SECTION {
+      DEBUG_SECTION {
 //         fprintf(stderr, "%s (%s) :  connect - can't connect : ",ERROR_STR,__func__);
-//         perror("");
-//      }
+         mea_logprintf("%s (%s) :  connect - can't connect : ",ERROR_STR,__func__);
+         perror("");
+      }
       close(sock);
       return -1;
    }
@@ -86,7 +89,8 @@ int mea_socket_send(int *s, char *message, int l_message)
    if(ret < 0)
    {
       DEBUG_SECTION {
-         fprintf(stderr, "%s (%s) :  send - can't send : ",ERROR_STR,__func__);
+//         fprintf(stderr, "%s (%s) :  send - can't send : ",ERROR_STR,__func__);
+         mea_logprintf("%s (%s) :  send - can't send : ",ERROR_STR,__func__);
          perror("");
       }
       return -1;
