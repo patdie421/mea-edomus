@@ -31,7 +31,7 @@ int16_t sqlite3_dropTable(sqlite3 *sqlite3_param_db, char *table)
     if( func_ret != SQLITE_OK )
     {
 //        DEBUG_SECTION fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", DEBUG_STR, __func__,errmsg);
-        DEBUG_SECTION mea_logprintf("%s (%s) : sqlite3_exec - %s\n", DEBUG_STR, __func__,errmsg);
+        DEBUG_SECTION mea_log_printf("%s (%s) : sqlite3_exec - %s\n", DEBUG_STR, __func__,errmsg);
         sqlite3_free(errmsg);
         return 1;
     }
@@ -62,7 +62,7 @@ int16_t sqlite3_tableExist(sqlite3 *sqlite3_param_db, char *table)
         else if (s==SQLITE_ERROR)
         {
 //            DEBUG_SECTION fprintf (stderr, "%s (%s) : sqlite3_step - %s\n", DEBUG_STR,__func__, sqlite3_errmsg(sqlite3_param_db));
-            DEBUG_SECTION mea_logprintf("%s (%s) : sqlite3_step - %s\n", DEBUG_STR,__func__, sqlite3_errmsg(sqlite3_param_db));
+            DEBUG_SECTION mea_log_printf("%s (%s) : sqlite3_step - %s\n", DEBUG_STR,__func__, sqlite3_errmsg(sqlite3_param_db));
             sqlite3_finalize(stmt);
             return -1;
         }
@@ -70,7 +70,7 @@ int16_t sqlite3_tableExist(sqlite3 *sqlite3_param_db, char *table)
     else
     {
 //        DEBUG_SECTION fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", DEBUG_STR, __func__, sqlite3_errmsg(sqlite3_param_db));
-        DEBUG_SECTIONmea_logprintf("%s (%s) : sqlite3_prepare_v2 - %s\n", DEBUG_STR, __func__, sqlite3_errmsg(sqlite3_param_db));
+        DEBUG_SECTION mea_log_printf("%s (%s) : sqlite3_prepare_v2 - %s\n", DEBUG_STR, __func__, sqlite3_errmsg(sqlite3_param_db));
     }
     return -1;
 }
@@ -94,7 +94,7 @@ int16_t sqlite3_doSqlQueries(sqlite3 *sqlite3_db, char *queries[])
       if( ret != SQLITE_OK )
       {
 //         DEBUG_SECTION fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", DEBUG_STR, __func__, errmsg);
-         DEBUG_SECTION mea_logprintf("%s (%s) : sqlite3_exec - %s\n", DEBUG_STR, __func__, errmsg);
+         DEBUG_SECTION mea_log_printf("%s (%s) : sqlite3_exec - %s\n", DEBUG_STR, __func__, errmsg);
          sqlite3_free(errmsg);
          rc=1;
          break;

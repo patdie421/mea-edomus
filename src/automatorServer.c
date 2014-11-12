@@ -446,7 +446,8 @@ int16_t check_conditions(int conditions_id_rule, xPL_NameValueListPtr xpl_body)
    if(n<0 || n==sizeof(sql_query))
    {
       VERBOSE(2) {
-         fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);
+//         fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);
+         mea_log_printf("%s (%s) : snprintf - ", ERROR_STR,__func__);
          perror("");
       }
       return -1;
@@ -456,7 +457,8 @@ int16_t check_conditions(int conditions_id_rule, xPL_NameValueListPtr xpl_body)
    int ret = sqlite3_prepare_v2(db, sql_query, strlen(sql_query)+1, &stmt, NULL);
    if(ret)
    {
-      VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg (db));
+//      VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg (db));
+      VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg (db));
       return -1;
    }
    else
@@ -561,7 +563,8 @@ int16_t check_conditions(int conditions_id_rule, xPL_NameValueListPtr xpl_body)
          }
          else
          {
-            VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_step - %s\n", ERROR_STR,__func__,sqlite3_errmsg (db));
+//            VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_step - %s\n", ERROR_STR,__func__,sqlite3_errmsg (db));
+            mea_log_printf("%s (%s) : sqlite3_step - %s\n", ERROR_STR,__func__,sqlite3_errmsg (db));
             sqlite3_finalize(stmt);
             return -1;
          }
@@ -585,7 +588,8 @@ int16_t find_and_process_rules(sqlite3 *db, xPL_MessagePtr theMessage)
    if(n<0 || n==sizeof(xpl_source))
    {
       VERBOSE(2) {
-         fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);
+//         fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);
+         mea_log_printf("%s (%s) : snprintf - ", ERROR_STR,__func__);
          perror("");
       }
       return -1;
@@ -595,7 +599,8 @@ int16_t find_and_process_rules(sqlite3 *db, xPL_MessagePtr theMessage)
    if(n<0 || n==sizeof(xpl_schema))
    {
       VERBOSE(2) {
-         fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);
+//         fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);
+         mea_log_printf("%s (%s) : snprintf - ", ERROR_STR,__func__);
          perror("");
       }
       return -1;
@@ -619,7 +624,8 @@ int16_t find_and_process_rules(sqlite3 *db, xPL_MessagePtr theMessage)
       if(n<0 || n==sizeof(condition_key))
       {
          VERBOSE(2) {
-            fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);
+//            fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);
+            mea_log_printf("%s (%s) : snprintf - ", ERROR_STR,__func__);
             perror("");
          }
          return -1;
@@ -634,7 +640,8 @@ int16_t find_and_process_rules(sqlite3 *db, xPL_MessagePtr theMessage)
    if(n<0 || n==sizeof(sql_query))
    {
       VERBOSE(2) {
-            fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);
+//            fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);
+            mea_log_printf("%s (%s) : snprintf - ", ERROR_STR,__func__);
             perror("");
       }
       return -1;
@@ -644,12 +651,14 @@ int16_t find_and_process_rules(sqlite3 *db, xPL_MessagePtr theMessage)
    int ret = sqlite3_prepare_v2(db, sql_query, strlen(sql_query)+1, &stmt, NULL);
    if(ret)
    {
-      VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg (db));
+//      VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg (db));
+      VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg (db));
       return -1;
    }
    else
    {
-      VERBOSE(9) fprintf(stderr,"%s (%s) : RULE CONDITION - %s\n",INFO_STR,__func__,conditions_keys);
+//      VERBOSE(9) fprintf(stderr,"%s (%s) : RULE CONDITION - %s\n",INFO_STR,__func__,conditions_keys);
+      VERBOSE(9) mea_log_printf("%s (%s) : RULE CONDITION - %s\n",INFO_STR,__func__,conditions_keys);
       while (1)
       {
          int s = sqlite3_step (stmt); // sqlite function need int
@@ -669,14 +678,16 @@ int16_t find_and_process_rules(sqlite3 *db, xPL_MessagePtr theMessage)
             
             if(check_conditions(conditions_id_rule, xpl_body)==0)
             {
-               VERBOSE(9) fprintf (stderr, "%s (%s) : RULE %s MATCH :-)\n", INFO_STR,__func__,rules_name);
+//               VERBOSE(9) fprintf (stderr, "%s (%s) : RULE %s MATCH :-)\n", INFO_STR,__func__,rules_name);
+               VERBOSE(9) mea_log_printf("%s (%s) : RULE %s MATCH :-)\n", INFO_STR,__func__,rules_name);
                ret=set_input(input_type, input_index, input_value, xpl_body);
                print_digital_inputs();
                // si ret==0 déclenchement de l'automate (synchro a définir : signal, condition, ...)
             }
             else
             {
-               VERBOSE(9) fprintf (stderr, "%s (%s) : RULE %s NOT MATCH :-(\n", INFO_STR,__func__,rules_name);
+//               VERBOSE(9) fprintf (stderr, "%s (%s) : RULE %s NOT MATCH :-(\n", INFO_STR,__func__,rules_name);
+               VERBOSE(9) mea_log_printf("%s (%s) : RULE %s NOT MATCH :-(\n", INFO_STR,__func__,rules_name);
             }
          }
          else if (s == SQLITE_DONE)
@@ -686,7 +697,8 @@ int16_t find_and_process_rules(sqlite3 *db, xPL_MessagePtr theMessage)
          }
          else
          {
-            VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_step - %s\n", ERROR_STR,__func__,sqlite3_errmsg (db));
+//            VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_step - %s\n", ERROR_STR,__func__,sqlite3_errmsg (db));
+            VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_step - %s\n", ERROR_STR,__func__,sqlite3_errmsg (db));
             sqlite3_finalize(stmt);
             return -1;
          }
@@ -725,7 +737,8 @@ Voir aussi comment prendre en compte les changements sur la table source. Par ex
    int ret = sqlite3_open_v2(db_path, &db, SQLITE_OPEN_READWRITE, NULL);
    if(ret)
    {
-      VERBOSE(1) fprintf (stderr, "%s (%s) : sqlite3_open - %s\n", ERROR_STR,__func__, sqlite3_errmsg (db));
+//      VERBOSE(1) fprintf (stderr, "%s (%s) : sqlite3_open - %s\n", ERROR_STR,__func__, sqlite3_errmsg (db));
+      VERBOSE(1) mea_log_printf("%s (%s) : sqlite3_open - %s\n", ERROR_STR,__func__, sqlite3_errmsg (db));
       exit(1);
    }
 
@@ -759,7 +772,8 @@ Voir aussi comment prendre en compte les changements sur la table source. Par ex
          if(compteur>59)
          {
             compteur=0;
-            fprintf(stderr,"%s  (%s) : automatorServer thread actif\n",INFO_STR,__func__);
+//            fprintf(stderr,"%s  (%s) : automatorServer thread actif\n",INFO_STR,__func__);
+            mea_log_printf("%s  (%s) : automatorServer thread actif\n",INFO_STR,__func__);
          }
          else
             compteur++;

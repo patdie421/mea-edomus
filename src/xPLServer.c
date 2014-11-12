@@ -276,12 +276,12 @@ xPL_MessagePtr mea_readXPLResponse(int id)
                }
                // theoriquement pour nous mais donnees trop vieilles, on supprime ?
 //               DEBUG_SECTION fprintf(stderr,"%s (%s) : data are too old\n", DEBUG_STR,__func__);
-               DEBUG_SECTION mea_logprintf("%s (%s) : data are too old\n", DEBUG_STR,__func__);
+               DEBUG_SECTION mea_log_printf("%s (%s) : data are too old\n", DEBUG_STR,__func__);
             }
             else
             {
 //               DEBUG_SECTION fprintf(stderr,"%s (%s) : data aren't for me (%d != %d)\n", DEBUG_STR,__func__, e->id, id);
-               DEBUG_SECTION mea_logprintf("%s (%s) : data aren't for me (%d != %d)\n", DEBUG_STR,__func__, e->id, id);
+               DEBUG_SECTION mea_log_printf("%s (%s) : data aren't for me (%d != %d)\n", DEBUG_STR,__func__, e->id, id);
                e=NULL;
             }
          }
@@ -325,7 +325,7 @@ void _flushExpiredXPLResponses()
                e=NULL;
                remove_current_queue(xplRespQueue); // remove current passe sur le suivant
 //               DEBUG_SECTION fprintf(stderr,"%s (%s) : responses queue was flushed\n",DEBUG_STR,__func__);
-               DEBUG_SECTION mea_logprintf("%s (%s) : responses queue was flushed\n",DEBUG_STR,__func__);
+               DEBUG_SECTION mea_log_printf("%s (%s) : responses queue was flushed\n",DEBUG_STR,__func__);
             }
             else
             next_queue(xplRespQueue);
@@ -393,7 +393,7 @@ void *xPLServer_thread(void *data)
          {
             compteur=0;
 //            fprintf(stderr,"%s  (%s) : %s thread is running\n", INFO_STR, __func__, xpl_server_name_str);
-            mea_logprintf("%s  (%s) : %s thread is running\n", INFO_STR, __func__, xpl_server_name_str);
+            mea_log_printf("%s  (%s) : %s thread is running\n", INFO_STR, __func__, xpl_server_name_str);
          }
          else
             compteur++;
@@ -434,7 +434,7 @@ pthread_t *xPLServer()
    {
       VERBOSE(1) {
 //         fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
-         mea_logprintf("%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
+         mea_log_printf("%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
          perror("");
       }
       return NULL;
@@ -448,7 +448,7 @@ pthread_t *xPLServer()
    {
       VERBOSE(1) {
 //         fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__, MALLOC_ERROR_STR);
-         mea_logprintf("%s (%s) : %s - ",ERROR_STR,__func__, MALLOC_ERROR_STR);
+         mea_log_printf("%s (%s) : %s - ",ERROR_STR,__func__, MALLOC_ERROR_STR);
          perror("");
       }
       free(xplRespQueue);
@@ -459,7 +459,7 @@ pthread_t *xPLServer()
    if(pthread_create (_xPLServer_thread_id, NULL, xPLServer_thread, NULL))
    {
 //      VERBOSE(1) fprintf(stderr, "%s (%s) : pthread_create - can't start thread\n",ERROR_STR,__func__);
-      VERBOSE(1) mea_logprintf("%s (%s) : pthread_create - can't start thread\n",ERROR_STR,__func__);
+      VERBOSE(1) mea_log_printf("%s (%s) : pthread_create - can't start thread\n",ERROR_STR,__func__);
       return NULL;
    }
       
@@ -490,7 +490,7 @@ int stop_xPLServer(int my_id, void *data,  char *errmsg, int l_errmsg)
       }
 
 //      DEBUG_SECTION fprintf(stderr,"%s (%s) : %s, fin après %d itération\n",DEBUG_STR, __func__,xpl_server_name_str,100-counter);
-      DEBUG_SECTION mea_logprintf("%s (%s) : %s, fin après %d itération\n",DEBUG_STR, __func__,xpl_server_name_str,100-counter);
+      DEBUG_SECTION mea_log_printf("%s (%s) : %s, fin après %d itération\n",DEBUG_STR, __func__,xpl_server_name_str,100-counter);
       ret=stopped;
    }
 
@@ -518,13 +518,13 @@ int stop_xPLServer(int my_id, void *data,  char *errmsg, int l_errmsg)
    if(ret==0)
    {
 //      VERBOSE(2) fprintf(stderr,"%s  (%s) : %s %s.\n", INFO_STR, __func__, xpl_server_name_str, stopped_successfully_str);
-      VERBOSE(2) mea_logprintf("%s  (%s) : %s %s.\n", INFO_STR, __func__, xpl_server_name_str, stopped_successfully_str);
+      VERBOSE(2) mea_log_printf("%s  (%s) : %s %s.\n", INFO_STR, __func__, xpl_server_name_str, stopped_successfully_str);
       mea_notify_printf('S', "%s %s", xpl_server_name_str, stopped_successfully_str);
    }
    else
    {
 //      VERBOSE(2) fprintf(stderr,"%s  (%s) : %s can't cancel thread.\n", INFO_STR, __func__, xpl_server_name_str);
-      VERBOSE(2) mea_logprintf("%s  (%s) : %s can't cancel thread.\n", INFO_STR, __func__, xpl_server_name_str);
+      VERBOSE(2) mea_log_printf("%s  (%s) : %s can't cancel thread.\n", INFO_STR, __func__, xpl_server_name_str);
       mea_notify_printf('S', "%s can't cancel thread", xpl_server_name_str);
    }
    return ret;
@@ -547,7 +547,7 @@ int start_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg)
       {
          VERBOSE(1) {
 //            fprintf (stderr, "%s (%s) : xPL_initialize - error\n",ERROR_STR,__func__);
-            mea_logprintf("%s (%s) : xPL_initialize - error\n",ERROR_STR,__func__);
+            mea_log_printf("%s (%s) : xPL_initialize - error\n",ERROR_STR,__func__);
          }
          mea_notify_printf('E', "%s Can't be launched - xPL_initialize error.\n", xpl_server_name_str);
          return -1;
@@ -560,7 +560,7 @@ int start_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg)
          strerror_r(errno, err_str, sizeof(err_str));
          VERBOSE(2) {
 //            fprintf(stderr,"%s (%s) : can't start xpl server - %s\n",ERROR_STR,__func__,err_str);
-            mea_logprintf("%s (%s) : can't start xpl server - %s\n",ERROR_STR,__func__,err_str);
+            mea_log_printf("%s (%s) : can't start xpl server - %s\n",ERROR_STR,__func__,err_str);
          }
          mea_notify_printf('E', "%s Can't be launched - %s.", xpl_server_name_str, err_str);
 
@@ -570,7 +570,7 @@ int start_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg)
       {
          pthread_detach(*_xPLServer_thread_id);
 //         VERBOSE(2) fprintf(stderr,"%s  (%s) : %s launched successfully.\n", INFO_STR, __func__, xpl_server_name_str);
-         VERBOSE(2) mea_logprintf("%s  (%s) : %s launched successfully.\n", INFO_STR, __func__, xpl_server_name_str);
+         VERBOSE(2) mea_log_printf("%s  (%s) : %s launched successfully.\n", INFO_STR, __func__, xpl_server_name_str);
          mea_notify_printf('S', "%s launched successfully", xpl_server_name_str);
 
          return 0;
@@ -579,7 +579,7 @@ int start_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg)
    else
    {
 //      VERBOSE(2) fprintf(stderr,"%s (%s) : no valid xPL address.\n", ERROR_STR, __func__);
-      VERBOSE(2) mea_logprintf("%s (%s) : no valid xPL address.\n", ERROR_STR, __func__);
+      VERBOSE(2) mea_log_printf("%s (%s) : no valid xPL address.\n", ERROR_STR, __func__);
       mea_notify_printf('E', "%s Can't be launched - no valid xPL address.", xpl_server_name_str);
       return -1;
    }

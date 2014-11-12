@@ -66,20 +66,22 @@ int valide_actuator_i001(int token_type_id, int pin_id, int token_action_id, int
    if(token_type_id==-1)
    {
       *err=1;
-      VERBOSE(5) fprintf(stderr,"%s (%s) : bad i/o type (%d)\n",ERROR_STR,__func__,token_type_id);
+//      VERBOSE(5) fprintf(stderr,"%s (%s) : bad i/o type (%d)\n",ERROR_STR,__func__,token_type_id);
+      VERBOSE(5) mea_log_printf("%s (%s) : bad i/o type (%d)\n",ERROR_STR,__func__,token_type_id);
    }
    
    if(pin_id==-1)
    {
       *err=2;
-      VERBOSE(5) fprintf(stderr,"%s (%s) : bad pin (%d)\n",ERROR_STR,__func__,pin_id);
+      VERBOSE(5) mea_log_printf("%s (%s) : bad pin (%d)\n",ERROR_STR,__func__,pin_id);
    }
    
    int ret=actuator_pin_type_i001(token_type_id, pin_id);
    if(!ret)
    {
       *err=3;
-      VERBOSE(5) fprintf(stderr,"%s (%s) : bad pin (%d) for pin type (%d)\n",ERROR_STR,__func__,pin_id,token_type_id);
+//      VERBOSE(5) fprintf(stderr,"%s (%s) : bad pin (%d) for pin type (%d)\n",ERROR_STR,__func__,pin_id,token_type_id);
+      VERBOSE(5) mea_log_printf("%s (%s) : bad pin (%d) for pin type (%d)\n",ERROR_STR,__func__,pin_id,token_type_id);
       return 0;
    }
    
@@ -101,7 +103,8 @@ struct actuator_s *valid_and_malloc_actuator(int16_t id_sensor_actuator, char *n
    if(!actuator)
    {
       VERBOSE(2) {
-         fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
+//         fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
+         mea_log_printf("%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
          perror(""); }
       goto valid_and_malloc_relay_clean_exit;
    }
@@ -129,14 +132,16 @@ struct actuator_s *valid_and_malloc_actuator(int16_t id_sensor_actuator, char *n
       }
       else
       {
-         VERBOSE(2) fprintf (stderr, "%s (%s) : parametres (%s) non valides\n",ERROR_STR,__func__,parameters);
+//         VERBOSE(2) fprintf (stderr, "%s (%s) : parametres (%s) non valides\n",ERROR_STR,__func__,parameters);
+         VERBOSE(2) mea_log_printf("%s (%s) : parametres (%s) non valides\n",ERROR_STR,__func__,parameters);
          goto valid_and_malloc_relay_clean_exit;
       }
    }
    else
    {
       VERBOSE(1) {
-         fprintf(stderr,"%s (%s) : %s/%s invalid. Check parameters.\n",ERROR_STR,__func__,name,parameters);
+//         fprintf(stderr,"%s (%s) : %s/%s invalid. Check parameters.\n",ERROR_STR,__func__,name,parameters);
+         mea_log_printf("%s (%s) : %s/%s invalid. Check parameters.\n",ERROR_STR,__func__,name,parameters);
       }
    }
    
@@ -200,14 +205,16 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
                   else
                      pulse_width=250;
 
-                  VERBOSE(9) fprintf(stderr,"%s  (%s) : %s PLUSE %d ms on %d\n",INFO_STR,__func__,device,pulse_width,iq->arduino_pin);
-                     
+//                  VERBOSE(9) fprintf(stderr,"%s  (%s) : %s PLUSE %d ms on %d\n",INFO_STR,__func__,device,pulse_width,iq->arduino_pin);
+                  VERBOSE(9) mea_log_printf("%s  (%s) : %s PLUSE %d ms on %d\n",INFO_STR,__func__,device,pulse_width,iq->arduino_pin);
+                  
                   sval[0]=iq->arduino_pin;
                   sval[1]=((pulse_width / 100) & 0xFF);
                   ret=comio2_call_proc(i001->ad, 0, (char *)sval, 2, &comio2_err);
                   if(ret!=0)
                   {
-                     VERBOSE(9) fprintf(stderr,"%s  (%s) : comio2_call_proc error (comio2_err=%d)\n",INFO_STR, __func__,comio2_err);
+//                     VERBOSE(9) fprintf(stderr,"%s  (%s) : comio2_call_proc error (comio2_err=%d)\n",INFO_STR, __func__,comio2_err);
+                     VERBOSE(9) mea_log_printf("%s  (%s) : comio2_call_proc error (comio2_err=%d)\n",INFO_STR, __func__,comio2_err);
                      (i001->indicators.nbactuatorsouterr)++;
 
                      return ERROR;
@@ -227,14 +234,16 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
                   if(current_id==HIGH_ID)
                      o=255;
                   
-                  VERBOSE(9) fprintf(stderr,"%s  (%s) : %s set %d on pin %d\n",INFO_STR,__func__,device,o,iq->arduino_pin);
+//                  VERBOSE(9) fprintf(stderr,"%s  (%s) : %s set %d on pin %d\n",INFO_STR,__func__,device,o,iq->arduino_pin);
+                  VERBOSE(9) mea_log_printf("%s  (%s) : %s set %d on pin %d\n",INFO_STR,__func__,device,o,iq->arduino_pin);
                   
                   sval[0]=iq->arduino_pin;
                   sval[1]=o;
                   ret=comio2_call_proc(i001->ad, 1, (char *)sval, 2, &comio2_err);
                   if(ret!=0)
                   {
-                     VERBOSE(9) fprintf(stderr,"%s  (%s) : comio2_call_proc error (comio2_err=%d)\n",INFO_STR, __func__,comio2_err);
+//                     VERBOSE(9) fprintf(stderr,"%s  (%s) : comio2_call_proc error (comio2_err=%d)\n",INFO_STR, __func__,comio2_err);
+                     VERBOSE(9) mea_log_printf("%s  (%s) : comio2_call_proc error (comio2_err=%d)\n",INFO_STR, __func__,comio2_err);
                      (i001->indicators.nbactuatorsouterr)++;
 
                      return ERROR;
@@ -248,7 +257,8 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
                }
                
                default:
-                  VERBOSE(9) fprintf(stderr,"%s  (%s) : incorrect request for %s (%s)\n",INFO_STR,__func__,device,type);
+//                  VERBOSE(9) fprintf(stderr,"%s  (%s) : incorrect request for %s (%s)\n",INFO_STR,__func__,device,type);
+                  VERBOSE(9) mea_log_printf("%s  (%s) : incorrect request for %s (%s)\n",INFO_STR,__func__,device,type);
                   return ERROR;
             }
             
@@ -295,7 +305,8 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
                   }
                   else
                   {
-                     VERBOSE(9) fprintf(stderr,"%s  (%s) : %s ???\n",INFO_STR,__func__,current);
+//                     VERBOSE(9) fprintf(stderr,"%s  (%s) : %s ???\n",INFO_STR,__func__,current);
+                     VERBOSE(9) mea_log_printf("%s  (%s) : %s ???\n",INFO_STR,__func__,current);
                      return ERROR; // erreur de syntaxe ...
                   }
                }
@@ -307,14 +318,16 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
                o=0;
             iq->old_val=(uint16_t)o;
                   
-            VERBOSE(9) fprintf(stderr,"%s  (%s) : %s set %d on pin %d\n",INFO_STR, __func__,device,o,iq->arduino_pin);
-                  
+//            VERBOSE(9) fprintf(stderr,"%s  (%s) : %s set %d on pin %d\n",INFO_STR, __func__,device,o,iq->arduino_pin);
+            VERBOSE(9) mea_log_printf("%s  (%s) : %s set %d on pin %d\n",INFO_STR, __func__,device,o,iq->arduino_pin);
+            
             sval[0]=iq->arduino_pin;
             sval[1]=o;
             ret=comio2_call_proc(i001->ad, 2, (char *)sval, 2, &comio2_err);
             if(ret!=0)
             {
-               VERBOSE(9) fprintf(stderr,"%s  (%s) : comio2_call_proc error (comio2_err=%d)\n",INFO_STR, __func__,comio2_err);
+//               VERBOSE(9) fprintf(stderr,"%s  (%s) : comio2_call_proc error (comio2_err=%d)\n",INFO_STR, __func__,comio2_err);
+               VERBOSE(9) mea_log_printf("%s  (%s) : comio2_call_proc error (comio2_err=%d)\n",INFO_STR, __func__,comio2_err);
                (i001->indicators.nbactuatorsouterr)++;
                return ERROR;
             }

@@ -111,7 +111,8 @@ int _read_and_send_lines(int nodejs_socket, char *file, long *pos)
    if(fp == NULL)
    {
       VERBOSE(5) {
-         fprintf(stderr, "%s (%s) :  fopen - can't open %s : ", ERROR_STR, __func__, file);
+//         fprintf(stderr, "%s (%s) :  fopen - can't open %s : ", ERROR_STR, __func__, file);
+         mea_log_printf("%s (%s) :  fopen - can't open %s : ", ERROR_STR, __func__, file);
          perror("");
       }
       *pos=0; // le fichier n'existe pas. lorsqu'il sera créé on le lira depuis le debut
@@ -233,7 +234,8 @@ void *logServer_thread(void *data)
                else
                {
                   VERBOSE(9) {
-                     fprintf(stderr, "%s (%s) : stat error - retry next time\n", INFO_STR, __func__);
+//                     fprintf(stderr, "%s (%s) : stat error - retry next time\n", INFO_STR, __func__);
+                     mea_log_printf("%s (%s) : stat error - retry next time\n", INFO_STR, __func__);
                   }
                   break;
                }
@@ -241,14 +243,16 @@ void *logServer_thread(void *data)
                if(ret==-1)
                {
                   VERBOSE(9) {
-                     fprintf(stderr, "%s (%s) : connection error - retry next time (1)\n", INFO_STR, __func__);
+//                     fprintf(stderr, "%s (%s) : connection error - retry next time (1)\n", INFO_STR, __func__);
+                     mea_log_printf("%s (%s) : connection error - retry next time (1)\n", INFO_STR, __func__);
                   }
                   break; // erreur de com. on essayera de se reconnecter au prochain tour.
                }
                else if(ret==-2)
                {
                   VERBOSE(9) {
-                     fprintf(stderr, "%s (%s) : livelog disabled\n", INFO_STR, __func__);
+//                     fprintf(stderr, "%s (%s) : livelog disabled\n", INFO_STR, __func__);
+                     mea_log_printf("%s (%s) : livelog disabled\n", INFO_STR, __func__);
                   }
                   break; // on revoie la situation au prochain tour.
                }
@@ -262,7 +266,8 @@ void *logServer_thread(void *data)
          else
          {
             VERBOSE(9) {
-               fprintf(stderr, "%s (%s) : connection error - retry next time (2)\n", INFO_STR, __func__);
+//               fprintf(stderr, "%s (%s) : connection error - retry next time (2)\n", INFO_STR, __func__);
+               mea_log_printf("%s (%s) : connection error - retry next time (2)\n", INFO_STR, __func__);
             }
          }
       }
@@ -296,14 +301,16 @@ int stop_logServer(int my_id, void *data, char *errmsg, int l_errmsg)
            break;
         }
       }
-      DEBUG_SECTION fprintf(stderr,"%s (%s) : %s, fin après %d itération\n", DEBUG_STR, __func__, log_server_name_str, 100-counter);
+//      DEBUG_SECTION fprintf(stderr,"%s (%s) : %s, fin après %d itération\n", DEBUG_STR, __func__, log_server_name_str, 100-counter);
+      DEBUG_SECTION mea_log_printf("%s (%s) : %s, fin après %d itération\n", DEBUG_STR, __func__, log_server_name_str, 100-counter);
       
       free(_logServer_thread);
       _logServer_thread=NULL;
    }
 
    _livelog_enable=0;
-   VERBOSE(1) fprintf(stderr,"%s  (%s) : %s %s.\n", INFO_STR, __func__, log_server_name_str, stopped_successfully_str);
+//   VERBOSE(1) fprintf(stderr,"%s  (%s) : %s %s.\n", INFO_STR, __func__, log_server_name_str, stopped_successfully_str);
+   VERBOSE(1) mea_log_printf("%s  (%s) : %s %s.\n", INFO_STR, __func__, log_server_name_str, stopped_successfully_str);
    mea_notify_printf('S', "%s %s (%d).",stopped_successfully_str, log_server_name_str, ret);
 
    return 0;
@@ -325,7 +332,8 @@ int start_logServer(int my_id, void *data, char *errmsg, int l_errmsg)
    {
       strerror_r(errno, err_str, sizeof(err_str));
       VERBOSE(1) {
-         fprintf (stderr, "%s (%s) : malloc - %s",ERROR_STR,__func__,err_str);
+//         fprintf (stderr, "%s (%s) : malloc - %s",ERROR_STR,__func__,err_str);
+         mea_log_printf("%s (%s) : malloc - %s",ERROR_STR,__func__,err_str);
       }
       mea_notify_printf('E', "%s can't be launched - %s", log_server_name_str, err_str);
       return -1;
@@ -335,7 +343,8 @@ int start_logServer(int my_id, void *data, char *errmsg, int l_errmsg)
    {
       strerror_r(errno, err_str, sizeof(err_str));
       VERBOSE(1) {
-         fprintf(stderr, "%s (%s) : pthread_create - can't start thread - %s",ERROR_STR,__func__,err_str);
+//         fprintf(stderr, "%s (%s) : pthread_create - can't start thread - %s",ERROR_STR,__func__,err_str);
+         mea_log_printf("%s (%s) : pthread_create - can't start thread - %s",ERROR_STR,__func__,err_str);
       }
       mea_notify_printf('E', "%s can't be launched - %s", log_server_name_str, err_str);
 
@@ -344,7 +353,8 @@ int start_logServer(int my_id, void *data, char *errmsg, int l_errmsg)
    pthread_detach(*_logServer_thread);
    _logServer_monitoring_id=my_id;
 
-   VERBOSE(1) fprintf(stderr,"%s  (%s) :  %s %s.\n", INFO_STR, __func__, log_server_name_str, launched_successfully_str);
+//   VERBOSE(1) fprintf(stderr,"%s  (%s) :  %s %s.\n", INFO_STR, __func__, log_server_name_str, launched_successfully_str);
+   VERBOSE(1) mea_log_printf("%s  (%s) :  %s %s.\n", INFO_STR, __func__, log_server_name_str, launched_successfully_str);
    mea_notify_printf('S', "%s %s.", log_server_name_str, launched_successfully_str);
    return 0;
 }

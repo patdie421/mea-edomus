@@ -115,7 +115,8 @@ int gethttp(char *server, int port, char *url, char *response, int l_response)
    if(mea_socket_connect(&sockfd, server, port)<0)
    {
       VERBOSE(2) {
-         fprintf (stderr, "%s (%s) : mea_socket_connect - ", ERROR_STR,__func__);
+//         fprintf (stderr, "%s (%s) : mea_socket_connect - ", ERROR_STR,__func__);
+         mea_log_printf("%s (%s) : mea_socket_connect - ", ERROR_STR,__func__);
          perror("");
       }
       return -1;
@@ -132,7 +133,8 @@ int gethttp(char *server, int port, char *url, char *response, int l_response)
    if(n == -1)
    {
       VERBOSE(2) {
-         fprintf (stderr, "%s (%s) : recv - ", ERROR_STR,__func__);
+//         fprintf (stderr, "%s (%s) : recv - ", ERROR_STR,__func__);
+         mea_log_printf("%s (%s) : recv - ", ERROR_STR,__func__);
          perror("");
       }
       close(sockfd);
@@ -248,7 +250,8 @@ int _phpsessid_check_loggedin_and_admin(char *phpsessid,char *sessions_files_pat
    if(n<0 || n==sizeof(session_file))
    {
       VERBOSE(2) {
-         fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);
+//         fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);
+         mea_log_printf("%s (%s) : snprintf - ", ERROR_STR,__func__);
          perror("");
       }
       return -1;
@@ -312,7 +315,8 @@ int _phpsessid_check_loggedin_and_admin(char *phpsessid,char *sessions_files_pat
    else
    {
       VERBOSE(5) {
-         fprintf(stderr, "%s (%s) : cannot read %s file - ",ERROR_STR,__func__,session_file);
+//         fprintf(stderr, "%s (%s) : cannot read %s file - ",ERROR_STR,__func__,session_file);
+         mea_log_printf("%s (%s) : cannot read %s file - ",ERROR_STR,__func__,session_file);
          perror("");
       }
       ret=-1;
@@ -631,7 +635,8 @@ mea_error_t start_httpServer(uint16_t port, char *home, char *php_cgi, char *php
 int stop_guiServer(int my_id, void *data, char *errmsg, int l_errmsg)
 {
    stop_httpServer();
-   VERBOSE(1) fprintf(stderr,"%s  (%s) : HTTPSERVER %s.\n", INFO_STR, __func__, stopped_successfully_str);
+//   VERBOSE(1) fprintf(stderr,"%s  (%s) : HTTPSERVER %s.\n", INFO_STR, __func__, stopped_successfully_str);
+   VERBOSE(1) mea_log_printf("%s  (%s) : HTTPSERVER %s.\n", INFO_STR, __func__, stopped_successfully_str);
    mea_notify_printf('S', "HTTPSERVER %s.", stopped_successfully_str);
    return 0;
 }
@@ -657,13 +662,15 @@ int start_guiServer(int my_id, void *data, char *errmsg, int l_errmsg)
          guiport=strtol(httpServerData->params_list[GUIPORT],&end,10);
          if(*end!=0 || errno==ERANGE)
          {
-            VERBOSE(9) fprintf(stderr,"%s (%s) : GUI port (%s), not a number, 8083 will be used.\n",INFO_STR,__func__,httpServerData->params_list[GUIPORT]);
+//            VERBOSE(9) fprintf(stderr,"%s (%s) : GUI port (%s), not a number, 8083 will be used.\n",INFO_STR,__func__,httpServerData->params_list[GUIPORT]);
+            VERBOSE(9) mea_log_printf("%s (%s) : GUI port (%s), not a number, 8083 will be used.\n",INFO_STR,__func__,httpServerData->params_list[GUIPORT]);
             guiport=8083;
          }
       }
       else
       {
-         VERBOSE(9) fprintf(stderr,"%s (%s) : can't get GUI port, 8083 will be used.\n",INFO_STR,__func__);
+//         VERBOSE(9) fprintf(stderr,"%s (%s) : can't get GUI port, 8083 will be used.\n",INFO_STR,__func__);
+         VERBOSE(9) mea_log_printf("%s (%s) : can't get GUI port, 8083 will be used.\n",INFO_STR,__func__);
          guiport=8083;
       }
       
@@ -684,14 +691,16 @@ int start_guiServer(int my_id, void *data, char *errmsg, int l_errmsg)
             phpcgibin=NULL;
          }
          
-         VERBOSE(2) fprintf(stderr,"%s  (%s) : GUISERVER %s.\n", INFO_STR, __func__, launched_successfully_str);
+//         VERBOSE(2) fprintf(stderr,"%s  (%s) : GUISERVER %s.\n", INFO_STR, __func__, launched_successfully_str);
+         VERBOSE(2) mea_log_printf("%s  (%s) : GUISERVER %s.\n", INFO_STR, __func__, launched_successfully_str);
          mea_notify_printf('S', "GUISERVER %s.", launched_successfully_str);
          process_heartbeat(_httpServer_monitoring_id); // un premier heartbeat pour le faire au plus vite ...
          return 0;
       }
       else
       {
-         VERBOSE(3) fprintf(stderr,"%s (%s) : can't start GUI Server (can't create configs.php).\n",ERROR_STR,__func__);
+//         VERBOSE(3) fprintf(stderr,"%s (%s) : can't start GUI Server (can't create configs.php).\n",ERROR_STR,__func__);
+         VERBOSE(3) mea_log_printf("%s (%s) : can't start GUI Server (can't create configs.php).\n",ERROR_STR,__func__);
          // on continu sans ihm
       }
       free(phpcgibin);
@@ -699,10 +708,12 @@ int start_guiServer(int my_id, void *data, char *errmsg, int l_errmsg)
    }
    else
    {
-      VERBOSE(3) fprintf(stderr,"%s (%s) : can't start GUI Server (parameters errors).\n",ERROR_STR,__func__);
+//      VERBOSE(3) fprintf(stderr,"%s (%s) : can't start GUI Server (parameters errors).\n",ERROR_STR,__func__);
+      VERBOSE(3) mea_log_printf("%s (%s) : can't start GUI Server (parameters errors).\n",ERROR_STR,__func__);
    }
    
-   VERBOSE(2) fprintf(stderr,"%s (%s) : GUISERVER can't be launched.\n", ERROR_STR, __func__);
+//   VERBOSE(2) fprintf(stderr,"%s (%s) : GUISERVER can't be launched.\n", ERROR_STR, __func__);
+   VERBOSE(2) mea_log_printf("%s (%s) : GUISERVER can't be launched.\n", ERROR_STR, __func__);
    mea_notify_printf('E', "GUISERVER can't be launched.");
    
    return -1;

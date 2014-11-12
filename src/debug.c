@@ -102,13 +102,13 @@ uint32_t take_chrono(uint32_t *_last_time)
 void mea_log_printf(char const* fmt, ...)
 {
    va_list args;
-   char *date_format="%Y-%m-%d %H:%M:%S";
+   char *date_format="[%Y-%m-%d %H:%M:%S]";
 
    char date_str[40];
    time_t t;
    struct tm t_tm;
 
-   t=time();
+   t=time(NULL);
 
    if (localtime_r(&t, &t_tm) == NULL)
    {
@@ -122,7 +122,7 @@ void mea_log_printf(char const* fmt, ...)
       return;
    }
 
-   fprintf(stderr,"%s : ",date_str);
+   fprintf(stderr,"%s ",date_str);
    
    va_start(args, fmt);
    vfprintf(stderr, fmt, args);

@@ -120,7 +120,8 @@ void dispatchXPLMessageToInterfaces(xPL_ServicePtr theService, xPL_MessagePtr th
 
    interfaces_queue_elem_t *iq;
 
-   VERBOSE(9) fprintf(stderr,"%s  (%s) : Reception message xPL\n",INFO_STR,__func__);
+//   VERBOSE(9) fprintf(stderr,"%s  (%s) : Reception message xPL\n",INFO_STR,__func__);
+   VERBOSE(9) mea_log_printf("%s  (%s) : Reception message xPL\n",INFO_STR,__func__);
 
    pthread_cleanup_push( (void *)pthread_rwlock_unlock, (void *)&interfaces_queue_rwlock);
    pthread_rwlock_rdlock(&interfaces_queue_rwlock);
@@ -260,7 +261,8 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
    if(ret)
    {
       sqlite3_close(sqlite3_param_db);
-      VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
+//      VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
+      VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
       return NULL;
    }
 
@@ -271,7 +273,8 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
    if(!_interfaces)
    {
       VERBOSE(1) {
-         fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
+//         fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
+         mea_log_printf("%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
          perror("");
       }
       sqlite3_close(sqlite3_param_db);
@@ -313,7 +316,8 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                   if(!i001)
                   {
                      VERBOSE(2) {
-                        fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
+//                        fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
+                        mea_log_printf("%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
                         perror("");
                      }
                      break;
@@ -327,7 +331,8 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                      free(i001);
                      i001=NULL;
                      VERBOSE(2) {
-                        fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
+//                        fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
+                        mea_log_printf("%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
                         perror("");
                      }
                      break;
@@ -398,7 +403,8 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                   if(!i002)
                   {
                      VERBOSE(2) {
-                        fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
+//                        fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
+                        mea_log_printf("%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
                         perror(""); }
                      break;
                   }
@@ -410,7 +416,8 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                      free(i002);
                      i002=NULL;
                      VERBOSE(2) {
-                        fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
+//                        fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
+                        mea_log_printf("%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
                         perror("");
                      }  
                      break;
@@ -444,7 +451,8 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
          }
          else
          {
-            VERBOSE(9) fprintf(stderr,"%s  (%s) : %s not activated (state = %d)\n",INFO_STR,__func__,dev,state);
+//            VERBOSE(9) fprintf(stderr,"%s  (%s) : %s not activated (state = %d)\n",INFO_STR,__func__,dev,state);
+            VERBOSE(9) mea_log_printf("%s  (%s) : %s not activated (state = %d)\n",INFO_STR,__func__,dev,state);
          }
       }
       else if (s == SQLITE_DONE)
@@ -454,7 +462,8 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
       }
       else
       {
-         VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_step - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
+//         VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_step - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
+         VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_step - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
          sqlite3_finalize(stmt);
          sqlite3_close(sqlite3_param_db);
          goto start_interfaces_clean_exit;

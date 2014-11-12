@@ -28,7 +28,7 @@ int mea_socket_connect(int *s, char *hostname, int port)
    {
       DEBUG_SECTION {
 //         fprintf(stderr, "%s (%s) :  socket - can't create : ",ERROR_STR,__func__);
-         mea_logprintf("%s (%s) :  socket - can't create : ",ERROR_STR,__func__);
+         mea_log_printf("%s (%s) :  socket - can't create : ",ERROR_STR,__func__);
          perror("");
       }
       return -1;
@@ -39,7 +39,7 @@ int mea_socket_connect(int *s, char *hostname, int port)
    {
       DEBUG_SECTION {
 //         fprintf(stderr, "%s (%s) :  gethostbyname - can't get information : ",ERROR_STR,__func__);
-         mea_logprintf("%s (%s) :  gethostbyname - can't get information : ",ERROR_STR,__func__);
+         mea_log_printf("%s (%s) :  gethostbyname - can't get information : ",ERROR_STR,__func__);
          perror("");
       }
       return -1;
@@ -54,7 +54,7 @@ int mea_socket_connect(int *s, char *hostname, int port)
    {
       DEBUG_SECTION {
 //         fprintf(stderr, "%s (%s) :  connect - can't connect : ",ERROR_STR,__func__);
-         mea_logprintf("%s (%s) :  connect - can't connect : ",ERROR_STR,__func__);
+         mea_log_printf("%s (%s) :  connect - can't connect : ",ERROR_STR,__func__);
          perror("");
       }
       close(sock);
@@ -90,7 +90,7 @@ int mea_socket_send(int *s, char *message, int l_message)
    {
       DEBUG_SECTION {
 //         fprintf(stderr, "%s (%s) :  send - can't send : ",ERROR_STR,__func__);
-         mea_logprintf("%s (%s) :  send - can't send : ",ERROR_STR,__func__);
+         mea_log_printf("%s (%s) :  send - can't send : ",ERROR_STR,__func__);
          perror("");
       }
       return -1;

@@ -124,7 +124,8 @@ int16_t dbServer_add_data_to_sensors_values(uint16_t sensor_id, double value1, u
    if(!value)
    { 
       VERBOSE(1) {
-         fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
+//         fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
+         mea_log_printf("%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
          perror("");
       }
       return -1;
@@ -146,7 +147,8 @@ int16_t dbServer_add_data_to_sensors_values(uint16_t sensor_id, double value1, u
    if(!elem)
    {
       VERBOSE(1) {
-         fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
+//         fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
+         mea_log_printf("%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
          perror("");
       }
       if(value)
@@ -168,7 +170,8 @@ int16_t dbServer_add_data_to_sensors_values(uint16_t sensor_id, double value1, u
    pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(_md->lock));
    if(!pthread_mutex_lock(&(_md->lock)))
    {
-      VERBOSE(9) fprintf (stderr, "%s  (%s) : data to queue(%ld) (sensor_id=%d, value1=%f)\n",INFO_STR,__func__,_md->queue->nb_elem,sensor_id,value1);
+//      VERBOSE(9) fprintf (stderr, "%s  (%s) : data to queue(%ld) (sensor_id=%d, value1=%f)\n",INFO_STR,__func__,_md->queue->nb_elem,sensor_id,value1);
+      VERBOSE(9) mea_log_printf("%s  (%s) : data to queue(%ld) (sensor_id=%d, value1=%f)\n",INFO_STR,__func__,_md->queue->nb_elem,sensor_id,value1);
       in_queue_elem(_md->queue,(void *)elem);
       pthread_mutex_unlock(&(_md->lock));
    }
@@ -216,7 +219,8 @@ int exec_mysql_query(MYSQL *conn, char *sql_query)
    ret=mysql_query(conn, sql_query);
    if(ret)
    {
-      VERBOSE(1) fprintf (stderr, "%s (%s) : mysql_query - %u : %s\n", ERROR_STR,__func__,mysql_errno(conn), mysql_error(conn));
+//      VERBOSE(1) fprintf (stderr, "%s (%s) : mysql_query - %u : %s\n", ERROR_STR,__func__,mysql_errno(conn), mysql_error(conn));
+      VERBOSE(1) mea_log_printf("%s (%s) : mysql_query - %u : %s\n", ERROR_STR,__func__,mysql_errno(conn), mysql_error(conn));
       return -1;
    }
    return 0;
@@ -240,7 +244,8 @@ int move_sqlite3_queries_to_mysql(sqlite3 *db, MYSQL *conn)
    ret = sqlite3_prepare_v2(db,sql,strlen(sql)+1,&stmt,NULL);
    if(ret)
    {
-      VERBOSE(1) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg (db));
+//      VERBOSE(1) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg (db));
+      VERBOSE(1) mea_log_printf("%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg (db));
       return -1;
    }
 
@@ -260,12 +265,14 @@ int move_sqlite3_queries_to_mysql(sqlite3 *db, MYSQL *conn)
          ret=mysql_query(conn, (const char *)query);
          if(ret)
          {
-            VERBOSE(1) fprintf (stderr, "%s (%s) : mysql_query - %u : %s\n", ERROR_STR,__func__,mysql_errno(conn), mysql_error(conn));
+//            VERBOSE(1) fprintf (stderr, "%s (%s) : mysql_query - %u : %s\n", ERROR_STR,__func__,mysql_errno(conn), mysql_error(conn));
+            VERBOSE(1) mea_log_printf("%s (%s) : mysql_query - %u : %s\n", ERROR_STR,__func__,mysql_errno(conn), mysql_error(conn));
             return -1;
          }
          else
          {
-            VERBOSE(9) fprintf(stderr,"%s  (%s) : mysql_query = %s\n",INFO_STR,__func__,query);
+//            VERBOSE(9) fprintf(stderr,"%s  (%s) : mysql_query = %s\n",INFO_STR,__func__,query);
+            VERBOSE(9) mea_log_printf("%s  (%s) : mysql_query = %s\n",INFO_STR,__func__,query);
             mysqlwrite_indicator++;
          }
 
@@ -273,7 +280,8 @@ int move_sqlite3_queries_to_mysql(sqlite3 *db, MYSQL *conn)
          ret = sqlite3_exec(db,sql,0,0,0);
          if(ret)
          {
-            VERBOSE(1) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", ERROR_STR,__func__,sqlite3_errmsg (db));
+//            VERBOSE(1) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", ERROR_STR,__func__,sqlite3_errmsg (db));
+            VERBOSE(1) mea_log_printf("%s (%s) : sqlite3_exec - %s\n", ERROR_STR,__func__,sqlite3_errmsg (db));
             return -1;
          }
          else
@@ -290,7 +298,8 @@ int move_sqlite3_queries_to_mysql(sqlite3 *db, MYSQL *conn)
          }
          else
          {
-            VERBOSE(1) fprintf (stderr, "%s (%s) : sqlite3_step - %s\n", ERROR_STR,__func__,sqlite3_errmsg (db));
+//            VERBOSE(1) fprintf (stderr, "%s (%s) : sqlite3_step - %s\n", ERROR_STR,__func__,sqlite3_errmsg (db));
+            VERBOSE(1) mea_log_printf("%s (%s) : sqlite3_step - %s\n", ERROR_STR,__func__,sqlite3_errmsg (db));
             sqlite3_finalize(stmt);
             return -1;
          }
@@ -317,7 +326,8 @@ int move_mysql_query_to_sqlite3(sqlite3 *db, char *sql_query)
    if(n<0 || n==sizeof(sql))
    {
       VERBOSE(2) {
-         fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);
+//         fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);
+         mea_log_printf("%s (%s) : snprintf - ", ERROR_STR,__func__);
          perror("");
       }
       return -1;
@@ -326,7 +336,8 @@ int move_mysql_query_to_sqlite3(sqlite3 *db, char *sql_query)
    ret = sqlite3_exec(db,sql,0,0,0);
    if(ret)
    {
-      VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", ERROR_STR,__func__,sqlite3_errmsg(db));
+//      VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", ERROR_STR,__func__,sqlite3_errmsg(db));
+      VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_exec - %s\n", ERROR_STR,__func__,sqlite3_errmsg(db));
       return -1;
    }
    insqlite_indicator++;
@@ -356,7 +367,8 @@ uint16_t build_query_for_sensors_values(char *sql_query, uint16_t l_sql_query, v
    if(n==0)
    {
       VERBOSE(2) {
-         fprintf (stderr, "%s (%s) : strftime - ", ERROR_STR,__func__);
+//         fprintf (stderr, "%s (%s) : strftime - ", ERROR_STR,__func__);
+         mea_log_printf("%s (%s) : strftime - ", ERROR_STR,__func__);
          perror("");
       }
       return -1;
@@ -374,7 +386,8 @@ uint16_t build_query_for_sensors_values(char *sql_query, uint16_t l_sql_query, v
    if(n<0 || n==l_sql_query)
    {
       VERBOSE(2) {
-         fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);
+//         fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);
+         mea_log_printf("%s (%s) : snprintf - ", ERROR_STR,__func__);
          perror("");
       }
       return -1;
@@ -399,8 +412,9 @@ int write_data_to_db(int mysql_connected, MYSQL *conn, sqlite3 *db, dbServer_que
    if(!_md) // pas de descripteur == pas de stockage dans la base ...
       return 0;
    
-   VERBOSE(9) fprintf(stderr,"%s  (%s) : Insertion data type %d\n",INFO_STR,__func__,elem->type);
-   
+//   VERBOSE(9) fprintf(stderr,"%s  (%s) : Insertion data type %d\n",INFO_STR,__func__,elem->type);
+   VERBOSE(9) mea_log_printf("%s  (%s) : Insertion data type %d\n",INFO_STR,__func__,elem->type);
+
    switch(elem->type)
    {
       case TOMYSQLDB_TYPE_SENSORS_VALUES:
@@ -447,7 +461,8 @@ int _connect(MYSQL **conn)
    *conn = mysql_init(NULL);
    if (*conn == NULL)
    {
-      VERBOSE(1) fprintf(stderr,"%s (%s) : %u - %s\n", ERROR_STR,__func__,mysql_errno(*conn), mysql_error(*conn));
+//      VERBOSE(1) fprintf(stderr,"%s (%s) : %u - %s\n", ERROR_STR,__func__,mysql_errno(*conn), mysql_error(*conn));
+      VERBOSE(1) mea_log_printf("%s (%s) : %u - %s\n", ERROR_STR,__func__,mysql_errno(*conn), mysql_error(*conn));
       return -1;
    }
    
@@ -459,7 +474,8 @@ int _connect(MYSQL **conn)
       port=strtol(_md->db_server_port,&end,10);
       if(*end!=0 || errno==ERANGE)
       {
-         VERBOSE(1) fprintf(stderr,"%s (%s) : port (%s) incorrect\n", ERROR_STR,__func__,_md->db_server_port);
+//         VERBOSE(1) fprintf(stderr,"%s (%s) : port (%s) incorrect\n", ERROR_STR,__func__,_md->db_server_port);
+         VERBOSE(1) mea_log_printf("%s (%s) : port (%s) incorrect\n", ERROR_STR,__func__,_md->db_server_port);
          port=0;
       }
    }
@@ -467,7 +483,8 @@ int _connect(MYSQL **conn)
    // connexion à mysql
    if (mysql_real_connect(*conn, _md->db_server, _md->user, _md->passwd, _md->base, port, NULL, 0) == NULL)
    {
-      VERBOSE(1) fprintf(stderr,"%s (%s) : %u - %s\n", ERROR_STR,__func__,mysql_errno(*conn), mysql_error(*conn));
+//      VERBOSE(1) fprintf(stderr,"%s (%s) : %u - %s\n", ERROR_STR,__func__,mysql_errno(*conn), mysql_error(*conn));
+      VERBOSE(1) mea_log_printf("%s (%s) : %u - %s\n", ERROR_STR,__func__,mysql_errno(*conn), mysql_error(*conn));
       return -1;
    }
    
@@ -475,7 +492,8 @@ int _connect(MYSQL **conn)
    ret=mysql_options(*conn, MYSQL_OPT_RECONNECT, &reconnect);
    if(ret)
    {
-      VERBOSE(1) fprintf(stderr,"%s (%s) : %u - %s\n", ERROR_STR,__func__,mysql_errno(*conn), mysql_error(*conn));
+//      VERBOSE(1) fprintf(stderr,"%s (%s) : %u - %s\n", ERROR_STR,__func__,mysql_errno(*conn), mysql_error(*conn));
+      VERBOSE(1) mea_log_printf("%s (%s) : %u - %s\n", ERROR_STR,__func__,mysql_errno(*conn), mysql_error(*conn));
       return -1;
    }
 
@@ -550,7 +568,8 @@ void *dbServer_thread(void *args)
             ret=mysql_ping(_md->conn); // le ping pour éventuellement forcer une reconnexion
             if(ret) // pas de réponse au ping et reconnexion impossible.
             {
-               VERBOSE(5) fprintf (stderr, "%s  (%s) : mysql_ping - %u: %s\n",INFO_STR,__func__,mysql_errno(_md->conn), mysql_error(_md->conn));
+//               VERBOSE(5) fprintf (stderr, "%s  (%s) : mysql_ping - %u: %s\n",INFO_STR,__func__,mysql_errno(_md->conn), mysql_error(_md->conn));
+               VERBOSE(5) mea_log_printf("%s  (%s) : mysql_ping - %u: %s\n",INFO_STR,__func__,mysql_errno(_md->conn), mysql_error(_md->conn));
                mysql_connected = 0; // plus de connexion au serveur mysql
             }
             else
@@ -562,7 +581,8 @@ void *dbServer_thread(void *args)
                   // faire ce qu'il y a a faire en cas de reconnexion
                   // voir ici pour les info : http://dev.mysql.com/doc/refman/5.0/en/auto-reconnect.html
                   // pour l'instant on ne fait rien
-                  VERBOSE(9) fprintf(stderr,"%s  (%s) : Une reconnexion à la base Mysql à eu lieu\n", INFO_STR,__func__);
+//                  VERBOSE(9) fprintf(stderr,"%s  (%s) : Une reconnexion à la base Mysql à eu lieu\n", INFO_STR,__func__);
+                  VERBOSE(9) mea_log_printf("%s  (%s) : Une reconnexion à la base Mysql à eu lieu\n", INFO_STR,__func__);
                }
             }
          }      
@@ -588,7 +608,8 @@ void *dbServer_thread(void *args)
                if(ret)
                {
                   _md->db=NULL;
-                  VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_open - %s\n", ERROR_STR,__func__,sqlite3_errmsg (_md->db));
+//                  VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_open - %s\n", ERROR_STR,__func__,sqlite3_errmsg (_md->db));
+                  VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_open - %s\n", ERROR_STR,__func__,sqlite3_errmsg (_md->db));
                }
             }
          }
@@ -600,7 +621,8 @@ void *dbServer_thread(void *args)
             ret=exec_mysql_query(_md->conn, sql_query);
             if(ret)
             {
-               VERBOSE(2) fprintf (stderr, "%s (%s) : sql_query - %u: %s\n", ERROR_STR,__func__,mysql_errno(_md->conn), mysql_error(_md->conn));
+//               VERBOSE(2) fprintf (stderr, "%s (%s) : sql_query - %u: %s\n", ERROR_STR,__func__,mysql_errno(_md->conn), mysql_error(_md->conn));
+               VERBOSE(2) mea_log_printf("%s (%s) : sql_query - %u: %s\n", ERROR_STR,__func__,mysql_errno(_md->conn), mysql_error(_md->conn));
             }
 
             if(_md->db) // sqlite est encore ouvert, il faut vider la table des requetes si elle n'est pas vide
@@ -703,7 +725,8 @@ int dbServer(char *db_server, char *db_server_port, char *base, char *user, char
    _md->queue=(queue_t *)malloc(sizeof(queue_t));
    if(!_md->queue)
    {
-      VERBOSE(1) fprintf(stderr,"%s (%s) : can't create queue.\n",ERROR_STR,__func__);
+//      VERBOSE(1) fprintf(stderr,"%s (%s) : can't create queue.\n",ERROR_STR,__func__);
+      VERBOSE(1) mea_log_printf("%s (%s) : can't create queue.\n",ERROR_STR,__func__);
       return -1;
    }
    init_queue(_md->queue); // initialisation de la file
@@ -712,7 +735,8 @@ int dbServer(char *db_server, char *db_server_port, char *base, char *user, char
    
    if(pthread_create (&(_md->thread), NULL, dbServer_thread, (void *)_md))
    {
-      VERBOSE(1) fprintf(stderr,"%s (%s) : can't create thread.\n", ERROR_STR, __func__);
+//      VERBOSE(1) fprintf(stderr,"%s (%s) : can't create thread.\n", ERROR_STR, __func__);
+      VERBOSE(1) mea_log_printf("%s (%s) : can't create thread.\n", ERROR_STR, __func__);
       return -1;
    }
    pthread_detach(_md->thread);
@@ -747,7 +771,8 @@ void dbServer_release()
             break;
          }
       }
-      DEBUG_SECTION fprintf(stderr,"%s (%s) : DBSERVER, fin après %d itération\n",DEBUG_STR, __func__,100-counter);
+//      DEBUG_SECTION fprintf(stderr,"%s (%s) : DBSERVER, fin après %d itération\n",DEBUG_STR, __func__,100-counter);
+      DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, fin après %d itération\n",DEBUG_STR, __func__,100-counter);
 
       _md->started=0;
 
@@ -830,7 +855,8 @@ int stop_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
             break;
          }
       }
-      DEBUG_SECTION fprintf(stderr,"%s (%s) : DBSERVER, fin après %d itération\n",DEBUG_STR, __func__,500-counter);
+//      DEBUG_SECTION fprintf(stderr,"%s (%s) : DBSERVER, fin après %d itération\n",DEBUG_STR, __func__,500-counter);
+      DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, fin après %d itération\n",DEBUG_STR, __func__,500-counter);
 
       _md->started=0;
 
@@ -890,7 +916,8 @@ int stop_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
 
    _dbServer_monitoring_id=-1;
    
-   VERBOSE(1) fprintf(stderr,"%s  (%s) : DBSERVER %s.\n", INFO_STR, __func__, stopped_successfully_str);
+//   VERBOSE(1) fprintf(stderr,"%s  (%s) : DBSERVER %s.\n", INFO_STR, __func__, stopped_successfully_str);
+   VERBOSE(1) mea_log_printf("%s  (%s) : DBSERVER %s.\n", INFO_STR, __func__, stopped_successfully_str);
    mea_notify_printf('S',"DBSERVER %s.", stopped_successfully_str);
 
    return 0;
@@ -909,7 +936,8 @@ int start_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
    {
       strerror_r(errno, err_str, sizeof(err_str));
       VERBOSE(2) {
-         fprintf(stderr,"%s (%s) : %s - %s\n", ERROR_STR, __func__, MALLOC_ERROR_STR,err_str);
+//         fprintf(stderr,"%s (%s) : %s - %s\n", ERROR_STR, __func__, MALLOC_ERROR_STR,err_str);
+         mea_log_printf("%s (%s) : %s - %s\n", ERROR_STR, __func__, MALLOC_ERROR_STR,err_str);
       }
       mea_notify_printf('E',"DBSERVER can't be launched - %s.", err_str);
       return -1;
@@ -924,17 +952,20 @@ int start_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
                 dbServerData->params_list[SQLITE3_DB_BUFF_PATH]);
    if(ret==-1)
    {
-      VERBOSE(2) fprintf(stderr,"%s (%s) : Can not init data base communication.\n", ERROR_STR, __func__);
+//      VERBOSE(2) fprintf(stderr,"%s (%s) : Can not init data base communication.\n", ERROR_STR, __func__);
+      VERBOSE(2) mea_log_printf("%s (%s) : Can not init data base communication.\n", ERROR_STR, __func__);
       mea_notify_printf('E', "DBSERVER : can't init data base communication.");
       return -1;
    }
    _dbServer_monitoring_id=my_id;
 
-   VERBOSE(1) fprintf(stderr,"%s  (%s) : DBSERVER %s.\n", INFO_STR, __func__, launched_successfully_str);
+//   VERBOSE(1) fprintf(stderr,"%s  (%s) : DBSERVER %s.\n", INFO_STR, __func__, launched_successfully_str);
+   VERBOSE(1) mea_log_printf("%s  (%s) : DBSERVER %s.\n", INFO_STR, __func__, launched_successfully_str);
    mea_notify_printf('S', "DBSERVER %s.", launched_successfully_str);
 
 #else
-   VERBOSE(9) fprintf(stderr,"%s  (%s) : dbServer desactivated.\n", INFO_STR,__func__);
+//   VERBOSE(9) fprintf(stderr,"%s  (%s) : dbServer desactivated.\n", INFO_STR,__func__);
+   VERBOSE(9) mea_log_printf("%s  (%s) : dbServer desactivated.\n", INFO_STR,__func__);
 #endif
    return 0;
 }

@@ -120,7 +120,7 @@ mea_error_t display_frame(int ret, unsigned char *resp, uint16_t l_resp)
       if(!ret)
       {
          for(int i=0;i<l_resp;i++)
-            fprintf(stderr,"%s (%s) : %02x-[%c](%03d)\n",DEBUG_STR,__func__,resp[i],resp[i],resp[i]);
+            fprintf(stderr,"%02x-[%c](%03d)\n",resp[i],resp[i],resp[i]);
          printf("\n");
       }
    }
@@ -132,7 +132,7 @@ mea_error_t print_frame(int ret, unsigned char *resp, uint16_t l_resp)
    DEBUG_SECTION {
       for(int i=0;i<l_resp;i++)
          fprintf(stderr,"[%03x - %c]",resp[i],resp[i]);
-      printf("\n");
+      fprintf(stderr,"\n");
    }
    return NOERROR;
 }
@@ -141,7 +141,7 @@ void display_addr(char *a)
 {
    DEBUG_SECTION {
       for(int i=0;i<4;i++)
-         fprintf(stderr,"%s (%s) : %02x",DEBUG_STR, __func__,a[i]);
+         fprintf(stderr,"%02x",a[i]);
    }
 }
 
@@ -337,7 +337,8 @@ int16_t _interface_type_002_xPL_callback(xPL_ServicePtr theService, xPL_MessageP
    ret = sqlite3_prepare_v2(params_db, sql, strlen(sql)+1, &stmt, NULL);
    if(ret)
    {
-      VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (params_db));
+//      VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (params_db));
+      VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (params_db));
       return ERROR;
    }
    
@@ -463,8 +464,9 @@ mea_error_t _interface_type_002_commissionning_callback(int id, unsigned char *c
            nd_resp->addr_64_l[2],
            nd_resp->addr_64_l[3]);
    
-   VERBOSE(9) printf("%s (%s)  : commissionning request received from %s.\n", INFO_STR, __func__, addr);
-    
+//   VERBOSE(9) printf("%s (%s)  : commissionning request received from %s.\n", INFO_STR, __func__, addr);
+   VERBOSE(9) mea_log_printf("%s (%s)  : commissionning request received from %s.\n", INFO_STR, __func__, addr);
+   
    char sql[1024];
    sqlite3_stmt * stmt;
    sprintf(sql,"%s WHERE interfaces.dev ='MESH://%s' AND interfaces.state='2';", sql_select_interface_info, addr);
@@ -472,7 +474,8 @@ mea_error_t _interface_type_002_commissionning_callback(int id, unsigned char *c
    int ret = sqlite3_prepare_v2(params_db,sql,strlen(sql)+1,&stmt,NULL);
    if(ret)
    {
-      VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (params_db));
+//      VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (params_db));
+      VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (params_db));
       return ERROR;
    }
    
@@ -536,9 +539,11 @@ mea_error_t _interface_type_002_commissionning_callback(int id, unsigned char *c
    
    VERBOSE(9) {
       if(!rval)
-         printf("%s (%s)  : commissionning request transmitted.\n", INFO_STR, __func__);
+//         fprintf(stderr,"%s (%s)  : commissionning request transmitted.\n", INFO_STR, __func__);
+         mea_log_printf("%s (%s)  : commissionning request transmitted.\n", INFO_STR, __func__);
       else
-         printf("%s (%s)  : can't transmit commissionning request.\n", INFO_STR, __func__);
+//         fprintf(stderr,"%s (%s)  : can't transmit commissionning request.\n", INFO_STR, __func__);
+         mea_log_printf("%s (%s)  : can't transmit commissionning request.\n", INFO_STR, __func__);
    }
    return rval;
 }
@@ -646,7 +651,8 @@ void *_thread_interface_type_002_xbeedata(void *args)
          {
             if(ret==ETIMEDOUT)
             {
-               DEBUG_SECTION fprintf(stderr,"%s (%s) : Nb elements in queue after TIMEOUT : %ld)\n", DEBUG_STR, __func__, params->queue->nb_elem);
+//               DEBUG_SECTION fprintf(stderr,"%s (%s) : Nb elements in queue after TIMEOUT : %ld)\n", DEBUG_STR, __func__, params->queue->nb_elem);
+               DEBUG_SECTION mea_log_printf("%s (%s) : Nb elements in queue after TIMEOUT : %ld)\n", DEBUG_STR, __func__, params->queue->nb_elem);
             }
             else
             {
@@ -675,13 +681,15 @@ void *_thread_interface_type_002_xbeedata(void *args)
                  e->addr_64_l[1],
                  e->addr_64_l[2],
                  e->addr_64_l[3]);
-         VERBOSE(9) fprintf(stderr, "%s  (%s) : data from = %s received\n",INFO_STR, __func__, addr);
+//         VERBOSE(9) fprintf(stderr, "%s  (%s) : data from = %s received\n",INFO_STR, __func__, addr);
+         VERBOSE(9) mea_log_printf("%s  (%s) : data from = %s received\n",INFO_STR, __func__, addr);
          
          sprintf(sql,"%s WHERE interfaces.dev ='MESH://%s' and sensors_actuators.state='1';", sql_select_device_info, addr);
          ret = sqlite3_prepare_v2(params_db,sql,strlen(sql)+1,&(params->stmt),NULL);
          if(ret)
          {
-            VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (params_db));
+//            VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (params_db));
+            VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (params_db));
             pthread_exit(NULL);
          }
          
@@ -767,7 +775,8 @@ void *_thread_interface_type_002_xbeedata(void *args)
                else
                {
                   VERBOSE(2) {
-                     fprintf(stderr,"%s (%s) : %s - ", ERROR_STR, __func__, MALLOC_ERROR_STR);
+//                     fprintf(stderr,"%s (%s) : %s - ", ERROR_STR, __func__, MALLOC_ERROR_STR);
+                     mea_log_printf("%s (%s) : %s - ", ERROR_STR, __func__, MALLOC_ERROR_STR);
                      perror("");
                   }
                   pthread_exit(PTHREAD_CANCELED);
@@ -800,7 +809,8 @@ void *_thread_interface_type_002_xbeedata(void *args)
       else
       {
          // pb d'accès aux données de la file
-         DEBUG_SECTION fprintf(stderr,"%s (%s) : out_queue_elem - no data in queue\n", DEBUG_STR, __func__);
+//         DEBUG_SECTION fprintf(stderr,"%s (%s) : out_queue_elem - no data in queue\n", DEBUG_STR, __func__);
+         DEBUG_SECTION mea_log_printf("%s (%s) : out_queue_elem - no data in queue\n", DEBUG_STR, __func__);
       }
       pthread_testcancel();
    }
@@ -831,7 +841,8 @@ pthread_t *start_interface_type_002_xbeedata_thread(interface_type_002_t *i002, 
    if(!params)
    {
       VERBOSE(2) {
-         fprintf(stderr,"%s (%s) : %s - ", ERROR_STR, __func__, MALLOC_ERROR_STR);
+//         fprintf(stderr,"%s (%s) : %s - ", ERROR_STR, __func__, MALLOC_ERROR_STR);
+         mea_log_printf("%s (%s) : %s - ", ERROR_STR, __func__, MALLOC_ERROR_STR);
          perror("");
       }
       goto clean_exit;
@@ -840,7 +851,8 @@ pthread_t *start_interface_type_002_xbeedata_thread(interface_type_002_t *i002, 
    if(!params->queue)
    {
       VERBOSE(2) {
-         fprintf(stderr,"%s (%s) : %s - ", ERROR_STR, __func__, MALLOC_ERROR_STR);
+//         fprintf(stderr,"%s (%s) : %s - ", ERROR_STR, __func__, MALLOC_ERROR_STR);
+         mea_log_printf("%s (%s) : %s - ", ERROR_STR, __func__, MALLOC_ERROR_STR);
          perror("");
       }
       goto clean_exit;
@@ -861,7 +873,8 @@ pthread_t *start_interface_type_002_xbeedata_thread(interface_type_002_t *i002, 
    callback_xbeedata=(struct callback_data_s *)malloc(sizeof(struct callback_data_s));
    if(!callback_xbeedata)
    {
-      VERBOSE(2) fprintf(stderr,"%s (%s) : %s\n", ERROR_STR, __func__, MALLOC_ERROR_STR);
+//      VERBOSE(2) fprintf(stderr,"%s (%s) : %s\n", ERROR_STR, __func__, MALLOC_ERROR_STR);
+      VERBOSE(2) mea_log_printf("%s (%s) : %s\n", ERROR_STR, __func__, MALLOC_ERROR_STR);
       goto clean_exit;
    }
    callback_xbeedata->xd=xd;
@@ -876,7 +889,8 @@ pthread_t *start_interface_type_002_xbeedata_thread(interface_type_002_t *i002, 
    thread=(pthread_t *)malloc(sizeof(pthread_t));
    if(!thread)
    {
-      VERBOSE(2) fprintf(stderr,"%s (%s) : %s\n", ERROR_STR, __func__, MALLOC_ERROR_STR);
+//      VERBOSE(2) fprintf(stderr,"%s (%s) : %s\n", ERROR_STR, __func__, MALLOC_ERROR_STR);
+      VERBOSE(2) mea_log_printf("%s (%s) : %s\n", ERROR_STR, __func__, MALLOC_ERROR_STR);
       goto clean_exit;
    }
    
@@ -929,7 +943,8 @@ int stop_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
 
    struct interface_type_002_data_s *start_stop_params=(struct interface_type_002_data_s *)data;
 
-   VERBOSE(1) fprintf(stderr,"%s  (%s) : %s shutdown thread ... ", INFO_STR, __func__, start_stop_params->i002->name);
+//   VERBOSE(1) fprintf(stderr,"%s  (%s) : %s shutdown thread ... ", INFO_STR, __func__, start_stop_params->i002->name);
+   VERBOSE(1) mea_log_printf("%s  (%s) : %s shutdown thread ... ", INFO_STR, __func__, start_stop_params->i002->name);
 
    if(start_stop_params->i002->xPL_callback_data)
    {
@@ -972,7 +987,8 @@ int stop_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
             break;
          }
       }
-      DEBUG_SECTION fprintf(stderr,"%s (%s) : %s, fin après %d itération\n",DEBUG_STR, __func__,start_stop_params->i002->name,100-counter);
+//      DEBUG_SECTION fprintf(stderr,"%s (%s) : %s, fin après %d itération\n",DEBUG_STR, __func__,start_stop_params->i002->name,100-counter);
+      DEBUG_SECTION mea_log_printf("%s (%s) : %s, fin après %d itération\n",DEBUG_STR, __func__,start_stop_params->i002->name,100-counter);
 
       free(start_stop_params->i002->thread);
       start_stop_params->i002->thread=NULL;
@@ -1000,7 +1016,8 @@ int stop_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
       start_stop_params->i002->local_xbee=NULL;
    }
    
-   VERBOSE(1) fprintf(stderr, "done.\n");
+//   VERBOSE(1) fprintf(stderr, "done.\n");
+   VERBOSE(1) mea_log_printf("done.\n");
    mea_notify_printf('S', "%s %s", start_stop_params->i002->name, stopped_successfully_str);
 
    return 0;
@@ -1074,7 +1091,8 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
       {
          strerror_r(errno, err_str, sizeof(err_str));
          VERBOSE(2) {
-            fprintf (stderr, "%s (%s) : snprintf - %s\n", ERROR_STR, __func__, err_str);
+//            fprintf (stderr, "%s (%s) : snprintf - %s\n", ERROR_STR, __func__, err_str);
+            mea_log_printf("%s (%s) : snprintf - %s\n", ERROR_STR, __func__, err_str);
          }
          mea_notify_printf('E', "%s can't be launched - %s.\n", start_stop_params->i002->name, err_str);
          goto clean_exit;
@@ -1082,7 +1100,8 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
    }
    else
    {
-      VERBOSE(2) fprintf (stderr, "%s (%s) : incorrect device/speed interface - %s\n", ERROR_STR,__func__,start_stop_params->i002->dev);
+//      VERBOSE(2) fprintf (stderr, "%s (%s) : incorrect device/speed interface - %s\n", ERROR_STR,__func__,start_stop_params->i002->dev);
+      VERBOSE(2) mea_log_printf("%s (%s) : incorrect device/speed interface - %s\n", ERROR_STR,__func__,start_stop_params->i002->dev);
       mea_notify_printf('E', "%s can't be launched - incorrect device/speed interface - %s.\n", start_stop_params->i002->name, start_stop_params->i002->dev);
       goto clean_exit;
    }
@@ -1092,7 +1111,8 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
    {
       strerror_r(errno, err_str, sizeof(err_str));
       VERBOSE(2) {
-         fprintf(stderr,"%s (%s) : %s - %s\n", ERROR_STR, __func__, MALLOC_ERROR_STR, err_str);
+//         fprintf(stderr,"%s (%s) : %s - %s\n", ERROR_STR, __func__, MALLOC_ERROR_STR, err_str);
+         mea_log_printf("%s (%s) : %s - %s\n", ERROR_STR, __func__, MALLOC_ERROR_STR, err_str);
       }
       mea_notify_printf('E', "%s can't be launched - %s.\n", start_stop_params->i002->name, err_str);
       goto clean_exit;
@@ -1103,7 +1123,8 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
    {
       strerror_r(errno, err_str, sizeof(err_str));
       VERBOSE(2) {
-         fprintf(stderr,"%s (%s) : init_xbee - Unable to open serial port (%s).\n", ERROR_STR, __func__, dev);
+//         fprintf(stderr,"%s (%s) : init_xbee - Unable to open serial port (%s).\n", ERROR_STR, __func__, dev);
+         mea_log_printf("%s (%s) : init_xbee - Unable to open serial port (%s).\n", ERROR_STR, __func__, dev);
       }
       mea_notify_printf('E', "%s : unable to open serial port (%s) - %s.\n", start_stop_params->i002->name, dev, err_str);
       goto clean_exit;
@@ -1118,7 +1139,8 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
    {
       strerror_r(errno, err_str, sizeof(err_str));
       VERBOSE(2) {
-         fprintf(stderr,"%s (%s) : %s - %s.\n", ERROR_STR, __func__, MALLOC_ERROR_STR, err_str);
+//         fprintf(stderr,"%s (%s) : %s - %s.\n", ERROR_STR, __func__, MALLOC_ERROR_STR, err_str);
+         mea_log_printf("%s (%s) : %s - %s.\n", ERROR_STR, __func__, MALLOC_ERROR_STR, err_str);
       }
       mea_notify_printf('E', "%s can't be launched - %s.\n", start_stop_params->i002->name, err_str);
       goto clean_exit;
@@ -1143,7 +1165,8 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
       do { ret=at_get_local_char_array_reg(xd, at_cmd, (char *)addr_l, &l_reg_val, &nerr); } while (ret==-1); // a revoir boucle infinie possible ...
       addr_64_char_array_to_int(addr_h, addr_l, &addr_64_h, &addr_64_l);
    }
-   VERBOSE(9) fprintf(stderr, "%s  (%s) : local address is : %02x-%02x\n", INFO_STR, __func__, addr_64_h, addr_64_l);
+//   VERBOSE(9) fprintf(stderr, "%s  (%s) : local address is : %02x-%02x\n", INFO_STR, __func__, addr_64_h, addr_64_l);
+   VERBOSE(9) mea_log_printf("%s  (%s) : local address is : %02x-%02x\n", INFO_STR, __func__, addr_64_h, addr_64_l);
  
    xbee_get_host_by_addr_64(xd, local_xbee, addr_64_h, addr_64_l, &nerr);
 
@@ -1160,11 +1183,13 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
          // pas de plugin spécifié
          free(interface_parameters);
          interface_parameters=NULL;
-         VERBOSE(9) fprintf(stderr, "%s  (%s) : no python plugin specified\n", INFO_STR, __func__);
+//         VERBOSE(9) fprintf(stderr, "%s  (%s) : no python plugin specified\n", INFO_STR, __func__);
+         VERBOSE(9) mea_log_printf("%s  (%s) : no python plugin specified\n", INFO_STR, __func__);
       }
       else
       {
-         VERBOSE(2) fprintf(stderr, "%s (%s) : invalid python plugin parameters (%s)\n", ERROR_STR, __func__, start_stop_params->parameters);
+//         VERBOSE(2) fprintf(stderr, "%s (%s) : invalid python plugin parameters (%s)\n", ERROR_STR, __func__, start_stop_params->parameters);
+         VERBOSE(2) mea_log_printf("%s (%s) : invalid python plugin parameters (%s)\n", ERROR_STR, __func__, start_stop_params->parameters);
          mea_notify_printf('E', "%s - invalid python plugin parameters (%s)", start_stop_params->i002->name, start_stop_params->parameters);
          goto clean_exit;
       }
@@ -1187,7 +1212,8 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
       pModule = PyImport_Import(pName);
       if(!pModule)
       {
-         VERBOSE(5) fprintf(stderr, "%s (%s) : %s not found\n", ERROR_STR, __func__, interface_parameters[XBEE_PLUGIN_PARAMS_PLUGIN].value.s);
+//         VERBOSE(5) fprintf(stderr, "%s (%s) : %s not found\n", ERROR_STR, __func__, interface_parameters[XBEE_PLUGIN_PARAMS_PLUGIN].value.s);
+         VERBOSE(5) mea_log_printf("%s (%s) : %s not found\n", ERROR_STR, __func__, interface_parameters[XBEE_PLUGIN_PARAMS_PLUGIN].value.s);
       }
       else
       {
@@ -1209,7 +1235,8 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
             pValue = PyObject_CallObject(pFunc, pArgs); // appel du plugin
             if (pValue != NULL)
             {
-               DEBUG_SECTION fprintf(stderr, "%s (%s) : Result of call of mea_init : %ld\n", DEBUG_STR, __func__, PyInt_AsLong(pValue));
+//               DEBUG_SECTION fprintf(stderr, "%s (%s) : Result of call of mea_init : %ld\n", DEBUG_STR, __func__, PyInt_AsLong(pValue));
+               DEBUG_SECTION mea_log_printf("%s (%s) : Result of call of mea_init : %ld\n", DEBUG_STR, __func__, PyInt_AsLong(pValue));
             }
             Py_DECREF(pValue);
             Py_DECREF(pArgs);
@@ -1217,7 +1244,8 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
          }
          else
          {
-            VERBOSE(5) fprintf(stderr, "%s (%s) : mea_init not fount in %s module\n", ERROR_STR, __func__, interface_parameters[XBEE_PLUGIN_PARAMS_PLUGIN].value.s);
+//            VERBOSE(5) fprintf(stderr, "%s (%s) : mea_init not fount in %s module\n", ERROR_STR, __func__, interface_parameters[XBEE_PLUGIN_PARAMS_PLUGIN].value.s);
+            VERBOSE(5) mea_log_printf("%s (%s) : mea_init not fount in %s module\n", ERROR_STR, __func__, interface_parameters[XBEE_PLUGIN_PARAMS_PLUGIN].value.s);
          }
          Py_XDECREF(pFunc);
       }
@@ -1259,7 +1287,8 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
    {
       strerror_r(errno, err_str, sizeof(err_str));
       VERBOSE(2) {
-         fprintf(stderr,"%s (%s) : %s - %s", ERROR_STR, __func__, MALLOC_ERROR_STR, err_str);
+//         fprintf(stderr,"%s (%s) : %s - %s", ERROR_STR, __func__, MALLOC_ERROR_STR, err_str);
+         mea_log_printf("%s (%s) : %s - %s", ERROR_STR, __func__, MALLOC_ERROR_STR, err_str);
       }
       mea_notify_printf('E', "%s can't be launched - %s.\n", start_stop_params->i002->name, err_str);
       goto clean_exit;
@@ -1279,7 +1308,8 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
    {
       strerror_r(errno, err_str, sizeof(err_str));
       VERBOSE(2) {
-         fprintf(stderr,"%s (%s) : %s - %s\n", ERROR_STR, __func__, MALLOC_ERROR_STR, err_str);
+//         fprintf(stderr,"%s (%s) : %s - %s\n", ERROR_STR, __func__, MALLOC_ERROR_STR, err_str);
+         mea_log_printf("%s (%s) : %s - %s\n", ERROR_STR, __func__, MALLOC_ERROR_STR, err_str);
       }
       mea_notify_printf('E', "%s can't be launched - %s.\n", start_stop_params->i002->name, err_str);
       goto clean_exit;
@@ -1292,7 +1322,8 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
    start_stop_params->i002->xPL_callback_data=xpl_callback_params;
    start_stop_params->i002->xPL_callback=_interface_type_002_xPL_callback;
    
-   VERBOSE(2) fprintf(stderr,"%s (%s) : %s %s.\n", ERROR_STR, __func__,start_stop_params->i002->name, launched_successfully_str);
+//   VERBOSE(2) fprintf(stderr,"%s (%s) : %s %s.\n", ERROR_STR, __func__,start_stop_params->i002->name, launched_successfully_str);
+   VERBOSE(2) mea_log_printf("%s (%s) : %s %s.\n", ERROR_STR, __func__,start_stop_params->i002->name, launched_successfully_str);
    mea_notify_printf('S', "%s %s", start_stop_params->i002->name, launched_successfully_str);
    
    return 0;

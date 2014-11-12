@@ -245,7 +245,8 @@ static PyObject *mea_xplSendMsg(PyObject *self, PyObject *args)
    }
    else
    {
-      VERBOSE(9) fprintf(stderr, "ERROR (mea_xplMsgSend) : message-type not found\n");
+//      VERBOSE(9) fprintf(stderr, "ERROR (mea_xplMsgSend) : message-type not found\n");
+      VERBOSE(9) mea_log_printf("ERROR (mea_xplMsgSend) : message-type not found\n");
       PyErr_SetString(PyExc_RuntimeError, "ERROR (mea_xplMsgSend) : xpl message type not found");
       return NULL;
    }
@@ -473,7 +474,8 @@ static PyObject *mea_sendAtCmdAndWaitResp(PyObject *self, PyObject *args)
    }
    else
    {
-      DEBUG_SECTION fprintf(stderr, "%s (%s) : host not found.\n", DEBUG_STR ,__func__);
+//      DEBUG_SECTION fprintf(stderr, "%s (%s) : host not found.\n", DEBUG_STR ,__func__);
+      DEBUG_SECTION mea_log_printf("%s (%s) : host not found.\n", DEBUG_STR ,__func__);
       if(host)
       {
          free(host);
@@ -487,7 +489,8 @@ static PyObject *mea_sendAtCmdAndWaitResp(PyObject *self, PyObject *args)
    ret=xbee_atCmdSendAndWaitResp(xd, host, at_cmd, l_at_cmd, resp, &l_resp, &nerr);
    if(ret==-1)
    {
-      DEBUG_SECTION fprintf(stderr, "%s (%s) : error %d.\n", DEBUG_STR, __func__, nerr);
+//      DEBUG_SECTION fprintf(stderr, "%s (%s) : error %d.\n", DEBUG_STR, __func__, nerr);
+      DEBUG_SECTION mea_log_printf("%s (%s) : error %d.\n", DEBUG_STR, __func__, nerr);
       if(host)
       {
          free(host);
@@ -523,7 +526,8 @@ static PyObject *mea_sendAtCmdAndWaitResp(PyObject *self, PyObject *args)
    return t; // return True
    
 mea_AtCmdToXbee_arg_err:
-   DEBUG_SECTION fprintf(stderr, "%s (%s) : arguments error.\n", DEBUG_STR, __func__);
+//   DEBUG_SECTION fprintf(stderr, "%s (%s) : arguments error.\n", DEBUG_STR, __func__);
+   DEBUG_SECTION mea_log_printf("%s (%s) : arguments error.\n", DEBUG_STR, __func__);
    if(host)
    {
       free(host);
@@ -613,7 +617,8 @@ static PyObject *mea_sendAtCmd(PyObject *self, PyObject *args)
       xbee_get_host_by_addr_64(xd, host, addr_h, addr_l, &err);
       if(err!=XBEE_ERR_NOERR)
       {
-         DEBUG_SECTION fprintf(stderr, "%s (%s) : host not found.\n", DEBUG_STR,__func__);
+//         DEBUG_SECTION fprintf(stderr, "%s (%s) : host not found.\n", DEBUG_STR,__func__);
+         DEBUG_SECTION mea_log_printf("%s (%s) : host not found.\n", DEBUG_STR,__func__);
          goto mea_atCmdSend_arg_err;
       }
    }
@@ -632,7 +637,8 @@ static PyObject *mea_sendAtCmd(PyObject *self, PyObject *args)
    return PyLong_FromLong(1L); // return True
 
 mea_atCmdSend_arg_err:
-   DEBUG_SECTION fprintf(stderr, "%s (%s) : arguments error\n", DEBUG_STR,__func__);
+//   DEBUG_SECTION fprintf(stderr, "%s (%s) : arguments error\n", DEBUG_STR,__func__);
+   DEBUG_SECTION mea_log_printf("%s (%s) : arguments error\n", DEBUG_STR,__func__);
    PyErr_BadArgument();
    if(host)
    {
@@ -695,7 +701,8 @@ static PyObject *mea_addDataToSensorsValuesTable(PyObject *self, PyObject *args)
    return PyLong_FromLong(1L); // True
    
 mea_addDataToSensorsValuesTable_arg_err:
-   DEBUG_SECTION fprintf(stderr, "%s (%s) : arguments error\n", DEBUG_STR,__func__);
+//   DEBUG_SECTION fprintf(stderr, "%s (%s) : arguments error\n", DEBUG_STR,__func__);
+   DEBUG_SECTION mea_log_printf("%s (%s) : arguments error\n", DEBUG_STR,__func__);
    PyErr_BadArgument();
    return NULL;
 }

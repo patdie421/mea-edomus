@@ -113,7 +113,8 @@ int16_t interface_type_001_counters_process_traps(int16_t numTrap, char *buff, i
          VERBOSE(9) {
             char now[30];
             strftime(now,30,"%d/%m/%y;%H:%M:%S",localtime(&tv.tv_sec));
-            fprintf(stderr,"%s  (%s) : %s;%s;%f;%f;%f\n",INFO_STR,__func__,counter->name,now,counter->t,counter->t-t_old,counter->power);
+//            fprintf(stderr,"%s  (%s) : %s;%s;%f;%f;%f\n",INFO_STR,__func__,counter->name,now,counter->t,counter->t-t_old,counter->power);
+            mea_log_printf("%s  (%s) : %s;%s;%f;%f;%f\n",INFO_STR,__func__,counter->name,now,counter->t,counter->t-t_old,counter->power);
          }
       }
    }
@@ -132,7 +133,8 @@ struct electricity_counter_s *interface_type_001_sensors_valid_and_malloc_counte
    if(!counter)
    {
       VERBOSE(1) {
-         fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
+//         fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
+         mea_log_printf("%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
          perror("");
       }
       goto valid_and_malloc_counter_clean_exit;
@@ -202,7 +204,8 @@ valid_and_malloc_counter_clean_exit:
       counter_params=NULL;
    }
    VERBOSE(1) {
-      fprintf(stderr,"%s (%s) : %s/%s invalid. Check parameters.\n",ERROR_STR,__func__,name,parameters);
+//      fprintf(stderr,"%s (%s) : %s/%s invalid. Check parameters.\n",ERROR_STR,__func__,name,parameters);
+      mea_log_printf("%s (%s) : %s/%s invalid. Check parameters.\n",ERROR_STR,__func__,name,parameters);
    }
    
    return NULL;
@@ -414,7 +417,8 @@ int16_t interface_type_001_counters_poll_inputs(interface_type_001_t *i001)
 
             counter_to_xpl(i001, counter);
 
-            VERBOSE(9) fprintf(stderr,"%s  (%s) : counter %s %ld (WH=%ld KWH=%ld)\n",INFO_STR,__func__,counter->name, (long)counter->counter, (long)counter->wh_counter,(long)counter->kwh_counter);
+//            VERBOSE(9) fprintf(stderr,"%s  (%s) : counter %s %ld (WH=%ld KWH=%ld)\n",INFO_STR,__func__,counter->name, (long)counter->counter, (long)counter->wh_counter,(long)counter->kwh_counter);
+            VERBOSE(9) mea_log_printf("%s  (%s) : counter %s %ld (WH=%ld KWH=%ld)\n",INFO_STR,__func__,counter->name, (long)counter->counter, (long)counter->wh_counter,(long)counter->kwh_counter);
          }
          next_queue(counters_list);
       }

@@ -386,13 +386,13 @@ var logViewer = {
    {
       // analyse de la ligne
       var color="black"; // couleur par défaut
-      if(line.indexOf("ERROR")==0)
+      if(line.indexOf("ERROR")==22)
          color="red";
-      else if(line.indexOf("WARNING")==0)
+      else if(line.indexOf("WARNING")==22)
          color="orange";
-      else if(line.indexOf("INFO")==0)
+      else if(line.indexOf("INFO")==22)
          color="green";
-      else if(line.indexOf("DEBUG")==0)
+      else if(line.indexOf("DEBUG")==22)
          color="blue";
       if(line.lenght==0)
          return;
