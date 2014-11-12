@@ -101,9 +101,27 @@ uint32_t take_chrono(uint32_t *_last_time)
 void mea_log_printf(char const* fmt, ...)
 {
    va_list args;
+   char *date_format="%Y-%m-%d %H:%M:%S.%02u";
 
-   fprintf(stderr,"HH:MM:SS JJ/MM/YY : ");
+   char date_str[40];
+   time_t t;
+   struct tm *t_tm;
 
+   t = time(NULL);
+   t_tm = localtime(&t);
+   if (t_tm == NULL) {
+      perror("localtime");
+      return;
+   }
+
+   if (strftime(date_str, sizeof(date_str), argv[1], tmp) == 0)
+   {
+      fprintf(stderr, "strftime returned 0");
+      return;
+   }
+
+   fprintf(stderr,"%s : ",date_str);
+   
    va_start(args, fmt);
    vfprintf(stderr, fmt, args);
    va_end(args);
