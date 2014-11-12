@@ -26,6 +26,6 @@ void set_verbose_level(int level);
 uint32_t start_chrono(uint32_t *_last_time);
 uint32_t take_chrono(uint32_t *_last_time);
 
-void mea_logprintf(char const* fmt, ...);
+void mea_log_printf(char const* fmt, ...);
 
 #endif
