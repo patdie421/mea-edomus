@@ -604,13 +604,15 @@ int16_t _comio2_read_frame(int fd, char *cmd_data, uint16_t *l_cmd_data, int16_t
             cmd_data[i]=c;
             checksum+=(unsigned char)c;
             i++; // maj du reste à lire
-            if(i>=*l_cmd_data)
+            DEBUG_SECTION fprintf(stderr, "%u[%c] ",(int)(0xFF & c), ((unsigned char)c >= 32 ? c : ' '));
+            if(i>=(*l_cmd_data))
+            {
                step++; // read checksum
-            DEBUG_SECTION fprintf(stderr, "%u[%c] ",(int)(0xFF & c), (c >= 32 ? c : ' '));
+               DEBUG_SECTION fprintf(stderr,"\nNext step = %d\n",step);
+            }
             break;
             
          case 3:
-            DEBUG_SECTION fprintf(stderr,"\n");
             if(((checksum+(unsigned char)c) & 0xFF) == 0xFF)
             {
               DEBUG_SECTION mea_log_printf("%s (%s) : ok, checksum matched\n",DEBUG_STR,__func__);
