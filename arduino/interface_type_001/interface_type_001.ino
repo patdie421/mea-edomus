@@ -551,7 +551,7 @@ void setup()
   pinMode(12, INPUT);
   digitalWrite(12, HIGH);
 
-  analogReference(INTERNAL); // rÃ©fÃ©rence 1,1 V interne pour plus de prÃ©cision sur TMP36
+  analogReference(INTERNAL); // référence 1,1 V interne pour plus de précision sur TMP36
   analogRead(A3); // activation du convertisseur analogique / numérique
 
   // signalisation
@@ -561,8 +561,8 @@ void setup()
   init_pulses();
 
   // initialisation COMIO
-  // Serial.begin(57600);
-  Serial.begin(9600);
+  Serial.begin(57600);
+//  Serial.begin(9600);
 
   comio2.setReadF(comio2_serial_read);
   comio2.setWriteF(comio2_serial_write);
