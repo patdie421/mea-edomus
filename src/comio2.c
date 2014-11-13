@@ -28,6 +28,13 @@
 #define COMIO2_TIMEOUT_DELAY 1
 #define COMIO2_NB_RETRY 5
 
+/* desactivation local du debug
+#ifdef DEBUG_SECTION
+#undef DEBUG_SECTION
+#define DEBUG_SECTION if(0)
+#endif
+*/
+
 typedef struct comio2_queue_elem_s
 {
    char frame[COMIO2_MAX_FRAME_SIZE];
@@ -575,13 +582,12 @@ int16_t _comio2_read_frame(int fd, char *cmd_data, uint16_t *l_cmd_data, int16_t
          case 0:
             if(c=='{')
             {
-//               DEBUG_SECTION fprintf(stderr,"%s  (%s) : recept new frame :",INFO_STR,__func__);
-
+               DEBUG_SECTION fprintf(stderr,"%s  (%s) : Succes, start caracter ('{') recepted",INFO_STR,__func__);
                step++;
                break;
             }
             *nerr=COMIO2_ERR_STARTFRAME;
-            DEBUG_SECTION fprintf(stderr,"%s  (%s) : recept : %d [%c]\n",INFO_STR,__func__,(int)c, c);
+            DEBUG_SECTION mea_log_printf("%s  (%s) : Error, character '{' expected, received %d [%c]\n",INFO_STR,__func__,(int)c, (char)(c >= ' ' ? c : ' '));
             goto on_error_exit_comio2_read;
             
          case 1:
@@ -589,6 +595,7 @@ int16_t _comio2_read_frame(int fd, char *cmd_data, uint16_t *l_cmd_data, int16_t
             checksum+=(unsigned char)c;
             i=0;
             step++;
+            DEBUG_SECTION mea_log_printf("%s  (%s) : Succes, frame size is %d\nData received (",INFO_STR,__func__,l);
             break;
             
          case 2:
@@ -597,17 +604,19 @@ int16_t _comio2_read_frame(int fd, char *cmd_data, uint16_t *l_cmd_data, int16_t
             i++; // maj du reste à lire
             if(i>=*l_cmd_data)
                step++; // read checksum
+            DEBUG_SECTION printf("%d[%c] ",(int)c, (char)(c >= ' ' ? c : ' '));
             break;
             
          case 3:
+            DEBUG_SECTION printf(")\n");
             if(((checksum+(unsigned char)c) & 0xFF) == 0xFF)
             {
+              DEBUG_SECTION mea_log_printf("%s  (%s) : Succes, checksum matched\n",INFO_STR,__func__,l);
               step++;
               break;
             }
             else
             {
-//               VERBOSE(5) fprintf(stderr,"%s  (%s) : Comio reponse - checksum error.\n",INFO_STR,__func__);
                VERBOSE(5) mea_log_printf("%s  (%s) : Comio reponse - checksum error.\n",INFO_STR,__func__);
                *nerr=COMIO2_ERR_CHECKSUM;
                goto on_error_exit_comio2_read;
@@ -617,13 +626,13 @@ int16_t _comio2_read_frame(int fd, char *cmd_data, uint16_t *l_cmd_data, int16_t
          case 4:
             if(c=='}')
             {
-//               DEBUG_SECTION fprintf(stderr, "%02x\n", c & 0xFF);
+              DEBUG_SECTION fprintf(stderr,"%s  (%s) : Succes, end caracter ('}') recepted",INFO_STR,__func__);
               return 0;
             }
             *nerr=COMIO2_ERR_STOPFRAME;
+            DEBUG_SECTION mea_log_printf("%s  (%s) : Error, character '}' expected, received %d [%c]\n",INFO_STR,__func__,(int)c, (char)(c >= ' ' ? c : ' '));
             goto on_error_exit_comio2_read;
       }
-//      DEBUG_SECTION fprintf(stderr, "%02x ", c & 0xFF);
    }
    *nerr=COMIO2_ERR_UNKNOWN; // ne devrait jamais se produire ...
    
