@@ -347,7 +347,7 @@ int move_mysql_query_to_sqlite3(char *sql_query)
    if(ret)
    {
 //      VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", ERROR_STR,__func__,sqlite3_errmsg(db));
-      VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_exec - %s\n", ERROR_STR,__func__,sqlite3_errmsg(db));
+      VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_exec - %s\n", ERROR_STR,__func__,sqlite3_errmsg(_md->db));
       return -1;
    }
    insqlite_indicator++;
@@ -438,14 +438,14 @@ int write_data_to_db(dbServer_queue_elem_t *elem)
 //   if(mysql_connected==1)
    if(_md->conn)
    {
-      if(exec_mysql_query(conn, query)==0)
+      if(exec_mysql_query(query)==0)
          mysqlwrite_indicator++;
       else
          return -1;
    }
    else if(_md->db)
    {
-      move_mysql_query_to_sqlite3(_md->db, query);
+      move_mysql_query_to_sqlite3(query);
    }
    else
       return -1;
@@ -517,6 +517,7 @@ int flush_data()
    int nb=-1;
    int ret=-1;
    int return_code=0;
+   dbServer_queue_elem_t *elem = NULL;
    
 //   if(mysql_connected)
    if(_md->conn)
@@ -524,7 +525,7 @@ int flush_data()
       char sql_query[80];
             
       snprintf(sql_query, sizeof(sql_query), "USE %s", _md->base); // et on utilise la bonne base
-      ret=exec_mysql_query(_md->conn, sql_query);
+      ret=exec_mysql_query(sql_query);
       if(ret)
       {
          VERBOSE(2) mea_log_printf("%s (%s) : sql_query - %u: %s\n", ERROR_STR,__func__,mysql_errno(_md->conn), mysql_error(_md->conn));
@@ -594,6 +595,8 @@ int flush_data()
 //int select_database(int *mysql_connected)
 int select_database()
 {
+   int ret;
+   
    unsigned long _mysql_thread_id = -1,_mysql_thread_id_avant = -1;
    
 //   if(*mysql_connected == 1) // on a déjà été connecté un jour ...
@@ -607,8 +610,8 @@ int select_database()
       {
          VERBOSE(5) mea_log_printf("%s  (%s) : mysql_ping - %u: %s\n",INFO_STR,__func__,mysql_errno(_md->conn), mysql_error(_md->conn));
 //         *mysql_connected = 0; // plus de connexion au serveur mysql
-         mysql_close(md->conn);
-         md->conn=NULL;
+         mysql_close(_md->conn);
+         _md->conn=NULL;
       }
       else
       {
@@ -669,10 +672,10 @@ void *dbServer_thread(void *args)
 {
    int ret;
    
-   dbServer_queue_elem_t *elem = NULL;
+//   dbServer_queue_elem_t *elem = NULL;
 
 //   int mysql_connected=0; // indicateur connexion active (1) ou inactive (0)
-   unsigned long _mysql_thread_id = -1,_mysql_thread_id_avant = -1;
+//   unsigned long _mysql_thread_id = -1,_mysql_thread_id_avant = -1;
    
    time_t last_time = time(NULL);
    
@@ -688,7 +691,9 @@ void *dbServer_thread(void *args)
 
    ret=_connect(&_md->conn);
    if(ret)
+   {
 //      mysql_connected=0;
+   }
    else
    {
       _md->opened=1;
@@ -929,6 +934,8 @@ int dbServer(char *db_server, char *db_server_port, char *base, char *user, char
 //void stop_dbServer(tomysqldb_md_t *md)
 int stop_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
 {
+   int ret;
+   
    if(_md)
    {
       pthread_cancel(_md->thread);
@@ -951,10 +958,10 @@ int stop_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
 
       _md->started=0;
 
-      int mysql_connected=0; // force la reconnexion pour le vidage
-      ret=select_database(&mysql_connected);
+//      int mysql_connected=0; // force la reconnexion pour le vidage
+      ret=select_database();
       if(ret!=-1)
-         if(flush_data(mysql_connected)<0)
+         if(flush_data()<0)
          {
             // signaler risque de perte de données
          }

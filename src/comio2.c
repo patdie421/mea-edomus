@@ -595,7 +595,7 @@ int16_t _comio2_read_frame(int fd, char *cmd_data, uint16_t *l_cmd_data, int16_t
             checksum+=(unsigned char)c;
             i=0;
             step++;
-            DEBUG_SECTION mea_log_printf("%s  (%s) : frame size is %d, data are ",INFO_STR,__func__,l);
+            DEBUG_SECTION mea_log_printf("%s  (%s) : frame size is %d, data are ",INFO_STR,__func__,l_cmd_data);
             break;
             
          case 2:
@@ -611,7 +611,7 @@ int16_t _comio2_read_frame(int fd, char *cmd_data, uint16_t *l_cmd_data, int16_t
             DEBUG_SECTION printf("\n");
             if(((checksum+(unsigned char)c) & 0xFF) == 0xFF)
             {
-              DEBUG_SECTION mea_log_printf("%s  (%s) : ok, checksum matched\n",INFO_STR,__func__,l);
+              DEBUG_SECTION mea_log_printf("%s  (%s) : ok, checksum matched\n",INFO_STR,__func__);
               step++;
               break;
             }

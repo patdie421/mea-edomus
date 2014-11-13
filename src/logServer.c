@@ -181,7 +181,7 @@ int _read_and_send_lines(int nodejs_socket, char *file, long *pos)
    return ret;
 }
 
-
+/*
 int read_line(FILE *fp, char *line, int line_l, long *pos)
 {
    fseek(fp, 0, SEEK_END); // on se met à la fin du fichier
@@ -324,7 +324,7 @@ void *logServer_thread2(void *data)
    return NULL;
 
 }
-
+*/
 
 void *logServer_thread(void *data)
 {
