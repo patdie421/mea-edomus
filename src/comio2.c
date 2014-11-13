@@ -25,7 +25,7 @@
 #include "debug.h"
 
 
-#define COMIO2_TIMEOUT_DELAY 1
+//#define COMIO2_TIMEOUT_DELAY 2
 #define COMIO2_NB_RETRY 5
 
 /* desactivation local du debug
@@ -561,12 +561,13 @@ int16_t _comio2_read_frame(int fd, char *cmd_data, uint16_t *l_cmd_data, int16_t
          if(ret == 0)
          {
             *nerr=COMIO2_ERR_TIMEOUT;
-            DEBUG_SECTION mea_log_printf("%s (%s) : select - COMIO2_ERR_TIMEOUT\n",DEBUG_STR,__func__);
+//            DEBUG_SECTION mea_log_printf("%s (%s) : select - COMIO2_ERR_TIMEOUT\n",DEBUG_STR,__func__);
          }
          else
          {
             *nerr=COMIO2_ERR_SELECT;
-            DEBUG_SECTION mea_log_printf("%s (%s) : select - COMIO2_ERR_SELECT\n",DEBUG_STR,__func__);
+            DEBUG_SECTION mea_log_printf("%s (%s) : select - COMIO2_ERR_SELECT, ",DEBUG_STR,__func__);
+            perror("");
          }
          goto on_error_exit_comio2_read;
       }
@@ -615,7 +616,6 @@ int16_t _comio2_read_frame(int fd, char *cmd_data, uint16_t *l_cmd_data, int16_t
             if(i>=(*l_cmd_data))
             {
                step++; // read checksum
-               DEBUG_SECTION fprintf(stderr,"\nNext step = %d\n",step);
             }
             break;
             
@@ -850,7 +850,6 @@ void *_comio2_thread(void *args)
    
    comio2_ad_t *ad=(comio2_ad_t *)args;
    
-//   VERBOSE(5) fprintf(stderr,"%s  (%s) : starting comio2 read thread %s\n",INFO_STR,__func__,ad->serial_dev_name);
    VERBOSE(5) mea_log_printf("%s  (%s) : starting comio2 read thread %s\n",INFO_STR,__func__,ad->serial_dev_name);
    while(1)
    {
@@ -892,7 +891,6 @@ void *_comio2_thread(void *args)
             case COMIO2_ERR_READ:
             case COMIO2_ERR_SYS:
                VERBOSE(1) {
-//                  fprintf(stderr,"%s (%s) : communication error (nerr=%d) - ", ERROR_STR,__func__,nerr);
                   mea_log_printf("%s (%s) : communication error (nerr=%d) - ", ERROR_STR,__func__,nerr);
                   perror("");
                }
@@ -900,7 +898,6 @@ void *_comio2_thread(void *args)
                {
                   ad->signal_flag=1;
                   VERBOSE(1) {
-//                     fprintf(stderr,"%s (%s) : comio2 thread goes down\n", ERROR_STR,__func__);
                      mea_log_printf("%s (%s) : comio2 thread goes down\n", ERROR_STR,__func__);
                   }
                   pthread_exit(NULL);
@@ -910,7 +907,6 @@ void *_comio2_thread(void *args)
 
             default:
                VERBOSE(1) {
-//                  fprintf(stderr,"%s (%s) : error=%d.\n", ERROR_STR,__func__,nerr);
                   mea_log_printf("%s (%s) : error=%d.\n", ERROR_STR,__func__,nerr);
                   break;
                }
