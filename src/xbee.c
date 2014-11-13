@@ -738,7 +738,8 @@ mea_error_t xbee_get_host_by_name(xbee_xd_t *xd, xbee_host_t *host, char *name, 
       memcpy(host,h,sizeof(xbee_host_t));
    else
    {
-      DEBUG_SECTION fprintf(stderr,"%s (%s) : %s not found in xbee hosts table.\n",DEBUG_STR,__func__,name);
+//      DEBUG_SECTION fprintf(stderr,"%s (%s) : %s not found in xbee hosts table.\n",DEBUG_STR,__func__,name);
+      DEBUG_SECTION mea_log_printf("%s (%s) : %s not found in xbee hosts table.\n",DEBUG_STR,__func__,name);
       
       *nerr=XBEE_ERR_HOSTNOTFUND;
       return ERROR;
@@ -769,7 +770,8 @@ mea_error_t xbee_get_host_by_addr_64(xbee_xd_t *xd, xbee_host_t *host, uint32_t 
    {
       _xbee_host_init_addr_64(host, addr_64_h, addr_64_l);
       
-      DEBUG_SECTION fprintf(stderr,"%s (%s) : %08lx-%08lx not found in xbee hosts table.\n", DEBUG_STR,__func__,(unsigned long int)addr_64_h,(unsigned long int)addr_64_l);
+//      DEBUG_SECTION fprintf(stderr,"%s (%s) : %08lx-%08lx not found in xbee hosts table.\n", DEBUG_STR,__func__,(unsigned long int)addr_64_h,(unsigned long int)addr_64_l);
+      DEBUG_SECTION mea_log_printf("%s (%s) : %08lx-%08lx not found in xbee hosts table.\n", DEBUG_STR,__func__,(unsigned long int)addr_64_h,(unsigned long int)addr_64_l);
       *nerr=XBEE_ERR_HOSTNOTFUND;
       return ERROR;
    }
@@ -1163,14 +1165,16 @@ int16_t xbee_atCmdSendAndWaitResp(xbee_xd_t *xd,
                      }
                      
                      // theoriquement pour nous mais donnees trop vieilles, on supprime
-                     DEBUG_SECTION fprintf(stderr,"%s (%s) : data have been found but are too old\n", DEBUG_STR,__func__);
+//                     DEBUG_SECTION fprintf(stderr,"%s (%s) : data have been found but are too old\n", DEBUG_STR,__func__);
+                     DEBUG_SECTION mea_log_printf("%s (%s) : data have been found but are too old\n", DEBUG_STR,__func__);
 //                     remove_current_queue(xd->queue);
 //                     _xbee_free_queue_elem(e);
 //                     e=NULL;
                   }
                   else
                   {
-                     DEBUG_SECTION fprintf(stderr,"%s (%s) : data aren't for me (%d != %d)\n", DEBUG_STR,__func__, e->cmd[1], frame_data_id);
+//                     DEBUG_SECTION fprintf(stderr,"%s (%s) : data aren't for me (%d != %d)\n", DEBUG_STR,__func__, e->cmd[1], frame_data_id);
+                     DEBUG_SECTION mea_log_printf("%s (%s) : data aren't for me (%d != %d)\n", DEBUG_STR,__func__, e->cmd[1], frame_data_id);
                      e=NULL;
                   }
                }
@@ -1235,25 +1239,11 @@ void xbee_close(xbee_xd_t *xd)
 }
 
 
-void xbee_perror(int16_t nerr)
-/**
- * \brief     affichage d'un message d'erreur xbeeio sur la sortie d'erreur standard
- * \param     nerr numero d'erreur xbeeio
- */
-{
-   if(nerr>=0 && nerr<=XBEE_MAX_NB_ERROR)
-   {
-      fprintf(stderr, "%s\n",xberr_error_str[nerr]);
-   }
-}
-
-
 void _xbee_display_frame(int ret, unsigned char *resp, uint16_t l_resp)
 {
    DEBUG_SECTION {
       if(!ret)
       {
-         fprintf(stderr,"%s (%s) : ", DEBUG_STR,__func__);
          for(int i=0;i<l_resp;i++)
             fprintf(stderr, "%02x-[%c] ", resp[i], resp[i]);
          printf("\n");
@@ -1372,14 +1362,16 @@ int _xbee_read_cmd(int fd, char unsigned *frame, uint16_t *l_frame, int16_t *ner
             if(((checksum+c) & 0xFF) == 0xFF)
             {
                 /* DEBUG_SECTION {
-                fprintf(stderr,"%s (%s) : new frame recept\n", DEBUG_STR,__func__);
+//                fprintf(stderr,"%s (%s) : new frame recept\n", DEBUG_STR,__func__);
+                mea_log_printf("%s (%s) : new frame recept\n", DEBUG_STR,__func__);
                  _xbee_display_frame(0, frame, *l_frame);
                } */
                return 0;
             }
             else
             {
-               VERBOSE(5) fprintf(stderr,"%s  (%s) : xbee return an error - checksum error.\n",INFO_STR,__func__);
+//               VERBOSE(5) fprintf(stderr,"%s  (%s) : xbee return an error - checksum error.\n",INFO_STR,__func__);
+               VERBOSE(5) mea_log_printf("%s  (%s) : xbee return an error - checksum error.\n",INFO_STR,__func__);
                *nerr=XBEE_ERR_CHECKSUM;
                return -1;
             }
@@ -1434,8 +1426,10 @@ int _xbee_network_discovery_resp(xbee_xd_t *xd, char *data, uint16_t l_data)
    map=(struct xbee_map_nd_resp_data *)data; // -1 pour corriger l'alignement			
    
    DEBUG_SECTION {
-      fprintf(stderr,"%s (%s) : MY = %x\n",DEBUG_STR,__func__,map->MY[0]*256+map->MY[1]);
-      fprintf(stderr,"%s (%s) : NI = %s\n",DEBUG_STR,__func__,(map->NI)-1); // décallage de 1 a cause de l'alignement
+//      fprintf(stderr,"%s (%s) : MY = %x\n",DEBUG_STR,__func__,map->MY[0]*256+map->MY[1]);
+//      fprintf(stderr,"%s (%s) : NI = %s\n",DEBUG_STR,__func__,(map->NI)-1); // décallage de 1 a cause de l'alignement
+      mea_log_printf("%s (%s) : MY = %x\n",DEBUG_STR,__func__,map->MY[0]*256+map->MY[1]);
+      mea_log_printf("%s (%s) : NI = %s\n",DEBUG_STR,__func__,(map->NI)-1); // décallage de 1 a cause de l'alignement
    }
    
    _xbee_update_hosts_tables(xd->hosts, (char *)map->SH, (char *)map->SL, (char *)map->MY, (map->NI)-1);
@@ -1521,7 +1515,8 @@ int _xbee_reopen(xbee_xd_t *xd)
    strncpy(dev, xd->serial_dev_name, sizeof(dev));
    speed=xd->speed;
    
-   VERBOSE(9) fprintf(stderr,"%s  (%s) : try to reset communication (%s).\n",INFO_STR,__func__,dev);
+//   VERBOSE(9) fprintf(stderr,"%s  (%s) : try to reset communication (%s).\n",INFO_STR,__func__,dev);
+   VERBOSE(9) mea_log_printf("%s  (%s) : try to reset communication (%s).\n",INFO_STR,__func__,dev);
    
    close(xd->fd);
    
@@ -1531,7 +1526,8 @@ int _xbee_reopen(xbee_xd_t *xd)
       if (fd == -1)
       {
          VERBOSE(1) {
-            fprintf(stderr,"%s (%s) : try #%d/%d, unable to open serial port (%s) - ",ERROR_STR,__func__, i+1, XBEE_NB_RETRY, dev);
+//            fprintf(stderr,"%s (%s) : try #%d/%d, unable to open serial port (%s) - ",ERROR_STR,__func__, i+1, XBEE_NB_RETRY, dev);
+            mea_log_printf("%s (%s) : try #%d/%d, unable to open serial port (%s) - ",ERROR_STR,__func__, i+1, XBEE_NB_RETRY, dev);
             perror("");
          }
       }
@@ -1545,11 +1541,13 @@ int _xbee_reopen(xbee_xd_t *xd)
    
    if(!flag)
    {
-      VERBOSE(1) fprintf(stderr,"%s (%s) : can't recover communication now\n", ERROR_STR,__func__);
+//      VERBOSE(1) fprintf(stderr,"%s (%s) : can't recover communication now\n", ERROR_STR,__func__);
+      VERBOSE(1) mea_log_printf("%s (%s) : can't recover communication now\n", ERROR_STR,__func__);
       return -1;
    }
    
-   VERBOSE(5) fprintf(stderr,"%s  (%s) : communication reset successful.\n",INFO_STR,__func__);
+//   VERBOSE(5) fprintf(stderr,"%s  (%s) : communication reset successful.\n",INFO_STR,__func__);
+   VERBOSE(5) mea_log_printf("%s  (%s) : communication reset successful.\n",INFO_STR,__func__);
 
    return 0;
 }	
@@ -1581,7 +1579,8 @@ void *_xbee_thread(void *args)
    
    xbee_xd_t *xd=(xbee_xd_t *)args;
    
-   VERBOSE(5) fprintf(stderr,"%s  (%s) : starting \"xbee reading thread\" on %s\n",INFO_STR,__func__,xd->serial_dev_name);
+//   VERBOSE(5) fprintf(stderr,"%s  (%s) : starting \"xbee reading thread\" on %s\n",INFO_STR,__func__,xd->serial_dev_name);
+   VERBOSE(5) mea_log_printf("%s  (%s) : starting \"xbee reading thread\" on %s\n",INFO_STR,__func__,xd->serial_dev_name);
    while(1)
    {
       _xbee_flush_old_responses_queue(xd);
@@ -1662,7 +1661,8 @@ void *_xbee_thread(void *args)
             {
                struct xbee_receive_packet_s *mcmd=(struct xbee_receive_packet_s *)cmd;
                
-               DEBUG_SECTION fprintf(stderr,"_xbee_thread : frame recept : cmd=%s, size=%d\n",cmd,l_cmd);
+//               DEBUG_SECTION fprintf(stderr,"_xbee_thread : frame recept : cmd=%s, size=%d\n",cmd,l_cmd);
+               DEBUG_SECTION mea_log_printf("_xbee_thread : frame recept : cmd=%s, size=%d\n",cmd,l_cmd);
 
                if(xd->dataflow_callback)
                      xd->dataflow_callback(0,cmd,l_cmd, xd->dataflow_callback_data, (char *)mcmd->addr_64_h, (char *)mcmd->addr_64_l);
@@ -1672,7 +1672,8 @@ void *_xbee_thread(void *args)
             }
                
             default:
-               VERBOSE(9) fprintf(stderr,"%s  (%s): Recept unknown frame (%d), skipped\n",INFO_STR,__func__,cmd[0]);
+//               VERBOSE(9) fprintf(stderr,"%s  (%s): Recept unknown frame (%d), skipped\n",INFO_STR,__func__,cmd[0]);
+               VERBOSE(9) mea_log_printf("%s  (%s): Recept unknown frame (%d), skipped\n",INFO_STR,__func__,cmd[0]);
                break;
          }
       }
@@ -1686,14 +1687,16 @@ void *_xbee_thread(void *args)
             case XBEE_ERR_READ:
             case XBEE_ERR_SYS:
                VERBOSE(1) {
-                  fprintf(stderr,"%s (%s) : communication error (nerr=%d).\n", ERROR_STR,__func__,nerr);
+//                  fprintf(stderr,"%s (%s) : communication error (nerr=%d).\n", ERROR_STR,__func__,nerr);
+                  mea_log_printf("%s (%s) : communication error (nerr=%d).\n", ERROR_STR,__func__,nerr);
                   perror("");
                }
                xd->signal_flag=1;
                if(_xbee_reopen(xd)<0)
                {
                   VERBOSE(1) {
-                     fprintf(stderr,"%s (%s) : xbee thread is down\n", ERROR_STR,__func__);
+//                     fprintf(stderr,"%s (%s) : xbee thread is down\n", ERROR_STR,__func__);
+                     mea_log_printf("%s (%s) : xbee thread is down\n", ERROR_STR,__func__);
                   }
                   pthread_exit(NULL);
                }
@@ -1701,12 +1704,14 @@ void *_xbee_thread(void *args)
                break;
             case XBEE_ERR_HOSTTABLEFULL:
                VERBOSE(1) {
-                  fprintf(stderr,"%s (%s) : hosts table is full (nerr=%d).\n", ERROR_STR,__func__,nerr);
+//                  fprintf(stderr,"%s (%s) : hosts table is full (nerr=%d).\n", ERROR_STR,__func__,nerr);
+                  mea_log_printf("%s (%s) : hosts table is full (nerr=%d).\n", ERROR_STR,__func__,nerr);
                }
                break;
             default:
                VERBOSE(1) {
-                  fprintf(stderr,"%s (%s) : uncategorized error (%d).\n", ERROR_STR,__func__,nerr);
+//                  fprintf(stderr,"%s (%s) : uncategorized error (%d).\n", ERROR_STR,__func__,nerr);
+                  mea_log_printf("%s (%s) : uncategorized error (%d).\n", ERROR_STR,__func__,nerr);
                }
                break;
          }
