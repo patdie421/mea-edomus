@@ -513,10 +513,11 @@ void *dbServer_thread(void *args)
    int ret;
    
    dbServer_queue_elem_t *elem;
-//   tomysqldb_md_t *md=(tomysqldb_md_t *)args;
 
    int mysql_connected=0; // indicateur connexion active (1) ou inactive (0)
    unsigned long _mysql_thread_id,_mysql_thread_id_avant;
+   
+   time_t last_time = time(NULL);
    
    _md->db=NULL; // descritpteur SQLITE
    _md->conn=NULL; // descripteur com. MYSQL
@@ -540,7 +541,13 @@ void *dbServer_thread(void *args)
    while(1)
    {
       int nb=-1;
-      
+      time_t now;
+      now = time(NULL);
+ 
+      DEBUG_SECTION {
+        mea_log_printf("%s (%s) : last loop %d (watchdog debug)\n", DEBUG_STR,__func__,now-last_time);
+        last_time=now;
+      }
       process_heartbeat(_dbServer_monitoring_id);
 
       pthread_testcancel();
