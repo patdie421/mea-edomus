@@ -910,7 +910,6 @@ int dbServer(char *db_server, char *db_server_port, char *base, char *user, char
    _md->queue=(queue_t *)malloc(sizeof(queue_t));
    if(!_md->queue)
    {
-//      VERBOSE(1) fprintf(stderr,"%s (%s) : can't create queue.\n",ERROR_STR,__func__);
       VERBOSE(1) mea_log_printf("%s (%s) : can't create queue.\n",ERROR_STR,__func__);
       return -1;
    }
@@ -920,7 +919,6 @@ int dbServer(char *db_server, char *db_server_port, char *base, char *user, char
    
    if(pthread_create (&(_md->thread), NULL, dbServer_thread, (void *)_md))
    {
-//      VERBOSE(1) fprintf(stderr,"%s (%s) : can't create thread.\n", ERROR_STR, __func__);
       VERBOSE(1) mea_log_printf("%s (%s) : can't create thread.\n", ERROR_STR, __func__);
       return -1;
    }
@@ -953,12 +951,10 @@ int stop_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
             break;
          }
       }
-//      DEBUG_SECTION fprintf(stderr,"%s (%s) : DBSERVER, fin après %d itération\n",DEBUG_STR, __func__,500-counter);
       DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, fin après %d itération\n",DEBUG_STR, __func__,500-counter);
 
       _md->started=0;
 
-//      int mysql_connected=0; // force la reconnexion pour le vidage
       ret=select_database();
       if(ret!=-1)
          if(flush_data()<0)
@@ -1029,7 +1025,6 @@ int stop_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
 
    _dbServer_monitoring_id=-1;
    
-//   VERBOSE(1) fprintf(stderr,"%s  (%s) : DBSERVER %s.\n", INFO_STR, __func__, stopped_successfully_str);
    VERBOSE(1) mea_log_printf("%s  (%s) : DBSERVER %s.\n", INFO_STR, __func__, stopped_successfully_str);
    mea_notify_printf('S',"DBSERVER %s.", stopped_successfully_str);
 
@@ -1049,7 +1044,6 @@ int start_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
    {
       strerror_r(errno, err_str, sizeof(err_str));
       VERBOSE(2) {
-//         fprintf(stderr,"%s (%s) : %s - %s\n", ERROR_STR, __func__, MALLOC_ERROR_STR,err_str);
          mea_log_printf("%s (%s) : %s - %s\n", ERROR_STR, __func__, MALLOC_ERROR_STR,err_str);
       }
       mea_notify_printf('E',"DBSERVER can't be launched - %s.", err_str);
@@ -1065,19 +1059,16 @@ int start_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
                 dbServerData->params_list[SQLITE3_DB_BUFF_PATH]);
    if(ret==-1)
    {
-//      VERBOSE(2) fprintf(stderr,"%s (%s) : Can not init data base communication.\n", ERROR_STR, __func__);
       VERBOSE(2) mea_log_printf("%s (%s) : Can not init data base communication.\n", ERROR_STR, __func__);
       mea_notify_printf('E', "DBSERVER : can't init data base communication.");
       return -1;
    }
    _dbServer_monitoring_id=my_id;
 
-//   VERBOSE(1) fprintf(stderr,"%s  (%s) : DBSERVER %s.\n", INFO_STR, __func__, launched_successfully_str);
    VERBOSE(1) mea_log_printf("%s  (%s) : DBSERVER %s.\n", INFO_STR, __func__, launched_successfully_str);
    mea_notify_printf('S', "DBSERVER %s.", launched_successfully_str);
 
 #else
-//   VERBOSE(9) fprintf(stderr,"%s  (%s) : dbServer desactivated.\n", INFO_STR,__func__);
    VERBOSE(9) mea_log_printf("%s  (%s) : dbServer desactivated.\n", INFO_STR,__func__);
 #endif
    return 0;

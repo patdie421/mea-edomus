@@ -584,12 +584,14 @@ int16_t _comio2_read_frame(int fd, char *cmd_data, uint16_t *l_cmd_data, int16_t
             {
                DEBUG_SECTION fprintf(stderr,"%s  (%s) : ok, start caracter ('{') recepted",INFO_STR,__func__);
                step++;
-               break;
             }
-            *nerr=COMIO2_ERR_STARTFRAME;
-            DEBUG_SECTION mea_log_printf("%s  (%s) : error, character '{' expected, received %d [%c]\n",INFO_STR,__func__,(int)c, (char)(c >= ' ' ? c : ' '));
-            goto on_error_exit_comio2_read;
-            
+            else
+            {
+               *nerr=COMIO2_ERR_STARTFRAME;
+               DEBUG_SECTION mea_log_printf("%s  (%s) : error, character '{' expected, received %d [%c]\n",INFO_STR,__func__,(unsigned int)c, (char)(c >= ' ' ? c : ' '));
+               goto on_error_exit_comio2_read;
+            }
+            break;
          case 1:
             *l_cmd_data=c-4;
             checksum+=(unsigned char)c;
