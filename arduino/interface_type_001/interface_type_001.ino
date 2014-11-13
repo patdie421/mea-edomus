@@ -573,7 +573,7 @@ void setup()
   comio2.setFunction(1,comio2_fn_output_onoff); // sorties logiques
   comio2.setFunction(2,comio2_fn_output_pwm); // sorties analogiques
   comio2.setFunction(6,comio2_fn_return_digital_in); // lecture entrées logiques
-  comio2.setFunction(7,comio2_fn_return_digital_in); // lecture entrées analogiques
+  comio2.setFunction(7,comio2_fn_return_analog_in); // lecture entrées analogiques
   comio2.setFunction(5,comio2_fn_return_tmp36); // lecture TMP36  
 
   comio_mem=comio2.getMemoryPtr();
