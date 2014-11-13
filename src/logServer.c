@@ -78,6 +78,9 @@ void mea_livelog_disable()
 
 void _set_logServer_isnt_running(void *data)
 {
+   FILE *fp=(FILE *)data;
+   if(fp)
+      fclose(fp);
    _logServer_thread_is_running=0;
 }
 
@@ -176,6 +179,150 @@ int _read_and_send_lines(int nodejs_socket, char *file, long *pos)
       fclose(fp);
 
    return ret;
+}
+
+
+int read_line(FILE *fp, char *line, int line_l, long *pos)
+{
+   fseek(fp, 0, SEEK_END); // on se met à la fin du fichier
+   if(*pos>=0)
+   {
+      long current=ftell(fp); // position dans le fichier = taille du fichier
+      if(*pos > current || *pos == -1) // le fichier a diminué ou c'est la première lecture (démarrage du thread)
+      {
+         char buff[256];
+         
+         // on dit ce qu'on va faire
+         if(*pos==-1)
+         {
+            snprintf(line, line_l-1, "=== start reading from last line ===");
+         }
+         else
+            snprintf(line, line_l-1, "=== file truncated or replaced ===");
+         int i=1;
+         
+         // on va se positionner "un peu" en arrière pour chercher la dernière ligne
+         do
+         {
+            fseek(fp, current-256*i, SEEK_SET); // on remonte le curseur de lecture de quelques octets ou de quelques octets de plus
+            if(ftell(fp)==0) // on est au début du fichier
+            {
+               *pos=0;
+               return 0;
+            }
+
+            for(j=0;i<256;j++) // on lit jusqu'à trouver une fin de ligne
+            {
+               char c=fgetc(fp);
+               if(feof(fp))
+                  found=0; // pas de ligne trouvé
+               if(c=='\r' && (ftell(fp) != current))
+               {
+                  fount=1;
+                  *pos=ftell(fp); // on marque la possition
+                  break;
+               }
+            }
+            if(found==0)
+               i++; // on remonte encore un peu
+         }
+         while(found!=1);
+         
+         do
+         {
+            // cherche la dernière ligne
+            fgets(buff, sizeof(buff), fp);
+            if(feof(fp))
+               break;
+            else
+               *pos=ftell(fp);
+         }
+         while(1);
+         // buff contient la dernière ligne et surtout *pos point sur le debut de la dernière ligne
+
+         return 0;
+      }
+      else if(*pos<current) // le fichier a grossie (en taille).
+      {
+         fseek(fp, *pos, SEEK_SET);
+         fgets(buff, sizeof(buff), fp);
+      }
+      else
+      {
+         // taille pas bougée ...
+      }
+   }
+}
+
+
+void *logServer_thread2(void *data)
+{
+   int exit=0;
+   char log_file[256];
+   mea_timer_t log_timer;
+   FILE *fp=NULL;
+   pos=-1;
+   
+   struct logServer_thread_data_s *logServer_thread_data=(struct logServer_thread_data_s *)data;
+   
+   pthread_cleanup_push( (void *)_set_logServer_isnt_running, (void *)fp);
+   _logServer_thread_is_running=1;
+
+   _livelog_enable=1; // les log en live sont disponibles
+   pthread_testcancel();
+   process_heartbeat(_logServer_monitoring_id);
+
+   snprintf(log_file, sizeof(log_file)-1, "%s/mea-edomus.log", d->log_path);
+   _livelog_enable=1;
+   init_timer(&log_timer, 5, 1); // heartbeat toutes les 5 secondes
+   start_timer(&log_timer);
+
+   mea_socket_connect(&nodejs_socket, (char *)(logServer_thread_data->hostname), (logServer_thread_data->port_socketdata));
+   do
+   {  if(_livelog_enable==1)
+      {
+         if(!mea_socket_is_available(&nodejs_socket)) // reconnexion necessaire ?
+         {
+            mea_socket_close(&nodejs_socket);
+            mea_socket_connect(&nodejs_socket, (char *)(logServer_thread_data->hostname), (logServer_thread_data->port_socketdata));
+         }
+         else
+         {
+            if(!fp)
+            {
+               fp = fopen(file, "r");
+               if(!fp)
+               {
+                  // traiter ici l'erreur
+                  perror("");
+                  sleep(1); // on attends un peu
+               }
+               *pos=-1;
+            }
+            
+            if(fp)
+            {
+               int ret=read_line(fp, line, sizeof(line), &pos);
+               if(ret!=-1)
+                  send_line(&nodejs_socket, line);
+               else
+               {
+                  fclose(fp);
+                  fp=NULL;
+               }
+            }
+         }
+      }
+      pthread_testcancel();
+      if(test_timer(&log_timer)==0)
+         process_heartbeat(_logServer_monitoring_id);
+   }
+   while(exit!=0);
+
+   pthread_cleanup_pop(1);
+
+   return NULL;
+
 }
 
 
