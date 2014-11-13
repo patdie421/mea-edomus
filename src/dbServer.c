@@ -592,14 +592,12 @@ int flush_data()
 }
 
 
-//int select_database(int *mysql_connected)
 int select_database()
 {
    int ret;
    
    unsigned long _mysql_thread_id = -1,_mysql_thread_id_avant = -1;
    
-//   if(*mysql_connected == 1) // on a déjà été connecté un jour ...
    if(_md->conn) // on a déjà été connecté un jour ...
    {
       _mysql_thread_id_avant=mysql_thread_id(_md->conn); // on récupère d'abord l'id du thread, il sera utile pour savoir s'il y a eu une reconnexion.
@@ -692,12 +690,10 @@ void *dbServer_thread(void *args)
    ret=_connect(&_md->conn);
    if(ret)
    {
-//      mysql_connected=0;
    }
    else
    {
       _md->opened=1;
-//      mysql_connected=1;
    }
 
    // ouverture de la base sqlite3
@@ -739,125 +735,11 @@ void *dbServer_thread(void *args)
 
       if(nb>0) // s'il y a quelque chose à traiter
       {
-/*
-         if(mysql_connected == 1) // on a déjà été connecté un jour ...
-         {
-            _mysql_thread_id_avant=mysql_thread_id(_md->conn); // on récupère d'abord l'id du thread, il sera utile pour savoir s'il y a eu une reconnexion.
-
-            // on s'assure d'abord que la connexion avec le serveur Mysql est encore possible
-            ret=mysql_ping(_md->conn); // le ping pour éventuellement forcer une reconnexion
-            if(ret) // pas de réponse au ping et donc reconnexion impossible.
-            {
-//               VERBOSE(5) fprintf (stderr, "%s  (%s) : mysql_ping - %u: %s\n",INFO_STR,__func__,mysql_errno(_md->conn), mysql_error(_md->conn));
-               VERBOSE(5) mea_log_printf("%s  (%s) : mysql_ping - %u: %s\n",INFO_STR,__func__,mysql_errno(_md->conn), mysql_error(_md->conn));
-               mysql_connected = 0; // plus de connexion au serveur mysql
-            }
-            else
-            {
-               _mysql_thread_id=mysql_thread_id(_md->conn);      // id du thread après mysql ping
-               if(_mysql_thread_id_avant!=_mysql_thread_id) // que l'on compare avec l'ancien id
-               {
-                  // si différent, une reconnexion à eu lieu :
-                  // faire ce qu'il y a a faire en cas de reconnexion
-                  // voir ici pour les info : http://dev.mysql.com/doc/refman/5.0/en/auto-reconnect.html
-                  // pour l'instant on ne fait rien
-//                  VERBOSE(9) fprintf(stderr,"%s  (%s) : Une reconnexion à la base Mysql à eu lieu\n", INFO_STR,__func__);
-                  VERBOSE(9) mea_log_printf("%s  (%s) : Une reconnexion à la base Mysql à eu lieu\n", INFO_STR,__func__);
-               }
-            }
-         }      
-         
-         if(mysql_connected == 0) // jamais connecté ou plus de connexion, on essaye de se connecter
-         {
-            ret=_connect(&_md->conn);
-            if(ret)
-               mysql_connected=0; // toujours pas connecté
-            else
-            {
-               _md->opened=1;
-               mysql_connected=1; // ouf, reconnecté
-            }
-         }
-         
-         if(mysql_connected == 0) // toujours pas de connexion Mysql. Repli sur sqlite3, ouverture si nécessaire
-         {
-            // DEBUG_SECTION fprintf(stderr,"SQLITE3_DB_PATH = %s\n",md->sqlite3_db_path);
-            if(!_md->db) // sqlite n'est pas ouverte
-            {
-               ret = sqlite3_open (_md->sqlite3_db_path, &_md->db);
-               if(ret)
-               {
-                  _md->db=NULL;
-//                  VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_open - %s\n", ERROR_STR,__func__,sqlite3_errmsg (_md->db));
-                  VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_open - %s\n", ERROR_STR,__func__,sqlite3_errmsg (_md->db));
-               }
-            }
-         }
-         else // une connexion au serveur mysql est active
-         {
-            char sql_query[255];
-            
-            snprintf(sql_query, sizeof(sql_query), "USE %s", _md->base); // et on utilise la base "base"
-            ret=exec_mysql_query(_md->conn, sql_query);
-            if(ret)
-            {
-//               VERBOSE(2) fprintf (stderr, "%s (%s) : sql_query - %u: %s\n", ERROR_STR,__func__,mysql_errno(_md->conn), mysql_error(_md->conn));
-               VERBOSE(2) mea_log_printf("%s (%s) : sql_query - %u: %s\n", ERROR_STR,__func__,mysql_errno(_md->conn), mysql_error(_md->conn));
-            }
-
-            if(_md->db) // sqlite est encore ouvert, il faut vider la table des requetes si elle n'est pas vide
-            {
-               // transferer le contenu de la base sqlite vers la base mysql ici :
-               move_sqlite3_queries_to_mysql(_md->db, _md->conn);
-               
-               sqlite3_close(_md->db); // et on la referme
-               _md->db=NULL;
-            }
-         }
-*/
-
-//         ret=select_database(&mysql_connected);
          ret=select_database();
          if(ret!=-1)
          {
             flush_data();
          }
-/*
-         while(nb>0)
-         {
-            process_heartbeat(_dbServer_monitoring_id);
-            pthread_testcancel();
-            pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(_md->lock));
-            if(!pthread_mutex_lock(&(_md->lock)))
-            {
-               last_queue(_md->queue); // on se positionne en fin de queue
-               current_queue(_md->queue,(void **)&elem); // on lit le dernier element de la file sans le sortir (on le sortira s'il est inséré dans une base
-                  
-               ret=write_data_to_db(mysql_connected, _md->conn, _md->db, elem);
-               if(!ret)
-               {
-                  out_queue_elem(_md->queue,(void **)&elem);
-                  nb=_md->queue->nb_elem;
-                  if(elem->data && elem->freedata)
-                  {
-                     elem->freedata(elem->data);
-                     elem->data=NULL;
-                  }
-                  if(elem)
-                  {
-                     free(elem);
-                     elem=NULL;
-                  }
-               }
-               else // on ne peut écrire dans aucune base ...
-                  nb=-1; // on force la sortie de la boucle, on verra plus tard.
-               pthread_mutex_unlock(&(_md->lock));
-            }
-            else
-               nb=-1;
-            pthread_cleanup_pop(0);
-         }
-*/
       }
       
       process_heartbeat(_dbServer_monitoring_id);
