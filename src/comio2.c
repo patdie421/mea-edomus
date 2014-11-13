@@ -559,9 +559,15 @@ int16_t _comio2_read_frame(int fd, char *cmd_data, uint16_t *l_cmd_data, int16_t
       if (ret <= 0)
       {
          if(ret == 0)
-         *nerr=COMIO2_ERR_TIMEOUT;
+         {
+            *nerr=COMIO2_ERR_TIMEOUT;
+            DEBUG_SECTION mea_log_printf("%s (%s) : select - COMIO2_ERR_TIMEOUT\n",DEBUG_STR,__func__);
+         }
          else
-         *nerr=COMIO2_ERR_SELECT;
+         {
+            *nerr=COMIO2_ERR_SELECT;
+            DEBUG_SECTION mea_log_printf("%s (%s) : select - COMIO2_ERR_SELECT\n",DEBUG_STR,__func__);
+         }
          goto on_error_exit_comio2_read;
       }
       
@@ -571,6 +577,7 @@ int16_t _comio2_read_frame(int fd, char *cmd_data, uint16_t *l_cmd_data, int16_t
          if(ntry>(COMIO2_NB_RETRY-1)) // 5 essais si pas de caratères lus
          {
             *nerr=COMIO2_ERR_READ;
+            DEBUG_SECTION mea_log_printf("%s (%s) : read - COMIO2_ERR_READ\n",DEBUG_STR,__func__);
             goto on_error_exit_comio2_read;
          }
          ntry++;
@@ -859,16 +866,13 @@ void *_comio2_thread(void *args)
                case COMIO2_TRAP_ID:
                   if( (frame[1]-1) < COMIO2_MAX_TRAP )
                   {
-//                     VERBOSE(9) fprintf(stderr,"%s  (%s) : Trap #%d catched\n",INFO_STR,__func__,frame[1]);
                      VERBOSE(9) mea_log_printf("%s  (%s) : Trap #%d catched\n",INFO_STR,__func__,frame[1]);
                      if(ad->tabTraps[frame[1]-1].trap != NULL)
                         ad->tabTraps[frame[1]-1].trap(frame[1]-1, (char *)&(frame[2]), l_frame-2, ad->tabTraps[frame[1]-1].userdata);
                      else
-//                        VERBOSE(5) fprintf(stderr,"%s  (%s) : no callback defined for trap %d\n",INFO_STR,__func__,frame[1]);
                         VERBOSE(5) mea_log_printf("%s  (%s) : no callback defined for trap %d\n",INFO_STR,__func__,frame[1]);
                   }
                   else
-//                     VERBOSE(5) fprintf(stderr,"%s  (%s) : trap#(%d) > COMIO2_MAX_TRAP\n",INFO_STR,__func__,frame[1]);
                      VERBOSE(5) mea_log_printf("%s  (%s) : trap#(%d) > COMIO2_MAX_TRAP\n",INFO_STR,__func__,frame[1]);
                   break;
             }
