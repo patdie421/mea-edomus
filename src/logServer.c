@@ -181,76 +181,114 @@ int _read_and_send_lines(int nodejs_socket, char *file, long *pos)
    return ret;
 }
 
-/*
+
 int read_line(FILE *fp, char *line, int line_l, long *pos)
 {
+   char buff[256];
+   long current;
+   
    fseek(fp, 0, SEEK_END); // on se met à la fin du fichier
-   if(*pos>=0)
+   current=ftell(fp); // position dans le fichier = taille du fichier
+
+   if(*pos > current || *pos == -1) // le fichier a diminué ou c'est la première lecture (démarrage du thread)
    {
-      long current=ftell(fp); // position dans le fichier = taille du fichier
-      if(*pos > current || *pos == -1) // le fichier a diminué ou c'est la première lecture (démarrage du thread)
+      // on dit ce qu'on va faire
+      if(*pos==-1)
       {
-         char buff[256];
-         
-         // on dit ce qu'on va faire
-         if(*pos==-1)
+         snprintf(line, line_l-1, "=== start reading from last line ===");
+      }
+      else
+      {
+         snprintf(line, line_l-1, "=== file truncated or replaced ===");
+      }
+      int i=1;
+      
+      // on va se positionner "un peu" en arrière pour chercher la dernière ligne
+      int found=0;
+      do
+      {
+         long p = current-256*i;
+         if(p<0)
          {
-            snprintf(line, line_l-1, "=== start reading from last line ===");
+            *pos=0;
+            fseek(fp,0,SEEK_SET);
+            found=1;
          }
          else
-            snprintf(line, line_l-1, "=== file truncated or replaced ===");
-         int i=1;
-         
-         // on va se positionner "un peu" en arrière pour chercher la dernière ligne
-         do
          {
-            fseek(fp, current-256*i, SEEK_SET); // on remonte le curseur de lecture de quelques octets ou de quelques octets de plus
-            if(ftell(fp)==0) // on est au début du fichier
-            {
-               *pos=0;
-               return 0;
-            }
+            fseek(fp, p, SEEK_SET); // on remonte le curseur de lecture de quelques octets ou de quelques octets de plus
 
-            for(j=0;i<256;j++) // on lit jusqu'à trouver une fin de ligne
+            for(int j=0;j<256;j++) // on lit jusqu'à trouver une fin de ligne
             {
-               char c=fgetc(fp);
-               if(feof(fp))
-                  found=0; // pas de ligne trouvé
-               if(c=='\r' && (ftell(fp) != current))
+               int c=fgetc(fp);
+               if(c==EOF && ferror(fp))
                {
-                  fount=1;
+                  // erreur de lecture
+                  return -1;
+               }
+               else if(c==EOF)
+               {
+                  i++;
+                  found=0; // pas de fin de ligne trouvé
+                  break;
+               }
+               else if((c==10) || ftell(fp)==current)
+               {
+                  //) && (ftell(fp) != current)
+                  found=1;
                   *pos=ftell(fp); // on marque la possition
                   break;
                }
             }
-            if(found==0)
-               i++; // on remonte encore un peu
          }
-         while(found!=1);
+      }
+      while(found!=1);
          
-         do
-         {
-            // cherche la dernière ligne
-            fgets(buff, sizeof(buff), fp);
-            if(feof(fp))
-               break;
-            else
-               *pos=ftell(fp);
-         }
-         while(1);
-         // buff contient la dernière ligne et surtout *pos point sur le debut de la dernière ligne
+      // cherche la dernière ligne
+      fgets(buff, sizeof(buff), fp);
+      *pos=ftell(fp);
+      
+      return 0;
+   }
+   else if(*pos<current) // le fichier a grossie (en taille).
+   {
+      fseek(fp, *pos, SEEK_SET);
+      fgets(line, line_l, fp);
+      *pos=ftell(fp);
+      return 0;
+   }
+   else
+   {
+      // meme taille
+      return 1;
+   }
+}
 
-         return 0;
-      }
-      else if(*pos<current) // le fichier a grossie (en taille).
-      {
-         fseek(fp, *pos, SEEK_SET);
-         fgets(buff, sizeof(buff), fp);
-      }
-      else
-      {
-         // taille pas bougée ...
-      }
+
+void send_line(char *hostname, int port_socketdata, char *line)
+{
+   static int nodejs_socket = -1;
+   
+   if(nodejs_socket == -1)
+      mea_socket_connect(&nodejs_socket, hostname, port_socketdata);
+   
+   char message[1024];
+   int l_data=strlen(line)+4;
+
+   sprintf(message,"$$$xxLOG:%s###", line);
+   message[3]=(char)(l_data%128);
+   message[4]=(char)(l_data/128);
+   int ret = mea_socket_send(&nodejs_socket, message, l_data+12);
+   if(ret<0)
+   {
+      process_update_indicator(_logServer_monitoring_id, "LOGSENTERR", ++logsenterr_indicator);
+      close(&nodejs_socket);
+      if(mea_socket_connect(&nodejs_socket, hostname, port_socketdata)==-1)
+         nodejs_socket=-1;
+   }
+   else
+   {
+      process_update_indicator(_logServer_monitoring_id, "LOGSENT", ++logsent_indicator);
    }
 }
 
@@ -258,10 +296,11 @@ int read_line(FILE *fp, char *line, int line_l, long *pos)
 void *logServer_thread2(void *data)
 {
    int exit=0;
+//   int nodejs_socket=-1;
    char log_file[256];
    mea_timer_t log_timer;
    FILE *fp=NULL;
-   pos=-1;
+   long pos=-1;
    
    struct logServer_thread_data_s *logServer_thread_data=(struct logServer_thread_data_s *)data;
    
@@ -272,44 +311,45 @@ void *logServer_thread2(void *data)
    pthread_testcancel();
    process_heartbeat(_logServer_monitoring_id);
 
-   snprintf(log_file, sizeof(log_file)-1, "%s/mea-edomus.log", d->log_path);
+   snprintf(log_file, sizeof(log_file)-1, "%s/mea-edomus.log", logServer_thread_data->log_path);
    _livelog_enable=1;
    init_timer(&log_timer, 5, 1); // heartbeat toutes les 5 secondes
    start_timer(&log_timer);
 
-   mea_socket_connect(&nodejs_socket, (char *)(logServer_thread_data->hostname), (logServer_thread_data->port_socketdata));
    do
-   {  if(_livelog_enable==1)
+   {
+      if(_livelog_enable==1)
       {
-         if(!mea_socket_is_available(&nodejs_socket)) // reconnexion necessaire ?
+         char line[512];
+            
+         if(!fp)
          {
-            mea_socket_close(&nodejs_socket);
-            mea_socket_connect(&nodejs_socket, (char *)(logServer_thread_data->hostname), (logServer_thread_data->port_socketdata));
-         }
-         else
-         {
+            fp = fopen(log_file, "r");
             if(!fp)
             {
-               fp = fopen(file, "r");
-               if(!fp)
-               {
-                  // traiter ici l'erreur
-                  perror("");
-                  sleep(1); // on attends un peu
-               }
-               *pos=-1;
+               // traiter ici l'erreur
+               perror("");
+               sleep(1); // on attends un peu
             }
+            pos=-1;
+         }
             
-            if(fp)
+         if(fp)
+         {
+            int ret=read_line(fp, line, sizeof(line), &pos);
+            if(ret==0)
             {
-               int ret=read_line(fp, line, sizeof(line), &pos);
-               if(ret!=-1)
-                  send_line(&nodejs_socket, line);
-               else
-               {
-                  fclose(fp);
-                  fp=NULL;
-               }
+               send_line(logServer_thread_data->hostname, logServer_thread_data->port_socketdata, line);
+            }
+            else if(ret==1)
+            {
+               usleep(500000);
+            }
+            else
+            {
+               close(fp);
+               fp=NULL;
+               sleep(1);
             }
          }
       }
@@ -317,14 +357,13 @@ void *logServer_thread2(void *data)
       if(test_timer(&log_timer)==0)
          process_heartbeat(_logServer_monitoring_id);
    }
-   while(exit!=0);
+   while(exit==0);
 
    pthread_cleanup_pop(1);
 
    return NULL;
-
 }
-*/
+
 
 void *logServer_thread(void *data)
 {
@@ -381,7 +420,6 @@ void *logServer_thread(void *data)
                else
                {
                   VERBOSE(9) {
-//                     fprintf(stderr, "%s (%s) : stat error - retry next time\n", INFO_STR, __func__);
                      mea_log_printf("%s (%s) : stat error - retry next time\n", INFO_STR, __func__);
                   }
                   break;
@@ -390,7 +428,6 @@ void *logServer_thread(void *data)
                if(ret==-1)
                {
                   VERBOSE(9) {
-//                     fprintf(stderr, "%s (%s) : connection error - retry next time (1)\n", INFO_STR, __func__);
                      mea_log_printf("%s (%s) : connection error - retry next time (1)\n", INFO_STR, __func__);
                   }
                   break; // erreur de com. on essayera de se reconnecter au prochain tour.
@@ -398,7 +435,6 @@ void *logServer_thread(void *data)
                else if(ret==-2)
                {
                   VERBOSE(9) {
-//                     fprintf(stderr, "%s (%s) : livelog disabled\n", INFO_STR, __func__);
                      mea_log_printf("%s (%s) : livelog disabled\n", INFO_STR, __func__);
                   }
                   break; // on revoie la situation au prochain tour.
@@ -413,7 +449,6 @@ void *logServer_thread(void *data)
          else
          {
             VERBOSE(9) {
-//               fprintf(stderr, "%s (%s) : connection error - retry next time (2)\n", INFO_STR, __func__);
                mea_log_printf("%s (%s) : connection error - retry next time (2)\n", INFO_STR, __func__);
             }
          }
@@ -448,7 +483,6 @@ int stop_logServer(int my_id, void *data, char *errmsg, int l_errmsg)
            break;
         }
       }
-//      DEBUG_SECTION fprintf(stderr,"%s (%s) : %s, fin après %d itération\n", DEBUG_STR, __func__, log_server_name_str, 100-counter);
       DEBUG_SECTION mea_log_printf("%s (%s) : %s, fin après %d itération\n", DEBUG_STR, __func__, log_server_name_str, 100-counter);
       
       free(_logServer_thread);
@@ -456,7 +490,6 @@ int stop_logServer(int my_id, void *data, char *errmsg, int l_errmsg)
    }
 
    _livelog_enable=0;
-//   VERBOSE(1) fprintf(stderr,"%s  (%s) : %s %s.\n", INFO_STR, __func__, log_server_name_str, stopped_successfully_str);
    VERBOSE(1) mea_log_printf("%s  (%s) : %s %s.\n", INFO_STR, __func__, log_server_name_str, stopped_successfully_str);
    mea_notify_printf('S', "%s %s (%d).",stopped_successfully_str, log_server_name_str, ret);
 
@@ -479,7 +512,6 @@ int start_logServer(int my_id, void *data, char *errmsg, int l_errmsg)
    {
       strerror_r(errno, err_str, sizeof(err_str));
       VERBOSE(1) {
-//         fprintf (stderr, "%s (%s) : malloc - %s",ERROR_STR,__func__,err_str);
          mea_log_printf("%s (%s) : malloc - %s",ERROR_STR,__func__,err_str);
       }
       mea_notify_printf('E', "%s can't be launched - %s", log_server_name_str, err_str);
@@ -490,7 +522,6 @@ int start_logServer(int my_id, void *data, char *errmsg, int l_errmsg)
    {
       strerror_r(errno, err_str, sizeof(err_str));
       VERBOSE(1) {
-//         fprintf(stderr, "%s (%s) : pthread_create - can't start thread - %s",ERROR_STR,__func__,err_str);
          mea_log_printf("%s (%s) : pthread_create - can't start thread - %s",ERROR_STR,__func__,err_str);
       }
       mea_notify_printf('E', "%s can't be launched - %s", log_server_name_str, err_str);
@@ -500,7 +531,6 @@ int start_logServer(int my_id, void *data, char *errmsg, int l_errmsg)
    pthread_detach(*_logServer_thread);
    _logServer_monitoring_id=my_id;
 
-//   VERBOSE(1) fprintf(stderr,"%s  (%s) :  %s %s.\n", INFO_STR, __func__, log_server_name_str, launched_successfully_str);
    VERBOSE(1) mea_log_printf("%s  (%s) :  %s %s.\n", INFO_STR, __func__, log_server_name_str, launched_successfully_str);
    mea_notify_printf('S', "%s %s.", log_server_name_str, launched_successfully_str);
    return 0;

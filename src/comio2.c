@@ -566,8 +566,10 @@ int16_t _comio2_read_frame(int fd, char *cmd_data, uint16_t *l_cmd_data, int16_t
          else
          {
             *nerr=COMIO2_ERR_SELECT;
-            DEBUG_SECTION mea_log_printf("%s (%s) : select - COMIO2_ERR_SELECT, ",DEBUG_STR,__func__);
-            perror("");
+            DEBUG_SECTION {
+               mea_log_printf("%s (%s) : select - COMIO2_ERR_SELECT, ",DEBUG_STR,__func__);
+               perror("");
+            }
          }
          goto on_error_exit_comio2_read;
       }
