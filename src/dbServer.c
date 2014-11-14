@@ -519,8 +519,9 @@ int flush_data()
       if(_md->db) // sqlite est encore ouvert, il faut vider la table des requetes en attente si elle n'est pas vide
       {
          // transferer le contenu de la base sqlite vers la base mysql ici :
-         move_sqlite3_queries_to_mysql(_md->db, _md->conn);
-               
+//         move_sqlite3_queries_to_mysql(_md->db, _md->conn);
+         move_sqlite3_queries_to_mysql();
+         
          sqlite3_close(_md->db); // et on ferme la base sqlite
          _md->db=NULL;
       }
@@ -697,7 +698,7 @@ void *dbServer_thread(void *args)
       pthread_mutex_lock(&(_md->lock));
       if(_md->queue)
       {
-         process_update_indicator(_dbServer_monitoring_id, "DBSERVERINMEM", _md->queue->nb);
+         process_update_indicator(_dbServer_monitoring_id, "DBSERVERINMEM", _md->queue->nb_elem);
          nb=_md->queue->nb_elem;
       }
       else
@@ -714,7 +715,7 @@ void *dbServer_thread(void *args)
          }
       }
       
-      int hrtbt=process_heartbeat(_dbServer_monitoring_id);
+      hrtbt=process_heartbeat(_dbServer_monitoring_id);
       DEBUG_SECTION mea_log_printf("%s (%s) : heatbeat (%d)\n", DEBUG_STR,__func__, hrtbt);
       pthread_testcancel();
       sleep(10);
