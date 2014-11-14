@@ -561,10 +561,11 @@ int16_t _comio2_read_frame(int fd, char *cmd_data, uint16_t *l_cmd_data, int16_t
          if(ret == 0)
          {
             *nerr=COMIO2_ERR_TIMEOUT;
-            DEBUG_SECTION {
-               if(step>0)
-                  DEBUG_SECTION mea_log_printf("%s (%s) : select - COMIO2_ERR_TIMEOUT\n",DEBUG_STR,__func__);
-               }
+            if(step>0)
+            {
+               DEBUG_SECTION mea_log_printf("%s (%s) : select - COMIO2_ERR_TIMEOUT2\n",DEBUG_STR,__func__);
+               *nerr=COMIO2_ERR_TIMEOUT2;
+            }
          }
          else
          {
