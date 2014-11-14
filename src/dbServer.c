@@ -96,7 +96,6 @@ void free_value(void *data)
 }
 
 
-//int16_t tomysqldb_add_data_to_sensors_values(tomysqldb_md_t *md, uint16_t sensor_id, double value1, uint16_t unit, double value2, char *complement)
 int16_t dbServer_add_data_to_sensors_values(uint16_t sensor_id, double value1, uint16_t unit, double value2, char *complement)
 /**
  * \brief     Récupère les données de type "sensors values" pour stockage dans la table sensors_values de la base mysql.
@@ -127,7 +126,6 @@ int16_t dbServer_add_data_to_sensors_values(uint16_t sensor_id, double value1, u
    if(!value)
    { 
       VERBOSE(1) {
-//         fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
          mea_log_printf("%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
          perror("");
       }
@@ -150,7 +148,6 @@ int16_t dbServer_add_data_to_sensors_values(uint16_t sensor_id, double value1, u
    if(!elem)
    {
       VERBOSE(1) {
-//         fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
          mea_log_printf("%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
          perror("");
       }
@@ -166,24 +163,23 @@ int16_t dbServer_add_data_to_sensors_values(uint16_t sensor_id, double value1, u
       }
       return -1;
    }
+
    elem->type=TOMYSQLDB_TYPE_SENSORS_VALUES;
    elem->data=(void *)value;
    elem->freedata=free_value;
 
    pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(_md->lock));
-   if(!pthread_mutex_lock(&(_md->lock)))
-   {
-//      VERBOSE(9) fprintf (stderr, "%s  (%s) : data to queue(%ld) (sensor_id=%d, value1=%f)\n",INFO_STR,__func__,_md->queue->nb_elem,sensor_id,value1);
-      VERBOSE(9) mea_log_printf("%s  (%s) : data to queue(%ld) (sensor_id=%d, value1=%f)\n",INFO_STR,__func__,_md->queue->nb_elem,sensor_id,value1);
-      in_queue_elem(_md->queue,(void *)elem);
-      pthread_mutex_unlock(&(_md->lock));
-   }
-   else
+   pthread_mutex_lock(&(_md->lock));
+
+   VERBOSE(9) mea_log_printf("%s  (%s) : data to queue(%ld) (sensor_id=%d, value1=%f)\n",INFO_STR,__func__,_md->queue->nb_elem,sensor_id,value1);
+   if(in_queue_elem(_md->queue,(void *)elem)==ERROR)
    {
       free_value(elem->data);
       free(elem);
       elem=NULL;
    }
+   
+   pthread_mutex_unlock(&(_md->lock));
    pthread_cleanup_pop(0);
 
    return 0;
@@ -231,8 +227,8 @@ int exec_mysql_query(char *sql_query)
 }
 
 
-int move_sqlite3_queries_to_mysql(sqlite3 *db, MYSQL *conn)
-//int move_sqlite3_queries_to_mysql()
+//int move_sqlite3_queries_to_mysql(sqlite3 *db, MYSQL *conn)
+int move_sqlite3_queries_to_mysql()
 /**
  * \brief     récupère les requêtes en attente dans la base sqlite3 et les envoie au serveur mysql pour traitement.
  * \details   Les requêtes sont transmise sans transformation. Elles sont sorties de la base sqlite3 que si le serveur mysql les à traiter sans erreur.
@@ -249,7 +245,6 @@ int move_sqlite3_queries_to_mysql(sqlite3 *db, MYSQL *conn)
    ret = sqlite3_prepare_v2(_md->db,sql,strlen(sql)+1,&stmt,NULL);
    if(ret)
    {
-//      VERBOSE(1) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg (_md->db));
       VERBOSE(1) mea_log_printf("%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg (_md->db));
       return -1;
    }
@@ -258,6 +253,7 @@ int move_sqlite3_queries_to_mysql(sqlite3 *db, MYSQL *conn)
    {
       int s;
       process_heartbeat(_dbServer_monitoring_id);
+      DEBUG_SECTION mea_log_printf("%s (%s) : heatbeat\n", DEBUG_STR,__func__);
       pthread_testcancel();
       
       s = sqlite3_step (stmt);
@@ -271,13 +267,11 @@ int move_sqlite3_queries_to_mysql(sqlite3 *db, MYSQL *conn)
          ret=mysql_query(_md->conn, (const char *)query);
          if(ret)
          {
-//            VERBOSE(1) fprintf (stderr, "%s (%s) : mysql_query - %u : %s\n", ERROR_STR,__func__,mysql_errno(_md->conn), mysql_error(_md->conn));
             VERBOSE(1) mea_log_printf("%s (%s) : mysql_query - %u : %s\n", ERROR_STR,__func__,mysql_errno(_md->conn), mysql_error(_md->conn));
             return -1;
          }
          else
          {
-//            VERBOSE(9) fprintf(stderr,"%s  (%s) : mysql_query = %s\n",INFO_STR,__func__,query);
             VERBOSE(9) mea_log_printf("%s  (%s) : mysql_query = %s\n",INFO_STR,__func__,query);
             mysqlwrite_indicator++;
          }
@@ -286,7 +280,6 @@ int move_sqlite3_queries_to_mysql(sqlite3 *db, MYSQL *conn)
          ret = sqlite3_exec(_md->db,sql,0,0,0);
          if(ret)
          {
-//            VERBOSE(1) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", ERROR_STR,__func__,sqlite3_errmsg (_md->db));
             VERBOSE(1) mea_log_printf("%s (%s) : sqlite3_exec - %s\n", ERROR_STR,__func__,sqlite3_errmsg (_md->db));
             return -1;
          }
@@ -304,7 +297,6 @@ int move_sqlite3_queries_to_mysql(sqlite3 *db, MYSQL *conn)
          }
          else
          {
-//            VERBOSE(1) fprintf (stderr, "%s (%s) : sqlite3_step - %s\n", ERROR_STR,__func__,sqlite3_errmsg(_md->db));
             VERBOSE(1) mea_log_printf("%s (%s) : sqlite3_step - %s\n", ERROR_STR,__func__,sqlite3_errmsg(_md->db));
             sqlite3_finalize(stmt);
             return -1;
@@ -316,7 +308,6 @@ int move_sqlite3_queries_to_mysql(sqlite3 *db, MYSQL *conn)
 }
 
 
-//int move_mysql_query_to_sqlite3(sqlite3 *db, char *sql_query)
 int move_mysql_query_to_sqlite3(char *sql_query)
 /**
  * \brief     transfert la requête sql vers la base sqlite3 pour être lancée ultérieurement
@@ -336,7 +327,6 @@ int move_mysql_query_to_sqlite3(char *sql_query)
    if(n<0 || n==sizeof(sql))
    {
       VERBOSE(2) {
-//         fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);
          mea_log_printf("%s (%s) : snprintf - ", ERROR_STR,__func__);
          perror("");
       }
@@ -346,7 +336,6 @@ int move_mysql_query_to_sqlite3(char *sql_query)
    ret = sqlite3_exec(_md->db,sql,0,0,0);
    if(ret)
    {
-//      VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", ERROR_STR,__func__,sqlite3_errmsg(db));
       VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_exec - %s\n", ERROR_STR,__func__,sqlite3_errmsg(_md->db));
       return -1;
    }
@@ -377,7 +366,6 @@ uint16_t build_query_for_sensors_values(char *sql_query, uint16_t l_sql_query, v
    if(n==0)
    {
       VERBOSE(2) {
-//         fprintf (stderr, "%s (%s) : strftime - ", ERROR_STR,__func__);
          mea_log_printf("%s (%s) : strftime - ", ERROR_STR,__func__);
          perror("");
       }
@@ -396,7 +384,6 @@ uint16_t build_query_for_sensors_values(char *sql_query, uint16_t l_sql_query, v
    if(n<0 || n==l_sql_query)
    {
       VERBOSE(2) {
-//         fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);
          mea_log_printf("%s (%s) : snprintf - ", ERROR_STR,__func__);
          perror("");
       }
@@ -435,7 +422,6 @@ int write_data_to_db(dbServer_queue_elem_t *elem)
          break;
    }
    
-//   if(mysql_connected==1)
    if(_md->conn)
    {
       if(exec_mysql_query(query)==0)
@@ -511,7 +497,6 @@ int _connect(MYSQL **conn)
 }
 
 
-//int flush_data(int mysql_connected)
 int flush_data()
 {
    int nb=-1;
@@ -519,7 +504,6 @@ int flush_data()
    int return_code=0;
    dbServer_queue_elem_t *elem = NULL;
    
-//   if(mysql_connected)
    if(_md->conn)
    {
       char sql_query[80];
@@ -536,7 +520,7 @@ int flush_data()
          // transferer le contenu de la base sqlite vers la base mysql ici :
          move_sqlite3_queries_to_mysql(_md->db, _md->conn);
                
-         sqlite3_close(_md->db); // et on la ferme la base sqlite
+         sqlite3_close(_md->db); // et on ferme la base sqlite
          _md->db=NULL;
       }
    }
@@ -544,46 +528,41 @@ int flush_data()
    do
    {
       process_heartbeat(_dbServer_monitoring_id);
+      DEBUG_SECTION mea_log_printf("%s (%s) : heatbeat\n", DEBUG_STR,__func__);
       pthread_testcancel();
       
       pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(_md->lock));
-      if(!pthread_mutex_lock(&(_md->lock)))
-      {
-          nb=_md->queue->nb_elem;
-          if(nb>0)
-          {
-             last_queue(_md->queue); // on se positionne en fin de queue
-             current_queue(_md->queue,(void **)&elem); // on lit le dernier element de la file sans le sortir (on le sortira s'il est inséré dans une base
+      pthread_mutex_lock(&(_md->lock));
 
-//             ret=write_data_to_db(mysql_connected, _md->conn, _md->db, elem);
-             ret=write_data_to_db(elem);
-             if(!ret)
-             {
-                out_queue_elem(_md->queue,(void **)&elem);
-                if(elem->data && elem->freedata)
-                {
-                   elem->freedata(elem->data);
-                   elem->data=NULL;
-                }
-                if(elem)
-                {
-                   free(elem);
-                   elem=NULL;
-                }
-             }
-             else // on ne peut écrire dans aucune base ...
-             {
-                return_code=-1;
-                nb=-1; // on force la sortie de la boucle, on verra plus tard.
-             }
-          }
-          pthread_mutex_unlock(&(_md->lock));
-      }
-      else
+      nb=_md->queue->nb_elem;
+      if(nb>0)
       {
-         return_code=-2;
-         nb=-1; // sortie de la boucle
+         last_queue(_md->queue); // on se positionne en fin de queue
+         current_queue(_md->queue,(void **)&elem); // on lit le dernier element de la file sans le sortir (on le sortira s'il est inséré dans une base
+
+         ret=write_data_to_db(elem);
+         if(!ret)
+         {
+            out_queue_elem(_md->queue,(void **)&elem);
+            if(elem->data && elem->freedata)
+            {
+               elem->freedata(elem->data);
+               elem->data=NULL;
+            }
+            if(elem)
+            {
+               free(elem);
+               elem=NULL;
+            }
+         }
+         else // on ne peut écrire dans aucune base ...
+         {
+            return_code=-1;
+            nb=-1; // on force la sortie de la boucle, on verra plus tard.
+         }
       }
+   
+      pthread_mutex_unlock(&(_md->lock));
       pthread_cleanup_pop(0);
    }
    while(nb>0);
@@ -607,7 +586,6 @@ int select_database()
       if(ret) // pas de réponse au ping et donc reconnexion impossible.
       {
          VERBOSE(5) mea_log_printf("%s  (%s) : mysql_ping - %u: %s\n",INFO_STR,__func__,mysql_errno(_md->conn), mysql_error(_md->conn));
-//         *mysql_connected = 0; // plus de connexion au serveur mysql
          mysql_close(_md->conn);
          _md->conn=NULL;
       }
@@ -625,22 +603,18 @@ int select_database()
       }
    }      
          
-//   if(*mysql_connected == 0) // jamais connecté ou plus de connexion, on essaye de se connecter
    if(_md->conn == NULL) // jamais connecté ou plus de connexion, on essaye de se connecter
    {
       ret=_connect(&_md->conn);
       if(ret)
       {
-//         mysql_connected=0; // toujours pas connecté
       }
       else
       {
          _md->opened=1;
-//         mysql_connected=1; // ouf, reconnecté
       }
    }
          
-//   if(mysql_connected == 0) // toujours pas de connexion Mysql. Repli sur sqlite3, ouverture si nécessaire
    if(_md->conn==NULL) // toujours pas de connexion Mysql. Repli sur sqlite3, ouverture si nécessaire
    {
       if(!_md->db) // sqlite n'est pas ouverte
@@ -682,20 +656,14 @@ void *dbServer_thread(void *args)
    _md->opened=0;
    
    process_heartbeat(_dbServer_monitoring_id);
+   DEBUG_SECTION mea_log_printf("%s (%s) : heatbeat\n", DEBUG_STR,__func__);
    pthread_testcancel();
 
    pthread_cleanup_push( (void *)set_dbServer_isnt_running, (void *)NULL );
    _dbServer_thread_is_running=1;
 
-   ret=_connect(&_md->conn);
-   if(ret)
-   {
-   }
-   else
-   {
-      _md->opened=1;
-   }
-
+   // ouverture de la base
+   ret=select_database();
    // ouverture de la base sqlite3
    // cela va permettre de vider les transactions en stock au démarrage
    ret = sqlite3_open (_md->sqlite3_db_path, &_md->db);
@@ -704,6 +672,8 @@ void *dbServer_thread(void *args)
       _md->db=NULL;
       VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_open - %s\n", ERROR_STR,__func__,sqlite3_errmsg (_md->db));
    }
+   if(_md->conn) // on est normalement connecté à la base (on flush pour vider sqlite3 dans mysql si nécessaire
+      flush_data();
    
    while(1)
    {
@@ -716,6 +686,7 @@ void *dbServer_thread(void *args)
       }
 
       process_heartbeat(_dbServer_monitoring_id);
+      DEBUG_SECTION mea_log_printf("%s (%s) : heatbeat\n", DEBUG_STR,__func__);
       pthread_testcancel();
 
       process_update_indicator(_dbServer_monitoring_id, "DBSERVERINMEM", nb);
@@ -743,6 +714,7 @@ void *dbServer_thread(void *args)
       }
       
       process_heartbeat(_dbServer_monitoring_id);
+      DEBUG_SECTION mea_log_printf("%s (%s) : heatbeat\n", DEBUG_STR,__func__);
       pthread_testcancel();
       sleep(10);
    }
