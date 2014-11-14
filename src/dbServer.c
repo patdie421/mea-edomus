@@ -543,7 +543,7 @@ int flush_data(int heartbeat_flag)
       if(nb>0)
       {
          last_queue(_md->queue); // on se positionne en fin de queue
-         current_queue(_md->queue,(void **)&elem); // on lit le dernier element de la file sans le sortir (on le sortira s'il est inséré dans une base
+         current_queue(_md->queue,(void **)&elem); // on lit le dernier element de la file sans le sortir (on le sortira s'il est inséré dans une base)
 
          ret=write_data_to_db(elem);
          if(!ret)
