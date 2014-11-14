@@ -252,8 +252,9 @@ int move_sqlite3_queries_to_mysql()
    while (1)
    {
       int s;
-      process_heartbeat(_dbServer_monitoring_id);
-      DEBUG_SECTION mea_log_printf("%s (%s) : heatbeat\n", DEBUG_STR,__func__);
+
+      int hrtbt=process_heartbeat(_dbServer_monitoring_id);
+      DEBUG_SECTION mea_log_printf("%s (%s) : heatbeat (%d)\n", DEBUG_STR,__func__, hrtbt);
       pthread_testcancel();
       
       s = sqlite3_step (stmt);
@@ -527,8 +528,8 @@ int flush_data()
    
    do
    {
-      process_heartbeat(_dbServer_monitoring_id);
-      DEBUG_SECTION mea_log_printf("%s (%s) : heatbeat\n", DEBUG_STR,__func__);
+      int hrtbt=process_heartbeat(_dbServer_monitoring_id);
+      DEBUG_SECTION mea_log_printf("%s (%s) : heatbeat (%d)\n", DEBUG_STR,__func__, hrtbt);
       pthread_testcancel();
       
       pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(_md->lock));
@@ -655,8 +656,8 @@ void *dbServer_thread(void *args)
    _md->conn=NULL; // descripteur com. MYSQL
    _md->opened=0;
    
-   process_heartbeat(_dbServer_monitoring_id);
-   DEBUG_SECTION mea_log_printf("%s (%s) : heatbeat\n", DEBUG_STR,__func__);
+   int hrtbt=process_heartbeat(_dbServer_monitoring_id);
+   DEBUG_SECTION mea_log_printf("%s (%s) : heatbeat (%d)\n", DEBUG_STR,__func__, hrtbt);
    pthread_testcancel();
 
    pthread_cleanup_push( (void *)set_dbServer_isnt_running, (void *)NULL );
@@ -685,8 +686,8 @@ void *dbServer_thread(void *args)
         last_time=now;
       }
 
-      process_heartbeat(_dbServer_monitoring_id);
-      DEBUG_SECTION mea_log_printf("%s (%s) : heatbeat\n", DEBUG_STR,__func__);
+      int hrtbt=process_heartbeat(_dbServer_monitoring_id);
+      DEBUG_SECTION mea_log_printf("%s (%s) : heatbeat (%d)\n", DEBUG_STR,__func__, hrtbt);
       pthread_testcancel();
 
       process_update_indicator(_dbServer_monitoring_id, "DBSERVERINMEM", nb);
@@ -713,8 +714,8 @@ void *dbServer_thread(void *args)
          }
       }
       
-      process_heartbeat(_dbServer_monitoring_id);
-      DEBUG_SECTION mea_log_printf("%s (%s) : heatbeat\n", DEBUG_STR,__func__);
+      int hrtbt=process_heartbeat(_dbServer_monitoring_id);
+      DEBUG_SECTION mea_log_printf("%s (%s) : heatbeat (%d)\n", DEBUG_STR,__func__, hrtbt);
       pthread_testcancel();
       sleep(10);
    }
