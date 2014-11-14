@@ -1234,6 +1234,11 @@ void xbee_close(xbee_xd_t *xd)
 */
    pthread_cancel(xd->read_thread);
    pthread_join(xd->read_thread, NULL);
+   
+   pthread_cond_destroy(&xd->sync_cond);
+   pthread_mutex_destroy(&xd->sync_lock);
+   pthread_mutex_destroy(&xd->xd_lock);
+
    xbee_free_xd(xd);
    close(xd->fd);
 }
