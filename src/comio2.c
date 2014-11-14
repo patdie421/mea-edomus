@@ -839,7 +839,7 @@ int _comio2_reopen(comio2_ad_t *ad)
    VERBOSE(5) mea_log_printf("%s  (%s) : communication reset successful.\n",INFO_STR,__func__);
 
    return 0;
-} 
+}
 
 
 uint32_t _comio2_get_timestamp()
