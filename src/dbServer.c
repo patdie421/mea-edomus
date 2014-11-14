@@ -461,7 +461,7 @@ int _connect(MYSQL **conn)
  */
 {
  my_bool reconnect = 0;
- int ret;
+// int ret;
    
    if(*conn)
       mysql_close(*conn);
@@ -477,8 +477,8 @@ int _connect(MYSQL **conn)
    // on authorise les reconnexions automatiques pour que le ping puisse gérer la connexion
    mysql_options(*conn, MYSQL_OPT_RECONNECT, &reconnect);
    
-   unsigned long my_version = mysql_get_client_version(void);
-   if(my_version > 50112)
+   unsigned long my_version = mysql_get_client_version();
+   if(my_version < 50112)
    {
       VERBOSE(1) mea_log_printf("%s (%s) : mysql time out not available for version (%l)\n", ERROR_STR,__func__,my_version);
    }
@@ -719,7 +719,7 @@ void *dbServer_thread(void *args)
    pthread_cleanup_push( (void *)set_dbServer_isnt_running, (void *)NULL );
    _dbServer_thread_is_running=1;
 
-    mysql_library_init();
+    mysql_library_init(0, NULL, NULL);
     
    // ouverture de la base
    ret=select_database();

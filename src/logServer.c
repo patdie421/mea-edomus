@@ -173,7 +173,7 @@ recheck (struct File_spec *f, bool blocking)
           close_fd (f->fd, pretty_name (f));
 
           // File has been replaced (e.g., via log rotation) --
-          // tail the new one.  */
+          // tail the new one.
           error (0, 0,
                  _("%s has been replaced;  following end of new file"),
                  quote (pretty_name (f)));
@@ -250,8 +250,8 @@ tail_forever (struct File_spec *f, size_t n_files, double sleep_interval)
                   // Don't update f[i].blocking if fcntl fails.
                   if (S_ISREG (f[i].mode) && errno == EPERM)
                     {
-                      /* This happens when using tail -f on a file with
-                         the append-only attribute.  */
+                      // This happens when using tail -f on a file with
+                      // the append-only attribute.
                     }
                   else
                     error (EXIT_FAILURE, errno,
@@ -268,7 +268,7 @@ tail_forever (struct File_spec *f, size_t n_files, double sleep_interval)
                   f[i].fd = -1;
                   f[i].errnum = errno;
                   error (0, errno, "%s", name);
-                  close (fd); /* ignore failure */
+                  close (fd); // ignore failure
                   continue;
                 }
 
