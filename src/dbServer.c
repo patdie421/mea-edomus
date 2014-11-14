@@ -70,10 +70,18 @@ volatile sig_atomic_t
 long insqlite_indicator = 0;
 long mysqlwrite_indicator = 0;
 
+
 void set_dbServer_isnt_running(void *data)
 {
    _dbServer_thread_is_running=0;
+   if(_md->conn)
+   {
+      mysql_close(_md->conn);
+      _md->conn=NULL;
+   }
    mysql_thread_end();
+   mysql_library_end();
+   DEBUG_SECTION mea_log_printf("%s (%s) : _dbServer_thread_is_running = %d now\n", DEBUG_STR,__func__,_dbServer_thread_is_running);
 }
 
 
@@ -219,7 +227,6 @@ int exec_mysql_query(char *sql_query)
    ret=mysql_query(_md->conn, sql_query);
    if(ret)
    {
-//      VERBOSE(1) fprintf (stderr, "%s (%s) : mysql_query - %u : %s\n", ERROR_STR,__func__,mysql_errno(_md->conn), mysql_error(_md->conn));
       VERBOSE(1) mea_log_printf("%s (%s) : mysql_query - %u : %s\n", ERROR_STR,__func__,mysql_errno(_md->conn), mysql_error(_md->conn));
       return -1;
    }
@@ -425,10 +432,15 @@ int write_data_to_db(dbServer_queue_elem_t *elem)
    
    if(_md->conn)
    {
-      if(exec_mysql_query(query)==0)
+      int ret = exec_mysql_query(query);
+      if(ret==0)
+      {
          mysqlwrite_indicator++;
+      }
       else
+      {
          return -1;
+      }
    }
    else if(_md->db)
    {
@@ -464,6 +476,21 @@ int _connect(MYSQL **conn)
       return -1;
    }
    
+   // on authorise les reconnexions automatiques pour que le ping puisse gérer la connexion
+   mysql_options(*conn, MYSQL_OPT_RECONNECT, &reconnect);
+   
+   unsigned long my_version = mysql_get_client_version(void);
+   if(my_version > 50112)
+   {
+      VERBOSE(1) mea_log_printf("%s (%s) : mysql time out not available for version (%l)\n", ERROR_STR,__func__,my_version);
+   }
+   else
+   {
+      unsigned int timeout = 5;
+      mysql_options(*conn, MYSQL_OPT_WRITE_TIMEOUT, &timeout);
+      mysql_options(*conn, MYSQL_OPT_READ_TIMEOUT, &timeout);
+   }
+
    // récupération du port si disponible
    char *end;
    uint16_t port=3306;
@@ -484,16 +511,6 @@ int _connect(MYSQL **conn)
       return -1;
    }
    
-   // on authorise les reconnexions automatiques pour que le ping puisse gérer la connexion
-   ret=mysql_options(*conn, MYSQL_OPT_RECONNECT, &reconnect);
-   if(ret)
-   {
-      VERBOSE(1) mea_log_printf("%s (%s) : %u - %s\n", ERROR_STR,__func__,mysql_errno(*conn), mysql_error(*conn));
-      mysql_close(*conn);
-      *conn=NULL;
-      return -1;
-   }
-
    return 0;
 }
 
@@ -704,6 +721,8 @@ void *dbServer_thread(void *args)
    pthread_cleanup_push( (void *)set_dbServer_isnt_running, (void *)NULL );
    _dbServer_thread_is_running=1;
 
+    mysql_library_init();
+    
    // ouverture de la base
    ret=select_database();
    // ouverture de la base sqlite3
@@ -857,13 +876,6 @@ int stop_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
             // signaler risque de perte de données
          }
 
-      DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, mysql_close (%d)\n",DEBUG_STR, __func__,(int)(now-time(NULL)));
-      if(_md->conn)
-      {
-         mysql_close(_md->conn);
-         _md->conn=NULL;
-      }
-      
       DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, sqlite3_close (%d)\n",DEBUG_STR, __func__,(int)(now-time(NULL)));
       if(_md->db)
       {
