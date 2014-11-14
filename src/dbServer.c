@@ -56,9 +56,6 @@ typedef struct dbServer_md_s
 } dbServer_md_t;
 
 
-//int tomysqldb_connect(tomysqldb_md_t *md, MYSQL **conn);
-int tomysqldb_connect(MYSQL **conn);
-
 const char *db_server_name_str="DBSERVER";
 
 // Variable globale privée
