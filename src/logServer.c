@@ -282,7 +282,7 @@ void send_line(char *hostname, int port_socketdata, char *line)
    if(ret<0)
    {
       process_update_indicator(_logServer_monitoring_id, "LOGSENTERR", ++logsenterr_indicator);
-      close(&nodejs_socket);
+      close(nodejs_socket);
       if(mea_socket_connect(&nodejs_socket, hostname, port_socketdata)==-1)
          nodejs_socket=-1;
    }
@@ -347,7 +347,7 @@ void *logServer_thread2(void *data)
             }
             else
             {
-               close(fp);
+               fclose(fp);
                fp=NULL;
                sleep(1);
             }
