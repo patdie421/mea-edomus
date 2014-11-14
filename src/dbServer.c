@@ -498,7 +498,7 @@ int _connect(MYSQL **conn)
 }
 
 
-int flush_data()
+int flush_data(int heartbeat_flag)
 {
    int nb=-1;
    int ret=-1;
@@ -529,8 +529,11 @@ int flush_data()
    
    do
    {
-      int hrtbt=process_heartbeat(_dbServer_monitoring_id);
-      DEBUG_SECTION mea_log_printf("%s (%s) : heatbeat (%d)\n", DEBUG_STR,__func__, hrtbt);
+      if(heartbeat_flag)
+      {
+         int hrtbt=process_heartbeat(_dbServer_monitoring_id);
+         DEBUG_SECTION mea_log_printf("%s (%s) : heatbeat (%d)\n", DEBUG_STR,__func__, hrtbt);
+      }
       pthread_testcancel();
       
       pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(_md->lock));
@@ -676,7 +679,7 @@ void *dbServer_thread(void *args)
       VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_open - %s\n", ERROR_STR,__func__,sqlite3_errmsg (_md->db));
    }
    if(_md->conn) // on est normalement connecté à la base (on flush pour vider sqlite3 dans mysql si nécessaire
-      flush_data();
+      flush_data(1);
    
    while(1)
    {
@@ -711,7 +714,7 @@ void *dbServer_thread(void *args)
          ret=select_database();
          if(ret!=-1)
          {
-            flush_data();
+            flush_data(1);
          }
       }
       
@@ -788,7 +791,8 @@ int dbServer(char *db_server, char *db_server_port, char *base, char *user, char
 int stop_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
 {
    int ret;
-   
+   time_t now = time(NULL);
+
    if(_md)
    {
       pthread_cancel(_md->thread);
@@ -806,29 +810,32 @@ int stop_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
             break;
          }
       }
-      DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, fin après %d itération\n",DEBUG_STR, __func__,500-counter);
+      DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, fin après %d itération (%d)\n",DEBUG_STR, __func__,500-counter,(int)(now-time(NULL)));
 
       _md->started=0;
 
       ret=select_database();
       if(ret!=-1)
-         if(flush_data()<0)
+         if(flush_data(0)<0)
          {
             // signaler risque de perte de données
          }
 
+      DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, mysql_close (%d)\n",DEBUG_STR, __func__,(int)(now-time(NULL)));
       if(_md->conn)
       {
          mysql_close(_md->conn);
          _md->conn=NULL;
       }
       
+      DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, sqlite3_close (%d)\n",DEBUG_STR, __func__,(int)(now-time(NULL)));
       if(_md->db)
       {
          sqlite3_close(_md->db);
          _md->db=NULL;
       }
 
+      DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, clear_queue (%d)\n",DEBUG_STR, __func__,(int)(now-time(NULL)));
       clear_queue(_md->queue,_dbServer_free_queue_elem);
       if(_md->queue)
       {
@@ -836,51 +843,61 @@ int stop_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
          _md->queue=NULL;
       }
       
+      DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, pthread_mutex_destroy (%d)\n",DEBUG_STR, __func__,(int)(now-time(NULL)));
       pthread_mutex_destroy(&(_md->lock));
       
+      DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, free(_md->db_server) (%d)\n",DEBUG_STR, __func__,(int)(now-time(NULL)));
       if(_md->db_server)
       {
          free(_md->db_server);
          _md->db_server=NULL;
       }
       
+      DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, free(_md->db_server_port) (%d)\n",DEBUG_STR, __func__,(int)(now-time(NULL)));
       if(_md->db_server_port)
       {
          free(_md->db_server_port);
          _md->db_server_port=NULL;
       }
       
+      DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, free(_md->base) (%d)\n",DEBUG_STR, __func__,(int)(now-time(NULL)));
       if(_md->base)
       {
          free(_md->base);
          _md->base=NULL;
       }
       
+      DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, free(_md->user) (%d)\n",DEBUG_STR, __func__,(int)(now-time(NULL)));
       if(_md->user)
       {
          free(_md->user);
          _md->user=NULL;
       }
       
+      DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, free(_md->passwd) (%d)\n",DEBUG_STR, __func__,(int)(now-time(NULL)));
       if(_md->passwd)
       {
          free(_md->passwd);
          _md->passwd=NULL;
       }
       
+      DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, free(_md->sqlite3_db_path) (%d)\n",DEBUG_STR, __func__,(int)(now-time(NULL)));
       if(_md->sqlite3_db_path)
       {
          free(_md->sqlite3_db_path);
          _md->sqlite3_db_path=NULL;
       }
       
+      DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, free(_md) (%d)\n",DEBUG_STR, __func__,(int)(now-time(NULL)));
       free(_md);
       _md=NULL;
    }
+   
+   DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, free(_md->user) (%d)\n",DEBUG_STR, __func__,(int)(now-time(NULL)));
 
    _dbServer_monitoring_id=-1;
    
-   VERBOSE(1) mea_log_printf("%s  (%s) : DBSERVER %s.\n", INFO_STR, __func__, stopped_successfully_str);
+   VERBOSE(1) mea_log_printf("%s (%s) : DBSERVER, last chrono = %d.\n", DEBUG_STR, __func__, (int)(now-time(NULL)));
    mea_notify_printf('S',"DBSERVER %s.", stopped_successfully_str);
 
    return 0;
