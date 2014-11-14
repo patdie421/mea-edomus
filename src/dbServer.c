@@ -536,12 +536,14 @@ int flush_data(int heartbeat_flag)
       }
       pthread_testcancel();
       
+      // lecture du dernier element de la file si dispo
       pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(_md->lock));
       pthread_mutex_lock(&(_md->lock));
 
       nb=_md->queue->nb_elem;
       if(nb>0)
       {
+/*
          last_queue(_md->queue); // on se positionne en fin de queue
          current_queue(_md->queue,(void **)&elem); // on lit le dernier element de la file sans le sortir (on le sortira s'il est inséré dans une base
 
@@ -565,10 +567,44 @@ int flush_data(int heartbeat_flag)
             return_code=-1;
             nb=-1; // on force la sortie de la boucle, on verra plus tard.
          }
+*/
+         out_queue_elem(_md->queue,(void **)&elem);
       }
-   
+      
       pthread_mutex_unlock(&(_md->lock));
       pthread_cleanup_pop(0);
+   
+      // si dispo on essaye d'écrire la donnée dans la base
+      if(nb>0)
+      {
+         ret=write_data_to_db(elem);
+         if(!ret)
+         {
+            if(elem->data && elem->freedata)
+            {
+               elem->freedata(elem->data);
+               elem->data=NULL;
+            }
+            if(elem)
+            {
+               free(elem);
+               elem=NULL;
+            }
+         }
+         else // pas écriture impossible on remet la donnée dans la file
+         {
+            pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(_md->lock));
+            pthread_mutex_lock(&(_md->lock));
+
+            in_queue_elem(_md->queue,(void **)&elem);
+
+            pthread_mutex_unlock(&(_md->lock));
+            pthread_cleanup_pop(0);
+         
+            return_code=-1;
+            nb=-1; // on force la sortie de la boucle, on verra plus tard.
+         }
+      }
    }
    while(nb>0);
    
