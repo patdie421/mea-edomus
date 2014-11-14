@@ -18,7 +18,7 @@
 
 // numéros d'erreur 
 #define COMIO2_ERR_NOERR           0
-#define COMIO2_ERR_TIMEOUT         1 // sortie en timeout du sémaphore de synchro
+#define COMIO2_ERR_TIMEOUT         1
 #define COMIO2_ERR_SELECT          2
 #define COMIO2_ERR_READ            3
 #define COMIO2_ERR_TRAMETYPE       4
@@ -31,7 +31,8 @@
 #define COMIO2_ERR_STOPFRAME      11
 #define COMIO2_ERR_LDATA          12
 #define COMIO2_ERR_DOWN           13
-#define COMIO2_MAX_NB_ERROR       13
+#define COMIO2_ERR_TIMEOUT2       14
+#define COMIO2_MAX_NB_ERROR       14
 
 // id reservé 
 #define COMIO2_TRAP_ID           254
