@@ -71,7 +71,6 @@ long mysqlwrite_indicator = 0;
 void set_dbServer_isnt_running(void *data)
 {
    DEBUG_SECTION mea_log_printf("%s (%s) : Before, _dbServer_thread_is_running = %d\n", DEBUG_STR,__func__,_dbServer_thread_is_running);
-   _dbServer_thread_is_running=0;
    if(_md->conn)
    {
       mysql_close(_md->conn);
@@ -80,6 +79,7 @@ void set_dbServer_isnt_running(void *data)
    mysql_thread_end();
    mysql_library_end();
    DEBUG_SECTION mea_log_printf("%s (%s) : after, _dbServer_thread_is_running = %d now\n", DEBUG_STR,__func__,_dbServer_thread_is_running);
+   _dbServer_thread_is_running=0;
 }
 
 
