@@ -402,7 +402,7 @@ uint16_t build_query_for_sensors_values(char *sql_query, uint16_t l_sql_query, v
 
 
 //int write_data_to_db(int mysql_connected, MYSQL *conn, sqlite3 *db, dbServer_queue_elem_t *elem)
-int write_data_to_db(dbServer_queue_elem_t *elem)
+int write_data_to_db(dbServer_queue_elem_t *elem, int sqlite3_only)
 /**
  * \brief     écrit les données vers une table en fonction du type d'élément récupéré dans la file de traitement
  * \param     md              descripteur du gestionnaire. Il est alloué par l'appelant.
@@ -429,7 +429,7 @@ int write_data_to_db(dbServer_queue_elem_t *elem)
          break;
    }
    
-   if(_md->conn)
+   if(_md->conn && sqlite3_only==0)
    {
       int ret = exec_mysql_query(query);
       if(ret==0)
@@ -514,14 +514,14 @@ int _connect(MYSQL **conn)
 }
 
 
-int flush_data(int heartbeat_flag)
+int flush_data(int heartbeat_flag, int sqlite3_only)
 {
    int nb=-1;
    int ret=-1;
    int return_code=0;
    dbServer_queue_elem_t *elem = NULL;
    
-   if(_md->conn)
+   if(_md->conn && sqlite3_only==0)
    {
       char sql_query[80];
             
@@ -540,6 +540,20 @@ int flush_data(int heartbeat_flag)
          
          sqlite3_close(_md->db); // et on ferme la base sqlite
          _md->db=NULL;
+      }
+   }
+   
+   if(sqlite3_only==1)
+   {
+      if(!_md->db)
+      {
+         ret = sqlite3_open (_md->sqlite3_db_path, &_md->db);
+         if(ret)
+         {
+            _md->db=NULL;
+            VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_open - %s\n", ERROR_STR,__func__,sqlite3_errmsg (_md->db));
+            return -1;
+         }
       }
    }
    
@@ -593,7 +607,7 @@ int flush_data(int heartbeat_flag)
       // si dispo on essaye d'écrire la donnée dans la base
       if(nb>0)
       {
-         ret=write_data_to_db(elem);
+         ret=write_data_to_db(elem, sqlite3_only);
          if(!ret)
          {
             if(elem->data && elem->freedata)
@@ -733,7 +747,7 @@ void *dbServer_thread(void *args)
       VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_open - %s\n", ERROR_STR,__func__,sqlite3_errmsg (_md->db));
    }
    if(_md->conn) // on est normalement connecté à la base (on flush pour vider sqlite3 dans mysql si nécessaire
-      flush_data(1);
+      flush_data(1,0);
    
    while(1)
    {
@@ -768,7 +782,7 @@ void *dbServer_thread(void *args)
          ret=select_database();
          if(ret!=-1)
          {
-            flush_data(1);
+            flush_data(1,0);
          }
       }
       
@@ -844,7 +858,7 @@ int dbServer(char *db_server, char *db_server_port, char *base, char *user, char
 //void stop_dbServer(tomysqldb_md_t *md)
 int stop_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
 {
-   int ret;
+//   int ret;
    time_t now = time(NULL);
 
    if(_md)
@@ -868,12 +882,10 @@ int stop_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
 
       _md->started=0;
 
-      ret=select_database();
-      if(ret!=-1)
-         if(flush_data(0)<0)
-         {
+      if(flush_data(0,1)<0)
+      {
             // signaler risque de perte de données
-         }
+      }
 
       DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, sqlite3_close (%d)\n",DEBUG_STR, __func__,(int)(now-time(NULL)));
       if(_md->db)
