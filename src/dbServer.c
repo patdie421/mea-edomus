@@ -644,6 +644,7 @@ void *dbServer_thread(void *args)
  */
 {
    int ret;
+   int nb=-1;
    
 //   dbServer_queue_elem_t *elem = NULL;
 
@@ -678,7 +679,6 @@ void *dbServer_thread(void *args)
    
    while(1)
    {
-      int nb=-1;
       time_t now = time(NULL);
  
       DEBUG_SECTION {
@@ -690,7 +690,6 @@ void *dbServer_thread(void *args)
       DEBUG_SECTION mea_log_printf("%s (%s) : heatbeat (%d)\n", DEBUG_STR,__func__, hrtbt);
       pthread_testcancel();
 
-      process_update_indicator(_dbServer_monitoring_id, "DBSERVERINMEM", nb);
       process_update_indicator(_dbServer_monitoring_id, "DBSERVERINSQLITE", insqlite_indicator);
       process_update_indicator(_dbServer_monitoring_id, "DBSERVERMYWRITE", mysqlwrite_indicator);
 
@@ -698,6 +697,7 @@ void *dbServer_thread(void *args)
       pthread_mutex_lock(&(_md->lock));
       if(_md->queue)
       {
+         process_update_indicator(_dbServer_monitoring_id, "DBSERVERINMEM", _md->queue->nb);
          nb=_md->queue->nb_elem;
       }
       else
@@ -725,7 +725,6 @@ void *dbServer_thread(void *args)
 }
 
 
-//int tomysqldb_init(tomysqldb_md_t *md, char *db_server, char *db_server_port, char *base, char *user, char *passwd, char *sqlite3_db_path)
 int dbServer(char *db_server, char *db_server_port, char *base, char *user, char *passwd, char *sqlite3_db_path)
 /**
  * \brief     Initialise et démarre un gestionnaire de base de données mysql
