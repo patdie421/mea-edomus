@@ -77,9 +77,10 @@ void set_dbServer_isnt_running(void *data)
       _md->conn=NULL;
    }
    mysql_thread_end();
-   mysql_library_end();
-   DEBUG_SECTION mea_log_printf("%s (%s) : after, _dbServer_thread_is_running = %d now\n", DEBUG_STR,__func__,_dbServer_thread_is_running);
+
    _dbServer_thread_is_running=0;
+
+   DEBUG_SECTION mea_log_printf("%s (%s) : after, _dbServer_thread_is_running = %d now\n", DEBUG_STR,__func__,_dbServer_thread_is_running);
 }
 
 
