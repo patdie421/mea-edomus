@@ -629,6 +629,8 @@ int init_processes_manager(int max_nb_processes)
 
 int process_heartbeat(int id)
 {
+   int ret=-1;
+   
    pthread_cleanup_push( (void *)pthread_rwlock_unlock, (void *)&managed_processes.rwlock );
    pthread_rwlock_wrlock(&managed_processes.rwlock);
 
@@ -636,13 +638,15 @@ int process_heartbeat(int id)
       id<managed_processes.max_processes &&
       managed_processes.processes_table[id])
    {
-      managed_processes.processes_table[id]->last_heartbeat = time(NULL);
+      time_t now = time(NULL);
+      ret = (int)(now - managed_processes.processes_table[id]->last_heartbeat);
+      managed_processes.processes_table[id]->last_heartbeat = now;
    }
 
    pthread_rwlock_unlock(&managed_processes.rwlock);
    pthread_cleanup_pop(0); 
    
-   return 0;
+   return ret;
 }
 
 
