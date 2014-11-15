@@ -461,12 +461,17 @@ int _connect(MYSQL **conn)
  * \return    -1 en cas d'erreur, 0 sinon
  */
 {
-   my_bool reconnect = 0;
+   my_bool reconnect = 1;
+   unsigned int timeout = 5;
+
 // int ret;
    
    if(*conn)
+   {
       mysql_close(*conn);
-
+      mysql_thread_end();
+   }
+   
    // initialisation
    *conn = mysql_init(NULL);
    if (*conn == NULL)
@@ -477,16 +482,15 @@ int _connect(MYSQL **conn)
    
    // on authorise les reconnexions automatiques pour que le ping puisse gérer la connexion
    mysql_options(*conn, MYSQL_OPT_RECONNECT, &reconnect);
+   mysql_options(*conn, MYSQL_OPT_CONNECT_TIMEOUT, &timeout);
    
    unsigned long my_version = mysql_get_client_version();
    if(my_version < 50112)
    {
-      VERBOSE(1) mea_log_printf("%s (%s) : mysql time out not available for version (%l)\n", ERROR_STR,__func__,my_version);
+      VERBOSE(1) mea_log_printf("%s (%s) : mysql read/write timeout not available for client version (%l)\n", WARNING_STR,__func__,my_version);
    }
    else
    {
-      unsigned int timeout = 5;
-      mysql_options(*conn, MYSQL_OPT_CONNECT_TIMEOUT, &timeout);
       mysql_options(*conn, MYSQL_OPT_WRITE_TIMEOUT, &timeout);
       mysql_options(*conn, MYSQL_OPT_READ_TIMEOUT, &timeout);
    }
@@ -508,6 +512,7 @@ int _connect(MYSQL **conn)
    if (mysql_real_connect(*conn, _md->db_server, _md->user, _md->passwd, _md->base, port, NULL, 0) == NULL)
    {
       VERBOSE(1) mea_log_printf("%s (%s) : %u - %s\n", ERROR_STR,__func__,mysql_errno(*conn), mysql_error(*conn));
+      mysql_close(*conn);
       mysql_thread_end();
       *conn=NULL;
       return -1;
@@ -556,7 +561,7 @@ int flush_data(int heartbeat_flag)
       if(heartbeat_flag)
       {
          int hrtbt=process_heartbeat(_dbServer_monitoring_id);
-         DEBUG_SECTION mea_log_printf("%s (%s) : heatbeat (%d)\n", DEBUG_STR,__func__, hrtbt);
+         DEBUG_SECTION mea_log_printf("%s (%s) : heatbeat. Last %d seconds ago.\n", DEBUG_STR,__func__, hrtbt);
       }
       pthread_testcancel();
       
@@ -656,14 +661,14 @@ int select_database(int selection) // section : 0 auto, 1 mysql, 2 sqlite3
             // faire ce qu'il y a a faire en cas de reconnexion
             // voir ici pour les info : http://dev.mysql.com/doc/refman/5.0/en/auto-reconnect.html
             // pour l'instant on ne fait rien
-            VERBOSE(9) mea_log_printf("%s  (%s) : Une reconnexion à la base Mysql à eu lieu\n", INFO_STR,__func__);
+            VERBOSE(9) mea_log_printf("%s  (%s) : a mysql_ping auto-reconnect occured.\n", INFO_STR,__func__);
          }
       }
    }
 
    if(_md->conn == NULL && selection != 2) // jamais connecté ou plus de connexion, on essaye de se connecter
    {
-      DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, (re)connection to mysql (%d)\n",DEBUG_STR, __func__,(int)(time(NULL)-now));
+      DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, try to (re)connect to mysql database (%d)\n",DEBUG_STR, __func__,(int)(time(NULL)-now));
       ret=_connect(&_md->conn);
       if(ret)
       {
@@ -673,11 +678,12 @@ int select_database(int selection) // section : 0 auto, 1 mysql, 2 sqlite3
       {
          _md->opened=1;
       }
+      DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, (re)connection status = %d (%d)\n",DEBUG_STR, __func__, ret, (int)(time(NULL)-now));
    }
          
    if((_md->conn==NULL) || selection == 2) // toujours pas de connexion Mysql. Repli sur sqlite3, ouverture si nécessaire
    {
-      DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, connection to sqlite3 if needed (%d)\n",DEBUG_STR, __func__,(int)(time(NULL)-now));
+      DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, try to connect to sqlite3 if needed (%d)\n",DEBUG_STR, __func__,(int)(time(NULL)-now));
       if(!_md->db) // sqlite n'est pas ouverte
       {
          ret = sqlite3_open (_md->sqlite3_db_path, &_md->db);
@@ -685,11 +691,16 @@ int select_database(int selection) // section : 0 auto, 1 mysql, 2 sqlite3
          {
             _md->db=NULL;
             VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_open - %s\n", ERROR_STR,__func__,sqlite3_errmsg (_md->db));
-            return -1; // aucune connexion disponible
+            DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, selection error, no database opened (%d)\n",DEBUG_STR, __func__,(int)(time(NULL)-now));
+            return -1;
          }
       }
+      else
+      {
+         DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, sqlite3 all ready opened (%d)\n",DEBUG_STR, __func__,(int)(time(NULL)-now));
+      }
    }
-//   return *mysql_connected;
+
    DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, selection done (%d)\n",DEBUG_STR, __func__,(int)(time(NULL)-now));
    return 0;
 }
@@ -719,7 +730,7 @@ void *dbServer_thread(void *args)
    _md->opened=0;
    
    int hrtbt=process_heartbeat(_dbServer_monitoring_id);
-   DEBUG_SECTION mea_log_printf("%s (%s) : heatbeat (%d)\n", DEBUG_STR,__func__, hrtbt);
+   DEBUG_SECTION mea_log_printf("%s (%s) : heatbeat. Last %d seconds ago.\n", DEBUG_STR,__func__, hrtbt);
    pthread_testcancel();
 
    pthread_cleanup_push( (void *)set_dbServer_isnt_running, (void *)NULL );
@@ -727,30 +738,38 @@ void *dbServer_thread(void *args)
 
     mysql_library_init(0, NULL, NULL);
     
-   // ouverture de la base
-   ret=select_database(0);
-   // ouverture de la base sqlite3
-   // cela va permettre de vider les transactions en stock au démarrage
-   ret = sqlite3_open (_md->sqlite3_db_path, &_md->db);
-   if(ret)
+   // ce qui suit va permettre de vider les transactions en stock au démarrage
+   ret=select_database(0); // on tente d'ouvrir la base mysql
+   if(ret==0) // l'une des deux bases est ouverte, mais on ne sais pas encore la quelle
    {
-      _md->db=NULL;
-      VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_open - %s\n", ERROR_STR,__func__,sqlite3_errmsg (_md->db));
+      if(_md->conn) // c'est mysql
+      {
+         // on force l'ouverture de la base sqlite3
+         ret = sqlite3_open (_md->sqlite3_db_path, &_md->db);
+         if(ret)
+         {
+            _md->db=NULL;
+            VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_open - %s\n", ERROR_STR,__func__,sqlite3_errmsg (_md->db));
+         }
+         else
+         {
+            // comme les deux bases sont ouvertes flush_data va d'abord vider la base sqlide3 dans mysql
+            flush_data(1);
+         }
+      }
    }
-   if(_md->conn) // on est normalement connecté à la base (on flush pour vider sqlite3 dans mysql si nécessaire
-      flush_data(1);
    
    while(1)
    {
       time_t now = time(NULL);
  
       DEBUG_SECTION {
-        mea_log_printf("%s (%s) : last loop %d (watchdog debug)\n", DEBUG_STR,__func__,now-last_time);
+        mea_log_printf("%s (%s) : last loop %d seconds ago.\n", DEBUG_STR,__func__,now-last_time);
         last_time=now;
       }
 
       int hrtbt=process_heartbeat(_dbServer_monitoring_id);
-      DEBUG_SECTION mea_log_printf("%s (%s) : heatbeat (%d)\n", DEBUG_STR,__func__, hrtbt);
+      DEBUG_SECTION mea_log_printf("%s (%s) : heatbeat. Last %d seconds ago.\n", DEBUG_STR,__func__, hrtbt);
       pthread_testcancel();
 
       process_update_indicator(_dbServer_monitoring_id, "DBSERVERINSQLITE", insqlite_indicator);
@@ -778,7 +797,7 @@ void *dbServer_thread(void *args)
       }
       
       hrtbt=process_heartbeat(_dbServer_monitoring_id);
-      DEBUG_SECTION mea_log_printf("%s (%s) : heatbeat (%d)\n", DEBUG_STR,__func__, hrtbt);
+      DEBUG_SECTION mea_log_printf("%s (%s) : heatbeat. Last %d seconds ago.\n", DEBUG_STR,__func__, hrtbt);
       pthread_testcancel();
       sleep(10);
    }
