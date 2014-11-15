@@ -461,7 +461,7 @@ int _connect(MYSQL **conn)
  * \return    -1 en cas d'erreur, 0 sinon
  */
 {
- my_bool reconnect = 0;
+   my_bool reconnect = 0;
 // int ret;
    
    if(*conn)
@@ -486,6 +486,7 @@ int _connect(MYSQL **conn)
    else
    {
       unsigned int timeout = 5;
+      mysql_options(*conn, MYSQL_OPT_CONNECT_TIMEOUT, &timeout);
       mysql_options(*conn, MYSQL_OPT_WRITE_TIMEOUT, &timeout);
       mysql_options(*conn, MYSQL_OPT_READ_TIMEOUT, &timeout);
    }
@@ -509,7 +510,9 @@ int _connect(MYSQL **conn)
       VERBOSE(1) mea_log_printf("%s (%s) : %u - %s\n", ERROR_STR,__func__,mysql_errno(*conn), mysql_error(*conn));
       return -1;
    }
-   
+   else
+      mysql_options(*conn, MYSQL_OPT_RECONNECT, &reconnect);
+
    return 0;
 }
 
@@ -658,8 +661,9 @@ int select_database(int selection) // section : 0 auto, 1 mysql, 2 sqlite3
 
    if(_md->conn == NULL && selection != 2) // jamais connecté ou plus de connexion, on essaye de se connecter
    {
-      DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, (re)connection (%d)\n",DEBUG_STR, __func__,(int)(time(NULL)-now));
+      DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, (re)connection to mysql (%d)\n",DEBUG_STR, __func__,(int)(time(NULL)-now));
       ret=_connect(&_md->conn);
+      DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, after _connect (%d)\n",DEBUG_STR, __func__,(int)(time(NULL)-now));
       if(ret)
       {
          VERBOSE(5) mea_log_printf("%s  (%s) : _connect - can't connect to mysql server\n",ERROR_STR);
@@ -672,7 +676,7 @@ int select_database(int selection) // section : 0 auto, 1 mysql, 2 sqlite3
          
    if(_md->conn==NULL || selection != 1) // toujours pas de connexion Mysql. Repli sur sqlite3, ouverture si nécessaire
    {
-      DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, connection to my_sql (%d)\n",DEBUG_STR, __func__,(int)(time(NULL)-now));
+      DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, connection to sqlite3 (%d)\n",DEBUG_STR, __func__,(int)(time(NULL)-now));
       if(!_md->db) // sqlite n'est pas ouverte
       {
          ret = sqlite3_open (_md->sqlite3_db_path, &_md->db);
