@@ -508,6 +508,8 @@ int _connect(MYSQL **conn)
    if (mysql_real_connect(*conn, _md->db_server, _md->user, _md->passwd, _md->base, port, NULL, 0) == NULL)
    {
       VERBOSE(1) mea_log_printf("%s (%s) : %u - %s\n", ERROR_STR,__func__,mysql_errno(*conn), mysql_error(*conn));
+      mysql_thread_end();
+      *conn=NULL;
       return -1;
    }
    else
