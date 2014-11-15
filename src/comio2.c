@@ -545,9 +545,6 @@ int16_t _comio2_read_frame(int fd, char *cmd_data, uint16_t *l_cmd_data, int16_t
    uint16_t i=0;
    uint16_t checksum=0;
    
-   timeout.tv_sec  = COMIO2_TIMEOUT_DELAY;
-   timeout.tv_usec = 0;
-   
    FD_ZERO(&input_set);
    FD_SET(fd, &input_set);
    
@@ -555,7 +552,10 @@ int16_t _comio2_read_frame(int fd, char *cmd_data, uint16_t *l_cmd_data, int16_t
    
    while(1)
    {
+      timeout.tv_sec  = COMIO2_TIMEOUT_DELAY;
+      timeout.tv_usec = 0;
       ret = (int16_t)select(fd+1, &input_set, NULL, NULL, &timeout);
+      
       if (ret <= 0)
       {
          if(ret == 0)
@@ -577,6 +577,8 @@ int16_t _comio2_read_frame(int fd, char *cmd_data, uint16_t *l_cmd_data, int16_t
          }
          goto on_error_exit_comio2_read;
       }
+
+      DEBUG_SECTION mea_log_printf("%s (%s) : select - t1 = %d, t2 = %d\n",DEBUG_STR,__func__,timeout.tv_sec,timeout.tv_usec);
       
       ret=(int16_t)read(fd, &c, 1);
       if(ret!=1)

@@ -55,6 +55,12 @@ typedef struct dbServer_md_s
 
 } dbServer_md_t;
 
+/*
+#ifdef DEBUG_SECTION
+#undef DEBUG_SECTION
+#define DEBUG_SECTION if(0)
+#endif
+*/
 
 const char *db_server_name_str="DBSERVER";
 
@@ -561,7 +567,7 @@ int flush_data(int heartbeat_flag)
       if(heartbeat_flag)
       {
          int hrtbt=process_heartbeat(_dbServer_monitoring_id);
-         DEBUG_SECTION mea_log_printf("%s (%s) : heatbeat. Last %d seconds ago.\n", DEBUG_STR,__func__, hrtbt);
+         DEBUG_SECTION mea_log_printf("%s (%s) : heatbeat. Previous : %d seconds ago.\n", DEBUG_STR,__func__, hrtbt);
       }
       pthread_testcancel();
       
@@ -639,7 +645,7 @@ int select_database(int selection) // section : 0 auto, 1 mysql, 2 sqlite3
    
    if(_md->conn && (selection != 2)) // on a déjà été connecté un jour ...
    {
-      DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, _md->conn not null (%d)\n",DEBUG_STR, __func__,(int)(time(NULL)-now));
+      DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, good, _md->conn not null (%d)\n",DEBUG_STR, __func__,(int)(time(NULL)-now));
       _mysql_thread_id_avant=mysql_thread_id(_md->conn); // on récupère d'abord l'id du thread, il sera utile pour savoir s'il y a eu une reconnexion.
 
       // on s'assure d'abord que la connexion avec le serveur Mysql est encore possible
@@ -664,6 +670,7 @@ int select_database(int selection) // section : 0 auto, 1 mysql, 2 sqlite3
             VERBOSE(9) mea_log_printf("%s  (%s) : a mysql_ping auto-reconnect occured.\n", INFO_STR,__func__);
          }
       }
+      DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, good, mysql connection check and available (%d)\n",DEBUG_STR, __func__,(int)(time(NULL)-now));
    }
 
    if(_md->conn == NULL && selection != 2) // jamais connecté ou plus de connexion, on essaye de se connecter
@@ -730,7 +737,7 @@ void *dbServer_thread(void *args)
    _md->opened=0;
    
    int hrtbt=process_heartbeat(_dbServer_monitoring_id);
-   DEBUG_SECTION mea_log_printf("%s (%s) : heatbeat. Last %d seconds ago.\n", DEBUG_STR,__func__, hrtbt);
+   DEBUG_SECTION mea_log_printf("%s (%s) : heatbeat. Previous : %d seconds ago.\n", DEBUG_STR,__func__, hrtbt);
    pthread_testcancel();
 
    pthread_cleanup_push( (void *)set_dbServer_isnt_running, (void *)NULL );
@@ -769,7 +776,7 @@ void *dbServer_thread(void *args)
       }
 
       int hrtbt=process_heartbeat(_dbServer_monitoring_id);
-      DEBUG_SECTION mea_log_printf("%s (%s) : heatbeat. Last %d seconds ago.\n", DEBUG_STR,__func__, hrtbt);
+      DEBUG_SECTION mea_log_printf("%s (%s) : heatbeat. Previous : %d seconds ago.\n", DEBUG_STR,__func__, hrtbt);
       pthread_testcancel();
 
       process_update_indicator(_dbServer_monitoring_id, "DBSERVERINSQLITE", insqlite_indicator);
@@ -797,7 +804,7 @@ void *dbServer_thread(void *args)
       }
       
       hrtbt=process_heartbeat(_dbServer_monitoring_id);
-      DEBUG_SECTION mea_log_printf("%s (%s) : heatbeat. Last %d seconds ago.\n", DEBUG_STR,__func__, hrtbt);
+      DEBUG_SECTION mea_log_printf("%s (%s) : heatbeat. Previous : %d seconds ago.\n", DEBUG_STR,__func__, hrtbt);
       pthread_testcancel();
       sleep(10);
    }
@@ -1003,7 +1010,7 @@ int start_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
                 dbServerData->params_list[SQLITE3_DB_BUFF_PATH]);
    if(ret==-1)
    {
-      VERBOSE(2) mea_log_printf("%s (%s) : Can not init data base communication.\n", ERROR_STR, __func__);
+      VERBOSE(2) mea_log_printf("%s (%s) : can't init data base communication.\n", ERROR_STR, __func__);
       mea_notify_printf('E', "DBSERVER : can't init data base communication.");
       return -1;
    }

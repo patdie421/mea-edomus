@@ -38,7 +38,8 @@
 #define COMIO2_TRAP_ID           254
 
 // gestion des reprises 
-#define COMIO2_TIMEOUT_DELAY       3
+#define COMIO2_TIMEOUT_DELAY       1
+#define COMIO2_TIMEOUT_DELAY_MS  500
 #define COMIO2_NB_RETRY            5
 
 // ensemble des commandes disponibles
