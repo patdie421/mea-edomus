@@ -673,7 +673,7 @@ int select_database(int selection) // section : 0 auto, 1 mysql, 2 sqlite3
       }
    }
          
-   if((_md->conn==NULL && selection != 2) || selection == 2) // toujours pas de connexion Mysql. Repli sur sqlite3, ouverture si nécessaire
+   if((_md->conn==NULL) || selection == 2) // toujours pas de connexion Mysql. Repli sur sqlite3, ouverture si nécessaire
    {
       DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, connection to sqlite3 if needed (%d)\n",DEBUG_STR, __func__,(int)(time(NULL)-now));
       if(!_md->db) // sqlite n'est pas ouverte
