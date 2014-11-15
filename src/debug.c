@@ -11,6 +11,7 @@
 #include <inttypes.h>
 #include <stdarg.h>
 #include <time.h>
+#include <pthread.h>
 
 #include "debug.h"
 
@@ -99,14 +100,27 @@ uint32_t take_chrono(uint32_t *_last_time)
 }
 
 
+pthread_mutex_t mea_log_printf_lock;
+int mea_log_printf_lock_is_init=0;
+
 void mea_log_printf(char const* fmt, ...)
 {
    va_list args;
-   char *date_format="[%Y-%m-%d %H:%M:%S]";
+   static char *date_format="[%Y-%m-%d %H:%M:%S]";
+
+   if(mea_log_printf_lock_is_init==0)
+   {
+      pthread_mutex_init(&mea_log_printf_lock, NULL);
+      mea_log_printf_lock_is_init=1;
+   }
+
 
    char date_str[40];
    time_t t;
    struct tm t_tm;
+
+   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&mea_log_printf_lock );
+   pthread_mutex_lock(&mea_log_printf_lock);
 
    t=time(NULL);
 
@@ -127,5 +141,8 @@ void mea_log_printf(char const* fmt, ...)
    va_start(args, fmt);
    vfprintf(stderr, fmt, args);
    va_end(args);
+
+   pthread_mutex_unlock(&mea_log_printf_lock);
+   pthread_cleanup_pop(0);
 }
 
