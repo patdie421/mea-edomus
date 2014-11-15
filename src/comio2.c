@@ -577,8 +577,6 @@ int16_t _comio2_read_frame(int fd, char *cmd_data, uint16_t *l_cmd_data, int16_t
          }
          goto on_error_exit_comio2_read;
       }
-
-      DEBUG_SECTION mea_log_printf("%s (%s) : select - t1 = %d, t2 = %d\n",DEBUG_STR,__func__,timeout.tv_sec,timeout.tv_usec);
       
       ret=(int16_t)read(fd, &c, 1);
       if(ret!=1)
