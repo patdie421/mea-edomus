@@ -521,6 +521,9 @@ int flush_data(int heartbeat_flag)
    int return_code=0;
    dbServer_queue_elem_t *elem = NULL;
    
+   if(_md->conn == NULL & _md->db == NULL)
+      return -1;
+   
    if(_md->conn)
    {
       char sql_query[80];
@@ -543,17 +546,6 @@ int flush_data(int heartbeat_flag)
       }
    }
    
-   if(!_md->db)
-   {
-      ret = sqlite3_open (_md->sqlite3_db_path, &_md->db);
-      if(ret)
-      {
-         _md->db=NULL;
-         VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_open - %s\n", ERROR_STR,__func__,sqlite3_errmsg (_md->db));
-         return -1;
-      }
-   }
-   
    do
    {
       if(heartbeat_flag)
@@ -570,31 +562,6 @@ int flush_data(int heartbeat_flag)
       nb=_md->queue->nb_elem;
       if(nb>0)
       {
-/*
-         last_queue(_md->queue); // on se positionne en fin de queue
-         current_queue(_md->queue,(void **)&elem); // on lit le dernier element de la file sans le sortir (on le sortira s'il est inséré dans une base)
-
-         ret=write_data_to_db(elem);
-         if(!ret)
-         {
-            out_queue_elem(_md->queue,(void **)&elem);
-            if(elem->data && elem->freedata)
-            {
-               elem->freedata(elem->data);
-               elem->data=NULL;
-            }
-            if(elem)
-            {
-               free(elem);
-               elem=NULL;
-            }
-         }
-         else // on ne peut écrire dans aucune base ...
-         {
-            return_code=-1;
-            nb=-1; // on force la sortie de la boucle, on verra plus tard.
-         }
-*/
          out_queue_elem(_md->queue,(void **)&elem);
       }
       
@@ -901,11 +868,14 @@ int stop_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
 
       _md->started=0;
 
-      if(flush_data(0)<0)
+      if(select_database(2)!=0)
       {
+         if(flush_data(0)<0) // flush en local uniquement
+         {
             // signaler risque de perte de données
+         }
       }
-
+      
       DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, sqlite3_close (%d)\n",DEBUG_STR, __func__,(int)(time(NULL)-now));
       if(_md->db)
       {
