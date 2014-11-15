@@ -663,10 +663,9 @@ int select_database(int selection) // section : 0 auto, 1 mysql, 2 sqlite3
    {
       DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, (re)connection to mysql (%d)\n",DEBUG_STR, __func__,(int)(time(NULL)-now));
       ret=_connect(&_md->conn);
-      DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, after _connect (%d)\n",DEBUG_STR, __func__,(int)(time(NULL)-now));
       if(ret)
       {
-         VERBOSE(5) mea_log_printf("%s  (%s) : _connect - can't connect to mysql server\n",ERROR_STR);
+         VERBOSE(5) mea_log_printf("%s  (%s) : _connect - can't connect to mysql server\n",ERROR_STR,__func__);
       }
       else
       {
