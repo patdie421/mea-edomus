@@ -524,7 +524,7 @@ int flush_data(int heartbeat_flag)
    int return_code=0;
    dbServer_queue_elem_t *elem = NULL;
    
-   if(_md->conn == NULL & _md->db == NULL)
+   if(_md->conn == NULL && _md->db == NULL)
       return -1;
    
    if(_md->conn)
@@ -593,7 +593,7 @@ int flush_data(int heartbeat_flag)
             pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(_md->lock));
             pthread_mutex_lock(&(_md->lock));
 
-            in_queue_elem(_md->queue,(void **)&elem);
+            in_queue_elem(_md->queue,(void *)elem);
 
             pthread_mutex_unlock(&(_md->lock));
             pthread_cleanup_pop(0);
@@ -675,7 +675,7 @@ int select_database(int selection) // section : 0 auto, 1 mysql, 2 sqlite3
          
    if(_md->conn==NULL || selection != 1) // toujours pas de connexion Mysql. Repli sur sqlite3, ouverture si nécessaire
    {
-      DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, connection to sqlite3 (%d)\n",DEBUG_STR, __func__,(int)(time(NULL)-now));
+      DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, connection to sqlite3 if needed (%d)\n",DEBUG_STR, __func__,(int)(time(NULL)-now));
       if(!_md->db) // sqlite n'est pas ouverte
       {
          ret = sqlite3_open (_md->sqlite3_db_path, &_md->db);
