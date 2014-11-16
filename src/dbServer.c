@@ -422,7 +422,7 @@ int write_data_to_db(dbServer_queue_elem_t *elem)
    if(!_md) // pas de descripteur == pas de stockage dans la base ...
       return 0;
    
-   VERBOSE(9) mea_log_printf("%s  (%s) : Insertion data type %d\n",INFO_STR,__func__,elem->type);
+   VERBOSE(9) mea_log_printf("%s  (%s) : insertion data type %d\n",INFO_STR,__func__,elem->type);
 
    switch(elem->type)
    {
@@ -440,6 +440,7 @@ int write_data_to_db(dbServer_queue_elem_t *elem)
       int ret = exec_mysql_query(query);
       if(ret==0)
       {
+         DEBUG_SECTION mea_log_printf("%s  (%s) : insert in mysql db\n",INFO_STR,__func__);
          mysqlwrite_indicator++;
       }
       else
@@ -449,6 +450,7 @@ int write_data_to_db(dbServer_queue_elem_t *elem)
    }
    else if(_md->db)
    {
+      DEBUG_SECTION mea_log_printf("%s  (%s) : insertion in sqlite db\n",INFO_STR,__func__);
       move_mysql_query_to_sqlite3(query);
    }
    else

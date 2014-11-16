@@ -1299,9 +1299,6 @@ int _xbee_read_cmd(int fd, char unsigned *frame, uint16_t *l_frame, int16_t *ner
    uint16_t i=0;
    int checksum=0;
    
-   timeout.tv_sec  = 1; // timeout après 1 secondes
-   timeout.tv_usec = 0;
-   
    FD_ZERO(&input_set);
    FD_SET(fd, &input_set);
    
@@ -1310,6 +1307,9 @@ int _xbee_read_cmd(int fd, char unsigned *frame, uint16_t *l_frame, int16_t *ner
    
    while(1)
    {
+      timeout.tv_sec  = 1; // timeout après 1 secondes
+      timeout.tv_usec = 0;
+
       ret = select(fd+1, &input_set, NULL, NULL, &timeout);
       if (ret <= 0)
       {
