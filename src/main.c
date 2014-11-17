@@ -870,16 +870,15 @@ int main(int argc, const char * argv[])
    //
    struct logServerData_s logServer_start_stop_params;
    logServer_start_stop_params.params_list=params_list;
-   logServer_monitoring_id=process_register("LOGSERVER");
+   logServer_monitoring_id=process_register(log_server_name_str);
    process_set_start_stop(logServer_monitoring_id , start_logServer, stop_logServer, (void *)(&logServer_start_stop_params), 1);
    process_set_watchdog_recovery(logServer_monitoring_id, restart_logServer, (void *)(&logServer_start_stop_params));
-   process_add_indicator(logServer_monitoring_id, "LOGSENTERR", 0);
-   process_add_indicator(logServer_monitoring_id, "READERROR", 0);
-   process_add_indicator(logServer_monitoring_id, "LOGSENTERR", 0);
+   process_add_indicator(logServer_monitoring_id, log_server_logsent_str, 0);
+   process_add_indicator(logServer_monitoring_id, log_server_logsenterr_str, 0);
+   process_add_indicator(logServer_monitoring_id, log_server_readerror_str, 0);
 
    if(process_start(logServer_monitoring_id, NULL, 0)<0)
    {
-//      VERBOSE(1) fprintf (stderr, "%s (%s) : can't start log server\n",ERROR_STR,__func__);
       VERBOSE(1) mea_log_printf("%s (%s) : can't start log server\n",ERROR_STR,__func__);
    }
 
