@@ -31,12 +31,14 @@
 #include "processManager.h"
 #include "notify.h"
 
+static int first_start=1;
 
 typedef struct dbServer_md_s
 {
    pthread_t thread;
    pthread_mutex_t lock;
    int16_t started;
+//   int16_t opened;
    
    queue_t *queue;
 
@@ -48,8 +50,6 @@ typedef struct dbServer_md_s
    
    char *sqlite3_db_path;
 
-   int16_t opened;
-   
    sqlite3 *db;
    MYSQL *conn;
 
@@ -83,7 +83,6 @@ void set_dbServer_isnt_running(void *data)
       _md->conn=NULL;
    }
    mysql_thread_end();
-
    _dbServer_thread_is_running=0;
 
    DEBUG_SECTION mea_log_printf("%s (%s) : after, _dbServer_thread_is_running = %d now\n", DEBUG_STR,__func__,_dbServer_thread_is_running);
@@ -129,9 +128,6 @@ int16_t dbServer_add_data_to_sensors_values(uint16_t sensor_id, double value1, u
    if(!_md)
       return -1;
 
-   if(!_md->opened) // md initialisé mais connexion avec Mysql jamais établie (peut-être un pb de paramétrage ???)
-      return -1;    // on s'arrête pour ne pas remplir la mémoire
-   
    if(!_md->started)
       return -1; // pas ou plus de thread consommateur.
       
@@ -685,7 +681,7 @@ int select_database(int selection) // section : 0 auto, 1 mysql, 2 sqlite3
       }
       else
       {
-         _md->opened=1;
+ //        _md->opened=1;
       }
       DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, (re)connection status = %d (%d)\n",DEBUG_STR, __func__, ret, (int)(time(NULL)-now));
    }
@@ -727,16 +723,11 @@ void *dbServer_thread(void *args)
    int ret;
    int nb=-1;
    
-//   dbServer_queue_elem_t *elem = NULL;
-
-//   int mysql_connected=0; // indicateur connexion active (1) ou inactive (0)
-//   unsigned long _mysql_thread_id = -1,_mysql_thread_id_avant = -1;
-   
    time_t last_time = time(NULL);
    
    _md->db=NULL; // descritpteur SQLITE
    _md->conn=NULL; // descripteur com. MYSQL
-   _md->opened=0;
+   _md->started=0;
    
    int hrtbt=process_heartbeat(_dbServer_monitoring_id);
    DEBUG_SECTION mea_log_printf("%s (%s) : heatbeat. Previous : %d seconds ago.\n", DEBUG_STR,__func__, hrtbt);
@@ -745,10 +736,11 @@ void *dbServer_thread(void *args)
    pthread_cleanup_push( (void *)set_dbServer_isnt_running, (void *)NULL );
    _dbServer_thread_is_running=1;
 
-    mysql_library_init(0, NULL, NULL);
+   mysql_library_init(0, NULL, NULL);
     
    // ce qui suit va permettre de vider les transactions en stock au démarrage
    ret=select_database(0); // on tente d'ouvrir la base mysql
+   
    if(ret==0) // l'une des deux bases est ouverte, mais on ne sais pas encore la quelle
    {
       if(_md->conn) // c'est mysql
@@ -766,8 +758,31 @@ void *dbServer_thread(void *args)
             flush_data(1);
          }
       }
+      else // arg !!!, c'est sqlite3
+      {
+         // pas de mysql au demarrage du thread ...
+         if(first_start) // et c'est la première fois depuis le lancement du programme que le thread est lancé
+         {
+            //  dans ce cas on "arrête" le process (il pourra être relancé manuellement)
+            managed_processes.processes_table[_dbServer_monitoring_id]->status=STOPPED;
+            if(_md->db) // on fait le menage
+            {
+               sqlite3_close(_md->db);
+               _md->db=NULL;
+            }
+            VERBOSE(2) mea_log_printf("%s (%s) : no mysql database available at first start. DBSERVER goes down.\n", ERROR_STR,__func__);
+            pthread_exit(NULL); // et on s'arrête
+         }
+      }
+   }
+   else // aucune db disponible
+   {
+      managed_processes.processes_table[_dbServer_monitoring_id]->status=STOPPED;
+      pthread_exit(NULL);
    }
    
+   _md->started=1;
+   first_start=0;
    while(1)
    {
       time_t now = time(NULL);
@@ -868,37 +883,37 @@ int dbServer(char *db_server, char *db_server_port, char *base, char *user, char
       return -1;
    }
    pthread_detach(_md->thread);
-   _md->started=1;
    
    return 0;
 }
 
 
-//void stop_dbServer(tomysqldb_md_t *md)
 int stop_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
 {
-//   int ret;
    time_t now = time(NULL);
 
    if(_md)
    {
-      pthread_cancel(_md->thread);
-      int counter=500; // 5 secondes environ
-      int stopped=-1;
-      while(counter--)
+      if(_md->thread)
       {
-         if(_dbServer_thread_is_running)
-         {  // pour éviter une attente "trop" active
-            usleep(10000); // will sleep for 10 ms
-         }
-         else
+         pthread_cancel(_md->thread);
+         int counter=500; // 5 secondes environ
+         int stopped=-1;
+         while(counter--)
          {
-            stopped=0;
-            break;
+            if(_dbServer_thread_is_running)
+            {  // pour éviter une attente "trop" active
+               usleep(10000); // will sleep for 10 ms
+            }
+            else
+            {
+               stopped=0;
+               break;
+            }
+            DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, fin après %d itération (%d)\n",DEBUG_STR, __func__,500-counter,(int)(time(NULL)-now));
          }
       }
-      DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, fin après %d itération (%d)\n",DEBUG_STR, __func__,500-counter,(int)(time(NULL)-now));
-
+      
       _md->started=0;
 
       if(select_database(2)!=0)
