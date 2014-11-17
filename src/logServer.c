@@ -31,7 +31,11 @@
 // linux : http://www.ibm.com/developerworks/linux/library/l-inotify/
 // mac os x : https://github.com/dmatveev/libinotify-kqueue (lib pour simuler inotify)
 
-char *log_server_name_str="LOGSERVER"; // voir si utilisé
+char *log_server_name_str="LOGSERVER";
+
+char *log_server_logsenterr_str="LOGSENTERR";
+char *log_server_readerror_str="READERROR";
+char *log_server_logsent_str="LOGSENT";
 
 int _livelog_enable=0;
 
@@ -98,11 +102,11 @@ int send_line(char *hostname, int port_socketdata, char *line)
    {
       if(mea_socket_connect(&nodejs_socket, hostname, port_socketdata)<0)
       {
-         process_update_indicator(_logServer_monitoring_id, "LOGSENTERR", ++logsenterr_indicator);
+         process_update_indicator(_logServer_monitoring_id, log_server_logsenterr_str, ++logsenterr_indicator);
          return -1;
       }
    }
-   
+ 
    char message[1024];
    int l_data=strlen(line)+4;
 
@@ -112,14 +116,14 @@ int send_line(char *hostname, int port_socketdata, char *line)
    int ret = mea_socket_send(&nodejs_socket, message, l_data+12);
    if(ret<0)
    {
-      process_update_indicator(_logServer_monitoring_id, "LOGSENTERR", ++logsenterr_indicator);
+      process_update_indicator(_logServer_monitoring_id, log_server_logsenterr_str, ++logsenterr_indicator);
       close(nodejs_socket);
       nodejs_socket=-1;
       return -1;
    }
    else
    {
-      process_update_indicator(_logServer_monitoring_id, "LOGSENT", ++logsent_indicator);
+      process_update_indicator(_logServer_monitoring_id, log_server_logsent_str, ++logsent_indicator);
    }
    
    return 0;
@@ -406,7 +410,7 @@ void *logServer_thread(void *data)
             }
             else
             {
-               process_update_indicator(_logServer_monitoring_id, "READERROR", ++readerror_indicator);
+               process_update_indicator(_logServer_monitoring_id, log_server_readerror_str, ++readerror_indicator);
                fclose(fp);
                fp=NULL;
                sleep(1);
