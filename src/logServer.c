@@ -34,7 +34,7 @@
 char *log_server_name_str="LOGSERVER";
 
 char *log_server_logsenterr_str="LOGSENTERR";
-char *log_server_readerror_str="READERROR";
+char *log_server_readerror_str="READERR";
 char *log_server_logsent_str="LOGSENT";
 
 int _livelog_enable=0;
