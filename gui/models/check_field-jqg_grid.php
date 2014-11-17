@@ -1,4 +1,31 @@
 <?php
+/**
+ * @file   check_field-jqg_grid.php
+ * @date   2014/11/17
+ * @author Patrice Dietsch <patrice.dietsch@gmail.com> * @brief  contrôle qu'une valeur existe dans le champ d'une table.
+ * @detail ceci est un cgi de type GET. Il va retourner le résultat de l'une des
+ *         requetes SQL suivantes :
+ *         SELECT count(*) FROM [table] WHERE [field] = [value]
+ *         ou si <id> est précisé :
+ *         SELECT count(*) FROM [table] WHERE [filed] = [value] AND id<>[id]
+ *         Le resultat est retourné dans un json avec les éléments suivants :
+ *         { result=>["OK" ou "KO"] : OK = pas d'erreur, KO une erreur
+ *           error=>[numéro d'erreur] : les numéros d'erreur possible sont :
+ *              1 : erreur inconnue
+ *             99 : demandeur pas connecté
+ *              2 : parametres incorrects table, field ou value absent
+ *              3 : échec d'ouverture base de données (message db dans errmsg)
+ *              4 : echec requete (message db dans errmsg)
+ *              0 : pas d'erreur (result = "OK")
+ *           errmsg=>[un message],
+ *           exist=>[nb d'occurence],
+ *           debug=>[requete sql executée] }
+ 
+ * @param  table  nom de la table à interroger
+ * @param  field  nom du champ à contrôler
+ * @param  value  valeur à rechercher
+ * @param  id     id de la table à exclure de la recherche
+ */
 include_once('../lib/configs.php');
 include_once('../lib/php/auth_utils.php');
 session_start();
@@ -33,7 +60,7 @@ if(isset($_GET['id'])){
 try {
     $file_db = new PDO($PARAMS_DB_PATH);
 }catch (PDOException $e){
-    echo json_encode(array("result"=>"KO","error"=>3,"error_msg"=>$e->getMessage() ));
+    echo json_encode(array("result"=>"KO","error"=>3,"error_msg"=>$e->getMessage()));
     exit(1);
 }
 
