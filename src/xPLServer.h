@@ -18,6 +18,7 @@ extern char *xpl_vendorID;
 extern char *xpl_deviceID;
 extern char *xpl_instanceID;
 
+extern char *xpl_server_name_str;
 
 typedef struct xplRespQueue_elem_s
 {
