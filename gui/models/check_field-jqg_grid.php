@@ -2,7 +2,8 @@
 /**
  * @file   check_field-jqg_grid.php
  * @date   2014/11/17
- * @author Patrice Dietsch <patrice.dietsch@gmail.com> * @brief  contrôle qu'une valeur existe dans le champ d'une table.
+ * @author Patrice Dietsch <patrice.dietsch@gmail.com>
+ * @brief  contrôle qu'une valeur existe dans le champ d'une table.
  * @detail ceci est un cgi de type GET. Il va retourner le résultat de l'une des
  *         requetes SQL suivantes :
  *         SELECT count(*) FROM [table] WHERE [field] = [value]
