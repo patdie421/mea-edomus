@@ -1,4 +1,27 @@
 <?php
+/**
+ * @file   delete_row_by_id-jqg_grid.php
+ * @date   2014/11/17
+ * @author Patrice Dietsch <patrice.dietsch@gmail.com>
+ * @brief  supprime un enregistrement en utilisation sont "id"
+ * @detail ceci est un cgi de type GET. Il va supprimer un enregistrement dans une
+ *         table spécifiée en paramètre. Le resultat de l'opération se trouve dans
+ *         un json.
+ * @return { result=>["OK" ou "KO"] : OK = suppression réalisée, KO une erreur
+ *           error=>[numéro d'erreur] : les numéros d'erreur possible sont :
+ *              1 : erreur inconnue
+ *              2 : erreur de paramètre (table ou id absent)
+ *              3 : connexion impossible à la base (voir errmsg pour le retour du SGBDR)
+ *              4 : erreur de la requête (voir errmsg pour le retour du SGBDR)
+ *             98 : demandeur pas habilité
+ *             99 : demandeur pas connecté
+ *              0 : opération réussie
+ *           errmsg=>[un message],
+ *           debug=>[requete sql executée] }
+ 
+ * @param  table   nom de la table contenant l'enregistrement à supprimer
+ * @param  id      numéro de l'enregistrement à supprimer    
+ */
 include_once('../lib/configs.php');
 include_once('../lib/php/auth_utils.php');
 session_start();
