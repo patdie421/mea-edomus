@@ -34,6 +34,33 @@ static PyMethodDef MeaMethods[] = {
 };
 
 
+int16_t _check_todbflag(sqlite3 *db, uint16_t sensor_id)
+{
+   char sql[80];
+   sqlite3_stmt * stmt;
+
+   snprintf(sql,sizeof(sql),"SELECT todbflag FROM sensors_actuators WHERE id_sensor_actuator = %d",sensor_id);
+   ret = sqlite3_prepare_v2(db, sql, strlen(sql)+1, &stmt, NULL);
+   if(ret)
+   {
+      VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (params_db));
+      return ERROR;
+   }
+   int s = sqlite3_step(stmt);
+   if (s == SQLITE_ROW)
+   {
+      int val=sqlite3_column_int(stmt, 1);
+      sqlite3_finalize(stmt);
+      return val;
+   }
+   else
+   {
+     sqlite3_finalize(stmt);
+     return -1;
+   }
+}
+
+
 uint32_t _indianConvertion(uint32_t val_x86)
 {
    uint32_t val_xbee;
@@ -694,10 +721,15 @@ static PyObject *mea_addDataToSensorsValuesTable(PyObject *self, PyObject *args)
    else
       goto mea_addDataToSensorsValuesTable_arg_err;
 
-   // /?\ checker ici si todbflag ok pour le capteur ? (faire ou ne pas faire confience au plugin ...)
+   sqlite3 db=get_sqlite3_param_db();
+   if(db)
+   {
+      if(_check_todbflag(db, sensor_id)==1)
+      {
+         dbServer_add_data_to_sensors_values(sensor_id, value1, unit, value2, complement);
+      }
+   }
    
-   dbServer_add_data_to_sensors_values(sensor_id, value1, unit, value2, complement);
-
    return PyLong_FromLong(1L); // True
    
 mea_addDataToSensorsValuesTable_arg_err:
