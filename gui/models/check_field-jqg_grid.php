@@ -9,7 +9,7 @@
  *         ou si <id> est précisé :
  *         SELECT count(*) FROM [table] WHERE [filed] = [value] AND id<>[id]
  *         Le resultat est retourné dans un json avec les éléments suivants :
- *         { result=>["OK" ou "KO"] : OK = pas d'erreur, KO une erreur
+ * @return { result=>["OK" ou "KO"] : OK = pas d'erreur, KO une erreur
  *           error=>[numéro d'erreur] : les numéros d'erreur possible sont :
  *              1 : erreur inconnue
  *             99 : demandeur pas connecté
@@ -20,7 +20,6 @@
  *           errmsg=>[un message],
  *           exist=>[nb d'occurence],
  *           debug=>[requete sql executée] }
- 
  * @param  table  nom de la table à interroger
  * @param  field  nom du champ à contrôler
  * @param  value  valeur à rechercher
