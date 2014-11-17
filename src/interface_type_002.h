@@ -36,6 +36,18 @@ typedef struct data_queue_elem_s
    struct timeval tv;
 } data_queue_elem_t;
 
+struct interface_type_002_indicators_s
+{
+   uint32_t senttoplugin;
+   uint32_t xplin;
+   uint32_t xbeedatain;
+   uint32_t commissionning_request;
+};
+
+extern char *interface_type_002_senttoplugin_str;
+extern char *interface_type_002_xplin_str;
+extern char *interface_type_002_xbeedatain_st;
+extern char *interface_type_002_commissionning_request_str;
 
 typedef struct interface_type_002_s
 {
@@ -49,6 +61,8 @@ typedef struct interface_type_002_s
    volatile sig_atomic_t thread_is_running;
    xpl_f            xPL_callback;
    void            *xPL_callback_data;
+   
+   struct interface_type_002_indicators_s indicators;
 } interface_type_002_t;
 
 
