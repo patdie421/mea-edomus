@@ -16,10 +16,11 @@
  *           errmsg=>[un message],
  *           debug=>[requete sql executée] }
  
- * @param  table  nom de la table à interroger
- * @param  field  nom du champ à contrôler
- * @param  value  valeur à rechercher
- * @param  id     id de la table à exclure de la recherche
+ * @param  server  nom ou adresse du serveur mysql
+ * @param  port    port d'ecoute du server
+ * @param  base    nom de la base à tester
+ * @param  user    compte d'accès
+ * @param  passord mot de passe du compte
  */
 include_once('../lib/configs.php');
 include_once('../lib/php/auth_utils.php');
