@@ -14,6 +14,8 @@ struct logServerData_s
    char **params_list;
 };
 
+extern char *log_server_name_str;
+
 int start_logServer(int my_id, void *data, char *errmsg, int l_errmsg);
 int stop_logServer(int my_id, void *data, char *errmsg, int l_errmsg);
 int restart_logServer(int my_id, void *data, char *errmsg, int l_errmsg);
