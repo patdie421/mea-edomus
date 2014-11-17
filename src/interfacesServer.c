@@ -120,7 +120,6 @@ void dispatchXPLMessageToInterfaces(xPL_ServicePtr theService, xPL_MessagePtr th
 
    interfaces_queue_elem_t *iq;
 
-//   VERBOSE(9) fprintf(stderr,"%s  (%s) : Reception message xPL\n",INFO_STR,__func__);
    VERBOSE(9) mea_log_printf("%s  (%s) : Reception message xPL\n",INFO_STR,__func__);
 
    pthread_cleanup_push( (void *)pthread_rwlock_unlock, (void *)&interfaces_queue_rwlock);
@@ -261,7 +260,6 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
    if(ret)
    {
       sqlite3_close(sqlite3_param_db);
-//      VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
       VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
       return NULL;
    }
@@ -273,7 +271,6 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
    if(!_interfaces)
    {
       VERBOSE(1) {
-//         fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
          mea_log_printf("%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
          perror("");
       }
@@ -316,7 +313,6 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                   if(!i001)
                   {
                      VERBOSE(2) {
-//                        fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
                         mea_log_printf("%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
                         perror("");
                      }
@@ -331,7 +327,6 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                      free(i001);
                      i001=NULL;
                      VERBOSE(2) {
-//                        fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
                         mea_log_printf("%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
                         perror("");
                      }
@@ -403,7 +398,6 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                   if(!i002)
                   {
                      VERBOSE(2) {
-//                        fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
                         mea_log_printf("%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
                         perror(""); }
                      break;
@@ -416,7 +410,6 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                      free(i002);
                      i002=NULL;
                      VERBOSE(2) {
-//                        fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
                         mea_log_printf("%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
                         perror("");
                      }  
@@ -427,15 +420,26 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                   i002->id_interface=id_interface;
                   i002->monitoring_id=process_register((char *)name);
 
-                  process_set_group(i002->monitoring_id, 1);
-                  i002_start_stop_params->sqlite3_param_db = sqlite3_param_db;
-                  i002_start_stop_params->parameters = (char *)parameters;
-                  i002_start_stop_params->i002=i002;
+                  i002->indicators.senttoplugin=0;
+                  i002->indicators.xplin=0;
+                  i002->indicators.xbeedatain=0;
+                  i002->indicators.commissionning_request=0;
 
+                  process_set_group(i002->monitoring_id, 1);
                   process_set_start_stop(i002->monitoring_id, start_interface_type_002, stop_interface_type_002, (void *)i002_start_stop_params, 1);
                   process_set_watchdog_recovery(i002->monitoring_id, restart_interface_type_002, (void *)i002_start_stop_params);
                   process_set_description(i002->monitoring_id, (char *)description);
                   process_set_heartbeat_interval(i002->monitoring_id, 60); // chien de garde au bout de 60 secondes sans heartbeat
+
+                  process_add_indicator(i002->monitoring_id, interface_type_002_senttoplugin_str, 0);
+                  process_add_indicator(i002->monitoring_id, interface_type_002_xplin_str, 0);
+                  process_add_indicator(i002->monitoring_id, interface_type_002_xbeedatain_str, 0);
+                  process_add_indicator(i002->monitoring_id, interface_type_002_commissionning_request_str, 0);
+
+                  i002_start_stop_params->sqlite3_param_db = sqlite3_param_db;
+                  i002_start_stop_params->parameters = (char *)parameters;
+                  i002_start_stop_params->i002=i002;
+
                   ret=process_start(i002->monitoring_id, NULL, 0);
 
                   interfaces_queue_elem_t *iq=(interfaces_queue_elem_t *)malloc(sizeof(interfaces_queue_elem_t));
