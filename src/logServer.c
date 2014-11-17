@@ -54,14 +54,7 @@ struct logServer_thread_data_s
 
 long logsent_indicator = 0;
 long logsenterr_indicator = 0;
-
-// pour envoyer les x dernieres lignes à la connexion d'un client
-// prévoir une fonction send last x lines avec comme position de lecture la derniere valeur de pos (à mettre en globale donc)
-// cette fonction est appeler par le consommateur avant l'initialisation du gestionnaire d'événement. Lette fonction, par l'intermédiaire d'un verrou,
-// bloque toutes les lectures/emissions de lignes (encadrer fpget/mea_send_socket avec le verrou).
-// elle lit ensuite les x dernieres lignes sans repositionner pos
-// envoyer les x dernieres lignes au demandeur
-// débloquer les envoies
+long readerror_indicator = 0;
 
 void mea_livelog_enable()
 {
@@ -87,12 +80,28 @@ void _set_logServer_isnt_running(void *data)
 }
 
 
-void send_line(char *hostname, int port_socketdata, char *line)
+int send_line(char *hostname, int port_socketdata, char *line)
+/**
+ * \brief     Envoie une ligne à la console web.
+ * \details   Formate un message "console" à destination du serveur nodejs. Si la socket est fermée, la fonction
+ *            va essayer d'établir la connexion. La socket est mémorisé par la fonction (variable static).
+ *            Attention, en cas d'erreur le message est perdu (sauf si traité par l'éméteur.
+ * \param     hostname  nom ou adresse ip du serveur nodejs
+ * \param     port_socketdata pour de reception du serveur nodejs
+ * \param     line ligne à afficher dans la console
+ * \return    -1 le message n'a pas pu être envoyé, 0 sinon
+ */
 {
    static int nodejs_socket = -1;
    
    if(nodejs_socket == -1)
-      mea_socket_connect(&nodejs_socket, hostname, port_socketdata);
+   {
+      if(mea_socket_connect(&nodejs_socket, hostname, port_socketdata)<0)
+      {
+         process_update_indicator(_logServer_monitoring_id, "LOGSENTERR", ++logsenterr_indicator);
+         return -1;
+      }
+   }
    
    char message[1024];
    int l_data=strlen(line)+4;
@@ -105,13 +114,15 @@ void send_line(char *hostname, int port_socketdata, char *line)
    {
       process_update_indicator(_logServer_monitoring_id, "LOGSENTERR", ++logsenterr_indicator);
       close(nodejs_socket);
-      if(mea_socket_connect(&nodejs_socket, hostname, port_socketdata)==-1)
-         nodejs_socket=-1;
+      nodejs_socket=-1;
+      return -1;
    }
    else
    {
       process_update_indicator(_logServer_monitoring_id, "LOGSENT", ++logsent_indicator);
    }
+   
+   return 0;
 }
 
 
@@ -282,9 +293,10 @@ int read_line(FILE *fp, char *line, int line_l, long *pos)
  * \param     line    chaine alloué par l'appelant qui contiendra la chaine lu.
  * \param     line_l  taille en octet de line (fourni par l'appelant).
  * \param     pos     en entrée : pointeur de lecture (ou -1), en sortie debut de la ligne suivante.
- * \return    -1 : erreur de lecture, 0 : ligne lue et potentiellement une autre ligne à lire,
- *            1 : pointeur déjà sur la fin de fichier (rien à lire), 2 : le fichier est plus petit que
- *            la position "*pos" => réinitialisation (*pos=-1).
+ * \return    -1 : erreur de lecture,
+ *             0 : ligne lue et potentiellement une autre ligne à lire,
+ *             1 : pointeur déjà sur la fin de fichier (rien à lire de suite),
+ *             2 : le fichier est plus petit que la position "*pos" => réinitialisation (*pos=-1).
  */
 {
    long ret=0;
@@ -362,7 +374,8 @@ void *logServer_thread(void *data)
                DEBUG_SECTION {
                mea_log_printf("%s  (%s) : fopen - ", INFO_STR, __func__);
                perror("");
-               sleep(10); // on attends un peu
+               sleep(5); // on attends un peu
+               break;
             }
             pos=-1;
          }
@@ -372,19 +385,28 @@ void *logServer_thread(void *data)
             int ret=read_line(fp, line, sizeof(line), &pos);
             if(ret==0)
             {
-               if(!line[0])
-                  send_line(logServer_thread_data->hostname, logServer_thread_data->port_socketdata, line);
+               if(line[0]) // ligne non vide
+               {
+                  if(send_line(logServer_thread_data->hostname, logServer_thread_data->port_socketdata, line)<0)
+                  {
+                     VERBOSE(9) mea_log_printf("%s (%s) : can't send line.\n", ERROR_STR, __func__);
+                  }
+               }
             }
             else if(ret==1)
             {
-               usleep(500000);
+               usleep(500000); // 500 ms d'attente
             }
-            else if(ret==2)
+            else if(ret==2) // fichier est plus petit
             {
-               mea_log_printf("%s (%s) : log file changed\n", INFO_STR, __func__);
+               VERBOSE(9) mea_log_printf("%s (%s) : log file changed, reset reading to last line.\n", WARNING_STR, __func__);
+               // par précotion on ferme le fichier pour tout réinitialiser, il sera réouvert au prochain tour.
+               fclose(fp);
+               fp=NULL;
             }
             else
             {
+               process_update_indicator(_logServer_monitoring_id, "READERROR", ++readerror_indicator);
                fclose(fp);
                fp=NULL;
                sleep(1);
