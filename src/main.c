@@ -928,15 +928,14 @@ int main(int argc, const char * argv[])
    struct xplServer_start_stop_params_s xplServer_start_stop_params;
    xplServer_start_stop_params.params_list=params_list;
    xplServer_start_stop_params.sqlite3_param_db=sqlite3_param_db;
-   xplServer_monitoring_id=process_register("XPLSERVER");
+   xplServer_monitoring_id=process_register(xpl_server_name_str);
    process_set_start_stop(xplServer_monitoring_id, start_xPLServer, stop_xPLServer, (void *)(&xplServer_start_stop_params), 1);
    process_set_watchdog_recovery(xplServer_monitoring_id, restart_xPLServer, (void *)(&xplServer_start_stop_params));
-   process_add_indicator(xplServer_monitoring_id, "XPLIN", 0);
-   process_add_indicator(xplServer_monitoring_id, "XPLOUT", 0);
+   process_add_indicator(xplServer_monitoring_id, xpl_server_xplin_str, 0);
+   process_add_indicator(xplServer_monitoring_id, xpl_server_xplout_str, 0);
 
    if(process_start(xplServer_monitoring_id, NULL, 0)<0)
    {
-//      VERBOSE(1) fprintf (stderr, "%s (%s) : can't start xpl server\n",ERROR_STR,__func__);
       VERBOSE(1) mea_log_printf("%s (%s) : can't start xpl server\n",ERROR_STR,__func__);
       clean_all_and_exit();
    }
