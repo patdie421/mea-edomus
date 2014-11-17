@@ -44,6 +44,12 @@
 #include "interface_type_002.h"
 
 
+char *interface_type_002_senttoplugin_str="SENT2PLUGIN";
+char *interface_type_002_xplin_str="XPLIN";
+char *interface_type_002_xbeedatain_str="XBEEIN";
+char *interface_type_002_commissionning_request_str="COMMIN";
+
+
 typedef void (*thread_f)(void *);
 
 // parametres valide pour les capteurs ou actionneurs pris en compte par le type 2.
@@ -77,6 +83,10 @@ struct callback_commissionning_data_s
    sqlite3        *param_db;
    xbee_xd_t      *xd;
    xbee_host_t    *local_xbee;
+   
+   // indicateurs
+   uint32_t       *commissionning_request;
+   uint32_t       *senttoplugin;
 };
 
 
@@ -315,6 +325,8 @@ int16_t _interface_type_002_xPL_callback(xPL_ServicePtr theService, xPL_MessageP
    interface_type_002_t *interface=(interface_type_002_t *)userValue;
    struct callback_xpl_data_s *params=(struct callback_xpl_data_s *)interface->xPL_callback_data;
    
+   interface->indicators.xplin++;
+   
    sqlite3 *params_db = params->param_db;
    
    if(!params->mainThreadState)
@@ -337,7 +349,6 @@ int16_t _interface_type_002_xPL_callback(xPL_ServicePtr theService, xPL_MessageP
    ret = sqlite3_prepare_v2(params_db, sql, strlen(sql)+1, &stmt, NULL);
    if(ret)
    {
-//      VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (params_db));
       VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (params_db));
       return ERROR;
    }
@@ -384,7 +395,7 @@ int16_t _interface_type_002_xPL_callback(xPL_ServicePtr theService, xPL_MessageP
             } // fin appel des fonctions Python
             
             pythonPluginServer_add_cmd(plugin_params[XBEE_PLUGIN_PARAMS_PLUGIN].value.s, (void *)plugin_elem, sizeof(plugin_queue_elem_t));
-            
+            interface->indicators.senttoplugin++;
             free_parsed_parameters(plugin_params, nb_plugin_params);
             free(plugin_elem);
             plugin_elem=NULL;
@@ -446,6 +457,9 @@ mea_error_t _interface_type_002_commissionning_callback(int id, unsigned char *c
    int err;
    
    struct callback_commissionning_data_s *callback_commissionning=(struct callback_commissionning_data_s *)data;
+   
+   *(callback_commissionning->commissionning_request)++;
+   
    sqlite3 *params_db=callback_commissionning->param_db;
    
    nd_resp=(struct xbee_node_identification_response_s *)cmd;
@@ -526,6 +540,7 @@ mea_error_t _interface_type_002_commissionning_callback(int id, unsigned char *c
          } // fin appel des fonctions Python
          
          pythonPluginServer_add_cmd(plugin_params[XBEE_PLUGIN_PARAMS_PLUGIN].value.s, (void *)plugin_elem, sizeof(plugin_queue_elem_t));
+         *(callback_commissionning->senttoplugin)++;
          
          free(plugin_elem);
          plugin_elem=NULL;
@@ -634,7 +649,11 @@ void *_thread_interface_type_002_xbeedata(void *args)
    while(1)
    {
       process_heartbeat(params->i002->monitoring_id);
-      
+      process_update_indicator(i002->monitoring_id, interface_type_002_senttoplugin_str, i002->indicators.senttoplugin);
+      process_update_indicator(i002->monitoring_id, interface_type_002_xplin_str, i002->indicators.xplin);
+      process_update_indicator(i002->monitoring_id, interface_type_002_xbeedatain_str, i002->indicators.xbeedatain);
+      process_update_indicator(i002->monitoring_id, interface_type_002_commissionning_request_str, i002->indicators.commissionning_request);
+
       pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)(&params->callback_lock) );
       pthread_mutex_lock(&params->callback_lock);
       
@@ -643,7 +662,7 @@ void *_thread_interface_type_002_xbeedata(void *args)
          struct timeval tv;
          struct timespec ts;
          gettimeofday(&tv, NULL);
-         ts.tv_sec = tv.tv_sec + 30; // timeout de 30 secondes
+         ts.tv_sec = tv.tv_sec + 10; // timeout de 10 secondes
          ts.tv_nsec = 0;
          
          ret=pthread_cond_timedwait(&params->callback_cond, &params->callback_lock, &ts);
@@ -670,6 +689,8 @@ void *_thread_interface_type_002_xbeedata(void *args)
       {
          char sql[1024];
          char addr[18];
+         
+         params->i002->indicators->xbeedatain++;
          
          sprintf(addr,
                  printf_mask_addr, // "%02x%02x%02x%02x-%02x%02x%02x%02x"
@@ -766,7 +787,7 @@ void *_thread_interface_type_002_xbeedata(void *args)
                      pthread_testcancel(); // on test tout de suite pour être sûr qu'on a pas ratté une demande d'arrêt
                   } // fin appel des fonctions Python
                   pythonPluginServer_add_cmd(params->plugin_params[XBEE_PLUGIN_PARAMS_PLUGIN].value.s, (void *)plugin_elem, sizeof(plugin_queue_elem_t));
-                  
+                  params->i002->indicators->senttoplugin++;
                   free(plugin_elem);
                   plugin_elem=NULL;
                   
@@ -775,7 +796,6 @@ void *_thread_interface_type_002_xbeedata(void *args)
                else
                {
                   VERBOSE(2) {
-//                     fprintf(stderr,"%s (%s) : %s - ", ERROR_STR, __func__, MALLOC_ERROR_STR);
                      mea_log_printf("%s (%s) : %s - ", ERROR_STR, __func__, MALLOC_ERROR_STR);
                      perror("");
                   }
@@ -809,7 +829,6 @@ void *_thread_interface_type_002_xbeedata(void *args)
       else
       {
          // pb d'accès aux données de la file
-//         DEBUG_SECTION fprintf(stderr,"%s (%s) : out_queue_elem - no data in queue\n", DEBUG_STR, __func__);
          DEBUG_SECTION mea_log_printf("%s (%s) : out_queue_elem - no data in queue\n", DEBUG_STR, __func__);
       }
       pthread_testcancel();
@@ -841,7 +860,6 @@ pthread_t *start_interface_type_002_xbeedata_thread(interface_type_002_t *i002, 
    if(!params)
    {
       VERBOSE(2) {
-//         fprintf(stderr,"%s (%s) : %s - ", ERROR_STR, __func__, MALLOC_ERROR_STR);
          mea_log_printf("%s (%s) : %s - ", ERROR_STR, __func__, MALLOC_ERROR_STR);
          perror("");
       }
@@ -851,7 +869,6 @@ pthread_t *start_interface_type_002_xbeedata_thread(interface_type_002_t *i002, 
    if(!params->queue)
    {
       VERBOSE(2) {
-//         fprintf(stderr,"%s (%s) : %s - ", ERROR_STR, __func__, MALLOC_ERROR_STR);
          mea_log_printf("%s (%s) : %s - ", ERROR_STR, __func__, MALLOC_ERROR_STR);
          perror("");
       }
@@ -873,7 +890,6 @@ pthread_t *start_interface_type_002_xbeedata_thread(interface_type_002_t *i002, 
    callback_xbeedata=(struct callback_data_s *)malloc(sizeof(struct callback_data_s));
    if(!callback_xbeedata)
    {
-//      VERBOSE(2) fprintf(stderr,"%s (%s) : %s\n", ERROR_STR, __func__, MALLOC_ERROR_STR);
       VERBOSE(2) mea_log_printf("%s (%s) : %s\n", ERROR_STR, __func__, MALLOC_ERROR_STR);
       goto clean_exit;
    }
@@ -889,7 +905,6 @@ pthread_t *start_interface_type_002_xbeedata_thread(interface_type_002_t *i002, 
    thread=(pthread_t *)malloc(sizeof(pthread_t));
    if(!thread)
    {
-//      VERBOSE(2) fprintf(stderr,"%s (%s) : %s\n", ERROR_STR, __func__, MALLOC_ERROR_STR);
       VERBOSE(2) mea_log_printf("%s (%s) : %s\n", ERROR_STR, __func__, MALLOC_ERROR_STR);
       goto clean_exit;
    }
@@ -929,7 +944,6 @@ clean_exit:
 }
 
 
-//mea_error_t stop_interface_type_002(interface_type_002_t *i002)
 int stop_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
 /**
  * \brief     arrêt d'une interface de type 2
@@ -943,7 +957,6 @@ int stop_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
 
    struct interface_type_002_data_s *start_stop_params=(struct interface_type_002_data_s *)data;
 
-//   VERBOSE(1) fprintf(stderr,"%s  (%s) : %s shutdown thread ... ", INFO_STR, __func__, start_stop_params->i002->name);
    VERBOSE(1) mea_log_printf("%s  (%s) : %s shutdown thread ... ", INFO_STR, __func__, start_stop_params->i002->name);
 
    if(start_stop_params->i002->xPL_callback_data)
@@ -987,7 +1000,6 @@ int stop_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
             break;
          }
       }
-//      DEBUG_SECTION fprintf(stderr,"%s (%s) : %s, fin après %d itération\n",DEBUG_STR, __func__,start_stop_params->i002->name,100-counter);
       DEBUG_SECTION mea_log_printf("%s (%s) : %s, fin après %d itération\n",DEBUG_STR, __func__,start_stop_params->i002->name,100-counter);
 
       free(start_stop_params->i002->thread);
@@ -1016,7 +1028,6 @@ int stop_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
       start_stop_params->i002->local_xbee=NULL;
    }
    
-//   VERBOSE(1) fprintf(stderr, "done.\n");
    VERBOSE(1) mea_log_printf("done.\n");
    mea_notify_printf('S', "%s %s", start_stop_params->i002->name, stopped_successfully_str);
 
@@ -1027,7 +1038,7 @@ int stop_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
 int restart_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
 {
    process_stop(my_id, NULL, 0);
-//   sleep(5);
+   sleep(5);
    return process_start(my_id, NULL, 0);
 }
 
@@ -1091,7 +1102,6 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
       {
          strerror_r(errno, err_str, sizeof(err_str));
          VERBOSE(2) {
-//            fprintf (stderr, "%s (%s) : snprintf - %s\n", ERROR_STR, __func__, err_str);
             mea_log_printf("%s (%s) : snprintf - %s\n", ERROR_STR, __func__, err_str);
          }
          mea_notify_printf('E', "%s can't be launched - %s.\n", start_stop_params->i002->name, err_str);
@@ -1100,7 +1110,6 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
    }
    else
    {
-//      VERBOSE(2) fprintf (stderr, "%s (%s) : incorrect device/speed interface - %s\n", ERROR_STR,__func__,start_stop_params->i002->dev);
       VERBOSE(2) mea_log_printf("%s (%s) : incorrect device/speed interface - %s\n", ERROR_STR,__func__,start_stop_params->i002->dev);
       mea_notify_printf('E', "%s can't be launched - incorrect device/speed interface - %s.\n", start_stop_params->i002->name, start_stop_params->i002->dev);
       goto clean_exit;
@@ -1111,7 +1120,6 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
    {
       strerror_r(errno, err_str, sizeof(err_str));
       VERBOSE(2) {
-//         fprintf(stderr,"%s (%s) : %s - %s\n", ERROR_STR, __func__, MALLOC_ERROR_STR, err_str);
          mea_log_printf("%s (%s) : %s - %s\n", ERROR_STR, __func__, MALLOC_ERROR_STR, err_str);
       }
       mea_notify_printf('E', "%s can't be launched - %s.\n", start_stop_params->i002->name, err_str);
@@ -1123,7 +1131,6 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
    {
       strerror_r(errno, err_str, sizeof(err_str));
       VERBOSE(2) {
-//         fprintf(stderr,"%s (%s) : init_xbee - Unable to open serial port (%s).\n", ERROR_STR, __func__, dev);
          mea_log_printf("%s (%s) : init_xbee - Unable to open serial port (%s).\n", ERROR_STR, __func__, dev);
       }
       mea_notify_printf('E', "%s : unable to open serial port (%s) - %s.\n", start_stop_params->i002->name, dev, err_str);
@@ -1139,7 +1146,6 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
    {
       strerror_r(errno, err_str, sizeof(err_str));
       VERBOSE(2) {
-//         fprintf(stderr,"%s (%s) : %s - %s.\n", ERROR_STR, __func__, MALLOC_ERROR_STR, err_str);
          mea_log_printf("%s (%s) : %s - %s.\n", ERROR_STR, __func__, MALLOC_ERROR_STR, err_str);
       }
       mea_notify_printf('E', "%s can't be launched - %s.\n", start_stop_params->i002->name, err_str);
@@ -1165,7 +1171,6 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
       do { ret=at_get_local_char_array_reg(xd, at_cmd, (char *)addr_l, &l_reg_val, &nerr); } while (ret==-1); // a revoir boucle infinie possible ...
       addr_64_char_array_to_int(addr_h, addr_l, &addr_64_h, &addr_64_l);
    }
-//   VERBOSE(9) fprintf(stderr, "%s  (%s) : local address is : %02x-%02x\n", INFO_STR, __func__, addr_64_h, addr_64_l);
    VERBOSE(9) mea_log_printf("%s  (%s) : local address is : %02x-%02x\n", INFO_STR, __func__, addr_64_h, addr_64_l);
  
    xbee_get_host_by_addr_64(xd, local_xbee, addr_64_h, addr_64_l, &nerr);
@@ -1183,12 +1188,10 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
          // pas de plugin spécifié
          free(interface_parameters);
          interface_parameters=NULL;
-//         VERBOSE(9) fprintf(stderr, "%s  (%s) : no python plugin specified\n", INFO_STR, __func__);
          VERBOSE(9) mea_log_printf("%s  (%s) : no python plugin specified\n", INFO_STR, __func__);
       }
       else
       {
-//         VERBOSE(2) fprintf(stderr, "%s (%s) : invalid python plugin parameters (%s)\n", ERROR_STR, __func__, start_stop_params->parameters);
          VERBOSE(2) mea_log_printf("%s (%s) : invalid python plugin parameters (%s)\n", ERROR_STR, __func__, start_stop_params->parameters);
          mea_notify_printf('E', "%s - invalid python plugin parameters (%s)", start_stop_params->i002->name, start_stop_params->parameters);
          goto clean_exit;
@@ -1212,7 +1215,6 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
       pModule = PyImport_Import(pName);
       if(!pModule)
       {
-//         VERBOSE(5) fprintf(stderr, "%s (%s) : %s not found\n", ERROR_STR, __func__, interface_parameters[XBEE_PLUGIN_PARAMS_PLUGIN].value.s);
          VERBOSE(5) mea_log_printf("%s (%s) : %s not found\n", ERROR_STR, __func__, interface_parameters[XBEE_PLUGIN_PARAMS_PLUGIN].value.s);
       }
       else
@@ -1298,6 +1300,8 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
    commissionning_callback_params->mainThreadState=NULL;
    commissionning_callback_params->myThreadState=NULL;
    commissionning_callback_params->local_xbee=local_xbee;
+   commissionning_callback_params->senttoplugin=&(start_stop_params->i002->indicators.senttoplugin); // indicateur requete vers plugin
+   commissionning_callback_params->commissionning_request=&(start_stop_params->i002->indicators.commissionning_request); // indicateur nb demande commissionnement
    xbee_set_commissionning_callback2(xd, _interface_type_002_commissionning_callback, (void *)commissionning_callback_params);
    
    //
@@ -1322,7 +1326,6 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
    start_stop_params->i002->xPL_callback_data=xpl_callback_params;
    start_stop_params->i002->xPL_callback=_interface_type_002_xPL_callback;
    
-//   VERBOSE(2) fprintf(stderr,"%s (%s) : %s %s.\n", ERROR_STR, __func__,start_stop_params->i002->name, launched_successfully_str);
    VERBOSE(2) mea_log_printf("%s (%s) : %s %s.\n", ERROR_STR, __func__,start_stop_params->i002->name, launched_successfully_str);
    mea_notify_printf('S', "%s %s", start_stop_params->i002->name, launched_successfully_str);
    
