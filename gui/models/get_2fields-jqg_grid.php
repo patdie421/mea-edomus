@@ -1,4 +1,32 @@
 <?php
+/**
+ * @file   get_2fields-jqg_grid.php
+ * @date   2014/11/17
+ * @author Patrice Dietsch <patrice.dietsch@gmail.com>
+ * @brief  retourne dans une même reponse les valeurs de deux champs distincts
+ *         se trouvant dans deux tables distinctes
+ * @detail ceci est un cgi de type GET. Il va retourner le résultat de deux requêtes
+ *         SQL du type SELECT [fieldx] FROM [tablex] WHERE [wherex] avec x=1 ou 2
+ *         Le resultat est retourné dans un json avec les éléments suivants :
+ * @return { result=>["OK" ou "KO"] : OK = pas d'erreur, KO une erreur
+ *           error=>[numéro d'erreur] : les numéros d'erreur possible sont :
+ *              1 : erreur inconnue
+ *             99 : demandeur pas connecté
+ *              2 : parametres incorrects table, field ou value absent
+ *              3 : échec d'ouverture base de données (message db dans errmsg)
+ *              4 : echec de la première requete (message db dans errmsg)
+ *              5 : echec de la deuxième requete (message db dans errmsg)
+ *              0 : pas d'erreur (result = "OK")
+ *           errmsg=>[un message],
+ *           value1=>resultat de la première requete (dans un tableau json),
+ *           value2=>resultat de la seconde requete (dans un tableau json)}
+ * @param  table1 première table
+ * @param  field1 premier champ
+ * @param  where1 premier clause where
+ * @param  table2 deuxième table
+ * @param  field2 deuxième champ
+ * @param  where2 deuxième clause where
+ */
 include_once('../lib/configs.php');
 include_once('../lib/php/auth_utils.php');
 session_start();
