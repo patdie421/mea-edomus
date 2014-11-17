@@ -79,7 +79,10 @@ void _set_logServer_isnt_running(void *data)
 {
    FILE *fp=(FILE *)data;
    if(fp)
+   {
       fclose(fp);
+      fp=NULL;
+   }
    _logServer_thread_is_running=0;
 }
 
@@ -113,6 +116,21 @@ void send_line(char *hostname, int port_socketdata, char *line)
 
 
 int read_string(char *line, int line_l, FILE *fp)
+/**
+ * \brief     lit la prochaine chaine de cararctères d'un fichier ouvert à partir de la position courante
+ *            dans le fichier.
+ * \details   cette fonction va lire caractère par caractère le flot de données d'un fichier ouvert jusqu'à
+ *            trouver un caractère "LF" (asc=10). La chaine trouvée est copiée dans "line" si la taille le
+ *            permet. Si la taille de "line" ne le permet pas, line et retournée avec les données qui ont pu
+ *            être lu et la fonction retourne -1. La fin de chaine est toujours 0 même si la limite
+ *            de taille de "line" est atteinte. Si aucune donnée n'est disponible pendant 1s la fonction retourne
+ *            -3 mais "line" contient les données qui ont pu être lues.
+ * \param     line   chaine alloué par l'appelant qui contiendra la chaine lu.
+ * \param     line_l taille en octet de line (fourni par l'appelant).
+ * \param     fp     descripteur du fichier à lire
+ * \return    -3 timeout de lecture (pas de caractère dispo depuis environ 1 seconde, -2 erreur de lecture,
+ *            -1 taille de "line" insuffisante, nombre de caractères lus sinon
+ */
 {
    int i=0;
    int timeout_counter=0;
@@ -123,7 +141,10 @@ int read_string(char *line, int line_l, FILE *fp)
       {
          clearerr(fp);
          if(timeout_counter>10)
+         {
+            line[i]='\0';
             return -3;
+         }
          usleep(100000);
          timeout_counter++;
       }
@@ -135,7 +156,7 @@ int read_string(char *line, int line_l, FILE *fp)
             perror("");
             return -2;
          }
-         if(c==10)
+         if(c==0x0A) // LF
          {
             line[i]=0;
             return i;
@@ -144,8 +165,11 @@ int read_string(char *line, int line_l, FILE *fp)
          {
             if(i<(line_l-1))
             {
-               line[i]=(char)c;
-               i++;
+               if(c != 0x0D) // CR : on oubli ce caratère s'il est trouvé dans une chaine
+               {
+                 line[i]=(char)c;
+                 i++;
+               }
             }
             else
             {
@@ -160,59 +184,87 @@ int read_string(char *line, int line_l, FILE *fp)
 
 
 long seek_to_previous_line(FILE *fp, long *pos)
+/**
+ * \brief     Positionne le pointeur de lecture au début de la dernière ligne d'un fichier.
+ * \details   lecture d'un fichier à partir de la fin pour trouvé le debut de la dernière ligne.
+ *            Une fin de ligne est identifiés par un LF (0x0A) ou LFCR (0x0A suivi de 0x0D).
+ * \param     fp   descripteur ouvert du fichier.
+ * \param     pos  valeur du pointeur de fichier.
+ * \return    -1 pas de ligne trouvée dans le fichier (pos=-1).
+ *            0 fseek réalisé et pos OK.
+ */
 {
    int found=0;
-   int i=1;
-   int nb_cars=0;
+   int i=0;
+   int block_size=0;
    long p=0;
    long end;
+   char previous_carater=0;
 
-   fseek(fp,0,SEEK_END); // On va a la fin du fichier
+   if(fseek(fp,0,SEEK_END)) // On va a la fin du fichier
+   {
+      if(ferror(fp))
+      {
+         DEBUG_SECTION {
+            mea_log_printf("%s  (%s) : fseek - ", INFO_STR, __func__);
+            perror("");
+         }
+         *pos=-1;
+         return -1;
+      }
+   }
+   
    end=ftell(fp); // récupération de la position
    *pos=end;
    
+   i=1; // un premier bloc à lire
    do
    {
-      p = end-256*i; // on remonte d'un bloc
-      if(p<0) // bloque trop court, on ajuste
+      p = end-256*i; // on prévoit de remonter d'un nouveau bloc de 256 octets par rapport à la fin du fichier
+      if(p<0) // bloc trop court (on a atteint le début du fichier), on ajuste
       {
-         nb_cars=256+p;
+         block_size=256+p;
          p=0;
-         fseek(fp,0,SEEK_SET); // on point au débug
+         fseek(fp,0,SEEK_SET); // on point au début du fichier
       }
       else
       {
-         nb_cars=256;
-         fseek(fp, p, SEEK_SET);
+         block_size=256;
+         fseek(fp, p, SEEK_SET); // on point au début du nouveau bloc
       }
       
-      for(int j=0;j<nb_cars;j++) // on lit jusqu'à trouver une fin de ligne
+      // lecture séquentielle des caractères
+      for(int j=0;j<block_size;j++) // on lit jusqu'à trouver une fin de ligne
       {
          int c=fgetc(fp);
-         if(c==EOF && ferror(fp))
+         if(c==EOF && ferror(fp)) // erreur de lecture
          {
+            *pos=-1;
             return -1;
          }
-         else if(c==EOF)
+         else if(c==EOF && feof(fp)) // plus rien à lire (fin de fichier)
          {
-            clearerr(fp);
-            i++; // on remonte d'un bloc
-            break;
+            clearerr(fp); // c'est pas une erreur ... mais il faut clearer quand même
+            break; // et on qui le boucle for
          }
-         else if(c==10)
+         else if(c==0x0A || (c==0x0D && previous_caracter==0x0A)) // une fin de ligne
          {
-            if(i==1 && j==255 && found==0) // fin du premier bloc et rien trouvé jusqu'à présent, on a surement pas le début de la ligne
+            if(i==1 && j==255) // cas particulier : c'est le premier bloc et le dernier caractère.
             {
-               // on lira un deuxieme bloc
+               if(c==0x0D && (end-pos)==1) // la dernière prise de position correspond au LF associé au CR ?
+               {
+                  found=0; // on dit que finalement on n'a pas trouvé pour pouvoir remonter d'un bloc
+               }
             }
             else
-               found=1;
-            *pos=ftell(fp); // on marque la possition
+               found=1; // dans tous les autres cas on dit qu'on a trouvé une fin de ligne
+            *pos=ftell(fp); // on marque la position
          }
+         previous_caracter=c; // on garde la trace du dernier caractère lu pour pouvoir traiter les CR en fin de ligne
       }
-      i++;
       if(found)
          break;
+      i++;
    }
    while(p!=0);
    
@@ -221,8 +273,19 @@ long seek_to_previous_line(FILE *fp, long *pos)
 }
 
 
-
 int read_line(FILE *fp, char *line, int line_l, long *pos)
+/**
+ * \brief     Lit à partir de "*pos" ou en fin de fichier si "*pos" == -1.
+ * \details   lecture d'un fichier à partir de la fin pour trouvé le debut de la dernière ligne.
+ *            Une fin de ligne est identifiés par un LF (0x0A) ou LFCR (0x0A suivi de 0x0D).
+ * \param     fp      descripteur ouvert du fichier.
+ * \param     line    chaine alloué par l'appelant qui contiendra la chaine lu.
+ * \param     line_l  taille en octet de line (fourni par l'appelant).
+ * \param     pos     en entrée : pointeur de lecture (ou -1), en sortie debut de la ligne suivante.
+ * \return    -1 : erreur de lecture, 0 : ligne lue et potentiellement une autre ligne à lire,
+ *            1 : pointeur déjà sur la fin de fichier (rien à lire), 2 : le fichier est plus petit que
+ *            la position "*pos" => réinitialisation (*pos=-1).
+ */
 {
    long ret=0;
    long p=0;
@@ -230,6 +293,7 @@ int read_line(FILE *fp, char *line, int line_l, long *pos)
    if(*pos==-1)
    {
       seek_to_previous_line(fp, pos);
+      line[0]='\0';
    }
    else
    {
@@ -244,7 +308,7 @@ int read_line(FILE *fp, char *line, int line_l, long *pos)
             return -1; // erreur
          else
          {
-            *pos+=ret+1;
+            *pos+=(ret+1);
             return 0; // ok pour prochaine lecture
          }
       }
@@ -295,9 +359,10 @@ void *logServer_thread(void *data)
             fp = fopen(log_file, "r");
             if(!fp)
             {
-               // traiter ici l'erreur
+               DEBUG_SECTION {
+               mea_log_printf("%s  (%s) : fopen - ", INFO_STR, __func__);
                perror("");
-               sleep(1); // on attends un peu
+               sleep(10); // on attends un peu
             }
             pos=-1;
          }
@@ -307,7 +372,8 @@ void *logServer_thread(void *data)
             int ret=read_line(fp, line, sizeof(line), &pos);
             if(ret==0)
             {
-               send_line(logServer_thread_data->hostname, logServer_thread_data->port_socketdata, line);
+               if(!line[0])
+                  send_line(logServer_thread_data->hostname, logServer_thread_data->port_socketdata, line);
             }
             else if(ret==1)
             {
