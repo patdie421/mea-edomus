@@ -1,4 +1,26 @@
 <?php
+/**
+ * @file   check_mysql_connexion.php
+ * @date   2014/11/17
+ * @author Patrice Dietsch <patrice.dietsch@gmail.com>
+ * @brief  test la connexion à une base mysql.
+ * @detail ceci est un cgi de type GET. le va tenter une connexion à une base mysql
+ *         avec les parametres server, port, base, user et password. Si la connexion
+  *        peut être établie il retourne "OK" sinon "KO" dans un json :  
+ *         { result=>["OK" ou "KO"] : OK = connexion possible, KO une erreur
+ *           error=>[numéro d'erreur] : les numéros d'erreur possible sont :
+ *              1 : erreur inconnue ou erreur de parametre (voir error_msg)
+ *             98 : demandeur pas habilité
+ *             99 : demandeur pas connecté
+ *              2 : erreur de connexion à la base (message db dans error_msg)
+ *           errmsg=>[un message],
+ *           debug=>[requete sql executée] }
+ 
+ * @param  table  nom de la table à interroger
+ * @param  field  nom du champ à contrôler
+ * @param  value  valeur à rechercher
+ * @param  id     id de la table à exclure de la recherche
+ */
 include_once('../lib/configs.php');
 include_once('../lib/php/auth_utils.php');
 
