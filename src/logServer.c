@@ -198,6 +198,57 @@ int read_string(char *line, int line_l, FILE *fp)
 }
 
 
+long seek_to_next_line(FILE *fp, long *pos)
+/**
+ * \brief     "avance" le pointeur (*pos) de lecture jusqu'au prochain LF (ou CR) dans le fichier.
+ * \details   Si la fin de fichier est atteinte avant d'avoir trouvé un LF (CR), on se met en attente
+ *            et on continu jusqu'à ce qu'un LF (ou CR) soit ajouté dans le fichier.
+ * \param     fp   fichier ouvert à lire.
+ * \param     pos  en entrée : pointeur de lecture, en sortie debut de la ligne suivante.
+ * \return    -1 : erreur de lecture,
+ *             0 : debut de ligne trouvé.
+ */
+{
+   if(fseek(fp,*pos,SEEK_END))
+   {
+      if(ferror(fp))
+      {
+         DEBUG_SECTION {
+            mea_log_printf("%s  (%s) : fseek - ", INFO_STR, __func__);
+            perror("");
+         }
+         *pos=-1;
+         return -1;
+      }
+   }
+   
+   while(1)
+   {
+      int c=fgetc(fp);
+      *pos++;
+
+      if(c==EOF && ferror(fp)) // erreur de lecture
+      {
+         *pos=-1;
+         return -1;
+      }
+      else if(c==EOF)
+      {
+         clearerr(fp);
+         usleep(100000);
+      }
+      else
+      {
+         *pos++;
+         if(c==0x0A || c==0x0D)
+         {
+            return 0;
+         }
+      }
+   }
+}
+
+
 long seek_to_previous_line(FILE *fp, long *pos)
 /**
  * \brief     Positionne le pointeur de lecture au début de la dernière ligne d'un fichier.
@@ -320,7 +371,14 @@ int read_line(FILE *fp, char *line, int line_l, long *pos)
       {
          fseek(fp,*pos,SEEK_SET);
          ret=read_string(line, line_l, fp);
-         if(ret<0)
+         if(ret==-1)
+         {
+            snprintf(line, line_l-1, "=== line to long for internal buffer, skipped ===");
+            *pos+=line_l;
+            seek_to_next_line(fp,*pos);
+            return 0;
+         }
+         else if(ret < -1)
             return -1; // erreur
          else
          {
@@ -328,14 +386,14 @@ int read_line(FILE *fp, char *line, int line_l, long *pos)
             return 0; // ok pour prochaine lecture
          }
       }
-      else if(p<*pos) // ancien position après la fin de la linge
+      else if(p<*pos) // ancien position après la fin de la ligne
       {
          *pos=-1; // on reinitialise tout
          return 2;
       }
       else
       {
-         return 1; // fichier pas bougé
+         return 1; // fichier pas bougé ? (à verifier ailleurs ...)
       }
    }
    return 0; // fin normal, lire prochaine ligne
