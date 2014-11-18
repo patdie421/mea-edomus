@@ -47,18 +47,26 @@ int16_t _check_todbflag(sqlite3 *db, uint16_t sensor_id)
       VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (db));
       return -1;
    }
-   int s = sqlite3_step(stmt);
-   if (s == SQLITE_ROW)
+   
+   while(1)
    {
-      int val=sqlite3_column_int(stmt, 1);
-      sqlite3_finalize(stmt);
-      return val;
+      int s = sqlite3_step(stmt);
+      if (s == SQLITE_ROW)
+      {
+         int val=sqlite3_column_int(stmt, 1);
+         if(sqlite3_column_int(stmt,2)==sensor_id)
+         {
+            sqlite3_finalize(stmt);
+            return val;
+         }
+      }
+      else
+      {
+         sqlite3_finalize(stmt);
+         return -1;
+      }
    }
-   else
-   {
-     sqlite3_finalize(stmt);
-     return -1;
-   }
+   return -1;
 }
 
 
