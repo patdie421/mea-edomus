@@ -40,7 +40,7 @@ int16_t _check_todbflag(sqlite3 *db, uint16_t sensor_id)
    sqlite3_stmt * stmt;
    int ret;
    
-   snprintf(sql,sizeof(sql),"SELECT todbflag FROM sensors_actuators WHERE id_sensor_actuator = %d",sensor_id);
+   snprintf(sql,sizeof(sql),"SELECT todbflag,id_sensor_actuator FROM sensors_actuators WHERE id_sensor_actuator = %d",sensor_id);
    ret = sqlite3_prepare_v2(db, sql, strlen(sql)+1, &stmt, NULL);
    if(ret)
    {

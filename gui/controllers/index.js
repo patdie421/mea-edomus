@@ -122,10 +122,6 @@ var indicatorsTable = {
 }  
 
 
-var logViewer = {
-};
-    
-
 var controlPanel = {
    table_reload:"",
    table_interfaces:"",
