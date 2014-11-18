@@ -39,25 +39,33 @@ int16_t _check_todbflag(sqlite3 *db, uint16_t sensor_id)
    char sql[80];
    sqlite3_stmt * stmt;
 
-   snprintf(sql,sizeof(sql),"SELECT todbflag FROM sensors_actuators WHERE id_sensor_actuator = %d",sensor_id);
+   snprintf(sql,sizeof(sql),"SELECT todbflag,id_sensor_actuator FROM sensors_actuators WHERE id_sensor_actuator = %d",sensor_id);
    ret = sqlite3_prepare_v2(db, sql, strlen(sql)+1, &stmt, NULL);
    if(ret)
    {
       VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (params_db));
       return -1;
    }
-   int s = sqlite3_step(stmt);
-   if (s == SQLITE_ROW)
+   
+   while(1)
    {
-      int val=sqlite3_column_int(stmt, 1);
-      sqlite3_finalize(stmt);
-      return val;
+      int s = sqlite3_step(stmt);
+      if (s == SQLITE_ROW)
+      {
+         int val=sqlite3_column_int(stmt, 1);
+         if(sqlite3_column_int(stmt,2)==sensor_id)
+         {
+            sqlite3_finalize(stmt);
+            return val;
+         }
+      }
+      else
+      {
+         sqlite3_finalize(stmt);
+         return -1;
+      }
    }
-   else
-   {
-     sqlite3_finalize(stmt);
-     return -1;
-   }
+   return -1;
 }
 
 
