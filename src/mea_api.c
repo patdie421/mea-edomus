@@ -38,12 +38,13 @@ int16_t _check_todbflag(sqlite3 *db, uint16_t sensor_id)
 {
    char sql[80];
    sqlite3_stmt * stmt;
-
+   int ret;
+   
    snprintf(sql,sizeof(sql),"SELECT todbflag FROM sensors_actuators WHERE id_sensor_actuator = %d",sensor_id);
    ret = sqlite3_prepare_v2(db, sql, strlen(sql)+1, &stmt, NULL);
    if(ret)
    {
-      VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (params_db));
+      VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (db));
       return -1;
    }
    int s = sqlite3_step(stmt);
@@ -686,7 +687,6 @@ static PyObject *mea_addDataToSensorsValuesTable(PyObject *self, PyObject *args)
 
    PyObject *arg;
    
-   
    // récupération des paramètres et contrôle des types
    if(PyTuple_Size(args)!=5)
       goto mea_addDataToSensorsValuesTable_arg_err;
@@ -721,7 +721,7 @@ static PyObject *mea_addDataToSensorsValuesTable(PyObject *self, PyObject *args)
    else
       goto mea_addDataToSensorsValuesTable_arg_err;
 
-   sqlite3 db=get_sqlite3_param_db();
+   sqlite3 *db=get_sqlite3_param_db();
    if(db)
    {
       if(_check_todbflag(db, sensor_id)==1)

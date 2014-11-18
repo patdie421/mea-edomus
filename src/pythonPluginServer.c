@@ -82,7 +82,7 @@ void setPythonPluginPath(char *path)
 mea_error_t pythonPluginServer_add_cmd(char *module, void *data, int l_data)
 {
    pythonPlugin_cmd_t *e=NULL;
-   int ret=ERROR;
+   int ret=NOERROR;
    e=(pythonPlugin_cmd_t *)malloc(sizeof(pythonPlugin_cmd_t));
    if(!e)
       return ERROR;
@@ -587,6 +587,7 @@ int start_pythonPluginServer(int my_id, void *data, char *errmsg, int l_errmsg)
    if(pythonPluginServer_start_stop_params->params_list[PLUGINS_PATH])
    {
       setPythonPluginPath(pythonPluginServer_start_stop_params->params_list[PLUGINS_PATH]);
+      fprintf(stderr,"%s\n",pythonPluginServer_start_stop_params->params_list[PLUGINS_PATH]);
       _pythonPluginServer_thread_id=pythonPluginServer();
       if(_pythonPluginServer_thread_id==NULL)
       {

@@ -341,7 +341,7 @@ int main(int argc, const char * argv[])
  */
 {
    int ret; // sqlite function need int
-   sqlite3 *sqlite3_param_db; // descritpteur SQLITE
+//   sqlite3 *sqlite3_param_db; // descritpteur SQLITE
    
    // toutes les options possibles
    static struct option long_options[] = {
@@ -909,7 +909,7 @@ int main(int argc, const char * argv[])
    //
    struct pythonPluginServer_start_stop_params_s pythonPluginServer_start_stop_params;
    pythonPluginServer_start_stop_params.params_list=params_list;
-   pythonPluginServer_start_stop_params.sqlite3_param_db=sqlite3_param_db;
+//   pythonPluginServer_start_stop_params.sqlite3_param_db=sqlite3_param_db;
    pythonPluginServer_monitoring_id=process_register("PYTHONPLUGINSERVER");
    process_set_start_stop(pythonPluginServer_monitoring_id , start_pythonPluginServer, stop_pythonPluginServer, (void *)(&pythonPluginServer_start_stop_params), 1);
    process_set_watchdog_recovery(xplServer_monitoring_id, restart_pythonPluginServer, (void *)(&pythonPluginServer_start_stop_params));

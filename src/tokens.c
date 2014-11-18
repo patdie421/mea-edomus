@@ -71,6 +71,7 @@ struct token_s tokens_list[]={
    {"low",                        LOW_ID},
    {"generic",                    GENERIC_ID},
    {"unit",                       UNIT_ID},
+   {"todbflag",                   TODBFLAG_ID},
    {NULL,0}
 };
 

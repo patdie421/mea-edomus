@@ -214,7 +214,7 @@ long seek_to_previous_line(FILE *fp, long *pos)
    int block_size=0;
    long p=0;
    long end;
-   char previous_carater=0;
+   char previous_caracter=0;
 
    if(fseek(fp,0,SEEK_END)) // On va a la fin du fichier
    {
@@ -266,7 +266,7 @@ long seek_to_previous_line(FILE *fp, long *pos)
          {
             if(i==1 && j==255) // cas particulier : c'est le premier bloc et le dernier caractère.
             {
-               if(c==0x0D && (end-pos)==1) // la dernière prise de position correspond au LF associé au CR ?
+               if(c==0x0D && (end-*pos)==1) // la dernière prise de position correspond au LF associé au CR ?
                {
                   found=0; // on dit que finalement on n'a pas trouvé pour pouvoir remonter d'un bloc
                }
@@ -376,8 +376,9 @@ void *logServer_thread(void *data)
             if(!fp)
             {
                DEBUG_SECTION {
-               mea_log_printf("%s  (%s) : fopen - ", INFO_STR, __func__);
-               perror("");
+                  mea_log_printf("%s  (%s) : fopen - ", INFO_STR, __func__);
+                  perror("");
+               }
                sleep(5); // on attends un peu
                break;
             }

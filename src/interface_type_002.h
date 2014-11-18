@@ -46,7 +46,7 @@ struct interface_type_002_indicators_s
 
 extern char *interface_type_002_senttoplugin_str;
 extern char *interface_type_002_xplin_str;
-extern char *interface_type_002_xbeedatain_st;
+extern char *interface_type_002_xbeedatain_str;
 extern char *interface_type_002_commissionning_request_str;
 
 typedef struct interface_type_002_s
@@ -61,6 +61,7 @@ typedef struct interface_type_002_s
    volatile sig_atomic_t thread_is_running;
    xpl_f            xPL_callback;
    void            *xPL_callback_data;
+   char            *parameters;
    
    struct interface_type_002_indicators_s indicators;
 } interface_type_002_t;
@@ -72,7 +73,7 @@ struct interface_type_002_data_s
    sqlite3 *sqlite3_param_db;
 //   int16_t id_interface;
 //   tomysqldb_md_t *myd;
-   char *parameters;
+//   char *parameters;
 };  
 
 

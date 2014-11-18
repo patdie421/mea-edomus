@@ -458,7 +458,7 @@ mea_error_t _interface_type_002_commissionning_callback(int id, unsigned char *c
    
    struct callback_commissionning_data_s *callback_commissionning=(struct callback_commissionning_data_s *)data;
    
-   *(callback_commissionning->commissionning_request)++;
+   *(callback_commissionning->commissionning_request)=*(callback_commissionning->commissionning_request)+1;
    
    sqlite3 *params_db=callback_commissionning->param_db;
    
@@ -540,10 +540,10 @@ mea_error_t _interface_type_002_commissionning_callback(int id, unsigned char *c
          } // fin appel des fonctions Python
          
          pythonPluginServer_add_cmd(plugin_params[XBEE_PLUGIN_PARAMS_PLUGIN].value.s, (void *)plugin_elem, sizeof(plugin_queue_elem_t));
-         *(callback_commissionning->senttoplugin)++;
+         *(callback_commissionning->senttoplugin)=*(callback_commissionning->senttoplugin)+1;
          
-         free(plugin_elem);
-         plugin_elem=NULL;
+         //free(plugin_elem);
+         //plugin_elem=NULL;
       }
       
       free_parsed_parameters(plugin_params, nb_plugin_params);
@@ -649,10 +649,10 @@ void *_thread_interface_type_002_xbeedata(void *args)
    while(1)
    {
       process_heartbeat(params->i002->monitoring_id);
-      process_update_indicator(i002->monitoring_id, interface_type_002_senttoplugin_str, i002->indicators.senttoplugin);
-      process_update_indicator(i002->monitoring_id, interface_type_002_xplin_str, i002->indicators.xplin);
-      process_update_indicator(i002->monitoring_id, interface_type_002_xbeedatain_str, i002->indicators.xbeedatain);
-      process_update_indicator(i002->monitoring_id, interface_type_002_commissionning_request_str, i002->indicators.commissionning_request);
+      process_update_indicator(params->i002->monitoring_id, interface_type_002_senttoplugin_str, params->i002->indicators.senttoplugin);
+      process_update_indicator(params->i002->monitoring_id, interface_type_002_xplin_str, params->i002->indicators.xplin);
+      process_update_indicator(params->i002->monitoring_id, interface_type_002_xbeedatain_str, params->i002->indicators.xbeedatain);
+      process_update_indicator(params->i002->monitoring_id, interface_type_002_commissionning_request_str, params->i002->indicators.commissionning_request);
 
       pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)(&params->callback_lock) );
       pthread_mutex_lock(&params->callback_lock);
@@ -689,7 +689,7 @@ void *_thread_interface_type_002_xbeedata(void *args)
          char sql[1024];
          char addr[18];
          
-         params->i002->indicators->xbeedatain++;
+         params->i002->indicators.xbeedatain++;
          
          sprintf(addr,
                  printf_mask_addr, // "%02x%02x%02x%02x-%02x%02x%02x%02x"
@@ -786,7 +786,7 @@ void *_thread_interface_type_002_xbeedata(void *args)
                      pthread_testcancel(); // on test tout de suite pour être sûr qu'on a pas ratté une demande d'arrêt
                   } // fin appel des fonctions Python
                   pythonPluginServer_add_cmd(params->plugin_params[XBEE_PLUGIN_PARAMS_PLUGIN].value.s, (void *)plugin_elem, sizeof(plugin_queue_elem_t));
-                  params->i002->indicators->senttoplugin++;
+                  params->i002->indicators.senttoplugin++;
                   free(plugin_elem);
                   plugin_elem=NULL;
                   
@@ -969,18 +969,27 @@ int stop_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
       start_stop_params->i002->xPL_callback=NULL;
    }
    
-   if(start_stop_params->i002->xd->dataflow_callback_data)
+   if(start_stop_params->i002->xd->dataflow_callback_data &&
+     (start_stop_params->i002->xd->dataflow_callback_data == start_stop_params->i002->xd->io_callback_data))
    {
       free(start_stop_params->i002->xd->dataflow_callback_data);
+      start_stop_params->i002->xd->io_callback_data=NULL;
       start_stop_params->i002->xd->dataflow_callback_data=NULL;
    }
-
-   if(start_stop_params->i002->xd->io_callback_data)
+   else
    {
-      free(start_stop_params->i002->xd->io_callback_data);
-      start_stop_params->i002->xd->io_callback_data=NULL;
+      if(start_stop_params->i002->xd->dataflow_callback_data)
+      {
+         free(start_stop_params->i002->xd->dataflow_callback_data);
+         start_stop_params->i002->xd->dataflow_callback_data=NULL;
+      }
+      if(start_stop_params->i002->xd->io_callback_data)
+      {
+         free(start_stop_params->i002->xd->io_callback_data);
+         start_stop_params->i002->xd->io_callback_data=NULL;
+      }
    }
-   
+
    if(start_stop_params->i002->thread)
    {
       pthread_cancel(*(start_stop_params->i002->thread));
@@ -1178,8 +1187,9 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
  
    /*
     * exécution du plugin de paramétrage
-    */   
-   interface_parameters=malloc_parsed_parameters(start_stop_params->parameters, valid_xbee_plugin_params, &interface_nb_parameters, &err, 0);
+    */
+   
+   interface_parameters=malloc_parsed_parameters(start_stop_params->i002->parameters, valid_xbee_plugin_params, &interface_nb_parameters, &err, 0);
    if(!interface_parameters || !interface_parameters[XBEE_PLUGIN_PARAMS_PLUGIN].value.s)
    {
       if(interface_parameters)
@@ -1191,8 +1201,8 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
       }
       else
       {
-         VERBOSE(2) mea_log_printf("%s (%s) : invalid python plugin parameters (%s)\n", ERROR_STR, __func__, start_stop_params->parameters);
-         mea_notify_printf('E', "%s - invalid python plugin parameters (%s)", start_stop_params->i002->name, start_stop_params->parameters);
+         VERBOSE(2) mea_log_printf("%s (%s) : invalid python plugin parameters (%s)\n", ERROR_STR, __func__, start_stop_params->i002->parameters);
+         mea_notify_printf('E', "%s - invalid python plugin parameters (%s)", start_stop_params->i002->name, start_stop_params->i002->parameters);
          goto clean_exit;
       }
    }
@@ -1325,7 +1335,7 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
    start_stop_params->i002->xPL_callback_data=xpl_callback_params;
    start_stop_params->i002->xPL_callback=_interface_type_002_xPL_callback;
    
-   VERBOSE(2) mea_log_printf("%s (%s) : %s %s.\n", ERROR_STR, __func__,start_stop_params->i002->name, launched_successfully_str);
+   VERBOSE(2) mea_log_printf("%s (%s) : %s %s.\n", INFO_STR, __func__,start_stop_params->i002->name, launched_successfully_str);
    mea_notify_printf('S', "%s %s", start_stop_params->i002->name, launched_successfully_str);
    
    return 0;

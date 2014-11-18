@@ -221,6 +221,11 @@ void stop_interfaces()
                      free(interface_type_002Data);
                      interface_type_002Data=NULL;
                   }
+                  if(i002->parameters)
+                  {
+                     free(i002->parameters);
+                     i002->parameters=NULL;
+                  }
                } 
 
                free(i002);
@@ -419,7 +424,8 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                   strncpy(i002->name, (char *)name, sizeof(i002->name)-1);
                   i002->id_interface=id_interface;
                   i002->monitoring_id=process_register((char *)name);
-
+                  i002->parameters=(char *)malloc(strlen((char *)parameters)+1);
+                  strcpy(i002->parameters,(char *)parameters);
                   i002->indicators.senttoplugin=0;
                   i002->indicators.xplin=0;
                   i002->indicators.xbeedatain=0;
@@ -437,7 +443,6 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                   process_add_indicator(i002->monitoring_id, interface_type_002_commissionning_request_str, 0);
 
                   i002_start_stop_params->sqlite3_param_db = sqlite3_param_db;
-                  i002_start_stop_params->parameters = (char *)parameters;
                   i002_start_stop_params->i002=i002;
 
                   ret=process_start(i002->monitoring_id, NULL, 0);

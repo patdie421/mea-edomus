@@ -35,7 +35,7 @@ struct pythonPluginServer_start_stop_params_s
 {
    char **params_list;
    sqlite3 *sqlite3_param_db;
-};  
+};
 
 
 typedef struct pythonPlugin_cmd_s

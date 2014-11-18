@@ -74,7 +74,7 @@ extern struct token_s tokens_list[];
 #define LOW_ID                        54
 #define GENERIC_ID                    55
 #define UNIT_ID                       56
-
+#define TODBFLAG_ID                   57
 
 char *get_token_by_id(int id);
 int16_t get_id_by_string(char *str);

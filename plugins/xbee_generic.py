@@ -214,16 +214,16 @@ def mea_xplCmndMsg(data):
                verbose(2, "ERROR (", fn_name, ") - invalid request (", body["request"],")")
                return False
             mea_utils.xplMsgAddValue(xplMsg,"type",type)
-      else: 
+         except:
+            verbose(2, "ERROR (", fn_name, ") - can't create xpl message")
+            return False
+      else:
          verbose(2, "ERROR (", fn_name, ") - invalid type (", body["type"],")")
          return False
 
-         mea.xplSendMsg(xplMsg)
-         return True
+      mea.xplSendMsg(xplMsg)
+      return True
 
-      except:
-         return False
-   
    elif x["schema"]=="control.basic":
       if body["type"]=="output":
          if body["current"].lower()=="low":
