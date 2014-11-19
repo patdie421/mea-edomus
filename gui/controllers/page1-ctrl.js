@@ -485,22 +485,34 @@ var indicatorsTable = {
 
 
 function socketio_available(s) { // socket io est chargé, on se connecte
-   controlPanel.init("table_reload", "table_interfaces", "table_processes");
-   controlPanel.load(isadmin);
-   logViewer.start(s, "console");
-   indicatorsTable.load("table_indicateurs");
+//   controlPanel.init("table_reload", "table_interfaces", "table_processes");
+//   controlPanel.load(isadmin);
+//   logViewer.start(s, "console");
+//   indicatorsTable.load("table_indicateurs");
 
    s.on('mon', function(message){
       var data = jQuery.parseJSON( message );
-      controlPanel.update_status(data);
-      indicatorsTable.update_all_indicators(data);
+      if(controlPanel !== undefined && controlPanel.isStarted())
+      {
+         controlPanel.update_status(data);
+      }
+      if(indicatorsTable !== undefined && indicatorsTable.isStarted())
+      {
+         indicatorsTable.update_all_indicators(data);
+      }
    });
 
    s.on('rel', function(message){ // reload
       $("#table_interfaces").empty();
       $("#table_interfaces").append("<tbody></tbody>");
-      controlPanel.load_interfaces_list_only(isadmin);
-      indicatorsTable.reload("table_indicateurs");
+      if(controlPanel !== undefined && controlPanel.isStarted())
+      {
+         controlPanel.load_interfaces_list_only(isadmin);
+      }
+      if(indicatorsTable !== undefined && indicatorsTable.isStarted())
+      {
+         indicatorsTable.reload("table_indicateurs");
+      }
    });
 }
 
