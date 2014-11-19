@@ -12,9 +12,9 @@
 
 <script>
 jQuery(document).ready(function(){
-   var socketio_port=8000;
-   liveCom.connect(socketio_port);
-   page1_controller();
+  //   var socketio_port=8000;
+  //   liveCom.connect(socketio_port);
+   page1_controller(liveCom.getSocketio());
 });
 
 </script>
