@@ -26,5 +26,54 @@
 }
 </style>
 
-<table id="table_processes" style="width:100%;">
-</table>
+<script type="text/javascript" src="controllers/services-ctrl.js"></script>
+
+<script>
+jQuery(document).ready(function(){
+  function services_controller("table_reload", "table_interfaces", "table_processes", isadmin);
+});
+</script>
+
+<div>
+      <p></p>
+      <div style="margin:auto;">
+         <div>
+            <div style="margin-left:20px;">Rechargement des configurations des interfaces</div>
+         </div>
+         <p></p>
+         <div>
+            <table id="table_reload" style="width:100%;">
+               <tbody>
+               </tbody>
+            </table>
+         </div>
+         <p></p>
+      </div>
+      <p></p>
+      <div style="margin:auto;">
+         <div>
+            <div style="margin-left:20px;">Etat des interfaces</div>
+         </div>
+         <p></p>
+         <div>
+            <table id="table_interfaces" style="width:100%;">
+               <tbody>
+               </tbody>
+            </table>
+         </div>
+         <p></p>
+      </div>
+      <p></p>
+      <div style="margin:auto;">
+         <div>
+            <div style="margin-left:20px;">Etat des processus de mea-edomus</div>
+         </div>
+         <p></p>
+         <div>
+            <table id="table_processes" style="width:100%;">
+               <tbody>
+               </tbody>
+            </table>
+         </div>
+         <p></p>
+</div>
