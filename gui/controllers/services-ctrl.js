@@ -250,7 +250,9 @@ var controlPanel = {
 };
 
 
-function services_controller()
+function services_controller(table_reload_id, table_interfaces_id, table_processes_id, isadmin)
 {
+   controlPanel.init(table_reload_id, table_interfaces_id, table_processes_id);
+   controlPanel.load(isadmin);
 }
 
