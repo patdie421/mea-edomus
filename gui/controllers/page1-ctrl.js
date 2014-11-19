@@ -2,31 +2,36 @@ var isadmin=-1;
 
 
 function socketio_available(s) { // socket io est chargé, on se connecte
-//   controlPanel.init("table_reload", "table_interfaces", "table_processes");
-//   controlPanel.load(isadmin);
-
    s.on('mon', function(message){
       var data = jQuery.parseJSON( message );
-      if(controlPanel !== undefined && controlPanel.isStarted())
-      {
+
+      try {
          controlPanel.update_status(data);
       }
-      if(indicatorsTable !== undefined && indicatorsTable.isStarted())
-      {
+      catch(ex) {
+      }
+
+      try {
          indicatorsTable.update_all_indicators(data);
+      }
+      catch(ex) {
       }
    });
 
    s.on('rel', function(message){ // reload
       $("#table_interfaces").empty();
       $("#table_interfaces").append("<tbody></tbody>");
-      if(controlPanel !== undefined && controlPanel.isStarted())
-      {
+      
+      try {
          controlPanel.load_interfaces_list_only(isadmin);
       }
-      if(indicatorsTable !== undefined && indicatorsTable.isStarted())
-      {
+      catch(ex) {
+      }
+
+      try {
          indicatorsTable.reload("table_indicateurs");
+      }
+      catch(ex) {
       }
    });
 }

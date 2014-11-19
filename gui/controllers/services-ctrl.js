@@ -52,7 +52,7 @@ var controlPanel = {
    {
       _controlPanel=this;
       newRow =  "<tr>" +
-                    "<td style=\"width:10%;\"><div id=\"process_"+id+"\" class=\"pastille ui-widget ui-widget-content ui-corner-all\" style=\"background:gray;\"></div></td>" +
+                    "<td style=\"width:10%;height:40px;\"><div id=\"process_"+id+"\" class=\"pastille\" style=\"background:gray;\"></div></td>" +
                     "<td style=\"width:60%;\">" +
                         "<div class=\"process\">" +
                            "<div class=\"name\">"+name+"</div>";
@@ -64,24 +64,25 @@ var controlPanel = {
                     "<td style=\"width:30%;\">";
       if(isadmin==1)
       {
-                   newRow+="<div class=\"bouton\">";
          if(start != null)
          {
-                      newRow+="<button id=\"bstart"+id+"\">"+start_str+"</button>";
+//                newRow+="<button id=\"bstart"+id+"\">"+start_str+"</button>";
+                newRow+="<a id=\"bstart"+id+"\" href=\"#\" class=\"easyui-linkbutton\" plain=\"false\">"+start_str+"</a>";
          }
          if(stop != null)
          {
-                      newRow+="<button id=\"bstop"+id+"\">"+stop_str+"</button>";
+//                newRow+="<button id=\"bstop"+id+"\">"+stop_str+"</button>";
+                newRow+="<a id=\"bstop"+id+"\" href=\"#\" class=\"easyui-linkbutton\" plain=\"false\">"+stop_str+"</a>";
          }
-                   newRow+="</div>";
       }
             newRow+="</td>" +
                 "</tr>";
-
+      console.log(newRow);
       $(table).append(newRow);
-//      $(table+" > tbody").before(newRow);
 //      $("#bstop"+id).button().click(function(event){stop(_controlPanel,id);});
 //      $("#bstart"+id).button().click(function(event){start(_controlPanel,id);});
+      $("#bstart"+id).click(function(event){start(_controlPanel,id);});
+      $("#bstop"+id).click(function(event){stop(_controlPanel,id);});
    },
 
 
@@ -130,6 +131,8 @@ var controlPanel = {
 
    load_interfaces_list_only: function(isadmin) {
       _controlPanel=this;
+      $(_controlPanel.table_interfaces).empty();
+
       $.ajax({
          url: 'CMD/ps.php',
          async: true,
@@ -158,9 +161,9 @@ var controlPanel = {
 
    reloadTask: function(_controlPanel,id)
    {
+      // on met la roue qui tourne ...
       $(_controlPanel.table_interfaces).empty();
-      $(_controlPanel.table_interfaces).append("<tbody></tbody>");
-      $(_controlPanel.table_interfaces+" > tbody").before("<tr><td style=\"width:100%; margin:auto;\" align=\"center\" valign=\"top\"><div class=\"wait_ball\"></div></td></tr>");
+      $(_controlPanel.table_interfaces).append("<tr><td style=\"width:100%; margin:auto;\" align=\"center\" valign=\"top\"><div class=\"wait_ball\"></div></td></tr>");
       $.ajax({
          url: 'CMD/startstop.php?process='+id+'&cmnd=task',
          async: true,
@@ -171,12 +174,10 @@ var controlPanel = {
             {
                // on enleve juste la roue qui tourne ...
                $(_controlPanel.table_interfaces).empty();
-               $(_controlPanel.table_interfaces).append("<tbody></tbody>");
             }
          },
          error: function(jqXHR, textStatus, errorThrown ) {
             $(_controlPanel.table_interfaces).empty();
-            $(_controlPanel.table_interfaces).append("<tbody></tbody>");
             ajax_error( jqXHR, textStatus, errorThrown );
          }
       });

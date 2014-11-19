@@ -2,9 +2,17 @@
 .display {
  display:none;
 }
+
+.pastille {
+ height:20px;
+ width:20px;
+ margin-right:10px;
+ margin-left:10px;
+ border-radius: 20px;
+}
+
 </style>
 
-<script type="text/javascript" src="lib/js/mea-livecom-utils.js"></script>
 <script type="text/javascript" src="lib/js/mea-auth-utils.js"></script>
 <script type="text/javascript" src="lib/js/mea-gui-utils.js"></script>
 
@@ -12,9 +20,7 @@
 
 <script>
 jQuery(document).ready(function(){
-   var socketio_port=8000;
-   liveCom.connect(socketio_port);
-   start_page1_controller();
+   page1_controller();
 });
 </script>
 

@@ -1,31 +1,142 @@
 <style>
 .process {
+// border: dotted 1px red;
  max-height: 40px;
  margin: auto;
 }
  
 .name {
- font-size:14px;
+// border: dotted 1px red;
  max-height:20px;
  line-height:100%;
  overflow: hidden;
 }
  
 .description {
+// border: dotted 1px red;
  line-height:100%;
  max-height:17px;
  font-size:10px;
  overflow: hidden;
 }
  
-.bouton {
+//.bouton {
 // border: dotted 1px red;
- height:40px;
- line-height:40px;
- text-align:center;
+// height:40px;
+// line-height:40px;
+// text-align:center;
+//}
+
+.wait_ball {
+ background-color: rgba(0,0,0,0);
+ border: 3px solid rgba(75, 165, 202,0.9);
+ opacity: .9;
+ border-top: 5px solid rgba(0,0,0,0);
+ border-left: 5px solid rgba(0,0,0,0);
+ border-radius: 12px;
+ box-shadow: 0 0 3px #2187e7;
+ width: 12px;
+ height: 12px;
+ margin: 0 auto;
+ -moz-animation: spin .75s infinite linear;
+ -webkit-animation: spin .75s infinite linear;
+}
+ 
+@-moz-keyframes spin {
+ 0% {
+  -moz-transform: rotate(0deg);
+ }
+ 100% {
+  -moz-transform: rotate(360deg);
+ };
+}
+ 
+@-moz-keyframes spinoff {
+ 0% {
+  -moz-transform: rotate(0deg);
+ }
+ 100% {
+  -moz-transform: rotate(-360deg);
+ };
+}
+ 
+@-webkit-keyframes spin {
+ 0% {
+  -webkit-transform: rotate(0deg);
+ }
+ 100% {
+  -webkit-transform: rotate(360deg);
+ };
+}
+ 
+@-webkit-keyframes spinoff {
+ 0% {
+  -webkit-transform: rotate(0deg);
+ }
+ 100% {
+  -webkit-transform: rotate(-360deg);
+ };
+}
+
+@-moz-keyframes spin {
+ 0% {
+  -moz-transform: rotate(0deg);
+ }
+ 100% {
+  -moz-transform: rotate(360deg);
+ };
+}
+
+@-moz-keyframes spinoff {
+ 0% {
+  -moz-transform: rotate(0deg);
+ }
+ 100% {
+  -moz-transform: rotate(-360deg);
+ };
+}
+
+@-webkit-keyframes spin {
+ 0% {
+  -webkit-transform: rotate(0deg);
+ }
+ 100% {
+  -webkit-transform: rotate(360deg);
+ };
+}
+
+@-webkit-keyframes spinoff {
+ 0% {
+  -webkit-transform: rotate(0deg);
+ }
+ 100% {
+  -webkit-transform: rotate(-360deg);
+ };
 }
 </style>
 
-<div>Test</div>
-<table id="table_processes" style="width:100%;">
-</table>
+<script type="text/javascript" src="controllers/services-ctrl.js"></script>
+
+<script>
+jQuery(document).ready(function(){
+   services_controller("table_reload", "table_interfaces", "table_processes", isadmin); // voir ou récupérer isadmin
+});
+
+</script>
+
+<div id="p1" class="easyui-panel" title="Rechargement des configurations des interfaces" style="width:100%;padding:10px;">
+   <table id="table_reload" style="width:100%;">
+   </table>
+</div>
+<p></p>
+
+<div id="p2" class="easyui-panel" title="Etat des interfaces" style="width:100%;padding:10px;">
+   <table id="table_interfaces" style="width:100%;">
+   </table>
+</div>
+<p></p>
+
+<div id="p3" class="easyui-panel" title="Etat des processus de mea-edomus" style="width:100%;padding:10px;">
+   <table id="table_processes" style="width:100%;">
+   </table>
+</div>

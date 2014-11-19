@@ -6,10 +6,14 @@ var liveCom = {
       return this.socketio;
    },
    
-   connect: function(port) {
-      _liveCom = this;
-     this._socketio_port=port;
-       var socketioJsUrl=window.location.protocol + '//' + window.location.hostname + ':'+this._socketio_port+'/socket.io/socket.io.js';
+   connect: function(port)
+   {
+      this._connect(port, this);
+   },
+   
+   _connect: function(port,_liveCom) {
+     _liveCom._socketio_port=port;
+       var socketioJsUrl=window.location.protocol + '//' + window.location.hostname + ':'+_liveCom._socketio_port+'/socket.io/socket.io.js';
       $.ajax({
          url: socketioJsUrl,
          dataType: "script",

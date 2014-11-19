@@ -11,7 +11,10 @@
    
    <script type="text/javascript" src="http://www.jeasyui.com/easyui/jquery.min.js"></script>
    <script type="text/javascript" src="http://www.jeasyui.com/easyui/jquery.easyui.min.js"></script>
+
    <script type="text/javascript" src="lib/noty-2.2.10/js/noty/packaged/jquery.noty.packaged.min.js"></script>
+
+   <script type="text/javascript" src="lib/js/mea-livecom-utils.js"></script>
 
    <script>
    var currentPage = "";
@@ -20,7 +23,7 @@
    
    jQuery(document).ready(function(){
       $.ajaxSetup({ cache: false });
-      page('page1.php',page1Name,page1Title,'#ff','Indicateurs'); // chargement de la première page.
+      page('page1.php', page1Name, page1Title, '#ff', 'Indicateurs'); // chargement de la première page.
    });
 
    function page(pageUrl, pageName, titre, tab, tabName)
@@ -35,9 +38,28 @@
          $(tab).tabs('select', tabName);
       }
    }
-   </script>
+   
+   var socketio_port=8000;
+   liveCom.connect(socketio_port);
 
+   </script>
 </head>
+
+<style>
+a.meamenu {
+   color:black;
+   text-decoration:none;
+}
+
+a.meamenu:visited {
+}
+
+a.meamenu:hover {
+   font-weight:bold;
+}
+
+</style>
+
 <body>
 
    <div style="min-width:800px;">
@@ -48,12 +70,12 @@
    <div style="min-width:800px;min-height:600px;margin:10px;">
       <div class="easyui-layout" fit=true>
 
-         <div region="west" split="false" collapsible="false" title="mea-eDomus" style="width:200px;">
-            <div id="aa" class="easyui-accordion" data-options="animate:false,border:false">
+         <div region="west" split="true" collapsible="false" title="mea-eDomus" style="width:200px;">
+            <div id="aa" class="easyui-accordion" data-options="animate:false,border:false" style="width:100%;">
                <div title="Supervision" data-options="selected:true" style="overflow:auto;padding:10px;">
-                  <div><a href="#" onclick="javascript:page('page1.php',page1Name,page1Title,'#tt','Indicateurs')">Indicateurs</a></div>
-                  <div><a href="#" onclick="javascript:page('page1.php',page1Name,page1Title,'#tt','Services')">Services</a></div>
-                  <div><a href="#" onclick="javascript:page('page1.php',page1Name,page1Title,'#tt','Journal')">Journal</a></div>
+                  <div><a href="#" class="meamenu" onclick="javascript:page('page1.php',page1Name,page1Title,'#tt','Indicateurs')">Indicateurs</a></div>
+                  <div><a href="#" class="meamenu" onclick="javascript:page('page1.php',page1Name,page1Title,'#tt','Services')">Services</a></div>
+                  <div><a href="#" class="meamenu" onclick="javascript:page('page1.php',page1Name,page1Title,'#tt','Journal')">Journal</a></div>
                </div>
                <div title="Configuration" style="overflow:auto;padding:10px;">
                   <div><a href="#" onclick="javascript:page('test1.html', 'page2')">Test</a></div>

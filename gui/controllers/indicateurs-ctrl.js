@@ -1,6 +1,13 @@
 var indicatorsTable = {
    compteur: 0,
+   started: 0,
    indicatorsToExclude: ["desc","pid","status","type","group","heartbeat"],
+   
+   isStarted: function()
+   {
+      return this.started;
+   },
+   
    add_process: function (table, name)
    {
       newRow = "<tr>" +
@@ -76,6 +83,7 @@ var indicatorsTable = {
             ajax_error( jqXHR, textStatus, errorThrown );
          }
       });
+      this.started=1;
    },
 
    reload: function(table,processes)
@@ -103,7 +111,6 @@ var indicatorsTable = {
          else
             $("#status_"+process).css("background","gray");
          
-         console.log("#status_"+process);
          for(indicator in data[process])
          {
             if(this.indicatorsToExclude.indexOf(indicator) == -1)
