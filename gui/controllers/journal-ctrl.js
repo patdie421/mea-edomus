@@ -80,3 +80,8 @@ var logViewer = {
    }
 };
 
+function journal_controller(s,consolediv_id)
+{
+   logViewer.start(s,consolediv_id);
+}
+
