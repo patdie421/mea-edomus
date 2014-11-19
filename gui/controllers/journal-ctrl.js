@@ -80,8 +80,8 @@ var logViewer = {
    }
 };
 
-function journal_controller(s,consolediv_id)
+function journal_controller(consolediv_id)
 {
-   logViewer.start(s,consolediv_id);
+   logViewer.start(liveCom.getSocketio(),consolediv_id);
 }
 
