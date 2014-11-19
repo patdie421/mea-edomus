@@ -1,5 +1,6 @@
 var logViewer = {
 
+   started:0,
    whoIsScrollingFlag:0, // 1 = le script, 0 = l'utilisateur
    scrollOnOffFlag:1,    // 1 = activé par defaut
    console:"",
@@ -68,6 +69,7 @@ var logViewer = {
       s.on('log', function(message) {
          _logViewer.append_line(message);
       });
+      this.started=1;
    },
    
    scrollBottom: function()
@@ -77,6 +79,11 @@ var logViewer = {
 
       // on se met en bas de la log
       $("#"+this.console).scrollTop($("#"+this.console)[0].scrollHeight); // on scroll à la fin de la div
+   },
+   
+   isStarted: function()
+   {
+      return this.started;
    }
 };
 
