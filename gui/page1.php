@@ -12,8 +12,9 @@
 
 <script>
 jQuery(document).ready(function(){
-  //   var socketio_port=8000;
-  //   liveCom.connect(socketio_port);
+  //  remonter le liveCom dans index.html
+  //  var socketio_port=8000;
+  //  liveCom.connect(socketio_port);
    page1_controller();
 });
 
