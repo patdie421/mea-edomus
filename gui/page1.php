@@ -14,7 +14,7 @@
 jQuery(document).ready(function(){
    var socketio_port=8000;
    liveCom.connect(socketio_port);
-   start_page1_controller();
+   page1_controller();
 });
 
 </script>
