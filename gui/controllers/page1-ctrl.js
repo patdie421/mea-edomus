@@ -594,7 +594,7 @@ function socketio_unavailable() {
 
 var _intervalId;
 var _intervalCounter;
-function start_page1_controller()
+function page1_controller()
 {
    authdata=get_auth_data();
    if(authdata==false) {
