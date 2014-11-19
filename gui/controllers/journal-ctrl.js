@@ -82,6 +82,15 @@ var logViewer = {
 
 function journal_controller(consolediv_id)
 {
-   logViewer.start(liveCom.getSocketio(),consolediv_id);
+   var s = liveCom.getSocketio();
+   if(s !== undefined)
+   {
+     logViewer.start(s,consolediv_id);
+     // activer ici le visuel normal
+   }
+   else
+   {
+     // activer ici le visuel indisponible
+   }
 }
 
