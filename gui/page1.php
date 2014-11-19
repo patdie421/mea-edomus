@@ -16,7 +16,6 @@ jQuery(document).ready(function(){
    liveCom.connect(socketio_port);
    start_page1_controller();
 });
-
 </script>
 
 <div id="tt" class="easyui-tabs" fit=true>

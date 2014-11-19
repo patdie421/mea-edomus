@@ -1,0 +1,78 @@
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+   <meta name="description" content="domotique DIY !">
+   <title>mea-eDomus</title>
+   
+   <link rel="stylesheet" type="text/css" href="http://www.jeasyui.com/easyui/themes/default/easyui.css">
+   <link rel="stylesheet" type="text/css" href="http://www.jeasyui.com/easyui/themes/icon.css">
+   <link rel="stylesheet" type="text/css" href="http://www.jeasyui.com/easyui/themes/color.css">
+   <link rel="stylesheet" type="text/css" href="http://www.jeasyui.com/easyui/demo/demo.css">
+   
+   <script type="text/javascript" src="http://www.jeasyui.com/easyui/jquery.min.js"></script>
+   <script type="text/javascript" src="http://www.jeasyui.com/easyui/jquery.easyui.min.js"></script>
+   <script type="text/javascript" src="lib/noty-2.2.10/js/noty/packaged/jquery.noty.packaged.min.js"></script>
+
+   <script>
+   var currentPage = "";
+   var page1Title="Contrôle et pilotage du moteur";
+   var page1Name="page1";
+   
+   jQuery(document).ready(function(){
+      $.ajaxSetup({ cache: false });
+      page('page1.php',page1Name,page1Title,'#ff','Indicateurs'); // chargement de la première page.
+   });
+
+   function page(pageUrl, pageName, titre, tab, tabName)
+   {
+      if(currentPage != pageName)
+      {
+         $('#content').panel('refresh',pageUrl); // on charge la page
+         currentPage = pageName;
+      }
+      if(tab && tabName)
+      {
+         $(tab).tabs('select', tabName);
+      }
+   }
+   </script>
+
+</head>
+<body>
+
+   <div style="min-width:800px;">
+      <div id='logo'  style="float:left; width:250px; height:75px; text-align:left;">LOGO</div>
+      <div id='pub' style="width:250px; float:right; height:75px; text-align:right;">INFO</div>
+      <div id='titre-page' style="height:75px; text-align:center;">CENTRE</div>
+   </div>
+   <div style="min-width:800px;min-height:600px;margin:10px;">
+      <div class="easyui-layout" fit=true>
+
+         <div region="west" split="false" collapsible="false" title="mea-eDomus" style="width:200px;">
+            <div id="aa" class="easyui-accordion" data-options="animate:false,border:false">
+               <div title="Supervision" data-options="selected:true" style="overflow:auto;padding:10px;">
+                  <div><a href="#" onclick="javascript:page('page1.php',page1Name,page1Title,'#tt','Indicateurs')">Indicateurs</a></div>
+                  <div><a href="#" onclick="javascript:page('page1.php',page1Name,page1Title,'#tt','Services')">Services</a></div>
+                  <div><a href="#" onclick="javascript:page('page1.php',page1Name,page1Title,'#tt','Journal')">Journal</a></div>
+               </div>
+               <div title="Configuration" style="overflow:auto;padding:10px;">
+                  <div><a href="#" onclick="javascript:page('test1.html', 'page2')">Test</a></div>
+               </div>
+               <div title="Préférences" style="overflow:auto;padding:10px;">
+                  content3
+               </div>
+            </div>
+       </div>
+
+
+       <div id="content" region="center" title="Language" style="padding:5px;"></div>
+
+
+       </div>
+   </div>
+   <div style="font-size: 10px; text-align:center;">
+   (c) 2014 Mea soft
+   </div>
+
+</body>
+</html>
