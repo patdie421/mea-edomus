@@ -487,7 +487,6 @@ var indicatorsTable = {
 function socketio_available(s) { // socket io est chargé, on se connecte
 //   controlPanel.init("table_reload", "table_interfaces", "table_processes");
 //   controlPanel.load(isadmin);
-//   logViewer.start(s, "console");
 //   indicatorsTable.load("table_indicateurs");
 
    s.on('mon', function(message){
