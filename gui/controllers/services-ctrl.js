@@ -60,7 +60,7 @@ var controlPanel = {
       {
                    newRow+="<div class=\"description\">"+desc+"</div>";
       }
-                   newRow+="</div></td>" +
+                newRow+="</div></td>" +
                     "<td style=\"width:30%;\">";
       if(isadmin==1)
       {
@@ -80,14 +80,20 @@ var controlPanel = {
 
       $(table).append(newRow);
 
-      $("#bstart"+id).linkbutton({
-         plain: false,
-         iconCls: 'icon-ok',
-      });
-      $("#bstop"+id).linkbutton({
-         plain: false,
-         iconCls: 'icon-cancel',
-      });
+      if(start != null)
+      {
+         $("#bstart"+id).linkbutton({
+            plain: false,
+            iconCls: 'icon-ok',
+         });
+      }
+      if(stop != null)
+      {
+         $("#bstop"+id).linkbutton({
+            plain: false,
+            iconCls: 'icon-cancel',
+         });
+      }
    },
 
 
