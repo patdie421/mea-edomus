@@ -76,14 +76,28 @@
 <script type="text/javascript" src="controllers/indicateurs-ctrl.js"></script>
 
 <script>
+function status(value) {
+   return "<div id='status_" + value + "' class='pastille' style='float:left;background:blue;'></div>" + value;
+}
+
 jQuery(document).ready(function(){
    indicateurs_controller("table_indicateurs");
 });
 </script>
 
 
-<table id="table_indicateurs" class="table_indicateurs" style="width:100%;">
+<table id="table_indicateurs" class="easyui-datagrid" title="Fonctionnement des services" style="width:700px;height:250px" data-options="data:[],view:groupview,groupField:'Service',groupFormatter:function(value,rows){return status(value) + ' - ' + rows.length + ' indicateur(s)';},onSelect:function(index,row){$('#table_indicateurs').datagrid('unselectRow', index);}">
+    <thead>
+        <tr>
+            <th data-options="field:'Service',width:150,hidden:true">Service</th>
+            <th data-options="field:'Etat',width:100,hidden:true">Etat</th>
+            <th data-options="field:'Indicateur',width:200,align:'left'">Indicateur</th>
+            <th data-options="field:'Description', width:400,align:'left'">Description</th>
+            <th data-options="field:'Valeur',width:80,align:'right'">Valeur</th>
+        </tr>
+    </thead>
 </table>
+
 <div id="noindicators" class="display">
 No indicators provided !!!
 </div>
