@@ -8,53 +8,28 @@ var indicatorsTable = {
       return this.started;
    },
    
-   add_process: function (table, name)
+  add_indicator: function(table, service_name, indicator_name, indicator_description, indicator_value)
    {
-      newRow = "<tr>" +
-                   "<td class=\"processes_column cell_table_indicateurs\">" +
-                      "<div class=\"process_name\">"+name+"</div>" +
-                      "<div id=\"desc_"+name+"\" class=\"process_description\"></div>" +
-                   "</td>" +
-                   "<td class=\"status_column cell_table_indicateurs\">" +
-                      "<div class=\"process_status\">" +
-                         "<div id=\"status_"+name+"\" class=\"pastille ui-widget ui-widget-content ui-corner-all\" style=\"background:gray; margin:auto;\"></div>" +
-                      "</div>" +
-                   "</td>" +
-                   "<td class=\"indicators_column cell_table_indicateurs\"><div>" +
-                      "<table border=\"0\" class=\"indicators_list\" id=\""+name+"\">" +
-                      "</table>" +
-                   "</div></td>" +
-               "</tr>";
-      $("#"+table).append(newRow);
+      $("#" + table_id).datagrid('appendRow', {
+         Service: service_name,
+         Indicateur: indicator_name,
+         Description: indicator_description,
+         Valeur: "<div id='value_"+service_name+"_"+indicator_name+"'>"+indicator_value+"</div>"
+     });
    },
 
-   add_indicator: function (process, name, indicator_name)
-   {
-      var couleur;
-      if(this.compteur % 2 == 0)
-          couleur=1;
-       else
-          couleur=2;
 
-      newRow = "<tr class=\"couleur_"+couleur+"\">" +
-                  "<td class=\"indicator_name\"><div>"+name+"</div></td>"+
-                  "<td class=\"indicator_value\"><div id=\""+process+"_"+indicator_name+"\"\">N/A</div></td>" +
-               "</tr>";
-      $("#"+process).append(newRow);
-      this.compteur++;
-   },
-
-   build: function(table, processes)
+   build: function(table, services)
    {
+      $("#"+table).datagrid('loadData', []);
       var nb=0;
-      for(var process in processes)
+      for(var service in services)
       {
-         if(processes[process].length>0)
+         if(services[service].length>0)
           {
-             this.add_process(table, process);
-             for(var indicator in processes[process])
+             for(var indicator in services[service])
              {
-                this.add_indicator(process, processes[process][indicator], processes[process][indicator]);
+                this.add_indicator2(table, service, services[service][indicator], "","N/A");
                 nb++;
              }
          }
@@ -71,7 +46,7 @@ var indicatorsTable = {
          type: 'GET',
          dataType: 'json',
          success: function(data){
-            $("#"+table).empty();
+//            $("#"+table).empty();
             var ret=_indicatorsTable.build(table, data);
             if(ret<=0)
             {
@@ -88,33 +63,32 @@ var indicatorsTable = {
 
    reload: function(table,processes)
    {
-      $("#"+table).empty();
       this.load(table);
    },
    
-   update_indicator: function (process, indicator, value)
+   update_indicator: function (service, indicator, value)
    {
-      $("#"+process+"_"+indicator).text(value);
+      $("#value_"+service+"_"+indicator).text(value);
    },
    
-   update_all_indicators: function(data)
+   update_all_indicators: function(services)
    {
-      for(process in data)
+      for(service in services)
       {
-         if(data[process]['status']==1) // process démarré
-            if(data[process]['heartbeat']=='KO' && data[process]['type']!=2) // type = 2 => tache donc pas de "black" possible
-               $("#status_"+process).css("background","black");
+         if(services[service]['status']==1) // process démarré
+            if(services[service]['heartbeat']=='KO' && services[service]['type']!=2) // type = 2 => tache donc pas de "black" possible
+               $("#status_"+service).css("background","black");
             else
-               $("#status_"+process).css("background","green");
-         else if(data[process]['status']==0 && data[process]['type']!=2) // non demarré
-            $("#status_"+process).css("background","red");
+               $("#status_"+service).css("background","green");
+         else if(services[service]['status']==0 && services[service]['type']!=2) // non demarré
+            $("#status_"+service).css("background","red");
          else
-            $("#status_"+process).css("background","gray");
+            $("#status_"+service).css("background","gray");
          
-         for(indicator in data[process])
+         for(indicator in services[service])
          {
             if(this.indicatorsToExclude.indexOf(indicator) == -1)
-               indicatorsTable.update_indicator(process, indicator, data[process][indicator]);
+               indicatorsTable.update_indicator(service, indicator, services[service][indicator]);
          }
       }
    }
