@@ -64,25 +64,30 @@ var controlPanel = {
                     "<td style=\"width:30%;\">";
       if(isadmin==1)
       {
+               newRow+="<div class='bouton'>
          if(start != null)
          {
-//                newRow+="<button id=\"bstart"+id+"\">"+start_str+"</button>";
-                newRow+="<a id=\"bstart"+id+"\" href=\"#\" class=\"easyui-linkbutton\" plain=\"false\">"+start_str+"</a>";
+                newRow+="<a id=\"bstart"+id+"\" href=\"#\">"+start_str+"</a>";
          }
          if(stop != null)
          {
-//                newRow+="<button id=\"bstop"+id+"\">"+stop_str+"</button>";
-                newRow+="<a id=\"bstop"+id+"\" href=\"#\" class=\"easyui-linkbutton\" plain=\"false\">"+stop_str+"</a>";
+                newRow+="<a id=\"bstop"+id+"\" href=\"#\">"+stop_str+"</a>";
          }
+              newRow+="</div>;
       }
             newRow+="</td>" +
                 "</tr>";
-      console.log(newRow);
+
       $(table).append(newRow);
-//      $("#bstop"+id).button().click(function(event){stop(_controlPanel,id);});
-//      $("#bstart"+id).button().click(function(event){start(_controlPanel,id);});
-      $("#bstart"+id).click(function(event){start(_controlPanel,id);});
-      $("#bstop"+id).click(function(event){stop(_controlPanel,id);});
+
+      $("#bstart"+id).linkbutton({
+         plain: false,
+         iconCls: 'icon-ok',
+      });
+      $("#bstop"+id).linkbutton({
+         plain: false,
+         iconCls: 'icon-cancel',
+      });
    },
 
 
@@ -102,15 +107,15 @@ var controlPanel = {
             }
             if(data[key]['type']!=2)
             {
-//               $("#bstart"+data[key]['pid']).button("option", "disabled", true );
-//               $("#bstop"+data[key]['pid']).button( "option", "disabled", false );
+               $("#bstart"+data[key]['pid']).linkbutton('disable');
+               $("#bstop"+data[key]['pid']).linkbutton('enable');
             }
          }
          else if(data[key]['status']==0 && data[key]['type']!=2) // non demarré
          {
             $("#process_"+data[key]['pid']).css("background","red");
-//            $("#bstart"+data[key]['pid']).button("option", "disabled", false );
-//            $("#bstop"+data[key]['pid']).button( "option", "disabled", true );
+            $("#bstart"+data[key]['pid']).linkbutton('enable');
+            $("#bstop"+data[key]['pid']).linkbutton('disable');
          }
          else
          {
