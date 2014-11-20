@@ -1,104 +1,32 @@
-<style>
-.table_indicateurs {
- border-collapse:collapse;
-// border-width:10px;
-// border-style:solid;
-// border-color:#CDCDCD;
- }
-
-.cell_table_indicateurs {
- border-width:1px;
- padding:0px;
- border-style:solid;
- border-bottom:none;
- border-color:#CDCDCD;
-}
-
-.cell_table_indicateurs:first-child {
- border-left:none;
-}
-
-.cell_table_indicateurs:last-child {
- border-right:none;
-}
-
-.indicators_list
- {
- margin-bottom: -1px;
- border-collapse:collapse;
- }
-
-.processes_column {
- min-width:250px;
- }
- 
-.status_column {
- min-width:50px;
-}
-
-.columns_indicators {
-}
-
-.process_name {
- margin-left:10px;
-}
- 
-.process_description {
- font-size:10px;
- margin-left:10px;
-}
- 
-.indicator_name {
- margin: 0px;
- padding: 7px;
- min-width: 200px;
- width: 200px;
-}
- 
-.indicator_value {
- margin: 0px;
- padding: 7px;
- text-align: right;
- min-width: 100px;
- width: 100%;
-}
- 
-.couleur_1 {
- background:#d6f9b3;
-}
- 
-.couleur_2 {
- background: #cbefa8;
-}
- 
-</style>
-
 <script type="text/javascript" src="controllers/indicateurs-ctrl.js"></script>
 
 <script>
-function status(value) {
-   return "<div id='status_" + value + "' class='pastille' style='float:left;background:blue;'></div>" + value;
+// voir http://jsfiddle.net/7j6xrnoa/5/ si nécessaire
+
+function get_status(value) {
+   return "<div id='status_" + value + "' class='pastille' style='float:left;background:gray'></div><b>" + value + "</b>";
 }
 
 jQuery(document).ready(function(){
    indicateurs_controller("table_indicateurs");
 });
 </script>
-
-
-<table id="table_indicateurs" class="easyui-datagrid" title="Fonctionnement des services" style="width:700px;height:250px" data-options="data:[],view:groupview,groupField:'Service',groupFormatter:function(value,rows){return status(value) + ' - ' + rows.length + ' indicateur(s)';},onSelect:function(index,row){$('#table_indicateurs').datagrid('unselectRow', index);}">
-    <thead>
-        <tr>
-            <th data-options="field:'Service',width:150,hidden:true">Service</th>
-            <th data-options="field:'Indicateur',width:200,align:'left'">Indicateur</th>
-            <th data-options="field:'Description', width:400,align:'left'">Description</th>
-            <th data-options="field:'Valeur',width:80,align:'right'">Valeur</th>
-        </tr>
-    </thead>
-</table>
+<div style="width:100%;">
+   <div style="width:700px;margin: 0 auto;">
+      <table id="table_indicateurs" class="easyui-datagrid"  title="Fonctionnement des services" style="width:700px;" data-options="data:[],view:groupview,groupField:'Service',groupFormatter:function(value,rows){return get_status(value) + ' - ' + rows.length + ' indicateur(s)';},onSelect:function(index,row){$('#table_indicateurs').datagrid('unselectRow', index);}">
+         <thead>
+            <tr>
+               <th data-options="field:'Service',width:150,hidden:true">Service</th>
+               <th data-options="field:'Indicateur',width:200,align:'left'">Indicateur</th>
+               <th data-options="field:'Description', width:400,align:'left'">Description</th>
+               <th data-options="field:'Valeur',width:80,align:'right'">Valeur</th>
+            </tr>
+         </thead>
+      </table>
+   </div>
+</div>
 
 <div id="noindicators" class="display">
 No indicators provided !!!
 </div>
 
-// voir http://jsfiddle.net/7j6xrnoa/5/ si nécessaire

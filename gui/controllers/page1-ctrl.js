@@ -2,6 +2,7 @@ var isadmin=-1;
 
 
 function socketio_available(s) { // socket io est chargé, on se connecte
+   
    s.on('mon', function(message){
       var data = jQuery.parseJSON( message );
 
@@ -18,10 +19,7 @@ function socketio_available(s) { // socket io est chargé, on se connecte
       }
    });
 
-   s.on('rel', function(message){ // reload
-      $("#table_interfaces").empty();
-      $("#table_interfaces").append("<tbody></tbody>");
-      
+   s.on('rel', function(message){
       try {
          controlPanel.load_interfaces_list_only(isadmin);
       }

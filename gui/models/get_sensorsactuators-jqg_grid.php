@@ -3,6 +3,7 @@ include_once('../lib/configs.php');
 include_once('../lib/php/auth_utils.php');
 session_start();
 
+
 switch(check_admin()){
     case 98:
         break;
@@ -16,6 +17,7 @@ switch(check_admin()){
         exit(1);
 }
 
+	
 $page = $_GET['page']; // get the requested page
 $limit = $_GET['rows']; // get how many rows we want to have into the grid
 $sidx = $_GET['sidx']; // get index row - i.e. user click to sort
@@ -30,6 +32,7 @@ try{
     echo json_encode(array("result"=>"KO","error"=>2,"error_msg"=>$e->getMessage() ));
     exit(1);
 }
+
 
 $file_db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 $file_db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION); // ERRMODE_WARNING | ERRMODE_EXCEPTION | ERRMODE_SILENT
@@ -75,7 +78,7 @@ $SQL="SELECT sensors_actuators.id AS id,
          ON sensors_actuators.id_location = locations.id_location
       ORDER BY $sidx $sord LIMIT $start , $limit";
 
-try{    
+try{
     $stmt = $file_db->prepare($SQL);
     $stmt->execute();
     $result = $stmt->fetchAll();
@@ -92,15 +95,16 @@ if ( stristr($_SERVER["HTTP_ACCEPT"],"application/xhtml+xml") ) {
 }
 $et = ">";
 
+ob_start();
+
 echo "<?xml version='1.0' encoding='utf-8'?$et\n";
 echo "<rows>";
 echo "<page>".$page."</page>";
 echo "<total>".$total_pages."</total>";
 echo "<records>".$count."</records>";
 
-
 foreach ($result as $result_elem){
-	echo "<row id='".$result_elem['id']."'>";
+    echo "<row id='".$result_elem['id']."'>";
     echo "<cell>".$result_elem['id']."</cell>";
     echo "<cell>".$result_elem['id_sensors_actuators']."</cell>";
     echo "<cell><![CDATA[".$result_elem['name']."]]></cell>";

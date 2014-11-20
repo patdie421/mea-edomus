@@ -9,6 +9,7 @@ var controlPanel = {
       this.table_interfaces="#"+table_interfaces;
       this.table_processes="#"+table_processes;   
    },
+
    
    load: function(isadmin) {
       _controlPanel=this;
@@ -52,7 +53,7 @@ var controlPanel = {
    {
       _controlPanel=this;
       newRow =  "<tr>" +
-                    "<td style=\"width:10%;height:40px;\"><div id=\"process_"+id+"\" class=\"pastille\" style=\"background:gray;\"></div></td>" +
+                    "<td style=\"width:10%;height:40px;\"><div style='width:40px;text-align:center;'><div id=\"process_"+id+"\" class=\"pastille\" style=\"background:gray;\"></div></div></td>" +
                     "<td style=\"width:60%;\">" +
                         "<div class=\"process\">" +
                            "<div class=\"name\">"+name+"</div>";
@@ -64,16 +65,20 @@ var controlPanel = {
                     "<td style=\"width:30%;\">";
       if(isadmin==1)
       {
-               newRow+="<div class='bouton'>
+               newRow+="<div class='bouton'>";
          if(start != null)
          {
                 newRow+="<a id=\"bstart"+id+"\" href=\"#\">"+start_str+"</a>";
+         }
+         if(start != null && stop != null)
+         {
+                newRow+="&nbsp;";
          }
          if(stop != null)
          {
                 newRow+="<a id=\"bstop"+id+"\" href=\"#\">"+stop_str+"</a>";
          }
-              newRow+="</div>;
+              newRow+="</div>";
       }
             newRow+="</td>" +
                 "</tr>";
@@ -82,10 +87,14 @@ var controlPanel = {
 
       if(start != null)
       {
+         var icon_str="icon-ok";
+         if(name=="RELOAD")
+            icon_str="icon-reload";
          $("#bstart"+id).linkbutton({
             plain: false,
-            iconCls: 'icon-ok',
+            iconCls: icon_str,
          });
+         $("#bstart"+id).click(function(event){start(_controlPanel,id);});
       }
       if(stop != null)
       {
@@ -93,9 +102,9 @@ var controlPanel = {
             plain: false,
             iconCls: 'icon-cancel',
          });
+         $("#bstop"+id).click(function(event){stop(_controlPanel,id);});
       }
    },
-
 
    update_status: function(data)
    {
@@ -140,6 +149,7 @@ var controlPanel = {
       $("#"+table+" > tbody").before(newRow);
    },
 
+
    load_interfaces_list_only: function(isadmin) {
       _controlPanel=this;
       $(_controlPanel.table_interfaces).empty();
@@ -170,6 +180,7 @@ var controlPanel = {
       });
    },
 
+
    reloadTask: function(_controlPanel,id)
    {
       // on met la roue qui tourne ...
@@ -193,6 +204,7 @@ var controlPanel = {
          }
       });
    },
+
    
    startTask: function(_controlPanel,id)
    {
@@ -209,6 +221,7 @@ var controlPanel = {
          }
       });
    },
+
    
    stopTask: function(_controlPanel,id)
    {
@@ -225,6 +238,7 @@ var controlPanel = {
          }
       });
    },
+
    
    checkError: function(data)
    {

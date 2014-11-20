@@ -8,7 +8,7 @@ var indicatorsTable = {
       return this.started;
    },
    
-  add_indicator: function(table, service_name, indicator_name, indicator_description, indicator_value)
+  add_indicator: function(table_id, service_name, indicator_name, indicator_description, indicator_value)
    {
       $("#" + table_id).datagrid('appendRow', {
          Service: service_name,
@@ -29,7 +29,7 @@ var indicatorsTable = {
           {
              for(var indicator in services[service])
              {
-                this.add_indicator2(table, service, services[service][indicator], "","N/A");
+                this.add_indicator(table, service, services[service][indicator], "","N/A");
                 nb++;
              }
          }
@@ -39,6 +39,7 @@ var indicatorsTable = {
    
    load: function(table)
    {
+
       _indicatorsTable=this;
       $.ajax({
          url: 'CMD/indicators.php',

@@ -189,6 +189,10 @@
 		4E4BF48F1A1D12AF00CEB284 /* indicateurs-view.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "indicateurs-view.html"; sourceTree = "<group>"; };
 		4E4BF4901A1D12AF00CEB284 /* journal-view.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "journal-view.html"; sourceTree = "<group>"; };
 		4E4BF4921A1D12AF00CEB284 /* services-view.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "services-view.html"; sourceTree = "<group>"; };
+		4E4BF5201A1E952000CEB284 /* page2.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; name = page2.php; path = gui/page2.php; sourceTree = "<group>"; };
+		4E4BF5211A1E971200CEB284 /* page2-ctrl.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "page2-ctrl.js"; sourceTree = "<group>"; };
+		4E4BF5221A1E974B00CEB284 /* capteurs-actionneurs-ctrl.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "capteurs-actionneurs-ctrl.js"; sourceTree = "<group>"; };
+		4E4BF5231A1E977500CEB284 /* capteurs-actionneurs-view.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = "capteurs-actionneurs-view.html"; sourceTree = "<group>"; };
 		4E5E24C1173C34A100B8CEFE /* mea_api.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = mea_api.h; path = src/mea_api.h; sourceTree = "<group>"; };
 		4E5E24C2173C34AE00B8CEFE /* mea_api.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mea_api.c; path = src/mea_api.c; sourceTree = "<group>"; };
 		4E5FC65A172F0F91004266EB /* interface_type_001_actuators.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = interface_type_001_actuators.h; path = src/interface_type_001_actuators.h; sourceTree = "<group>"; };
@@ -1306,6 +1310,7 @@
 			isa = PBXGroup;
 			children = (
 				4E4BF47F1A1D12AF00CEB284 /* page1.php */,
+				4E4BF5201A1E952000CEB284 /* page2.php */,
 				4E4BF0BC1A1D12AE00CEB284 /* index.html */,
 				4E4BF0AE1A1D12AE00CEB284 /* controllers */,
 				4E4BF4841A1D12AF00CEB284 /* views */,
@@ -1320,6 +1325,8 @@
 				4E4BF0B91A1D12AE00CEB284 /* journal-ctrl.js */,
 				4E4BF0BA1A1D12AE00CEB284 /* page1-ctrl.js */,
 				4E4BF0BB1A1D12AE00CEB284 /* services-ctrl.js */,
+				4E4BF5211A1E971200CEB284 /* page2-ctrl.js */,
+				4E4BF5221A1E974B00CEB284 /* capteurs-actionneurs-ctrl.js */,
 			);
 			name = controllers;
 			path = gui/controllers;
@@ -1331,6 +1338,7 @@
 				4E4BF48F1A1D12AF00CEB284 /* indicateurs-view.html */,
 				4E4BF4901A1D12AF00CEB284 /* journal-view.html */,
 				4E4BF4921A1D12AF00CEB284 /* services-view.html */,
+				4E4BF5231A1E977500CEB284 /* capteurs-actionneurs-view.html */,
 			);
 			name = views;
 			path = gui/views;

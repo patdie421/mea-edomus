@@ -1,0 +1,24 @@
+<script type="text/javascript" src="controllers/capteurs-actionneurs-ctrl.js"></script>
+
+<script>
+// 'id',str_num.capitalize(), str_name.capitalize(), str_type.capitalize(), str_description.capitalize(), str_interface.capitalize(), str_parameters.capitalize(),str_location.capitalize(),str_stat.capitalize(),'histo', 'id_type','id_interface','id_location'
+
+jQuery(document).ready(function(){
+   capteursactionneurs_controller("table_capteurs-actionneurs");
+});
+</script>
+<div style="width:100%;">
+   <div style="width:700px;margin: 0 auto;">
+      <table id="table_capteurs-actionneurs" class="easyui-datagrid"  title="Capteurs/Actionneurs" style="width:700px;" pagination="true" idField="id">
+         <thead>
+            <tr>
+               <th data-options="field:'id',width:10,hidden:true">id</th>
+               <th data-options="field:'id_sensor_actuator',width:10,hidden:true,sortable:true">id_sensor_actuator</th>
+               <th data-options="field:'name',width:100,align:'left'">name</th>
+               <th data-options="field:'type', width:100,align:'left'">type</th>
+               <th data-options="field:'description',width:80,align:'right'">description</th>
+            </tr>
+         </thead>
+      </table>
+   </div>
+</div>
