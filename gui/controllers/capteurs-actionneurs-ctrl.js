@@ -9,6 +9,4 @@ function capteursactionneurs_controller(table_id)
       destroyUrl: 'destroy_user.php',
       onError:    function(index,row) { alert(row.msg); } // uniquement pour edatagrid ?
    });
-
-
 }
