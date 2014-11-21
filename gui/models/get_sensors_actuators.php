@@ -3,6 +3,7 @@ include_once('../lib/configs.php');
 include_once('../lib/php/auth_utils.php');
 session_start();
 
+$debug=0;
 
 switch(check_admin()){
     case 98:
@@ -61,6 +62,13 @@ catch(PDOException $e) {
     $file_db=null;
     exit(1);
 }
+
+// pour debug
+if ($debug==1)
+{
+   print_r($result);
+}
+
 
 header('Content-type: application/json');
 
