@@ -95,8 +95,6 @@ if ( stristr($_SERVER["HTTP_ACCEPT"],"application/xhtml+xml") ) {
 }
 $et = ">";
 
-ob_start();
-
 echo "<?xml version='1.0' encoding='utf-8'?$et\n";
 echo "<rows>";
 echo "<page>".$page."</page>";
