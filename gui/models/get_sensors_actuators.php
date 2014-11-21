@@ -49,7 +49,7 @@ $SQL="SELECT sensors_actuators.id AS id,
       INNER JOIN types
          ON sensors_actuators.id_type = types.id_type
       INNER JOIN locations
-         ON sensors_actuators.id_location = locations.id_location;
+         ON sensors_actuators.id_location = locations.id_location";
 
 try {
     $stmt = $file_db->prepare($SQL);
