@@ -9,11 +9,13 @@ switch(check_admin()){
     case 98:
         break;
     case 99:
+        error_log("non connecté");
         echo json_encode(array("result"=>"KO","error"=>99,"error_msg"=>"non connecté" ));
         exit(1);
     case 0:
         break;
     default:
+        error_log("erreur inconnue");
         echo json_encode(array("result"=>"KO","error"=>1,"error_msg"=>"erreur inconnue" ));
         exit(1);
 }
@@ -23,7 +25,10 @@ try {
     $file_db = new PDO($PARAMS_DB_PATH);
 }
 catch(PDOException $e) {
-    echo json_encode(array("result"=>"KO","error"=>2,"error_msg"=>$e->getMessage() ));
+
+    $error_msg=$e->getMessage(); 
+    error_log($error_msg);
+    echo json_encode(array("result"=>"KO","error"=>2,"error_msg"=>$error_msg));
     exit(1);
 }
 
@@ -59,7 +64,9 @@ try {
     $result = $stmt->fetchAll();
 }
 catch(PDOException $e) {
-    echo json_encode(array("result"=>"KO","error"=>4,"error_msg"=>$e->getMessage() ));
+    $error_msg=$e->getMessage(); 
+    error_log($error_msg);
+    echo json_encode(array("result"=>"KO","error"=>4,"error_msg"=>$error_msg));
     $file_db=null;
     exit(1);
 }
@@ -67,7 +74,11 @@ catch(PDOException $e) {
 // pour debug
 if ($debug==1)
 {
+   ob_start();
    print_r($result);
+   $debug_msg = ob_get_contents();
+   ob_end_clean();
+   error_log($debug_msg);
 }
 
 
@@ -78,7 +89,6 @@ $response = array();
 foreach ($result as $result_elem){
     array_push($response, $result_elm);
 }
-
 echo json_encode($response);
 
 $file_db = null;
