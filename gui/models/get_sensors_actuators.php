@@ -20,6 +20,15 @@ switch(check_admin()){
         exit(1);
 }
 
+/* parametres passés si pagination sur la datagrid
+$page = isset($_POST['page']) ? intval($_POST['page']) : 1;
+$rows = isset($_POST['rows']) ? intval($_POST['rows']) : 10;
+
+/* parametres passés si tri sur la datagrid
+$sort = isset($_POST['sort'])   ? strval($_POST['sort']) : 'itemid';
+$order = isset($_POST['order']) ? strval($_POST['order']) : 'asc';
+$offset = ($page-1)*$rows;
+*/
 
 try {
     $file_db = new PDO($PARAMS_DB_PATH);
@@ -57,6 +66,11 @@ $SQL="SELECT sensors_actuators.id AS id,
          ON sensors_actuators.id_type = types.id_type
       INNER JOIN locations
          ON sensors_actuators.id_location = locations.id_location";
+// à rajouter à la requete si pagination
+// "ORDER BY $sort $order"
+// à rajouter à la requete si tri
+// "LIMIT $offset, $rows";   
+
 
 try {
     $stmt = $file_db->prepare($SQL);
