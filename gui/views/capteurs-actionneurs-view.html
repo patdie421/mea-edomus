@@ -9,14 +9,17 @@ jQuery(document).ready(function(){
 <div style="width:100%;">
    <div style="width:700px;margin: 0 auto;">
       <table id="table_capteurs-actionneurs"
-             class="easyui-datagrid"
              title="Capteurs/Actionneurs"
+             class="easyui-datagrid"
+
              style="width:700px;"
+
              pagination="true"
              idField="id"
              fitColumns="true"
              singleSelect="true"
-             toolbar="#toolbar">
+             toolbar="#toolbar_ca"
+             url="models/get_capteurs_actionneurs?php">
          <thead>
             <tr>
                <th data-options="field:'id',width:10,hidden:true">id</th>
@@ -30,7 +33,7 @@ jQuery(document).ready(function(){
    </div>
 </div>
 
-<div id="toolbar">
+<div id="toolbar_ca">
    <a href="#" class="easyui-linkbutton" iconCls="icon-add" plain="true" onclick="newUser()">Add User</a>
    <a href="#" class="easyui-linkbutton" iconCls="icon-edit" plain="true" onclick="editUser()">Edit User</a>
    <a href="#" class="easyui-linkbutton" iconCls="icon-remove" plain="true" onclick="destroyUser()">Remove User</a>
