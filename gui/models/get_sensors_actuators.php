@@ -19,9 +19,10 @@ switch(check_admin()){
 }
 
 
-try{
+try {
     $file_db = new PDO($PARAMS_DB_PATH);
-}catch(PDOException $e){
+}
+catch(PDOException $e) {
     echo json_encode(array("result"=>"KO","error"=>2,"error_msg"=>$e->getMessage() ));
     exit(1);
 }
