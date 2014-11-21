@@ -7,7 +7,7 @@ function capteursactionneurs_controller(table_id)
       saveUrl:    'save_user.php',
       updateUrl:  'update_user.php',
       destroyUrl: 'destroy_user.php',
-      onError:    function(index,row) { alert(row.msg); }
+      onError:    function(index,row) { alert(row.msg); } // uniquement pour edatagrid ?
    });
 
 
