@@ -107,3 +107,36 @@ foreach ($result as $result_elem){
 echo json_encode($response);
 
 $file_db = null;
+
+
+/*
+$page=isset ($_POST [' page '])? Intval ($_POST [' page ']) : 1; 
+$rows=isset ($_POST [' rows'])? Intval ($_POST [' rows']) : 10; 
+$offset=($page - 1) * $rows; 
+$result=array (); 
+
+$tablename="STUser"; 
+//... 
+require_once (".. \ db \ DB_config PHP");
+require_once (".. \ db \ DB_class PHP");
+
+$db=new db(a);
+$db - >Connect_db ($_DB['host'], $_DB['username'], $_DB['password'], $_DB['dbname']); 
+$db - >The query (" select count (*) As the Total from $tablename "); 
+$row=$db - >Fetch_assoc (); 
+
+$result (" total ")=$row (" total "); 
+
+$db - >query(" select * from $tablename limit $offset, $rows "); 
+
+$items=array (); 
+ while ($row=$db - >fetch_assoc()) {
+ array_push ($items, $row); 
+
+} $result ["rows"]=$items; 
+
+echo json_encode ($result); 
+*/
+
+
+
