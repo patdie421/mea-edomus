@@ -20,16 +20,17 @@ switch(check_admin()){
         exit(1);
 }
 
-/* parametres passés si pagination sur la datagrid
+//parametres passés si pagination sur la datagrid
 $page = isset($_POST['page']) ? intval($_POST['page']) : 1;
 $rows = isset($_POST['rows']) ? intval($_POST['rows']) : 10;
 
-/* parametres passés si tri sur la datagrid
-$sort = isset($_POST['sort'])   ? strval($_POST['sort']) : 'itemid';
+// parametres passés si tri sur la datagrid
+$sort = isset($_POST['sort'])   ? strval($_POST['sort']) : 'id';
 $order = isset($_POST['order']) ? strval($_POST['order']) : 'asc';
 $offset = ($page-1)*$rows;
-*/
 
+
+// connexion à la db
 try {
     $file_db = new PDO($PARAMS_DB_PATH);
 }
@@ -40,10 +41,16 @@ catch(PDOException $e) {
     echo json_encode(array('isError' => true, 'msg' => $error_msg));
     exit(1);
 }
-$file_db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+
+// parametrage du requetage
+// $file_db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+// $file_db->setAttribute(PDO::FETCH_ASSOC);
 $file_db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION); // ERRMODE_WARNING | ERRMODE_EXCEPTION | ERRMODE_SILENT
 
-$total=0;
+// récupération du nombre total de ligne
+
+/*
+$total=-1;
 try {
     $stmt = $file_db->prepare("SELECT count(*) AS count FROM (SELECT * FROM sensors_actuators)");
     $stmt->execute();
@@ -57,8 +64,23 @@ catch(PDOException $e) {
     $file_db=null;
     exit(1);
 }
+*/
+
+try {
+   $request = $file_db->query("SELECT count(*) FROM sensors_actuators");
+   $row = $request->fetch(PDO::FETCH_NUM);
+   $total=$row[0];
+}
+catch (PDOException $e) {
+   $error_msg=$e->getMessage(); 
+   error_log($error_msg);
+   echo json_encode(array('isError' => true, 'msg' => $error_msg));
+   $file_db=null;
+   exit(1);
+}
 
 
+// requete des données
 $SQL="SELECT sensors_actuators.id AS id,
              sensors_actuators.id_sensor_actuator AS id_sensors_actuators,
              sensors_actuators.id_type AS id_type,
@@ -78,13 +100,10 @@ $SQL="SELECT sensors_actuators.id AS id,
       INNER JOIN types
          ON sensors_actuators.id_type = types.id_type
       INNER JOIN locations
-         ON sensors_actuators.id_location = locations.id_location";
-// à rajouter à la requete si pagination
-// "ORDER BY $sort $order"
-// à rajouter à la requete si tri
-// "LIMIT $offset, $rows";   
-
-
+         ON sensors_actuators.id_location = locations.id_location
+      ORDER BY $sort $order
+      LIMIT $offset, $rows";
+/*
 try {
     $stmt = $file_db->prepare($SQL);
     $stmt->execute();
@@ -98,58 +117,51 @@ catch(PDOException $e) {
     $file_db=null;
     exit(1);
 }
+*/
+try {
+   $request = $db->query($SQL);
+   $rows = array();
+   while($row = $request->fetch(PDO::FETCH_OBJ))
+   {
+      array_push($rows, $row);
+   }
+}
+catch(PDOException $e)
+{
+    $error_msg=$e->getMessage(); 
+    error_log($error_msg);
+    echo json_encode(array('isError' => true, 'msg' => $error_msg));
+
+    $file_db=null;
+
+    exit(1);
+}
 
 // pour debug
 if ($debug==1)
 {
    ob_start();
-   print_r($result);
+   print_r($rows);
    $debug_msg = ob_get_contents();
    ob_end_clean();
    error_log($debug_msg);
 }
 
-
-header('Content-type: application/json');
-
-$response = array();
-//array_push('total',$total);
+/*
+$rows=array();
 foreach ($result as $result_elem){
-    array_push($response, $result_elm);
+   array_push($rows, $result_elm);
 }
+*/
+$response = array();
+$response["total"]=$total;
+$response["row"]=$rows;
+
+// emission des données
+header('Content-type: application/json');
 echo json_encode($response);
 
 $file_db = null;
 
-
-/*
-$page=isset ($_POST [' page '])? Intval ($_POST [' page ']) : 1; 
-$rows=isset ($_POST [' rows'])? Intval ($_POST [' rows']) : 10; 
-$offset=($page - 1) * $rows; 
-$result=array (); 
-
-$tablename="STUser"; 
-//... 
-require_once (".. \ db \ DB_config PHP");
-require_once (".. \ db \ DB_class PHP");
-
-$db=new db(a);
-$db - >Connect_db ($_DB['host'], $_DB['username'], $_DB['password'], $_DB['dbname']); 
-$db - >The query (" select count (*) As the Total from $tablename "); 
-$row=$db - >Fetch_assoc (); 
-
-$result (" total ")=$row (" total "); 
-
-$db - >query(" select * from $tablename limit $offset, $rows "); 
-
-$items=array (); 
- while ($row=$db - >fetch_assoc()) {
- array_push ($items, $row); 
-
-} $result ["rows"]=$items; 
-
-echo json_encode ($result); 
-*/
-
-
-
+// voir http://stackoverflow.com/questions/12911546/jquery-easy-ui-datagrid-search-not-work
+// voir http://www.jeasyui.com/tutorial/datagrid/datagrid8.php
