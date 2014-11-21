@@ -40,10 +40,23 @@ catch(PDOException $e) {
     echo json_encode(array('isError' => true, 'msg' => $error_msg));
     exit(1);
 }
-
-
 $file_db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 $file_db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION); // ERRMODE_WARNING | ERRMODE_EXCEPTION | ERRMODE_SILENT
+
+$total=0;
+try {
+    $stmt = $file_db->prepare("SELECT count(*) AS count FROM (SELECT * FROM sensors_actuators)");
+    $stmt->execute();
+    $result = $stmt->fetchAll();
+    $total=$result[0]['count'];
+}
+catch(PDOException $e) {
+    $error_msg=$e->getMessage(); 
+    error_log($error_msg);
+    echo json_encode(array('isError' => true, 'msg' => $error_msg));
+    $file_db=null;
+    exit(1);
+}
 
 
 $SQL="SELECT sensors_actuators.id AS id,
@@ -100,7 +113,7 @@ if ($debug==1)
 header('Content-type: application/json');
 
 $response = array();
-
+//array_push('total',$total);
 foreach ($result as $result_elem){
     array_push($response, $result_elm);
 }
