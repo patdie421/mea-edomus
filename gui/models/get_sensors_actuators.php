@@ -9,14 +9,14 @@ switch(check_admin()){
     case 98:
         break;
     case 99:
-        error_log("non connecté");
-        echo json_encode(array("result"=>"KO","error"=>99,"error_msg"=>"non connecté" ));
+        error_log("not connected");
+        echo json_encode(array('isError' => true, 'msg' => 'not connected')); // pour edatagrid voir http://www.jeasyui.com/extension/edatagrid.php (onError)
         exit(1);
     case 0:
         break;
     default:
-        error_log("erreur inconnue");
-        echo json_encode(array("result"=>"KO","error"=>1,"error_msg"=>"erreur inconnue" ));
+        error_log("unknown error");
+        echo json_encode(array('isError' => true, 'msg' => 'unknown'));
         exit(1);
 }
 
@@ -37,7 +37,7 @@ catch(PDOException $e) {
 
     $error_msg=$e->getMessage(); 
     error_log($error_msg);
-    echo json_encode(array("result"=>"KO","error"=>2,"error_msg"=>$error_msg));
+    echo json_encode(array('isError' => true, 'msg' => $error_msg));
     exit(1);
 }
 
@@ -80,7 +80,8 @@ try {
 catch(PDOException $e) {
     $error_msg=$e->getMessage(); 
     error_log($error_msg);
-    echo json_encode(array("result"=>"KO","error"=>4,"error_msg"=>$error_msg));
+    echo json_encode(array('isError' => true, 'msg' => $error_msg));
+
     $file_db=null;
     exit(1);
 }
