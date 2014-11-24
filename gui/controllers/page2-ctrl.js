@@ -1,4 +1,5 @@
 var isadmin=-1;
+var _isauth=-1;
 
 function page2_controller(tabName)
 {
@@ -12,7 +13,22 @@ function page2_controller(tabName)
       } else {
          isadmin=1;
       }
-      $('#tabConfiguration').tabs('select', tabName);
    }
+ 
+   $('#tabConfiguration').tabs({
+      onSelect:function(tabName) {
+         if(_isauth!=-1) // pour pas avoir de auth de suite après chargement de la page
+         {
+            authdata=get_auth_data();
+            if(authdata==false) {
+               $.messager.alert(str_Error+str_double_dot,str_not_connected,'error', function(){window.location = "login.php?dest=index.html&page=page2.php&tab="+tabName;});
+               return false;
+            }
+            _isauth=0;
+         }
+      }
+   });
+
+   $('#tabConfiguration').tabs('select', tabName);
 }
 
