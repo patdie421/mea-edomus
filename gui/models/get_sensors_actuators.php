@@ -4,20 +4,29 @@ include_once('../lib/php/auth_utils.php');
 session_start();
 
 $debug=0;
+$response = array();
 
 switch(check_admin()){
-    case 98:
-        break;
-    case 99:
-        error_log("not connected");
-        echo json_encode(array('isError' => true, 'msg' => 'not connected')); // pour edatagrid voir http://www.jeasyui.com/extension/edatagrid.php (onError)
-        exit(1);
-    case 0:
-        break;
-    default:
-        error_log("unknown error");
-        echo json_encode(array('isError' => true, 'msg' => 'unknown'));
-        exit(1);
+   case 98: // pas admin, mais on laisse consulter
+      break;
+   case 99:
+      $response["isError"]=true;
+      $response["errno"]=99;
+      $response["msg"]='not logged in';
+      $response["rows"]=array();
+      $response["total"]=0;
+      echo json_encode($response);
+      exit(1);
+   case 0:
+      break;
+   default:
+      $response["isError"]=true;
+      $response["errno"]=100;
+      $response["msg"]='unknown error';
+      $response["rows"]=array();
+      $response["total"]=0;
+      echo json_encode($response);
+      exit(1);
 }
 
 //parametres passés si pagination sur la datagrid
@@ -32,14 +41,17 @@ $offset = ($page-1)*$rows;
 
 // connexion à la db
 try {
-    $file_db = new PDO($PARAMS_DB_PATH);
+   $file_db = new PDO($PARAMS_DB_PATH);
 }
 catch(PDOException $e) {
-
-    $error_msg=$e->getMessage(); 
-    error_log($error_msg);
-    echo json_encode(array('isError' => true, 'msg' => $error_msg));
-    exit(1);
+   $error_msg=$e->getMessage(); 
+   $response["isError"]=true;
+   $response["errno"]=1;
+   $response["msg"]=$error_msg;
+   $response["rows"]=array();
+   $response["total"]=0;
+   echo json_encode($response);
+   exit(1);
 }
 
 // parametrage du requetage
@@ -55,9 +67,13 @@ try {
    $total=$row[0];
 }
 catch (PDOException $e) {
-   $error_msg=$e->getMessage(); 
-   error_log($error_msg);
-   echo json_encode(array('isError' => true, 'msg' => $error_msg));
+   $error_msg=$e->getMessage();
+   $response["isError"]=true;
+   $response["errno"]=2;
+   $response["msg"]=$error_msg;
+   $response["rows"]=array();
+   $response["total"]=0;
+   echo json_encode($response);
    $file_db=null;
    exit(1);
 }
@@ -96,11 +112,15 @@ try {
 }
 catch(PDOException $e)
 {
-    $error_msg=$e->getMessage(); 
-    error_log($error_msg);
-    echo json_encode(array('isError' => true, 'msg' => $error_msg));
-    $file_db=null;
-    exit(1);
+   $error_msg=$e->getMessage(); 
+   $response["isError"]=true;
+   $response["errno"]=3;
+   $response["msg"]=$error_msg;
+   $response["rows"]=array();
+   $response["total"]=0;
+   echo json_encode($response);   
+   $file_db=null;
+   exit(1);
 }
 
 // pour debug
@@ -113,7 +133,8 @@ if ($debug==1)
    error_log($debug_msg);
 }
 
-$response = array();
+$response["isError"]=false;
+$response["errno"]=0;
 $response["total"]=$total;
 $response["rows"]=$rows;
 
