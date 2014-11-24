@@ -20,14 +20,6 @@
 .fitem input {
    width:270px;
 }
-
-.pastille {
- height:10px;
- width:10px;
- border-radius: 10px;
- margin-right:1px;
- margin-left:1px;
-}
 </style>
 
 <script type="text/javascript" src="controllers/capteurs-actionneurs-ctrl.js"></script>
@@ -43,25 +35,17 @@ function checkRegexp( str, regexp) {
    }
 }
 
-function pastille(val,row)
-{
-   if (val == 0){
-      return "<div class='pastille' style='background:gray'></div>";
-   }
-   else {
-      return "<div class='pastille' style='background:green'></div>";
-   }
-}
-   
-function check(val,row)
+
+function addcheckmark(val,row)
 {
    if(val == 1){
       return "<div class='icon-ok' style='margin:auto;height:16px;width:16px;'></div>";
    }
    else{
-      "";
+      return  "";
    }
 }
+
 
 jQuery(document).ready(function(){
    // pour les contrôles de surface
@@ -106,8 +90,8 @@ jQuery(document).ready(function(){
                <th data-options="field:'iname',width:100,align:'left'">interface</th>
                <th data-options="field:'parameters',width:200,align:'left'">Paramètres</th>
                <th data-options="field:'lname',width:80,align:'left'">localisation</th>
-               <th data-options="field:'state',width:50,align:'left',formatter:pastille">état</th>
-               <th data-options="field:'todbflag',width:50,align:'left'formatter:check">Historisé</th>
+               <th data-options="field:'state',width:50,align:'left',formatter:addcheckmark">Actif</th>
+               <th data-options="field:'todbflag',width:50,align:'left',formatter:addcheckmark">Historisé</th>
     
                <th data-options="field:'id_type',hidden:true,align:'left'">id_type</th>
                <th data-options="field:'id_interface',hidden:true,align:'left'">id_interface</th>
@@ -158,7 +142,7 @@ jQuery(document).ready(function(){
         </div>
         <div class="fitem">
             <label>Etat :</label>
-            <select class="easyui-combobox" name="state" data-options="editable:false,panelHeight:42" style="width:120px;">
+            <select class="easyui-combobox" name="state" data-options="required:true,editable:false,panelHeight:42" style="width:120px;">
                <option value=1>Activé</option>
                <option value=0>Désactivé</option>
             </select>
@@ -168,9 +152,9 @@ jQuery(document).ready(function(){
             <input name="todbflag" type="checkbox" value=1>
         </div>
         
-        <input name="id" type="hidden">
         <input name="id_sensor_actuator" type="hidden">
-        
+
+        <input name="id" type="hidden" id="database_id">
         <input name="datasource_url" type="hidden" id="datasource_url">
     </form>
 </div>

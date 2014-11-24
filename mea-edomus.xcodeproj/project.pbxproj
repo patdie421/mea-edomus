@@ -184,7 +184,7 @@
 		4E4BF0B91A1D12AE00CEB284 /* journal-ctrl.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "journal-ctrl.js"; sourceTree = "<group>"; };
 		4E4BF0BA1A1D12AE00CEB284 /* page1-ctrl.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "page1-ctrl.js"; sourceTree = "<group>"; };
 		4E4BF0BB1A1D12AE00CEB284 /* services-ctrl.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "services-ctrl.js"; sourceTree = "<group>"; };
-		4E4BF0BC1A1D12AE00CEB284 /* index.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; name = index.html; path = gui/index.html; sourceTree = "<group>"; };
+		4E4BF0BC1A1D12AE00CEB284 /* index.php */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.php; name = index.php; path = gui/index.php; sourceTree = "<group>"; };
 		4E4BF47F1A1D12AF00CEB284 /* page1.php */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.php; name = page1.php; path = gui/page1.php; sourceTree = "<group>"; };
 		4E4BF48F1A1D12AF00CEB284 /* indicateurs-view.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "indicateurs-view.html"; sourceTree = "<group>"; };
 		4E4BF4901A1D12AF00CEB284 /* journal-view.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "journal-view.html"; sourceTree = "<group>"; };
@@ -240,7 +240,7 @@
 		4E79900919DC9D5500F87593 /* grid_sensors_actuators.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = grid_sensors_actuators.js; path = gui/controllers/grid_sensors_actuators.js; sourceTree = "<group>"; };
 		4E79900A19DC9D5500F87593 /* grid_types.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = grid_types.js; path = gui/controllers/grid_types.js; sourceTree = "<group>"; };
 		4E79900B19DC9D5500F87593 /* grid_utilisateurs.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = grid_utilisateurs.js; path = gui/controllers/grid_utilisateurs.js; sourceTree = "<group>"; };
-		4E79900C19DC9D5500F87593 /* index.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; path = index.php; sourceTree = "<group>"; };
+		4E79900C19DC9D5500F87593 /* index2.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; path = index2.php; sourceTree = "<group>"; };
 		4E79900E19DC9D5500F87593 /* configs.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; path = configs.php; sourceTree = "<group>"; };
 		4E79900F19DC9D5500F87593 /* includes.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; path = includes.php; sourceTree = "<group>"; };
 		4E79901219DC9D5500F87593 /* ellipsis-xbl.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "ellipsis-xbl.xml"; sourceTree = "<group>"; };
@@ -987,6 +987,9 @@
 		4EA1CFC21A1FED93008E82D8 /* new_sensors_actuators.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; name = new_sensors_actuators.php; path = gui/models/new_sensors_actuators.php; sourceTree = "<group>"; };
 		4EA1CFC51A2085E7008E82D8 /* update_sensors_actuators.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; name = update_sensors_actuators.php; path = gui/models/update_sensors_actuators.php; sourceTree = "<group>"; };
 		4EA1CFC61A20C963008E82D8 /* delete_sensors_actuators.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; name = delete_sensors_actuators.php; path = gui/models/delete_sensors_actuators.php; sourceTree = "<group>"; };
+		4EA1CFC71A238F00008E82D8 /* mea-translation.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = "mea-translation.js"; path = "fr/mea-translation.js"; sourceTree = "<group>"; };
+		4EA1CFC81A23C538008E82D8 /* login2.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; name = login2.php; path = gui/login2.php; sourceTree = "<group>"; };
+		4EA1CFC91A23D49A008E82D8 /* check_field.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; name = check_field.php; path = gui/models/check_field.php; sourceTree = "<group>"; };
 		4EC421A91A12747300D94204 /* interface_type_001.ino */ = {isa = PBXFileReference; lastKnownFileType = text; path = interface_type_001.ino; sourceTree = "<group>"; };
 		4EC421AB1A12747300D94204 /* interface_type_002_dht22.ino */ = {isa = PBXFileReference; lastKnownFileType = text; path = interface_type_002_dht22.ino; sourceTree = "<group>"; };
 		4EC421AE1A12747300D94204 /* AltSoftSerial.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AltSoftSerial.cpp; sourceTree = "<group>"; };
@@ -1316,9 +1319,10 @@
 		4E4BF0A81A1D128300CEB284 /* gui-new */ = {
 			isa = PBXGroup;
 			children = (
+				4EA1CFC81A23C538008E82D8 /* login2.php */,
 				4E4BF47F1A1D12AF00CEB284 /* page1.php */,
 				4E4BF5201A1E952000CEB284 /* page2.php */,
-				4E4BF0BC1A1D12AE00CEB284 /* index.html */,
+				4E4BF0BC1A1D12AE00CEB284 /* index.php */,
 				4EA1CFBC1A1FAFBB008E82D8 /* models */,
 				4E4BF0AE1A1D12AE00CEB284 /* controllers */,
 				4E4BF4841A1D12AF00CEB284 /* views */,
@@ -1465,7 +1469,7 @@
 				4E79900119DC9D5500F87593 /* change_password.php */,
 				4E79900219DC9D5500F87593 /* config.php */,
 				4E79900319DC9D5500F87593 /* controllers */,
-				4E79900C19DC9D5500F87593 /* index.php */,
+				4E79900C19DC9D5500F87593 /* index2.php */,
 				4E79900D19DC9D5500F87593 /* lib */,
 				4E79909019DC9D5500F87593 /* login.php */,
 				4E79909119DC9D5500F87593 /* models */,
@@ -1728,6 +1732,7 @@
 		4E79908919DC9D5500F87593 /* js */ = {
 			isa = PBXGroup;
 			children = (
+				4EA1CFC71A238F00008E82D8 /* mea-translation.js */,
 				4E60BA7719FECE2F00D56F21 /* mea-livecom-utils.js */,
 				4E79908A19DC9D5500F87593 /* mea-auth-utils.js */,
 				4E79908B19DC9D5500F87593 /* mea-grid-utils.js */,
@@ -3898,6 +3903,7 @@
 		4EA1CFC41A2085B7008E82D8 /* common */ = {
 			isa = PBXGroup;
 			children = (
+				4EA1CFC91A23D49A008E82D8 /* check_field.php */,
 				4EA1CFBE1A1FE570008E82D8 /* get_types_select.php */,
 				4EA1CFBF1A1FE948008E82D8 /* get_interfaces_select.php */,
 				4EA1CFC11A1FEAC3008E82D8 /* get_locations_select.php */,

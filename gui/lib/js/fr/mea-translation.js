@@ -1,2 +1,2 @@
-var localStrings = array();
+var localStrings = [];
 localStrings["test"]="test";

@@ -88,7 +88,7 @@ $exist=$result[0]['exist'];
 
 header('Content-type: application/json');
 
-echo json_encode(array("exist"=>$exist,"error"=>0));
+echo json_encode(array("result"=>"OK","exist"=>$exist,"error"=>0));
 
 $file_db = null;
 
