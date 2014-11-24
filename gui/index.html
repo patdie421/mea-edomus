@@ -24,24 +24,23 @@
    
    jQuery(document).ready(function(){
       $.ajaxSetup({ cache: false });
-      authdata=get_auth_data();
-      if(authdata==false)
-      {
-         $.messager.alert(str_Error+str_double_dot,str_not_connected,'error'), function(){window.location = "login.php?dest=index.html";});
-
-         return -1;
-      }
-      else
-      {
-         var socketio_port=8000;
-         liveCom.connect(socketio_port);
-
-         page('page1.php', 'ff', 'Indicateurs'); // chargement de la première page.
-      }
+      
+      page('page1.php', 'ff', 'Indicateurs'); // chargement de la première page.
+      
+      var socketio_port=8000;
+      liveCom.connect(socketio_port);
    });
 
    function page(pageUrl, tab, tabName)
    {
+      authdata=get_auth_data();
+      if(authdata==false)
+      {
+         $.messager.alert(str_Error+str_double_dot,str_not_connected,'error'), function(){window.location = "login.php?dest=index.html&page="+pageUrl+"&tab="+tabName;});
+         $('#content').panel('refresh',"notlogged.html"); // on vide l'affichage
+         return -1;
+      }
+
       if(currentPage != pageUrl)
       {
          $('#content').panel('refresh',pageUrl); // on charge la page
