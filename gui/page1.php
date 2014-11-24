@@ -22,7 +22,7 @@
 jQuery(document).ready(function(){
    tabName=$('#tabtodisplay').val();
 
-   if(!page1_controller())
+   if(!page1_controller(tabName))
    {
       return -1;
    }
