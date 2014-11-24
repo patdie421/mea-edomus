@@ -42,7 +42,7 @@ $.extend($.fn.validatebox.defaults.rules, {
         validator: function(value, param){
             return checkRegexp( value, /^[0-9A-Za-z]{3,8}$/);
         },
-        message: '3 à 8 caractères [a-zA-Z0-9].'
+        message: "3 à 8 caractères dans l'intervalle [a-zA-Z0-9]."
     }
 });
 
@@ -108,25 +108,25 @@ jQuery(document).ready(function(){
         </div>
         <div class="fitem">
             <label>Type :</label>
-            <select name="id_type" class="easyui-combobox"  data-options="editable:false,panelHeight:100,valueField:'id_type',textField:'name',url:'models/get_types_select.php'" style="width:120px;">
+            <select name="id_type" class="easyui-combobox"  data-options="required:true,editable:false,panelHeight:100,valueField:'id_type',textField:'name',url:'models/get_types_select.php'" style="width:120px;">
             </select>
         </div>
         <div class="fitem">
             <label>Description :</label>
-            <input name="description" class="easyui-textbox" data-options="multiline:true" style="width:270px;height:50px"></textarea>
+            <input name="description" class="easyui-textbox" data-options="multiline:true" style="width:270px;height:50px">
         </div>
         <div class="fitem">
             <label>Interface :</label>
-            <select class="easyui-combobox" name="id_interface" data-options="editable:false,panelHeight:100,valueField:'id_interface',textField:'name',url:'models/get_interfaces_select.php'" style="width:120px;">
+            <select class="easyui-combobox" name="id_interface" data-options="required:true,editable:false,panelHeight:100,valueField:'id_interface',textField:'name',url:'models/get_interfaces_select.php'" style="width:120px;">
             </select>
         </div>
         <div class="fitem" style="">
             <label>Parameters :</label>
-            <input name="parameters" class="easyui-textbox" data-options="multiline:true" style="width:270px;height:75px"></textarea>
+            <input name="parameters" class="easyui-textbox" data-options="multiline:true" style="width:270px;height:75px">
         </div>
         <div class="fitem">
             <label>Localisation :</label>
-            <select class="easyui-combobox" name="id_location" data-options="editable:false,panelHeight:100,valueField:'id_location',textField:'name',url:'models/get_locations_select.php'" style="width:120px;">
+            <select class="easyui-combobox" name="id_location" data-options="required:true,editable:false,panelHeight:100,valueField:'id_location',textField:'name',url:'models/get_locations_select.php'" style="width:120px;">
             </select>
         </div>
         <div class="fitem">
