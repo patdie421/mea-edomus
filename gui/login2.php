@@ -48,7 +48,7 @@ jQuery(document).ready(function(){
             function(data) {
                if(data.retour==1) {
                   if(data.flag==1) {
-                     $.messager.alert("Première Connexion ...","Le mot de passe doit être changé", 'info', function(){
+                     $.messager.alert("Première Connexion ...","Le mot de passe doit être changé !", 'info', function(){
                      <?php
                         echo "window.location = \"change_password.php";
                         if(isset($_GET['dest'])){
@@ -84,6 +84,7 @@ jQuery(document).ready(function(){
          alert("userid ne peut pas être vide (à remplacer)";
       }
    }
+
 });
 
 </script>
