@@ -43,6 +43,25 @@ function checkRegexp( str, regexp) {
    }
 }
 
+function pastille(val,row)
+{
+   if (val == 0){
+      return "<div class='pastille' style='background:gray'></div>";
+   }
+   else {
+      return "<div class='pastille' style='background:green'></div>";
+   }
+}
+   
+function check(val,row)
+{
+   if(val == 1){
+      return "<div class='icon-ok' style='margin:auto;height:16px;width:16px;'></div>";
+   }
+   else{
+      "";
+   }
+}
 
 jQuery(document).ready(function(){
    // pour les contrôles de surface
@@ -56,26 +75,6 @@ jQuery(document).ready(function(){
    });
 
    capteursactionneurs_controller("table_capteurs-actionneurs");
-   
-   function pastille(val,row)
-   {
-      if (val == 0){
-         return "<div class='pastille' style='background:gray'></div>";
-      }
-      else {
-         return "<div class='pastille' style='background:green'></div>";
-      }
-   }
-   
-   function check(val,row)
-   {
-      if(val == 1){
-          return "<div class='icon-ok' style='margin:auto;height:16px;width:16px;'></div>";
-      }
-      else{
-         "";
-      }
-   }
 });
 </script>
 
