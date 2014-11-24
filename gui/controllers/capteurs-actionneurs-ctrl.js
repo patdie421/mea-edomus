@@ -45,7 +45,7 @@ function check_field_exist(table,fieldName,fieldValue,id)
    else
      wsdata={table:table, field:fieldName, value:fieldValue};
     
-   $.ajax({ url: 'models/check_field-jqg_grid.php',
+   $.ajax({ url: 'models/check_field.php',
             async: false,
             type: 'GET',
             dataType: 'json',
