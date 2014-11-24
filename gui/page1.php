@@ -26,16 +26,6 @@ jQuery(document).ready(function(){
    {
       return -1;
    }
-
-   $('#tt').tabs({
-      onSelect:function(title){
-//         if(title=="Journal")
-//         {
-//            if(typeof(logViewer)!="undefined")
-//               logViewer.scrollBottom();
-//         }
-      }
-   });
 });
 </script>
 
