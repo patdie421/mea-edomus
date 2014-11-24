@@ -10,11 +10,26 @@ function capteursactionneurs_controller(table_id)
    });
 */
    $('#'+table_id).datagrid({
-	    onDblClickRow: function(index,row){ // si double click on modifie
+      onDblClickRow: function(index,row){ // si double click on modifie
          alert(index+" "+field+" "+value);
          $('#'+table_id).selectRow(index);
          editSensorActuator(table_id, 'dlg', 'fm', 'datasource_url');
 	    }
+      onLoadSuccess: function(data){
+         if(data.isError)
+         {
+            if(data.errno==99)
+            {
+               $.messager.alert(str_Error+str_double_dot,str_not_connected,'error', function(){window.location = "login.php?dest=index.html&page=page2.php&tab=Capteurs/Actionneurs";});
+               return -1;
+            }
+            else
+            {
+               $.messager.alert(str_Error+str_double_dot,data.errmsg,'error'});
+               return -1;
+            }
+         }
+      }
    });
 }
 
