@@ -1,14 +1,5 @@
 function capteursactionneurs_controller(table_id)
 {
-/*   
-   $('#'+table_id).edatagrid({
-      url:        'models/get_sensorsactuators-jqg_grid.php',
-      saveUrl:    'save_user.php',
-      updateUrl:  'update_user.php',
-      destroyUrl: 'destroy_user.php',
-      onError:    function(index,row) { alert(row.msg); } // uniquement pour edatagrid ?
-   });
-*/
    $('#'+table_id).datagrid({
       onDblClickRow: function(index,row){ // si double click on modifie
          alert(index+" "+field+" "+value);
@@ -20,12 +11,12 @@ function capteursactionneurs_controller(table_id)
          {
             if(data.errno==99)
             {
-               $.messager.alert(str_Error+str_double_dot,str_not_connected,'error', function(){window.location = "login.php?dest=index.html&page=page2.php&tab=Capteurs/Actionneurs";});
+               $.messager.alert("Erreur :","Vous n'êtes pas/plus connectés ...",'error', function(){window.location = "login.php?dest=index.html&page=page2.php&tab=Capteurs/Actionneurs";});
                return -1;
             }
             else
             {
-               $.messager.alert(str_Error+str_double_dot,data.errmsg,'error'});
+               $.messager.alert("Erreur :","Message retourné par le serveur : "+data.errmsg,'error'});
                return -1;
             }
          }
@@ -89,7 +80,7 @@ function destroySensorActuator(grid_id)
    var row = $('#'+grid_id).datagrid('getSelected');
    if (row)
    {
-      $.messager.confirm('Confirm','Are you sure you want to destroy this user?',function(r)
+      $.messager.confirm('Confirm','Etes vous sur de vouloir supprimer ce capteur/actionneur ?',function(r)
       {
          if (r)
          {
@@ -121,7 +112,10 @@ function updateSensorsActuators(table_id, dlgbox_id, form_id, datasource_url_id)
             var name_exist=-1;
             name_exist=check_field_exist("sensors_actuators","name",$('#sensor_acutator_name').val(),$('#id').val());
             if(name_exist)
-               alert("Name allready exist");
+            {
+               // alert("Nom de capteur/actionneur déjà utilisé");
+               $.messager.alert("Erreur :","Nom de capteur/actionneur déjà utilisé",'error'});
+            }
             return name_exist;
         },
         success: function(result) {
