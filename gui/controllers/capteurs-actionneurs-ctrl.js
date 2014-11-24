@@ -18,7 +18,7 @@ function ajax_error(xhr, ajaxOptions, thrownError){
 
 function check_field_exist(table,fieldName,fieldValue,id)
 {
-   if(id)
+   if(id!=-1)
      wsdata={table:table, field:fieldName,value:fieldValue, id:id};
    else
      wsdata={table:table, field:fieldName, value:fieldValue};
@@ -30,9 +30,9 @@ function check_field_exist(table,fieldName,fieldValue,id)
             data: wsdata,
             success: function(data){
                if(data.exist==0)
-                  passes=true;
-               else
                   passes=false;
+               else
+                  passes=true;
             },
             error: ajax_error
    });
@@ -46,6 +46,8 @@ function newSensorActuator(grid_id, dlgbox_id, form_id, datasource_url_id)
     $('#'+dlgbox_id).dialog('open').dialog('setTitle','Création ...');
     $('#'+form_id).form('clear');
     $('#'+datasource_url_id).val("models/new_sensors_actuators.php");
+    $('#id').val(-1);
+
 }
 
 
@@ -60,6 +62,7 @@ function editSensorActuator(grid_id, dlgbox_id, form_id, datasource_url_id)
    }
 }
 
+
 function destroySensorActuator(grid_id)
 {
    var row = $('#'+grid_id).datagrid('getSelected');
@@ -72,11 +75,11 @@ function destroySensorActuator(grid_id)
             $.post('models/delete_sensors_actuators.php',{id:row.id}, function(result) {
                if (!result.isError)
                {
-                  $('#'+grid_id).datagrid('reload');    // reload the user data
+                  $('#'+grid_id).datagrid('reload'); // reload the user data
                }
                else
                {
-                  $.messager.show({    // show error message
+                  $.messager.show({ // show error message
                      title: 'Error',
                      msg: result.errorMsg
                   });
@@ -95,14 +98,10 @@ function updateSensorsActuators(table_id, dlgbox_id, form_id, datasource_url_id)
         url: $('#'+datasource_url_id).val(),
         onSubmit: function() {
             var name_exist=-1;
-            var id=$("#id").val();
-            if(id!="")
-               name_exist=check_field_exist("sensors_actuators","name",$('#sensor_acutator_name').val(),id);            
-            else
-               name_exist=check_field_exist("sensors_actuators","name",$('#sensor_acutator_name').val());
-            if(!name_exist)
+            name_exist=check_field_exist("sensors_actuators","name",$('#sensor_acutator_name').val(),$('#id').val());
+            if(name_exist)
                alert("Name allready exist");
-            return !name_exist;
+            return name_exist;
         },
         success: function(result) {
             var result = eval('('+result+')');
