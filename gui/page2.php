@@ -5,7 +5,11 @@
 
 <script>
 jQuery(document).ready(function(){
-//   page2_controller();
+   if(!page2_controller())
+   {
+      return -1;
+   }
+   
    tabName=$('#tabtodisplay').val();
    $('#tabConfiguration').tabs('select', tabName);
 });
