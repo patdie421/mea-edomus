@@ -968,6 +968,7 @@
 		4E8F781D178B47C80099A751 /* timer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = timer.c; path = src/timer.c; sourceTree = "<group>"; };
 		4E8F781F178B47F80099A751 /* timer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = timer.h; path = src/timer.h; sourceTree = "<group>"; };
 		4EA1CFC71A238F00008E82D8 /* mea-translation.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = "mea-translation.js"; path = "fr/mea-translation.js"; sourceTree = "<group>"; };
+		4EA1CFCA1A23E28E008E82D8 /* logo-mea-eDomus.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "logo-mea-eDomus.png"; sourceTree = "<group>"; };
 		4EC421A91A12747300D94204 /* interface_type_001.ino */ = {isa = PBXFileReference; lastKnownFileType = text; path = interface_type_001.ino; sourceTree = "<group>"; };
 		4EC421AB1A12747300D94204 /* interface_type_002_dht22.ino */ = {isa = PBXFileReference; lastKnownFileType = text; path = interface_type_002_dht22.ino; sourceTree = "<group>"; };
 		4EC421AE1A12747300D94204 /* AltSoftSerial.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AltSoftSerial.cpp; sourceTree = "<group>"; };
@@ -1438,6 +1439,7 @@
 		4E79900D19DC9D5500F87593 /* lib */ = {
 			isa = PBXGroup;
 			children = (
+				4EA1CFCA1A23E28E008E82D8 /* logo-mea-eDomus.png */,
 				4E3F343F19FBD3F90066A9CC /* noty-2.2.10 */,
 				4E79900E19DC9D5500F87593 /* configs.php */,
 				4E79900F19DC9D5500F87593 /* includes.php */,
