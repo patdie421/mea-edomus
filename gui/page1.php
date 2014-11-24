@@ -22,7 +22,10 @@
 jQuery(document).ready(function(){
    tabName=$('#tabtodisplay').val();
 
-   page1_controller();
+   if(!page1_controller())
+   {
+      return -1;
+   }
 
    $('#tt').tabs({
       onSelect:function(title){
