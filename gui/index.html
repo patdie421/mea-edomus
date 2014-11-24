@@ -27,8 +27,8 @@
       authdata=get_auth_data();
       if(authdata==false)
       {
-         $.messager.alert(str_Error+str_double_dot,str_not_connected,'error'), function(){window.location = "login.php";});
-         
+         $.messager.alert(str_Error+str_double_dot,str_not_connected,'error'), function(){window.location = "login.php?dest=index.html";});
+
          return -1;
       }
       else
