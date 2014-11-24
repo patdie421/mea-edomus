@@ -980,6 +980,13 @@
 		4E8F781B178B44490099A751 /* string_utils.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = string_utils.c; path = src/string_utils.c; sourceTree = "<group>"; };
 		4E8F781D178B47C80099A751 /* timer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = timer.c; path = src/timer.c; sourceTree = "<group>"; };
 		4E8F781F178B47F80099A751 /* timer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = timer.h; path = src/timer.h; sourceTree = "<group>"; };
+		4EA1CFBD1A1FAFD6008E82D8 /* get_sensors_actuators.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; name = get_sensors_actuators.php; path = gui/models/get_sensors_actuators.php; sourceTree = "<group>"; };
+		4EA1CFBE1A1FE570008E82D8 /* get_types_select.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; name = get_types_select.php; path = gui/models/get_types_select.php; sourceTree = "<group>"; };
+		4EA1CFBF1A1FE948008E82D8 /* get_interfaces_select.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; name = get_interfaces_select.php; path = gui/models/get_interfaces_select.php; sourceTree = "<group>"; };
+		4EA1CFC11A1FEAC3008E82D8 /* get_locations_select.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; name = get_locations_select.php; path = gui/models/get_locations_select.php; sourceTree = "<group>"; };
+		4EA1CFC21A1FED93008E82D8 /* new_sensors_actuators.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; name = new_sensors_actuators.php; path = gui/models/new_sensors_actuators.php; sourceTree = "<group>"; };
+		4EA1CFC51A2085E7008E82D8 /* update_sensors_actuators.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; name = update_sensors_actuators.php; path = gui/models/update_sensors_actuators.php; sourceTree = "<group>"; };
+		4EA1CFC61A20C963008E82D8 /* delete_sensors_actuators.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; name = delete_sensors_actuators.php; path = gui/models/delete_sensors_actuators.php; sourceTree = "<group>"; };
 		4EC421A91A12747300D94204 /* interface_type_001.ino */ = {isa = PBXFileReference; lastKnownFileType = text; path = interface_type_001.ino; sourceTree = "<group>"; };
 		4EC421AB1A12747300D94204 /* interface_type_002_dht22.ino */ = {isa = PBXFileReference; lastKnownFileType = text; path = interface_type_002_dht22.ino; sourceTree = "<group>"; };
 		4EC421AE1A12747300D94204 /* AltSoftSerial.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AltSoftSerial.cpp; sourceTree = "<group>"; };
@@ -1312,6 +1319,7 @@
 				4E4BF47F1A1D12AF00CEB284 /* page1.php */,
 				4E4BF5201A1E952000CEB284 /* page2.php */,
 				4E4BF0BC1A1D12AE00CEB284 /* index.html */,
+				4EA1CFBC1A1FAFBB008E82D8 /* models */,
 				4E4BF0AE1A1D12AE00CEB284 /* controllers */,
 				4E4BF4841A1D12AF00CEB284 /* views */,
 			);
@@ -3865,6 +3873,36 @@
 				4E8E533718429724006FB9D3 /* automatorServer.c */,
 			);
 			name = "automator manager";
+			sourceTree = "<group>";
+		};
+		4EA1CFBC1A1FAFBB008E82D8 /* models */ = {
+			isa = PBXGroup;
+			children = (
+				4EA1CFC41A2085B7008E82D8 /* common */,
+				4EA1CFC31A2085A1008E82D8 /* sensors_actuators */,
+			);
+			name = models;
+			sourceTree = "<group>";
+		};
+		4EA1CFC31A2085A1008E82D8 /* sensors_actuators */ = {
+			isa = PBXGroup;
+			children = (
+				4EA1CFC21A1FED93008E82D8 /* new_sensors_actuators.php */,
+				4EA1CFBD1A1FAFD6008E82D8 /* get_sensors_actuators.php */,
+				4EA1CFC51A2085E7008E82D8 /* update_sensors_actuators.php */,
+				4EA1CFC61A20C963008E82D8 /* delete_sensors_actuators.php */,
+			);
+			name = sensors_actuators;
+			sourceTree = "<group>";
+		};
+		4EA1CFC41A2085B7008E82D8 /* common */ = {
+			isa = PBXGroup;
+			children = (
+				4EA1CFBE1A1FE570008E82D8 /* get_types_select.php */,
+				4EA1CFBF1A1FE948008E82D8 /* get_interfaces_select.php */,
+				4EA1CFC11A1FEAC3008E82D8 /* get_locations_select.php */,
+			);
+			name = common;
 			sourceTree = "<group>";
 		};
 		4EC421A71A12747200D94204 /* arduino */ = {

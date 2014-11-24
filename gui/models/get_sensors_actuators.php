@@ -49,23 +49,6 @@ $file_db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION); // ERRMODE_WA
 
 // récupération du nombre total de ligne
 
-/*
-$total=-1;
-try {
-    $stmt = $file_db->prepare("SELECT count(*) AS count FROM (SELECT * FROM sensors_actuators)");
-    $stmt->execute();
-    $result = $stmt->fetchAll();
-    $total=$result[0]['count'];
-}
-catch(PDOException $e) {
-    $error_msg=$e->getMessage(); 
-    error_log($error_msg);
-    echo json_encode(array('isError' => true, 'msg' => $error_msg));
-    $file_db=null;
-    exit(1);
-}
-*/
-
 try {
    $request = $file_db->query("SELECT count(*) FROM sensors_actuators");
    $row = $request->fetch(PDO::FETCH_NUM);
@@ -79,10 +62,9 @@ catch (PDOException $e) {
    exit(1);
 }
 
-
 // requete des données
 $SQL="SELECT sensors_actuators.id AS id,
-             sensors_actuators.id_sensor_actuator AS id_sensors_actuators,
+             sensors_actuators.id_sensor_actuator AS id_sensor_actuator,
              sensors_actuators.id_type AS id_type,
              sensors_actuators.name AS name,
              sensors_actuators.description AS description,
@@ -103,23 +85,9 @@ $SQL="SELECT sensors_actuators.id AS id,
          ON sensors_actuators.id_location = locations.id_location
       ORDER BY $sort $order
       LIMIT $offset, $rows";
-/*
-try {
-    $stmt = $file_db->prepare($SQL);
-    $stmt->execute();
-    $result = $stmt->fetchAll();
-}
-catch(PDOException $e) {
-    $error_msg=$e->getMessage(); 
-    error_log($error_msg);
-    echo json_encode(array('isError' => true, 'msg' => $error_msg));
 
-    $file_db=null;
-    exit(1);
-}
-*/
 try {
-   $request = $db->query($SQL);
+   $request = $file_db->query($SQL);
    $rows = array();
    while($row = $request->fetch(PDO::FETCH_OBJ))
    {
@@ -131,9 +99,7 @@ catch(PDOException $e)
     $error_msg=$e->getMessage(); 
     error_log($error_msg);
     echo json_encode(array('isError' => true, 'msg' => $error_msg));
-
     $file_db=null;
-
     exit(1);
 }
 
@@ -147,15 +113,9 @@ if ($debug==1)
    error_log($debug_msg);
 }
 
-/*
-$rows=array();
-foreach ($result as $result_elem){
-   array_push($rows, $result_elm);
-}
-*/
 $response = array();
 $response["total"]=$total;
-$response["row"]=$rows;
+$response["rows"]=$rows;
 
 // emission des données
 header('Content-type: application/json');
@@ -164,4 +124,4 @@ echo json_encode($response);
 $file_db = null;
 
 // voir http://stackoverflow.com/questions/12911546/jquery-easy-ui-datagrid-search-not-work
-// voir http://www.jeasyui.com/tutorial/datagrid/datagrid8.php
+/* voir http://www.jeasyui.com/tutorial/datagrid/datagrid8.php */

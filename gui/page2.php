@@ -5,12 +5,13 @@
 
 <script>
 jQuery(document).ready(function(){
+   
 //   page2_controller();
 });
 </script>
 
-<div id="tabConfiguration" class="easyui-tabs" fit=true>
-    <div title="Capteurs/Actionneurs" href="views/capteurs-actionneurs-view.html" style="padding:20px;">
+<div id="tabConfiguration" class="easyui-tabs" border=false fit=true>
+    <div title="Capteurs/Actionneurs" href="views/capteurs-actionneurs-view.html">
     </div>
     <div title="Interfaces" href="views/interfaces-view.html" style="padding:20px;">
     </div>

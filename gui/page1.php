@@ -20,21 +20,25 @@
 
 <script>
 jQuery(document).ready(function(){
+   tabName=$('#tabtodisplay').val();
+
    page1_controller();
 
    $('#tt').tabs({
       onSelect:function(title){
-         if(title=="Journal")
-         {
-            if(typeof(logViewer)!="undefined")
-               logViewer.scrollBottom();
-         }
+//         if(title=="Journal")
+//         {
+//            if(typeof(logViewer)!="undefined")
+//               logViewer.scrollBottom();
+//         }
       }
    });
+   $('#tt').tabs('select', tabName);
+
 });
 </script>
 
-<div id="tt" class="easyui-tabs" fit=true>
+<div id="tt" class="easyui-tabs" border=false fit=true>
     <div title="Indicateurs" href="views/indicateurs-view.html" style="padding:20px;">
     </div>
     <div title="Services" href="views/services-view.html" style="padding:20px;">

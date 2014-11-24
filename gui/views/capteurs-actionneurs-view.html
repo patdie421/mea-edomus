@@ -1,40 +1,153 @@
+<style type="text/css">
+#fm {
+   margin:0;
+   padding:10px 30px;
+}
+.ftitle {
+   font-size:14px;
+   font-weight:bold;
+   padding:5px 0;
+   margin-bottom:10px;
+   border-bottom:1px solid #ccc;
+}
+.fitem {
+   margin-bottom:5px;
+}
+.fitem label {
+   display:inline-block;
+   width:100px;
+}
+.fitem input {
+   width:270px;
+}
+
+</style>
+
 <script type="text/javascript" src="controllers/capteurs-actionneurs-ctrl.js"></script>
 
 <script>
+function checkRegexp( str, regexp) {
+   $.trim(str);
+   if ( !( regexp.test( str ) ) ) {
+      return false;
+   }
+   else {
+      return true;
+   }
+}
+
+// pour les contrôles de surface
+$.extend($.fn.validatebox.defaults.rules, {
+    name_validation: {
+        validator: function(value, param){
+            return checkRegexp( value, /^[0-9A-Za-z]{3,8}$/);
+        },
+        message: '3 à 8 caractères [a-zA-Z0-9].'
+    }
+});
 
 jQuery(document).ready(function(){
    capteursactionneurs_controller("table_capteurs-actionneurs");
 });
 </script>
-<div style="width:100%;">
-   <div style="width:700px;margin: 0 auto;">
+
+
+<div style="width:100%;height:100%">
+   <div style="width:100%;height:100%;margin: 0 auto;">
       <table id="table_capteurs-actionneurs"
-             title="Capteurs/Actionneurs"
+             title=""
              class="easyui-datagrid"
-
-             style="width:700px;"
-
+             style="width:100%;height:100%"
+             border="false"
              pagination="true"
+             pageSize=20
+             pageList=[20,50,100]
+             
              idField="id"
              fitColumns="true"
              singleSelect="true"
-             toolbar="#toolbar_ca"
-             url="models/get_capteurs_actionneurs?php">
+             toolbar="#toolbar_sensors_acutators"
+             url="models/get_sensors_actuators.php">
          <thead>
             <tr>
                <th data-options="field:'id',width:10,hidden:true">id</th>
-               <th data-options="field:'id_sensor_actuator',width:10,hidden:true,sortable:true">id_sensor_actuator</th>
-               <th data-options="field:'name',width:100,align:'left'">name</th>
-               <th data-options="field:'id_type', width:100,align:'left'">type</th>
-               <th data-options="field:'description',width:80,align:'right'">description</th>
+               <th data-options="field:'id_sensor_actuator',width:10,hidden:true">id_sensor_actuator</th>
+
+               <th data-options="field:'name',width:100,sortable:true,align:'left'">name</th>
+               <th data-options="field:'tname',width:100,align:'left'">type</th>
+               <th data-options="field:'description',width:200,align:'left'">description</th>
+               <th data-options="field:'iname',width:100,align:'left'">interface</th>
+               <th data-options="field:'parameters',width:200,align:'left'">Paramètres</th>
+               <th data-options="field:'lname',width:80,align:'left'">localisation</th>
+               <th data-options="field:'state',width:50,align:'left'">état</th>
+               <th data-options="field:'todbflag',width:50,align:'left'">Historisé</th>
+    
+               <th data-options="field:'id_type',hidden:true,align:'left'">id_type</th>
+               <th data-options="field:'id_interface',hidden:true,align:'left'">id_interface</th>
+               <th data-options="field:'id_location',hidden:true,align:'left'">id_location</th>
             </tr>
          </thead>
       </table>
    </div>
 </div>
 
-<div id="toolbar_ca">
-   <a href="#" class="easyui-linkbutton" iconCls="icon-add" plain="true" onclick="newUser()">Add User</a>
-   <a href="#" class="easyui-linkbutton" iconCls="icon-edit" plain="true" onclick="editUser()">Edit User</a>
-   <a href="#" class="easyui-linkbutton" iconCls="icon-remove" plain="true" onclick="destroyUser()">Remove User</a>
+
+<div id="toolbar_sensors_acutators">
+   <a href="#" class="easyui-linkbutton" iconCls="icon-add" plain="true" onclick="newSensorActuator('table_capteurs-actionneurs','dlg','fm','datasource_url')">Ajouter</a>
+   <a href="#" class="easyui-linkbutton" iconCls="icon-edit" plain="true" onclick="editSensorActuator('table_capteurs-actionneurs','dlg','fm','datasource_url')">Modifier</a>
+   <a href="#" class="easyui-linkbutton" iconCls="icon-remove" plain="true" onclick="destroySensorActuator('table_capteurs-actionneurs')">Supprimer</a>
+</div>
+
+
+<div id="dlg" class="easyui-dialog" style="width:500px;height:450px;padding:10px 20px" modal="true" closed="true" buttons="#dlg-buttons">
+    <div class="ftitle">Capteurs / Actionneurs</div>
+    <form id="fm" method="post" novalidate>
+        <div class="fitem">
+            <label>Nom :</label>
+            <input id="sensor_acutator_name" name="name" class="easyui-textbox" style="width:100px;" data-options="required:true,validType:'name_validation',missingMessage:'Champ obligatoire'">
+        </div>
+        <div class="fitem">
+            <label>Type :</label>
+            <select name="id_type" class="easyui-combobox"  data-options="editable:false,panelHeight:100,valueField:'id_type',textField:'name',url:'models/get_types_select.php'" style="width:120px;">
+            </select>
+        </div>
+        <div class="fitem">
+            <label>Description :</label>
+            <input name="description" class="easyui-textbox" data-options="multiline:true" style="width:270px;height:50px"></textarea>
+        </div>
+        <div class="fitem">
+            <label>Interface :</label>
+            <select class="easyui-combobox" name="id_interface" data-options="editable:false,panelHeight:100,valueField:'id_interface',textField:'name',url:'models/get_interfaces_select.php'" style="width:120px;">
+            </select>
+        </div>
+        <div class="fitem" style="">
+            <label>Parameters :</label>
+            <input name="parameters" class="easyui-textbox" data-options="multiline:true" style="width:270px;height:75px"></textarea>
+        </div>
+        <div class="fitem">
+            <label>Localisation :</label>
+            <select class="easyui-combobox" name="id_location" data-options="editable:false,panelHeight:100,valueField:'id_location',textField:'name',url:'models/get_locations_select.php'" style="width:120px;">
+            </select>
+        </div>
+        <div class="fitem">
+            <label>Etat :</label>
+            <select class="easyui-combobox" name="state" data-options="editable:false,panelHeight:42" style="width:120px;">
+               <option value=1>Activé</option>
+               <option value=0>Désactivé</option>
+            </select>
+        </div>
+        <div class="fitem">
+            <label>Historisation :</label>
+            <input name="todbflag" type="checkbox" value=1>
+        </div>
+        
+        <input name="id" type="hidden">
+        <input name="id_sensor_actuator" type="hidden">
+        
+        <input name="datasource_url" type="hidden" id="datasource_url">
+    </form>
+</div>
+<div id="dlg-buttons">
+    <a href="javascript:void(0)" class="easyui-linkbutton c6" iconCls="icon-ok" onclick="javascript:updateSensorsActuators('table_capteurs-actionneurs', 'dlg', 'fm', 'datasource_url')" style="width:100px">Enregistrer</a>
+    <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#dlg').dialog('close')" style="width:100px">Annuler</a>
 </div>
