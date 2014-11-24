@@ -54,3 +54,35 @@ function check_admin() {
       }
    }
 }
+
+
+function check_auth2() {
+    authdata=get_auth_data();
+    if(authdata==false) {
+        $.messager.alert(str_Error+str_double_dot,str_not_connected,'error', function(){window.location = "login.php";});
+        return false;
+    } else {
+        if(authdata.profil!=1) {
+            $.messager.alert(str_Error+str_double_dot,str_not_allowed,'error', function(){window.location = "index.php";});
+            return false;
+        } else
+            return true;
+    }
+}
+
+
+function check_admin2() {
+   authdata=get_auth_data();
+   if(authdata==false) {
+      $.messager.alert(str_Error+str_double_dot,str_not_connected,'error', function(){window.location = "login.php";});
+         return false;
+   }
+   else {
+      if(authdata.profil!=1) {
+         return false;
+      }
+      else {
+         return true;
+      }
+   }
+}
