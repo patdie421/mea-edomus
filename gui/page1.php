@@ -36,8 +36,6 @@ jQuery(document).ready(function(){
 //         }
       }
    });
-   $('#tt').tabs('select', tabName);
-
 });
 </script>
 
