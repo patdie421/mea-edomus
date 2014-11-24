@@ -9,6 +9,13 @@ function capteursactionneurs_controller(table_id)
       onError:    function(index,row) { alert(row.msg); } // uniquement pour edatagrid ?
    });
 */
+   $('#'+table_id).datagrid({
+	    onDblClickRow: function(index,row){ // si double click on modifie
+         alert(index+" "+field+" "+value);
+         $('#'+table_id).selectRow(index);
+         editSensorActuator(table_id, 'dlg', 'fm', 'datasource_url');
+	    }
+   });
 }
 
 function ajax_error(xhr, ajaxOptions, thrownError){
@@ -53,7 +60,6 @@ function newSensorActuator(grid_id, dlgbox_id, form_id, datasource_url_id)
 
 function editSensorActuator(grid_id, dlgbox_id, form_id, datasource_url_id)
 {
-   console.log(datasource_url_id);
    $('#'+datasource_url_id).val("models/update_sensors_actuators.php");
    var row = $('#'+grid_id).datagrid('getSelected');
    if (row){
