@@ -41,6 +41,7 @@
          return -1;
       }
 
+      $('#tabtodisplay').val(tabName);
       if(currentPage != pageUrl)
       {
          $('#content').panel('refresh',pageUrl); // on charge la page
@@ -50,7 +51,6 @@
       {
          $('#'+tab).tabs('select', tabName);
       }
-      $('#tabtodisplay').val(tabName);
    }
    </script>
 </head>
