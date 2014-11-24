@@ -41,11 +41,11 @@ function socketio_unavailable() {
 
 var _intervalId;
 var _intervalCounter;
-function page1_controller()
+function page1_controller(tabName)
 {
    authdata=get_auth_data();
    if(authdata==false) {
-      $.messager.alert(str_Error+str_double_dot,str_not_connected,'error', function(){window.location = "login.php";});
+      $.messager.alert(str_Error+str_double_dot,str_not_connected,'error', function(){window.location = "login.php?dest=index.html&page=page1.php&tab="+tabName;});
       return false;
    } else {
       if(authdata.profil!=1) {
@@ -54,6 +54,7 @@ function page1_controller()
          isadmin=1;
       }
    }
+   $('#tt').tabs('select', tabName);
 
    function wait_socketio_available()
    {
