@@ -11,8 +11,6 @@ jQuery(document).ready(function(){
    {
       return -1;
    }
-   
-   $('#tabConfiguration').tabs('select', tabName);
 });
 </script>
 
