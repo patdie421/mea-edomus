@@ -18,7 +18,10 @@ function ajax_error(xhr, ajaxOptions, thrownError){
 
 function check_field_exist(table,fieldName,fieldValue,id)
 {
-   wsdata={table:table, field:fieldName, value:fieldValue};
+   if(id)
+     wsdata={table:table, field:fieldName,value:fieldValue, id:id};
+   else
+     wsdata={table:table, field:fieldName, value:fieldValue};
     
    $.ajax({ url: 'models/check_field-jqg_grid.php',
             async: false,
@@ -91,9 +94,14 @@ function updateSensorsActuators(table_id, dlgbox_id, form_id, datasource_url_id)
     $('#'+form_id).form('submit',{
         url: $('#'+datasource_url_id).val(),
         onSubmit: function() {
-            var name_exist=check_field_exist("sensors_actuators","name",$('#sensor_acutator_name').val());
+            var name_exist=-1;
+            var id=$("#id").val();
+            if(id!="")
+               name_exist=check_field_exist("sensors_actuators","name",$('#sensor_acutator_name').val(),id);            
+            else
+               name_exist=check_field_exist("sensors_actuators","name",$('#sensor_acutator_name').val());
             if(!name_exist)
-               alert("Exist");
+               alert("Name allready exist");
             return !name_exist;
         },
         success: function(result) {
