@@ -21,6 +21,13 @@
    width:270px;
 }
 
+.pastille {
+ height:10px;
+ width:10px;
+ border-radius: 10px;
+ margin-right:1px;
+ margin-left:1px;
+}
 </style>
 
 <script type="text/javascript" src="controllers/capteurs-actionneurs-ctrl.js"></script>
@@ -36,18 +43,39 @@ function checkRegexp( str, regexp) {
    }
 }
 
-// pour les contrôles de surface
-$.extend($.fn.validatebox.defaults.rules, {
-    name_validation: {
-        validator: function(value, param){
-            return checkRegexp( value, /^[0-9A-Za-z]{3,8}$/);
-        },
-        message: "3 à 8 caractères dans l'intervalle [a-zA-Z0-9]."
-    }
-});
 
 jQuery(document).ready(function(){
+   // pour les contrôles de surface
+   $.extend($.fn.validatebox.defaults.rules, {
+      name_validation: {
+         validator: function(value, param){
+            return checkRegexp( value, /^[0-9A-Za-z]{3,8}$/);
+         },
+         message: "3 à 8 caractères dans l'intervalle [a-zA-Z0-9]."
+      }
+   });
+
    capteursactionneurs_controller("table_capteurs-actionneurs");
+   
+   function pastille(val,row)
+   {
+      if (val == 0){
+         return "<div class='pastille' style='background:gray'></div>";
+      }
+      else {
+         return "<div class='pastille' style='background:green'></div>";
+      }
+   }
+   
+   function check(val,row)
+   {
+      if(val == 1){
+          return "<div class='icon-ok' style='margin:auto;height:16px;width:16px;'></div>";
+      }
+      else{
+         "";
+      }
+   }
 });
 </script>
 
@@ -79,8 +107,8 @@ jQuery(document).ready(function(){
                <th data-options="field:'iname',width:100,align:'left'">interface</th>
                <th data-options="field:'parameters',width:200,align:'left'">Paramètres</th>
                <th data-options="field:'lname',width:80,align:'left'">localisation</th>
-               <th data-options="field:'state',width:50,align:'left'">état</th>
-               <th data-options="field:'todbflag',width:50,align:'left'">Historisé</th>
+               <th data-options="field:'state',width:50,align:'left',formatter:pastille">état</th>
+               <th data-options="field:'todbflag',width:50,align:'left'formatter:check">Historisé</th>
     
                <th data-options="field:'id_type',hidden:true,align:'left'">id_type</th>
                <th data-options="field:'id_interface',hidden:true,align:'left'">id_interface</th>
