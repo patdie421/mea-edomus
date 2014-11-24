@@ -5,12 +5,13 @@
 
 <script>
 jQuery(document).ready(function(){
-   if(!page2_controller())
+   tabName=$('#tabtodisplay').val();
+
+   if(!page2_controller(tabName))
    {
       return -1;
    }
    
-   tabName=$('#tabtodisplay').val();
    $('#tabConfiguration').tabs('select', tabName);
 });
 </script>
