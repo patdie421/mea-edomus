@@ -1,3 +1,23 @@
+<?php
+include "lib/configs.php";
+//
+//  PAGE PRINCIPALE (VIEW) : home page
+//
+session_start();
+?>
+<!DOCTYPE html>
+<?php
+include "lib/configs.php";
+
+// contrôle et redirections
+if(!isset($_SESSION['logged_in']))
+{
+    $dest=$_SERVER['PHP_SELF'];
+    echo "<script>window.location = \"login.php?dest=$dest\";</script>";
+    exit();
+}
+?>
+
 <html>
 <head>
    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -25,8 +45,14 @@
       $.ajaxSetup({ cache: false });
       
       page('page1.php', 'ff', 'Indicateurs'); // chargement de la première page.
+
+<?php
+      echo "var socketio_port=";
+      echo $IOSOCKET_PORT;
+      echo ";\n";
+?>
       
-      var socketio_port=8000;
+//      var socketio_port=8000;
       liveCom.connect(socketio_port);
    });
 
