@@ -24,7 +24,20 @@
    
    jQuery(document).ready(function(){
       $.ajaxSetup({ cache: false });
-      page('page1.php', 'ff', 'Indicateurs'); // chargement de la première page.
+      authdata=get_auth_data();
+      if(authdata==false)
+      {
+         $.messager.alert(str_Error+str_double_dot,str_not_connected,'error'), function(){window.location = "login.php";});
+         
+         return -1;
+      }
+      else
+      {
+         var socketio_port=8000;
+         liveCom.connect(socketio_port);
+
+         page('page1.php', 'ff', 'Indicateurs'); // chargement de la première page.
+      }
    });
 
    function page(pageUrl, tab, tabName)
@@ -40,10 +53,6 @@
       }
       $('#tabtodisplay').val(tabName);
    }
-   
-   var socketio_port=8000;
-   liveCom.connect(socketio_port);
-
    </script>
 </head>
 
@@ -77,16 +86,16 @@ a.meamenu:hover {
             <div id="aa" class="easyui-accordion" data-options="animate:false,border:false" style="width:100%;">
             
                <div title="Supervision" data-options="selected:true" style="overflow:auto;padding:10px;">
-                  <div><a href="#" class="meamenu" onclick="javascript:page('page1.php', 'tt','Indicateurs')">Indicateurs</a></div>
+                  <div><a href="#" class="meamenu" onclick="javascript:page('page1.php','tt','Indicateurs')">Indicateurs</a></div>
                   <div><a href="#" class="meamenu" onclick="javascript:page('page1.php','tt','Services')">Services</a></div>
                   <div><a href="#" class="meamenu" onclick="javascript:page('page1.php','tt','Journal')">Journal</a></div>
                </div>
                
                <div title="Configuration" style="overflow:auto;padding:10px;">
-                  <div><a href="#" class="meamenu" onclick="javascript:page('page2.php', 'tabConfiguration','Capteurs/Actionneurs')">Capteurs/Actionneurs</a></div>
-                  <div><a href="#" class="meamenu" onclick="javascript:page('page2.php', 'tabConfiguration','Interfaces')">Interfaces</a></div>
-                  <div><a href="#" class="meamenu" onclick="javascript:page('page2.php', 'tabConfiguration','Types')">Types</a></div>
-                  <div><a href="#" class="meamenu" onclick="javascript:page('page2.php', 'tabConfiguration','Localisations')">Localisations</a></div>
+                  <div><a href="#" class="meamenu" onclick="javascript:page('page2.php','tabConfiguration','Capteurs/Actionneurs')">Capteurs/Actionneurs</a></div>
+                  <div><a href="#" class="meamenu" onclick="javascript:page('page2.php','tabConfiguration','Interfaces')">Interfaces</a></div>
+                  <div><a href="#" class="meamenu" onclick="javascript:page('page2.php','tabConfiguration','Types')">Types</a></div>
+                  <div><a href="#" class="meamenu" onclick="javascript:page('page2.php','tabConfiguration','Localisations')">Localisations</a></div>
                </div>
 
                <div title="Préférences" style="overflow:auto;padding:10px;">
