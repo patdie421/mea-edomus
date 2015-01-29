@@ -644,6 +644,12 @@ int16_t _comio2_write_frame(int fd, char id, char *cmd_data, uint16_t l_cmd_data
    
    l_frame=_comio2_build_frame(id,frame,cmd_data,l_cmd_data);
 
+   DEBUG_SECTION {
+      fprintf("FRAME:");
+      for(int i=0;i<l_frame;i++)
+         fprintf(stderr,"[%d]",frame[i]);
+      fprintf(stderr,"\n");
+   }
    ret=(int16_t)write(fd,frame,l_frame);
 
    free(frame);
