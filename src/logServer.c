@@ -375,7 +375,7 @@ int read_line(FILE *fp, char *line, int line_l, long *pos)
          {
             snprintf(line, line_l-1, "=== line to long for internal buffer, skipped ===");
             *pos+=line_l;
-            seek_to_next_line(fp,*pos);
+            seek_to_next_line(fp,pos);
             return 0;
          }
          else if(ret < -1)
