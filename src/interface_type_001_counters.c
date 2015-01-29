@@ -172,7 +172,7 @@ struct electricity_counter_s *interface_type_001_sensors_valid_and_malloc_counte
    }
    
    strcpy(counter->name,(char *)name);
-   strtolower(counter->name);
+   mea_strtolower(counter->name);
    counter->sensor_id=id_sensor_actuator;
    counter->wh_counter=0;
    counter->kwh_counter=0;
