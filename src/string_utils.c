@@ -50,6 +50,19 @@ char *trim(char *s)
     return rtrim(ltrim(s)); 
 }
 
+// backport de 0.1alpha5
+void mea_strtolower(char *str)
+/**
+ * \brief     convertit tous les caractères d'une chaine en minuscules
+ * \details   La chaine en paramètre est modifiée : les majuscules sont remplacées par des minuscules.
+ * \param     str  chaine à modifier.
+ * \return    pas de retour.
+ */
+{
+   for(uint16_t i=0;i<strlen(str);i++)
+           str[i]=tolower(str[i]);
+}
+
 
 void strToUpper(char *str)
 /**
