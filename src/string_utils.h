@@ -16,5 +16,7 @@ char *ltrim(char *s);
 char *rtrim(char *s);
 char *trim(char *s);
 
+// backport de 0.1alpha5
+void mea_strtolower(char *str);
 #endif
 
