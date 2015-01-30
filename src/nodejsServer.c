@@ -128,8 +128,8 @@ int start_nodejsServer(int my_id, void *data, char *errmsg, int l_errmsg)
       _socketio_port = atoi(nodejsServerData->params_list[NODEJSIOSOCKET_PORT]);
       _socketdata_port = atoi(nodejsServerData->params_list[NODEJSDATA_PORT]);
       nodejs_path = nodejsServerData->params_list[NODEJS_PATH];
+fprintf(stderr,"ERREUR : %s\n", nodejs_path);
       phpsession_path = nodejsServerData->params_list[PHPSESSIONS_PATH];
-      
       int n=snprintf(serverjs_path, sizeof(serverjs_path), "%s/nodeJS/server/server", nodejsServerData->params_list[GUI_PATH]);
       if(n<0 || n==sizeof(serverjs_path))
       {
@@ -141,7 +141,6 @@ int start_nodejsServer(int my_id, void *data, char *errmsg, int l_errmsg)
          return -1;
       }
    }
-   
    _pid_nodejs = fork();
    
    if (_pid_nodejs == 0) // child
@@ -163,7 +162,10 @@ int start_nodejsServer(int my_id, void *data, char *errmsg, int l_errmsg)
       cmd_line_params[3]=str_port_socketdata;
       cmd_line_params[4]=str_phpsession_path;
       cmd_line_params[5]=0;
-     
+
+      for(int i=0;nodejs_path[i];i++)
+         fprintf(stderr,"%d %c\n",nodejs_path[i],nodejs_path[i]);     
+//      execvp("/data/rec/mea-edomus/0.1alpha4/bin/node", cmd_line_params);
       execvp(nodejs_path, cmd_line_params);
 
 //      VERBOSE(1) fprintf(stderr,"%s (%s) : can't start nodejs Server (execvp).\n", ERROR_STR, __func__);

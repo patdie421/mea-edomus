@@ -36,7 +36,7 @@ static PyMethodDef MeaMethods[] = {
 
 int16_t _check_todbflag(sqlite3 *db, uint16_t sensor_id)
 {
-   char sql[80];
+   char sql[255];
    sqlite3_stmt * stmt;
    int ret;
    

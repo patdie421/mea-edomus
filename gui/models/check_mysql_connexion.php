@@ -72,7 +72,7 @@ try{
         )
     );
 }catch(PDOException $e){
-    echo json_encode(array("result"=>"KO","error"=>2, "error_msg"=>utf8_encode( $e->getMessage() )));
+    echo json_encode(array("result"=>"KO","error"=>2, "error_msg"=>$e->getMessage() ));
     exit(1);
 }
 echo json_encode(array("result"=>"OK"));
