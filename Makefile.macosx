@@ -1,0 +1,62 @@
+SHELL = /bin/bash
+CC = gcc
+
+TECHNO=macosx
+
+DEBUGFLAGS  = -D__DEBUG_ON__
+CFLAGS      = -std=c99 \
+              -D_BSD_SOURCE \
+              -O2 \
+              -I./src/xPLLib-mac \
+              -I/usr/local/mysql/include \
+              -I/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7 \
+              $(DEBUGFLAGS)
+LDFLAGS     = -L/usr/local/mysql/lib \
+              -L/System/Library/Frameworks/Python.framework/Versions/2.7/lib \
+              -lpthread \
+              -lm \
+              -ldl \
+              -lmysqlclient \
+              -lsqlite3 \
+              -lpython2.7
+
+MYPATH=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
+
+SOURCES=$(shell echo src/*.c src/xPLLib-mac/*.c)
+OBJECTS=$(SOURCES:.c=.o)
+#OBJECTS=$(addprefix $(TECHNO).objects/, $(SOURCES:.c=.o))
+
+EXECUTABLE=mea-edomus
+
+all: $(SOURCES) $(EXECUTABLE)
+	
+$(EXECUTABLE): $(OBJECTS) 
+	$(CC) $(LDFLAGS) $(OBJECTS) -o $@
+
+clean:
+	-rm -f $(OBJECTS)
+
+build-php-cgi:
+	make -C complements/php-cgi -f php-cgi.mk SOURCE=$(MYPATH)
+
+build-nodejs:
+	make -C complements/nodejs -f nodejs.mk SOURCE=$(MYPATH)
+
+build-xplhub:
+	make -C complements/xplhub -f xplhub.mk SOURCE=$(MYPATH)
+
+build-package: $(EXECUTABLE)
+	package/build-package.sh $(MYPATH)
+
+build-commands: lib/mealib/$(TECHNO)/meaplib.a lib/meaxpllib/$(TECHNO)/meaxpllib.a
+	make -C commands -f commands.mk BASEDIR=$(MYPATH) TECHNO=macosx
+
+build-mealib: lib/mealib/$(TECHNO)/meaplib.a
+
+lib/mealib/$(TECHNO)/meaplib.a:
+	make -C src -f library.mk BASEDIR=$(MYPATH) TECHNO=$(TECHNO)
+
+build-meaxpllib: lib/meaxpllib/$(TECHNO)/meaxpllib.a
+
+lib/meaxpllib/$(TECHNO)/meaxpllib.a:
+	make -C src/xPLLib-mac -f library.mk BASEDIR=$(MYPATH) TECHNO=$(TECHNO)

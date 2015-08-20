@@ -1,0 +1,18 @@
+{
+   "input" :
+      "entrée",
+   "output" :
+      "sortie",
+   "interface" :
+      "interface",
+   "other" :
+      "autre",
+   "internals types" :
+      "types internes",
+   "user defined types" :
+      "types utilisateurs",
+   "error" :
+      "erreur",
+   "one or more mandatory fields are empty" :
+      "un ou plusieurs champs obligatoires ne sont pas correctement renseignés"
+}

@@ -1,0 +1,55 @@
+SHELL = /bin/bash
+CC = gcc
+
+TECHNO=linux
+
+DEBUGFLAGS  = -g \
+              -D__DEBUG_ON__
+CFLAGS      = -std=c99 \
+              -std=gnu99 \
+              -O2 \
+              -D_BSD_SOURCE \
+              -I/usr/include/mysql \
+              -I/usr/include/python2.7 \
+              $(DEBUGFLAGS)
+LDFLAGS     = -lmysqlclient \
+              -lpthread \
+              -lm \
+              -ldl \
+              -lxPL \
+              -lsqlite3 \
+              -lpython2.7
+
+MYPATH=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
+
+SOURCES=$(shell echo src/*.c)
+OBJECTS=$(SOURCES:.c=.o)
+EXECUTABLE=mea-edomus
+
+all: $(SOURCES) $(EXECUTABLE)
+
+$(EXECUTABLE): $(OBJECTS) 
+	$(CC) $(LDFLAGS) $(OBJECTS) -o $@
+
+clean:
+	-rm -f $(OBJECTS)
+
+build-php-cgi:
+	make -C complements/php-cgi -f php-cgi.mk SOURCE=$(MYPATH)
+
+build-nodejs:
+	make -C complements/nodejs -f nodejs.mk SOURCE=$(MYPATH)
+
+build-xplhub:
+	make -C complements/xplhub -f xplhub.mk SOURCE=$(MYPATH)
+
+build-package: $(EXECUTABLE)
+	package/build-package.sh $(MYPATH)
+
+build-commands: lib/mealib/$(TECHNO)/meaplib.a
+	make -C commands -f commands.mk BASEDIR=$(MYPATH) TECHNO=$(TECHNO)
+  
+build-mealib: lib/mealib/$(TECHNO)/meaplib.a
+
+lib/mealib/$(TECHNO)/meaplib.a:
+	make -C src -f library.mk BASEDIR=$(MYPATH) TECHNO=$(TECHNO)

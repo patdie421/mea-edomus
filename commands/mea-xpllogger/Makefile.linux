@@ -1,0 +1,29 @@
+SHELL = /bin/bash
+CC = gcc
+
+DEBUGFLAGS = -g \
+	-D__DEBUG_ON__
+CFLAGS = -std=c99 \
+	-std=gnu99 \
+	-O2 \
+	-D_BSD_SOURCE \
+	$(DEBUGFLAGS)
+
+	LDFLAGS = -lpthread \
+	-lm \
+	-ldl \
+	-lxPL
+
+MYPATH=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
+
+SOURCES=$(shell echo *.c)
+OBJECTS=$(SOURCES:.c=.o)
+EXECUTABLE=mea-xpllogger
+
+all: $(SOURCES) $(EXECUTABLE)
+
+$(EXECUTABLE): $(OBJECTS)
+	$(CC) $(LDFLAGS) $(OBJECTS) -o $@
+
+clean:
+	-rm -f $(OBJECTS)
