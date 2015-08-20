@@ -1,0 +1,8 @@
+Ce logiciel permet la gestion de capteurs et d'actionneurs destinés à la mise en oeuvre d'une application domotique "faite maison" (DIY).
+Il prend en charge la communication avec des capteurs/actionneurs au travers d'interfaces hardware (ARDUINO, XBEE et ENOCEAN pour l'instant) ou logiciel (système Philips HUE) et peut gérer le stockage des informations collectées par des capteurs (pression, température, ...) dans une base de données. L'ensemble est piloté par le protocole xpl (http://xplproject.org.uk/).
+
+Les interfaces hardwares sont basées sur des microcontroleur ATMEGA/ATTINY (Arduino et autres), des xbee ou une combinaison des deux. Les montages (ou CI) nécessaire et les micro-programmes des interfaces "évoluées" sont un sous ensemble de cette application, ils forment pour l'instant "un tout" indivisible.
+
+Pour fonctionner ce logiciel doit être accompagné d'un automate capable de réagir à des commandes xPL. La version actuelle n'intègre pas encore cet automate. Un automate "spécifique" doit être développé ou il faut utiliser un automate existant (voir par exemple xPL-HAL ou équivalant, ou des logiciels domotiques comme jeedom).
+
+Le coeur du programme est écrit en C mais certaines actions sont déléguées à des plugins écrits en python (intégration d'un interpréteur au programme principal). L'IHM est en php, nodejs et javascript, un serveur HTTP interne au moteur gère la mise à disposition de l'application et offre une api externe. Les développements sont testés sur Mac et sur Raspberry. Ils devraient être compatibles avec les ordinateurs sous linux x86 aussi (à tester).
