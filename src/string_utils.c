@@ -88,6 +88,10 @@ int16_t mea_strcmplower(char *str1, char *str2)
  */
 {
    int i;
+   
+   if(!str1 || !str2)
+      return 0;
+   
    for(i=0;str1[i];i++) {
       if(tolower(str1[i])!=tolower(str2[i]))
          return 1;
@@ -111,6 +115,10 @@ int16_t mea_strncmplower(char *str1, char *str2, int n)
    int i;
    if(n<1)
       return 0;
+   
+   if(!str1 || !str2)
+      return 0;
+
    for(i=0;str1[i] && i<n;i++) {
       if(tolower(str1[i])!=tolower(str2[i]))
          return 1;

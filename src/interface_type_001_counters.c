@@ -98,10 +98,10 @@ int16_t interface_type_001_counters_process_traps(int16_t numTrap, char *buff, i
          {
             xPL_MessagePtr cntrMessageStat = xPL_createBroadcastMessage(servicePtr, xPL_MESSAGE_TRIGGER);
             sprintf(value,"%f",counter->power);
-            xPL_setSchema(cntrMessageStat, get_token_by_id(XPL_SENSOR_ID), get_token_by_id(XPL_BASIC_ID));
-            xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_DEVICE_ID), counter->name);
-            xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_TYPE_ID), get_token_by_id(XPL_POWER_ID));
-            xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_CURRENT_ID), value);
+            xPL_setSchema(cntrMessageStat, get_token_string_by_id(XPL_SENSOR_ID), get_token_string_by_id(XPL_BASIC_ID));
+            xPL_setMessageNamedValue(cntrMessageStat, get_token_string_by_id(XPL_DEVICE_ID), counter->name);
+            xPL_setMessageNamedValue(cntrMessageStat, get_token_string_by_id(XPL_TYPE_ID), get_token_string_by_id(XPL_POWER_ID));
+            xPL_setMessageNamedValue(cntrMessageStat, get_token_string_by_id(XPL_CURRENT_ID), value);
 
             // Broadcast the message
             mea_sendXPLMessage(cntrMessageStat);
@@ -223,10 +223,10 @@ void counter_to_xpl(interface_type_001_t *i001, struct electricity_counter_s *co
       
       sprintf(value,"%d",counter->kwh_counter);
       
-      xPL_setSchema(cntrMessageStat, get_token_by_id(XPL_SENSOR_ID), get_token_by_id(XPL_BASIC_ID));
-      xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_DEVICE_ID),counter->name);
-      xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_TYPE_ID), get_token_by_id(XPL_ENERGY_ID));
-      xPL_setMessageNamedValue(cntrMessageStat,  get_token_by_id(XPL_CURRENT_ID),value);
+      xPL_setSchema(cntrMessageStat, get_token_string_by_id(XPL_SENSOR_ID), get_token_string_by_id(XPL_BASIC_ID));
+      xPL_setMessageNamedValue(cntrMessageStat, get_token_string_by_id(XPL_DEVICE_ID),counter->name);
+      xPL_setMessageNamedValue(cntrMessageStat, get_token_string_by_id(XPL_TYPE_ID), get_token_string_by_id(XPL_ENERGY_ID));
+      xPL_setMessageNamedValue(cntrMessageStat,  get_token_string_by_id(XPL_CURRENT_ID),value);
       
       mea_sendXPLMessage(cntrMessageStat);
 
@@ -304,11 +304,11 @@ mea_error_t interface_type_001_counters_process_xpl_msg(interface_type_001_t *i0
 
    (i001->indicators.nbcountersxplrecv)++;
    if(type)
-      type_id=get_id_by_string(type);
+      type_id=get_token_id_by_string(type);
    else
    {
       type_id=XPL_ENERGY_ID; // pas de type précisé => type par défaut compteur kw/h
-      type=get_token_by_id(XPL_ENERGY_ID);
+      type=get_token_string_by_id(XPL_ENERGY_ID);
    }
 
    first_queue(counters_list);
@@ -338,11 +338,11 @@ mea_error_t interface_type_001_counters_process_xpl_msg(interface_type_001_t *i0
          cntrMessageStat = xPL_createBroadcastMessage(theService, xPL_MESSAGE_STATUS) ;
          xPL_setBroadcastMessage(cntrMessageStat, FALSE);
 
-         xPL_setSchema(cntrMessageStat,  get_token_by_id(XPL_SENSOR_ID), get_token_by_id(XPL_BASIC_ID));
-         xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_DEVICE_ID),counter->name);
-         xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_TYPE_ID),type);
-         xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_CURRENT_ID),value);
-         xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(UNIT_ID),unit);
+         xPL_setSchema(cntrMessageStat,  get_token_string_by_id(XPL_SENSOR_ID), get_token_string_by_id(XPL_BASIC_ID));
+         xPL_setMessageNamedValue(cntrMessageStat, get_token_string_by_id(XPL_DEVICE_ID),counter->name);
+         xPL_setMessageNamedValue(cntrMessageStat, get_token_string_by_id(XPL_TYPE_ID),type);
+         xPL_setMessageNamedValue(cntrMessageStat, get_token_string_by_id(XPL_CURRENT_ID),value);
+         xPL_setMessageNamedValue(cntrMessageStat, get_token_string_by_id(UNIT_ID),unit);
          xPL_setTarget(cntrMessageStat, xPL_getSourceVendor(msg), xPL_getSourceDeviceID(msg), xPL_getSourceInstanceID(msg));
    
          // Broadcast the message
@@ -386,10 +386,10 @@ int16_t interface_type_001_counters_poll_inputs(interface_type_001_t *i001)
          if(servicePtr)
          {
             xPL_MessagePtr cntrMessageStat = xPL_createBroadcastMessage(servicePtr, xPL_MESSAGE_TRIGGER);
-            xPL_setSchema(cntrMessageStat, get_token_by_id(XPL_SENSOR_ID), get_token_by_id(XPL_BASIC_ID));
-            xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_DEVICE_ID), counter->name);
-            xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_TYPE_ID), get_token_by_id(XPL_POWER_ID));
-            xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_CURRENT_ID), "0");
+            xPL_setSchema(cntrMessageStat, get_token_string_by_id(XPL_SENSOR_ID), get_token_string_by_id(XPL_BASIC_ID));
+            xPL_setMessageNamedValue(cntrMessageStat, get_token_string_by_id(XPL_DEVICE_ID), counter->name);
+            xPL_setMessageNamedValue(cntrMessageStat, get_token_string_by_id(XPL_TYPE_ID), get_token_string_by_id(XPL_POWER_ID));
+            xPL_setMessageNamedValue(cntrMessageStat, get_token_string_by_id(XPL_CURRENT_ID), "0");
             
             mea_sendXPLMessage(cntrMessageStat);
 

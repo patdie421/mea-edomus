@@ -54,8 +54,8 @@ int16_t sendXPLLightState(interface_type_004_t *i004, xPL_ServicePtr servicePtr,
       char *on_str;
       char *reachable_str;
       
-      char *high=get_token_by_id(XPL_HIGH_ID);
-      char *low=get_token_by_id(XPL_LOW_ID);
+      char *high=get_token_string_by_id(HIGH_ID);
+      char *low=get_token_string_by_id(LOW_ID);
       
       if(newState)
          current_state_str = high;
@@ -82,13 +82,13 @@ int16_t sendXPLLightState(interface_type_004_t *i004, xPL_ServicePtr servicePtr,
       
       xPL_MessagePtr lightMessageStat = xPL_createBroadcastMessage(servicePtr, xplMsgType);
       
-      xPL_setSchema(lightMessageStat, get_token_by_id(XPL_SENSOR_ID), get_token_by_id(XPL_BASIC_ID));
-      xPL_setMessageNamedValue(lightMessageStat, get_token_by_id(XPL_DEVICE_ID),deviceName);
-      xPL_setMessageNamedValue(lightMessageStat, get_token_by_id(XPL_TYPE_ID), get_token_by_id(XPL_OUTPUT_ID));
-      xPL_setMessageNamedValue(lightMessageStat, get_token_by_id(XPL_CURRENT_ID), current_state_str);
+      xPL_setSchema(lightMessageStat, get_token_string_by_id(XPL_SENSOR_ID), get_token_string_by_id(XPL_BASIC_ID));
+      xPL_setMessageNamedValue(lightMessageStat, get_token_string_by_id(XPL_DEVICE_ID),deviceName);
+      xPL_setMessageNamedValue(lightMessageStat, get_token_string_by_id(XPL_TYPE_ID), get_token_string_by_id(XPL_OUTPUT_ID));
+      xPL_setMessageNamedValue(lightMessageStat, get_token_string_by_id(XPL_CURRENT_ID), current_state_str);
       if(last != -1)
-         xPL_setMessageNamedValue(lightMessageStat, get_token_by_id(XPL_LAST_ID), last_state_str);
-      xPL_setMessageNamedValue(lightMessageStat, get_token_by_id(XPL_REACHABLE_ID), reachable_str);
+         xPL_setMessageNamedValue(lightMessageStat, get_token_string_by_id(XPL_LAST_ID), last_state_str);
+      xPL_setMessageNamedValue(lightMessageStat, get_token_string_by_id(XPL_REACHABLE_ID), reachable_str);
       xPL_setMessageNamedValue(lightMessageStat, "on", on_str);
       mea_sendXPLMessage(lightMessageStat);
       
@@ -228,19 +228,19 @@ int16_t interface_type_004_xPL_actuator(interface_type_004_t *i004, xPL_ServiceP
    
    (i004->indicators.xplin)++;
    
-   type_id=get_id_by_string(type);
+   type_id=get_token_id_by_string(type);
    if(type_id != XPL_OUTPUT_ID && type_id != XPL_COLOR_ID)
       return -1;
    
    // récupérer ici tous les éléments du message xpl
-   char *current_value=xPL_getNamedValue(ListNomsValeursPtr, get_token_by_id(XPL_CURRENT_ID));
+   char *current_value=xPL_getNamedValue(ListNomsValeursPtr, get_token_string_by_id(XPL_CURRENT_ID));
    if(!current_value)
       return -1;
    
    int current_value_id=-1;
    char *color_str=NULL;
    if(type_id == XPL_OUTPUT_ID)
-      current_value_id=get_id_by_string(current_value);
+      current_value_id=get_token_id_by_string(current_value);
    else if (type_id == XPL_COLOR_ID)
       color_str = current_value;
    
@@ -433,7 +433,7 @@ int16_t interface_type_004_xPL_sensor(interface_type_004_t *i004, xPL_ServicePtr
    struct lightsListElem_s *e = NULL;
    int16_t ret=-1;
    
-   if(type && get_id_by_string(type) != XPL_OUTPUT_ID)
+   if(type && get_token_id_by_string(type) != XPL_OUTPUT_ID)
       return -1; // type inconnu, on ne peut pas traiter
    
    int16_t on = 0, reachable = 0;
@@ -475,8 +475,8 @@ int16_t interface_type_004_xPL_callback(xPL_ServicePtr theService, xPL_MessagePt
    schema_class       = xPL_getSchemaClass(theMessage);
    schema_type        = xPL_getSchemaType(theMessage);
    ListNomsValeursPtr = xPL_getMessageBody(theMessage);
-   device             = xPL_getNamedValue(ListNomsValeursPtr, get_token_by_id(XPL_DEVICE_ID));
-   type               = xPL_getNamedValue(ListNomsValeursPtr, get_token_by_id(XPL_TYPE_ID));
+   device             = xPL_getNamedValue(ListNomsValeursPtr, get_token_string_by_id(XPL_DEVICE_ID));
+   type               = xPL_getNamedValue(ListNomsValeursPtr, get_token_string_by_id(XPL_TYPE_ID));
    
    mea_strtolower(device);
    
@@ -484,8 +484,8 @@ int16_t interface_type_004_xPL_callback(xPL_ServicePtr theService, xPL_MessagePt
    
    VERBOSE(9) mea_log_printf("%s  (%s) : xPL Message to process : %s.%s\n",INFO_STR,__func__,schema_class,schema_type);
    
-   if(mea_strcmplower(schema_class, get_token_by_id(XPL_CONTROL_ID)) == 0 &&
-      mea_strcmplower(schema_type, get_token_by_id(XPL_BASIC_ID)) == 0)
+   if(mea_strcmplower(schema_class, get_token_string_by_id(XPL_CONTROL_ID)) == 0 &&
+      mea_strcmplower(schema_type, get_token_string_by_id(XPL_BASIC_ID)) == 0)
    {
       if(!device)
       {
@@ -499,16 +499,16 @@ int16_t interface_type_004_xPL_callback(xPL_ServicePtr theService, xPL_MessagePt
       }
       return interface_type_004_xPL_actuator(i004, theService, ListNomsValeursPtr, device, type);
    }
-   else if(mea_strcmplower(schema_class, get_token_by_id(XPL_SENSOR_ID)) == 0 &&
-           mea_strcmplower(schema_type, get_token_by_id(XPL_REQUEST_ID)) == 0)
+   else if(mea_strcmplower(schema_class, get_token_string_by_id(XPL_SENSOR_ID)) == 0 &&
+           mea_strcmplower(schema_type, get_token_string_by_id(XPL_REQUEST_ID)) == 0)
    {
-      char *request = xPL_getNamedValue(ListNomsValeursPtr, get_token_by_id(XPL_REQUEST_ID));
+      char *request = xPL_getNamedValue(ListNomsValeursPtr, get_token_string_by_id(XPL_REQUEST_ID));
       if(!request)
       {
          VERBOSE(5) mea_log_printf("%s  (%s) : xPL message no request\n",INFO_STR,__func__);
          return -1;
       }
-      if(mea_strcmplower(request,get_token_by_id(XPL_CURRENT_ID))!=0)
+      if(mea_strcmplower(request,get_token_string_by_id(XPL_CURRENT_ID))!=0)
       {
          VERBOSE(5) mea_log_printf("%s  (%s) : xPL message request!=current\n",INFO_STR,__func__);
          return -1;

@@ -279,22 +279,22 @@ PyObject *stmt_to_pydict_device(sqlite3_stmt * stmt)
    if(!data_dict)
       return NULL;
    
-   mea_addLong_to_pydict(data_dict, get_token_by_id(DEVICE_ID_ID), sqlite3_column_int(stmt, 0));
-   mea_addString_to_pydict(data_dict, get_token_by_id(DEVICE_NAME_ID), (char *)sqlite3_column_text(stmt, 6));
-   mea_addLong_to_pydict(data_dict, get_token_by_id(DEVICE_TYPE_ID_ID), sqlite3_column_int(stmt, 5));
-   mea_addLong_to_pydict(data_dict, get_token_by_id(DEVICE_LOCATION_ID_ID), sqlite3_column_int(stmt, 1));
-   mea_addString_to_pydict(data_dict, get_token_by_id(DEVICE_INTERFACE_NAME_ID), (char *)sqlite3_column_text(stmt, 7));
-   mea_addString_to_pydict(data_dict, get_token_by_id(DEVICE_INTERFACE_TYPE_NAME_ID), (char *)sqlite3_column_text(stmt, 9));
-   mea_addString_to_pydict(data_dict, get_token_by_id(DEVICE_STATE_ID), (char *)sqlite3_column_text(stmt, 2));
-   mea_addString_to_pydict(data_dict, get_token_by_id(DEVICE_TYPE_PARAMETERS_ID), (char *)sqlite3_column_text(stmt, 4));
-   mea_addLong_to_pydict(data_dict, get_token_by_id(TODBFLAG_ID), sqlite3_column_int(stmt, 11));
+   mea_addLong_to_pydict(data_dict, get_token_string_by_id(DEVICE_ID_ID), sqlite3_column_int(stmt, 0));
+   mea_addString_to_pydict(data_dict, get_token_string_by_id(DEVICE_NAME_ID), (char *)sqlite3_column_text(stmt, 6));
+   mea_addLong_to_pydict(data_dict, get_token_string_by_id(DEVICE_TYPE_ID_ID), sqlite3_column_int(stmt, 5));
+   mea_addLong_to_pydict(data_dict, get_token_string_by_id(DEVICE_LOCATION_ID_ID), sqlite3_column_int(stmt, 1));
+   mea_addString_to_pydict(data_dict, get_token_string_by_id(DEVICE_INTERFACE_NAME_ID), (char *)sqlite3_column_text(stmt, 7));
+   mea_addString_to_pydict(data_dict, get_token_string_by_id(DEVICE_INTERFACE_TYPE_NAME_ID), (char *)sqlite3_column_text(stmt, 9));
+   mea_addString_to_pydict(data_dict, get_token_string_by_id(DEVICE_STATE_ID), (char *)sqlite3_column_text(stmt, 2));
+   mea_addString_to_pydict(data_dict, get_token_string_by_id(DEVICE_TYPE_PARAMETERS_ID), (char *)sqlite3_column_text(stmt, 4));
+   mea_addLong_to_pydict(data_dict, get_token_string_by_id(TODBFLAG_ID), sqlite3_column_int(stmt, 11));
 
    uint32_t addr_h, addr_l;
    
    if(sscanf((char *)sqlite3_column_text(stmt, 10), "MESH://%x-%x", &addr_h, &addr_l)==2)
    {
-      mea_addLong_to_pydict(data_dict, get_token_by_id(ADDR_H_ID), (long)addr_h);
-      mea_addLong_to_pydict(data_dict, get_token_by_id(ADDR_L_ID), (long)addr_l);
+      mea_addLong_to_pydict(data_dict, get_token_string_by_id(ADDR_H_ID), (long)addr_h);
+      mea_addLong_to_pydict(data_dict, get_token_string_by_id(ADDR_L_ID), (long)addr_l);
    }
    
    return data_dict;
@@ -309,17 +309,17 @@ PyObject *stmt_to_pydict_interface(sqlite3_stmt * stmt)
    if(!data_dict)
       return NULL;
    
-   mea_addLong_to_pydict(data_dict, get_token_by_id(INTERFACE_ID_ID), (long)sqlite3_column_int(stmt, 1));
-   mea_addLong_to_pydict(data_dict, get_token_by_id(INTERFACE_TYPE_ID_ID), (long)sqlite3_column_int(stmt, 2));
-   mea_addString_to_pydict(data_dict, get_token_by_id(INTERFACE_NAME_ID), (char *)sqlite3_column_text(stmt, 3));
-   mea_addLong_to_pydict(data_dict, get_token_by_id(INTERFACE_STATE_ID), (long)sqlite3_column_int(stmt, 7));
+   mea_addLong_to_pydict(data_dict, get_token_string_by_id(INTERFACE_ID_ID), (long)sqlite3_column_int(stmt, 1));
+   mea_addLong_to_pydict(data_dict, get_token_string_by_id(INTERFACE_TYPE_ID_ID), (long)sqlite3_column_int(stmt, 2));
+   mea_addString_to_pydict(data_dict, get_token_string_by_id(INTERFACE_NAME_ID), (char *)sqlite3_column_text(stmt, 3));
+   mea_addLong_to_pydict(data_dict, get_token_string_by_id(INTERFACE_STATE_ID), (long)sqlite3_column_int(stmt, 7));
    
    uint32_t addr_h, addr_l;
    
    if(sscanf((char *)sqlite3_column_text(stmt, 5), "MESH://%x-%x", &addr_h, &addr_l)==2)
   {
-      mea_addLong_to_pydict(data_dict, get_token_by_id(ADDR_H_ID), (long)addr_h);
-      mea_addLong_to_pydict(data_dict, get_token_by_id(ADDR_L_ID), (long)addr_l);
+      mea_addLong_to_pydict(data_dict, get_token_string_by_id(ADDR_H_ID), (long)addr_h);
+      mea_addLong_to_pydict(data_dict, get_token_string_by_id(ADDR_L_ID), (long)addr_l);
    }
    
    return data_dict;
@@ -349,7 +349,7 @@ int16_t _interface_type_002_xPL_callback(xPL_ServicePtr theService, xPL_MessageP
       params->myThreadState = PyThreadState_New(params->mainThreadState->interp);
    
    xplBody = xPL_getMessageBody(xplMsg);
-   device  = xPL_getNamedValue(xplBody, get_token_by_id(XPL_DEVICE_ID));
+   device  = xPL_getNamedValue(xplBody, get_token_string_by_id(XPL_DEVICE_ID));
    
    if(!device)
       return ERROR;
@@ -393,14 +393,14 @@ int16_t _interface_type_002_xPL_callback(xPL_ServicePtr theService, xPL_MessageP
                PyThreadState *tempState = PyThreadState_Swap(params->myThreadState);
                
                plugin_elem->aDict=stmt_to_pydict_device(stmt);
-               mea_addLong_to_pydict(plugin_elem->aDict, get_token_by_id(ID_XBEE_ID), (long)interface->xd);
+               mea_addLong_to_pydict(plugin_elem->aDict, get_token_string_by_id(ID_XBEE_ID), (long)interface->xd);
                PyObject *d=mea_xplMsgToPyDict(xplMsg);
                PyDict_SetItemString(plugin_elem->aDict, "xplmsg", d);
-               mea_addLong_to_pydict(plugin_elem->aDict, get_token_by_id(DEVICE_TYPE_ID_ID), sqlite3_column_int(stmt, 5));
+               mea_addLong_to_pydict(plugin_elem->aDict, get_token_string_by_id(DEVICE_TYPE_ID_ID), sqlite3_column_int(stmt, 5));
                Py_DECREF(d);
                
                if(plugin_params[XBEE_PLUGIN_PARAMS_PARAMETERS].value.s)
-                  mea_addString_to_pydict(plugin_elem->aDict, get_token_by_id(DEVICE_PARAMETERS_ID), plugin_params[XBEE_PLUGIN_PARAMS_PARAMETERS].value.s);
+                  mea_addString_to_pydict(plugin_elem->aDict, get_token_string_by_id(DEVICE_PARAMETERS_ID), plugin_params[XBEE_PLUGIN_PARAMS_PARAMETERS].value.s);
                
                PyThreadState_Swap(tempState);
                PyEval_ReleaseLock();
@@ -540,12 +540,12 @@ mea_error_t _interface_type_002_commissionning_callback(int id, unsigned char *c
             PyThreadState *tempState = PyThreadState_Swap(callback_commissionning->myThreadState);
             
             plugin_elem->aDict=stmt_to_pydict_interface(stmt);
-            mea_addLong_to_pydict(plugin_elem->aDict, get_token_by_id(ID_XBEE_ID), (long)callback_commissionning->xd);
+            mea_addLong_to_pydict(plugin_elem->aDict, get_token_string_by_id(ID_XBEE_ID), (long)callback_commissionning->xd);
             mea_addLong_to_pydict(plugin_elem->aDict, "LOCAL_XBEE_ADDR_H", (long)callback_commissionning->local_xbee->l_addr_64_h);
             mea_addLong_to_pydict(plugin_elem->aDict, "LOCAL_XBEE_ADDR_L", (long)callback_commissionning->local_xbee->l_addr_64_l);
             
             if(plugin_params[XBEE_PLUGIN_PARAMS_PARAMETERS].value.s)
-               mea_addString_to_pydict(plugin_elem->aDict, get_token_by_id(INTERFACE_PARAMETERS_ID), plugin_params[XBEE_PLUGIN_PARAMS_PARAMETERS].value.s);
+               mea_addString_to_pydict(plugin_elem->aDict, get_token_string_by_id(INTERFACE_PARAMETERS_ID), plugin_params[XBEE_PLUGIN_PARAMS_PARAMETERS].value.s);
             
             PyThreadState_Swap(tempState);
             PyEval_ReleaseLock();
@@ -791,10 +791,10 @@ void *_thread_interface_type_002_xbeedata(void *args)
 */
 
                      mea_addLong_to_pydict(plugin_elem->aDict, "data_type", (long)data_type);
-                     mea_addLong_to_pydict(plugin_elem->aDict, get_token_by_id(ID_XBEE_ID), (long)params->xd);
+                     mea_addLong_to_pydict(plugin_elem->aDict, get_token_string_by_id(ID_XBEE_ID), (long)params->xd);
                      
                      if(params->plugin_params[XBEE_PLUGIN_PARAMS_PARAMETERS].value.s)
-                        mea_addString_to_pydict(plugin_elem->aDict, get_token_by_id(DEVICE_PARAMETERS_ID), params->plugin_params[XBEE_PLUGIN_PARAMS_PARAMETERS].value.s);
+                        mea_addString_to_pydict(plugin_elem->aDict, get_token_string_by_id(DEVICE_PARAMETERS_ID), params->plugin_params[XBEE_PLUGIN_PARAMS_PARAMETERS].value.s);
                      
                      PyThreadState_Swap(tempState);
                      PyEval_ReleaseLock();
@@ -1400,11 +1400,11 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
          {
             // préparation du parametre du module
             plugin_params_dict=PyDict_New();
-            mea_addLong_to_pydict(plugin_params_dict, get_token_by_id(ID_XBEE_ID), (long)xd);
+            mea_addLong_to_pydict(plugin_params_dict, get_token_string_by_id(ID_XBEE_ID), (long)xd);
 //            addLong_to_pydict(plugin_params_dict, get_token_by_id(INTERFACE_ID_ID), id_interface);
-            mea_addLong_to_pydict(plugin_params_dict, get_token_by_id(INTERFACE_ID_ID), start_stop_params->i002->id_interface);
+            mea_addLong_to_pydict(plugin_params_dict, get_token_string_by_id(INTERFACE_ID_ID), start_stop_params->i002->id_interface);
             if(interface_parameters[XBEE_PLUGIN_PARAMS_PARAMETERS].value.s)
-               mea_addString_to_pydict(plugin_params_dict, get_token_by_id(INTERFACE_PARAMETERS_ID), interface_parameters[XBEE_PLUGIN_PARAMS_PARAMETERS].value.s);
+               mea_addString_to_pydict(plugin_params_dict, get_token_string_by_id(INTERFACE_PARAMETERS_ID), interface_parameters[XBEE_PLUGIN_PARAMS_PARAMETERS].value.s);
 
             pArgs = PyTuple_New(1);
             Py_INCREF(plugin_params_dict); // PyTuple_SetItem va voler la référence, on en rajoute une pour pouvoir ensuite faire un Py_DECREF

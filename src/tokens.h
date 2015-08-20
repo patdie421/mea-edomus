@@ -10,13 +10,8 @@
 
 #include <inttypes.h>
 
-struct token_s
-{
-   char *str;
-   char id;
-};
+#include "uthash.h"
 
-extern struct token_s tokens_list[];
 
 #define XPL_CONTROL_ID                 1
 #define XPL_BASIC_ID                   2
@@ -79,14 +74,24 @@ extern struct token_s tokens_list[];
 #define ID_ENOCEAN_ID                 59
 #define XPL_WATCHDOG_ID               60
 #define XPL_REACHABLE_ID              61
-#define XPL_HIGH_ID                   62
-#define XPL_LOW_ID                    63
-#define XPL_COLOR_ID                  64
+#define XPL_COLOR_ID                  62
+#define TRUE_ID                       63
+#define FALSE_ID                      64
 
-
+/*
 char *get_token_by_id(int id);
 int16_t get_id_by_string(char *str);
-// int16_t strcmplower(char *str1, char *str2);
-int16_t int_isin(int val, int list[]);
+
+void init_tokens_hashs();
+int16_t get_token_string_by_id(int16_t id);
+int16_t get_token_id_by_string(char *str);
+*/
+
+void init_tokens();
+char *get_token_string_by_id(int16_t id);
+int16_t get_token_id_by_string(char *str);
+
+
+//int16_t int_isin(int val, int list[]);
 
 #endif

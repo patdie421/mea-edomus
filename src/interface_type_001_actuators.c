@@ -112,7 +112,7 @@ struct actuator_s *interface_type_001_valid_and_malloc_actuator(int16_t id_senso
    relay_params=malloc_parsed_parameters((char *)parameters, valid_relay_params, &nb_relay_params, &err,1);
    if(relay_params)
    {
-      type_id=get_id_by_string(relay_params[ACTUATOR_PARAMS_TYPE].value.s);
+      type_id=get_token_id_by_string(relay_params[ACTUATOR_PARAMS_TYPE].value.s);
       pin_id=mea_getArduinoPin(relay_params[ACTUATOR_PARAMS_PIN].value.s);
       
       if(valide_actuator_i001(type_id,pin_id,action_id,&err))
@@ -170,7 +170,7 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
 
    (i001->indicators.nbactuatorsxplrecv)++;
    
-   type_id=get_id_by_string(type);
+   type_id=get_token_id_by_string(type);
    if(type_id != XPL_OUTPUT_ID && type_id !=VARIABLE_ID)
       return ERROR;
    
@@ -183,11 +183,11 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
       current_queue(i001->actuators_list, (void **)&iq);
       if(mea_strcmplower(iq->name, device)==0) // OK, c'est bien pour moi ...
       {
-         char *current=xPL_getNamedValue(ListNomsValeursPtr, get_token_by_id(XPL_CURRENT_ID));
+         char *current=xPL_getNamedValue(ListNomsValeursPtr, get_token_string_by_id(XPL_CURRENT_ID));
 
          if(!current)
             return ERROR;
-         int current_id=get_id_by_string(current);
+         int current_id=get_token_id_by_string(current);
          if(type_id==XPL_OUTPUT_ID && iq->arduino_pin_type==DIGITAL_ID)
          {
             switch(current_id)
@@ -195,7 +195,7 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
                case XPL_PULSE_ID:
                {
                   int pulse_width;
-                  char *data1=xPL_getNamedValue(ListNomsValeursPtr, get_token_by_id(XPL_DATA1_ID));
+                  char *data1=xPL_getNamedValue(ListNomsValeursPtr, get_token_string_by_id(XPL_DATA1_ID));
                   if(data1)
                   {
                      pulse_width=atoi(data1);

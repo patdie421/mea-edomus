@@ -137,7 +137,7 @@ int16_t _interface_type_003_xPL_callback(xPL_ServicePtr theService, xPL_MessageP
       params->myThreadState = PyThreadState_New(params->mainThreadState->interp);
    
    xplBody = xPL_getMessageBody(xplMsg);
-   device  = xPL_getNamedValue(xplBody, get_token_by_id(XPL_DEVICE_ID));
+   device  = xPL_getNamedValue(xplBody, get_token_string_by_id(XPL_DEVICE_ID));
    
    if(!device)
       return -1;
@@ -191,17 +191,17 @@ int16_t _interface_type_003_xPL_callback(xPL_ServicePtr theService, xPL_MessageP
                   enocean_addr = (enocean_addr << 8) + c;
                   enocean_addr = (enocean_addr << 8) + d;
                   
-                  mea_addLong_to_pydict(plugin_elem->aDict, get_token_by_id(ENOCEAN_ADDR_ID), (long)enocean_addr);
+                  mea_addLong_to_pydict(plugin_elem->aDict, get_token_string_by_id(ENOCEAN_ADDR_ID), (long)enocean_addr);
                }
 
-               mea_addLong_to_pydict(plugin_elem->aDict, get_token_by_id(ID_ENOCEAN_ID), (long)interface->ed);
+               mea_addLong_to_pydict(plugin_elem->aDict, get_token_string_by_id(ID_ENOCEAN_ID), (long)interface->ed);
                PyObject *dd=mea_xplMsgToPyDict(xplMsg);
                PyDict_SetItemString(plugin_elem->aDict, "xplmsg", dd);
-               mea_addLong_to_pydict(plugin_elem->aDict, get_token_by_id(DEVICE_TYPE_ID_ID), sqlite3_column_int(stmt, 5));
+               mea_addLong_to_pydict(plugin_elem->aDict, get_token_string_by_id(DEVICE_TYPE_ID_ID), sqlite3_column_int(stmt, 5));
                Py_DECREF(dd);
                
                if(plugin_params[ENOCEAN_PLUGIN_PARAMS_PARAMETERS].value.s)
-                  mea_addString_to_pydict(plugin_elem->aDict, get_token_by_id(DEVICE_PARAMETERS_ID), plugin_params[ENOCEAN_PLUGIN_PARAMS_PARAMETERS].value.s);
+                  mea_addString_to_pydict(plugin_elem->aDict, get_token_string_by_id(DEVICE_PARAMETERS_ID), plugin_params[ENOCEAN_PLUGIN_PARAMS_PARAMETERS].value.s);
                
                PyThreadState_Swap(tempState);
                PyEval_ReleaseLock();
@@ -438,7 +438,7 @@ void *_thread_interface_type_003_enocean_data(void *args)
                      PyThreadState *tempState = PyThreadState_Swap(params->myThreadState);
                      
                      plugin_elem->aDict=mea_stmt_to_pydict_device(params->stmt);
-                     mea_addLong_to_pydict(plugin_elem->aDict, get_token_by_id(ENOCEAN_ADDR_ID), (long)e->enocean_addr);
+                     mea_addLong_to_pydict(plugin_elem->aDict, get_token_string_by_id(ENOCEAN_ADDR_ID), (long)e->enocean_addr);
                      
                      PyObject *value;
 
@@ -448,7 +448,7 @@ void *_thread_interface_type_003_enocean_data(void *args)
                      mea_addLong_to_pydict(plugin_elem->aDict, "l_data", (long)plugin_elem->l_buff);
                      
                      if(params->plugin_params[ENOCEAN_PLUGIN_PARAMS_PARAMETERS].value.s)
-                        mea_addString_to_pydict(plugin_elem->aDict, get_token_by_id(DEVICE_PARAMETERS_ID), params->plugin_params[ENOCEAN_PLUGIN_PARAMS_PARAMETERS].value.s);
+                        mea_addString_to_pydict(plugin_elem->aDict, get_token_string_by_id(DEVICE_PARAMETERS_ID), params->plugin_params[ENOCEAN_PLUGIN_PARAMS_PARAMETERS].value.s);
                      
                      PyThreadState_Swap(tempState);
                      PyEval_ReleaseLock();
@@ -930,10 +930,10 @@ int start_interface_type_003(int my_id, void *data, char *errmsg, int l_errmsg)
          {
             // préparation du parametre du module
             plugin_params_dict=PyDict_New();
-            mea_addLong_to_pydict(plugin_params_dict, get_token_by_id(ID_ENOCEAN_ID), (long)ed);
-            mea_addLong_to_pydict(plugin_params_dict, get_token_by_id(INTERFACE_ID_ID), start_stop_params->i003->id_interface);
+            mea_addLong_to_pydict(plugin_params_dict, get_token_string_by_id(ID_ENOCEAN_ID), (long)ed);
+            mea_addLong_to_pydict(plugin_params_dict, get_token_string_by_id(INTERFACE_ID_ID), start_stop_params->i003->id_interface);
             if(interface_parameters[ENOCEAN_PLUGIN_PARAMS_PARAMETERS].value.s)
-               mea_addString_to_pydict(plugin_params_dict, get_token_by_id(INTERFACE_PARAMETERS_ID), interface_parameters[ENOCEAN_PLUGIN_PARAMS_PARAMETERS].value.s);
+               mea_addString_to_pydict(plugin_params_dict, get_token_string_by_id(INTERFACE_PARAMETERS_ID), interface_parameters[ENOCEAN_PLUGIN_PARAMS_PARAMETERS].value.s);
 
             pArgs = PyTuple_New(1);
             Py_INCREF(plugin_params_dict); // PyTuple_SetItem va voler la référence, on en rajoute une pour pouvoir ensuite faire un Py_DECREF

@@ -402,8 +402,8 @@ void _cmndXPLMessageHandler(xPL_ServicePtr theService, xPL_MessagePtr theMessage
 
    DEBUG_SECTION  displayXPLMsg(theMessage);
    
-   if(mea_strcmplower(schema_class, get_token_by_id(XPL_WATCHDOG_ID)) == 0 &&
-      mea_strcmplower(schema_type, get_token_by_id(XPL_BASIC_ID)) == 0)
+   if(mea_strcmplower(schema_class, get_token_string_by_id(XPL_WATCHDOG_ID)) == 0 &&
+      mea_strcmplower(schema_type, get_token_string_by_id(XPL_BASIC_ID)) == 0)
    {
       // un message wd ... voir s'il faut faire quelque chose ...
    }
@@ -494,8 +494,8 @@ void *xPLServer_thread(void *data)
    
 #ifdef XPL_EXTERNAL_WD
    mea_timer_t xPLWDSendMsgTimer;
-   mea_init_timer(&xPLnoMsgReceivedTimer, 10, 1);
-   mea_init_timer(&xPLWDSendMsgTimer, 5, 1);
+   mea_init_timer(&xPLnoMsgReceivedTimer, 90, 1);
+   mea_init_timer(&xPLWDSendMsgTimer, 30, 1);
    
    char xpl_instanceWDID[17];
    snprintf(xpl_instanceWDID,sizeof(xpl_instanceWDID)-1,"%s%s",xpl_instanceID,"wd");

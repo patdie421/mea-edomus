@@ -10,8 +10,6 @@
 	<string>mea-edomus</string>
 	<key>IDESourceControlProjectOriginsDictionary</key>
 	<dict>
-		<key>4E3764B0426CB7AFEB3FC8B551E53B27EC3C6B16</key>
-		<string>https://patrice.dietsch:ZC5jQ5NN8cK7@code.google.com/p/mea-edomus/</string>
 		<key>6B6B59C2FA5A7116A1031F7E4FE461163868ACA8</key>
 		<string>https://github.com/patdie421/mea-edomus.git</string>
 	</dict>
@@ -19,8 +17,6 @@
 	<string>mea-edomus.xcodeproj</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
-		<key>4E3764B0426CB7AFEB3FC8B551E53B27EC3C6B16</key>
-		<string>../../../mea-edomus</string>
 		<key>6B6B59C2FA5A7116A1031F7E4FE461163868ACA8</key>
 		<string>../..</string>
 	</dict>
@@ -32,14 +28,6 @@
 	<string>6B6B59C2FA5A7116A1031F7E4FE461163868ACA8</string>
 	<key>IDESourceControlProjectWCConfigurations</key>
 	<array>
-		<dict>
-			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
-			<string>public.vcs.git</string>
-			<key>IDESourceControlWCCIdentifierKey</key>
-			<string>4E3764B0426CB7AFEB3FC8B551E53B27EC3C6B16</string>
-			<key>IDESourceControlWCCName</key>
-			<string>mea-edomus</string>
-		</dict>
 		<dict>
 			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
 			<string>public.vcs.git</string>

@@ -490,13 +490,13 @@ static int _begin_request_handler(struct mg_connection *conn)
             
             if(mea_strcmplower("ACTUATOR",tokens[1])==0)
             {
-               xPL_setSchema(msg, get_token_by_id(XPL_CONTROL_ID), get_token_by_id(XPL_BASIC_ID));
+               xPL_setSchema(msg, get_token_string_by_id(XPL_CONTROL_ID), get_token_string_by_id(XPL_BASIC_ID));
                xPL_setSource(msg, "mea", "internal", "00000000"); // 00000000 = message sans réponse attendue
                waitResp=FALSE;
             }
             else if(mea_strcmplower("SENSOR",tokens[1])==0)
             {
-               xPL_setSchema(msg, get_token_by_id(XPL_SENSOR_ID), get_token_by_id(XPL_REQUEST_ID));
+               xPL_setSchema(msg, get_token_string_by_id(XPL_SENSOR_ID), get_token_string_by_id(XPL_REQUEST_ID));
                char requestId[9];
                
                id=mea_getXplRequestId();

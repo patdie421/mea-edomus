@@ -76,16 +76,16 @@ int16_t interface_type_001_xPL_callback(xPL_ServicePtr theService, xPL_MessagePt
    schema_class       = xPL_getSchemaClass(theMessage);
    schema_type        = xPL_getSchemaType(theMessage);
    ListNomsValeursPtr = xPL_getMessageBody(theMessage);
-   device             = xPL_getNamedValue(ListNomsValeursPtr, get_token_by_id(XPL_DEVICE_ID));
-   type               = xPL_getNamedValue(ListNomsValeursPtr, get_token_by_id(XPL_TYPE_ID));
+   device             = xPL_getNamedValue(ListNomsValeursPtr, get_token_string_by_id(XPL_DEVICE_ID));
+   type               = xPL_getNamedValue(ListNomsValeursPtr, get_token_string_by_id(XPL_TYPE_ID));
    
    (i001->indicators.nbxplin)++;
    
 //   VERBOSE(9) fprintf(stderr,"%s  (%s) : xPL Message to process : %s.%s\n",INFO_STR,__func__,schema_class,schema_type);
    VERBOSE(9) mea_log_printf("%s  (%s) : xPL Message to process : %s.%s\n",INFO_STR,__func__,schema_class,schema_type);
 
-   if(mea_strcmplower(schema_class, get_token_by_id(XPL_CONTROL_ID)) == 0 &&
-      mea_strcmplower(schema_type, get_token_by_id(XPL_BASIC_ID)) == 0)
+   if(mea_strcmplower(schema_class, get_token_string_by_id(XPL_CONTROL_ID)) == 0 &&
+      mea_strcmplower(schema_type, get_token_string_by_id(XPL_BASIC_ID)) == 0)
    {
       if(!device)
       {
@@ -101,17 +101,17 @@ int16_t interface_type_001_xPL_callback(xPL_ServicePtr theService, xPL_MessagePt
       }
       return xpl_actuator(i001, ListNomsValeursPtr, device, type);
    }
-   else if(mea_strcmplower(schema_class, get_token_by_id(XPL_SENSOR_ID)) == 0 &&
-           mea_strcmplower(schema_type, get_token_by_id(XPL_REQUEST_ID)) == 0)
+   else if(mea_strcmplower(schema_class, get_token_string_by_id(XPL_SENSOR_ID)) == 0 &&
+           mea_strcmplower(schema_type, get_token_string_by_id(XPL_REQUEST_ID)) == 0)
    {
-      char *request = xPL_getNamedValue(ListNomsValeursPtr, get_token_by_id(XPL_REQUEST_ID));
+      char *request = xPL_getNamedValue(ListNomsValeursPtr, get_token_string_by_id(XPL_REQUEST_ID));
       if(!request)
       {
 //         VERBOSE(5) fprintf(stderr,"%s  (%s) : xPL message no request\n",INFO_STR,__func__);
          VERBOSE(5) mea_log_printf("%s  (%s) : xPL message no request\n",INFO_STR,__func__);
          return 0;
       }
-      if(mea_strcmplower(request,get_token_by_id(XPL_CURRENT_ID))!=0)
+      if(mea_strcmplower(request,get_token_string_by_id(XPL_CURRENT_ID))!=0)
       {
 //         VERBOSE(5) fprintf(stderr,"%s  (%s) : xPL message request!=current\n",INFO_STR,__func__);
          VERBOSE(5) mea_log_printf("%s  (%s) : xPL message request!=current\n",INFO_STR,__func__);

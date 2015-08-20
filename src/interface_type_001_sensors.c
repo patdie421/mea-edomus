@@ -213,10 +213,10 @@ int16_t interface_type_001_sensors_process_traps(int16_t numTrap, char *data, in
 //      VERBOSE(9) fprintf(stderr,"%s  (%s) : sensor %s = %s\n",INFO_STR,__func__,sensor->name,value);
       VERBOSE(9) mea_log_printf("%s  (%s) : sensor %s = %s\n",INFO_STR,__func__,sensor->name,value);
       
-      xPL_setSchema(sensorMessageStat, get_token_by_id(XPL_SENSOR_ID), get_token_by_id(XPL_BASIC_ID));
-      xPL_setMessageNamedValue(sensorMessageStat, get_token_by_id(XPL_DEVICE_ID),sensor->name);
-      xPL_setMessageNamedValue(sensorMessageStat, get_token_by_id(XPL_TYPE_ID), get_token_by_id(XPL_INPUT_ID));
-      xPL_setMessageNamedValue(sensorMessageStat, get_token_by_id(XPL_CURRENT_ID),value);
+      xPL_setSchema(sensorMessageStat, get_token_string_by_id(XPL_SENSOR_ID), get_token_string_by_id(XPL_BASIC_ID));
+      xPL_setMessageNamedValue(sensorMessageStat, get_token_string_by_id(XPL_DEVICE_ID),sensor->name);
+      xPL_setMessageNamedValue(sensorMessageStat, get_token_string_by_id(XPL_TYPE_ID), get_token_string_by_id(XPL_INPUT_ID));
+      xPL_setMessageNamedValue(sensorMessageStat, get_token_string_by_id(XPL_CURRENT_ID),value);
       
       // Broadcast the message
       mea_sendXPLMessage(sensorMessageStat);
@@ -261,10 +261,10 @@ struct sensor_s *interface_type_001_sensors_valid_and_malloc_sensor(int16_t id_s
    
    if(sensor_params)
    {
-      type_id=get_id_by_string(sensor_params[SENSOR_PARAMS_TYPE].value.s);
+      type_id=get_token_id_by_string(sensor_params[SENSOR_PARAMS_TYPE].value.s);
       pin_id=mea_getArduinoPin(sensor_params[SENSOR_PARAMS_PIN].value.s);
-      compute_id=get_id_by_string(sensor_params[SENSOR_PARAMS_COMPUTE].value.s);
-      algo_id=get_id_by_string(sensor_params[SENSOR_PARAMS_ALGO].value.s);
+      compute_id=get_token_id_by_string(sensor_params[SENSOR_PARAMS_COMPUTE].value.s);
+      algo_id=get_token_id_by_string(sensor_params[SENSOR_PARAMS_ALGO].value.s);
       
       switch(type_id)
       {
@@ -388,7 +388,7 @@ mea_error_t interface_type_001_sensors_process_xpl_msg(interface_type_001_t *i00
    i001->indicators.nbsensorsxplrecv++;
    if(type)
    {
-      type_id=get_id_by_string(type);
+      type_id=get_token_id_by_string(type);
       if(type_id==-1)
          return ERROR; // type inconnu, on ne peut pas traiter
    }
@@ -418,7 +418,7 @@ mea_error_t interface_type_001_sensors_process_xpl_msg(interface_type_001_t *i00
             {
                type_id=XPL_INPUT_ID;
             }
-            type=get_token_by_id(type_id);
+            type=get_token_string_by_id(type_id);
          }
          
          // préparation de la réponse
@@ -497,12 +497,12 @@ mea_error_t interface_type_001_sensors_process_xpl_msg(interface_type_001_t *i00
             xPL_MessagePtr sensorMessageStat = xPL_createBroadcastMessage(theService, xPL_MESSAGE_STATUS) ;
             xPL_setBroadcastMessage(sensorMessageStat, FALSE);
 
-            xPL_setSchema(sensorMessageStat, get_token_by_id(XPL_SENSOR_ID), get_token_by_id(XPL_BASIC_ID));
-            xPL_setMessageNamedValue(sensorMessageStat, get_token_by_id(XPL_DEVICE_ID),sensor->name);
-            xPL_setMessageNamedValue(sensorMessageStat, get_token_by_id(XPL_TYPE_ID),type);
-            xPL_setMessageNamedValue(sensorMessageStat, get_token_by_id(XPL_CURRENT_ID),value);
+            xPL_setSchema(sensorMessageStat, get_token_string_by_id(XPL_SENSOR_ID), get_token_string_by_id(XPL_BASIC_ID));
+            xPL_setMessageNamedValue(sensorMessageStat, get_token_string_by_id(XPL_DEVICE_ID),sensor->name);
+            xPL_setMessageNamedValue(sensorMessageStat, get_token_string_by_id(XPL_TYPE_ID),type);
+            xPL_setMessageNamedValue(sensorMessageStat, get_token_string_by_id(XPL_CURRENT_ID),value);
             if(unit)
-               xPL_setMessageNamedValue(sensorMessageStat, get_token_by_id(UNIT_ID),unit);
+               xPL_setMessageNamedValue(sensorMessageStat, get_token_string_by_id(UNIT_ID),unit);
 
             xPL_setTarget(sensorMessageStat, xPL_getSourceVendor(msg), xPL_getSourceDeviceID(msg), xPL_getSourceInstanceID(msg));
 
@@ -610,11 +610,11 @@ int16_t interface_type_001_sensors_poll_inputs(interface_type_001_t *i001)
                   sprintf(str_value,"%0.1f",sensor->computed_val);
                   sprintf(str_last,"%0.1f",computed_last);
                      
-                  xPL_setSchema(cntrMessageStat, get_token_by_id(XPL_SENSOR_ID), get_token_by_id(XPL_BASIC_ID));
-                  xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_DEVICE_ID),sensor->name);
-                  xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_TYPE_ID), get_token_by_id(XPL_TEMP_ID));
-                  xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_CURRENT_ID),str_value);
-                  xPL_setMessageNamedValue(cntrMessageStat, get_token_by_id(XPL_LAST_ID),str_last);
+                  xPL_setSchema(cntrMessageStat, get_token_string_by_id(XPL_SENSOR_ID), get_token_string_by_id(XPL_BASIC_ID));
+                  xPL_setMessageNamedValue(cntrMessageStat, get_token_string_by_id(XPL_DEVICE_ID),sensor->name);
+                  xPL_setMessageNamedValue(cntrMessageStat, get_token_string_by_id(XPL_TYPE_ID), get_token_string_by_id(XPL_TEMP_ID));
+                  xPL_setMessageNamedValue(cntrMessageStat, get_token_string_by_id(XPL_CURRENT_ID),str_value);
+                  xPL_setMessageNamedValue(cntrMessageStat, get_token_string_by_id(XPL_LAST_ID),str_last);
                      
                   mea_sendXPLMessage(cntrMessageStat);
                   
