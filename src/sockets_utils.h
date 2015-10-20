@@ -9,6 +9,8 @@
 #ifndef sockets_utils_h
 #define sockets_utils_h
 
+#include <inttypes.h>
+
 #define HTTPREQUEST_ERR_NOERR    0
 #define HTTPREQUEST_ERR_MALLOC   1
 #define HTTPREQUEST_ERR_CONNECT  2

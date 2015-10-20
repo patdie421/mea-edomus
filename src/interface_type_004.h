@@ -12,7 +12,7 @@
 #include <inttypes.h>
 #include <pthread.h>
 #include <sqlite3.h>
-
+#include <signal.h>
 #include "uthash.h"
 #include "cJSON.h"
 #include "xPLServer.h"

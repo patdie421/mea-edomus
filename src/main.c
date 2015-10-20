@@ -44,7 +44,7 @@
 #include "pythonPluginServer.h"
 #include "guiServer.h"
 #include "logServer.h"
-#include "automatorServer2.h"
+#include "automator/automatorServer2.h"
 #include "sockets_utils.h"
 
 #include "processManager.h"

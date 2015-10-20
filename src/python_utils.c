@@ -135,7 +135,7 @@ PyObject *mea_stmt_to_pydict(sqlite3_stmt * stmt)
    int nbCol = sqlite3_column_count(stmt);
    for(int i=0;i<nbCol;i++)
    {
-      char name=(char *)sqlite3_column_name(stmt, i);
+      char *name=(char *)sqlite3_column_name(stmt, i);
       int type=(int)sqlite3_column_type(stmt, i);
       switch(type)
       {
