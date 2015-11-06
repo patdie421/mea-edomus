@@ -16,15 +16,13 @@
 #include "consts.h"
 
 #include "tokens.h"
-#include "error.h"
-#include "debug.h"
+#include "mea_verbose.h"
 #include "macros.h"
-#include "memory.h"
-#include "string_utils.h"
+#include "mea_string_utils.h"
 #include "dbServer.h"
 #include "parameters_utils.h"
 #include "philipshue.h"
-#include "sockets_utils.h"
+#include "mea_sockets_utils.h"
 #include "processManager.h"
 #include "notify.h"
 
@@ -88,7 +86,7 @@ int16_t sendXPLLightState(interface_type_004_t *i004, xPL_ServicePtr servicePtr,
       xPL_setMessageNamedValue(lightMessageStat, get_token_string_by_id(XPL_CURRENT_ID), current_state_str);
       if(last != -1)
          xPL_setMessageNamedValue(lightMessageStat, get_token_string_by_id(XPL_LAST_ID), last_state_str);
-      xPL_setMessageNamedValue(lightMessageStat, get_token_string_by_id(XPL_REACHABLE_ID), reachable_str);
+      xPL_setMessageNamedValue(lightMessageStat, get_token_string_by_id(REACHABLE_ID), reachable_str);
       xPL_setMessageNamedValue(lightMessageStat, "on", on_str);
       mea_sendXPLMessage(lightMessageStat);
       
@@ -229,7 +227,7 @@ int16_t interface_type_004_xPL_actuator(interface_type_004_t *i004, xPL_ServiceP
    (i004->indicators.xplin)++;
    
    type_id=get_token_id_by_string(type);
-   if(type_id != XPL_OUTPUT_ID && type_id != XPL_COLOR_ID)
+   if(type_id != XPL_OUTPUT_ID && type_id != COLOR_ID)
       return -1;
    
    // récupérer ici tous les éléments du message xpl
@@ -241,7 +239,7 @@ int16_t interface_type_004_xPL_actuator(interface_type_004_t *i004, xPL_ServiceP
    char *color_str=NULL;
    if(type_id == XPL_OUTPUT_ID)
       current_value_id=get_token_id_by_string(current_value);
-   else if (type_id == XPL_COLOR_ID)
+   else if (type_id == COLOR_ID)
       color_str = current_value;
    
    int16_t state=-1;
@@ -272,7 +270,7 @@ int16_t interface_type_004_xPL_actuator(interface_type_004_t *i004, xPL_ServiceP
             state=0;
             break;
          default:
-            if(type_id == XPL_COLOR_ID)
+            if(type_id == COLOR_ID)
             {
                int n=0,l=0;
                
@@ -321,7 +319,7 @@ int16_t interface_type_004_xPL_actuator(interface_type_004_t *i004, xPL_ServiceP
                ret=setGroupStateByName(i004->allGroups, (char *)g->huegroupname, 0, i004->server, i004->port, i004->user);
                break;
             default:
-               if(type_id == XPL_COLOR_ID)
+               if(type_id == COLOR_ID)
                {
                   int n=0,l=0;
                   

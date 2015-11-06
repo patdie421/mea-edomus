@@ -5,10 +5,11 @@
 #include <string.h>
 #include <pthread.h>
 
-#include "debug.h"
-#include "error.h"
+//#include "debug.h"
+//#include "error.h"
+#include "mea_verbose.h"
 
-#include "sockets_utils.h"
+#include "mea_sockets_utils.h"
 #include "cJSON.h" // lib JSON voir http://sourceforge.net/projects/cjson/
 #include "philipshue_color.h"
 

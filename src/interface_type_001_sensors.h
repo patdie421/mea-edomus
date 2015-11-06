@@ -9,8 +9,7 @@
 #ifndef __interface_type_001_sensors_h
 #define __interface_type_001_sensors_h
 
-#include "error.h"
-#include "timer.h"
+#include "mea_timer.h"
 #include "interface_type_001.h"
 
 struct sensor_s

@@ -17,15 +17,16 @@
 #include <string.h>
 #include <pthread.h>
 
-#include "error.h"
-#include "debug.h"
+//#include "debug.h"
+#include "mea_verbose.h"
 #include "globals.h"
 #include "comio2.h"
+#include "mea_queue.h"
 #include "arduino_pins.h"
-#include "string_utils.h"
+#include "mea_string_utils.h"
 #include "parameters_utils.h"
 #include "tokens.h"
-#include "timer.h"
+#include "mea_timer.h"
 #include "dbServer.h"
 #include "xPLServer.h"
 
@@ -298,7 +299,7 @@ int16_t counter_read(interface_type_001_t *i001, struct electricity_counter_s *c
 
 mea_error_t interface_type_001_counters_process_xpl_msg(interface_type_001_t *i001, xPL_ServicePtr theService, xPL_MessagePtr msg, char *device, char *type)
 {
-   queue_t *counters_list=i001->counters_list;
+   mea_queue_t *counters_list=i001->counters_list;
    struct electricity_counter_s *counter;
    int type_id;
 
@@ -311,10 +312,10 @@ mea_error_t interface_type_001_counters_process_xpl_msg(interface_type_001_t *i0
       type=get_token_string_by_id(XPL_ENERGY_ID);
    }
 
-   first_queue(counters_list);
+   mea_queue_first(counters_list);
    for(int i=0; i<counters_list->nb_elem; i++)
    {
-      current_queue(counters_list, (void **)&counter);
+      mea_queue_current(counters_list, (void **)&counter);
 
       if(!device || mea_strcmplower(device,counter->name)==0)
       {
@@ -352,7 +353,7 @@ mea_error_t interface_type_001_counters_process_xpl_msg(interface_type_001_t *i0
          
          xPL_releaseMessage(cntrMessageStat);
       }
-      next_queue(counters_list);
+      mea_queue_next(counters_list);
    }
    return NOERROR;
 }
@@ -360,13 +361,13 @@ mea_error_t interface_type_001_counters_process_xpl_msg(interface_type_001_t *i0
 
 int16_t interface_type_001_counters_poll_inputs(interface_type_001_t *i001)
 {
-   queue_t *counters_list=i001->counters_list;
+   mea_queue_t *counters_list=i001->counters_list;
    struct electricity_counter_s *counter;
 
-   first_queue(counters_list);
+   mea_queue_first(counters_list);
    for(int16_t i=0; i<counters_list->nb_elem; i++)
    {
-      current_queue(counters_list, (void **)&counter);
+      mea_queue_current(counters_list, (void **)&counter);
 
       pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(counter->lock));
       pthread_mutex_lock(&(counter->lock));
@@ -420,7 +421,7 @@ int16_t interface_type_001_counters_poll_inputs(interface_type_001_t *i001)
 //            VERBOSE(9) fprintf(stderr,"%s  (%s) : counter %s %ld (WH=%ld KWH=%ld)\n",INFO_STR,__func__,counter->name, (long)counter->counter, (long)counter->wh_counter,(long)counter->kwh_counter);
             VERBOSE(9) mea_log_printf("%s  (%s) : counter %s %ld (WH=%ld KWH=%ld)\n",INFO_STR,__func__,counter->name, (long)counter->counter, (long)counter->wh_counter,(long)counter->kwh_counter);
          }
-         next_queue(counters_list);
+         mea_queue_next(counters_list);
       }
    }
    return 0;
@@ -429,14 +430,14 @@ int16_t interface_type_001_counters_poll_inputs(interface_type_001_t *i001)
 
 void interface_type_001_counters_init(interface_type_001_t *i001)
 {
-   queue_t *counters_list=i001->counters_list;
+   mea_queue_t *counters_list=i001->counters_list;
    struct electricity_counter_s *counter;
 
    // initialisation des trap compteurs
-   first_queue(counters_list);
+   mea_queue_first(counters_list);
    for(int16_t i=0; i<counters_list->nb_elem; i++)
    {
-      current_queue(counters_list, (void **)&counter);
+      mea_queue_current(counters_list, (void **)&counter);
       
       counter->nbtrap=&(i001->indicators.nbcounterstraps);
       counter->nbxplout=&(i001->indicators.nbcountersxplsent);
@@ -446,6 +447,6 @@ void interface_type_001_counters_init(interface_type_001_t *i001)
       mea_start_timer(&(counter->timer));
       mea_start_timer(&(counter->trap_timer));
       
-      next_queue(counters_list);
+      mea_queue_next(counters_list);
    }
 }

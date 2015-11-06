@@ -1,9 +1,9 @@
-//
-//  xPL_strings.c
-//
-//  Created by Patrice DIETSCH on 29/10/12.
-//
-//
+/**
+ * \file tokens.c
+ * \brief gestion de token (association identifiant/chaine de charactères).
+ * \author Patrice DIETSCH
+ * \date 29/10/12
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,20 +11,22 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "string_utils.h"
-#include "debug.h"
-#include "error.h"
+#include "mea_string_utils.h"
+#include "mea_verbose.h"
+#include "uthash.h"
 
 #include "tokens.h"
-#include "consts.h"
 
 struct token_s
+/**
+ * \brief     représentation "interne" d'un token.
+ */
 {
-   char *str;
-   int16_t id;
+   const char *str;          /*!< pointeur sur la chaine du token */
+   const enum token_id_e id; /*!< identifiant du token   */
 };
 
-struct token_s tokens_list[]={
+static struct token_s tokens_list[]={ /// liste de tous les tokens connus. Le dernier élément doit être {NULL, 0}
    {"control",                    XPL_CONTROL_ID},
    {"basic",                      XPL_BASIC_ID},
    {"device",                     XPL_DEVICE_ID},
@@ -85,183 +87,67 @@ struct token_s tokens_list[]={
    {"ENOCEAN_ADDR",               ENOCEAN_ADDR_ID},
    {"ID_ENOCEAN",                 ID_ENOCEAN_ID},
    {"watchdog",                   XPL_WATCHDOG_ID},
-   {"reachable",                  XPL_REACHABLE_ID},
-/*
-   {"high",                       XPL_HIGH_ID},
-   {"low",                        XPL_LOW_ID},
-*/
-   {"color",                      XPL_COLOR_ID},
+   {"reachable",                  REACHABLE_ID},
+   {"color",                      COLOR_ID},
    {"true",                       TRUE_ID},
    {"false",                      FALSE_ID},
+   {"on",                         ON_ID},
+   {"LOCAL_XBEE_ADDR_H",          LOCAL_XBEE_ADDR_H_ID},
+   {"LOCAL_XBEE_ADDR_L",          LOCAL_XBEE_ADDR_L_ID},
+   {"name",                       NAME_ID},
+   {"state",                      STATE_ID},
    {NULL,0}
 };
 
-#define TOKEN_BY_HASH_TABLE 1
-// #define TOKEN_BY_INDEX 1
-// #define TOKEN_BY_SEQUENTIAL_READ 1
 
-#ifdef TOKEN_BY_SEQUENTIAL_READ
+#if TOKEN_BY_SEQUENTIAL_READ == 1
 void init_tokens()
 {
 }
 
 
-//char *get_token_by_id(int id)
-//char *get_string_by_id(int id)
-char *get_token_string_by_id(int16_t id)
+void release_tokens()
+{
+}
+
+
+char *get_token_string_by_id(enum token_id_e id)
 /**
  * \brief     recherche un token par son id
  * \param     id  identifiant du token.
- * \return    pointeur sur le token ou NULL s'il n'existe pas.
+ * \return    pointeur sur la chaine du token ou NULL s'il n'existe pas.
  */
 {
    for(int i=0;tokens_list[i].str;i++)
    {
       if(tokens_list[i].id == id)
-         return tokens_list[i].str;
+         return (char *)tokens_list[i].str;
    }
    return NULL;
 }
 
 
-//int16_t get_id_by_string(char *str)
-int16_t get_token_id_by_string(char *str)
+enum token_id_e get_token_id_by_string(char *str)
 /**
- * \brief     recherche l'id un token
+ * \brief     recherche l'id un token par la valeur de sa chaine
+ * \details   les chaines sont comparées "en minuscule", c'est à dire qu'on ne tient pas compte de la "case" pour trouver la chaine. Attention cependant aux caractères accentués qui ne sont certainement pas correctement traité.
  * \param     token (chaine) à trouver.
- * \return    id du token
+ * \return    id du token ou _UNKNOWN (-1) sinon
  */
 {
    if(!str)
-      return -1;
+      return _UNKNOWN;
    
    for(int i=0;tokens_list[i].str;i++)
    {
-      if(mea_strcmplower(tokens_list[i].str, str) == 0)
+      if(mea_strcmplower((char *)tokens_list[i].str, str) == 0)
          return tokens_list[i].id;
    }
-   return -1;
+   return _UNKNOWN;
 }
 
 
-//int16_t int_isin(int val, int list[])
-/**
- * \brief     recherche une valeur dans un liste (un table) d'entiers
- * \details   les valeurs de la liste doivent être différentes de 0. 0 indique une fin de liste
- * \param     val  valeur à rechercher.
- * \param     list  liste des valeurs.
- * \return    1 si la valeur est trouvée, 0 sinon.
- */
-/*
-{
-   for(int i=0; list[i]!=-1; i++)
-      if(val==list[i])
-         return 1;
-   return 0;
-}
-*/
-#endif
-
-#ifdef TOKEN_BY_HASH_TABLE
-#include "uthash.h"
-
-struct tokens_hash_s
-{
-   struct token_s *token;
-   UT_hash_handle hh_token_by_string;
-   UT_hash_handle hh_token_by_id;
-};
-
-
-struct tokens_hash_s *tokens_hash_by_string = NULL;
-struct tokens_hash_s *tokens_hash_by_id = NULL;
-
-
-void init_tokens()
-/**
- * \brief     initialisation des listes de hashage
- * \return    pointeur sur le token ou NULL s'il n'existe pas.
- */
-{
-   struct tokens_hash_s *s = NULL;
-   
-   tokens_hash_by_string = NULL;
-   tokens_hash_by_id = NULL;
-   
-   for(int i=0;tokens_list[i].str;i++)
-   {
-      HASH_FIND(hh_token_by_string, tokens_hash_by_string, tokens_list[i].str, strlen(tokens_list[i].str), s);
-      if(s)
-      {
-         DEBUG_SECTION mea_log_printf("%s (%s) : string key duplicated (%s/%d)\n",DEBUG_STR, __func__, tokens_list[i].str, tokens_list[i].id);
-         continue;
-      }
-      HASH_FIND(hh_token_by_id, tokens_hash_by_id, &(tokens_list[i].id), sizeof(tokens_list[i].id), s);
-      if(s)
-      {
-         DEBUG_SECTION mea_log_printf("%s (%s) : id key duplicated (%s/%d)\n",DEBUG_STR, __func__, tokens_list[i].str, tokens_list[i].id);
-         continue;
-      }
-
-      s = malloc(sizeof(struct tokens_hash_s));
-      s->token=&tokens_list[i];
-      HASH_ADD_KEYPTR( hh_token_by_string, tokens_hash_by_string, tokens_list[i].str, strlen(tokens_list[i].str), s );
-      HASH_ADD_KEYPTR( hh_token_by_id, tokens_hash_by_id, &(tokens_list[i].id), sizeof(tokens_list[i].id), s );
-   }
-}
-
-
-char *get_token_string_by_id(int16_t id)
-/**
- * \brief     recherche un token par son id
- * \param     id  identifiant du token.
- * \return    pointeur sur le token ou NULL s'il n'existe pas.
- */
-{
-   struct tokens_hash_s *s = NULL;
-   
-   if(tokens_hash_by_string == NULL)
-      init_tokens();
-      
-   HASH_FIND(hh_token_by_id, tokens_hash_by_id, &id, sizeof(id), s);
-   
-   if(s)
-      return s->token->str;
-
-   return NULL;
-}
-
-
-int16_t get_token_id_by_string(char *str)
-/**
- * \brief     recherche l'id un token
- * \param     token (chaine) à trouver.
- * \return    id du token
- */
-{
-   struct tokens_hash_s *s = NULL;
-
-   if(!str)
-      return -1;
-      
-   if(tokens_hash_by_id == NULL)
-      init_tokens();
- 
-   HASH_FIND(hh_token_by_string, tokens_hash_by_string, str, strlen(str), s);
-   
-   if(s)
-   {
-//      DEBUG_SECTION mea_log_printf("%s (%s) : (%s => %d)\n", DEBUG_STR, __func__, str, s->token->id);
-      return s->token->id;
-   }
-
-//   DEBUG_SECTION mea_log_printf("%s (%s) : (%s => -1)\n", DEBUG_STR, __func__, str);
-
-   return -1;
-}
-#endif
-
-#ifdef TOKEN_BY_INDEX
+#elif TOKEN_BY_INDEX == 1
 struct tokens_index_s
 {
    int16_t nb_tokens;
@@ -273,62 +159,29 @@ struct tokens_index_s *tokens_index=NULL;
 
 int qsort_compare_ids(const void * a, const void * b)
 {
-/*
-   int16_t _a,_b;
-   
-   _a = *(int16_t *)a;
-   _b = *(int16_t *)b;
-
-   int16_t id_a, id_b;
-   
-   id_a = tokens_list[_a].id;
-   id_b = tokens_list[_b].id;
-
-   if(id_a==id_b)
-      return 0;
-   else if(id_a<id_b)
-      return -1;
-   else
-      return 1;
-*/
-   return tokens_list[*(int16_t *)a].id - tokens_list[*(int16_t *)b].id;
+   return (int)(tokens_list[*(int16_t *)a].id) - (int)(tokens_list[*(int16_t *)b].id);
 }
 
 
 int qsort_compare_strings(const void *a, const void *b)
 {
-/*
-   int16_t _a,_b;
-   char *str_a, *str_b;
-   
-   _a = *(int16_t *)a;
-   _b = *(int16_t *)b;
-
-   str_a = tokens_list[_a].str;
-   str_b = tokens_list[_b].str;
-
-   return strcmp(str_a,str_b);
-*/
-   return strcmp(tokens_list[*(int16_t *)a].str, tokens_list[*(int16_t *)b].str);
+   return mea_strcmplower2((char *)tokens_list[*(int16_t *)a].str, (char *)tokens_list[*(int16_t *)b].str);
 }
 
 
 void init_tokens()
 {
    if(tokens_index!=NULL)
-   {
       free(tokens_index);
-   }
    tokens_index=(struct tokens_index_s *)malloc(sizeof(struct tokens_index_s));
    if(tokens_index==NULL)
    {
-      perror("init_tokens_index");
+      perror("init_tokens_index: ");
       return;
    }
-   
+
    int i=0;
-   for(;tokens_list[i].str;i++);
-   
+   for(;tokens_list[i].str;i++); // comptage du nombre de tokens
    if(i>0)
    {
       tokens_index->nb_tokens=i;
@@ -336,13 +189,13 @@ void init_tokens()
       tokens_index->index_by_string = (int16_t *)malloc(tokens_index->nb_tokens*sizeof(int16_t));
       if(tokens_index->index_by_string == NULL)
       {
-         perror("init_tokens_index");
+         DEBUG_SECTION PRINT_MALLOC_ERROR;
          return;
       }
       tokens_index->index_by_id = (int16_t *)malloc(tokens_index->nb_tokens*sizeof(int16_t));
       if(tokens_index->index_by_id  == NULL)
       {
-         perror("init_tokens_index");
+         DEBUG_SECTION PRINT_MALLOC_ERROR;
          free(tokens_index->index_by_string);
          tokens_index->index_by_string=NULL;
          return;
@@ -360,70 +213,100 @@ void init_tokens()
 }
 
 
-char *get_token_string_by_id(int16_t id)
+void release_tokens()
+{
+   if(tokens_index)
+   {
+
+      if(tokens_index->index_by_id)
+      {
+         free(tokens_index->index_by_id);
+         tokens_index->index_by_id=NULL;
+      }
+
+      if(tokens_index->index_by_string)
+      {
+         free(tokens_index->index_by_string);
+         tokens_index->index_by_string=NULL;
+      }
+      free(tokens_index);
+   }
+}
+
+
+char *get_token_string_by_id(enum token_id_e id)
 {
    if(tokens_index==NULL)
    {
+#if TOKENS_AUTOINIT == 1
       init_tokens();
       if(tokens_index==NULL)
          return NULL;
+#else
+      return NULL;
+#endif
    }
    
    int16_t start = 0;
    int16_t end = tokens_index->nb_tokens - 1;
    int16_t _cmpres;
-   for(;;)
+   do
    {
-      int16_t middle=(end - start) / 2;
+      int16_t middle=(end + start) / 2;
       if(middle<0)
       {
 //         DEBUG_SECTION mea_log_printf("%s (%s) : (%d => NULL)\n", DEBUG_STR, __func__, id);
          return NULL;
       }
-      middle+=start;
-      
-      _cmpres=tokens_list[tokens_index->index_by_id[middle]].id - id;
+
+      _cmpres=(int)(tokens_list[tokens_index->index_by_id[middle]].id) - (int)id;
+
       if(_cmpres==0)
       {
 //         DEBUG_SECTION mea_log_printf("%s (%s) : (%d => %s)\n", DEBUG_STR, __func__, id, tokens_list[tokens_index->index_by_id[middle]].str);
-         return tokens_list[tokens_index->index_by_id[middle]].str;
+         return (char *)tokens_list[tokens_index->index_by_id[middle]].str;
       }
       if(_cmpres<0)
-         start=middle;
+         start=middle+1;
       if(_cmpres>0)
-         end=middle;
+         end=middle-1;
    }
+   while(start<=end);
 }
 
 
-int16_t get_token_id_by_string(char *str)
+enum token_id_e get_token_id_by_string(char *str)
 {
-   if(tokens_index==NULL)
-   {
-      init_tokens();
-      if(tokens_index==NULL)
-         return -1;
-   }
 
    if(!str)
-      return -1;
-      
+      return _UNKNOWN;
+
+   if(tokens_index==NULL)
+   {
+#if TOKENS_AUTOINIT == 1
+      init_tokens();
+      if(tokens_index==NULL)
+         return _UNKNOWN;
+#else
+      return _UNKNOWN;
+#endif
+   }
+     
    int16_t start = 0;
    int16_t end = tokens_index->nb_tokens - 1;
    int _cmpres;
-   
-   for(;;)
+  
+   do 
    {
-      int16_t middle = (end - start) / 2;
+      int16_t middle = (end + start) / 2;
       
       if(middle<0)
       {
 //         DEBUG_SECTION mea_log_printf("%s (%s) : (%s => -1)\n", DEBUG_STR, __func__, str);
          return -1;
       }
-      middle+=start;
       
-      _cmpres=strcmp(tokens_list[tokens_index->index_by_string[middle]].str,str);
+      _cmpres=mea_strcmplower2((char *)tokens_list[tokens_index->index_by_string[middle]].str, str);
       if(_cmpres==0)
       {
          return tokens_list[tokens_index->index_by_string[middle]].id;
@@ -431,9 +314,198 @@ int16_t get_token_id_by_string(char *str)
 
       }
       if(_cmpres<0)
-         start=middle;
+         start=middle+1;
       if(_cmpres>0)
-         end=middle;
+         end=middle-1;
+   }
+   while(start<=end);
+}
+
+#elif TOKEN_BY_HASH_TABLE == 1
+#include "uthash.h"
+
+struct tokens_hash_s
+{
+   struct token_s *token;
+   char *str;
+   UT_hash_handle hh_token_by_string;
+   UT_hash_handle hh_token_by_id;
+};
+
+
+struct tokens_hash_s *tokens_hash_by_string = NULL;
+struct tokens_hash_s *tokens_hash_by_id = NULL;
+static int _token_max_string_size=0;
+static char * _token_string_buf=NULL;
+
+void init_tokens()
+/**
+ * \brief     initialisation des tables de hashage
+ */
+{
+   struct tokens_hash_s *s = NULL;
+   
+   tokens_hash_by_string = NULL;
+   tokens_hash_by_id = NULL;
+   int l=0;
+ 
+   for(int i=0;tokens_list[i].str;i++)
+   {
+      HASH_FIND(hh_token_by_string, tokens_hash_by_string, tokens_list[i].str, strlen(tokens_list[i].str), s);
+      if(s)
+      {
+         DEBUG_SECTION mea_log_printf("%s (%s) : string key duplicated (%s/%d)\n",DEBUG_STR, __func__, tokens_list[i].str, tokens_list[i].id);
+         continue;
+      }
+      HASH_FIND(hh_token_by_id, tokens_hash_by_id, &(tokens_list[i].id), sizeof(tokens_list[i].id), s);
+      if(s)
+      {
+         DEBUG_SECTION mea_log_printf("%s (%s) : id key duplicated (%s/%d)\n",DEBUG_STR, __func__, tokens_list[i].str, tokens_list[i].id);
+         continue;
+      }
+
+      s = malloc(sizeof(struct tokens_hash_s));
+      if(!s)
+      {
+         DEBUG_SECTION PRINT_MALLOC_ERROR;
+         return;
+      }
+      s->token=&tokens_list[i];
+      s->str = mea_string_malloc_and_copy((char *)(s->token->str),1);
+      if(!s->str)
+      {
+         DEBUG_SECTION PRINT_MALLOC_ERROR;
+         free(s);
+         s=NULL;
+         return;
+      }
+      mea_strtolower(s->str);
+      l=strlen(s->str);
+      if(l>_token_max_string_size)
+         _token_max_string_size=l;
+/*
+      HASH_ADD_KEYPTR( hh_token_by_string, tokens_hash_by_string, tokens_list[i].str, strlen(tokens_list[i].str), s );
+      HASH_ADD_KEYPTR( hh_token_by_id, tokens_hash_by_id, &(tokens_list[i].id), sizeof(tokens_list[i].id), s );
+*/
+      HASH_ADD_KEYPTR( hh_token_by_string, tokens_hash_by_string, s->str, strlen(s->str), s );
+      HASH_ADD_KEYPTR( hh_token_by_id, tokens_hash_by_id, &(s->token->id), sizeof(s->token->id), s );
+   }
+
+   if(_token_max_string_size>0)
+      _token_string_buf=(char *)malloc(_token_max_string_size+1);   
+}
+
+
+void release_tokens()
+{
+   if(tokens_hash_by_id) 
+   { 
+      struct tokens_hash_s *s = NULL, *ts = NULL; 
+      HASH_ITER(hh_token_by_string, tokens_hash_by_string, s, ts)
+      { 
+         if(s->str)
+         {
+            free(s->str);
+            s->str=NULL;
+         }
+         HASH_DELETE(hh_token_by_string, tokens_hash_by_string, s);
+      } 
+      tokens_hash_by_string=NULL;
+   }
+   
+   if(tokens_hash_by_id) 
+   { 
+      struct tokens_hash_s *s = NULL, *ts = NULL;
+      HASH_ITER(hh_token_by_id, tokens_hash_by_id, s, ts)
+      {
+         if(s->str)
+         {
+            free(s->str);
+            s->str=NULL;
+         }
+         HASH_DELETE(hh_token_by_id, tokens_hash_by_id, s);
+      } 
+      tokens_hash_by_id=NULL;
+   }
+
+   if(_token_string_buf)
+   {
+      free(_token_string_buf);
+      _token_string_buf=NULL;
    }
 }
+
+
+char *get_token_string_by_id(enum token_id_e id)
+/**
+ * \brief     recherche un token par son id
+ * \param     id  identifiant du token.
+ * \return    pointeur sur la chaine du token ou NULL s'il n'existe pas.
+ */
+{
+   struct tokens_hash_s *s = NULL;
+
+   if(tokens_hash_by_string == NULL)
+   {   
+#if TOKENS_AUTOINIT == 1
+      init_tokens();
+#else
+      return NULL;
+#endif
+   }
+      
+   HASH_FIND(hh_token_by_id, tokens_hash_by_id, &id, sizeof(id), s);
+   
+   if(s)
+   {
+//      DEBUG_SECTION mea_log_printf("%s (%s) : (%d => %s)\n", DEBUG_STR, __func__, id, s->token->str);
+      return (char *)(s->token->str);
+   }
+
+//   DEBUG_SECTION mea_log_printf("%s (%s) : (%d => -1)\n", DEBUG_STR, __func__, id);
+   
+   return NULL;
+}
+
+
+enum token_id_e get_token_id_by_string(char *str)
+/**
+ * \brief     recherche l'id un token
+ * \param     token (chaine) à trouver.
+ * \return    id du token
+ */
+{
+   struct tokens_hash_s *s = NULL;
+
+   if(!str)
+      return _UNKNOWN;
+      
+   if(tokens_hash_by_id == NULL)
+   {
+#if TOKENS_AUTOINIT == 1
+      init_tokens();
+#else
+      return _UNKNOWN;
+#endif
+   }
+
+   if(_token_string_buf == NULL)
+      return _UNKNOWN;
+
+   strcpy(_token_string_buf, str);
+   mea_strtolower(_token_string_buf); 
+
+   HASH_FIND(hh_token_by_string, tokens_hash_by_string, _token_string_buf, strlen(_token_string_buf), s);
+
+   if(s)
+   {
+//      DEBUG_SECTION mea_log_printf("%s (%s) : (%s => %d)\n", DEBUG_STR, __func__, str, s->token->id);
+      return s->token->id;
+   }
+
+//   DEBUG_SECTION mea_log_printf("%s (%s) : (%s => -1)\n", DEBUG_STR, __func__, str);
+
+   return _UNKNOWN;
+}
+
 #endif

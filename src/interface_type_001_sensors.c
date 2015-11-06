@@ -17,11 +17,13 @@
 #include <string.h>
 
 #include "globals.h"
-#include "debug.h"
+//#include "debug.h"
+#include "mea_verbose.h"
+#include "mea_queue.h"
 #include "xPLServer.h"
 #include "arduino_pins.h"
 #include "parameters_utils.h"
-#include "string_utils.h"
+#include "mea_string_utils.h"
 #include "tokens.h"
 #include "interface_type_001_sensors.h"
 
@@ -378,7 +380,7 @@ mea_error_t interface_type_001_sensors_process_xpl_msg(interface_type_001_t *i00
   * \param     device              le type à interroger ou NULL
   * \return    ERROR en cas d'erreur, NOERROR sinon  */  
 {
-   queue_t *sensors_list=i001->sensors_list;
+   mea_queue_t *sensors_list=i001->sensors_list;
    struct sensor_s *sensor;
    int type_id=0;
    uint16_t send_xpl_flag=0;
@@ -395,10 +397,10 @@ mea_error_t interface_type_001_sensors_process_xpl_msg(interface_type_001_t *i00
    else
       no_type=1; // type par defaut, le type est celui du capteur
    
-   first_queue(sensors_list);
+   mea_queue_first(sensors_list);
    for(int i=0; i<sensors_list->nb_elem; i++)
    {
-      current_queue(sensors_list, (void **)&sensor);
+      mea_queue_current(sensors_list, (void **)&sensor);
       if(!device || mea_strcmplower(device,sensor->name)==0) // pas de device, on transmettra le statut de tous les capteurs du type demandé (si précisé)
       {
          char value[20];
@@ -516,7 +518,7 @@ mea_error_t interface_type_001_sensors_process_xpl_msg(interface_type_001_t *i00
          if(device) // demande ciblée ?
             return NOERROR; // oui => fin de traitement, sinon on continu
       }
-      next_queue(sensors_list);
+      mea_queue_next(sensors_list);
    }
    return NOERROR;
 }
@@ -524,16 +526,16 @@ mea_error_t interface_type_001_sensors_process_xpl_msg(interface_type_001_t *i00
 
 int16_t interface_type_001_sensors_poll_inputs(interface_type_001_t *i001)
 {
-   queue_t *sensors_list=i001->sensors_list;
+   mea_queue_t *sensors_list=i001->sensors_list;
    struct sensor_s *sensor;
 
    int16_t comio2_err;
    int unit;
 
-   first_queue(sensors_list);
+   mea_queue_first(sensors_list);
    for(int16_t i=0; i<sensors_list->nb_elem; i++)
    {
-      current_queue(sensors_list, (void **)&sensor);
+      mea_queue_current(sensors_list, (void **)&sensor);
       if(!mea_test_timer(&(sensor->timer)))
       {
          if(sensor->arduino_pin_type==ANALOG_ID)
@@ -629,7 +631,7 @@ int16_t interface_type_001_sensors_poll_inputs(interface_type_001_t *i001)
             // traiter ici les capteurs logiques
          }
       }
-      next_queue(sensors_list);
+      mea_queue_next(sensors_list);
    }
    return 0;
 }
@@ -637,13 +639,13 @@ int16_t interface_type_001_sensors_poll_inputs(interface_type_001_t *i001)
 
 void interface_type_001_sensors_init(interface_type_001_t *i001)
 {
-   queue_t *sensors_list=i001->sensors_list;
+   mea_queue_t *sensors_list=i001->sensors_list;
    struct sensor_s *sensor;
 
-   first_queue(sensors_list);
+   mea_queue_first(sensors_list);
    for(int16_t i=0; i<sensors_list->nb_elem; i++)
    {
-      current_queue(sensors_list, (void **)&sensor);
+      mea_queue_current(sensors_list, (void **)&sensor);
 
       sensor->nbtrap=&(i001->indicators.nbsensorstraps);
       sensor->nbxplout=&(i001->indicators.nbsensorsxplsent);
@@ -652,6 +654,6 @@ void interface_type_001_sensors_init(interface_type_001_t *i001)
 
       mea_start_timer(&(sensor->timer));
 
-      next_queue(sensors_list);
+      mea_queue_next(sensors_list);
    }
 }

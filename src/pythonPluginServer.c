@@ -13,15 +13,16 @@
 #include <time.h>
 #include <sys/time.h>
 #include <signal.h>
-#include <errno.h>
+//#include <errno.h>
+#include "mea_verbose.h"
 #include <string.h>
 #include <pthread.h>
 
 #include "globals.h"
 #include "consts.h"
-#include "error.h"
-#include "debug.h"
-#include "queue.h"
+//#include "error.h"
+//#include "debug.h"
+#include "mea_queue.h"
 #include "tokens.h"
 
 #include "pythonPluginServer.h"
@@ -40,7 +41,7 @@ pthread_t *_pythonPluginServer_thread_id=NULL;
 int _pythonPluginServer_thread_is_running=0;
 int _pythonPluginServer_monitoring_id=-1;
 
-queue_t *pythonPluginCmd_queue;
+mea_queue_t *pythonPluginCmd_queue;
 pthread_cond_t pythonPluginCmd_queue_cond;
 pthread_mutex_t pythonPluginCmd_queue_lock;
 
@@ -105,7 +106,7 @@ mea_error_t pythonPluginServer_add_cmd(char *module, void *data, int l_data)
    pthread_mutex_lock(&pythonPluginCmd_queue_lock);
    if(pythonPluginCmd_queue)
    {
-      in_queue_elem(pythonPluginCmd_queue, e);
+      mea_queue_in_elem(pythonPluginCmd_queue, e);
       if(pythonPluginCmd_queue->nb_elem>=1)
          pthread_cond_broadcast(&pythonPluginCmd_queue_cond);
    }
@@ -369,7 +370,7 @@ void *_pythonPlugin_thread(void *data)
       }
       
       if (pythonPluginCmd_queue && !pass) // pas d'erreur, on récupère un élément dans la queue
-         ret=out_queue_elem(pythonPluginCmd_queue, (void **)&e);
+         ret=mea_queue_out_elem(pythonPluginCmd_queue, (void **)&e);
       else
          ret=-1;
 
@@ -421,7 +422,7 @@ void *_pythonPlugin_thread(void *data)
       else
       {
          // pb d'accés aux données de la file
-         VERBOSE(9) mea_log_printf("%s (%s) : out_queue_elem - can't access queue element\n", ERROR_STR, __func__);
+         VERBOSE(9) mea_log_printf("%s (%s) : mea_queue_out_elem - can't access queue element\n", ERROR_STR, __func__);
       }
       
       pthread_testcancel();
@@ -441,7 +442,7 @@ pthread_t *pythonPluginServer()
    int py_init_flag=0;
    pthread_t *pythonPlugin_thread=NULL;
    
-   pythonPluginCmd_queue=(queue_t *)malloc(sizeof(queue_t));
+   pythonPluginCmd_queue=(mea_queue_t *)malloc(sizeof(mea_queue_t));
    if(!pythonPluginCmd_queue)
    {
       VERBOSE(1) {
@@ -450,7 +451,7 @@ pthread_t *pythonPluginServer()
       }
       return NULL;
    }
-   init_queue(pythonPluginCmd_queue);
+   mea_queue_init(pythonPluginCmd_queue);
    pthread_mutex_init(&pythonPluginCmd_queue_lock, NULL);
    pthread_cond_init(&pythonPluginCmd_queue_cond, NULL);
  
@@ -544,7 +545,7 @@ int stop_pythonPluginServer(int my_id, void *data, char *errmsg, int l_errmsg)
    pthread_mutex_lock(&pythonPluginCmd_queue_lock);
    if(pythonPluginCmd_queue)
    {
-      clear_queue(pythonPluginCmd_queue, pythonPluginCmd_queue_free_queue_elem);
+      mea_queue_cleanup(pythonPluginCmd_queue, pythonPluginCmd_queue_free_queue_elem);
       free(pythonPluginCmd_queue);
       pythonPluginCmd_queue=NULL;
    }

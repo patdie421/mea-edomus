@@ -25,13 +25,14 @@
 #include <sqlite3.h>
 
 #include "globals.h"
-#include "debug.h"
-#include "error.h"
+#include "mea_verbose.h"
 #include "macros.h"
-#include "memory.h"
-#include "queue.h"
-#include "string_utils.h"
+#include "mea_queue.h"
+#include "mea_string_utils.h"
 #include "consts.h"
+#include "tokens.h"
+#include "tokens_da.h"
+#include "parameters_utils.h"
 
 #include "init.h"
 
@@ -44,8 +45,8 @@
 #include "pythonPluginServer.h"
 #include "guiServer.h"
 #include "logServer.h"
-#include "automator/automatorServer2.h"
-#include "sockets_utils.h"
+//#include "automator/automatorServer2.h"
+#include "mea_sockets_utils.h"
 
 #include "processManager.h"
 #include "nodejsServer.h"
@@ -59,7 +60,7 @@ int dbServer_monitoring_id=-1;
 int nodejsServer_monitoring_id=-1;
 int automatorServer_monitoring_id=-1;
 
-queue_t *interfaces=NULL;                  /*!< liste (file) des interfaces. Variable globale car doit être accessible par les gestionnaires de signaux. */
+mea_queue_t *interfaces=NULL;                  /*!< liste (file) des interfaces. Variable globale car doit être accessible par les gestionnaires de signaux. */
 sqlite3 *sqlite3_param_db=NULL;            /*!< descripteur pour la base sqlite de paramétrage. */
 pthread_t *monitoringServer_thread=NULL;   /*!< Adresse du thread de surveillance interne. Variable globale car doit être accessible par les gestionnaires de signaux.*/
 
@@ -209,7 +210,7 @@ int16_t read_all_application_parameters(sqlite3 *sqlite3_param_db)
          {
             if(params_names[i] && strcmp(params_names[i],key)==0)
             {
-               mea_string_free_malloc_and_copy(&params_list[i], value, 1);
+               mea_string_free_alloc_and_copy(&params_list[i], value);
                break;
             }
          }
@@ -301,6 +302,10 @@ void clean_all_and_exit()
       }
    }
    
+   parsed_parameters_clean_all();
+   release_strings_da();
+   release_tokens();
+
    VERBOSE(9) mea_log_printf("%s  (%s) : mea-edomus down ...\n",INFO_STR,__func__);
 
    exit(0);
@@ -385,6 +390,11 @@ int main(int argc, const char * argv[])
    set_verbose_level(2);
 #endif
 
+   init_tokens();
+   init_strings_da();
+
+   parsed_parameters_init();
+
    //
    // initialisation
    //
@@ -451,7 +461,7 @@ int main(int argc, const char * argv[])
    free(buff);
    */
    
-   mea_string_free_malloc_and_copy(&params_list[MEA_PATH], "/usr/local/mea-edomus", 1);
+   mea_string_free_alloc_and_copy(&params_list[MEA_PATH], "/usr/local/mea-edomus");
    if(!params_list[MEA_PATH])
    {
       VERBOSE(1) {
@@ -484,7 +494,7 @@ int main(int argc, const char * argv[])
             
          case 'd':
          case SQLITE3_DB_PARAM_PATH:
-            mea_string_free_malloc_and_copy(&params_list[SQLITE3_DB_PARAM_PATH], optarg, 1);
+            mea_string_free_alloc_and_copy(&params_list[SQLITE3_DB_PARAM_PATH], optarg);
             if(!params_list[MEA_PATH])
             {
                VERBOSE(1) {
@@ -617,7 +627,7 @@ int main(int argc, const char * argv[])
       {
          if(c!=MEA_PATH)
             _o=1;
-         mea_string_free_malloc_and_copy(&params_list[c], optarg, 1);
+         mea_string_free_alloc_and_copy(&params_list[c], optarg);
          if(params_list[c]==NULL)
          {
             VERBOSE(1) {

@@ -11,7 +11,8 @@
 #include <Python.h>
 #include <sqlite3.h>
 
-#include "error.h"
+//#include "error.h"
+#include "mea_verbose.h"
 #include "xbee.h"
 #include "dbServer.h"
 #include "xPLServer.h"

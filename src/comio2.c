@@ -22,8 +22,11 @@
 #include <sys/time.h>
 
 #include "comio2.h"
-#include "debug.h"
-
+//#include "debug.h"
+//#include "error.h"
+#include "mea_verbose.h"
+#include "mea_queue.h"
+#include "mea_error.h"
 
 #define COMIO2_NB_RETRY 5
 
@@ -195,11 +198,11 @@ int16_t comio2_init(comio2_ad_t *ad, char *dev, speed_t speed)
    // verrou de section critique interne
    pthread_mutex_init(&ad->ad_lock, NULL);
    
-   ad->queue=(queue_t *)malloc(sizeof(queue_t));
+   ad->queue=(mea_queue_t *)malloc(sizeof(mea_queue_t));
    if(!ad->queue)
       return -1;
    
-   init_queue(ad->queue); // initialisation de la file
+   mea_queue_init(ad->queue); // initialisation de la file
 
    ad->frame_id=1;
    ad->signal_flag=0;
@@ -232,7 +235,7 @@ void comio2_clean_ad(comio2_ad_t *ad)
    {
       if(ad->queue)
       {
-         clear_queue(ad->queue,_comio2_free_queue_elem);
+         mea_queue_cleanup(ad->queue,_comio2_free_queue_elem);
          free(ad->queue);
          ad->queue=NULL;
       }
@@ -413,11 +416,11 @@ int16_t comio2_cmdSendAndWaitResp(comio2_ad_t *ad,
          }
          
          // a ce point il devrait y avoir quelque chose dans la file.
-         if(first_queue(ad->queue)==0) // parcours de la liste jusqu'a trouver une reponse pour nous
+         if(mea_queue_first(ad->queue)==0) // parcours de la liste jusqu'a trouver une reponse pour nous
          {
             do
             {
-               if(current_queue(ad->queue, (void **)&e)==0)
+               if(mea_queue_current(ad->queue, (void **)&e)==0)
                {
                   if((uint16_t)(e->frame[0] & 0xFF)==frame_data_id) // le premier octet d'une reponse doit contenir le meme id que celui de la question
                   {
@@ -427,7 +430,7 @@ int16_t comio2_cmdSendAndWaitResp(comio2_ad_t *ad,
                            *comio2_err=e->comio2_err; // on la retourne directement
                         
                         // et on fait le menage avant de sortir
-                        remove_current_queue(ad->queue);
+                        mea_queue_remove_current(ad->queue);
                         _comio2_free_queue_elem(e);
                         e=NULL;
                         
@@ -449,7 +452,7 @@ int16_t comio2_cmdSendAndWaitResp(comio2_ad_t *ad,
                         // et on fait le menage avant de sortir
                         _comio2_free_queue_elem(e);
                         ad->queue->current->d=NULL; // pour evite le bug
-                        remove_current_queue(ad->queue);
+                        mea_queue_remove_current(ad->queue);
                         e=NULL;
                         
                         return_val=0;
@@ -466,7 +469,7 @@ int16_t comio2_cmdSendAndWaitResp(comio2_ad_t *ad,
                   }
                }
             }
-            while(next_queue(ad->queue)==0);
+            while(mea_queue_next(ad->queue)==0);
             notfound=1;
          }
       next_or_return:
@@ -740,19 +743,19 @@ void _comio2_flush_old_responses_queue(comio2_ad_t *ad)
    pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(ad->sync_lock) );
    pthread_mutex_lock(&ad->sync_lock);
    
-   if(first_queue(ad->queue)==0)
+   if(mea_queue_first(ad->queue)==0)
    {
       while(1)
       {
-         if(current_queue(ad->queue, (void **)&e)==0)
+         if(mea_queue_current(ad->queue, (void **)&e)==0)
          {
             if((tsp - e->tsp) > 10)
             {
                _comio2_free_queue_elem(e);
-               remove_current_queue(ad->queue); // remove current passe sur le suivant
+               mea_queue_remove_current(ad->queue); // remove current passe sur le suivant
             }
             else
-            next_queue(ad->queue);
+            mea_queue_next(ad->queue);
          }
          else
          break;
@@ -782,7 +785,7 @@ int16_t _comio2_add_response_to_queue(comio2_ad_t *ad, char *frame, uint16_t l_f
       pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(ad->sync_lock) );
       pthread_mutex_lock(&ad->sync_lock);
       
-      in_queue_elem(ad->queue, e);
+      mea_queue_in_elem(ad->queue, e);
       
       if(ad->queue->nb_elem>=1)
       pthread_cond_broadcast(&ad->sync_cond);

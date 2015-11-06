@@ -17,18 +17,17 @@
 #include "globals.h"
 #include "consts.h"
 #include "xPL.h"
-#include "debug.h"
-#include "queue.h"
-#include "memory.h"
-#include "timer.h"
+#include "mea_verbose.h"
+#include "mea_queue.h"
+#include "mea_timer.h"
 #include "tokens.h"
 #include "xPLServer.h"
-#include "string_utils.h"
+#include "mea_string_utils.h"
 #include "processManager.h"
 
 #include "interfacesServer.h"
 
-#include "sockets_utils.h"
+#include "mea_sockets_utils.h"
 #include "notify.h"
 
 #define XPL_VERSION "0.1a2"
@@ -63,7 +62,7 @@ long xplout_indicator = 0;
 // gestion de des messages xpl internes
 uint32_t requestId = 1;
 pthread_mutex_t requestId_lock;
-queue_t        *xplRespQueue;
+mea_queue_t        *xplRespQueue;
 pthread_cond_t  xplRespQueue_sync_cond;
 pthread_mutex_t xplRespQueue_sync_lock;
 int             _xPLServer_mutex_initialized=0;
@@ -176,19 +175,19 @@ uint32_t mea_getXplRequestId() // rajouter un verrou ...
 
 char *mea_setXPLVendorID(char *value)
 {
-   return mea_string_free_malloc_and_copy(&xpl_vendorID, value, 1);
+   return mea_string_free_alloc_and_copy(&xpl_vendorID, value);
 }
 
 
 char *mea_setXPLDeviceID(char *value)
 {
-   return mea_string_free_malloc_and_copy(&xpl_deviceID, value, 1);
+   return mea_string_free_alloc_and_copy(&xpl_deviceID, value);
 }
 
 
 char *mea_setXPLInstanceID(char *value)
 {
-   return mea_string_free_malloc_and_copy(&xpl_instanceID, value, 1);
+   return mea_string_free_alloc_and_copy(&xpl_instanceID, value);
 }
 
 
@@ -263,7 +262,7 @@ uint16_t mea_sendXPLMessage(xPL_MessagePtr xPLMsg)
          e->id = id;
          e->tsp = (uint32_t)time(NULL);
       
-         in_queue_elem(xplRespQueue, e);
+         mea_queue_in_elem(xplRespQueue, e);
       
          if(xplRespQueue->nb_elem>=1)
             pthread_cond_broadcast(&xplRespQueue_sync_cond);
@@ -313,12 +312,12 @@ xPL_MessagePtr mea_readXPLResponse(int id)
    }
 
    // a ce point il devrait y avoir quelque chose dans la file.
-   if(first_queue(xplRespQueue)==0)
+   if(mea_queue_first(xplRespQueue)==0)
    {
       xplRespQueue_elem_t *e;
       do // parcours de la liste jusqu'a trouver une reponse pour nous
       {
-         if(current_queue(xplRespQueue, (void **)&e)==0)
+         if(mea_queue_current(xplRespQueue, (void **)&e)==0)
          { 
             if(e->id==id)
             {
@@ -332,7 +331,7 @@ xPL_MessagePtr mea_readXPLResponse(int id)
                   free(e);
                   e=NULL;
                   xplRespQueue->current->d=NULL; // pour evite le bug
-                  remove_current_queue(xplRespQueue);
+                  mea_queue_remove_current(xplRespQueue);
                   goto readFromQueue_return;
                }
                // theoriquement pour nous mais donnees trop vieilles, on supprime ?
@@ -345,7 +344,7 @@ xPL_MessagePtr mea_readXPLResponse(int id)
             }
          }
       }
-      while(next_queue(xplRespQueue)==0);
+      while(mea_queue_next(xplRespQueue)==0);
    }
 
 readFromQueue_return:
@@ -423,22 +422,22 @@ void _flushExpiredXPLResponses()
    pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(xplRespQueue_sync_lock) );
    pthread_mutex_lock(&xplRespQueue_sync_lock);
    
-   if(xplRespQueue && first_queue(xplRespQueue)==0)
+   if(xplRespQueue && mea_queue_first(xplRespQueue)==0)
    {
       while(1)
       {
-         if(current_queue(xplRespQueue, (void **)&e)==0)
+         if(mea_queue_current(xplRespQueue, (void **)&e)==0)
          {
             if((tsp - e->tsp) > 5)
             {
                xPL_releaseMessage(e->msg);
                free(e);
                e=NULL;
-               remove_current_queue(xplRespQueue); // remove current passe sur le suivant
+               mea_queue_remove_current(xplRespQueue); // remove current passe sur le suivant
                DEBUG_SECTION mea_log_printf("%s (%s) : responses queue was flushed\n",DEBUG_STR,__func__);
             }
             else
-            next_queue(xplRespQueue);
+            mea_queue_next(xplRespQueue);
          }
          else
             break;
@@ -574,7 +573,7 @@ pthread_t *xPLServer()
 
    pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(xplRespQueue_sync_lock) );
    pthread_mutex_lock(&(xplRespQueue_sync_lock));
-   xplRespQueue=(queue_t *)malloc(sizeof(queue_t));
+   xplRespQueue=(mea_queue_t *)malloc(sizeof(mea_queue_t));
    if(!xplRespQueue)
    {
       VERBOSE(1) {
@@ -583,7 +582,7 @@ pthread_t *xPLServer()
       }
       return NULL;
    }
-   init_queue(xplRespQueue); // initialisation de la file
+   mea_queue_init(xplRespQueue); // initialisation de la file
    pthread_mutex_unlock(&(xplRespQueue_sync_lock));
    pthread_cleanup_pop(0);
 
@@ -639,7 +638,7 @@ int stop_xPLServer(int my_id, void *data,  char *errmsg, int l_errmsg)
    pthread_mutex_lock(&(xplRespQueue_sync_lock));
    if(xplRespQueue)
    {
-      clear_queue(xplRespQueue,_xplRespQueue_free_queue_elem);
+      mea_queue_cleanup(xplRespQueue,_xplRespQueue_free_queue_elem);
       free(xplRespQueue);
       xplRespQueue=NULL;
    }

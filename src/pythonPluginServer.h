@@ -13,7 +13,6 @@
 #include <sqlite3.h>
 
 #include "error.h"
-#include "queue.h"
 
 
 #define DEBUG_PyEval_AcquireLock(id, last_time) { \

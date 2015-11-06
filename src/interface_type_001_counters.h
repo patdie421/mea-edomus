@@ -14,8 +14,8 @@
 
 #include "comio2.h"
 #include "dbServer.h"
-#include "error.h"
-#include "timer.h"
+//#include "error.h"
+#include "mea_timer.h"
 
 // modélisation d'un compteur
 struct electricity_counter_s

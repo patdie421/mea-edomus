@@ -16,11 +16,12 @@
 #include <errno.h>
 #include <string.h>
 
-#include "debug.h"
+//#include "debug.h"
+#include "mea_verbose.h"
 #include "arduino_pins.h"
 #include "parameters_utils.h"
 #include "tokens.h"
-#include "string_utils.h"
+#include "mea_string_utils.h"
 
 #include "interface_type_001.h"
 #include "interface_type_001_actuators.h"
@@ -174,13 +175,13 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
    if(type_id != XPL_OUTPUT_ID && type_id !=VARIABLE_ID)
       return ERROR;
    
-   if(first_queue(i001->actuators_list)==-1)
+   if(mea_queue_first(i001->actuators_list)==-1)
       return ERROR;
    
    struct actuator_s *iq;
    while(1)
    {
-      current_queue(i001->actuators_list, (void **)&iq);
+      mea_queue_current(i001->actuators_list, (void **)&iq);
       if(mea_strcmplower(iq->name, device)==0) // OK, c'est bien pour moi ...
       {
          char *current=xPL_getNamedValue(ListNomsValeursPtr, get_token_string_by_id(XPL_CURRENT_ID));
@@ -339,7 +340,7 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
          }
          return ERROR;
       }
-      ret=next_queue(i001->actuators_list);
+      ret=mea_queue_next(i001->actuators_list);
       if(ret<0)
          break;
    }

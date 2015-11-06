@@ -26,10 +26,8 @@
 #include "consts.h"
 
 #include "tokens.h"
-#include "error.h"
-#include "debug.h"
+#include "mea_verbose.h"
 #include "macros.h"
-#include "memory.h"
 
 #include "enocean.h"
 #include "dbServer.h"
@@ -62,7 +60,7 @@ struct enocean_callback_data_s // donnee "userdata" pour les callbacks
    PyThreadState   *mainThreadState;
    sqlite3         *param_db;
    enocean_ed_t    *ed;
-   queue_t         *queue;
+   mea_queue_t         *queue;
    pthread_mutex_t *callback_lock;
    pthread_cond_t  *callback_cond;
 };
@@ -80,7 +78,7 @@ struct enocean_thread_params_s
 {
    enocean_ed_t         *ed;
    sqlite3              *param_db;
-   queue_t              *queue;
+   mea_queue_t              *queue;
    pthread_mutex_t       callback_lock;
    pthread_cond_t        callback_cond;
    PyThreadState        *mainThreadState;
@@ -253,7 +251,7 @@ int16_t _inteface_type_003_enocean_data_callback(uint8_t *data, uint16_t l_data,
    
    pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)(&callback_data->callback_lock) );
    pthread_mutex_lock(callback_data->callback_lock);
-   in_queue_elem(callback_data->queue, e);
+   mea_queue_in_elem(callback_data->queue, e);
    if(callback_data->queue->nb_elem>=1)
       pthread_cond_broadcast(callback_data->callback_cond);
    pthread_mutex_unlock(callback_data->callback_lock);
@@ -292,7 +290,7 @@ void *_thread_interface_type_003_enocean_data_cleanup(void *args)
    }
    
    if(params->queue && params->queue->nb_elem>0) // on vide s'il y a quelque chose avant de partir
-      clear_queue(params->queue, _enocean_data_free_queue_elem);
+      mea_queue_cleanup(params->queue, _enocean_data_free_queue_elem);
    
    if(params->queue)
    {
@@ -372,7 +370,7 @@ void *_thread_interface_type_003_enocean_data(void *args)
          }
       }
       
-      ret=out_queue_elem(params->queue, (void **)&e);
+      ret=mea_queue_out_elem(params->queue, (void **)&e);
       
       pthread_mutex_unlock(&params->callback_lock);
       pthread_cleanup_pop(0);
@@ -499,7 +497,7 @@ void *_thread_interface_type_003_enocean_data(void *args)
       else
       {
          // pb d'accès aux données de la file
-         DEBUG_SECTION mea_log_printf("%s (%s) : out_queue_elem - no data in queue\n", DEBUG_STR, __func__);
+         DEBUG_SECTION mea_log_printf("%s (%s) : mea_queue_out_elem - no data in queue\n", DEBUG_STR, __func__);
       }
       pthread_testcancel();
    }
@@ -533,7 +531,7 @@ pthread_t *start_interface_type_003_enocean_data_thread(interface_type_003_t *i0
       }
       goto clean_exit;
    }
-   params->queue=(queue_t *)malloc(sizeof(queue_t));
+   params->queue=(mea_queue_t *)malloc(sizeof(mea_queue_t));
    if(!params->queue)
    {
       VERBOSE(2) {
@@ -542,7 +540,7 @@ pthread_t *start_interface_type_003_enocean_data_thread(interface_type_003_t *i0
       }
       goto clean_exit;
    }
-   init_queue(params->queue);
+   mea_queue_init(params->queue);
 
    params->ed=ed;
    params->param_db=db;
@@ -594,7 +592,7 @@ clean_exit:
    }
 
    if(params && params->queue && params->queue->nb_elem>0) // on vide s'il y a quelque chose avant de partir
-      clear_queue(params->queue, _enocean_data_free_queue_elem);
+      mea_queue_cleanup(params->queue, _enocean_data_free_queue_elem);
 
    if(params)
    {

@@ -21,24 +21,25 @@
 #include <errno.h>
 #include <pthread.h>
 
+#include "macros.h"
 #include "globals.h"
 #include "consts.h"
 
+#include "mea_verbose.h"
+#include "mea_queue.h"
+
 #include "tokens.h"
-#include "error.h"
-#include "debug.h"
-#include "macros.h"
-#include "memory.h"
+#include "parameters_utils.h"
+
+#include "notify.h"
 
 #include "xbee.h"
 #include "dbServer.h"
-#include "parameters_utils.h"
 #include "mea_api.h"
 #include "pythonPluginServer.h"
 #include "python_utils.h"
 
 #include "processManager.h"
-#include "notify.h"
 
 #include "interfacesServer.h"
 #include "interface_type_002.h"
@@ -75,7 +76,7 @@ struct callback_data_s // donnee "userdata" pour les callbacks
    PyThreadState   *mainThreadState;
    sqlite3         *param_db;
    xbee_xd_t       *xd;
-   queue_t         *queue;
+   mea_queue_t         *queue;
    pthread_mutex_t *callback_lock;
    pthread_cond_t  *callback_cond;
 };
@@ -108,7 +109,7 @@ struct thread_params_s
    xbee_xd_t            *xd;
 //   tomysqldb_md_t       *md;
    sqlite3              *param_db;
-   queue_t              *queue;
+   mea_queue_t              *queue;
    pthread_mutex_t       callback_lock;
    pthread_cond_t        callback_cond;
    PyThreadState        *mainThreadState;
@@ -452,7 +453,7 @@ mea_error_t _inteface_type_002_xbeedata_callback(int id, unsigned char *cmd, uin
    
    pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)(&callback_data->callback_lock) );
    pthread_mutex_lock(callback_data->callback_lock);
-   in_queue_elem(callback_data->queue, e);
+   mea_queue_in_elem(callback_data->queue, e);
    if(callback_data->queue->nb_elem>=1)
       pthread_cond_broadcast(callback_data->callback_cond);
    pthread_mutex_unlock(callback_data->callback_lock);
@@ -614,7 +615,7 @@ void *_thread_interface_type_002_xbeedata_cleanup(void *args)
    }
    
    if(params->queue && params->queue->nb_elem>0) // on vide s'il y a quelque chose avant de partir
-      clear_queue(params->queue, _iodata_free_queue_elem);
+      mea_queue_cleanup(params->queue, _iodata_free_queue_elem);
    
    if(params->queue)
    {
@@ -695,7 +696,7 @@ void *_thread_interface_type_002_xbeedata(void *args)
          }
       }
       
-      ret=out_queue_elem(params->queue, (void **)&e);
+      ret=mea_queue_out_elem(params->queue, (void **)&e);
       
       pthread_mutex_unlock(&params->callback_lock);
       pthread_cleanup_pop(0);
@@ -844,7 +845,7 @@ void *_thread_interface_type_002_xbeedata(void *args)
       else
       {
          // pb d'accès aux données de la file
-         DEBUG_SECTION mea_log_printf("%s (%s) : out_queue_elem - no data in queue\n", DEBUG_STR, __func__);
+         DEBUG_SECTION mea_log_printf("%s (%s) : mea_queue_out_elem - no data in queue\n", DEBUG_STR, __func__);
       }
       pthread_testcancel();
    }
@@ -881,7 +882,7 @@ pthread_t *start_interface_type_002_xbeedata_thread(interface_type_002_t *i002, 
       }
       goto clean_exit;
    }
-   params->queue=(queue_t *)malloc(sizeof(queue_t));
+   params->queue=(mea_queue_t *)malloc(sizeof(mea_queue_t));
    if(!params->queue)
    {
       VERBOSE(2) {
@@ -890,7 +891,7 @@ pthread_t *start_interface_type_002_xbeedata_thread(interface_type_002_t *i002, 
       }
       goto clean_exit;
    }
-   init_queue(params->queue);
+   mea_queue_init(params->queue);
 
    params->xd=xd;
 //   params->md=md;
@@ -944,7 +945,7 @@ clean_exit:
    }
 
    if(params && params->queue && params->queue->nb_elem>0) // on vide s'il y a quelque chose avant de partir
-      clear_queue(params->queue, _iodata_free_queue_elem);
+      mea_queue_cleanup(params->queue, _iodata_free_queue_elem);
 
    if(params)
    {

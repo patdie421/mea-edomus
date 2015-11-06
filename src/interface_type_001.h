@@ -12,7 +12,9 @@
 #include <sqlite3.h>
 #include <inttypes.h>
 
-#include "error.h"
+//#include "error.h"
+#include "mea_verbose.h"
+#include "mea_queue.h"
 #include "comio2.h"
 #include "dbServer.h"
 #include "xPLServer.h"
@@ -63,9 +65,9 @@ typedef struct interface_type_001_s
    int monitoring_id;
    comio2_ad_t *ad; // comio descriptor
    int loaded;
-   queue_t *counters_list; // counter sensors attach to interface
-   queue_t *actuators_list;
-   queue_t *sensors_list;
+   mea_queue_t *counters_list; // counter sensors attach to interface
+   mea_queue_t *actuators_list;
+   mea_queue_t *sensors_list;
    xpl_f xPL_callback;
    
    struct interface_type_001_indicators_s indicators;

@@ -27,10 +27,7 @@ SOURCES=arduino_pins.c \
 cJSON.c \
 comio2.c \
 consts.c \
-debug.c  \
 enocean.c  \
-error.c \
-memory.c  \
 mongoose.c  \
 notify.c  \
 parameters_utils.c  \
@@ -38,11 +35,12 @@ philipshue.c  \
 philipshue_color.c  \
 processManager.c  \
 python_api_utils.c  \
-queue.c  \
-sockets_utils.c \
+mea_queue.c  \
+mea_sockets_utils.c \
 sqlite3db_utils.c  \
-string_utils.c \
-timer.c  \
+mea_string_utils.c \
+mea_timer.c  \
+mea_verbose.c \
 tokens.c  \
 xbee.c 
 

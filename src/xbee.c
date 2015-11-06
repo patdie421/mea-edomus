@@ -18,15 +18,15 @@
 #include <errno.h>
 #include <sys/select.h>
 #include <signal.h>
-#include <errno.h>
+#include "mea_verbose.h"
 #include <inttypes.h>
 #include <pthread.h>
 #include <time.h>
 #include <sys/time.h>
 
 #include "xbee.h"
-#include "debug.h"
-
+//#include "debug.h"
+#include "mea_queue.h"
 
 #define XBEE_TIMEOUT_DELAY 1
 #define XBEE_NB_RETRY 5
@@ -198,14 +198,14 @@ int   xbee_init(xbee_xd_t *xd, char *dev, int speed)
    // verrou de section critique interne
    pthread_mutex_init(&xd->xd_lock, NULL);
                       
-   xd->queue=(queue_t *)malloc(sizeof(queue_t));
+   xd->queue=(mea_queue_t *)malloc(sizeof(mea_queue_t));
    if(!xd->queue)
    {
       close(xd->fd);
       return -1;
    }
    
-   init_queue(xd->queue); // initialisation de la file
+   mea_queue_init(xd->queue); // initialisation de la file
    
    xd->hosts=_hosts_table_create(XBEE_MAX_HOSTS, &nerr);
    if(!xd->hosts)
@@ -1031,11 +1031,11 @@ int16_t xbee_atCmdSendAndWaitResp(xbee_xd_t *xd,
          // a ce point il devrait y avoir quelque chose dans la file ou TIMEOUT.
          uint32_t tsp=_xbee_get_timestamp();
          
-         if(first_queue(xd->queue)==0) // parcours de la liste jusqu'a trouver une reponse pour nous
+         if(mea_queue_first(xd->queue)==0) // parcours de la liste jusqu'a trouver une reponse pour nous
          {
             do
             {
-               if(current_queue(xd->queue, (void **)&e)==0)
+               if(mea_queue_current(xd->queue, (void **)&e)==0)
                {
                   if((uint16_t)(e->cmd[1] & 0xFF)==frame_data_id) // le deuxieme octet d'une reponse doit contenir le meme id que celui de la question
                   {
@@ -1044,7 +1044,7 @@ int16_t xbee_atCmdSendAndWaitResp(xbee_xd_t *xd,
                         *xbee_err=e->xbee_err; // on la retourne directement
                         
                         // et on fait le menage avant de sortir
-                        remove_current_queue(xd->queue);
+                        mea_queue_remove_current(xd->queue);
                         _xbee_free_queue_elem(e);
                         e=NULL;
 
@@ -1062,7 +1062,7 @@ int16_t xbee_atCmdSendAndWaitResp(xbee_xd_t *xd,
                         // et on fait le menage avant de sortir
                         _xbee_free_queue_elem(e);
                         xd->queue->current->d=NULL; // pour evite le bug
-                        remove_current_queue(xd->queue);
+                        mea_queue_remove_current(xd->queue);
                         e=NULL;
                         
                         return_val=0;
@@ -1071,7 +1071,7 @@ int16_t xbee_atCmdSendAndWaitResp(xbee_xd_t *xd,
                      
                      // theoriquement pour nous mais donnees trop vieilles, on supprime
                      DEBUG_SECTION mea_log_printf("%s (%s) : data have been found but are too old\n", DEBUG_STR,__func__);
-//                     remove_current_queue(xd->queue);
+//                     mea_queue_remove_current(xd->queue);
 //                     _xbee_free_queue_elem(e);
 //                     e=NULL;
                   }
@@ -1082,7 +1082,7 @@ int16_t xbee_atCmdSendAndWaitResp(xbee_xd_t *xd,
                   }
                }
             }
-            while(next_queue(xd->queue)==0);
+            while(mea_queue_next(xd->queue)==0);
             notfound=1;
          }
 next_or_return:
@@ -1113,7 +1113,7 @@ void xbee_clean_xd(xbee_xd_t *xd)
    {
       if(xd->queue)
       {
-         clear_queue(xd->queue,_xbee_free_queue_elem);
+         mea_queue_cleanup(xd->queue,_xbee_free_queue_elem);
          free(xd->queue);
          xd->queue=NULL;
       }
@@ -1350,19 +1350,19 @@ void _xbee_flush_old_responses_queue(xbee_xd_t *xd)
    pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(xd->sync_lock) );
    pthread_mutex_lock(&xd->sync_lock);
    
-   if(first_queue(xd->queue)==0)
+   if(mea_queue_first(xd->queue)==0)
    {
       while(1)
       {
-         if(current_queue(xd->queue, (void **)&e)==0)
+         if(mea_queue_current(xd->queue, (void **)&e)==0)
          {
             if((tsp - e->tsp) > 10)
             {
                _xbee_free_queue_elem(e);
-               remove_current_queue(xd->queue); // remove current passe sur le suivant
+               mea_queue_remove_current(xd->queue); // remove current passe sur le suivant
             }
             else
-               next_queue(xd->queue);
+               mea_queue_next(xd->queue);
          }
          else
             break;
@@ -1393,7 +1393,7 @@ int16_t _xbee_add_response_to_queue(xbee_xd_t *xd, unsigned char *cmd, uint16_t 
       pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(xd->sync_lock) );
       pthread_mutex_lock(&xd->sync_lock);
 
-      in_queue_elem(xd->queue, e);
+      mea_queue_in_elem(xd->queue, e);
       
       if(xd->queue->nb_elem>=1)
          pthread_cond_broadcast(&xd->sync_cond);

@@ -18,7 +18,7 @@
 #include <sqlite3.h>
 #include <mysql.h>
 
-#include "queue.h"
+#include "mea_queue.h"
 
 #define TOMYSQLDB_TYPE_SENSORS_VALUES 1
 

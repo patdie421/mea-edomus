@@ -27,9 +27,10 @@
 #include "init.h"
 
 #include "globals.h"
-#include "debug.h"
-#include "error.h"
-#include "string_utils.h"
+//#include "debug.h"
+//#include "error.h"
+#include "mea_verbose.h"
+#include "mea_string_utils.h"
 #include "sqlite3db_utils.h"
 #include "interfacesServer.h"
 
@@ -213,14 +214,14 @@ int16_t checkParamsDb(char *sqlite3_db_param_path, int16_t *cause)
 
    if( access( sqlite3_db_param_path, F_OK) == -1 ) // file exist ?
    {
-      VERBOSE(1) fprintf(stderr,"%s (%s) : \"%s\" n'existe pas ou n'est pas accessible.\n",ERROR_STR,__func__,sqlite3_db_param_path);
+      VERBOSE(1) mea_log_printf("%s (%s) : \"%s\" n'existe pas ou n'est pas accessible.\n",ERROR_STR,__func__,sqlite3_db_param_path);
       *cause=1;
       return -1;
    }
    
    if( access( sqlite3_db_param_path, R_OK | W_OK) == -1 )
    {
-      VERBOSE(1) fprintf(stderr,"%s (%s) : \"%s\" doit être accessible en lecture/ecriture.\n",ERROR_STR,__func__,sqlite3_db_param_path);
+      VERBOSE(1) mea_log_printf("%s (%s) : \"%s\" doit être accessible en lecture/ecriture.\n",ERROR_STR,__func__,sqlite3_db_param_path);
       *cause=2;
       return -1;
    }
@@ -228,7 +229,7 @@ int16_t checkParamsDb(char *sqlite3_db_param_path, int16_t *cause)
    int16_t ret = sqlite3_open_v2(sqlite3_db_param_path, &sqlite3_param_db, SQLITE_OPEN_READONLY, NULL);
    if(ret)
    {
-      VERBOSE(5) fprintf (stderr, "%s (%s) : sqlite3_open - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
+      VERBOSE(5) mea_log_printf("%s (%s) : sqlite3_open - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
       *cause=3;
       return -1;
    }

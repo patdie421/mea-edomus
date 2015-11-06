@@ -17,12 +17,14 @@
 #include <signal.h>
 #include <sqlite3.h>
 
-#include "string_utils.h"
-#include "queue.h"
-#include "debug.h"
-#include "xPL.h"
-#include "sockets_utils.h"
+#include "mea_string_utils.h"
+#include "mea_queue.h"
+//#include "debug.h"
+#include "mea_verbose.h"
+#include "mea_sockets_utils.h"
 #include "consts.h"
+
+#include "xPL.h"
 
 #include "processManager.h"
 #include "nodejsServer.h"
@@ -33,7 +35,7 @@
 #include "interface_type_003.h"
 #include "interface_type_004.h"
 
-queue_t *_interfaces=NULL;
+mea_queue_t *_interfaces=NULL;
 
 pthread_rwlock_t interfaces_queue_rwlock;
 
@@ -136,10 +138,10 @@ void dispatchXPLMessageToInterfaces(xPL_ServicePtr theService, xPL_MessagePtr th
    
    if(_interfaces && _interfaces->nb_elem)
    {
-      first_queue(_interfaces);
+      mea_queue_first(_interfaces);
       while(1)
       {
-         current_queue(_interfaces, (void **)&iq);
+         mea_queue_current(_interfaces, (void **)&iq);
          switch (iq->type)
          {
             case INTERFACE_TYPE_001:
@@ -176,7 +178,7 @@ void dispatchXPLMessageToInterfaces(xPL_ServicePtr theService, xPL_MessagePtr th
             default:
                break;
          }
-         ret=next_queue(_interfaces);
+         ret=mea_queue_next(_interfaces);
          if(ret<0)
             break;
       }
@@ -196,10 +198,10 @@ void stop_interfaces()
 
    if(_interfaces && _interfaces->nb_elem)
    {
-      first_queue(_interfaces);
+      mea_queue_first(_interfaces);
       while(_interfaces->nb_elem)
       {
-         out_queue_elem(_interfaces, (void **)&iq);
+         mea_queue_out_elem(_interfaces, (void **)&iq);
          switch (iq->type)
          {
             case INTERFACE_TYPE_001:
@@ -338,7 +340,7 @@ void stop_interfaces()
 }
 
 
-queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
+mea_queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
 {
    char sql[255];
    sqlite3_stmt * stmt;
@@ -360,7 +362,7 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
    pthread_cleanup_push( (void *)pthread_rwlock_unlock, (void *)&interfaces_queue_rwlock);
    pthread_rwlock_wrlock(&interfaces_queue_rwlock);
 
-   _interfaces=(queue_t *)malloc(sizeof(queue_t));
+   _interfaces=(mea_queue_t *)malloc(sizeof(mea_queue_t));
    if(!_interfaces)
    {
       VERBOSE(1) {
@@ -371,7 +373,7 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
       goto start_interfaces_clean_exit;
    }
 
-   init_queue(_interfaces);
+   mea_queue_init(_interfaces);
    while (1)
    {
       int s = sqlite3_step (stmt); // sqlite function need int
@@ -408,7 +410,7 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                   iq=(interfaces_queue_elem_t *)malloc(sizeof(interfaces_queue_elem_t));
                   iq->type=id_type;
                   iq->context=i001;
-                  in_queue_elem(_interfaces, iq);
+                  mea_queue_in_elem(_interfaces, iq);
                   
                   // lancement du process
                   ret=process_start(i001->monitoring_id, NULL, 0);
@@ -494,7 +496,7 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                   iq=(interfaces_queue_elem_t *)malloc(sizeof(interfaces_queue_elem_t));
                   iq->type=id_type;
                   iq->context=i001;
-                  in_queue_elem(_interfaces, iq);
+                  mea_queue_in_elem(_interfaces, iq);
                   break;
 */ 
                }
@@ -510,7 +512,7 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                   iq=(interfaces_queue_elem_t *)malloc(sizeof(interfaces_queue_elem_t));
                   iq->type=id_type;
                   iq->context=i002;
-                  in_queue_elem(_interfaces, iq);
+                  mea_queue_in_elem(_interfaces, iq);
                   
                   // lancement du process
                   ret=process_start(i002->monitoring_id, NULL, 0);
@@ -567,7 +569,7 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                   interfaces_queue_elem_t *iq=(interfaces_queue_elem_t *)malloc(sizeof(interfaces_queue_elem_t));
                   iq->type=id_type;
                   iq->context=i002;
-                  in_queue_elem(_interfaces, iq);
+                  mea_queue_in_elem(_interfaces, iq);
                   break;
 */
                }
@@ -583,7 +585,7 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                   iq=(interfaces_queue_elem_t *)malloc(sizeof(interfaces_queue_elem_t));
                   iq->type=id_type;
                   iq->context=i003;
-                  in_queue_elem(_interfaces, iq);
+                  mea_queue_in_elem(_interfaces, iq);
                   
                   // lancement du process
                   ret=process_start(i003->monitoring_id, NULL, 0);
@@ -639,7 +641,7 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                   interfaces_queue_elem_t *iq=(interfaces_queue_elem_t *)malloc(sizeof(interfaces_queue_elem_t));
                   iq->type=id_type;
                   iq->context=i003;
-                  in_queue_elem(_interfaces, iq);
+                  mea_queue_in_elem(_interfaces, iq);
                   break;
 */
                }
@@ -655,7 +657,7 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                   iq=(interfaces_queue_elem_t *)malloc(sizeof(interfaces_queue_elem_t));
                   iq->type=id_type;
                   iq->context=i004;
-                  in_queue_elem(_interfaces, iq);
+                  mea_queue_in_elem(_interfaces, iq);
                   
                   // lancement du process
                   ret=process_start(i004->monitoring_id, NULL, 0);
@@ -714,7 +716,7 @@ queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                   interfaces_queue_elem_t *iq=(interfaces_queue_elem_t *)malloc(sizeof(interfaces_queue_elem_t));
                   iq->type=id_type;
                   iq->context=i004;
-                  in_queue_elem(_interfaces, iq);
+                  mea_queue_in_elem(_interfaces, iq);
                   break;
 */
                }

@@ -24,10 +24,10 @@
 
 #include "globals.h"
 #include "consts.h"
-#include "debug.h"
 #include "macros.h"
-#include "memory.h"
-
+#include "mea_queue.h"
+#include "mea_verbose.h"
+#include "mea_string_utils.h"
 #include "processManager.h"
 #include "notify.h"
 
@@ -40,7 +40,7 @@ typedef struct dbServer_md_s
    int16_t started;
 //   int16_t opened;
    
-   queue_t *queue;
+   mea_queue_t *queue;
 
    char *db_server;
    char *db_server_port;
@@ -181,7 +181,7 @@ int16_t dbServer_add_data_to_sensors_values(uint16_t sensor_id, double value1, u
    pthread_mutex_lock(&(_md->lock));
 
    VERBOSE(9) mea_log_printf("%s  (%s) : data to queue(%ld) (sensor_id=%d, value1=%f)\n",INFO_STR,__func__,_md->queue->nb_elem,sensor_id,value1);
-   if(in_queue_elem(_md->queue,(void *)elem)==ERROR)
+   if(mea_queue_in_elem(_md->queue,(void *)elem)==ERROR)
    {
       free_value(elem->data);
       free(elem);
@@ -576,7 +576,7 @@ int flush_data(int heartbeat_flag)
       nb=_md->queue->nb_elem;
       if(nb>0)
       {
-         out_queue_elem(_md->queue,(void **)&elem);
+         mea_queue_out_elem(_md->queue,(void **)&elem);
       }
       
       pthread_mutex_unlock(&(_md->lock));
@@ -604,7 +604,7 @@ int flush_data(int heartbeat_flag)
             pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(_md->lock));
             pthread_mutex_lock(&(_md->lock));
 
-            in_queue_elem(_md->queue,(void *)elem);
+            mea_queue_in_elem(_md->queue,(void *)elem);
 
             pthread_mutex_unlock(&(_md->lock));
             pthread_cleanup_pop(0);
@@ -848,32 +848,32 @@ int dbServer(char *db_server, char *db_server_port, char *base, char *user, char
    if(!db_server || !base || !user || !passwd || !sqlite3_db_path || !db_server_port)
       return -1;
 
-   _md->db_server=mea_string_malloc_and_copy(db_server,1);
+   _md->db_server=mea_string_alloc_and_copy(db_server);
    IF_NULL_RETURN(_md->db_server,-1);
    
-   _md->db_server_port=mea_string_malloc_and_copy(db_server_port,1);
+   _md->db_server_port=mea_string_alloc_and_copy(db_server_port);
    IF_NULL_RETURN(_md->db_server,-1);
    
-   _md->base=mea_string_malloc_and_copy(base,1);
+   _md->base=mea_string_alloc_and_copy(base);
    IF_NULL_RETURN(_md->db_server,-1);
 
-   _md->user=mea_string_malloc_and_copy(user,1);
+   _md->user=mea_string_alloc_and_copy(user);
    IF_NULL_RETURN(_md->user,-1);
    
-   _md->passwd=mea_string_malloc_and_copy(passwd,1);
+   _md->passwd=mea_string_alloc_and_copy(passwd);
    IF_NULL_RETURN(_md->passwd,-1);
    
-   _md->sqlite3_db_path=mea_string_malloc_and_copy(sqlite3_db_path,1);
+   _md->sqlite3_db_path=mea_string_alloc_and_copy(sqlite3_db_path);
    IF_NULL_RETURN(_md->sqlite3_db_path,-1);
    
    
-   _md->queue=(queue_t *)malloc(sizeof(queue_t));
+   _md->queue=(mea_queue_t *)malloc(sizeof(mea_queue_t));
    if(!_md->queue)
    {
       VERBOSE(1) mea_log_printf("%s (%s) : can't create queue.\n",ERROR_STR,__func__);
       return -1;
    }
-   init_queue(_md->queue); // initialisation de la file
+   mea_queue_init(_md->queue); // initialisation de la file
    
    pthread_mutex_init(&_md->lock, NULL);
    
@@ -931,8 +931,8 @@ int stop_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
          _md->db=NULL;
       }
 
-      DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, clear_queue (%d)\n",DEBUG_STR, __func__,(int)(time(NULL)-now));
-      clear_queue(_md->queue,_dbServer_free_queue_elem);
+      DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, clean_queue (%d)\n",DEBUG_STR, __func__,(int)(time(NULL)-now));
+      mea_queue_cleanup(_md->queue,_dbServer_free_queue_elem);
       if(_md->queue)
       {
          free(_md->queue);

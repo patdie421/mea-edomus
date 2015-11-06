@@ -12,7 +12,7 @@
 #include <sqlite3.h>
 
 #include "dbServer.h"
-#include "queue.h"
+#include "mea_queue.h"
 
 #define __MEA_EDOMUS_VERSION__ "0.1aplha5-ondev"
 

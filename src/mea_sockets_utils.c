@@ -17,10 +17,9 @@
 #include <sys/types.h>
 #include <sys/select.h>
 
-#include "sockets_utils.h"
+#include "mea_sockets_utils.h"
 
-#include "globals.h"
-#include "debug.h"
+#include "mea_verbose.h"
 
 
 int mea_socket_connect(int *s, char *hostname, int port)

@@ -14,7 +14,7 @@
 
 #include "error.h"
 
-#include "queue.h"
+#include "mea_queue.h"
 
 #define XBEE_MAX_CALLBACK 16
 
@@ -132,7 +132,7 @@ typedef struct xbee_xd_s
    pthread_mutex_t xd_lock;
    char		       serial_dev_name[255];
    int             speed;
-   queue_t		   *queue;
+   mea_queue_t		   *queue;
    callback_f      io_callback;
    void           *io_callback_data;
    callback_f      commissionning_callback;

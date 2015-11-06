@@ -8,9 +8,10 @@
 #include <stdio.h>
 
 #include "globals.h"
-#include "error.h"
-#include "debug.h"
-#include "queue.h"
+//#include "error.h"
+#include "mea_verbose.h"
+//#include "debug.h"
+#include "mea_queue.h"
 #include "xPL.h"
 #include "xPLServer.h"
 #include "tokens.h"

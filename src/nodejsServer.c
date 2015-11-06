@@ -10,10 +10,11 @@
 
 #include "globals.h"
 #include "consts.h"
-#include "debug.h"
-#include "error.h"
-#include "string_utils.h"
-#include "sockets_utils.h"
+//#include "debug.h"
+//#include "error.h"
+#include "mea_verbose.h"
+#include "mea_string_utils.h"
+#include "mea_sockets_utils.h"
 
 #include "processManager.h"
 #include "notify.h"

@@ -20,17 +20,17 @@
 
 #include "globals.h"
 #include "consts.h"
-
-#include "string_utils.h"
-#include "tokens.h"
-#include "debug.h"
-#include "memory.h"
 #include "macros.h"
-#include "error.h"
 
-#include "comio2.h"
+#include "mea_string_utils.h"
+#include "mea_verbose.h"
 
 #include "arduino_pins.h"
+#include "comio2.h"
+
+#include "notify.h"
+
+#include "tokens.h"
 #include "parameters_utils.h"
 
 #include "dbServer.h"
@@ -44,7 +44,6 @@
 #include "interface_type_001_actuators.h"
 #include "interface_type_001_counters.h"
 
-#include "notify.h"
 
 #define TEMPO    5 // 5 secondes 2 read
 
@@ -142,7 +141,7 @@ int load_interface_type_001(interface_type_001_t *i001, int interface_id, sqlite
    i001->loaded=0;
 
    // initialisation de la liste des capteurs de type compteur
-   i001->counters_list=(queue_t *)malloc(sizeof(queue_t));
+   i001->counters_list=(mea_queue_t *)malloc(sizeof(mea_queue_t));
    if(!i001->counters_list)
    {
       VERBOSE(2) {
@@ -152,11 +151,11 @@ int load_interface_type_001(interface_type_001_t *i001, int interface_id, sqlite
       }
       goto load_interface_type_001_clean_exit;
    }
-   init_queue(i001->counters_list);
+   mea_queue_init(i001->counters_list);
    
    
    // initialisation de la liste des actionneurs (sorties logiques de l'arduino)
-   i001->actuators_list=(queue_t *)malloc(sizeof(queue_t));
+   i001->actuators_list=(mea_queue_t *)malloc(sizeof(mea_queue_t));
    if(!i001->actuators_list)
    {
       VERBOSE(2) {
@@ -165,11 +164,11 @@ int load_interface_type_001(interface_type_001_t *i001, int interface_id, sqlite
          perror(""); }
       goto load_interface_type_001_clean_exit;
    }
-   init_queue(i001->actuators_list);
+   mea_queue_init(i001->actuators_list);
 
 
    // initialisation de la liste des autres capteurs (entrees logiques et analogiques)
-   i001->sensors_list=(queue_t *)malloc(sizeof(queue_t));
+   i001->sensors_list=(mea_queue_t *)malloc(sizeof(mea_queue_t));
    if(!i001->sensors_list)
    {
       VERBOSE(2) {
@@ -178,7 +177,7 @@ int load_interface_type_001(interface_type_001_t *i001, int interface_id, sqlite
          perror(""); }
       goto load_interface_type_001_clean_exit;
    }
-   init_queue(i001->sensors_list);
+   mea_queue_init(i001->sensors_list);
 
    
    // préparation de la requete permettant d'obtenir les capteurs associés à l'interface
@@ -222,7 +221,7 @@ int load_interface_type_001(interface_type_001_t *i001, int interface_id, sqlite
                   counter->last_power=0.0;
                   counter->last_counter=0;
                   counter->todbflag = todbflag;
-                  in_queue_elem(i001->counters_list, counter);
+                  mea_queue_in_elem(i001->counters_list, counter);
                   nb_sensors_actuators++;
                }
                break;
@@ -236,7 +235,7 @@ int load_interface_type_001(interface_type_001_t *i001, int interface_id, sqlite
                if(actuator)
                {
                   actuator->todbflag = todbflag;
-                  in_queue_elem(i001->actuators_list, actuator);
+                  mea_queue_in_elem(i001->actuators_list, actuator);
                   nb_sensors_actuators++;
                }
                break;
@@ -250,7 +249,7 @@ int load_interface_type_001(interface_type_001_t *i001, int interface_id, sqlite
                if(sensor)
                {
                   sensor->todbflag = todbflag;
-                  in_queue_elem(i001->sensors_list, sensor);
+                  mea_queue_in_elem(i001->sensors_list, sensor);
                   nb_sensors_actuators++;
                }
                break;
@@ -382,10 +381,10 @@ int clean_interface_type_001(interface_type_001_t *i001)
    if(i001->counters_list)
    {
       struct counter_s *counter;
-      first_queue(i001->counters_list);
+      mea_queue_first(i001->counters_list);
       while(i001->counters_list->nb_elem)
       {
-         out_queue_elem(i001->counters_list, (void **)&counter);
+         mea_queue_out_elem(i001->counters_list, (void **)&counter);
          free(counter);
          counter=NULL;
       }
@@ -396,10 +395,10 @@ int clean_interface_type_001(interface_type_001_t *i001)
    if(i001->sensors_list)
    {
       struct sensor_s *sensor;
-      first_queue(i001->sensors_list);
+      mea_queue_first(i001->sensors_list);
       while(i001->sensors_list->nb_elem)
       {
-         out_queue_elem(i001->sensors_list, (void **)&sensor);
+         mea_queue_out_elem(i001->sensors_list, (void **)&sensor);
          free(sensor);
          sensor=NULL;
       } 
@@ -410,10 +409,10 @@ int clean_interface_type_001(interface_type_001_t *i001)
    if(i001->actuators_list)
    {
       struct actuator_s *actuator;
-      first_queue(i001->actuators_list);
+      mea_queue_first(i001->actuators_list);
       while(i001->actuators_list->nb_elem)
       {
-         out_queue_elem(i001->actuators_list, (void **)&actuator);
+         mea_queue_out_elem(i001->actuators_list, (void **)&actuator);
          free(actuator);
          actuator=NULL;
       }

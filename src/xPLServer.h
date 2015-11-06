@@ -11,7 +11,6 @@
 #include <inttypes.h>
 #include <sqlite3.h>
 
-#include "queue.h"
 #include "xPL.h"
 
 extern char *xpl_vendorID;
@@ -41,9 +40,6 @@ struct xplServer_start_stop_params_s
 typedef int16_t (*xpl_f)(xPL_ServicePtr, xPL_MessagePtr theMessage, xPL_ObjectPtr userValue);
 
 
-//pthread_t *xPLServer(queue_t *interfaces);
-
-
 xPL_ServicePtr mea_getXPLServicePtr();
 
 char          *mea_setXPLVendorID(char *value);
@@ -64,8 +60,6 @@ extern xPL_NameValueListPtr xPL_AllocNVList();
 xPL_MessagePtr mea_createReceivedMessage(xPL_MessageType messageType);
 xPL_MessagePtr mea_createSendableMessage(xPL_MessageType messageType, char *vendorID, char *deviceID, char *instanceID);
 
-
-//pthread_t    *start_xPLServer(int my_id, char **params_list, queue_t *interfaces, sqlite3 *sqlite3_param_db);
 int           start_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg);
 int           stop_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg);
 int           restart_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg);

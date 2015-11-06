@@ -14,8 +14,9 @@
 
 #include <sqlite3.h>
 
-#include "debug.h"
-#include "error.h"
+//#include "debug.h"
+//#include "error.h"
+#include "mea_verbose.h"
 
 
 int16_t sqlite3_dropTable(sqlite3 *sqlite3_param_db, char *table)

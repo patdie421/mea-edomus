@@ -6,9 +6,8 @@
 #include <inttypes.h>
 #include <pthread.h>
 #include <semaphore.h>
- 
-//#include "error.h"
-#include "queue.h"
+
+#include "mea_queue.h" 
 
 // valeurs max
 #define COMIO2_MAX_TRAP          255 
@@ -67,7 +66,7 @@ typedef struct comio2_ad_s
    pthread_mutex_t ad_lock;
    char            serial_dev_name[255];
    speed_t         speed;
-   queue_t         *queue;
+   mea_queue_t     *queue;
    uint16_t        frame_id;
    uint16_t        signal_flag;
   

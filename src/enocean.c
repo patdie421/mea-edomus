@@ -22,7 +22,10 @@
 #include <limits.h>
 
 #include "enocean.h"
-#include "debug.h"
+//#include "debug.h"
+//#include "error.h"
+#include "mea_verbose.h"
+#include "mea_queue.h"
 
 int16_t _enocean_response = -1;
 uint8_t _enocean_response_packet[256];
@@ -172,11 +175,11 @@ int16_t enocean_init(enocean_ed_t *ed, char *dev)
    // verrou de section critique interne
    pthread_mutex_init(&ed->ed_lock, NULL);
    
-   ed->queue=(queue_t *)malloc(sizeof(queue_t));
+   ed->queue=(mea_queue_t *)malloc(sizeof(mea_queue_t));
    if(!ed->queue)
       return -1;
    
-   init_queue(ed->queue); // initialisation de la file
+   mea_queue_init(ed->queue); // initialisation de la file
    ed->signal_flag=0;
    
    if(pthread_create (&(ed->read_thread), NULL, _enocean_thread, (void *)ed))
@@ -217,7 +220,7 @@ void enocean_clean_ed(enocean_ed_t *ed)
    {
       if(ed->queue)
       {
-         // clear_queue(ed->queue,_enocean_free_queue_elem);
+         // clean_queue(ed->queue,_enocean_free_queue_elem);
          free(ed->queue);
          ed->queue=NULL;
       }

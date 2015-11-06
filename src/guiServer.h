@@ -8,8 +8,9 @@
 #ifndef __httpServer_h
 #define __httpServer_h
 
-#include "error.h"
-#include "queue.h"
+//#include "error.h"
+#include "mea_verbose.h"
+#include "mea_queue.h"
 #include <sqlite3.h>
 
 struct httpServerData_s

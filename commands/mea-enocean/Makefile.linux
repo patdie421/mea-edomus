@@ -8,37 +8,34 @@ MEAINCLUDESDIR=../../src
 MEALIB=../../lib/mealib/linux/meaplib.a
 
 DEBUGFLAGS = -g \
--D__DEBUG_ON__
-CFLAGS = -std=c99 \
--std=gnu99 \
--O2 \
--D_BSD_SOURCE \
--I $(MEAINCLUDESDIR) \
-$(DEBUGFLAGS)
+	-D__DEBUG_ON__
+	CFLAGS = -std=c99 \
+	-std=gnu99 \
+	-O2 \
+	-D_BSD_SOURCE \
+	-I $(MEAINCLUDESDIR) \
+	$(DEBUGFLAGS)
 
-LDFLAGS = -lm \
--ldl
+LDFLAGS = -lm -ldl
 
 .DEFAULT_GOAL = all
 
 all: .deps enoceanpairing enoceanlogger
 
 .deps:
-@mkdir -p .deps
+	@mkdir -p .deps
 
-enoceanpairing: enoceanparing.o
-$(CC) $(LDFLAGS) $(MEALIB) enoceanparing.o -o $@
+enoceanpairing: enocean_pairing.o
+	$(CC) $(LDFLAGS) $(MEALIB) enocean_pairing.o -o $@
 
-enoceanlogger: enoceanlogger.o
-$(CC) $(LDFLAGS) enoceanlogger.o -o $@
+enoceanlogger: enocean_logger.o
+	$(CC) $(LDFLAGS) enocean_logger.o -o $@
 
 %.o: %.c
-@$(CC) -c $(CFLAGS) -MM -MT $*.o $*.c > .deps/$*.dep
-$(CC) -c $(CFLAGS) $*.c -o $@
+	@$(CC) -c $(CFLAGS) -MM -MT $*.o $*.c > .deps/$*.dep
+	$(CC) -c $(CFLAGS) $*.c -o $@
 
 clean:
--rm -f $(OBJECTS)
+	-rm -f $(OBJECTS)
 
 -include .deps/*.dep
-
-
