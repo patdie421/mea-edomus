@@ -767,7 +767,7 @@ int process_set_start_stop(int id, managed_processes_process_f start, managed_pr
 #ifdef AUTO_INCREASE_MAX_PROCESSES
 int16_t _processes_manager_increase_max_processes(int nb_more)
 {
-   int16_t ret;
+//   int16_t ret;
 
    struct managed_processes_process_s **old_table= managed_processes.processes_table;
 
@@ -1080,6 +1080,8 @@ int process_index_indicators_list(int id)
 
    pthread_rwlock_unlock(&managed_processes.rwlock);
    pthread_cleanup_pop(0);
+   
+   return 0;
 }
 #endif
 

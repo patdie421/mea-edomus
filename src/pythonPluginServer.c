@@ -190,7 +190,7 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
             VERBOSE(5) {
                mea_log_printf("%s (%s) : python error - ", ERROR_STR, __func__ );
                PyErr_Print();
-               fprintf(stderr,"\n");
+               fprintf(MEA_STDERR, "\n");
             }
          }
       }
@@ -241,7 +241,7 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
             VERBOSE(5) {
                mea_log_printf("%s (%s) : python error - ", ERROR_STR, __func__ );
                PyErr_Print();
-               fprintf(stderr,"\n");
+               fprintf(MEA_STDERR, "\n");
             }
             process_update_indicator(_pythonPluginServer_monitoring_id, "PYCALLERR", ++nbpycallerr_indicator);
             return_code=ERROR;
@@ -256,7 +256,7 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
             VERBOSE(5) {
                mea_log_printf("%s (%s) : python error - (%s/%s) - ", ERROR_STR, __func__, module, fx);
                PyErr_Print();
-               fprintf(stderr,"\n");
+               fprintf(MEA_STDERR, "\n");
             }
             return_code=ERROR;
             goto call_pythonPlugin_clean_exit;
@@ -276,7 +276,7 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
       VERBOSE(5) {
          mea_log_printf("%s (%s) : 4-python error - ", ERROR_STR, __func__);
          PyErr_Print();
-         fprintf(stderr,"\n");
+         fprintf(MEA_STDERR, "\n");
       }
       return ERROR;
    }

@@ -80,7 +80,6 @@ int16_t interface_type_001_xPL_callback(xPL_ServicePtr theService, xPL_MessagePt
    
    (i001->indicators.nbxplin)++;
    
-//   VERBOSE(9) fprintf(stderr,"%s  (%s) : xPL Message to process : %s.%s\n",INFO_STR,__func__,schema_class,schema_type);
    VERBOSE(9) mea_log_printf("%s  (%s) : xPL Message to process : %s.%s\n",INFO_STR,__func__,schema_class,schema_type);
 
    if(mea_strcmplower(schema_class, get_token_string_by_id(XPL_CONTROL_ID)) == 0 &&
@@ -88,13 +87,11 @@ int16_t interface_type_001_xPL_callback(xPL_ServicePtr theService, xPL_MessagePt
    {
       if(!device)
       {
-//         VERBOSE(5) fprintf(stderr,"%s  (%s) : xPL message no device\n",INFO_STR,__func__);
          VERBOSE(5) mea_log_printf("%s  (%s) : xPL message no device\n",INFO_STR,__func__);
          return 0;
       }
       if(!type)
       {
-//         VERBOSE(5) fprintf(stderr,"%s  (%s) : xPL message no type\n",INFO_STR,__func__);
          VERBOSE(5) mea_log_printf("%s  (%s) : xPL message no type\n",INFO_STR,__func__);
          return 0;
       }
@@ -106,13 +103,11 @@ int16_t interface_type_001_xPL_callback(xPL_ServicePtr theService, xPL_MessagePt
       char *request = xPL_getNamedValue(ListNomsValeursPtr, get_token_string_by_id(XPL_REQUEST_ID));
       if(!request)
       {
-//         VERBOSE(5) fprintf(stderr,"%s  (%s) : xPL message no request\n",INFO_STR,__func__);
          VERBOSE(5) mea_log_printf("%s  (%s) : xPL message no request\n",INFO_STR,__func__);
          return 0;
       }
       if(mea_strcmplower(request,get_token_string_by_id(XPL_CURRENT_ID))!=0)
       {
-//         VERBOSE(5) fprintf(stderr,"%s  (%s) : xPL message request!=current\n",INFO_STR,__func__);
          VERBOSE(5) mea_log_printf("%s  (%s) : xPL message request!=current\n",INFO_STR,__func__);
          return 0;
       }
@@ -145,7 +140,6 @@ int load_interface_type_001(interface_type_001_t *i001, int interface_id, sqlite
    if(!i001->counters_list)
    {
       VERBOSE(2) {
-//         fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
          mea_log_printf("%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
          perror("");
       }
@@ -159,7 +153,6 @@ int load_interface_type_001(interface_type_001_t *i001, int interface_id, sqlite
    if(!i001->actuators_list)
    {
       VERBOSE(2) {
-//         fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
          mea_log_printf("%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
          perror(""); }
       goto load_interface_type_001_clean_exit;
@@ -172,7 +165,6 @@ int load_interface_type_001(interface_type_001_t *i001, int interface_id, sqlite
    if(!i001->sensors_list)
    {
       VERBOSE(2) {
-//         fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
          mea_log_printf("%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
          perror(""); }
       goto load_interface_type_001_clean_exit;
@@ -190,7 +182,6 @@ int load_interface_type_001(interface_type_001_t *i001, int interface_id, sqlite
    ret = sqlite3_prepare_v2(db,sql_request,strlen(sql_request)+1,&stmt,NULL);
    if(ret)
    {
-//      VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg (db));
       VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg (db));
       goto load_interface_type_001_clean_exit;
    }
@@ -468,14 +459,12 @@ void *_thread_interface_type_001(void *args)
 
       if(interface_type_001_counters_poll_inputs(i001)<0)
       {
-//         VERBOSE(2) fprintf(stderr,"%s (%s) : %s - thread goes down.\n", ERROR_STR, __func__, i001->name);
          VERBOSE(2) mea_log_printf("%s (%s) : %s - thread goes down.\n", ERROR_STR, __func__, i001->name);
          pthread_exit(NULL);
       }
       
       if(interface_type_001_sensors_poll_inputs(i001)<0)
       {
-//         VERBOSE(2) fprintf(stderr,"%s (%s) : %s - thread goes down.\n", ERROR_STR, __func__, i001->name);
          VERBOSE(2) mea_log_printf("%s (%s) : %s - thread goes down.\n", ERROR_STR, __func__, i001->name);
          pthread_exit(NULL);
       }
@@ -521,7 +510,6 @@ int stop_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
             break;
          }
       }
-//      DEBUG_SECTION fprintf(stderr,"%s (%s) : %s, fin après %d itération\n",DEBUG_STR, __func__,start_stop_params->i001->name,100-counter);
       DEBUG_SECTION mea_log_printf("%s (%s) : %s, fin après %d itération\n",DEBUG_STR, __func__,start_stop_params->i001->name,100-counter);
 
       free(start_stop_params->i001->thread_id);
@@ -534,7 +522,6 @@ int stop_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
       comio2_free_ad(start_stop_params->i001->ad);
       start_stop_params->i001->ad=NULL;
    }
-//   VERBOSE(2) fprintf(stderr,"%s  (%s) : %s %s.\n", INFO_STR, __func__, start_stop_params->i001->name, stopped_successfully_str);
    VERBOSE(2) mea_log_printf("%s  (%s) : %s %s.\n", INFO_STR, __func__, start_stop_params->i001->name, stopped_successfully_str);
    mea_notify_printf('S', "%s %s.", start_stop_params->i001->name, stopped_successfully_str);
 
@@ -563,7 +550,6 @@ int start_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
       ret=load_interface_type_001(start_stop_params->i001, start_stop_params->i001->interface_id, start_stop_params->sqlite3_param_db);
       if(ret<0)
       {
-//         VERBOSE(2) fprintf (stderr, "%s (%s) : can not load sensors/actuators.\n", ERROR_STR,__func__);
          VERBOSE(2) mea_log_printf("%s (%s) : can not load sensors/actuators.\n", ERROR_STR,__func__);
          mea_notify_printf('E', "%s can't be launched - can't load sensors/actuators.", start_stop_params->i001->name);
          return -1;
@@ -581,7 +567,6 @@ int start_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
          {
             strerror_r(errno, err_str, sizeof(err_str));
             VERBOSE(2) {
-//               fprintf (stderr, "%s (%s) : snprintf - %s\n", ERROR_STR, __func__, err_str);
                mea_log_printf("%s (%s) : snprintf - %s\n", ERROR_STR, __func__, err_str);
                perror("");
             }
@@ -591,7 +576,6 @@ int start_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
       }
       else
       {
-//         VERBOSE(2) fprintf (stderr, "%s (%s) : unknow interface device - %s\n", ERROR_STR,__func__, start_stop_params->dev);
          VERBOSE(2) mea_log_printf("%s (%s) : unknow interface device - %s\n", ERROR_STR,__func__, start_stop_params->dev);
          mea_notify_printf('E', "%s can't be launched - unknow interface device (%s).", start_stop_params->i001->name, start_stop_params->dev);
          goto start_interface_type_001_clean_exit;
@@ -602,7 +586,6 @@ int start_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
       {
          strerror_r(errno, err_str, sizeof(err_str));
          VERBOSE(2) {
-//            fprintf (stderr, "%s (%s) : %s - %s\n", ERROR_STR, __func__, MALLOC_ERROR_STR, err_str);
             mea_log_printf("%s (%s) : %s - %s\n", ERROR_STR, __func__, MALLOC_ERROR_STR, err_str);
             perror("");
          }
@@ -614,7 +597,6 @@ int start_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
       if (fd == -1)
       {
          VERBOSE(2) {
-//            fprintf(stderr,"%s (%s) : init_arduino - Unable to open serial port (%s) - ",ERROR_STR,__func__,start_stop_params->dev);
             mea_log_printf("%s (%s) : init_arduino - Unable to open serial port (%s) - ",ERROR_STR,__func__,start_stop_params->dev);
             perror("");
          }
@@ -625,7 +607,6 @@ int start_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
    }
    else
    {
-//      VERBOSE(5) fprintf(stderr,"%s (%s) : no sensor/actuator active for this interface (%d) - ",ERROR_STR,__func__,start_stop_params->i001->interface_id);
       VERBOSE(5) mea_log_printf("%s (%s) : no sensor/actuator active for this interface (%d) - ",ERROR_STR,__func__,start_stop_params->i001->interface_id);
       mea_notify_printf('E', "%s can't be launched - no sensor/actuator active for this interface.", start_stop_params->i001->name);
 
@@ -648,7 +629,6 @@ int start_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
 
    if(pthread_create (interface_type_001_thread_id, NULL, _thread_interface_type_001, (void *)interface_type_001_thread_params))
    {
-//      VERBOSE(2) fprintf(stderr, "%s (%s) : pthread_create - can't start thread\n",ERROR_STR,__func__);
       VERBOSE(2) mea_log_printf("%s (%s) : pthread_create - can't start thread\n",ERROR_STR,__func__);
       goto start_interface_type_001_clean_exit;
    }
@@ -657,7 +637,6 @@ int start_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
    
    pthread_detach(*interface_type_001_thread_id);
    
-//   VERBOSE(2) fprintf(stderr,"%s  (%s) : %s %s.\n", INFO_STR, __func__, start_stop_params->i001->name, launched_successfully_str);
    VERBOSE(2) mea_log_printf("%s  (%s) : %s %s.\n", INFO_STR, __func__, start_stop_params->i001->name, launched_successfully_str);
    mea_notify_printf('S', "%s %s", start_stop_params->i001->name, launched_successfully_str);
    

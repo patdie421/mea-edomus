@@ -113,14 +113,12 @@ int _valide_sensor_i001(int token_type_id, int pin_id, int token_compute_id, int
    if(token_type_id==-1)
    {
       *err=1;
-//      VERBOSE(5) fprintf(stderr,"%s (%s) : bad i/o type (%d)\n",ERROR_STR,__func__,token_type_id);
       VERBOSE(5) mea_log_printf("%s (%s) : bad i/o type (%d)\n",ERROR_STR,__func__,token_type_id);
    }
    
    if(pin_id==-1)
    {
       *err=2;
-//      VERBOSE(5) fprintf(stderr,"%s (%s) : bad pin (%d)\n",ERROR_STR,__func__,pin_id);
       VERBOSE(5) mea_log_printf("%s (%s) : bad pin (%d)\n",ERROR_STR,__func__,pin_id);
    }
    
@@ -130,7 +128,6 @@ int _valide_sensor_i001(int token_type_id, int pin_id, int token_compute_id, int
    if(!ret)
    {
       *err=3;
-//      VERBOSE(5) fprintf(stderr,"%s (%s) : bad pin (%d) for pin type (%d)\n",ERROR_STR,__func__,pin_id,token_type_id);
       VERBOSE(5) mea_log_printf("%s (%s) : bad pin (%d) for pin type (%d)\n",ERROR_STR,__func__,pin_id,token_type_id);
       return 0;
    }
@@ -141,7 +138,6 @@ int _valide_sensor_i001(int token_type_id, int pin_id, int token_compute_id, int
       if(!ret)
       {
          *err=3;
-//         VERBOSE(5) fprintf(stderr,"%s (%s) : bad compute (%d) for pin type (%d)\n",ERROR_STR,__func__,token_compute_id,token_type_id);
          VERBOSE(5) mea_log_printf("%s (%s) : bad compute (%d) for pin type (%d)\n",ERROR_STR,__func__,token_compute_id,token_type_id);
          return 0;
       }
@@ -152,7 +148,6 @@ int _valide_sensor_i001(int token_type_id, int pin_id, int token_compute_id, int
          if(!ret)
          {
             *err=4;
-//            VERBOSE(5) fprintf(stderr,"%s (%s) : bad algo (%d) for compute (%d)\n",ERROR_STR,__func__,token_algo_id,token_compute_id);
             VERBOSE(5) mea_log_printf("%s (%s) : bad algo (%d) for compute (%d)\n",ERROR_STR,__func__,token_algo_id,token_compute_id);
             return 0;
          }
@@ -163,7 +158,6 @@ int _valide_sensor_i001(int token_type_id, int pin_id, int token_compute_id, int
       if(token_algo_id!=-1)
       {
          *err=4;
-//         VERBOSE(5) fprintf(stderr,"%s (%s) : aglo set (%d) but non compute set\n",ERROR_STR,__func__,token_algo_id);
          VERBOSE(5) mea_log_printf("%s (%s) : aglo set (%d) but non compute set\n",ERROR_STR,__func__,token_algo_id);
          return 0;
       }
@@ -171,6 +165,7 @@ int _valide_sensor_i001(int token_type_id, int pin_id, int token_compute_id, int
    
    return 1;
 }
+
 
 void interface_type_001_sensors_free_queue_elem(void *d)
 {
@@ -180,7 +175,7 @@ void interface_type_001_sensors_free_queue_elem(void *d)
    e=NULL;
 }
 
-//typedef int16_t (*trap_f)(int16_t, char *, int16_t, void *);
+
 int16_t interface_type_001_sensors_process_traps(int16_t numTrap, char *data, int16_t l_data, void *userdata)
 {
    struct sensor_s *sensor;
@@ -212,7 +207,6 @@ int16_t interface_type_001_sensors_process_traps(int16_t numTrap, char *data, in
          sprintf(value,"high");
       }
       
-//      VERBOSE(9) fprintf(stderr,"%s  (%s) : sensor %s = %s\n",INFO_STR,__func__,sensor->name,value);
       VERBOSE(9) mea_log_printf("%s  (%s) : sensor %s = %s\n",INFO_STR,__func__,sensor->name,value);
       
       xPL_setSchema(sensorMessageStat, get_token_string_by_id(XPL_SENSOR_ID), get_token_string_by_id(XPL_BASIC_ID));
@@ -542,7 +536,6 @@ int16_t interface_type_001_sensors_poll_inputs(interface_type_001_t *i001)
             if(ret<0)
             {
                VERBOSE(5) {
-//                  fprintf(stderr,"%s (%s) : comio2 error = %d.\n", ERROR_STR, __func__, comio2_err);
                   mea_log_printf("%s (%s) : comio2 error = %d.\n", ERROR_STR, __func__, comio2_err);
                }
                i001->indicators.nbsensorsreaderr++;
@@ -555,7 +548,6 @@ int16_t interface_type_001_sensors_poll_inputs(interface_type_001_t *i001)
             else if(ret>0)
             {
                VERBOSE(5) {
-//                  fprintf(stderr,"%s (%s) : function %d return error = %d.\n", ERROR_STR, __func__, sensor->arduino_function, comio2_err);
                   mea_log_printf("%s (%s) : function %d return error = %d.\n", ERROR_STR, __func__, sensor->arduino_function, comio2_err);
                }
                i001->indicators.nbsensorsreaderr++;
@@ -574,19 +566,16 @@ int16_t interface_type_001_sensors_poll_inputs(interface_type_001_t *i001)
                   
                if(sensor->compute==XPL_TEMP_ID)
                {
-//                  VERBOSE(9) fprintf(stderr,"%s  (%s) : temperature sensor %s =  %.1f °C (%d) \n",INFO_STR,__func__,sensor->name,sensor->computed_val,sensor->val);
                   VERBOSE(9) mea_log_printf("%s  (%s) : temperature sensor %s =  %.1f °C (%d) \n",INFO_STR,__func__,sensor->name,sensor->computed_val,sensor->val);
                   unit = UNIT_C;
                }
                else if(sensor->compute==XPL_VOLTAGE_ID)
                {
-//                  VERBOSE(9) fprintf(stderr,"%s  (%s) : voltage sensor %s =  %.1f V (%d) \n",INFO_STR,__func__,sensor->name,sensor->computed_val,sensor->val);
                   VERBOSE(9) mea_log_printf("%s  (%s) : voltage sensor %s =  %.1f V (%d) \n",INFO_STR,__func__,sensor->name,sensor->computed_val,sensor->val);
                   unit = UNIT_V;
                }
                else
                {
-//                  VERBOSE(9) fprintf(stderr,"%s  (%s) : raw sensor %s = %d\n",INFO_STR,__func__,sensor->name,sensor->val);
                   VERBOSE(9) mea_log_printf("%s  (%s) : raw sensor %s = %d\n",INFO_STR,__func__,sensor->name,sensor->val);
                }
                   

@@ -1031,8 +1031,8 @@ void *_enocean_thread(void *args)
                   for(int i=0; i<l_packet; i++)
                   {
                      if(i && (i % 10) == 0)
-                        fprintf(stderr,"\n");
-                     fprintf(stderr,"0x%02x ",packet[i]);
+                        fprintf(stderr, "\n");
+                     fprintf(stderr, "0x%02x ", packet[i]);
                   }
                }
          }

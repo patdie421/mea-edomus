@@ -11,7 +11,6 @@
 #include <Python.h>
 #include <sqlite3.h>
 
-#include "error.h"
 #include "enocean.h"
 #include "dbServer.h"
 #include "xPLServer.h"

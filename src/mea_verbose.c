@@ -65,7 +65,7 @@ int mea_rotate_open_log_file(FILE *fd, char *name, uint16_t max_index)
    int ret_code=0;
    int ret=0;
    char *name_old=NULL, *name_new=NULL;
-   FILE *fd_dest;
+//   FILE *fd_dest;
 
    name_old = (char *)malloc(strlen(name)+7); // 7 => . + 5 digits (16 bit) + 1
    if(name_old == NULL)

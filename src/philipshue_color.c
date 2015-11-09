@@ -284,19 +284,16 @@ uint32_t rgbUint32FromXyBriColor(xyBriColor_t *xyb)
 {
    if(0 > xyb->x || xyb->x > .8)
    {
-//      fprintf(stderr,"x property must be between 0 and 0.8, but is: %f\n",xyb->x);
       return 0xFFFFFFFF;
    }
    
    if(0 > xyb->y || xyb->y > 1)
    {
-//      fprintf(stderr,"y property must be between 0 and 1, but is: %f\n",xyb->y);
       return 0xFFFFFFFF;
    }
    
    if(0 > xyb->bri || xyb->bri > 1)
    {
-//      fprintf(stderr,"bri property must be between 0 and 1, but is: %f\n",xyb->bri);
       return 0xFFFFFFFF;
    }
    

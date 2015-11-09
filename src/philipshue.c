@@ -262,14 +262,14 @@ int16_t _setOnOffState(int id, char *template, int16_t state, char *server, int 
    char *httpResponseDataPtr = httpRequest(HTTP_PUT, server, port, url, request, strlen(request), response, &l_response, &nerr);
    if(!httpResponseDataPtr)
    {
-      VERBOSE(5) fprintf(stderr,"%s : httpRequest() error (%d)\n",__func__, nerr);
+      VERBOSE(5) fprintf(MEA_STDERR, "%s : httpRequest() error (%d)\n", __func__, nerr);
       return -1;
    }
    
    int httpResponseStatus = httpGetResponseStatusCode(response, l_response);
    if(httpResponseStatus != 200)
    {
-      VERBOSE(5) fprintf(stderr,"%s : http error = %d\n",__func__, httpResponseStatus);
+      VERBOSE(5) fprintf(MEA_STDERR, "%s : http error = %d\n", __func__, httpResponseStatus);
       return -1;
    }
 
@@ -358,14 +358,14 @@ int16_t setRGBColor(int id, char *template, uint32_t color, char *server, int po
    char *httpResponseDataPtr = httpRequest(HTTP_PUT, server, port, url, request, strlen(request), response, &l_response, &nerr);
    if(!httpResponseDataPtr)
    {
-      VERBOSE(5) fprintf(stderr,"%s : httpRequest() error (%d)\n",__func__, nerr);
+      VERBOSE(5) fprintf(MEA_STDERR, "%s : httpRequest() error (%d)\n", __func__, nerr);
       return -1;
    }
    
    int httpResponseStatus = httpGetResponseStatusCode(response, l_response);
    if(httpResponseStatus != 200)
    {
-      VERBOSE(5) fprintf(stderr,"%s : http error = %d\n",__func__, httpResponseStatus);
+      VERBOSE(5) fprintf(MEA_STDERR, "%s : http error = %d\n", __func__, httpResponseStatus);
       return -1;
    }
 

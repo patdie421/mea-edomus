@@ -12,8 +12,6 @@
 #include <pthread.h>
 #include <semaphore.h>
 
-#include "error.h"
-
 #include "mea_queue.h"
 
 #define XBEE_MAX_CALLBACK 16

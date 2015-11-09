@@ -12,8 +12,6 @@
 #include <pthread.h>
 #include <sqlite3.h>
 
-#include "error.h"
-
 
 #define DEBUG_PyEval_AcquireLock(id, last_time) { \
    printf("CHRONO : Demande Lock par %s a %u ms\n",(id),start_chrono((last_time))); \

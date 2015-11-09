@@ -111,7 +111,7 @@ char *get_and_malloc_string(char *default_value, char *question_str)
       else
       {
          VERBOSE(9) {
-            fprintf (stderr, "%s (%s) : fgets - ", DEBUG_STR,__func__);
+            mea_log_printf ("%s (%s) : fgets - ", DEBUG_STR,__func__);
             perror("");
          }
          return NULL; // en cas d'erreur sur fgets
@@ -143,7 +143,7 @@ char *get_and_malloc_path(char *base_path,char *dir_name,char *question_str)
       if(n<0 || n==sizeof(proposed_path_str))
       {
          VERBOSE(9) {
-            fprintf (stderr, "%s (%s) : snprintf - ", DEBUG_STR,__func__);
+            mea_log_printf ("%s (%s) : snprintf - ", DEBUG_STR,__func__);
             perror("");
          }
          return NULL;
@@ -173,7 +173,7 @@ char *get_and_malloc_integer(int16_t default_value, char *question_str)
    if(n<0 || n==sizeof(default_value_str))
    {
       VERBOSE(9) {
-         fprintf (stderr, "%s (%s) : snprintf - ", DEBUG_STR,__func__);
+         mea_log_printf ("%s (%s) : snprintf - ", DEBUG_STR,__func__);
          perror("");
       }
       return NULL;
@@ -287,7 +287,7 @@ int16_t checkInstallationPaths(char *base_path, int16_t try_to_create_flag)
     
     if(strcmp("/",base_path)==0 || base_path[0]==0) // root et pas de base_path interdit !!!
     {
-        VERBOSE(2) fprintf(stderr,"%s (%s) : root (\"/\") and empty string (\"\") not allowed for base path\n",ERROR_STR,__func__);
+        VERBOSE(2) mea_log_printf("%s (%s) : root (\"/\") and empty string (\"\") not allowed for base path\n", ERROR_STR,__func__);
         return -1;
     }
 
@@ -312,7 +312,7 @@ int16_t checkInstallationPaths(char *base_path, int16_t try_to_create_flag)
         if(n<0 || n==sizeof(path_to_check))
         {
             VERBOSE(9) {
-               fprintf (stderr, "%s (%s) : snprintf - ", DEBUG_STR,__func__);
+               mea_log_printf ("%s (%s) : snprintf - ", DEBUG_STR,__func__);
                perror("");
             }
             return -1;
@@ -328,7 +328,7 @@ int16_t checkInstallationPaths(char *base_path, int16_t try_to_create_flag)
                                                               S_IROTH | S_IXOTH)) // x_r pour other
                 {
                     VERBOSE(2) {
-                        fprintf(stderr,"%s (%s) : %s - ",INFO_STR,__func__,path_to_check);
+                        mea_log_printf("%s (%s) : %s - ",INFO_STR,__func__,path_to_check);
                         perror("");
                     }
                     flag=-1; // pas les droits en écriture
@@ -340,7 +340,7 @@ int16_t checkInstallationPaths(char *base_path, int16_t try_to_create_flag)
             else
             {
                 VERBOSE(2) {
-                    fprintf(stderr,"%s (%s) : %s - ",INFO_STR,__func__,path_to_check);
+                    mea_log_printf("%s (%s) : %s - ",INFO_STR,__func__,path_to_check);
                     perror("");
                 }
                 flag=-1; // pas droit en écriture
@@ -371,7 +371,7 @@ int16_t create_php_ini(char *phpini_path)
    if(n<0 || n==sizeof(phpini))
    {
       VERBOSE(9) {
-         fprintf (stderr, "%s (%s) : snprintf - ", DEBUG_STR,__func__);
+         mea_log_printf("%s (%s) : snprintf - ", DEBUG_STR,__func__);
          perror("");
       }
       return 1;
@@ -381,7 +381,7 @@ int16_t create_php_ini(char *phpini_path)
    if(rc)
    {
       VERBOSE(5) {
-         fprintf(stderr, "%s (%s) : cannot write %s file - ", ERROR_STR, __func__, phpini);
+         mea_log_printf("%s (%s) : cannot write %s file - ", ERROR_STR, __func__, phpini);
          perror("");
       }
    }
@@ -404,24 +404,24 @@ int16_t create_configs_php(char *gui_home, char *params_db_fullname, char *php_l
    char *f;
    
    f=malloc(strlen(gui_home) + strlen(file) + 2); // 2 : fin de fichier + '/'
-   sprintf(f,"%s/%s",gui_home,file);
+   sprintf(f, "%s/%s", gui_home,file);
    
    fd=fopen(f,"w");
    if(fd)
    {
-      fprintf(fd,"<?php\n");
+      fprintf(fd, "<?php\n");
 //      fprintf(fd,"ini_set('error_reporting', E_ALL);\n");
-      fprintf(fd,"ini_set('error_reporting', E_ERROR);\n");
-      fprintf(fd,"ini_set('log_errors', 'On');\n");
-      fprintf(fd,"ini_set('display_errors', 'Off');\n");
-      fprintf(fd,"ini_set('error_log', \"%s/%s\");\n",php_log_fullname, "php.log");
-      fprintf(fd,"ini_set('session.save_path', \"%s\");\n", php_sessions_fullname);
+      fprintf(fd, "ini_set('error_reporting', E_ERROR);\n");
+      fprintf(fd, "ini_set('log_errors', 'On');\n");
+      fprintf(fd, "ini_set('display_errors', 'Off');\n");
+      fprintf(fd, "ini_set('error_log', \"%s/%s\");\n",php_log_fullname, "php.log");
+      fprintf(fd, "ini_set('session.save_path', \"%s\");\n", php_sessions_fullname);
 
-      fprintf(fd,"$TITRE_APPLICATION='Mea eDomus Admin';\n");
-      fprintf(fd,"$PARAMS_DB_PATH='sqlite:%s';\n",params_db_fullname);
-      fprintf(fd,"$QUERYDB_SQL='sql/querydb.sql';\n");
-      fprintf(fd,"$IOSOCKET_PORT=%d;\n",iosocket_port);
-      fprintf(fd,"$LANG='fr';\n");
+      fprintf(fd, "$TITRE_APPLICATION='Mea eDomus Admin';\n");
+      fprintf(fd, "$PARAMS_DB_PATH='sqlite:%s';\n",params_db_fullname);
+      fprintf(fd, "$QUERYDB_SQL='sql/querydb.sql';\n");
+      fprintf(fd, "$IOSOCKET_PORT=%d;\n",iosocket_port);
+      fprintf(fd, "$LANG='fr';\n");
       fclose(fd);
       free(f);
       f=NULL;
@@ -429,7 +429,7 @@ int16_t create_configs_php(char *gui_home, char *params_db_fullname, char *php_l
    else
    {
       VERBOSE(5) {
-         fprintf(stderr, "%s (%s) : cannot write %s file - ",ERROR_STR,__func__,f);
+         mea_log_printf("%s (%s) : cannot write %s file - ",ERROR_STR,__func__,f);
          perror("");
       }
       free(f);
@@ -457,7 +457,7 @@ int16_t create_queries_db(char *queries_db_path)
    if(sqlite3_dropDatabase(queries_db_path))
    {
       VERBOSE(5) {
-         fprintf (stderr, "%s (%s) : sqlite3_dropDatabase - ", ERROR_STR,__func__);
+         mea_log_printf("%s (%s) : sqlite3_dropDatabase - ", ERROR_STR,__func__);
          perror("");
       }
    }
@@ -465,7 +465,7 @@ int16_t create_queries_db(char *queries_db_path)
    int16_t nerr = sqlite3_open(queries_db_path, &sqlite3_queries_db);
    if(nerr)
    {
-      VERBOSE(5) fprintf (stderr, "%s (%s) : sqlite3_open - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_queries_db));
+      VERBOSE(5) mea_log_printf("%s (%s) : sqlite3_open - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_queries_db));
    }
 
    nerr=sqlite3_doSqlQueries(sqlite3_queries_db, sql_createTables);
@@ -553,7 +553,7 @@ int addNewTypes(sqlite3 *sqlite3_param_db, struct types_value_s *types_values)
       if(n<0 || n==sizeof(sql))
       {
          VERBOSE(9) {
-            fprintf (stderr, "%s (%s) : snprintf - ", DEBUG_STR,__func__);
+            mea_log_printf ("%s (%s) : snprintf - ", DEBUG_STR,__func__);
             perror("");
          }
          rc=1;
@@ -563,7 +563,7 @@ int addNewTypes(sqlite3 *sqlite3_param_db, struct types_value_s *types_values)
       ret = sqlite3_exec(sqlite3_param_db, sql, NULL, NULL, &err);
       if( ret != SQLITE_OK )
       {
-         VERBOSE(9) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
+         VERBOSE(9) mea_log_printf ("%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
          sqlite3_free(err);
          rc=1;
          break;
@@ -573,7 +573,7 @@ int addNewTypes(sqlite3 *sqlite3_param_db, struct types_value_s *types_values)
       if(n<0 || n==sizeof(sql))
       {
          VERBOSE(9) {
-            fprintf (stderr, "%s (%s) : snprintf - ", DEBUG_STR,__func__);
+            mea_log_printf ("%s (%s) : snprintf - ", DEBUG_STR,__func__);
             perror("");
          }
          rc=1;
@@ -583,7 +583,7 @@ int addNewTypes(sqlite3 *sqlite3_param_db, struct types_value_s *types_values)
       ret = sqlite3_exec(sqlite3_param_db, sql, NULL, NULL, &err);
       if( ret != SQLITE_OK )
       {
-         VERBOSE(9) fprintf (stderr, "%s (%s) : sqlite3_exec - %s (%s)\n", DEBUG_STR,__func__,sqlite3_errmsg (sqlite3_param_db),sql);
+         VERBOSE(9) mea_log_printf ("%s (%s) : sqlite3_exec - %s (%s)\n", DEBUG_STR,__func__,sqlite3_errmsg (sqlite3_param_db),sql);
          sqlite3_free(err);
          rc=1;
          break;
@@ -651,7 +651,7 @@ int16_t init_db(char **params_list, char **keys)
    int16_t nerr = sqlite3_open(params_list[SQLITE3_DB_PARAM_PATH], &sqlite3_param_db);
    if(nerr)
    {
-      VERBOSE(5) fprintf (stderr, "%s (%s) : sqlite3_open - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
+      VERBOSE(5) mea_log_printf ("%s (%s) : sqlite3_open - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
       retcode=2;
       goto exit_init_db;
    }
@@ -693,7 +693,7 @@ int16_t init_db(char **params_list, char **keys)
          if(n<0 || n==sizeof(sql_query))
          {
             VERBOSE(9) {
-               fprintf (stderr, "%s (%s) : snprintf - ", DEBUG_STR,__func__);
+               mea_log_printf ("%s (%s) : snprintf - ", DEBUG_STR,__func__);
                perror("");
             }
             retcode=7;
@@ -702,7 +702,7 @@ int16_t init_db(char **params_list, char **keys)
          func_ret = sqlite3_exec(sqlite3_param_db, sql_query, NULL, NULL, &errmsg);
          if( func_ret != SQLITE_OK )
          {
-            VERBOSE(9) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__, errmsg);
+            VERBOSE(9) mea_log_printf ("%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__, errmsg);
             sqlite3_free(errmsg);
          }
         
@@ -713,7 +713,7 @@ int16_t init_db(char **params_list, char **keys)
          if(n<0 || n==sizeof(sql_query))
          {
             VERBOSE(9) {
-               fprintf (stderr, "%s (%s) : snprintf - ", DEBUG_STR,__func__);
+               mea_log_printf ("%s (%s) : snprintf - ", DEBUG_STR,__func__);
                perror("");
             }
             retcode=8;
@@ -722,7 +722,7 @@ int16_t init_db(char **params_list, char **keys)
          func_ret = sqlite3_exec(sqlite3_param_db, sql_query, NULL, NULL, &errmsg);
          if( func_ret != SQLITE_OK )
          {
-            VERBOSE(9) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__, errmsg);
+            VERBOSE(9) mea_log_printf ("%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__, errmsg);
             sqlite3_free(errmsg);
             retcode=9;
             break;
@@ -753,7 +753,7 @@ int _construct_path(char **params_list, int16_t index, char *path, char *end_pat
       int16_t n=snprintf(tmp_str,sizeof(tmp_str), "%s/%s", path, end_path);
       if(n<0 || n==sizeof(tmp_str)) {
          VERBOSE(9) {
-            fprintf (stderr, "%s (%s) : snprintf - ", DEBUG_STR,__func__);
+            mea_log_printf ("%s (%s) : snprintf - ", DEBUG_STR,__func__);
             perror("");
          }
         return -1;
@@ -867,7 +867,7 @@ int _read_integer(char **params_list, uint16_t index, int16_t default_value, cha
       if(n<0 || n==sizeof(tmp_str))
       {
          VERBOSE(2) {
-            fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);
+            mea_log_printf ("%s (%s) : snprintf - ", ERROR_STR,__func__);
             perror("");
          }
          return -1;
@@ -914,27 +914,27 @@ int16_t autoInit(char **params_list, char **keys)
    
    _construct_string(params_list, PARAMSDBVERSION, db_version);
    
-   _construct_string(params_list, VENDOR_ID,       "mea");
-   _construct_string(params_list, DEVICE_ID,       "edomus");
-   _construct_string(params_list, INSTANCE_ID,     "home");
+   _construct_string(params_list, VENDOR_ID,         "mea");
+   _construct_string(params_list, DEVICE_ID,         "edomus");
+   _construct_string(params_list, INSTANCE_ID,       "home");
    
-   _construct_string(params_list, MYSQL_DB_SERVER, "127.0.0.1");
-   _construct_string(params_list, MYSQL_DB_PORT,   "3306");
-   _construct_string(params_list, MYSQL_DATABASE,  "meaedomus");
-   _construct_string(params_list, MYSQL_USER,      "meaedomus");
-   _construct_string(params_list, MYSQL_PASSWD,    "meaedomus");
-   _construct_string(params_list, VERBOSELEVEL,    "1");
-   _construct_string(params_list, GUIPORT,         "8083");
+   _construct_string(params_list, MYSQL_DB_SERVER,   "127.0.0.1");
+   _construct_string(params_list, MYSQL_DB_PORT,     "3306");
+   _construct_string(params_list, MYSQL_DATABASE,    "meaedomus");
+   _construct_string(params_list, MYSQL_USER,        "meaedomus");
+   _construct_string(params_list, MYSQL_PASSWD,      "meaedomus");
+   _construct_string(params_list, VERBOSELEVEL,      "1");
+   _construct_string(params_list, GUIPORT,           "8083");
    
-   _construct_path(params_list, PHPCGI_PATH,       params_list[MEA_PATH], "bin");
-   _construct_path(params_list, PHPINI_PATH,       p_str,                 "etc");
-   _construct_path(params_list, PHPSESSIONS_PATH,  p_str,                 sessions_str);
-   _construct_path(params_list, GUI_PATH,          params_list[MEA_PATH], "lib/mea-gui");
-   _construct_path(params_list, PLUGINS_PATH,      params_list[MEA_PATH], "lib/mea-plugins");
-   _construct_path(params_list, LOG_PATH,          p_str,                 "var/log");
-   _construct_path(params_list, SQLITE3_DB_BUFF_PATH, p_str, "var/db/queries.db");
+   _construct_path(params_list,   PHPCGI_PATH,       params_list[MEA_PATH], "bin");
+   _construct_path(params_list,   PHPINI_PATH,       p_str,                 "etc");
+   _construct_path(params_list,   PHPSESSIONS_PATH,  p_str,                 sessions_str);
+   _construct_path(params_list,   GUI_PATH,          params_list[MEA_PATH], "lib/mea-gui");
+   _construct_path(params_list,   PLUGINS_PATH,      params_list[MEA_PATH], "lib/mea-plugins");
+   _construct_path(params_list,   LOG_PATH,          p_str,                 "var/log");
+   _construct_path(params_list,   SQLITE3_DB_BUFF_PATH, p_str, "var/db/queries.db");
 
-   _construct_path(params_list, NODEJS_PATH,       "",   "usr/bin/nodejs");
+   _construct_path(params_list,   NODEJS_PATH,       "", "usr/bin/nodejs");
 
 #ifdef __linux__
    _construct_string(params_list, INTERFACE, "eth0");
@@ -945,7 +945,7 @@ int16_t autoInit(char **params_list, char **keys)
    _construct_string(params_list, NODEJSIOSOCKET_PORT, "8000");
    _construct_string(params_list, NODEJSDATA_PORT, "5600");
 
-   _construct_path(params_list, LOG_PATH, p_str,   "var/log");
+   _construct_path(params_list,   LOG_PATH, p_str, "var/log");
 
    
    //
@@ -955,7 +955,7 @@ int16_t autoInit(char **params_list, char **keys)
    if(n<0 || n==sizeof(to_check))
    {
       VERBOSE(2) {
-            fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);
+            mea_log_printf ("%s (%s) : snprintf - ", ERROR_STR,__func__);
             perror("");
       }
       retcode=11; goto autoInit_exit;
@@ -963,9 +963,9 @@ int16_t autoInit(char **params_list, char **keys)
 
    if( access(to_check, R_OK) == -1 )
    {
-      VERBOSE(9) fprintf(stderr,"%s (%s) : %s/php.ini - ", WARNING_STR, __func__, params_list[PHPINI_PATH]);
+      VERBOSE(9) mea_log_printf("%s (%s) : %s/php.ini - ", WARNING_STR, __func__, params_list[PHPINI_PATH]);
       VERBOSE(9) perror("");
-      VERBOSE(1) fprintf(stderr,"%s : no 'php.ini' exist, create one.\n", WARNING_STR);
+      VERBOSE(1) mea_log_printf("%s : no 'php.ini' exist, create one.\n", WARNING_STR);
       if(create_php_ini(params_list[PHPINI_PATH])) {
          retcode=11; goto autoInit_exit;
       }
@@ -975,7 +975,7 @@ int16_t autoInit(char **params_list, char **keys)
    if(n<0 || n==sizeof(to_check))
    {
       VERBOSE(2) {
-            fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);
+            mea_log_printf ("%s (%s) : snprintf - ", ERROR_STR,__func__);
             perror("");
       }
       retcode=11; goto autoInit_exit;
@@ -983,9 +983,11 @@ int16_t autoInit(char **params_list, char **keys)
    
    if( access(to_check, R_OK | X_OK) == -1 )
    {
-      VERBOSE(9) fprintf(stderr, "%s (%s) : %s/cgi-bin - ", WARNING_STR, __func__, params_list[PHPCGI_PATH]);
-      VERBOSE(9) perror("");
-      VERBOSE(1) fprintf(stderr, "%s : no 'cgi-bin', gui will not start.\n", WARNING_STR);
+      VERBOSE(9) {
+         mea_log_printf("%s (%s) : %s/cgi-bin - ", WARNING_STR, __func__, params_list[PHPCGI_PATH]);
+         perror("");
+      }
+      VERBOSE(1) mea_log_printf("%s : no 'cgi-bin', gui will not start.\n", WARNING_STR);
    }
 
    //
@@ -1067,7 +1069,7 @@ int16_t interactiveInit(char **params_list, char **keys)
    if(n<0 || n==sizeof(to_check))
    {
       VERBOSE(2) {
-            fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);
+            mea_log_printf ("%s (%s) : snprintf - ", ERROR_STR,__func__);
             perror("");
       }
       retcode=11; goto interactiveInit_exit;
@@ -1075,16 +1077,18 @@ int16_t interactiveInit(char **params_list, char **keys)
 
    if( access(to_check, R_OK | W_OK | X_OK) == -1 )
    {
-      VERBOSE(9) fprintf(stderr, "%s (%s) : %s/php-cgi - ", INFO_STR, __func__, params_list[PHPCGI_PATH]);
-      VERBOSE(9) perror("");
-      VERBOSE(1) fprintf(stderr,"%s (%s) : no 'php-cgi', gui will not start.\n",WARNING_STR,__func__);
+      VERBOSE(9) {
+         mea_log_printf("%s (%s) : %s/php-cgi - ", INFO_STR, __func__, params_list[PHPCGI_PATH]);
+         perror("");
+      }
+      VERBOSE(1) mea_log_printf("%s (%s) : no 'php-cgi', gui will not start.\n", WARNING_STR, __func__);
    }
 
    n=snprintf(to_check,sizeof(to_check),"%s/php.ini",params_list[PHPINI_PATH]);
    if(n<0 || n==sizeof(to_check))
    {
       VERBOSE(2) {
-            fprintf (stderr, "%s (%s) : snprintf - ", ERROR_STR,__func__);
+            mea_log_printf ("%s (%s) : snprintf - ", ERROR_STR, __func__);
             perror("");
       }
       retcode=11; goto interactiveInit_exit;
@@ -1092,9 +1096,11 @@ int16_t interactiveInit(char **params_list, char **keys)
 
    if( access(to_check, R_OK ) == -1 )
    {
-      VERBOSE(9) fprintf(stderr,"%s (%s) : %s/php.ini - ",INFO_STR,__func__,params_list[PHPINI_PATH]);
-      VERBOSE(9) perror("");
-      VERBOSE(1) fprintf(stderr,"%s (%s) : no 'php.ini' exist, create one.\n",WARNING_STR,__func__);
+      VERBOSE(9) {
+         mea_log_printf("%s (%s) : %s/php.ini - ",INFO_STR,__func__,params_list[PHPINI_PATH]);
+         perror("");
+      }
+      VERBOSE(1) mea_log_printf("%s (%s) : no 'php.ini' exist, create one.\n",WARNING_STR,__func__);
       create_php_ini(params_list[PHPINI_PATH]);
    }
 
@@ -1178,7 +1184,7 @@ int16_t updateMeaEdomus(char **params_list, char **keys)
    int16_t nerr = sqlite3_open(params_list[SQLITE3_DB_PARAM_PATH], &sqlite3_param_db);
    if(nerr)
    {
-      VERBOSE(5) fprintf (stderr, "%s (%s) : sqlite3_open - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
+      VERBOSE(5) mea_log_printf ("%s (%s) : sqlite3_open - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
       retcode=1;
       goto exit_updateMeaEdomus;
    }
@@ -1191,7 +1197,7 @@ int16_t updateMeaEdomus(char **params_list, char **keys)
          if(n<0 || n==sizeof(sql_query))
          {
             VERBOSE(9) {
-               fprintf (stderr, "%s (%s) : snprintf - ", DEBUG_STR,__func__);
+               mea_log_printf ("%s (%s) : snprintf - ", DEBUG_STR,__func__);
                perror("");
             }
             retcode=2;
@@ -1200,7 +1206,7 @@ int16_t updateMeaEdomus(char **params_list, char **keys)
          func_ret = sqlite3_exec(sqlite3_param_db, sql_query, NULL, NULL, &errmsg);
          if( func_ret != SQLITE_OK )
          {
-            VERBOSE(9) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__, errmsg);
+            VERBOSE(9) mea_log_printf ("%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__, errmsg);
             sqlite3_free(errmsg);
             retcode=3;
             break;
@@ -1221,7 +1227,7 @@ int16_t upgrade_params_db_from_3_to_4(sqlite3 *sqlite3_param_db, struct upgrade_
  int ret;
  char *err = NULL;
  
-   VERBOSE(5) fprintf (stderr, "%s (%s) : passage de la version 3 à la version 4\n",INFO_STR,__func__);
+   VERBOSE(5) mea_log_printf ("%s (%s) : passage de la version 3 à la version 4\n",INFO_STR,__func__);
    
    struct types_value_s types_values[] = {
       {INTERFACE_TYPE_004,"INTYP04","Interface de type 04","","1","10"},
@@ -1233,7 +1239,7 @@ int16_t upgrade_params_db_from_3_to_4(sqlite3 *sqlite3_param_db, struct upgrade_
    ret = sqlite3_exec(sqlite3_param_db, "UPDATE 'application_parameters' set value = '4' WHERE key = 'PARAMSDBVERSION'", NULL, NULL, &err);
    if( ret != SQLITE_OK )
    {
-      VERBOSE(9) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
+      VERBOSE(9) mea_log_printf ("%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
       sqlite3_free(err);
       return -1;
    }
@@ -1248,7 +1254,7 @@ int16_t upgrade_params_db_from_2_to_3(sqlite3 *sqlite3_param_db, struct upgrade_
  int ret;
  char *err = NULL;
  
-   VERBOSE(5) fprintf (stderr, "%s (%s) : passage de la version 2 à la version 3\n",INFO_STR,__func__);
+   VERBOSE(5) mea_log_printf ("%s (%s) : passage de la version 2 à la version 3\n",INFO_STR,__func__);
    
    struct types_value_s types_values[] = {
       {INTERFACE_TYPE_003,"INTYP03","Interface de type 03","","1","10"},
@@ -1260,7 +1266,7 @@ int16_t upgrade_params_db_from_2_to_3(sqlite3 *sqlite3_param_db, struct upgrade_
    ret = sqlite3_exec(sqlite3_param_db, "UPDATE 'application_parameters' set value = '3' WHERE key = 'PARAMSDBVERSION'", NULL, NULL, &err);
    if( ret != SQLITE_OK )
    {
-      VERBOSE(9) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
+      VERBOSE(9) mea_log_printf ("%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
       sqlite3_free(err);
       return -1;
    }
@@ -1277,13 +1283,13 @@ int16_t upgrade_params_db_from_1_to_2(sqlite3 *sqlite3_param_db, struct upgrade_
  int ret;
  char *err = NULL;
  
-   VERBOSE(5) fprintf (stderr, "%s (%s) : passage de la version 1 à la version 2\n",INFO_STR,__func__);
+   VERBOSE(5) mea_log_printf ("%s (%s) : passage de la version 1 à la version 2\n",INFO_STR,__func__);
 
    // ajout d'une colonne à la table des capteurs/actioneurs
    ret = sqlite3_exec(sqlite3_param_db, "ALTER TABLE types ADD COLUMN typeoftype INTEGER", NULL, NULL, &err);
    if( ret != SQLITE_OK )
    {
-      VERBOSE(9) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
+      VERBOSE(9) mea_log_printf ("%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
       sqlite3_free(err);
    }
    
@@ -1291,7 +1297,7 @@ int16_t upgrade_params_db_from_1_to_2(sqlite3 *sqlite3_param_db, struct upgrade_
    ret = sqlite3_exec(sqlite3_param_db, "UPDATE types SET 'typeoftype' = '99'", NULL, NULL, &err);
    if( ret != SQLITE_OK )
    {
-      VERBOSE(9) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
+      VERBOSE(9) mea_log_printf ("%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
       sqlite3_free(err);
       return -1; // ici en cas d'erreur on s'arrête
    }
@@ -1324,7 +1330,7 @@ int16_t upgrade_params_db_from_1_to_2(sqlite3 *sqlite3_param_db, struct upgrade_
       if(n<0 || n==sizeof(sql))
       {
          VERBOSE(9) {
-            fprintf (stderr, "%s (%s) : snprintf - ", DEBUG_STR,__func__);
+            mea_log_printf ("%s (%s) : snprintf - ", DEBUG_STR,__func__);
             perror("");
          }
          return -1;
@@ -1332,7 +1338,7 @@ int16_t upgrade_params_db_from_1_to_2(sqlite3 *sqlite3_param_db, struct upgrade_
       ret = sqlite3_exec(sqlite3_param_db, sql, NULL, NULL, &err);
       if( ret != SQLITE_OK )
       {
-         VERBOSE(9) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
+         VERBOSE(9) mea_log_printf ("%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
          sqlite3_free(err);
       }
    }
@@ -1348,7 +1354,7 @@ int16_t upgrade_params_db_from_1_to_2(sqlite3 *sqlite3_param_db, struct upgrade_
    ret = sqlite3_exec(sqlite3_param_db, "UPDATE 'application_parameters' set value = '2' WHERE key = 'PARAMSDBVERSION'", NULL, NULL, &err);
    if( ret != SQLITE_OK )
    {
-      VERBOSE(9) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
+      VERBOSE(9) mea_log_printf ("%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
       sqlite3_free(err);
       return -1;
    }
@@ -1366,13 +1372,13 @@ int16_t upgrade_params_db_from_0_to_1(sqlite3 *sqlite3_param_db, struct upgrade_
  int ret;
  char *err = NULL;
  
-   VERBOSE(5) fprintf (stderr, "%s  (%s) : passage de la version 0 à la version 1\n",INFO_STR,__func__);
+   VERBOSE(5) mea_log_printf ("%s  (%s) : passage de la version 0 à la version 1\n",INFO_STR,__func__);
    
    // ajout d'une colonne à la table des capteurs/actioneurs
    ret = sqlite3_exec(sqlite3_param_db, "ALTER TABLE sensors_actuators ADD COLUMN todbflag INTEGER", NULL, NULL, &err);
    if( ret != SQLITE_OK )
    {
-      VERBOSE(9) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
+      VERBOSE(9) mea_log_printf ("%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
       sqlite3_free(err);
    }
 
@@ -1380,7 +1386,7 @@ int16_t upgrade_params_db_from_0_to_1(sqlite3 *sqlite3_param_db, struct upgrade_
    ret = sqlite3_exec(sqlite3_param_db, "UPDATE sensors_actuators SET 'todbflag' = '1'", NULL, NULL, &err);
    if( ret != SQLITE_OK )
    {
-      VERBOSE(9) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
+      VERBOSE(9) mea_log_printf ("%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
       sqlite3_free(err);
       return -1;
    }
@@ -1391,7 +1397,7 @@ int16_t upgrade_params_db_from_0_to_1(sqlite3 *sqlite3_param_db, struct upgrade_
    if(n<0 || n==sizeof(sql))
    {
       VERBOSE(9) {
-         fprintf (stderr, "%s (%s) : snprintf - ", DEBUG_STR,__func__);
+         mea_log_printf ("%s (%s) : snprintf - ", DEBUG_STR,__func__);
          perror("");
       }
       return -1;
@@ -1399,7 +1405,7 @@ int16_t upgrade_params_db_from_0_to_1(sqlite3 *sqlite3_param_db, struct upgrade_
    ret = sqlite3_exec(sqlite3_param_db, sql, NULL, NULL, &err);
    if( ret != SQLITE_OK )
    {
-      VERBOSE(9) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__, sqlite3_errmsg(sqlite3_param_db));
+      VERBOSE(9) mea_log_printf ("%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__, sqlite3_errmsg(sqlite3_param_db));
       sqlite3_free(err);
       return -1;
    }
@@ -1411,7 +1417,7 @@ int16_t upgrade_params_db_from_0_to_1(sqlite3 *sqlite3_param_db, struct upgrade_
    if(n<0 || n==sizeof(sql))
    {
       VERBOSE(9) {
-         fprintf (stderr, "%s (%s) : snprintf - ", DEBUG_STR,__func__);
+         mea_log_printf ("%s (%s) : snprintf - ", DEBUG_STR,__func__);
          perror("");
       }
       return -1;
@@ -1419,7 +1425,7 @@ int16_t upgrade_params_db_from_0_to_1(sqlite3 *sqlite3_param_db, struct upgrade_
    ret = sqlite3_exec(sqlite3_param_db, sql, NULL, NULL, &err);
    if( ret != SQLITE_OK )
    {
-      VERBOSE(9) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
+      VERBOSE(9) mea_log_printf ("%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
       sqlite3_free(err);
       return -1;
    }
@@ -1431,7 +1437,7 @@ int16_t upgrade_params_db_from_0_to_1(sqlite3 *sqlite3_param_db, struct upgrade_
    if(n<0 || n==sizeof(sql))
    {
       VERBOSE(9) {
-         fprintf (stderr, "%s (%s) : snprintf - ", DEBUG_STR,__func__);
+         mea_log_printf ("%s (%s) : snprintf - ", DEBUG_STR,__func__);
          perror("");
       }
       return -1;
@@ -1439,7 +1445,7 @@ int16_t upgrade_params_db_from_0_to_1(sqlite3 *sqlite3_param_db, struct upgrade_
    ret = sqlite3_exec(sqlite3_param_db, sql, NULL, NULL, &err);
    if( ret != SQLITE_OK )
    {
-      VERBOSE(9) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
+      VERBOSE(9) mea_log_printf ("%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
       sqlite3_free(err);
       return -1;
    }
@@ -1451,7 +1457,7 @@ int16_t upgrade_params_db_from_0_to_1(sqlite3 *sqlite3_param_db, struct upgrade_
    if(n<0 || n==sizeof(sql))
    {
       VERBOSE(9) {
-         fprintf (stderr, "%s (%s) : snprintf - ", DEBUG_STR,__func__);
+         mea_log_printf ("%s (%s) : snprintf - ", DEBUG_STR,__func__);
          perror("");
       }
       return -1;
@@ -1459,7 +1465,7 @@ int16_t upgrade_params_db_from_0_to_1(sqlite3 *sqlite3_param_db, struct upgrade_
    ret = sqlite3_exec(sqlite3_param_db, sql, NULL, NULL, &err);
    if( ret != SQLITE_OK )
    {
-      VERBOSE(9) fprintf (stderr, "%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
+      VERBOSE(9) mea_log_printf ("%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
       sqlite3_free(err);
       return -1;
    }
@@ -1487,7 +1493,7 @@ int16_t upgrade_params_db(sqlite3 *sqlite3_param_db, uint16_t fromVersion, uint1
    {
      if(upgrade_params_db_from_x_to_y[i](sqlite3_param_db, upgrade_params)<0)
      {
-       VERBOSE(1) fprintf (stderr, "%s (%s) : can't upgrade database. Sorry, you have to upgrade manually.\n", ERROR_STR,__func__);
+       VERBOSE(1) mea_log_printf ("%s (%s) : can't upgrade database. Sorry, you have to upgrade manually.\n", ERROR_STR,__func__);
        return -1;
        break;
      }

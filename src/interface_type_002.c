@@ -136,8 +136,8 @@ mea_error_t display_frame(int ret, unsigned char *resp, uint16_t l_resp)
       if(!ret)
       {
          for(int i=0;i<l_resp;i++)
-            fprintf(stderr,"%02x-[%c](%03d)\n",resp[i],resp[i],resp[i]);
-         printf("\n");
+            fprintf(MEA_STDERR, "%02x-[%c](%03d)\n",resp[i],resp[i],resp[i]);
+         fprintf(MEA_STDERR, "\n");
       }
    }
    return NOERROR;
@@ -147,8 +147,8 @@ mea_error_t print_frame(int ret, unsigned char *resp, uint16_t l_resp)
 {
    DEBUG_SECTION {
       for(int i=0;i<l_resp;i++)
-         fprintf(stderr,"[%03x - %c]",resp[i],resp[i]);
-      fprintf(stderr,"\n");
+         fprintf(MEA_STDERR, "[%03x - %c]", resp[i], resp[i]);
+      fprintf(MEA_STDERR, "\n");
    }
    return NOERROR;
 }
@@ -157,7 +157,7 @@ void display_addr(char *a)
 {
    DEBUG_SECTION {
       for(int i=0;i<4;i++)
-         fprintf(stderr,"%02x",a[i]);
+         fprintf(MEA_STDERR, "%02x",a[i]);
    }
 }
 
@@ -488,7 +488,6 @@ mea_error_t _interface_type_002_commissionning_callback(int id, unsigned char *c
            nd_resp->addr_64_l[2],
            nd_resp->addr_64_l[3]);
    
-//   VERBOSE(9) printf("%s (%s)  : commissionning request received from %s.\n", INFO_STR, __func__, addr);
    VERBOSE(9) mea_log_printf("%s (%s)  : commissionning request received from %s.\n", INFO_STR, __func__, addr);
    
    char sql[1024];
@@ -498,7 +497,6 @@ mea_error_t _interface_type_002_commissionning_callback(int id, unsigned char *c
    int ret = sqlite3_prepare_v2(params_db,sql,strlen(sql)+1,&stmt,NULL);
    if(ret)
    {
-//      VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (params_db));
       VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (params_db));
       return ERROR;
    }
@@ -702,14 +700,12 @@ void *_thread_interface_type_002_xbeedata(void *args)
                  e->addr_64_l[1],
                  e->addr_64_l[2],
                  e->addr_64_l[3]);
-//         VERBOSE(9) fprintf(stderr, "%s  (%s) : data from = %s received\n",INFO_STR, __func__, addr);
          VERBOSE(9) mea_log_printf("%s  (%s) : data from = %s received\n",INFO_STR, __func__, addr);
          
          sprintf(sql,"%s WHERE interfaces.dev ='MESH://%s' and sensors_actuators.state='1';", sql_select_device_info, addr);
          ret = sqlite3_prepare_v2(params_db,sql,strlen(sql)+1,&(params->stmt),NULL);
          if(ret)
          {
-//            VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (params_db));
             VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (params_db));
             pthread_exit(NULL);
          }
@@ -1438,7 +1434,6 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
    {
       strerror_r(errno, err_str, sizeof(err_str));
       VERBOSE(2) {
-//         fprintf(stderr,"%s (%s) : %s - %s", ERROR_STR, __func__, MALLOC_ERROR_STR, err_str);
          mea_log_printf("%s (%s) : %s - %s", ERROR_STR, __func__, MALLOC_ERROR_STR, err_str);
       }
       mea_notify_printf('E', "%s can't be launched - %s.\n", start_stop_params->i002->name, err_str);
@@ -1461,7 +1456,6 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
    {
       strerror_r(errno, err_str, sizeof(err_str));
       VERBOSE(2) {
-//         fprintf(stderr,"%s (%s) : %s - %s\n", ERROR_STR, __func__, MALLOC_ERROR_STR, err_str);
          mea_log_printf("%s (%s) : %s - %s\n", ERROR_STR, __func__, MALLOC_ERROR_STR, err_str);
       }
       mea_notify_printf('E', "%s can't be launched - %s.\n", start_stop_params->i002->name, err_str);

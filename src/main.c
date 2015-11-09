@@ -157,9 +157,9 @@ int logfile_rotation_job(int my_id, void *data, char *errmsg, int l_errmsg)
    if(log_file)
    {
       mea_log_printf("%s (%s) : job rotation start\n", INFO_STR, __func__);
-
+#ifdef __linux__
       mea_rotate_open_log_file(MEA_STDERR, log_file, 6);
-
+#endif
       mea_log_printf("%s (%s) : job rotation done\n", INFO_STR, __func__);
    }
    return 0;
@@ -214,7 +214,7 @@ int16_t read_all_application_parameters(sqlite3 *sqlite3_param_db)
    int ret = sqlite3_prepare_v2(sqlite3_param_db,sql,strlen(sql)+1,&stmt,NULL); // sqlite function need int
    if(ret)
    {
-      VERBOSE(2) fprintf (stderr, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
+      VERBOSE(2) fprintf (MEA_STDERR, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));
       return -1;
    }
    
@@ -437,53 +437,6 @@ int main(int argc, const char * argv[])
    // initialisation de la liste des parametres à NULL
    for(int16_t i=0;i<MAX_LIST_SIZE;i++)
       params_list[i]=NULL;
-
-   /*
-   // chemin "théorique" de l'installation mea-domus (si les recommendations ont été respectées) => ne marche pas sur linux
-   buff=(char *)malloc(strlen(argv[0])+1);
-   if(!buff)
-   {
-      VERBOSE(1) {
-         fprintf (stderr, "%s (%s) : malloc - ", ERROR_STR,__func__);
-         perror("");
-      }
-      clean_services_and_exit();
-   }
-
-
-   if(realpath(argv[0], buff))
-   {
-      char *path;
-
-      path=malloc(strlen(dirname(buff))+1);
-      if(!path)
-      {
-         VERBOSE(1) {
-            fprintf (stderr, "%s (%s) : malloc - ", ERROR_STR,__func__);
-            perror("");
-         }
-         free(buff);
-         clean_services_and_exit();
-      }
-      strcpy(path,dirname(buff));
-      
-      params_list[MEA_PATH]=(char *)malloc(strlen(dirname(path))+1);
-      if(!patparams_list[MEA_PATH])
-      {
-         VERBOSE(1) {
-            fprintf (stderr, "%s (%s) : malloc - ", ERROR_STR,__func__);
-            perror("");
-         }
-         free(buff);
-         free(path);
-         clean_services_and_exit();
-      }
-
-      strcpy(params_list[MEA_PATH],dirname(path));
-      free(path);
-   }
-   free(buff);
-   */
    
    mea_string_free_alloc_and_copy(&params_list[MEA_PATH], "/usr/local/mea-edomus");
    if(!params_list[MEA_PATH])

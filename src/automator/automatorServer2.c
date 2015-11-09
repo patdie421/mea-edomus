@@ -139,7 +139,7 @@ int callPythonFunction(char *module_path, char *module, char *function, PyObject
             VERBOSE(5) {
                mea_log_printf("%s (%s) : python error - ", ERROR_STR, __func__ );
                PyErr_Print();
-               fprintf(stderr,"\n");
+               fprintf(stderr, "\n");
             }
          }
       }
@@ -170,7 +170,7 @@ int callPythonFunction(char *module_path, char *module, char *function, PyObject
             VERBOSE(5) {
                mea_log_printf("%s (%s) : python error - ", ERROR_STR, __func__ );
                PyErr_Print();
-               fprintf(stderr,"\n");
+               fprintf(stderr, "\n");
             }
             return_code=-1;
             goto callPythonFunction_clean_exit;
@@ -185,7 +185,7 @@ int callPythonFunction(char *module_path, char *module, char *function, PyObject
             VERBOSE(5) {
                mea_log_printf("%s (%s) : python error - (%s/%s) - ", ERROR_STR, __func__, module, function);
                PyErr_Print();
-               fprintf(stderr,"\n");
+               fprintf(stderr, "\n");
             }
             return_code=-1;
             goto callPythonFunction_clean_exit;
@@ -205,7 +205,7 @@ int callPythonFunction(char *module_path, char *module, char *function, PyObject
       VERBOSE(5) {
          mea_log_printf("%s (%s) : -python error - ", ERROR_STR, __func__);
          PyErr_Print();
-         fprintf(stderr,"\n");
+         fprintf(stderr, "\n");
       }
       return -1;
    }
@@ -357,7 +357,7 @@ int16_t _displayXPLMsg(xPL_MessagePtr theMessage)
    
    snprintf(xpl_schema,sizeof(xpl_schema),"%s.%s", xPL_getSchemaClass(theMessage), xPL_getSchemaType(theMessage));
 
-   fprintf(stderr, "%s: source = %s, destination = %s, schema = %s, body = [",msgTypeStrPtr, xpl_source, xpl_destination
+   fprintf(stderr, "%s: source = %s, destination = %s, schema = %s, body = [", msgTypeStrPtr, xpl_source, xpl_destination
    , xpl_schema);
 
    xPL_NameValueListPtr xpl_body = xPL_getMessageBody(theMessage);
@@ -367,10 +367,10 @@ int16_t _displayXPLMsg(xPL_MessagePtr theMessage)
       xPL_NameValuePairPtr keyValuePtr = xPL_getNamedValuePairAt(xpl_body, i);
 
       if(i)
-         fprintf(stderr,", ");
-      fprintf(stderr,"%s = %s",keyValuePtr->itemName, keyValuePtr->itemValue);
+         fprintf(stderr, ", ");
+      fprintf(stderr, "%s = %s", keyValuePtr->itemName, keyValuePtr->itemValue);
    }
-   fprintf(stderr,"]\n");
+   fprintf(stderr, "]\n");
    return 0;
 }
 
@@ -862,15 +862,15 @@ int main(int argc, char *argv[])
             exit(0);
             break;
          case 'x':
-            fprintf(stderr,"%c optarg = %s\n", c, optarg);
+            fprintf(stderr, "%c optarg = %s\n", c, optarg);
             set_xpl_address(optarg);
             break;
          case 'y':
-            fprintf(stderr,"%c optarg = %s\n", c, optarg);
+            fprintf(stderr, "%c optarg = %s\n", c, optarg);
             strncpy(python_automator_path, optarg, sizeof(python_automator_path)-1);
             break;
          default:
-            fprintf(stderr,"option inconnue : \"%c\"\n",c);
+            fprintf(stderr, "option inconnue : \"%c\"\n", c);
             exit(1);
       }
    }

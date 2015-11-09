@@ -451,7 +451,7 @@ void mea_strremovespaces(char *str)
    {
       while ((c = *p++) == ' ');
    }
-   while (*str++ = c);
+   while ((*str++ = c) != 0);
 
    return;
 }

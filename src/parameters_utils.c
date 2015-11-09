@@ -50,7 +50,7 @@ static uint32_t _parsed_parameters_cache_counter=0;
 static pthread_rwlock_t *_parsed_parameters_cache_rwlock = NULL;
 
 
-static void _parsed_parameters_clean_cache(int t, int force)
+static int16_t _parsed_parameters_clean_cache(int t, int force)
 {
    time_t now=time(NULL);
 
@@ -92,7 +92,9 @@ static void _parsed_parameters_clean_cache(int t, int force)
    
 _parsed_parameters_clean_cache_clean_exit:
    pthread_rwlock_unlock(_parsed_parameters_cache_rwlock);
-   pthread_cleanup_pop(0);  
+   pthread_cleanup_pop(0);
+   
+   return 0;
 }
 
 
@@ -168,6 +170,8 @@ static int16_t _parsed_parameters_add_to_cache(char **parameters_to_find, char *
 _parsed_parameters_add_to_cache_clean_exit:
    pthread_rwlock_unlock(_parsed_parameters_cache_rwlock);
    pthread_cleanup_pop(0);
+   
+   return 0;
 }
 
 
@@ -215,7 +219,7 @@ int16_t is_in_assocs_list(struct assoc_s *assocs_list, int val1, int val2)
 int16_t parsed_parameters_clean_all(int force)
 {
 #ifdef PARSED_PARAMETERS_CACHING_ENABLED
-   _parsed_parameters_clean_cache(0, force);
+   return _parsed_parameters_clean_cache(0, force);
 #endif
 }
 
@@ -223,7 +227,7 @@ int16_t parsed_parameters_clean_all(int force)
 int16_t parsed_parameters_clean_older_than(time_t t)
 {
 #ifdef PARSED_PARAMETERS_CACHING_ENABLED
-   _parsed_parameters_clean_cache(t, 0);
+   return _parsed_parameters_clean_cache(t, 0);
 #endif
 }
 
@@ -363,11 +367,6 @@ parsed_parameters_t *alloc_parsed_parameters(char *parameters_string, char *para
    parsed_parameters=_parsed_parameters_get_from_cache(parameters_to_find, *nb_params, parameters_string);
    if(parsed_parameters)
    {
-/*
-      DEBUG_SECTION {
-         fprintf (stderr, "%s (%s) : good ! parameters from cache\n", INFO_STR, __func__);
-      }
-*/
       parsed_parameters->in_use++;
       return parsed_parameters;
    }
@@ -384,7 +383,7 @@ parsed_parameters_t *alloc_parsed_parameters(char *parameters_string, char *para
    if(!parsed_parameters)
    {
       DEBUG_SECTION {
-         fprintf (stderr, "%s (%s) : %s - ",DEBUG_STR, __func__, MALLOC_ERROR_STR);
+         fprintf (MEA_STDERR, "%s (%s) : %s - ",DEBUG_STR, __func__, MALLOC_ERROR_STR);
          perror("");
       }
       if(err)
@@ -397,7 +396,7 @@ parsed_parameters_t *alloc_parsed_parameters(char *parameters_string, char *para
    if(!parsed_parameters->parameters)
    {
       DEBUG_SECTION {
-         fprintf (stderr, "%s (%s) : %s - ",DEBUG_STR, __func__, MALLOC_ERROR_STR);
+         fprintf (MEA_STDERR, "%s (%s) : %s - ",DEBUG_STR, __func__, MALLOC_ERROR_STR);
          perror("");
       }
       free(parsed_parameters);
@@ -460,7 +459,7 @@ parsed_parameters_t *alloc_parsed_parameters(char *parameters_string, char *para
                      if(!parsed_parameters->parameters[i].value.s)
                      {
                         DEBUG_SECTION {
-                           fprintf (stderr, "%s (%s) : %s - ", DEBUG_STR, __func__, MALLOC_ERROR_STR);
+                           fprintf (MEA_STDERR, "%s (%s) : %s - ", DEBUG_STR, __func__, MALLOC_ERROR_STR);
                            perror("");
                         }
                         if(parsed_parameters)

@@ -24,7 +24,7 @@ PyObject *mea_getMemory(PyObject *self, PyObject *args, PyObject *mea_memory)
    
    if(PyTuple_Size(args)!=1)
    {
-      DEBUG_SECTION fprintf(stderr, "%s (%s) :  arguments error.\n", DEBUG_STR ,__func__);
+      DEBUG_SECTION mea_log_printf("%s (%s) :  arguments error.\n", DEBUG_STR ,__func__);
       PyErr_BadArgument(); // à replacer
       return NULL;
    }
@@ -32,7 +32,7 @@ PyObject *mea_getMemory(PyObject *self, PyObject *args, PyObject *mea_memory)
    key=PyTuple_GetItem(args, 0);
    if(!key)
    {
-      DEBUG_SECTION fprintf(stderr, "%s (%s) :  bad mem id.\n", DEBUG_STR ,__func__);
+      DEBUG_SECTION mea_log_printf("%s (%s) :  bad mem id.\n", DEBUG_STR ,__func__);
       PyErr_BadArgument(); // à remplacer
       return NULL;
    }

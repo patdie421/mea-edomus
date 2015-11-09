@@ -9,6 +9,8 @@
 #include <fcntl.h>
 #include <termios.h>
 
+#include "mea_verbose.h"
+
 // defined datagram type
 #define ENOCEAN_RADIO_ERP1         0x01 // Radio telegram
 #define ENOCEAN_RESPONSE           0x02 // Response to any packet 3
@@ -30,29 +32,31 @@
 #define ENOCEAN_RET_NOT_SUPPORTED  0x02
 #define ENOCEAN_RET_WRONG_PARAM    0x03
 
-#define ENOCEAN_ERR_NOERR           0
-#define ENOCEAN_ERR_TIMEOUT         1
-#define ENOCEAN_ERR_SELECT          2
-#define ENOCEAN_ERR_READ            3
-#define ENOCEAN_ERR_UNKNOWN         4
-#define ENOCEAN_ERR_STARTFRAME      5
-#define ENOCEAN_ERR_CHECKSUM        6
-#define ENOCEAN_ERR_BADRESP         7
-#define ENOCEAN_ERR_SYS             8 // erreur systeme
-#define ENOCEAN_ERR_CRC8H           9
-#define ENOCEAN_ERR_CRC8D          10
-#define ENOCEAN_ERR_CHARTIMEOUT    11
-#define ENOCEAN_ERR_OUTOFRAGE      12
-#define ENOCEAN_ERR_DATALENGTH     13
-#define ENOCEAN_MAX_NB_ERROR       13
+#define ENOCEAN_ERR_NOERR             0
+#define ENOCEAN_ERR_TIMEOUT           1
+#define ENOCEAN_ERR_SELECT            2
+#define ENOCEAN_ERR_READ              3
+#define ENOCEAN_ERR_UNKNOWN           4
+#define ENOCEAN_ERR_STARTFRAME        5
+#define ENOCEAN_ERR_CHECKSUM          6
+#define ENOCEAN_ERR_BADRESP           7
+#define ENOCEAN_ERR_SYS               8 // erreur systeme
+#define ENOCEAN_ERR_CRC8H             9
+#define ENOCEAN_ERR_CRC8D            10
+#define ENOCEAN_ERR_CHARTIMEOUT      11
+#define ENOCEAN_ERR_OUTOFRAGE        12
+#define ENOCEAN_ERR_DATALENGTH       13
+#define ENOCEAN_MAX_NB_ERROR         13
 
 // gestion des reprises
-#define ENOCEAN_TIMEOUT_DELAY1_MS 500
+#define ENOCEAN_TIMEOUT_DELAY1_MS   500
 //#define ENOCEAN_TIMEOUT_DELAY2_MS 500
-#define ENOCEAN_NB_RETRY            5
+#define ENOCEAN_NB_RETRY              5
 
+#ifdef __linux__
 int verbose_level = 10;
 #define VERBOSE(v) if(v <= verbose_level)
+#endif
 
 uint8_t u8CRC8Table[256] = {
 0x00, 0x07, 0x0e, 0x09, 0x1c, 0x1b, 0x12, 0x15,
@@ -263,7 +267,7 @@ int16_t enocean_process_data(uint16_t *step, uint8_t c, uint8_t *data, uint16_t 
       case 0:
          if(c==0x55)
          {
-            VERBOSE(1) fprintf(stderr,"STEP %d : 0x%02x\n",*step,c);
+            VERBOSE(1) fprintf(stderr, "STEP %d : 0x%02x\n", *step, c);
             crc8h = 0;
             crc8d = 0;
             enocean_data_l=0;
@@ -277,7 +281,7 @@ int16_t enocean_process_data(uint16_t *step, uint8_t c, uint8_t *data, uint16_t 
          goto on_error_exit_enocean_process_data;
 
       case 1:
-         VERBOSE(1) fprintf(stderr,"STEP %d : 0x%02x\n",*step,c);
+         VERBOSE(1) fprintf(stderr, "STEP %d : 0x%02x\n", *step, c);
          enocean_data_l=c;
          crc8h = proc_crc8(crc8h,c);
          enocean_data[enocean_dataPtr++]=c;
@@ -285,10 +289,10 @@ int16_t enocean_process_data(uint16_t *step, uint8_t c, uint8_t *data, uint16_t 
          break;
 
       case 2:
-         VERBOSE(1) fprintf(stderr,"STEP %d : 0x%02x\n",*step,c);
+         VERBOSE(1) fprintf(stderr, "STEP %d : 0x%02x\n", *step, c);
          enocean_data_l=(enocean_data_l << 8) + c;
          crc8h = proc_crc8(crc8h,c);
-         VERBOSE(2) fprintf(stderr,"   enocean_data_l = %d\n",enocean_data_l);
+         VERBOSE(2) fprintf(stderr, "   enocean_data_l = %d\n", enocean_data_l);
          if(enocean_data_l == 0)
          {
             *step = 0;
@@ -300,7 +304,7 @@ int16_t enocean_process_data(uint16_t *step, uint8_t c, uint8_t *data, uint16_t 
          break;
 
       case 3:
-         VERBOSE(1) fprintf(stderr,"STEP %d : 0x%02x\n",*step,c);
+         VERBOSE(1) fprintf(stderr, "STEP %d : 0x%02x\n", *step, c);
          enocean_optional_l=c;
          crc8h = proc_crc8(crc8h,c);
          VERBOSE(2) printf("   enocean_optional_l = %d\n",enocean_optional_l);
@@ -309,7 +313,7 @@ int16_t enocean_process_data(uint16_t *step, uint8_t c, uint8_t *data, uint16_t 
          break;
 
       case 4:
-         VERBOSE(1) fprintf(stderr,"STEP %d : 0x%02x\n",*step,c);
+         VERBOSE(1) fprintf(stderr, "STEP %d : 0x%02x\n", *step, c);
          enocean_packet_type = c;
          crc8h = proc_crc8(crc8h,c);
          enocean_data[enocean_dataPtr++]=c;
@@ -317,8 +321,8 @@ int16_t enocean_process_data(uint16_t *step, uint8_t c, uint8_t *data, uint16_t 
          break;
 
       case 5:
-         VERBOSE(1) fprintf(stderr,"STEP %d : 0x%02x\n",*step,c);
-         VERBOSE(2) fprintf(stderr,"   crc8h = %d vs %d\n",crc8h,c);
+         VERBOSE(1) fprintf(stderr, "STEP %d : 0x%02x\n", *step, c);
+         VERBOSE(2) fprintf(stderr, "   crc8h = %d vs %d\n", crc8h, c);
          if(c != crc8h)
          {
             *nerr = ENOCEAN_ERR_CRC8H;
@@ -335,7 +339,7 @@ int16_t enocean_process_data(uint16_t *step, uint8_t c, uint8_t *data, uint16_t 
          break;
 
       case 6:
-         VERBOSE(1) fprintf(stderr,"STEP %d : 0x%02x\n",*step,c);
+         VERBOSE(1) fprintf(stderr, "STEP %d : 0x%02x\n", *step, c);
          i++;
          crc8d = proc_crc8(crc8d,c);
          enocean_data[enocean_dataPtr++]=c;
@@ -350,7 +354,7 @@ int16_t enocean_process_data(uint16_t *step, uint8_t c, uint8_t *data, uint16_t 
          break;
 
       case 7:
-         VERBOSE(1) fprintf(stderr,"STEP %d : 0x%02x\n",*step,c);
+         VERBOSE(1) fprintf(stderr, "STEP %d : 0x%02x\n", *step, c);
          crc8d = proc_crc8(crc8d,c);
          i++;
          enocean_data[enocean_dataPtr++]=c;
@@ -359,8 +363,8 @@ int16_t enocean_process_data(uint16_t *step, uint8_t c, uint8_t *data, uint16_t 
          break;
 
       case 8:
-         VERBOSE(1) fprintf(stderr,"STEP %d : 0x%02x\n",*step,c);
-         VERBOSE(2) fprintf(stderr,"   crc8d = %d vs %d\n",crc8d,c);
+         VERBOSE(1) fprintf(stderr, "STEP %d : 0x%02x\n", *step, c);
+         VERBOSE(2) fprintf(stderr, "   crc8d = %d vs %d\n", crc8d, c);
          if(c != crc8d)
          {
             *nerr = ENOCEAN_ERR_CRC8D;
@@ -370,14 +374,14 @@ int16_t enocean_process_data(uint16_t *step, uint8_t c, uint8_t *data, uint16_t 
          enocean_data[enocean_dataPtr++]=c;
          *step=*step+1;
 
-         VERBOSE(2) fprintf(stderr,"   enocean_packet_type = 0x%02x (%03d)\n",enocean_packet_type,enocean_packet_type);
-         VERBOSE(2) fprintf(stderr,"   enocean_data_length = %d\n",enocean_data_l);
-         VERBOSE(2) fprintf(stderr,"   enocean_optional_length = %d\n",enocean_optional_l);
+         VERBOSE(2) fprintf(stderr, "   enocean_packet_type = 0x%02x (%03d)\n", enocean_packet_type, enocean_packet_type);
+         VERBOSE(2) fprintf(stderr, "   enocean_data_length = %d\n", enocean_data_l);
+         VERBOSE(2) fprintf(stderr, "   enocean_optional_length = %d\n", enocean_optional_l);
          
          VERBOSE(2) {
             for(int i=0;i<enocean_dataPtr;i++)
             {
-               fprintf(stderr,"   data[%03d] = 0x%02x (%03d)\n",i,enocean_data[i],enocean_data[i]);
+               fprintf(stderr,"   data[%03d] = 0x%02x (%03d)\n", i, enocean_data[i], enocean_data[i]);
             }
          }
          
@@ -470,7 +474,7 @@ int16_t enocean_read_packet(int16_t fd, uint8_t *data, uint16_t *l_data, int16_t
       }
       else if(ret == 1)
       {
-         VERBOSE(5) fprintf(stderr,"datagram found\n");
+         VERBOSE(5) fprintf(stderr, "datagram found\n");
          return 0;
       }
       else
@@ -492,7 +496,7 @@ int main(int argc, char *argv[])
  
  if(argc!=2)
  {
-    fprintf(stderr,"usage : %s /dev/<device>\n",argv[0]);
+    fprintf(stderr, "usage : %s /dev/<device>\n", argv[0]);
     exit(1);
  }
  
@@ -505,7 +509,7 @@ int main(int argc, char *argv[])
    enocean_fd = enocean_open(dev);
    if(enocean_fd<0)
    {
-      fprintf(stderr,"open error:");
+      fprintf(stderr, "open error:");
       perror("");
       exit(1);
    }
@@ -550,44 +554,44 @@ int main(int argc, char *argv[])
                             1 => bouton appuyé (0 = relaché)
                         0000 :
                   */
-                  fprintf(stderr,"=== RPS Telegram F6 ===\n");
-                  fprintf(stderr,"Adresse   : %02x-%02x-%02x-%02x\n",data[8],data[9],data[10],data[11]);
+                  fprintf(stderr, "=== RPS Telegram F6 ===\n");
+                  fprintf(stderr, "Adresse   : %02x-%02x-%02x-%02x\n", data[8], data[9], data[10], data[11]);
                   int t21 = (data[12] & 0b00100000) >> 5;
-                  fprintf(stderr,"T21       : %d\n",t21);
+                  fprintf(stderr,"T21       : %d\n", t21);
                   int nu = (data[12]  & 0b00010000) >> 4;
-                  fprintf(stderr,"NU        : %d\n",nu);
+                  fprintf(stderr,"NU        : %d\n", nu);
                
                   if(t21 == 1)
                   {
                      if(nu == 1)
                      {
                         int butonNum = (data[7] & 0b11100000) >> 5;
-                        fprintf(stderr,"Bouton    : %d\n",butonNum);
+                        fprintf(stderr,"Bouton    : %d\n", butonNum);
                         int action   = (data[7] & 0b00010000) >> 4;
                         if(data[7] & 0b00000001)
                         {
-                           fprintf(stderr,"2d bouton : %d\n",(data[7] & 0b00001110) >> 1);
+                           fprintf(stderr, "2d bouton : %d\n", (data[7] & 0b00001110) >> 1);
                         }
                         if(action == 1)
-                           fprintf(stderr,"Action    : on\n");
+                           fprintf(stderr, "Action    : on\n");
                         else
-                           fprintf(stderr,"Action    : off\n");
+                           fprintf(stderr, "Action    : off\n");
                      }
                      else
                      {
-                        fprintf(stderr,"Nb boutons appuyes = %d\n", (data[7] & 0b11100000) >> 5);
-                        fprintf(stderr,"Energy bow = %d\n", (data[7] & 0b00010000) >> 4);
+                        fprintf(stderr, "Nb boutons appuyes = %d\n", (data[7] & 0b11100000) >> 5);
+                        fprintf(stderr, "Energy bow = %d\n", (data[7] & 0b00010000) >> 4);
                      }
                   }
             
-                  fprintf(stderr,"Dbm = %d\n", data[18]);
+                  fprintf(stderr, "Dbm = %d\n", data[18]);
                   break;
                default:
                   for(int i=0; i<l_data; i++)
                   {
                      if(i && (i % 10) == 0)
-                        fprintf(stderr,"\n");
-                     fprintf(stderr,"0x%02x ",data[i]);
+                        fprintf(stderr, "\n");
+                     fprintf(stderr, "0x%02x ", data[i]);
                   }
                   break;
             }
@@ -597,8 +601,8 @@ int main(int argc, char *argv[])
             for(int i=0; i<l_data; i++)
             {
                if(i && (i % 10) == 0)
-                  fprintf(stderr,"\n");
-               fprintf(stderr,"0x%02x ",data[i]);
+                  fprintf(stderr, "\n");
+               fprintf(stderr, "0x%02x ", data[i]);
             }
          }
       }

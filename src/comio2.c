@@ -625,10 +625,10 @@ int16_t _comio2_read_frame(int fd, char *cmd_data, uint16_t *l_cmd_data, int16_t
             cmd_data[i]=c;
             checksum+=(unsigned char)c;
             i++; // maj du reste à lire
-            DEBUG_SECTION fprintf(stderr, "%u[%c] ",(int)(0xFF & c), ((unsigned char)c >= 32 ? c : ' '));
+//            DEBUG_SECTION fprintf(stderr, "%u[%c] ",(int)(0xFF & c), ((unsigned char)c >= 32 ? c : ' '));
             if(i>=(*l_cmd_data))
             {
-               DEBUG_SECTION fprintf(stderr,"\n");
+//               DEBUG_SECTION fprintf(stderr,"\n");
                step++; // read checksum
             }
             break;

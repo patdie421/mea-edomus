@@ -80,7 +80,6 @@ void _cmndXPLMessageHandler(xPL_ServicePtr theService, xPL_MessagePtr theMessage
 
 void set_xPLServer_isnt_running(void *data)
 {
-   fprintf(stderr,"OK je m'arrete\n");
    _xPLServer_thread_is_running=0;
 }
 
@@ -104,30 +103,31 @@ void clean_xPLServer(void *data)
 #endif
 }
 
+
 // duplication de createSendableMessage de la lib xPL qui est déclarée en static et ne peut donc
 // pas normalement être utilisée. On a besoin de cette fonction pour pouvoir mettre
 // créer un message sans passer par un service (utilisé par le WD externe).
 xPL_MessagePtr mea_createSendableMessage(xPL_MessageType messageType, char *vendorID, char *deviceID, char *instanceID)
 {
-  xPL_MessagePtr theMessage;
+   xPL_MessagePtr theMessage;
   
-  // Allocate the message
-  theMessage = xPL_AllocMessage();
+   // Allocate the message
+   theMessage = xPL_AllocMessage();
 
-  // Set the version (NOT DYNAMIC)
-  theMessage->messageType = messageType;
-  theMessage->hopCount = 1;
-  theMessage->receivedMessage = FALSE;
+   // Set the version (NOT DYNAMIC)
+   theMessage->messageType = messageType;
+   theMessage->hopCount = 1;
+   theMessage->receivedMessage = FALSE;
 
-  theMessage->sourceVendor = vendorID;
-  theMessage->sourceDeviceID = deviceID;
-  theMessage->sourceInstanceID = instanceID;
+   theMessage->sourceVendor = vendorID;
+   theMessage->sourceDeviceID = deviceID;
+   theMessage->sourceInstanceID = instanceID;
 
-  // Allocate a name/value list, if needed
-  if (theMessage->messageBody == NULL) theMessage->messageBody = xPL_AllocNVList();
+   // Allocate a name/value list, if needed
+   if (theMessage->messageBody == NULL) theMessage->messageBody = xPL_AllocNVList();
   
-  // And we are done
-  return theMessage;
+   // And we are done
+   return theMessage;
 }
 
 
@@ -382,10 +382,10 @@ int16_t displayXPLMsg(xPL_MessagePtr theMessage)
    {
       xPL_NameValuePairPtr keyValuePtr = xPL_getNamedValuePairAt(xpl_body, i);
       if(i)
-         fprintf(stderr,", ");
-      fprintf(stderr,"%s = %s",keyValuePtr->itemName, keyValuePtr->itemValue);
+         fprintf(MEA_STDERR,", ");
+      fprintf(MEA_STDERR, "%s = %s",keyValuePtr->itemName, keyValuePtr->itemValue);
    }
-   fprintf(stderr,"}\n");
+   fprintf(MEA_STDERR, "}\n");
    return 0;
 }
 

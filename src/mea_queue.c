@@ -371,9 +371,12 @@ static int _create_index(mea_queue_t *queue)
 
    } while (ptr);
 
-
+#ifdef __linux__
+#else
+   typedef int (*__compar_fn_t)(const void *, const void *);
+#endif
    qsort(queue->index, queue->nb_elem, sizeof(char *), (__compar_fn_t)queue->index_order_f);
-
+   
    return NOERROR;
 }
 
@@ -411,6 +414,8 @@ mea_error_t mea_queue_create_index(mea_queue_t *queue, mea_queue_compare_data_f 
          return ERROR;
       }
    }
+   
+   return NOERROR;
 }
 
 
@@ -468,6 +473,8 @@ mea_error_t mea_queue_remove_index(mea_queue_t *queue)
    queue->index=NULL;
    queue->index_order_f = NULL;
    queue->index_status = 0;
+   
+   return NOERROR;
 }
 
 

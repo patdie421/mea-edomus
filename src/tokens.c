@@ -272,6 +272,8 @@ char *get_token_string_by_id(enum token_id_e id)
          end=middle-1;
    }
    while(start<=end);
+   
+   return NULL;
 }
 
 
@@ -319,6 +321,8 @@ enum token_id_e get_token_id_by_string(char *str)
          end=middle-1;
    }
    while(start<=end);
+   
+   return -1;
 }
 
 #elif TOKEN_BY_HASH_TABLE == 1
