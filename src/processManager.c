@@ -276,7 +276,10 @@ process_job_set_scheduling_data_clean_exit:
 void _managed_processes_process_jobs_scheduling()
 {
    if(mea_test_timer(&(managed_processes.scheduling_timer))<0)
+   {
       return;
+   }
+
    time_t cur_time;
    struct tm *tm;
 

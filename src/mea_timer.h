@@ -21,10 +21,10 @@ typedef struct mea_timer_s
 } mea_timer_t;
 
 
-uint16_t mea_init_timer(mea_timer_t *aTimer, uint32_t aDelay, uint16_t restart_flag);
+int16_t  mea_init_timer(mea_timer_t *aTimer, uint32_t aDelay, uint16_t restart_flag);
 void     mea_start_timer(mea_timer_t *aTimer);
 void     mea_stop_timer(mea_timer_t *aTimer);
-uint16_t mea_test_timer(mea_timer_t *aTimer);
+int16_t  mea_test_timer(mea_timer_t *aTimer);
 
 double   mea_now();
 void     mea_nanosleep(uint32_t ns);

@@ -44,7 +44,7 @@ void mea_microsleep(uint32_t usecs)
 }
 
 
-uint16_t mea_init_timer(mea_timer_t *aTimer, uint32_t aDelay, uint16_t restartStatus)
+int16_t mea_init_timer(mea_timer_t *aTimer, uint32_t aDelay, uint16_t restartStatus)
 /**
  * \brief     création (initialisation) d'un timer
  * \details   initialise une structure "mea_timer_t". Le timer est "arrêté" au démarrage (pas de prise de chrono)
@@ -92,7 +92,7 @@ void mea_stop_timer(mea_timer_t *aTimer)
 }
 
 
-uint16_t mea_test_timer(mea_timer_t *aTimer)
+int16_t mea_test_timer(mea_timer_t *aTimer)
 /**
  * \brief     test le timer
  * \details   teste si le delai est dépassé.

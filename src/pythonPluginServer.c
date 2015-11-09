@@ -178,7 +178,6 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
       strcat(str_module_py,"reload");
       
       int ret=unlink(str_module_py);
-      fprintf(stderr,"ICI %s %d\n", str_module_py);
       if(!ret)
       {
          pModule = PyImport_ReloadModule(pModule);
@@ -576,7 +575,6 @@ int start_pythonPluginServer(int my_id, void *data, char *errmsg, int l_errmsg)
    if(pythonPluginServer_start_stop_params->params_list[PLUGINS_PATH])
    {
       setPythonPluginPath(pythonPluginServer_start_stop_params->params_list[PLUGINS_PATH]);
-      fprintf(stderr,"%s\n",pythonPluginServer_start_stop_params->params_list[PLUGINS_PATH]);
       _pythonPluginServer_thread_id=pythonPluginServer();
       if(_pythonPluginServer_thread_id==NULL)
       {

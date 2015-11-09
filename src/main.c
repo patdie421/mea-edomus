@@ -25,10 +25,10 @@
 #include <sqlite3.h>
 
 #include "globals.h"
-#include "mea_verbose.h"
 #include "macros.h"
 #include "mea_queue.h"
 #include "mea_string_utils.h"
+#include "mea_verbose.h"
 #include "consts.h"
 #include "tokens.h"
 #include "tokens_da.h"
@@ -59,6 +59,7 @@ int pythonPluginServer_monitoring_id=-1;
 int dbServer_monitoring_id=-1;
 int nodejsServer_monitoring_id=-1;
 int automatorServer_monitoring_id=-1;
+int log_rotation_id=-1;
 
 mea_queue_t *interfaces=NULL;                  /*!< liste (file) des interfaces. Variable globale car doit être accessible par les gestionnaires de signaux. */
 sqlite3 *sqlite3_param_db=NULL;            /*!< descripteur pour la base sqlite de paramétrage. */
@@ -146,6 +147,22 @@ void usage(char *cmd)
    printf("\nusage : %s [options de lancememnt] [options d'intialisation]\n", cmd);
    for(int16_t i=0;usage_text[i];i++)
       printf("%s\n",usage_text[i]);
+}
+
+
+int logfile_rotation_job(int my_id, void *data, char *errmsg, int l_errmsg)
+{
+   char *log_file=(char *)data;
+
+   if(log_file)
+   {
+      mea_log_printf("%s (%s) : job rotation start\n", INFO_STR, __func__);
+
+      mea_rotate_open_log_file(MEA_STDERR, log_file, 6);
+
+      mea_log_printf("%s (%s) : job rotation done\n", INFO_STR, __func__);
+   }
+   return 0;
 }
 
 
@@ -959,8 +976,17 @@ int main(int argc, const char * argv[])
    process_set_start_stop(interfaces_reload_task_id , restart_interfaces, NULL, (void *)(&interfacesServerData), 1);
    process_set_type(interfaces_reload_task_id, TASK);
 
+   int log_rotation_id=process_register("LOGROTATION");
+   process_set_start_stop(log_rotation_id, logfile_rotation_job, NULL, (void *)log_file, 1);
+   process_set_type(log_rotation_id, JOB);
+//   process_job_set_scheduling_data(log_rotation_id, "0,5,10,15,20,25,30,35,40,45,50,55|*|*|*|*", 0);
+   process_job_set_scheduling_data(log_rotation_id, "0|0|*|*|*", 0); // rotation des log tous les jours à minuit
+   process_set_group(log_rotation_id, 7);
 
-   VERBOSE(1) mea_log_printf("%s  (%s) : MEA-EDOMUS %s starded\n",INFO_STR,__func__,__MEA_EDOMUS_VERSION__);
+   // au démarrage : rotation des log.
+   process_run_task(log_rotation_id, NULL, 0);
+
+   VERBOSE(1) mea_log_printf("%s  (%s) : MEA-EDOMUS %s starded\n", INFO_STR, __func__, __MEA_EDOMUS_VERSION__);
 
    time_t start_time;
    long uptime = 0;

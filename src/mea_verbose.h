@@ -3,6 +3,7 @@
 
 #include <pthread.h>
 #include <stdarg.h>
+#include <inttypes.h>
 
 #define ERROR_STR        _error_str
 #define INFO_STR         _info_str
@@ -33,6 +34,7 @@ void debug_off();
 int16_t debug_status();
 
 void mea_log_printf(char const* fmt, ...);
-//pthread_rwlock_t *mea_log_get_rwlock();
+
+int mea_rotate_open_log_file(FILE *fd, char *name, uint16_t max_index);
 
 #endif

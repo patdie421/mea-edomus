@@ -109,6 +109,7 @@ int   process_set_data(int id, void *data);
 void *process_get_data_ptr(int id);
 int   process_set_description(int id, char *description);
 int   process_set_heartbeat_interval(int id, int interval);
+int   process_job_set_scheduling_data(int id, char *str, int16_t condition);
 int   process_wd_disable(int id, int flag);
 
 int   process_forced_watchdog_recovery(int id);

@@ -536,7 +536,7 @@ void *xPLServer_thread(void *data)
          if(compteur>59)
          {
             compteur=0;
-            mea_log_printf("%s  (%s) : %s thread is running\n", INFO_STR, __func__, xpl_server_name_str);
+            mea_log_printf("%s (%s) : %s thread is running\n", INFO_STR, __func__, xpl_server_name_str);
          }
          else
             compteur++;
@@ -577,7 +577,7 @@ pthread_t *xPLServer()
    if(!xplRespQueue)
    {
       VERBOSE(1) {
-         mea_log_printf("%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
+         mea_log_printf("%s (%s) : %s - ", ERROR_STR, __func__, MALLOC_ERROR_STR);
          perror("");
       }
       return NULL;
@@ -590,7 +590,7 @@ pthread_t *xPLServer()
    if(!_xPLServer_thread_id)
    {
       VERBOSE(1) {
-         mea_log_printf("%s (%s) : %s - ",ERROR_STR,__func__, MALLOC_ERROR_STR);
+         mea_log_printf("%s (%s) : %s - ", ERROR_STR, __func__, MALLOC_ERROR_STR);
          perror("");
       }
       free(xplRespQueue);
@@ -657,12 +657,12 @@ int stop_xPLServer(int my_id, void *data,  char *errmsg, int l_errmsg)
 
    if(ret==0)
    {
-      VERBOSE(2) mea_log_printf("%s  (%s) : %s %s.\n", INFO_STR, __func__, xpl_server_name_str, stopped_successfully_str);
+      VERBOSE(2) mea_log_printf("%s (%s) : %s %s.\n", INFO_STR, __func__, xpl_server_name_str, stopped_successfully_str);
       mea_notify_printf('S', "%s %s", xpl_server_name_str, stopped_successfully_str);
    }
    else
    {
-      VERBOSE(2) mea_log_printf("%s  (%s) : %s can't cancel thread.\n", INFO_STR, __func__, xpl_server_name_str);
+      VERBOSE(2) mea_log_printf("%s (%s) : %s can't cancel thread.\n", INFO_STR, __func__, xpl_server_name_str);
       mea_notify_printf('S', "%s can't cancel thread", xpl_server_name_str);
    }
    return ret;
@@ -707,7 +707,7 @@ int start_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg)
       else
       {
          pthread_detach(*_xPLServer_thread_id);
-         VERBOSE(2) mea_log_printf("%s  (%s) : %s launched successfully.\n", INFO_STR, __func__, xpl_server_name_str);
+         VERBOSE(2) mea_log_printf("%s (%s) : %s launched successfully.\n", INFO_STR, __func__, xpl_server_name_str);
          mea_notify_printf('S', "%s launched successfully", xpl_server_name_str);
 
          return 0;
