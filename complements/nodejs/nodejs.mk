@@ -16,7 +16,7 @@ COMP_SRC_PATH=$(COMP_PATH)/src/$(COMP_SRC_NAME)
 all: $(COMP_SRC_PATH)/$(COMP_EXEC)
 
 $(COMP_SRC_PATH)/$(COMP_EXEC): $(COMP_SRC_PATH)/Makefile
-	cd $(COMP_SRC_PATH) ; make -j8
+	cd $(COMP_SRC_PATH) ; make -j2
 
 $(COMP_SRC_PATH)/Makefile: $(COMP_SRC_PATH)/extract.ok
 	cd $(COMP_SRC_PATH) ; ./configure ; touch $(COMP_SRC_PATH)/Makefile

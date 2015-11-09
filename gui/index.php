@@ -45,7 +45,7 @@ if(!isset($_SESSION['logged_in']))
 <script type="text/javascript" src="models/common/models-utils.js"></script>
 
 <script type="text/javascript" src="controllers/common/commoncontroller.js"></script>
-<script type="text/javascript" src="controllers/common/GridController.js"></script>
+<script type="text/javascript" src="controllers/common/gridcontroller.js"></script>
 <script type="text/javascript" src="controllers/common/translationcontroller.js"></script>
 <script type="text/javascript" src="controllers/common/credentialcontroller.js"></script>
 <script type="text/javascript" src="controllers/common/livecomcontroller.js"></script>

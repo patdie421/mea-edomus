@@ -32,7 +32,7 @@ int16_t build_erp1_rps_broadcast_packet(uint32_t source, uint8_t data, uint8_t s
    uint16_t ptr=0;
    uint8_t crc8h = 0, crc8d = 0;
    
-   if(*l_packet < 21)
+   if(l_packet < 21)
       return -1;
 
    // Octet de synchro

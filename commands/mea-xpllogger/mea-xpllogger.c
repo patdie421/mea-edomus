@@ -108,6 +108,7 @@ void logger(char *interface)
 #endif
    }
    
+   xPL_setBroadcastInterface("wlan1");
    if ( !xPL_initialize(xPL_getParsedConnectionType()) )
       exit(1);
    

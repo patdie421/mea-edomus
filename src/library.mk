@@ -13,13 +13,25 @@ LIBNAME=$(NAME).a
 SHELL = /bin/bash
 
 DEBUGFLAGS  = -D__DEBUG_ON__
-CFLAGS      = -std=c99 \
-              -O2 \
-              -DTECHNO_$(TECHNO) \
-              -IxPLLib-mac \
-              -I/usr/local/mysql/include \
-              -I/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7 \
-              $(DEBUGFLAGS)
+ifeq ($(TECHNO), linux)
+   CFLAGS      = -std=c99 \
+                 -std=gnu99 \
+                 -D_BSD_SOURCE \
+                 -O2 \
+                 -DTECHNO_$(TECHNO) \
+                 -I/usr/include/mysql \
+                 -I/usr/include/python2.7 \
+                 $(DEBUGFLAGS)
+endif
+ifeq ($(TECHNO), macosx)
+   CFLAGS      = -std=c99 \
+                 -O2 \
+                 -DTECHNO_$(TECHNO) \
+                 -IxPLLib-mac \
+                 -I/usr/local/mysql/include \
+                 -I/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7 \
+                 $(DEBUGFLAGS)
+endif
 
 LIBDIR=$(BASEDIR)/lib/$(NAME)/$(TECHNO)
 
@@ -34,7 +46,7 @@ parameters_utils.c  \
 philipshue.c  \
 philipshue_color.c  \
 processManager.c  \
-python_api_utils.c  \
+python_utils.c  \
 mea_queue.c  \
 mea_sockets_utils.c \
 sqlite3db_utils.c  \

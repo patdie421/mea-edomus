@@ -14,7 +14,7 @@
 #include "dbServer.h"
 #include "mea_queue.h"
 
-#define __MEA_EDOMUS_VERSION__ "0.1aplha5-ondev"
+#define __MEA_EDOMUS_VERSION__ "0.1aplha6-ondev"
 
 // base de paramétrage
 
@@ -42,7 +42,8 @@
 #define NODEJSIOSOCKET_PORT   22
 #define NODEJSDATA_PORT       23
 #define PARAMSDBVERSION       24
-#define MAX_LIST_SIZE         25
+#define INTERFACE             25
+#define MAX_LIST_SIZE         26
 
 #define CURRENT_PARAMS_DB_VERSION 4
 sqlite3 *get_sqlite3_param_db();

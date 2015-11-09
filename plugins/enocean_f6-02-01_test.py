@@ -49,13 +49,13 @@ def testfn():
    # debut de la requete
    request[0] = 0x55
 
-   # longueur données = 1
+   # longueur donnees = 1
    request[1] = 0
    crc8h = mea.enoceanCRC(crc8h, request[1])
    request[2] = 1
    crc8h = mea.enoceanCRC(crc8h, request[2])
 
-   # longueur données optionnelles = 0
+   # longueur donnees optionnelles = 0
    request[3] = 0
    crc8h = mea.enoceanCRC(crc8h, request[3]);
 
@@ -66,7 +66,7 @@ def testfn():
    # CRC8H
    request[5] = crc8h;
 
-   # donnée = CO_RD_VERSION
+   # donnee = CO_RD_VERSION
    request[6] = 3; # CO_RD_VERSION
    crc8d = mea.enoceanCRC(crc8d, request[6])
 
@@ -179,9 +179,9 @@ def mea_enoceanData(data):
                   
             else: # bouton relache
                if mem["button1"] != -1:
-                  verbose(2,"Relachement de : ", mem["button1"];
+                  verbose(2,"Relachement de : ", mem["button1"]);
                if mem["button2"] != -1:
-                  verbose(2, "Relachement de : " mem["button2"];
+                  verbose(2, "Relachement de : ", mem["button2"]);
                mem["button1"]=-1
                mem["button2"]=-1
                verbose(2,"Nb boutons appuyes = ", (packet[7] & 0b11100000) >> 5);

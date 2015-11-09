@@ -491,7 +491,7 @@ int16_t createMeaTables(sqlite3 *sqlite3_param_db)
       "CREATE TABLE locations(id INTEGER PRIMARY KEY,id_location INTEGER,name TEXT,description TEXT)",
 //      "CREATE TABLE sensors_actuators(id INTEGER PRIMARY KEY,id_sensor_actuator INTEGER,id_type INTEGER,id_interface INTERGER,name TEXT,description TEXT,id_location INTEGER,parameters TEXT,state INTEGER)",
       "CREATE TABLE sensors_actuators(id INTEGER PRIMARY KEY,id_sensor_actuator INTEGER,id_type INTEGER,id_interface INTERGER,name TEXT,description TEXT,id_location INTEGER,parameters TEXT,state INTEGER, todbflag INTEGER)",
-      "CREATE TABLE types(id INTEGER PRIMARY KEY,id_type INTEGER,name TEXT,description TEXT,parameters TEXT,flag INTEGER)",
+      "CREATE TABLE types(id INTEGER PRIMARY KEY,id_type INTEGER,name TEXT,description TEXT,parameters TEXT,flag INTEGER,typeoftype INTEGER)",
       "CREATE TABLE sessions (id INTEGER PRIMARY KEY, userid TEXT, sessionid INTEGER, lastaccess DATETIME)",
       "CREATE TABLE users (id INTEGER PRIMARY KEY, id_user INTEGER, name TEXT, password TEXT, description TEXT, profil INTEGER, flag INTEGER)",
       "CREATE TABLE conditions (id INTEGER PRIMARY KEY, id_condition INTEGER, id_rule INTEGER, name TEXT, key TEXT, value TEXT, op INTEGER)",
@@ -605,6 +605,8 @@ int populateMeaTypes(sqlite3 *sqlite3_param_db)
       {INTERFACE_TYPE_001,"INTYP01","Interface de type 01","","1","10"},
       {INTERFACE_TYPE_002,"INTYP02","Interface de type 02","","1","10"},
       {INTERFACE_TYPE_003,"INTYP03","Interface de type 03","","1","10"},
+      {INTERFACE_TYPE_004,"INTYP04","Interface de type 04","","1","10"},
+//      {INTERFACE_TYPE_005,"INTYP05","Interface de type 05","","1","10"},
       {201,"XBEECA","Capteurs et actionneurs a interface XBee","","1","10"},
       {1000,"PWRCTR","Capteur de compteur ERDF","","1","0"},
       {1001,"TYP1IN","Entree interface type 01","","1","0"},
@@ -934,6 +936,12 @@ int16_t autoInit(char **params_list, char **keys)
 
    _construct_path(params_list, NODEJS_PATH,       "",   "usr/bin/nodejs");
 
+#ifdef __linux__
+   _construct_string(params_list, INTERFACE, "eth0");
+#else
+   _construct_string(params_list, INTERFACE, "en0");
+#endif
+
    _construct_string(params_list, NODEJSIOSOCKET_PORT, "8000");
    _construct_string(params_list, NODEJSDATA_PORT, "5600");
 
@@ -1021,6 +1029,11 @@ int16_t interactiveInit(char **params_list, char **keys)
    _construct_string(params_list, PARAMSDBVERSION, db_version);
 
    // Récupération des données
+#ifdef __linux__
+   _read_string(params_list, INTERFACE,        "eth0",      "network interface");
+#else
+   _read_string(params_list, INTERFACE,        "en0",       "network interface");
+#endif
    _read_string(params_list, VENDOR_ID,        "mea",       "xPL Vendor ID");
    _read_string(params_list, DEVICE_ID,        "edomus",    "xPL Device ID");
    _read_string(params_list, INSTANCE_ID,      "myhome",    "xPL Instance ID");
@@ -1465,6 +1478,7 @@ upgrade_params_db_from_x_to_y_f upgrade_params_db_from_x_to_y[]= {
    upgrade_params_db_from_3_to_4,
    NULL };
 // #define NB_UPGRADE_FN 3
+
 
 int16_t upgrade_params_db(sqlite3 *sqlite3_param_db, uint16_t fromVersion, uint16_t toVersion, struct upgrade_params_s *upgrade_params)
 {

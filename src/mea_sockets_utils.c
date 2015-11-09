@@ -55,10 +55,12 @@ int mea_socket_connect(int *s, char *hostname, int port)
    
    if(connect(sock, (const struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
    {
+/*
       DEBUG_SECTION {
          mea_log_printf("%s (%s) :  connect - can't connect : ",ERROR_STR,__func__);
          perror("");
       }
+*/
       close(sock);
       return -1;
    }

@@ -110,11 +110,11 @@ struct actuator_s *interface_type_001_valid_and_malloc_actuator(int16_t id_senso
       goto valid_and_malloc_relay_clean_exit;
    }
 
-   relay_params=malloc_parsed_parameters((char *)parameters, valid_relay_params, &nb_relay_params, &err,1);
+   relay_params=alloc_parsed_parameters((char *)parameters, valid_relay_params, &nb_relay_params, &err,1);
    if(relay_params)
    {
-      type_id=get_token_id_by_string(relay_params[ACTUATOR_PARAMS_TYPE].value.s);
-      pin_id=mea_getArduinoPin(relay_params[ACTUATOR_PARAMS_PIN].value.s);
+      type_id=get_token_id_by_string(relay_params->parameters[ACTUATOR_PARAMS_TYPE].value.s);
+      pin_id=mea_getArduinoPin(relay_params->parameters[ACTUATOR_PARAMS_PIN].value.s);
       
       if(valide_actuator_i001(type_id,pin_id,action_id,&err))
       {
@@ -124,10 +124,8 @@ struct actuator_s *interface_type_001_valid_and_malloc_actuator(int16_t id_senso
          actuator->arduino_pin=pin_id;
          actuator->arduino_pin_type=type_id;
          actuator->old_val=0;
-         
-         clean_parsed_parameters(relay_params, nb_relay_params);
-         free(relay_params);
-         relay_params=NULL;
+       
+         release_parsed_parameters(&relay_params); 
          
          return actuator;
       }
@@ -153,11 +151,8 @@ valid_and_malloc_relay_clean_exit:
       actuator=NULL;
    }
    if(relay_params)
-   {
-      clean_parsed_parameters(relay_params, nb_relay_params);
-      free(relay_params);
-      relay_params=NULL;
-   }
+      release_parsed_parameters(&relay_params);
+
    return NULL;
 }
 

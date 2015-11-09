@@ -33,6 +33,6 @@ void debug_off();
 int16_t debug_status();
 
 void mea_log_printf(char const* fmt, ...);
-pthread_rwlock_t *mea_log_get_rwlock();
+//pthread_rwlock_t *mea_log_get_rwlock();
 
 #endif

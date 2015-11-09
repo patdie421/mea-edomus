@@ -29,6 +29,7 @@
 #include "processManager.h"
 #include "notify.h"
 
+#define free(x) free(x);
 
 #include "mea_api.h"
 
@@ -145,9 +146,8 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
    PyObject *pArgs, *pValue;
 
    PyErr_Clear();
-   
+
    pName = PyString_FromString(module);
-   
    pModule = PyDict_GetItem(known_modules, pName);
    if(!pModule)
    {
@@ -158,7 +158,10 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
       }
       else
       {
-         VERBOSE(5) mea_log_printf("%s (%s) : module %s not found.\n", ERROR_STR, __func__, module);
+         VERBOSE(5) {
+            mea_log_printf("%s (%s) : module %s not loaded - \n", ERROR_STR, __func__, module);
+            PyErr_Print();
+         }
          return NOERROR;
       }
    }
@@ -175,6 +178,7 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
       strcat(str_module_py,"reload");
       
       int ret=unlink(str_module_py);
+      fprintf(stderr,"ICI %s %d\n", str_module_py);
       if(!ret)
       {
          pModule = PyImport_ReloadModule(pModule);
@@ -242,7 +246,6 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
             }
             process_update_indicator(_pythonPluginServer_monitoring_id, "PYCALLERR", ++nbpycallerr_indicator);
             return_code=ERROR;
-            goto call_pythonPlugin_clean_exit;
          }
          
          Py_DECREF(pValue); // verifier si nécessaire
@@ -338,7 +341,6 @@ void *_pythonPlugin_thread(void *data)
    while(1)
    {
       process_heartbeat(_pythonPluginServer_monitoring_id);
-
       pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&pythonPluginCmd_queue_lock);
       pthread_mutex_lock(&pythonPluginCmd_queue_lock);
    
@@ -389,7 +391,7 @@ void *_pythonPlugin_thread(void *data)
 
          PyThreadState *tempState=NULL;
          pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
-         PyEval_AcquireLock(); // DEBUG_PyEval_AcquireLock(fn_name, &local_last_time);
+         PyEval_AcquireLock();
          tempState = PyThreadState_Swap(myThreadState);
          
          PyObject *pydict_data=data->aDict;
@@ -397,10 +399,11 @@ void *_pythonPlugin_thread(void *data)
          call_pythonPlugin(e->python_module, data->type_elem, pydict_data);
          
          Py_DECREF(pydict_data);
-         
+
          PyThreadState_Swap(tempState);
-         PyEval_ReleaseLock(); // DEBUG_PyEval_ReleaseLock(fn_name, &local_last_time);
+         PyEval_ReleaseLock();
          pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+
 
          if(e)
          {

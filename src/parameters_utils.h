@@ -38,25 +38,33 @@ typedef union
 } value_token_t;
 
 
-typedef struct parsed_parameters_s
+typedef struct parsed_parameter_s
 {
    char *label;
    enum { INT=1, LONG=2, FLOAT=3, STRING=4 } type;
    value_token_t value;
+} parsed_parameter_t;
+
+
+typedef struct parsed_parameters_s
+{
+   parsed_parameter_t *parameters;
+   uint16_t nb;
 #ifdef PARSED_PARAMETERS_CACHING_ENABLED
    int8_t from_cache;
+   uint16_t in_use;
 #endif
 } parsed_parameters_t;
 
+
 int16_t parsed_parameters_init();
 
-parsed_parameters_t *malloc_parsed_parameters(char *parameters_string, char *parameters_to_find[], int *nb_params, int *err, int value_to_upper);
-void clean_parsed_parameters(parsed_parameters_t *params, int nb_params);
-void free_and_zero_parsed_parameters(parsed_parameters_t **params);
-void display_parsed_parameters(parsed_parameters_t *params, int nb_params);
+parsed_parameters_t *alloc_parsed_parameters(char *parameters_string, char *parameters_to_find[], int *nb_params, int *err, int value_to_upper_flag);
+void release_parsed_parameters(parsed_parameters_t **params);
+void display_parsed_parameters(parsed_parameters_t *params);
 
 int16_t is_in_assocs_list(struct assoc_s *assocs_list, int val1, int val2);
 
 int16_t parsed_parameters_clean_older_than(time_t t);
-int16_t parsed_parameters_clean_all();
+int16_t parsed_parameters_clean_all(int force);
 #endif

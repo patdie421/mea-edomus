@@ -108,6 +108,7 @@ def mea_enoceanData(data):
 
    try:
       id_sensor=data["device_id"]
+      verbose(1, "DEBUG (", fn_name, ") - id_sensor=", id_sensor)
       packet=data["data"]
       l_packet=data["l_data"]
       parameters=data["device_parameters"]

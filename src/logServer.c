@@ -461,9 +461,9 @@ void *logServer_thread(void *data)
             {
                if(line[0]) // ligne non vide
                {
-                  if(send_line(logServer_thread_data->hostname, logServer_thread_data->port_socketdata, line)<0)
+                  if(send_line(logServer_thread_data->hostname, logServer_thread_data->port_socketdata, line) < 0)
                   {
-                     VERBOSE(9) mea_log_printf("%s (%s) : can't send line.\n", ERROR_STR, __func__);
+//                     VERBOSE(9) mea_log_printf("%s (%s) : can't send line.\n", ERROR_STR, __func__);
                   }
                }
             }

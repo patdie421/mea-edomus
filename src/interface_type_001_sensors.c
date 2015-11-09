@@ -252,21 +252,20 @@ struct sensor_s *interface_type_001_sensors_valid_and_malloc_sensor(int16_t id_s
    if(!sensor)
    {
       VERBOSE(1) {
-//         fprintf (stderr, "%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
          mea_log_printf("%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
          perror("");
       }
       goto interface_type_001_sensors_valid_and_malloc_sensor_clean_exit;
    }
    
-   sensor_params=malloc_parsed_parameters((char *)parameters, valid_sensor_params, &nb_sensor_params, &err,1);
+   sensor_params=alloc_parsed_parameters((char *)parameters, valid_sensor_params, &nb_sensor_params, &err,1);
    
    if(sensor_params)
    {
-      type_id=get_token_id_by_string(sensor_params[SENSOR_PARAMS_TYPE].value.s);
-      pin_id=mea_getArduinoPin(sensor_params[SENSOR_PARAMS_PIN].value.s);
-      compute_id=get_token_id_by_string(sensor_params[SENSOR_PARAMS_COMPUTE].value.s);
-      algo_id=get_token_id_by_string(sensor_params[SENSOR_PARAMS_ALGO].value.s);
+      type_id=get_token_id_by_string(sensor_params->parameters[SENSOR_PARAMS_TYPE].value.s);
+      pin_id=mea_getArduinoPin(sensor_params->parameters[SENSOR_PARAMS_PIN].value.s);
+      compute_id=get_token_id_by_string(sensor_params->parameters[SENSOR_PARAMS_COMPUTE].value.s);
+      algo_id=get_token_id_by_string(sensor_params->parameters[SENSOR_PARAMS_ALGO].value.s);
       
       switch(type_id)
       {
@@ -277,8 +276,7 @@ struct sensor_s *interface_type_001_sensors_valid_and_malloc_sensor(int16_t id_s
             sensor->arduino_function=6;
             break;
          default:
-//            VERBOSE(1) fprintf (stderr, "%s (%s) : bad sensor type (%s)\n",ERROR_STR,__func__,sensor_params[SENSOR_PARAMS_TYPE].value.s);
-            VERBOSE(1) mea_log_printf("%s (%s) : bad sensor type (%s)\n",ERROR_STR,__func__,sensor_params[SENSOR_PARAMS_TYPE].value.s);
+            VERBOSE(1) mea_log_printf("%s (%s) : bad sensor type (%s)\n",ERROR_STR,__func__,sensor_params->parameters[SENSOR_PARAMS_TYPE].value.s);
             goto interface_type_001_sensors_valid_and_malloc_sensor_clean_exit;
             break;
       }
@@ -313,9 +311,9 @@ struct sensor_s *interface_type_001_sensors_valid_and_malloc_sensor(int16_t id_s
                break;
          }
          
-         if(sensor_params[SENSOR_PARAMS_POLLING_PERIODE].value.i>0)
+         if(sensor_params->parameters[SENSOR_PARAMS_POLLING_PERIODE].value.i>0)
          {
-            mea_init_timer(&(sensor->timer),sensor_params[SENSOR_PARAMS_POLLING_PERIODE].value.i,1);
+            mea_init_timer(&(sensor->timer),sensor_params->parameters[SENSOR_PARAMS_POLLING_PERIODE].value.i,1);
          }
          else
          {
@@ -324,23 +322,19 @@ struct sensor_s *interface_type_001_sensors_valid_and_malloc_sensor(int16_t id_s
          // start_timer(&(sensor->timer));
          sensor->nbtrap=NULL;
          sensor->nbxplout=NULL;
-         clean_parsed_parameters(sensor_params, nb_sensor_params);
-         free(sensor_params);
-         sensor_params=NULL;
+         release_parsed_parameters(&sensor_params);
          return sensor;
       }
       else
       {
-//         VERBOSE(1) fprintf (stderr, "%s (%s) : parametres (%s) non valides\n",ERROR_STR,__func__,parameters);
-         VERBOSE(1) mea_log_printf("%s (%s) : parametres (%s) non valides\n",ERROR_STR,__func__,parameters);
+         VERBOSE(1) mea_log_printf("%s (%s) : parametres (%s) non valides\n", ERROR_STR, __func__, parameters);
          goto interface_type_001_sensors_valid_and_malloc_sensor_clean_exit;
       }
    }
    else
    {
       VERBOSE(1) {
-//         fprintf(stderr,"%s (%s) : %s/%s invalid. Check parameters.\n",ERROR_STR,__func__,name,parameters);
-         mea_log_printf("%s (%s) : %s/%s invalid. Check parameters.\n",ERROR_STR,__func__,name,parameters);
+         mea_log_printf("%s (%s) : %s/%s invalid. Check parameters.\n",ERROR_STR, __func__, name, parameters);
       }
    }
    
@@ -350,12 +344,10 @@ interface_type_001_sensors_valid_and_malloc_sensor_clean_exit:
       free(sensor);
       sensor=NULL;
    }
+
    if(sensor_params)
-   {
-      clean_parsed_parameters(sensor_params, nb_sensor_params);
-      free(sensor_params);
-      sensor_params=NULL;
-   }
+      release_parsed_parameters(&sensor_params);
+
    return NULL;
 }
 

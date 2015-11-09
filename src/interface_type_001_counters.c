@@ -146,11 +146,11 @@ struct electricity_counter_s *interface_type_001_sensors_valid_and_malloc_counte
    int err;
    
    int16_t num_counter=-1;
-   counter_params=malloc_parsed_parameters(parameters, valid_counter_params, &nb_counter_params, &err,1);
+   counter_params=alloc_parsed_parameters(parameters, valid_counter_params, &nb_counter_params, &err,1);
    if(counter_params)
    {
       // VERBOSE(9) display_parsed_parameters(counter_params, nb_counter_params);
-      num_counter=counter_params[COUNTER_PARAMS_COUNTER].value.i;
+      num_counter=counter_params->parameters[COUNTER_PARAMS_COUNTER].value.i;
       if(num_counter<0 || num_counter>1)
          goto valid_and_malloc_counter_clean_exit;
       
@@ -158,9 +158,9 @@ struct electricity_counter_s *interface_type_001_sensors_valid_and_malloc_counte
          counter->sensor_mem_addr[i]=counters_mem[num_counter][i];
       counter->trap=counters_trap[num_counter];
       
-      if(counter_params[COUNTER_PARAMS_POLLING_PERIODE].value.i>0)
+      if(counter_params->parameters[COUNTER_PARAMS_POLLING_PERIODE].value.i>0)
       {
-         mea_init_timer(&(counter->timer),counter_params[COUNTER_PARAMS_POLLING_PERIODE].value.i,1);
+         mea_init_timer(&(counter->timer),counter_params->parameters[COUNTER_PARAMS_POLLING_PERIODE].value.i,1);
       }
       else
       {
@@ -168,10 +168,8 @@ struct electricity_counter_s *interface_type_001_sensors_valid_and_malloc_counte
       }
       
       mea_init_timer(&(counter->trap_timer), 600, 1); // 10 mn sans trap
-      
-      clean_parsed_parameters(counter_params, nb_counter_params);
-      free(counter_params);
-      counter_params=NULL;
+    
+      release_parsed_parameters(&counter_params); 
    }
    else
    {
@@ -200,13 +198,9 @@ valid_and_malloc_counter_clean_exit:
    }
    if(counter_params)
    {
-      clean_parsed_parameters(counter_params, nb_counter_params);
-      free(counter_params);
-      counter_params=NULL;
-   }
-   VERBOSE(1) {
-//      fprintf(stderr,"%s (%s) : %s/%s invalid. Check parameters.\n",ERROR_STR,__func__,name,parameters);
       mea_log_printf("%s (%s) : %s/%s invalid. Check parameters.\n",ERROR_STR,__func__,name,parameters);
+
+      release_parsed_parameters(&counter_params);
    }
    
    return NULL;

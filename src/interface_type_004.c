@@ -135,16 +135,6 @@ int16_t sendAllxPLTrigger(interface_type_004_t *i004)
             state = state & onCurrent->valueint;
             
             sendXPLLightState(i004, servicePtr, xPL_MESSAGE_TRIGGER, deviceName, state, reachableCurrent->valueint, onCurrent->valueint, -1);
-            /*
-             if(state != 0)
-             {
-             sendXPLLightState(i004, servicePtr, xPL_MESSAGE_TRIGGER, deviceName, 1, reachableCurrent->valueint, onCurrent->valueint, -1);
-             }
-             else
-             {
-             sendXPLLightState(i004, servicePtr, xPL_MESSAGE_TRIGGER, deviceName, 0, reachableCurrent->valueint, onCurrent->valueint, -1);
-             }
-             */
          }
       }
       currentLight=currentLight->next;
@@ -391,16 +381,7 @@ int16_t interface_type_004_xPL_actuator(interface_type_004_t *i004, xPL_ServiceP
             state = state & reachable;
          sendXPLLightState(i004, mea_getXPLServicePtr(), xPL_MESSAGE_TRIGGER, sensor, state, reachable, on, -1);
       }
-      /*
-       else if (color != 0xFFFFFF && type_id == XPL_COLOR_ID)
-       {
-       if(color)
-       state = reachable;
-       else
-       state = 0;
-       sendXPLLightState(i004, mea_getXPLServicePtr(), xPL_MESSAGE_TRIGGER, sensor, state, reachable, on, -1);
-       }
-       */
+
       if(sensor)
          free(sensor);
    }
@@ -761,10 +742,10 @@ int load_interface_type_004(interface_type_004_t *i004, sqlite3 *db)
          const unsigned char *parameters=sqlite3_column_text(stmt, 7);
          int todbflag=sqlite3_column_int(stmt, 9);
          
-         hue_params=malloc_parsed_parameters((char *)parameters, valid_hue_params, &nb_hue_params, &nerr, 0);
+         hue_params=alloc_parsed_parameters((char *)parameters, valid_hue_params, &nb_hue_params, &nerr, 0);
          if(hue_params && nb_hue_params>0)
          {
-            int params_test = (hue_params[PARAMS_HUELIGH].value.s != NULL) + (hue_params[PARAMS_HUEGROUP].value.s != NULL) + (hue_params[PARAMS_HUESCENE].value.s != NULL);
+            int params_test = (hue_params->parameters[PARAMS_HUELIGH].value.s != NULL) + (hue_params->parameters[PARAMS_HUEGROUP].value.s != NULL) + (hue_params->parameters[PARAMS_HUESCENE].value.s != NULL);
             
             if(params_test != 1)
             {
@@ -774,7 +755,7 @@ int load_interface_type_004(interface_type_004_t *i004, sqlite3 *db)
                continue;
             }
             
-            if(hue_params[PARAMS_HUELIGH].value.s) // c'est une lampe ?
+            if(hue_params->parameters[PARAMS_HUELIGH].value.s) // c'est une lampe ?
             {
                struct lightsListElem_s *e = NULL;
                
@@ -786,12 +767,12 @@ int load_interface_type_004(interface_type_004_t *i004, sqlite3 *db)
                   }
                }
                // on cherche dans la liste si elle existe déjà
-               HASH_FIND(hh_huename, i004->lightsListByHueName, hue_params[PARAMS_HUELIGH].value.s, strlen(hue_params[PARAMS_HUELIGH].value.s), e);
+               HASH_FIND(hh_huename, i004->lightsListByHueName, hue_params->parameters[PARAMS_HUELIGH].value.s, strlen(hue_params->parameters[PARAMS_HUELIGH].value.s), e);
                if (e == NULL)
                {
                   // elle n'existe pas on va la créer
                   e = (struct lightsListElem_s *)malloc(sizeof(struct lightsListElem_s));
-                  char *_huename=malloc(strlen(hue_params[PARAMS_HUELIGH].value.s)+1);
+                  char *_huename=malloc(strlen(hue_params->parameters[PARAMS_HUELIGH].value.s)+1);
                   if(_huename==NULL)
                   {
                      VERBOSE(2) {
@@ -800,7 +781,7 @@ int load_interface_type_004(interface_type_004_t *i004, sqlite3 *db)
                      }
                      goto load_interface_type_004_clean_exit;
                   }
-                  strcpy(_huename, hue_params[PARAMS_HUELIGH].value.s);
+                  strcpy(_huename, hue_params->parameters[PARAMS_HUELIGH].value.s);
                   e->huename = _huename;
                   e->sensorname=NULL;
                   e->actuatorname=NULL;
@@ -837,7 +818,7 @@ int load_interface_type_004(interface_type_004_t *i004, sqlite3 *db)
                         e->sensorname = _name;
                         e->id_sensor = id_sensor_actuator;
                         e->todbflag_sensor=todbflag;
-                        e->reachable_use=hue_params[PARAMS_REACHABLE].value.i;
+                        e->reachable_use=hue_params->parameters[PARAMS_REACHABLE].value.i;
                         HASH_ADD_KEYPTR( hh_sensorname, i004->lightsListBySensorName, e->sensorname, strlen(e->sensorname), e );
                      }
                      break;
@@ -863,7 +844,7 @@ int load_interface_type_004(interface_type_004_t *i004, sqlite3 *db)
                }
                
             }
-            else if(hue_params[PARAMS_HUEGROUP].value.s) // c'est un groupe ?
+            else if(hue_params->parameters[PARAMS_HUEGROUP].value.s) // c'est un groupe ?
             {
                if(id_type != 501)
                {
@@ -888,7 +869,7 @@ int load_interface_type_004(interface_type_004_t *i004, sqlite3 *db)
                      }
                      goto load_interface_type_004_clean_exit;
                   }
-                  char *_huegroupname=malloc(strlen(hue_params[PARAMS_HUEGROUP].value.s)+1);
+                  char *_huegroupname=malloc(strlen(hue_params->parameters[PARAMS_HUEGROUP].value.s)+1);
                   if(_huegroupname==NULL)
                   {
                      VERBOSE(2) {
@@ -902,7 +883,7 @@ int load_interface_type_004(interface_type_004_t *i004, sqlite3 *db)
                   strcpy(_groupname, (char *)name);
                   mea_strtolower(_groupname);
                   g->groupname = _groupname;
-                  strcpy(_huegroupname, hue_params[PARAMS_HUEGROUP].value.s);
+                  strcpy(_huegroupname, hue_params->parameters[PARAMS_HUEGROUP].value.s);
                   g->huegroupname = _huegroupname;
                   
                   HASH_ADD_KEYPTR( hh_groupname, i004->groupsListByGroupName, g->groupname, strlen(g->groupname), g );
@@ -914,7 +895,7 @@ int load_interface_type_004(interface_type_004_t *i004, sqlite3 *db)
                   }
                }
             }
-            else if(hue_params[PARAMS_HUESCENE].value.s) // c'est une scene ?
+            else if(hue_params->parameters[PARAMS_HUESCENE].value.s) // c'est une scene ?
             {
                if(id_type != 501)
                {
@@ -939,7 +920,7 @@ int load_interface_type_004(interface_type_004_t *i004, sqlite3 *db)
                      }
                      goto load_interface_type_004_clean_exit;
                   }
-                  char *_huescenename=malloc(strlen(hue_params[PARAMS_HUESCENE].value.s)+1);
+                  char *_huescenename=malloc(strlen(hue_params->parameters[PARAMS_HUESCENE].value.s)+1);
                   if(_huescenename==NULL)
                   {
                      VERBOSE(2) {
@@ -953,7 +934,7 @@ int load_interface_type_004(interface_type_004_t *i004, sqlite3 *db)
                   strcpy(_scenename, (char *)name);
                   mea_strtolower(_scenename);
                   s->scenename = _scenename;
-                  strcpy(_huescenename, hue_params[PARAMS_HUESCENE].value.s);
+                  strcpy(_huescenename, hue_params->parameters[PARAMS_HUESCENE].value.s);
                   s->huescenename = _huescenename;
                   
                   HASH_ADD_KEYPTR( hh_scenename, i004->scenesListBySceneName, s->scenename, strlen(s->scenename), s );
@@ -965,10 +946,7 @@ int load_interface_type_004(interface_type_004_t *i004, sqlite3 *db)
                   }
                }
             }
-            
-            clean_parsed_parameters(hue_params, nb_hue_params);
-            free(hue_params);
-            hue_params=NULL;
+            release_parsed_parameters(&hue_params);
          }
          else
          {
@@ -997,8 +975,7 @@ load_interface_type_004_clean_exit:
    i004->xPL_callback=NULL;
    if(hue_params)
    {
-      clean_parsed_parameters(hue_params, nb_hue_params);
-      free(hue_params);
+      release_parsed_parameters(&hue_params);
       hue_params=NULL;
    }
    return -1;
@@ -1134,81 +1111,7 @@ int clean_interface_type_004(interface_type_004_t *i004)
    }
 
    _interface_type_004_clean_configs_lists(i004);
-/*
-   if(i004->lightsListBySensorName)
-   {
-      HASH_CLEAR(hh_sensorname,i004->lightsListBySensorName);
-      i004->lightsListBySensorName=NULL;
-   }
-   
-   if(i004->lightsListByActuatorName)
-   {
-      HASH_CLEAR(hh_actuatorname,i004->lightsListByActuatorName);
-      i004->lightsListByActuatorName=NULL;
-   }
-   
-   if(i004->lightsListByHueName)
-   {
-      struct lightsListElem_s *e = NULL, *tmp = NULL;
-      
-      HASH_ITER(hh_huename, i004->lightsListByHueName, e, tmp) {
-         HASH_DELETE(hh_huename,i004->lightsListByHueName, e);
-         if(e->sensorname)
-         {
-            free((void *)e->sensorname);
-            e->sensorname=NULL;
-         }
-         if(e->sensorname)
-         {
-            free((void *)e->actuatorname);
-            e->actuatorname=NULL;
-         }
-         if(e->huename)
-         {
-            free((void *)e->huename);
-            e->huename=NULL;
-         }
-         free(e);
-      }
-      i004->lightsListByHueName=NULL;
-   }
-   
-   if(i004->groupsListByGroupName)
-   {
-      struct groupsListElem_s *g, *tmpg = NULL;
-      HASH_ITER(hh_groupname, i004->groupsListByGroupName, g, tmpg) {
-         if(g)
-         {
-            HASH_DELETE(hh_groupname,i004->groupsListByGroupName, g);
-            if(g->groupname)
-               free((void *)g->groupname);
-            if(g->huegroupname)
-               free((void *)g->huegroupname);
-            free(g);
-            g=NULL;
-         }
-      }
-      i004->groupsListByGroupName=NULL;
-   }
 
-   if(i004->scenesListBySceneName)
-   {
-      struct scenesListElem_s *s, *ts = NULL;
-      HASH_ITER(hh_scenename, i004->scenesListBySceneName, s, ts) {
-         if(s)
-         {
-            HASH_DELETE(hh_scenename,i004->scenesListBySceneName, s);
-            if(s->scenename)
-               free((void *)s->scenename);
-            if(s->huescenename)
-               free((void *)s->huesenename);
-            free(s);
-            s=NULL;
-         }
-      }
-      i004->scenesListBySceneName=NULL;
-   }
-*/
    if(i004->lastHueLightsState)
    {
       cJSON_Delete(i004->lastHueLightsState);

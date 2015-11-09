@@ -110,6 +110,11 @@ void usage(char *cmd)
       "  --basepath, -p      (défaut : /usr/local/mea-edomus)",
       "  --paramsdb, -d      (défaut : basepath/var/db/params.db ou ",
       "                                /var/db/mea-params.db si basepath=/usr)",
+#ifdef __linux__
+      "  --interface, -I     (défaut : eth0)",
+#else
+      "  --interface, -I     (défaut : en0)",
+#endif
       "  --phpcgipath, -C    (défaut : basepath/bin)",
       "  --phpsessionspath, -s",
       "                      (défaut : basepath/log/sessions ou /tmp si basepath=/usr)"
@@ -175,6 +180,7 @@ void init_param_names(char *param_names[])
    param_names[NODEJSIOSOCKET_PORT]  = "NODEJSSOCKETIOPORT";
    param_names[NODEJSDATA_PORT]      = "NODEJSDATAPORT";
    param_names[PARAMSDBVERSION]      = "PARAMSDBVERSION";
+   param_names[INTERFACE]            = "INTERFACE";
 }
 
 
@@ -302,7 +308,7 @@ void clean_all_and_exit()
       }
    }
    
-   parsed_parameters_clean_all();
+   parsed_parameters_clean_all(1);
    release_strings_da();
    release_tokens();
 
@@ -356,6 +362,7 @@ int main(int argc, const char * argv[])
       {"basepath",          required_argument, 0,  MEA_PATH             }, // 'p'
       {"paramsdb",          required_argument, 0,  SQLITE3_DB_PARAM_PATH}, // 'd'
 //      {"configfile",      required_argument, 0,  CONFIG_FILE          }, // 'c'
+      {"interface",         required_argument, 0,  INTERFACE            }, // 'I'
       {"phpcgipath",        required_argument, 0,  PHPCGI_PATH          }, // 'C'
       {"phpinipath",        required_argument, 0,  PHPINI_PATH          }, // 'H'
       {"phpsessionspath",   required_argument, 0,  PHPSESSIONS_PATH     }, // 's'
@@ -478,8 +485,8 @@ int main(int argc, const char * argv[])
 
    int option_index = 0; // getopt_long function need int
    int c; // getopt_long function need int
-//   while ((c = getopt_long(argc, (char * const *)argv, "bhiaup:d:c:C:H:s:G:L:A:B:D:P:N:U:W:V:E:S:v:g:j:J:k", long_options, &option_index)) != -1)
-   while ((c = getopt_long(argc, (char * const *)argv, "bhiaup:d:C:H:s:G:L:A:B:D:P:N:U:W:V:E:S:v:g:j:J:k", long_options, &option_index)) != -1)
+//   while ((c = getopt_long(argc, (char * const *)argv, "bhiaup:d:c:C:H:s:G:L:A:B:D:P:N:U:W:V:E:S:v:g:j:J:k:I:", long_options, &option_index)) != -1)
+   while ((c = getopt_long(argc, (char * const *)argv, "bhiaup:d:C:H:s:G:L:A:B:D:P:N:U:W:V:E:S:v:g:j:J:k:I:", long_options, &option_index)) != -1)
    {
       switch (c)
       {
@@ -495,7 +502,7 @@ int main(int argc, const char * argv[])
          case 'd':
          case SQLITE3_DB_PARAM_PATH:
             mea_string_free_alloc_and_copy(&params_list[SQLITE3_DB_PARAM_PATH], optarg);
-            if(!params_list[MEA_PATH])
+            if(!params_list[SQLITE3_DB_PARAM_PATH])
             {
                VERBOSE(1) {
                   mea_log_printf("%s (%s) : malloc - ", ERROR_STR,__func__);
@@ -614,6 +621,10 @@ int main(int argc, const char * argv[])
          case 'k':
             c=NODEJSDATA_PORT;
             break;
+
+         case 'I':
+            c=INTERFACE;
+            break;
       }
 
       if(c>'!') // parametre non attendu trouvé (! = premier caractère imprimable).
@@ -714,6 +725,13 @@ int main(int argc, const char * argv[])
 
    
    // lecture de tous les paramètres de l'application
+#ifdef __linux__
+   mea_string_free_alloc_and_copy(&params_list[INTERFACE], "eth0");
+#else
+   mea_string_free_alloc_and_copy(&params_list[INTERFACE], "en0");
+#endif
+
+
    ret = read_all_application_parameters(sqlite3_param_db);
    if(ret)
    {

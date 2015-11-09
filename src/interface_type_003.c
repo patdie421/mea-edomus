@@ -26,6 +26,8 @@
 #include "consts.h"
 
 #include "tokens.h"
+#include "tokens_da.h"
+
 #include "mea_verbose.h"
 #include "macros.h"
 
@@ -60,7 +62,7 @@ struct enocean_callback_data_s // donnee "userdata" pour les callbacks
    PyThreadState   *mainThreadState;
    sqlite3         *param_db;
    enocean_ed_t    *ed;
-   mea_queue_t         *queue;
+   mea_queue_t     *queue;
    pthread_mutex_t *callback_lock;
    pthread_cond_t  *callback_cond;
 };
@@ -78,7 +80,7 @@ struct enocean_thread_params_s
 {
    enocean_ed_t         *ed;
    sqlite3              *param_db;
-   mea_queue_t              *queue;
+   mea_queue_t          *queue;
    pthread_mutex_t       callback_lock;
    pthread_cond_t        callback_cond;
    PyThreadState        *mainThreadState;
@@ -135,7 +137,7 @@ int16_t _interface_type_003_xPL_callback(xPL_ServicePtr theService, xPL_MessageP
       params->myThreadState = PyThreadState_New(params->mainThreadState->interp);
    
    xplBody = xPL_getMessageBody(xplMsg);
-   device  = xPL_getNamedValue(xplBody, get_token_string_by_id(XPL_DEVICE_ID));
+   device  = xPL_getNamedValue(xplBody, XPL_DEVICE_STR_C);
    
    if(!device)
       return -1;
@@ -158,15 +160,13 @@ int16_t _interface_type_003_xPL_callback(xPL_ServicePtr theService, xPL_MessageP
       {
          parsed_parameters_t *plugin_params=NULL;
          int nb_plugin_params;
-         
-         plugin_params=malloc_parsed_parameters((char *)sqlite3_column_text(stmt, 3), valid_enocean_plugin_params, &nb_plugin_params, &err, 0);
-         if(!plugin_params || !plugin_params[ENOCEAN_PLUGIN_PARAMS_PLUGIN].value.s)
+        
+         plugin_params=alloc_parsed_parameters((char *)sqlite3_column_text(stmt, 3), valid_enocean_plugin_params, &nb_plugin_params, &err, 0);
+         if(!plugin_params || !plugin_params->parameters[ENOCEAN_PLUGIN_PARAMS_PLUGIN].value.s)
          {
             if(plugin_params)
-            {
-               free(plugin_params);
-               plugin_params=NULL;
-            }
+               release_parsed_parameters(&plugin_params);
+
             continue; // si pas de parametre (=> pas de plugin) ou pas de fonction ... pas la peine d'aller plus loin pour ce capteur
          }
          plugin_queue_elem_t *plugin_elem = (plugin_queue_elem_t *)malloc(sizeof(plugin_queue_elem_t));
@@ -189,30 +189,33 @@ int16_t _interface_type_003_xPL_callback(xPL_ServicePtr theService, xPL_MessageP
                   enocean_addr = (enocean_addr << 8) + c;
                   enocean_addr = (enocean_addr << 8) + d;
                   
-                  mea_addLong_to_pydict(plugin_elem->aDict, get_token_string_by_id(ENOCEAN_ADDR_ID), (long)enocean_addr);
+//                  mea_addLong_to_pydict(plugin_elem->aDict, get_token_string_by_id(ENOCEAN_ADDR_ID), (long)enocean_addr);
+                  mea_addLong_to_pydict(plugin_elem->aDict, XPL_ENOCEAN_ADDR_STR_C, (long)enocean_addr);
                }
 
-               mea_addLong_to_pydict(plugin_elem->aDict, get_token_string_by_id(ID_ENOCEAN_ID), (long)interface->ed);
+//               mea_addLong_to_pydict(plugin_elem->aDict, get_token_string_by_id(ID_ENOCEAN_ID), (long)interface->ed);
+               mea_addLong_to_pydict(plugin_elem->aDict, ID_ENOCEAN_STR_C, (long)interface->ed);
                PyObject *dd=mea_xplMsgToPyDict(xplMsg);
                PyDict_SetItemString(plugin_elem->aDict, "xplmsg", dd);
-               mea_addLong_to_pydict(plugin_elem->aDict, get_token_string_by_id(DEVICE_TYPE_ID_ID), sqlite3_column_int(stmt, 5));
+//               mea_addLong_to_pydict(plugin_elem->aDict, get_token_string_by_id(DEVICE_TYPE_ID_ID), sqlite3_column_int(stmt, 5));
+               mea_addLong_to_pydict(plugin_elem->aDict, DEVICE_TYPE_ID_STR_C, sqlite3_column_int(stmt, 5));
                Py_DECREF(dd);
                
-               if(plugin_params[ENOCEAN_PLUGIN_PARAMS_PARAMETERS].value.s)
-                  mea_addString_to_pydict(plugin_elem->aDict, get_token_string_by_id(DEVICE_PARAMETERS_ID), plugin_params[ENOCEAN_PLUGIN_PARAMS_PARAMETERS].value.s);
+               if(plugin_params->parameters[ENOCEAN_PLUGIN_PARAMS_PARAMETERS].value.s)
+//                  mea_addString_to_pydict(plugin_elem->aDict, get_token_string_by_id(DEVICE_PARAMETERS_ID), plugin_params->parameters[ENOCEAN_PLUGIN_PARAMS_PARAMETERS].value.s);
+                  mea_addString_to_pydict(plugin_elem->aDict, DEVICE_PARAMETERS_STR_C, plugin_params->parameters[ENOCEAN_PLUGIN_PARAMS_PARAMETERS].value.s);
                
                PyThreadState_Swap(tempState);
                PyEval_ReleaseLock();
             } // fin appel des fonctions Python
             
-            pythonPluginServer_add_cmd(plugin_params[ENOCEAN_PLUGIN_PARAMS_PLUGIN].value.s, (void *)plugin_elem, sizeof(plugin_queue_elem_t));
+            pythonPluginServer_add_cmd(plugin_params->parameters[ENOCEAN_PLUGIN_PARAMS_PLUGIN].value.s, (void *)plugin_elem, sizeof(plugin_queue_elem_t));
             interface->indicators.senttoplugin++;
-            clean_parsed_parameters(plugin_params, nb_plugin_params);
             free(plugin_elem);
             plugin_elem=NULL;
          }
          
-         free(plugin_params);
+         release_parsed_parameters(&plugin_params);
          plugin_params=NULL;
       }
       else if (s == SQLITE_DONE)
@@ -277,11 +280,7 @@ void *_thread_interface_type_003_enocean_data_cleanup(void *args)
    }
    
    if(params->plugin_params)
-   {
-      clean_parsed_parameters(params->plugin_params, params->nb_plugin_params);
-      free(params->plugin_params);
-      params->plugin_params=NULL;
-   }
+      release_parsed_parameters(&(params->plugin_params));
    
    if(params->stmt)
    {
@@ -408,18 +407,15 @@ void *_thread_interface_type_003_enocean_data(void *args)
             if (s == SQLITE_ROW)
             {
                int err;
-               
-               params->plugin_params=malloc_parsed_parameters((char *)sqlite3_column_text(params->stmt, 3), valid_enocean_plugin_params, &(params->nb_plugin_params), &err, 0);
-               if(!params->plugin_params || !params->plugin_params[ENOCEAN_PLUGIN_PARAMS_PLUGIN].value.s)
+
+               params->plugin_params=alloc_parsed_parameters((char *)sqlite3_column_text(params->stmt, 3), valid_enocean_plugin_params, &(params->nb_plugin_params), &err, 0);
+               if(!params->plugin_params || !params->plugin_params->parameters[ENOCEAN_PLUGIN_PARAMS_PLUGIN].value.s)
                {
                   if(params->plugin_params)
-                  {
-                     free(params->plugin_params);
-                     params->plugin_params=NULL;
-                  }
+                     release_parsed_parameters(&(params->plugin_params));
+
                   continue; // si pas de paramètre (=> pas de plugin) ou pas de fonction ... pas la peine d'aller plus loin
                }
-               
                plugin_queue_elem_t *plugin_elem = (plugin_queue_elem_t *)malloc(sizeof(plugin_queue_elem_t));
                if(plugin_elem)
                {
@@ -432,11 +428,12 @@ void *_thread_interface_type_003_enocean_data(void *args)
                   
                   { // appel des fonctions Python
                      PyEval_AcquireLock();
-                     pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL); // trop compliquer de traiter avec pthread_cleanup => on interdit les arrets lors des commandes python
+                     pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL); // trop compliquer de traiter avec pthread_cleanup => on interdit les arrêts lors des commandes python
                      PyThreadState *tempState = PyThreadState_Swap(params->myThreadState);
                      
                      plugin_elem->aDict=mea_stmt_to_pydict_device(params->stmt);
-                     mea_addLong_to_pydict(plugin_elem->aDict, get_token_string_by_id(ENOCEAN_ADDR_ID), (long)e->enocean_addr);
+//                     mea_addLong_to_pydict(plugin_elem->aDict, get_token_string_by_id(ENOCEAN_ADDR_ID), (long)e->enocean_addr);
+                     mea_addLong_to_pydict(plugin_elem->aDict, XPL_ENOCEAN_ADDR_STR_C, (long)e->enocean_addr);
                      
                      PyObject *value;
 
@@ -445,8 +442,9 @@ void *_thread_interface_type_003_enocean_data(void *args)
                      Py_DECREF(value);
                      mea_addLong_to_pydict(plugin_elem->aDict, "l_data", (long)plugin_elem->l_buff);
                      
-                     if(params->plugin_params[ENOCEAN_PLUGIN_PARAMS_PARAMETERS].value.s)
-                        mea_addString_to_pydict(plugin_elem->aDict, get_token_string_by_id(DEVICE_PARAMETERS_ID), params->plugin_params[ENOCEAN_PLUGIN_PARAMS_PARAMETERS].value.s);
+                     if(params->plugin_params->parameters[ENOCEAN_PLUGIN_PARAMS_PARAMETERS].value.s)
+//                        mea_addString_to_pydict(plugin_elem->aDict, get_token_string_by_id(DEVICE_PARAMETERS_ID), params->plugin_params->parameters[ENOCEAN_PLUGIN_PARAMS_PARAMETERS].value.s);
+                        mea_addString_to_pydict(plugin_elem->aDict, DEVICE_PARAMETERS_STR_C, params->plugin_params->parameters[ENOCEAN_PLUGIN_PARAMS_PARAMETERS].value.s);
                      
                      PyThreadState_Swap(tempState);
                      PyEval_ReleaseLock();
@@ -454,7 +452,7 @@ void *_thread_interface_type_003_enocean_data(void *args)
                      pthread_testcancel(); // on test tout de suite pour être sûr qu'on a pas ratté une demande d'arrêt
                   } // fin appel des fonctions Python
                   
-                  pythonPluginServer_add_cmd(params->plugin_params[ENOCEAN_PLUGIN_PARAMS_PLUGIN].value.s, (void *)plugin_elem, sizeof(plugin_queue_elem_t));
+                  pythonPluginServer_add_cmd(params->plugin_params->parameters[ENOCEAN_PLUGIN_PARAMS_PLUGIN].value.s, (void *)plugin_elem, sizeof(plugin_queue_elem_t));
                   params->i003->indicators.senttoplugin++;
                   free(plugin_elem);
                   plugin_elem=NULL;
@@ -469,9 +467,7 @@ void *_thread_interface_type_003_enocean_data(void *args)
                   }
                   pthread_exit(PTHREAD_CANCELED);
                }
-               clean_parsed_parameters(params->plugin_params, params->nb_plugin_params);
-               free(params->plugin_params);
-               params->plugin_params=NULL;
+               release_parsed_parameters(&(params->plugin_params));
             }
             else if (s == SQLITE_DONE)
             {
@@ -879,8 +875,8 @@ int start_interface_type_003(int my_id, void *data, char *errmsg, int l_errmsg)
     * exécution du plugin de paramétrage
     */
    
-   interface_parameters=malloc_parsed_parameters(start_stop_params->i003->parameters, valid_enocean_plugin_params, &interface_nb_parameters, &err, 0);
-   if(!interface_parameters || !interface_parameters[ENOCEAN_PLUGIN_PARAMS_PLUGIN].value.s)
+   interface_parameters=alloc_parsed_parameters(start_stop_params->i003->parameters, valid_enocean_plugin_params, &interface_nb_parameters, &err, 0);
+   if(!interface_parameters || !interface_parameters->parameters[ENOCEAN_PLUGIN_PARAMS_PLUGIN].value.s)
    {
       if(interface_parameters)
       {
@@ -892,7 +888,6 @@ int start_interface_type_003(int my_id, void *data, char *errmsg, int l_errmsg)
       else
       {
          VERBOSE(5) mea_log_printf("%s (%s) : invalid or no python plugin parameters (%s)\n", ERROR_STR, __func__, start_stop_params->i003->parameters);
-//         mea_notify_printf('E', "%s - invalid python plugin parameters (%s)", start_stop_params->i003->name, start_stop_params->i003->parameters);
 //         goto clean_exit;
       }
    }
@@ -915,11 +910,11 @@ int start_interface_type_003(int my_id, void *data, char *errmsg, int l_errmsg)
 
       // à remplacer par mea_callfunction() ...
       PyErr_Clear();
-      pName = PyString_FromString(interface_parameters[ENOCEAN_PLUGIN_PARAMS_PLUGIN].value.s);
+      pName = PyString_FromString(interface_parameters->parameters[ENOCEAN_PLUGIN_PARAMS_PLUGIN].value.s);
       pModule = PyImport_Import(pName);
       if(!pModule)
       {
-         VERBOSE(5) mea_log_printf("%s (%s) : %s not found\n", ERROR_STR, __func__, interface_parameters[ENOCEAN_PLUGIN_PARAMS_PLUGIN].value.s);
+         VERBOSE(5) mea_log_printf("%s (%s) : %s not found\n", ERROR_STR, __func__, interface_parameters->parameters[ENOCEAN_PLUGIN_PARAMS_PLUGIN].value.s);
       }
       else
       {
@@ -928,10 +923,13 @@ int start_interface_type_003(int my_id, void *data, char *errmsg, int l_errmsg)
          {
             // préparation du parametre du module
             plugin_params_dict=PyDict_New();
-            mea_addLong_to_pydict(plugin_params_dict, get_token_string_by_id(ID_ENOCEAN_ID), (long)ed);
-            mea_addLong_to_pydict(plugin_params_dict, get_token_string_by_id(INTERFACE_ID_ID), start_stop_params->i003->id_interface);
-            if(interface_parameters[ENOCEAN_PLUGIN_PARAMS_PARAMETERS].value.s)
-               mea_addString_to_pydict(plugin_params_dict, get_token_string_by_id(INTERFACE_PARAMETERS_ID), interface_parameters[ENOCEAN_PLUGIN_PARAMS_PARAMETERS].value.s);
+//            mea_addLong_to_pydict(plugin_params_dict, get_token_string_by_id(ID_ENOCEAN_ID), (long)ed);
+            mea_addLong_to_pydict(plugin_params_dict, ID_ENOCEAN_STR_C, (long)ed);
+//            mea_addLong_to_pydict(plugin_params_dict, get_token_string_by_id(INTERFACE_ID_ID), start_stop_params->i003->id_interface);
+            mea_addLong_to_pydict(plugin_params_dict, INTERFACE_ID_STR_C, start_stop_params->i003->id_interface);
+            if(interface_parameters->parameters[ENOCEAN_PLUGIN_PARAMS_PARAMETERS].value.s)
+//               mea_addString_to_pydict(plugin_params_dict, get_token_string_by_id(INTERFACE_PARAMETERS_ID), interface_parameters->parameters[ENOCEAN_PLUGIN_PARAMS_PARAMETERS].value.s);
+               mea_addString_to_pydict(plugin_params_dict, INTERFACE_PARAMETERS_STR_C, interface_parameters->parameters[ENOCEAN_PLUGIN_PARAMS_PARAMETERS].value.s);
 
             pArgs = PyTuple_New(1);
             Py_INCREF(plugin_params_dict); // PyTuple_SetItem va voler la référence, on en rajoute une pour pouvoir ensuite faire un Py_DECREF
@@ -948,7 +946,7 @@ int start_interface_type_003(int my_id, void *data, char *errmsg, int l_errmsg)
          }
          else
          {
-            VERBOSE(5) mea_log_printf("%s (%s) : mea_init not fount in %s module\n", ERROR_STR, __func__, interface_parameters[ENOCEAN_PLUGIN_PARAMS_PLUGIN].value.s);
+            VERBOSE(5) mea_log_printf("%s (%s) : mea_init not fount in %s module\n", ERROR_STR, __func__, interface_parameters->parameters[ENOCEAN_PLUGIN_PARAMS_PLUGIN].value.s);
          }
          Py_XDECREF(pFunc);
       }
@@ -962,12 +960,8 @@ int start_interface_type_003(int my_id, void *data, char *errmsg, int l_errmsg)
       PyEval_ReleaseLock();
       pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 
-      clean_parsed_parameters(interface_parameters, interface_nb_parameters);
       if(interface_parameters)
-      {
-         free(interface_parameters);
-         interface_parameters=NULL;
-      }
+         release_parsed_parameters(&interface_parameters);
       interface_nb_parameters=0;
    }
 
@@ -1015,9 +1009,7 @@ clean_exit:
    
    if(interface_parameters)
    {
-      clean_parsed_parameters(interface_parameters, interface_nb_parameters);
-      free(interface_parameters);
-      interface_parameters=NULL;
+      release_parsed_parameters(&interface_parameters);
       interface_nb_parameters=0;
 
    }
@@ -1038,5 +1030,3 @@ clean_exit:
    
    return -1;
 }
-
-

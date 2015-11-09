@@ -678,10 +678,9 @@ int start_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg)
    {
       _xplServer_monitoring_id=my_id;
 
-#ifdef __APPLE__
-//      xPL_setBroadcastInterface("lo0"); // comprendre pourquoi ca ne marche plus sans ...
-      xPL_setBroadcastInterface("en0"); // comprendre pourquoi ca ne marche plus sans ...
-#endif
+
+      xPL_setBroadcastInterface(xplServer_start_stop_params->params_list[INTERFACE]);
+
       if ( !xPL_initialize(xPL_getParsedConnectionType()) )
 //      if ( !xPL_initialize(xcStandAlone) )
 //      if ( !xPL_initialize(xcViaHub) )

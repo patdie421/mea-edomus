@@ -61,7 +61,7 @@ struct tokens_strings_da_s
    char *state_str_c;
 };
 
-extern struct tockens_strings_da_s *tokens_strings_da;
+extern struct tokens_strings_da_s *tokens_string_da;
 
 // Macro pour les accès direct à la chaine d'un token. Tous les tokens ne sont pas repris pour l'instant
 #define DEVICE_PARAMETERS_STR_C          tokens_string_da->device_parameters_str_c
@@ -91,6 +91,7 @@ extern struct tockens_strings_da_s *tokens_strings_da;
 #define DEVICE_LOCATION_ID_STR_C         tokens_string_da->device_localtion_id_str_c
 #define DEVICE_INTERFACE_NAME_STR_C      tokens_string_da->device_interface_name_str_c
 #define DEVICE_INTERFACE_TYPE_NAME_STR_C tokens_string_da->device_interface_type_name_str_c
+#define INTERFACE_PARAMETERS_STR_C       tokens_string_da->interface_parameters_str_c
 #define DEVICE_STATE_STR_C               tokens_string_da->device_state_str_c
 #define DEVICE_TYPE_PARAMETERS_STR_C     tokens_string_da->device_type_parameters_str_c
 #define DEVICE_TODBFLAG_STR_C            tokens_string_da->todbflag_str_c
@@ -131,6 +132,7 @@ extern struct tockens_strings_da_s *tokens_strings_da;
 #define DEVICE_LOCATION_ID_STR_C         get_token_string_by_id(DEVICE_LOCATION_ID_ID)
 #define DEVICE_INTERFACE_NAME_STR_C      get_token_string_by_id(DEVICE_INTERFACE_NAME_ID)
 #define DEVICE_INTERFACE_TYPE_NAME_STR_C get_token_string_by_id(DEVICE_INTERFACE_TYPE_NAME_ID)
+#define INTERFACE_PARAMETERS_STR_C       get_token_string_by_id(INTERFACE_PARAMETERS_ID)
 #define DEVICE_STATE_STR_C               get_token_string_by_id(DEVICE_STATE_ID)
 #define DEVICE_TYPE_PARAMETERS_STR_C     get_token_string_by_id(DEVICE_TYPE_PARAMETERS_ID)
 #define DEVICE_TODBFLAG_STR_C            get_token_string_by_id(DEVICE_TODBFLAG_ID)
