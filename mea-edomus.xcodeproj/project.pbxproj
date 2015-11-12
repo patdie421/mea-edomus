@@ -82,6 +82,7 @@
 		4E83D2C91BF12A81009FF74F /* tokens_da.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E83D2B31BF12A81009FF74F /* tokens_da.c */; };
 		4E83D2CE1BF12FC9009FF74F /* enocean_logger.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E83D2CD1BF12FC9009FF74F /* enocean_logger.c */; };
 		4E83D2D01BF130DD009FF74F /* mea_verbose.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E83D2B11BF12A81009FF74F /* mea_verbose.c */; };
+		4E83D2D11BF15316009FF74F /* mea_verbose.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E83D2B11BF12A81009FF74F /* mea_verbose.c */; };
 		4E8787E61816732800A87FF0 /* sqlite3db_utils.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E8787E51816732800A87FF0 /* sqlite3db_utils.c */; };
 		4E8A87B01A095D4A00A99E80 /* nodejsServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E8A87AE1A095D4A00A99E80 /* nodejsServer.c */; };
 		4EF3D8FC19B3C02200892F29 /* comio2.c in Sources */ = {isa = PBXBuildFile; fileRef = 4EF3D8FA19B3C02200892F29 /* comio2.c */; };
@@ -5835,6 +5836,7 @@
 				4E207BCB19F1C16300410B40 /* xPL-store.c in Sources */,
 				4E207BCE19F1C17100410B40 /* xPL-listeners.c in Sources */,
 				4E207BD019F1C17900410B40 /* xPL-config.c in Sources */,
+				4E83D2D11BF15316009FF74F /* mea_verbose.c in Sources */,
 				4E207BCD19F1C16C00410B40 /* xPL-message.c in Sources */,
 				4E83D2C21BF12A81009FF74F /* mea_timer.c in Sources */,
 			);

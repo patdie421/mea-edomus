@@ -103,12 +103,13 @@ void logger(char *interface)
    }
    else
    {
-#ifdef __APPLE__
+#ifdef __linux__
+      xPL_setBroadcastInterface("eth0");
+#else
       xPL_setBroadcastInterface("en0");
 #endif
    }
    
-   xPL_setBroadcastInterface("wlan1");
    if ( !xPL_initialize(xPL_getParsedConnectionType()) )
       exit(1);
    
