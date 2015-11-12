@@ -214,8 +214,6 @@ int16_t interface_type_004_xPL_actuator(interface_type_004_t *i004, xPL_ServiceP
    char *sensor=NULL;
    struct lightsListElem_s *e = NULL;
    
-   (i004->indicators.xplin)++;
-   
    type_id=get_token_id_by_string(type);
    if(type_id != XPL_OUTPUT_ID && type_id != COLOR_ID)
       return -1;

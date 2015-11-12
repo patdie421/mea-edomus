@@ -45,7 +45,7 @@
 #define INTERFACE             25
 #define MAX_LIST_SIZE         26
 
-#define CURRENT_PARAMS_DB_VERSION 4
+#define CURRENT_PARAMS_DB_VERSION 5
 sqlite3 *get_sqlite3_param_db();
 
 // voir ou mettre

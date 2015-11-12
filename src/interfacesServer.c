@@ -34,6 +34,7 @@
 #include "interface_type_002.h"
 #include "interface_type_003.h"
 #include "interface_type_004.h"
+#include "interface_type_005.h"
 
 mea_queue_t *_interfaces=NULL;
 
@@ -416,89 +417,6 @@ mea_queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                   ret=process_start(i001->monitoring_id, NULL, 0);
                   
                   break;
-                  
-/*                  
-                  // allocation du contexte de l'inteface
-                  i001=(interface_type_001_t *)malloc(sizeof(interface_type_001_t));
-                  if(!i001)
-                  {
-                     VERBOSE(2) {
-                        mea_log_printf("%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
-                        perror("");
-                     }
-                     break;
-                  }
-
-                  // initialisation contexte de l'interface
-                  i001->thread_is_running=0;
-                  struct interface_type_001_start_stop_params_s *i001_start_stop_params=(struct interface_type_001_start_stop_params_s *)malloc(sizeof(struct interface_type_001_start_stop_params_s));
-                  if(!i001_start_stop_params)
-                  {
-                     free(i001);
-                     i001=NULL;
-                     VERBOSE(2) {
-                        mea_log_printf("%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
-                        perror("");
-                     }
-                     break;
-                  } 
-                  i001_start_stop_params->i001=i001;
-                  i001_start_stop_params->sqlite3_param_db = sqlite3_param_db;
-                  strncpy(i001_start_stop_params->dev, (char *)dev, sizeof(i001_start_stop_params->dev)-1);
-                  strncpy(i001->name, (char *)name, sizeof(i001->name)-1);
-                  i001->monitoring_id=0;
-                  i001->loaded=0;
-                  i001->indicators.nbactuatorsout = 0;
-                  i001->indicators.nbactuatorsxplrecv = 0;
-                  i001->indicators.nbactuatorsouterr = 0;
-                  i001->indicators.nbsensorstraps = 0;
-                  i001->indicators.nbsensorsread = 0;
-                  i001->indicators.nbsensorsreaderr = 0;
-                  i001->indicators.nbsensorsxplsent = 0;
-                  i001->indicators.nbsensorsxplrecv = 0;
-                  i001->indicators.nbcounterstraps = 0;
-                  i001->indicators.nbcountersread = 0;
-                  i001->indicators.nbcountersreaderr = 0;
-                  i001->indicators.nbcountersxplsent = 0;
-                  i001->indicators.nbcountersxplrecv = 0;
-                  i001->indicators.nbxplin = 0;
-                  i001->interface_id=id_interface;
-                  
-                  // initialisation du process
-                  i001->monitoring_id=process_register((char *)name);
-                  process_set_group(i001->monitoring_id, 1);
-                  process_set_start_stop(i001->monitoring_id, start_interface_type_001, stop_interface_type_001, (void *)i001_start_stop_params, 1);
-                  process_set_watchdog_recovery(i001->monitoring_id, start_interface_type_001, (void *)i001_start_stop_params);
-                  process_set_description(i001->monitoring_id, (char *)description);
-                  process_set_heartbeat_interval(i001->monitoring_id, 60); // chien de garde au bout de 60 secondes sans heartbeat
-
-                  process_add_indicator(i001->monitoring_id, I001_XPLINNB, 0);
-                  
-                  process_add_indicator(i001->monitoring_id, I001_SNBTRAPS, 0);
-                  process_add_indicator(i001->monitoring_id, I001_SNBREADS, 0);
-                  process_add_indicator(i001->monitoring_id, I001_SNBREADSERR, 0);
-                  process_add_indicator(i001->monitoring_id, I001_SNBXPLIN, 0);
-                  process_add_indicator(i001->monitoring_id, I001_SNBXPLOUT, 0);
-                  
-                  process_add_indicator(i001->monitoring_id, I001_ANBOUTERR, 0);
-                  process_add_indicator(i001->monitoring_id, I001_ANBOUT, 0);
-                  process_add_indicator(i001->monitoring_id, I001_ANBXPLIN, 0);
-                  
-                  process_add_indicator(i001->monitoring_id, I001_CNBTRAPS, 0);
-                  process_add_indicator(i001->monitoring_id, I001_CNBREADS, 0);
-                  process_add_indicator(i001->monitoring_id, I001_CNBREADSERR, 0);
-                  process_add_indicator(i001->monitoring_id, I001_CNBXPLOUT, 0);
-                  process_add_indicator(i001->monitoring_id, I001_CNBXPLIN, 0);
- 
-                  // lancement du process
-                  ret=process_start(i001->monitoring_id, NULL, 0);
-
-                  iq=(interfaces_queue_elem_t *)malloc(sizeof(interfaces_queue_elem_t));
-                  iq->type=id_type;
-                  iq->context=i001;
-                  mea_queue_in_elem(_interfaces, iq);
-                  break;
-*/ 
                }
                  
                case INTERFACE_TYPE_002:
@@ -518,60 +436,6 @@ mea_queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                   ret=process_start(i002->monitoring_id, NULL, 0);
                   
                   break;
-/*                  
-                  i002=(interface_type_002_t *)malloc(sizeof(interface_type_002_t));
-                  if(!i002)
-                  {
-                     VERBOSE(2) {
-                        mea_log_printf("%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
-                        perror(""); }
-                     break;
-                  }
-                  i002->thread_is_running=0;
-                  
-                  struct interface_type_002_data_s *i002_start_stop_params=(struct interface_type_002_data_s *)malloc(sizeof(struct interface_type_002_data_s));
-                  if(!i002_start_stop_params)
-                  {
-                     free(i002);
-                     i002=NULL;
-                     VERBOSE(2) {
-                        mea_log_printf("%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
-                        perror("");
-                     }  
-                     break;
-                  }
-                  strncpy(i002->dev, (char *)dev, sizeof(i002->dev)-1);
-                  strncpy(i002->name, (char *)name, sizeof(i002->name)-1);
-                  i002->id_interface=id_interface;
-                  i002->monitoring_id=process_register((char *)name);
-                  i002->parameters=(char *)malloc(strlen((char *)parameters)+1);
-                  strcpy(i002->parameters,(char *)parameters);
-                  i002->indicators.senttoplugin=0;
-                  i002->indicators.xplin=0;
-                  i002->indicators.xbeedatain=0;
-                  i002->indicators.commissionning_request=0;
-
-                  process_set_group(i002->monitoring_id, 1);
-                  process_set_start_stop(i002->monitoring_id, start_interface_type_002, stop_interface_type_002, (void *)i002_start_stop_params, 1);
-                  process_set_watchdog_recovery(i002->monitoring_id, restart_interface_type_002, (void *)i002_start_stop_params);
-                  process_set_description(i002->monitoring_id, (char *)description);
-                  process_set_heartbeat_interval(i002->monitoring_id, 60); // chien de garde au bout de 60 secondes sans heartbeat
-
-                  process_add_indicator(i002->monitoring_id, interface_type_002_senttoplugin_str, 0);
-                  process_add_indicator(i002->monitoring_id, interface_type_002_xplin_str, 0);
-                  process_add_indicator(i002->monitoring_id, interface_type_002_xbeedatain_str, 0);
-                  process_add_indicator(i002->monitoring_id, interface_type_002_commissionning_request_str, 0);
-
-                  i002_start_stop_params->sqlite3_param_db = sqlite3_param_db;
-                  i002_start_stop_params->i002=i002;
-                  ret=process_start(i002->monitoring_id, NULL, 0);
-
-                  interfaces_queue_elem_t *iq=(interfaces_queue_elem_t *)malloc(sizeof(interfaces_queue_elem_t));
-                  iq->type=id_type;
-                  iq->context=i002;
-                  mea_queue_in_elem(_interfaces, iq);
-                  break;
-*/
                }
                   
                case INTERFACE_TYPE_003:
@@ -591,59 +455,6 @@ mea_queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                   ret=process_start(i003->monitoring_id, NULL, 0);
                   
                   break;
-/*                  
-                  i003=(interface_type_003_t *)malloc(sizeof(interface_type_003_t));
-                  if(!i003)
-                  {
-                     VERBOSE(2) {
-                        mea_log_printf("%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
-                        perror(""); }
-                     break;
-                  }
-                  i003->thread_is_running=0;
-                  
-                  struct interface_type_003_data_s *i003_start_stop_params=(struct interface_type_003_data_s *)malloc(sizeof(struct interface_type_003_data_s));
-                  if(!i003_start_stop_params)
-                  {
-                     free(i003);
-                     i003=NULL;
-                     VERBOSE(2) {
-                        mea_log_printf("%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
-                        perror("");
-                     }  
-                     break;
-                  }
-                  strncpy(i003->dev, (char *)dev, sizeof(i003->dev)-1);
-                  strncpy(i003->name, (char *)name, sizeof(i003->name)-1);
-                  i003->id_interface=id_interface;
-                  i003->monitoring_id=process_register((char *)name);
-                  i003->parameters=(char *)malloc(strlen((char *)parameters)+1);
-                  strcpy(i003->parameters,(char *)parameters);
-                  i003->indicators.senttoplugin=0;
-                  i003->indicators.xplin=0;
-                  i003->indicators.enoceandatain=0;
-
-                  process_set_group(i003->monitoring_id, 1);
-                  process_set_start_stop(i003->monitoring_id, start_interface_type_003, stop_interface_type_003, (void *)i003_start_stop_params, 1);
-                  process_set_watchdog_recovery(i003->monitoring_id, restart_interface_type_003, (void *)i003_start_stop_params);
-                  process_set_description(i003->monitoring_id, (char *)description);
-                  process_set_heartbeat_interval(i003->monitoring_id, 60); // chien de garde au bout de 60 secondes sans heartbeat
-
-                  process_add_indicator(i003->monitoring_id, interface_type_003_senttoplugin_str, 0);
-                  process_add_indicator(i003->monitoring_id, interface_type_003_xplin_str, 0);
-                  process_add_indicator(i003->monitoring_id, interface_type_003_enoceandatain_str, 0);
-
-                  i003_start_stop_params->sqlite3_param_db = sqlite3_param_db;
-                  i003_start_stop_params->i003=i003;
-
-                  ret=process_start(i003->monitoring_id, NULL, 0);
-
-                  interfaces_queue_elem_t *iq=(interfaces_queue_elem_t *)malloc(sizeof(interfaces_queue_elem_t));
-                  iq->type=id_type;
-                  iq->context=i003;
-                  mea_queue_in_elem(_interfaces, iq);
-                  break;
-*/
                }
 
                case INTERFACE_TYPE_004:
@@ -663,62 +474,24 @@ mea_queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                   ret=process_start(i004->monitoring_id, NULL, 0);
                   
                   break;
-/*                  
-                  i004=(interface_type_004_t *)malloc(sizeof(interface_type_004_t));
-                  if(!i004)
-                  {
-                     VERBOSE(2) {
-                        mea_log_printf("%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
-                        perror(""); }
+               }
+
+               case INTERFACE_TYPE_005:
+               {
+                  interface_type_005_t *i005;
+
+                  i005=malloc_and_init_interface_type_005(sqlite3_param_db, id_interface, (char *)name, (char *)dev, (char *)parameters, (char *)description);
+                  if(i005 == NULL)
                      break;
-                  }
-                  i004->thread_is_running=0;
-                  
-                  struct interface_type_004_start_stop_params_s *i004_start_stop_params=(struct interface_type_004_start_stop_params_s *)malloc(sizeof(struct interface_type_004_start_stop_params_s));
-                  if(!i004_start_stop_params)
-                  {
-                     free(i004);
-                     i004=NULL;
-                     VERBOSE(2) {
-                        mea_log_printf("%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
-                        perror("");
-                     }  
-                     break;
-                  }
-                  strncpy(i004->dev, (char *)dev, sizeof(i004->dev)-1);
-                  strncpy(i004->name, (char *)name, sizeof(i004->name)-1);
-                  i004->id_interface=id_interface;
-                  i004->monitoring_id=process_register((char *)name);
-                  i004->parameters=(char *)malloc(strlen((char *)parameters)+1);
-                  strcpy(i004->parameters,(char *)parameters);
-                  i004->indicators.xplin=0;
-                  i004->indicators.xplout=0;
-                  i004->lightsListByHueName=NULL;
-                  i004->lightsListByActuatorName=NULL;
-                  i004->lightsListBySensorName=NULL;
-                  i004->lastHueLightsState=NULL;
-                  i004->currentHueLightsState=NULL;
 
-                  process_set_group(i004->monitoring_id, 1);
-                  process_set_start_stop(i004->monitoring_id, start_interface_type_004, stop_interface_type_004, (void *)i004_start_stop_params, 1);
-                  process_set_watchdog_recovery(i004->monitoring_id, restart_interface_type_004, (void *)i004_start_stop_params);
-                  process_set_description(i004->monitoring_id, (char *)description);
-                  process_set_heartbeat_interval(i004->monitoring_id, 60); // chien de garde au bout de 60 secondes sans heartbeat
-
-                  process_add_indicator(i004->monitoring_id, interface_type_004_xplout_str, 0);
-                  process_add_indicator(i004->monitoring_id, interface_type_004_xplin_str, 0);
-
-                  i004_start_stop_params->sqlite3_param_db = sqlite3_param_db;
-                  i004_start_stop_params->i004=i004;
-
-                  ret=process_start(i004->monitoring_id, NULL, 0);
-
-                  interfaces_queue_elem_t *iq=(interfaces_queue_elem_t *)malloc(sizeof(interfaces_queue_elem_t));
+                  iq=(interfaces_queue_elem_t *)malloc(sizeof(interfaces_queue_elem_t));
                   iq->type=id_type;
-                  iq->context=i004;
+                  iq->context=i005;
                   mea_queue_in_elem(_interfaces, iq);
+                  
+                  // lancement du process
+                  ret=process_start(i005->monitoring_id, NULL, 0);
                   break;
-*/
                }
 
                default:
