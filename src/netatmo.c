@@ -8,7 +8,7 @@
 #include "cJSON.h"
 #include "curl_adds.h"
 #include "mea_verbose.h"
-
+#include "mea_string_utils.h"
 
 static int _netatmo_parse_return_json(char *response, char *err, int l_err)
 {
