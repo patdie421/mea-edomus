@@ -134,6 +134,38 @@ int16_t interface_type_005_xPL_callback(xPL_ServicePtr theService, xPL_MessagePt
 }
 
 
+int clean_queues(mea_queue_t *q)
+{
+   struct type005_device_queue_elem_s *d;
+   struct type005_module_queue_elem_s *m;
+   struct type005_sensor_actuator_queue_elem_s *sa;
+   
+   mea_queue_first(q);
+   while(mea_queue_current(q,(void **)&d))
+   {
+      mea_queue_first(&(d->modules_list));
+      while(mea_queue_current(&(d->modules_list),(void **)&m))
+      {
+         mea_queue_first(&(m->sensors_actuators_list));
+         while(mea_queue_current(&(m->sensors_actuators_list),(void **)&sa))
+         {
+            free(sa);
+            sa=NULL;
+            mea_queue_remove_current(&(m->sensors_actuators_list));
+         }
+         free(m);
+         m=NULL;
+         mea_queue_remove_current(&(d->modules_list));
+      }
+      free(d);
+      d=NULL;
+      mea_queue_remove_current(q);
+   }
+   
+   return 0;
+}
+
+
 char *valid_netatmo_sa_params[]={"S:DEVICE_ID","S:MODULE_ID", "S:SENSOR", "S:ACTUATOR", NULL};
 #define PARAMS_DEVICE_ID 0
 #define PARAMS_MODULE_ID 1
@@ -153,7 +185,7 @@ int load_interface_type_005(interface_type_005_t *i005, sqlite3 *db)
 
    if(mea_queue_nb_elem(&(i005->devices_list))!=0)
    {
-      // vider la liste ici ...
+      clean_queues(&(i005->devices_list));
    }
 
    sprintf(sql_request,"SELECT * FROM sensors_actuators WHERE id_interface=%d and sensors_actuators.state='1'", i005->id_interface);
@@ -164,6 +196,13 @@ int load_interface_type_005(interface_type_005_t *i005, sqlite3 *db)
       VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg (db));
       goto load_interface_type_005_clean_exit;
    }
+
+   struct type005_device_queue_elem_s *d_elem=NULL;
+   struct type005_module_queue_elem_s *m_elem=NULL;
+   struct type005_sensor_actuator_queue_elem_s *sa_elem=NULL;
+   
+   int new_d_elem_flag=0;
+   int new_m_elem_flag=0;
 
    // récupération des parametrages des capteurs dans la base
    while (1) // boucle de traitement du résultat de la requete
@@ -187,7 +226,6 @@ int load_interface_type_005(interface_type_005_t *i005, sqlite3 *db)
             char *module_id=netatmo_sa_params->parameters[PARAMS_MODULE_ID].value.s;
 
             //mea_queue_t sensors_actuators_list;
-            struct type005_device_queue_elem_s *d_elem=NULL;
             
             mea_queue_first(&(i005->devices_list));
             for(int i=0; i<i005->devices_list.nb_elem; i++)
@@ -198,7 +236,6 @@ int load_interface_type_005(interface_type_005_t *i005, sqlite3 *db)
                else
                   d_elem=NULL;
             }
-            int new_d_elem_flag=0;
             if(d_elem==NULL)
             {
                d_elem=(struct type005_device_queue_elem_s *)malloc(sizeof(struct type005_device_queue_elem_s));
@@ -216,7 +253,6 @@ int load_interface_type_005(interface_type_005_t *i005, sqlite3 *db)
                new_d_elem_flag=1;
             }
  
-            struct type005_module_queue_elem_s *m_elem = NULL;
             mea_queue_first(&(d_elem->modules_list));
             for(int i=0; i<d_elem->modules_list.nb_elem; i++)
             {
@@ -226,7 +262,6 @@ int load_interface_type_005(interface_type_005_t *i005, sqlite3 *db)
                else
                   m_elem=NULL;
             }
-            int new_m_elem_flag=0;
             if(m_elem==NULL)
             {
                m_elem=(struct type005_module_queue_elem_s *)malloc(sizeof(struct type005_module_queue_elem_s));
@@ -260,7 +295,6 @@ int load_interface_type_005(interface_type_005_t *i005, sqlite3 *db)
                new_m_elem_flag=1;
             }
 
-            struct type005_sensor_actuator_queue_elem_s *sa_elem;
             sa_elem=(struct type005_sensor_actuator_queue_elem_s *)malloc(sizeof(struct type005_sensor_actuator_queue_elem_s));
             if(sa_elem==NULL)
             {
@@ -268,26 +302,14 @@ int load_interface_type_005(interface_type_005_t *i005, sqlite3 *db)
                   mea_log_printf("%s (%s) : %s - ", ERROR_STR, __func__, MALLOC_ERROR_STR);
                   perror("");
                }
-
-               if(new_d_elem_flag==1)
-               {
-                  free(d_elem);
-                  d_elem=NULL;
-               }
-               if(new_m_elem_flag==1)
-               {
-                  free(m_elem);
-                  m_elem=NULL;
-               }
-
-               release_parsed_parameters(&netatmo_sa_params);
-               continue; // on passe au suivant
+               goto load_interface_type_005_clean_queues;
             }
+
+            char *sensor=netatmo_sa_params->parameters[PARAMS_SENSOR].value.s;
+            char *actuator=netatmo_sa_params->parameters[PARAMS_ACTUATOR].value.s;
 
             sa_elem->sensor=-1;
             sa_elem->actuator=-1;
-            char *sensor=netatmo_sa_params->parameters[PARAMS_SENSOR].value.s;
-            char *actuator=netatmo_sa_params->parameters[PARAMS_ACTUATOR].value.s;
             if(id_type==500)
             {
                if(sensor && actuator==NULL)
@@ -305,57 +327,32 @@ int load_interface_type_005(interface_type_005_t *i005, sqlite3 *db)
                      sa_elem->sensor=MODE;
                   else
                   {
-                     VERBOSE(2) mea_log_printf("%s (%s) : sensor parameter error - %s\n", ERROR_STR,__func__,sensor);
-                     free(sa_elem);
-                     sa_elem=NULL;
-                     
-                     if(new_d_elem_flag==1)
-                     {
-                        free(d_elem);
-                        d_elem=NULL;
-                     }
-                     if(new_m_elem_flag==1)
-                     {
-                        free(m_elem);
-                        m_elem=NULL;
-                     }
-
-                     release_parsed_parameters(&netatmo_sa_params);
-                     continue; // on passe au suivant
+                     VERBOSE(2) mea_log_printf("%s (%s) : unknown sensor error - %s\n", ERROR_STR, __func__, sensor);
+                     goto load_interface_type_005_clean_queues;
                   }
                }
                else
                {
-                  // faire le ménage ici
+                  VERBOSE(2) mea_log_printf("%s (%s) : sensor parameter error - SENSOR and ACUTATOR are incompatible\n", ERROR_STR,__func__,sensor);
+                  goto load_interface_type_005_clean_queues;
                }
             }
             else if(id_type==501)
             {
                if(sensor==NULL && actuator)
+               {
                   sa_elem->actuator=1;
+               }
                else
                {
+                  VERBOSE(2) mea_log_printf("%s (%s) : configuration error - SENSOR and ACUTATOR are incompatible\n", ERROR_STR,__func__);
+                  goto load_interface_type_005_clean_queues;
                }
             }
             else
             {
-               VERBOSE(2) mea_log_printf("%s (%s) : configuration error\n", ERROR_STR,__func__);
-               
-               free(sa_elem);
-               sa_elem=NULL;
-               
-               if(new_d_elem_flag==1)
-               {
-                  free(d_elem);
-                  d_elem=NULL;
-               }
-               if(new_m_elem_flag==1)
-               {
-                  free(m_elem);
-                  m_elem=NULL;
-               }
-               release_parsed_parameters(&netatmo_sa_params);
-               continue; // on passe au suivant
+               VERBOSE(2) mea_log_printf("%s (%s) : configuration error - unknown type\n", ERROR_STR,__func__);
+               goto load_interface_type_005_clean_queues;
             }
 
             sa_elem->id=id_sensor_actuator;
@@ -371,6 +368,32 @@ int load_interface_type_005(interface_type_005_t *i005, sqlite3 *db)
                mea_queue_in_elem(&(i005->devices_list), (void *)d_elem);
 
             release_parsed_parameters(&netatmo_sa_params);
+            continue;
+
+load_interface_type_005_clean_queues:
+            if(netatmo_sa_params)
+               release_parsed_parameters(&netatmo_sa_params);
+            if(sa_elem)
+            {
+               free(sa_elem);
+               sa_elem=NULL;
+            }
+            if(new_d_elem_flag==1)
+            {
+               if(d_elem)
+               {
+                  free(d_elem);
+                  d_elem=NULL;
+               }
+            }
+            if(new_m_elem_flag==1)
+            {
+               if(m_elem)
+               {
+                  free(m_elem);
+                  m_elem=NULL;
+               }
+            }
          }
          else
          {
@@ -613,6 +636,8 @@ interface_type_005_t *malloc_and_init_interface_type_005(sqlite3 *sqlite3_param_
 
 int clean_interface_type_005(interface_type_005_t *i005)
 {
+   clean_queues(&(i005->devices_list));
+
    if(i005->parameters)
    {
       free(i005->parameters);
@@ -664,9 +689,11 @@ int stop_interface_type_005(int my_id, void *data, char *errmsg, int l_errmsg)
          }
       }
       DEBUG_SECTION mea_log_printf("%s (%s) : %s, fin après %d itération\n", DEBUG_STR, __func__, start_stop_params->i005->name, 100-counter);
-      
-      free(start_stop_params->i005->thread);
-      start_stop_params->i005->thread=NULL;
+
+      clean_interface_type_005(start_stop_params->i005);
+
+//      free(start_stop_params->i005->thread);
+//      start_stop_params->i005->thread=NULL;
    }
    
    mea_notify_printf('S', "%s %s", start_stop_params->i005->name, stopped_successfully_str);
