@@ -60,12 +60,18 @@ int16_t debug_status()
 }
 
 
-int mea_rotate_open_log_file(FILE *fd, char *name, uint16_t max_index)
+int mea_rotate_open_log_file(char *name, uint16_t max_index)
 {
    int ret_code=0;
    int ret=0;
    char *name_old=NULL, *name_new=NULL;
-//   FILE *fd_dest;
+   FILE *fd;
+
+   fd=fopen(name, "r+");
+   if(!fd)
+   {
+       return -1;
+   }
 
    name_old = (char *)malloc(strlen(name)+7); // 7 => . + 5 digits (16 bit) + 1
    if(name_old == NULL)
@@ -113,33 +119,31 @@ int mea_rotate_open_log_file(FILE *fd, char *name, uint16_t max_index)
       }
    }
 
-   if(fd)
+   sprintf(name_new,"%s.%d", name, 0);
+   int fd_dest=open(name_new, O_CREAT | O_WRONLY, S_IWUSR | S_IRUSR);
+   if(fd_dest<0)
    {
-      sprintf(name_new,"%s.%d", name, 0);
-      int fd_dest=open(name_new, O_CREAT | O_WRONLY, S_IWUSR | S_IRUSR);
-      if(fd_dest<0)
-      {
-         perror("open: ");
-         ret_code=-1;
-         goto mea_rotate_open_log_file_clean_exit;
-      }
-    
-      flock(fileno(fd), LOCK_EX);
-
-      fseek(fd, 0, SEEK_SET);
-      // size_t fread ( void * ptr, size_t size, size_t count, FILE * stream );
-      char buf[4096];
-      while(!feof(fd))
-      {
-         size_t nb=fread(buf, 1, sizeof(buf), fd);
-         write(fd_dest, buf, nb);
-      }
-      ftruncate(fileno(fd), 0);
- 
-      flock(fileno(fd), LOCK_UN);
-
-      close(fd_dest);
+      perror("open: ");
+      ret_code=-1;
+      goto mea_rotate_open_log_file_clean_exit;
    }
+ 
+   flock(fileno(fd), LOCK_EX);
+
+   fseek(fd, 0, SEEK_SET);
+   // size_t fread ( void * ptr, size_t size, size_t count, FILE * stream );
+   char buf[4096];
+   while(!feof(fd))
+   {
+      size_t nb=fread(buf, 1, sizeof(buf), fd);
+      write(fd_dest, buf, nb);
+   }
+   ftruncate(fileno(fd), 0);
+
+   flock(fileno(fd), LOCK_UN);
+
+   close(fd_dest);
+   fclose(fd);
  
 mea_rotate_open_log_file_clean_exit:
    if(name_old)

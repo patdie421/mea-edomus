@@ -35,6 +35,6 @@ int16_t debug_status();
 
 void mea_log_printf(char const* fmt, ...);
 
-int mea_rotate_open_log_file(FILE *fd, char *name, uint16_t max_index);
+int mea_rotate_open_log_file(char *name, uint16_t max_index);
 
 #endif
