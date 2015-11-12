@@ -244,7 +244,6 @@ int netatmo_refresh_token(char *client_id, char *client_secret, struct netatmo_t
 {
    CURL *curl;
    char *url="https://api.netatmo.net/oauth2/token";
-   int ret_code=-1;
    char post_data[1024];
 
    if(netatmo_token->access[0]==0 || netatmo_token->refresh[0]==0)
@@ -301,7 +300,6 @@ int netatmo_get_token(char *client_id, char *client_secret, char *username, char
 {
    CURL *curl;
    char *url="https://api.netatmo.net/oauth2/token";
-   int ret_code=-1;
    char post_data[1024];
 
    sprintf(post_data, "grant_type=password&client_id=%s&client_secret=%s&username=%s&password=%s&scope=%s", client_id,client_secret,username,password,scope);

@@ -83,6 +83,9 @@
 		4E83D2CE1BF12FC9009FF74F /* enocean_logger.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E83D2CD1BF12FC9009FF74F /* enocean_logger.c */; };
 		4E83D2D01BF130DD009FF74F /* mea_verbose.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E83D2B11BF12A81009FF74F /* mea_verbose.c */; };
 		4E83D2D11BF15316009FF74F /* mea_verbose.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E83D2B11BF12A81009FF74F /* mea_verbose.c */; };
+		4E83D2DF1BF515F7009FF74F /* interface_type_005.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E83D2D91BF515F7009FF74F /* interface_type_005.c */; };
+		4E83D2E01BF515F7009FF74F /* netatmo.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E83D2DB1BF515F7009FF74F /* netatmo.c */; };
+		4E83D2E11BF515F7009FF74F /* curl_adds.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E83D2DE1BF515F7009FF74F /* curl_adds.c */; };
 		4E8787E61816732800A87FF0 /* sqlite3db_utils.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E8787E51816732800A87FF0 /* sqlite3db_utils.c */; };
 		4E8A87B01A095D4A00A99E80 /* nodejsServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E8A87AE1A095D4A00A99E80 /* nodejsServer.c */; };
 		4EF3D8FC19B3C02200892F29 /* comio2.c in Sources */ = {isa = PBXBuildFile; fileRef = 4EF3D8FA19B3C02200892F29 /* comio2.c */; };
@@ -901,6 +904,12 @@
 		4E83D2B31BF12A81009FF74F /* tokens_da.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = tokens_da.c; path = src/tokens_da.c; sourceTree = "<group>"; };
 		4E83D2B41BF12A81009FF74F /* tokens_da.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = tokens_da.h; path = src/tokens_da.h; sourceTree = "<group>"; };
 		4E83D2CD1BF12FC9009FF74F /* enocean_logger.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = enocean_logger.c; path = "commands/mea-enocean/enocean_logger.c"; sourceTree = "<group>"; };
+		4E83D2D91BF515F7009FF74F /* interface_type_005.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = interface_type_005.c; path = src/interface_type_005.c; sourceTree = "<group>"; };
+		4E83D2DA1BF515F7009FF74F /* interface_type_005.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = interface_type_005.h; path = src/interface_type_005.h; sourceTree = "<group>"; };
+		4E83D2DB1BF515F7009FF74F /* netatmo.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = netatmo.c; path = src/netatmo.c; sourceTree = "<group>"; };
+		4E83D2DC1BF515F7009FF74F /* netatmo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = netatmo.h; path = src/netatmo.h; sourceTree = "<group>"; };
+		4E83D2DD1BF515F7009FF74F /* curl_adds.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = curl_adds.h; path = src/curl_adds.h; sourceTree = "<group>"; };
+		4E83D2DE1BF515F7009FF74F /* curl_adds.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = curl_adds.c; path = src/curl_adds.c; sourceTree = "<group>"; };
 		4E8787E51816732800A87FF0 /* sqlite3db_utils.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = sqlite3db_utils.c; path = src/sqlite3db_utils.c; sourceTree = "<group>"; };
 		4E8787E71816733F00A87FF0 /* sqlite3db_utils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = sqlite3db_utils.h; path = src/sqlite3db_utils.h; sourceTree = "<group>"; };
 		4E8A87AE1A095D4A00A99E80 /* nodejsServer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = nodejsServer.c; path = src/nodejsServer.c; sourceTree = "<group>"; };
@@ -2040,6 +2049,8 @@
 		4E4D4E7E1601F1510008C14C /* Interfaces manager */ = {
 			isa = PBXGroup;
 			children = (
+				4E83D2D91BF515F7009FF74F /* interface_type_005.c */,
+				4E83D2DA1BF515F7009FF74F /* interface_type_005.h */,
 				4E4ED05A1668186300820EF8 /* Interface_type_001 */,
 				4E4ED05B1668188400820EF8 /* Interface_type_002 */,
 				4E4F87771A98D24F00479945 /* Interface_type_003 */,
@@ -2062,6 +2073,8 @@
 		4E4D4E801601F2730008C14C /* Utils */ = {
 			isa = PBXGroup;
 			children = (
+				4E83D2DD1BF515F7009FF74F /* curl_adds.h */,
+				4E83D2DE1BF515F7009FF74F /* curl_adds.c */,
 				4E83D2A81BF12A81009FF74F /* mea_error.h */,
 				4E83D2A91BF12A81009FF74F /* mea_queue.c */,
 				4E83D2AA1BF12A81009FF74F /* mea_queue.h */,
@@ -2087,6 +2100,8 @@
 			isa = PBXGroup;
 			children = (
 				4E4D4E801601F2730008C14C /* Utils */,
+				4E83D2DB1BF515F7009FF74F /* netatmo.c */,
+				4E83D2DC1BF515F7009FF74F /* netatmo.h */,
 				4E4F885A1A9E76A000479945 /* cJSON.c */,
 				4E4F885B1A9E76A000479945 /* cJSON.h */,
 				4E4F885C1A9E76A000479945 /* philipshue.c */,
@@ -5908,6 +5923,7 @@
 				4E76CE9D163F120C00A3EBA9 /* xPL-service.c in Sources */,
 				4E76CE9E163F120C00A3EBA9 /* xPL-store.c in Sources */,
 				4E4F885F1A9E76A000479945 /* philipshue.c in Sources */,
+				4E83D2DF1BF515F7009FF74F /* interface_type_005.c in Sources */,
 				4EF3D8FC19B3C02200892F29 /* comio2.c in Sources */,
 				4E76CE9F163F120C00A3EBA9 /* xPL-utils.c in Sources */,
 				4E83D2C51BF12A81009FF74F /* mea_verbose.c in Sources */,
@@ -5918,6 +5934,7 @@
 				4E76CEAB163F146900A3EBA9 /* parameters_utils.c in Sources */,
 				4E76CEB2163F175100A3EBA9 /* tokens.c in Sources */,
 				4E207BB519F0529D00410B40 /* logServer.c in Sources */,
+				4E83D2E01BF515F7009FF74F /* netatmo.c in Sources */,
 				4E5FC65F172F0F91004266EB /* interface_type_001_counters.c in Sources */,
 				4E8A87B01A095D4A00A99E80 /* nodejsServer.c in Sources */,
 				4E5FC660172F0F91004266EB /* interface_type_001_sensors.c in Sources */,
@@ -5928,6 +5945,7 @@
 				4EFBFCAE175E616E007BBFD1 /* guiServer.c in Sources */,
 				4EFBFCC9175E6BE7007BBFD1 /* mongoose.c in Sources */,
 				4EFBFCCC175E8BDC007BBFD1 /* python_utils.c in Sources */,
+				4E83D2E11BF515F7009FF74F /* curl_adds.c in Sources */,
 				4E09454E17C10FB2003749FE /* init.c in Sources */,
 				4E4292941AA4E84700E64F4F /* interface_type_004.c in Sources */,
 			);
@@ -5959,6 +5977,7 @@
 					"-lmysqlclient",
 					"-lsqlite3",
 					"-lpython2.7",
+					"-lcurl",
 				);
 				PRODUCT_NAME = "mea-eDomus";
 				SDKROOT = macosx;
@@ -5987,6 +6006,7 @@
 					"-lmysqlclient",
 					"-lsqlite3",
 					"-lpython2.7",
+					"-lcurl",
 				);
 				PRODUCT_NAME = "mea-eDomus";
 				SDKROOT = macosx;

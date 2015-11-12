@@ -37,10 +37,11 @@ typedef struct interface_type_005_s
    int              id_interface;
    char             name[41];
    char             dev[81];
+   char             user[81];
+   char             password[81];
    char            *parameters;
-   char             relay_id[41];
    xpl_f            xPL_callback;
-   mea_queue_t      modules;
+   mea_queue_t      devices_list;
    int              monitoring_id;
    pthread_t       *thread;
    volatile sig_atomic_t

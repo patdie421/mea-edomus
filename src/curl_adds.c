@@ -25,6 +25,8 @@ int curl_result_release(struct curl_result_s *cr)
       free(cr->p);
       cr->p=NULL;
    }
+   
+   return 0;
 }
 
 

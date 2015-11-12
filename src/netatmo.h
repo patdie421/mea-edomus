@@ -10,7 +10,7 @@ enum netatmo_setpoint_mode_e
    HG,
    MANUAL,
    OFF,
-   MAX
+   MAX,
 };
 
 struct netatmo_token_s
