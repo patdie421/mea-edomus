@@ -93,6 +93,10 @@ for (var i = 2; i < process.argv.length; i++) {
 }
 
 
+setInterval(function() {
+            }, 5 * 1000);
+
+
 function internalCmnd(s, msg)
 {
    var cmnd = msg.substring(0, 1);

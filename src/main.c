@@ -151,15 +151,20 @@ void usage(char *cmd)
 
 int logfile_rotation_job(int my_id, void *data, char *errmsg, int l_errmsg)
 {
-   char *log_file=(char *)data;
+   char *log_file_name=(char *)data;
 
-   if(log_file)
+   if(log_file_name)
    {
-      mea_log_printf("%s (%s) : job rotation start\n", INFO_STR, __func__);
-#ifdef __linux__
-      mea_rotate_open_log_file(MEA_STDERR, log_file, 6);
-#endif
-      mea_log_printf("%s (%s) : job rotation done\n", INFO_STR, __func__);
+      mea_log_printf("%s (%s) : log file rotation job start\n", INFO_STR, __func__);
+
+      if(mea_rotate_open_log_file(log_file_name, 6)<0)
+      {
+         VERBOSE(2) fprintf (MEA_STDERR, "%s (%s) : can't rotate %s - ", ERROR_STR, __func__, log_file_name);
+         perror("");
+         return -1;
+      }
+
+      mea_log_printf("%s (%s) : log file rotation job done\n", INFO_STR, __func__);
    }
    return 0;
 }
@@ -350,12 +355,12 @@ static void _signal_STOP(int signal_number)
 
 static void _signal_SIGCHLD(int signal_number)
 {
-	/* Wait for all dead processes.
-	 * We use a non-blocking call to be sure this signal handler will not
-	 * block if a child was cleaned up in another part of the program. */
-	while (waitpid(-1, NULL, WNOHANG) > 0)
-   {
-	}
+   /* Wait for all dead processes.
+    * We use a non-blocking call to be sure this signal handler will not
+    * block if a child was cleaned up in another part of the program. */
+    while (waitpid(-1, NULL, WNOHANG) > 0)
+    {
+    }
 }
 
 
@@ -931,8 +936,8 @@ int main(int argc, const char * argv[])
    int log_rotation_id=process_register("LOGROTATION");
    process_set_start_stop(log_rotation_id, logfile_rotation_job, NULL, (void *)log_file, 1);
    process_set_type(log_rotation_id, JOB);
-//   process_job_set_scheduling_data(log_rotation_id, "0,5,10,15,20,25,30,35,40,45,50,55|*|*|*|*", 0);
-   process_job_set_scheduling_data(log_rotation_id, "0|0|*|*|*", 0); // rotation des log tous les jours à minuit
+   process_job_set_scheduling_data(log_rotation_id, "0,5,10,15,20,25,30,35,40,45,50,55|*|*|*|*", 0);
+//   process_job_set_scheduling_data(log_rotation_id, "0|0|*|*|*", 0); // rotation des log tous les jours à minuit
    process_set_group(log_rotation_id, 7);
 
    // au démarrage : rotation des log.
