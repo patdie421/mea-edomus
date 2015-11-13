@@ -10,6 +10,8 @@
 #include "mea_verbose.h"
 #include "mea_string_utils.h"
 
+char *netatmo_therm_mode[]={"program", "away", "hg", "manual", "off", "max", NULL};
+
 static int _netatmo_parse_return_json(char *response, char *err, int l_err)
 {
    int ret_code=-1;
@@ -79,18 +81,22 @@ static int _netatmo_parse_data_json(char *response, char *thermostat_id, struct 
       goto _netatmo_parse_data_json_clean_exit;
    }
 
+   ret_code=-2;
    e=cJSON_GetObjectItem(response_cjson, "body"); 
    if(e==NULL)
       goto _netatmo_parse_data_json_clean_exit;
 
+   ret_code=-3;
    e=cJSON_GetObjectItem(e, "devices");
    if(e==NULL || e->type!=cJSON_Array)
        goto _netatmo_parse_data_json_clean_exit;
 
+   ret_code=-4;
    e=cJSON_GetArrayItem(e, 0);
    if(e==NULL)
        goto _netatmo_parse_data_json_clean_exit;
 
+   ret_code=-5;
    e=cJSON_GetObjectItem(e, "modules");
    if(e==NULL || e->type!=cJSON_Array)
        goto _netatmo_parse_data_json_clean_exit;
@@ -99,29 +105,35 @@ static int _netatmo_parse_data_json(char *response, char *thermostat_id, struct 
    cJSON *a;
    do
    {
+      ret_code=-6;
       a=cJSON_GetArrayItem(e, i); 
       if(a)
       {
          cJSON *e;
+         ret_code=-7;
          e=cJSON_GetObjectItem(a, "_id");
          if(e==NULL)
             goto _netatmo_parse_data_json_clean_exit;
          if(strcmp(e->valuestring, thermostat_id)==0)
          {
+            ret_code=-8;
             e=cJSON_GetObjectItem(a, "battery_vp");
             if(e==NULL)
                goto _netatmo_parse_data_json_clean_exit;
             thermostat_data->battery_vp=e->valueint;
 
+            ret_code=-9;
             e=cJSON_GetObjectItem(a, "therm_relay_cmd");
             if(e==NULL)
                goto _netatmo_parse_data_json_clean_exit;
             thermostat_data->therm_relay_cmd=e->valueint;
 
+            ret_code=-10;
             e=cJSON_GetObjectItem(a, "setpoint");
             if(e==NULL)
                goto _netatmo_parse_data_json_clean_exit;
             {
+               ret_code=-11;
                char *s=cJSON_GetObjectItem(e, "setpoint_mode")->valuestring;
                if(s==NULL)
                   goto _netatmo_parse_data_json_clean_exit;
@@ -141,16 +153,19 @@ static int _netatmo_parse_data_json(char *response, char *thermostat_id, struct 
                   thermostat_data->setpoint=-1; 
             }
 
+            ret_code=-12;
             cJSON *mesured=cJSON_GetObjectItem(a, "measured");
             if(mesured==NULL)
                goto _netatmo_parse_data_json_clean_exit;
             else
             {
+               ret_code=-13;
                e=cJSON_GetObjectItem(mesured, "temperature");
                if(e==NULL)
                   goto _netatmo_parse_data_json_clean_exit;
                thermostat_data->temperature=e->valuedouble;
 
+               ret_code=-14;
                e=cJSON_GetObjectItem(mesured, "setpoint_temp");
                if(e==NULL)
                   goto _netatmo_parse_data_json_clean_exit;
@@ -163,14 +178,14 @@ static int _netatmo_parse_data_json(char *response, char *thermostat_id, struct 
       }
    }
    while(a);
-   if(ret_code<0)
-   {
-      ret_code=9998;
-      if(err)
-         strcpy(err,"thermostat id not found");
-   }
 
 _netatmo_parse_data_json_clean_exit:
+   if(ret_code<0)
+   {
+      if(err)
+         strcpy(err,"parsing data error");
+   }
+
    if(response_cjson)
    {
       cJSON_Delete(response_cjson);
@@ -460,7 +475,11 @@ int netatmo_get_thermostat_data(char *access_token, char *relay_id, char *thermo
 
    ret=curl_result_init(&cr);
    if(ret<0)
+   {
+      if(err)
+         strncpy(err, "curl_result_init error", l_err);
       return -1;
+   }
 
    curl = curl_easy_init();
    if(curl)
@@ -480,15 +499,27 @@ int netatmo_get_thermostat_data(char *access_token, char *relay_id, char *thermo
       if(res != CURLE_OK)
       {
          DEBUG_SECTION mea_log_printf("%s (%s) : curl_easy_perform() failed (%d) - %s\n", DEBUG_STR, __func__, time(NULL), curl_easy_strerror(res));
+         if(err)
+            strncpy(err, curl_easy_strerror(res), l_err);
          ret=-1;
       }
       else
+      {
          ret=_netatmo_parse_data_json(cr.p, thermostat_id, thermostat_data, err, l_err);
+         if(ret<0)
+         {
+            DEBUG_SECTION mea_log_printf("%s\n", cr.p);
+         }
+      }
 
       curl_easy_cleanup(curl);
    }
    else
+   {
+      if(err)
+         strncpy(err, "curl_easy_init error", l_err);
       ret=-1;
+   }
 
    curl_result_release(&cr);
    return ret;

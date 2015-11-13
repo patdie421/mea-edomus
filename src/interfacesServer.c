@@ -176,6 +176,13 @@ void dispatchXPLMessageToInterfaces(xPL_ServicePtr theService, xPL_MessagePtr th
                   i004->xPL_callback(theService, theMessage, (xPL_ObjectPtr)i004);
                break;
             }
+            case INTERFACE_TYPE_005:
+            {
+               interface_type_005_t *i005 = (interface_type_005_t *)(iq->context);
+               if(i005->monitoring_id>-1 && process_is_running(i005->monitoring_id) && i005->xPL_callback)
+                  i005->xPL_callback(theService, theMessage, (xPL_ObjectPtr)i005);
+               break;
+            }
             default:
                break;
          }
@@ -321,6 +328,36 @@ void stop_interfaces()
                clean_interface_type_004(i004);
                free(i004);
                i004=NULL;
+               break;
+            }
+
+            case INTERFACE_TYPE_005:
+            {
+               interface_type_005_t *i005=(interface_type_005_t *)(iq->context);
+               
+               if(i005->xPL_callback)
+                  i005->xPL_callback=NULL;
+               
+               if(i005->monitoring_id!=-1)
+               {
+                  struct interface_type_005_start_stop_params_s *interface_type_005_start_stop_params = (struct interface_type_005_start_stop_params_s *)process_get_data_ptr(i005->monitoring_id);
+                  process_stop(i005->monitoring_id, NULL, 0);
+                  process_unregister(i005->monitoring_id);
+                  i005->monitoring_id=-1;
+                  if(interface_type_005_start_stop_params)
+                  {
+                     free(interface_type_005_start_stop_params);
+                     interface_type_005_start_stop_params=NULL;
+                  }
+                  if(i005->parameters)
+                  {
+                     free(i005->parameters);
+                     i005->parameters=NULL;
+                  }
+               }
+               clean_interface_type_005(i005);
+               free(i005);
+               i005=NULL;
                break;
             }
 

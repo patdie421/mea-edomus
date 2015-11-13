@@ -13,6 +13,8 @@ enum netatmo_setpoint_mode_e
    MAX,
 };
 
+extern char *netatmo_therm_mode[];
+
 struct netatmo_token_s
 {
    char access[81];

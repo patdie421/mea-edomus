@@ -18,6 +18,7 @@
 #include "xPLServer.h"
 
 #include "mea_queue.h"
+#include "netatmo.h"
 
 extern char *interface_type_005_xplin_str;
 extern char *interface_type_005_xplout_str;
@@ -49,6 +50,7 @@ typedef struct interface_type_005_s
    pthread_mutex_t  lock;
    struct interface_type_005_indicators_s
                     indicators;
+   struct netatmo_token_s token;
 } interface_type_005_t;
 
 
