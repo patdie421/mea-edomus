@@ -12,23 +12,27 @@
 #include <errno.h>
 #include <pthread.h>
 
-#include "globals.h"
-#include "consts.h"
-
-#include "tokens.h"
 #include "mea_verbose.h"
 #include "mea_timer.h"
 #include "mea_string_utils.h"
 #include "mea_queue.h"
-#include "netatmo.h"
+
+#include "cJSON.h"
+#include "uthash.h"
+
+#include "globals.h"
+#include "consts.h"
+
+#include "tokens.h"
+
 #include "macros.h"
 #include "dbServer.h"
 #include "parameters_utils.h"
 #include "processManager.h"
+
 #include "notify.h"
+
 #include "netatmo.h"
-#include "cJSON.h"
-#include "uthash.h"
 
 #include "interfacesServer.h"
 
@@ -36,19 +40,20 @@
 struct type005_device_queue_elem_s
 {
    char device_id[81];
+
    mea_queue_t modules_list;
 };
-
 
 struct type005_module_queue_elem_s
 {
    char module_id[81];
-   mea_queue_t sensors_actuators_list;
    
    struct netatmo_thermostat_data_s d1, d2;
    struct netatmo_thermostat_data_s *current, *last;
-};
 
+   mea_queue_t sensors_actuators_list;
+   struct type005_device_queue_elem_s *device;
+};
 
 struct type005_sensor_actuator_queue_elem_s
 {
@@ -58,6 +63,7 @@ struct type005_sensor_actuator_queue_elem_s
    int todbflag;
    int sensor;
    int actuator;
+   
    struct type005_module_queue_elem_s *module;
 };
 
@@ -95,6 +101,8 @@ static int16_t _interface_type_005_send_xPL_sensor_basic(interface_type_005_t *i
 
       xPL_releaseMessage(cntrMessageStat);
    }
+   
+   return 0;
 }
 
 
@@ -151,15 +159,15 @@ int16_t interface_type_005_current_last(struct type005_sensor_actuator_queue_ele
          if(d1) *d1=(double)e->module->current->temperature;
          break;
 
-     case RELAY_CMD:
+      case RELAY_CMD:
          sprintf(str_current, "%d", e->module->current->therm_relay_cmd);
          sprintf(str_last,    "%d", e->module->last->therm_relay_cmd);
          strcpy(type, "output");
          if(d1) *d1=(double)e->module->current->therm_relay_cmd;
          break;
 
-    case BATTERY:
-    {
+      case BATTERY:
+      {
          float v1=(e->module->current->battery_vp-3000.0)/1500.0*100.0;
          if(v1>100.0) v1=100.0;
          if(v1<0.0) v1=0.0;
@@ -172,9 +180,9 @@ int16_t interface_type_005_current_last(struct type005_sensor_actuator_queue_ele
          if(d1) *d1=(double)e->module->current->battery_vp;
          if(d2) *d2=(double)v1;
          break;
-     }
+      }
 
-     case MODE:
+      case MODE:
          sprintf(str_current, "%d", e->module->current->setpoint);
          sprintf(str_last,    "%d", e->module->last->setpoint);
          strcpy(type,"generic");
@@ -182,7 +190,7 @@ int16_t interface_type_005_current_last(struct type005_sensor_actuator_queue_ele
          if(comp) strcpy(comp, netatmo_therm_mode[e->module->current->setpoint]);
          break;
 
-    case SETPOINT:
+     case SETPOINT:
          sprintf(str_current, "%4.1f", e->module->current->setpoint_temp);
          sprintf(str_last,    "%4.1f", e->module->last->setpoint_temp);
          strcpy(type,"setpoint");
@@ -208,12 +216,67 @@ int16_t interface_type_005_xPL_actuator(interface_type_005_t *i005,
                                         char *type,
                                         struct type005_sensor_actuator_queue_elem_s *e)
 {
+// xPLSend -m cmnd -c control.basic device=therm01 mode=manual setpoint=25.5 expire=3600
+// xPLSend -m cmnd -c control.basic device=therm01 mode=away expire=3600
+// xPLSend -m cmnd -c control.basic device=therm01 mode=away
+// xPLSend -m cmnd -c control.basic device=therm01 mode=program
    int16_t ret=-1;
-
+   char err[81];
    if(e->type==501)
    {
-      fprintf(stderr,"ACTUATOR request to process\n");   
-      ret=0;
+      char *mode     = xPL_getNamedValue(ListNomsValeursPtr, "mode");
+      char *setpoint = xPL_getNamedValue(ListNomsValeursPtr, "setpoint");
+      char *expire   = xPL_getNamedValue(ListNomsValeursPtr, "expire");
+      
+      char * pEnd;
+  
+      long int _mode=-1L;
+      long int _expire=0L;
+      double _setpoint=0.0;
+      
+      if(mode)
+      {
+         if(expire)
+         {
+            _expire=strtol(expire, &pEnd, 10);
+            if(*pEnd>0)
+               return -1;
+         }
+      
+         if(setpoint)
+         {
+            _setpoint=strtod(setpoint, &pEnd);
+            if(*pEnd>0)
+               return -1;
+         }
+
+         for(int i=0;netatmo_therm_mode[i];i++)
+         {
+            if(strcmp(netatmo_therm_mode[i],mode)==0)
+            {
+               _mode=i;
+               break;
+            }
+         }
+         
+         switch(_mode)
+         {
+            case OFF:
+            case HG:
+            case MAX:
+            case PROGRAM:
+               _setpoint=0.0;
+            case MANUAL:
+            case AWAY:
+               netatmo_set_thermostat_setpoint(i005->token.access, e->module->device->device_id, e->module->module_id, _mode, _expire, _setpoint, err, sizeof(err)-1);
+               break;
+               
+            default:
+               return -1;
+         }
+      }
+      else
+         ret=-1;
    }
    return ret;
 }
@@ -226,20 +289,44 @@ int16_t interface_type_005_xPL_sensor(interface_type_005_t *i005,
                                       char *type,
                                       struct type005_sensor_actuator_queue_elem_s *e)
 {
-   int16_t ret=-1;
-  
+// xPLSend -m cmnd -c sensor.request device=temp02 request=current
+   char err[81];
+   static time_t chrono=0;
+   
+   time_t now;
+   
+   now=time(NULL);
    if(e->type==500)
    {
-      char type[40], str_value[40], str_last[40];
+      char ntype[41], str_value[41], str_last[41];
 
-      if(interface_type_005_current_last(e, type, str_value, str_last, NULL, NULL, NULL)<0)
+      if(difftime(now, chrono)>10.0)
+      {
+         struct netatmo_thermostat_data_s data;
+         int ret=netatmo_get_thermostat_data(i005->token.access, e->module->device->device_id, e->module->module_id, &data, err, sizeof(err)-1);
+         if(ret==0)
+         {
+            // switch des espaces de données last et current
+            struct netatmo_thermostat_data_s *tmp;
+            tmp=e->module->last;
+            e->module->last=e->module->current;
+            e->module->current=tmp;
+            memcpy(e->module->current, &data, sizeof(data));
+         }
+         chrono=now;
+      }
+      if(interface_type_005_current_last(e, ntype, str_value, str_last, NULL, NULL, NULL)<0)
          return -1;
       else
-      {  
-         _interface_type_005_send_xPL_sensor_basic(i005, xPL_MESSAGE_STATUS, e->name, type, str_value, str_last);
+      {
+         _interface_type_005_send_xPL_sensor_basic(i005, xPL_MESSAGE_STATUS, e->name, ntype, str_value, str_last);
          return 0;
       }
    }
+   else
+      return -1;
+   
+   return 0;
 }
 
 
@@ -274,13 +361,6 @@ int16_t interface_type_005_xPL_callback(xPL_ServicePtr theService, xPL_MessagePt
    if(mea_strcmplower(schema_class, get_token_string_by_id(XPL_CONTROL_ID)) == 0 &&
       mea_strcmplower(schema_type, get_token_string_by_id(XPL_BASIC_ID)) == 0)
    {
-/*
-      if(!type)
-      {
-         VERBOSE(5) mea_log_printf("%s (%s) : xPL message no type\n",INFO_STR,__func__);
-         return -1;
-      }
-*/
       return interface_type_005_xPL_actuator(i005, theService, ListNomsValeursPtr, device, type, elem);
    }
    else if(mea_strcmplower(schema_class, get_token_string_by_id(XPL_SENSOR_ID)) == 0 &&
@@ -297,6 +377,7 @@ int16_t interface_type_005_xPL_callback(xPL_ServicePtr theService, xPL_MessagePt
          VERBOSE(5) mea_log_printf("%s (%s) : xPL message request!=current\n",INFO_STR,__func__);
          return -1;
       }
+
       return interface_type_005_xPL_sensor(i005, theService, theMessage, device, type, elem);
    }
    
@@ -331,7 +412,6 @@ int clean_queues(mea_queue_t *q)
       d=NULL;
       mea_queue_remove_current(q);
    }
-   
    return 0;
 }
 
@@ -455,6 +535,8 @@ int load_interface_type_005(interface_type_005_t *i005, sqlite3 *db)
             
                m_elem->last=&(m_elem->d1);
                m_elem->current=&(m_elem->d2);
+
+               m_elem->device=d_elem;
 
                new_m_elem_flag=1; // on signale qu'on a créé un module
             }
@@ -598,7 +680,7 @@ load_interface_type_005_clean_queues:
    return 0;
 
 load_interface_type_005_clean_exit:
-   // faire le ménage ici si nécessaire
+   clean_queues(&(i005->devices_list));
    return -1;
 }
 
@@ -693,16 +775,18 @@ void *_thread_interface_type_005(void *thread_data)
             {
                mea_queue_current(&(d_elem->modules_list), (void **)&m_elem);
               
-               // switch des espaces de données last et current 
-               struct netatmo_thermostat_data_s *tmp;
-               tmp=m_elem->last;
-               m_elem->last=m_elem->current;
-               m_elem->current=tmp;
 
-               // lecture des données du module
-               ret=netatmo_get_thermostat_data(i005->token.access, d_elem->device_id, m_elem->module_id, m_elem->current, err, sizeof(err)-1);
+               struct netatmo_thermostat_data_s data;
+               ret=netatmo_get_thermostat_data(i005->token.access, d_elem->device_id, m_elem->module_id, &data, err, sizeof(err)-1);
                if(ret==0 && m_elem->last->therm_relay_cmd!=-1)
                {
+                  struct netatmo_thermostat_data_s *tmp;
+               // switch des espaces de données last et current 
+                  tmp=m_elem->last;
+                  m_elem->last=m_elem->current;
+                  m_elem->current=tmp;
+                  memcpy(m_elem->current, &data, sizeof(data));
+                  
                   struct type005_sensor_actuator_queue_elem_s *sa_elem;
 
                   mea_queue_first(&(m_elem->sensors_actuators_list));
@@ -715,100 +799,7 @@ void *_thread_interface_type_005(void *thread_data)
                         double data4db=0.0;
                         double data4db2=0.0;
                         char data4dbComp[20]="";
-/*
-                        char str_value[20], str_last[20], *type=NULL;
-                        float data4db=0.0;
-                        float data4db2=0.0;
-                        char *data4dbComp="";
-                        switch(sa_elem->sensor)
-                        {
-                           case TEMPERATURE:
-                              if(m_elem->last->temperature != m_elem->current->temperature)
-                              {
-                                 VERBOSE(9) mea_log_printf("%s (%s) : %s - temperature = %4.1f °C (last = %4.1f °C)\n",
-                                    INFO_STR, __func__, sa_elem->name, m_elem->current->temperature, m_elem->last->temperature);
-                                 sprintf(str_value, "%4.1f", m_elem->current->temperature); 
-                                 sprintf(str_last,  "%4.1f", m_elem->last->temperature); 
-                                 type="temp";
-                                 data4db=(double)m_elem->current->temperature;
-                              }
-                              else
-                                 DEBUG_SECTION mea_log_printf("%s (%s) : %s - temperature doesn't change\n", DEBUG_STR, __func__, sa_elem->name);
-                              break;
-                           case RELAY_CMD:
-                              if(m_elem->last->therm_relay_cmd != m_elem->current->therm_relay_cmd)
-                              {
-                                 VERBOSE(9) mea_log_printf("%s (%s) : %s - relay_cmd = %d%% (last = %d%%)\n",
-                                    INFO_STR, __func__, sa_elem->name, m_elem->current->therm_relay_cmd, m_elem->last->therm_relay_cmd);
-                                 sprintf(str_value, "%d", m_elem->current->therm_relay_cmd); 
-                                 sprintf(str_last,  "%d", m_elem->last->therm_relay_cmd); 
-                                 type="output";
-                                 data4db=(double)m_elem->current->therm_relay_cmd;
-                              }
-                              else
-                                 DEBUG_SECTION mea_log_printf("%s (%s) : %s - relay_cmd doesn't change\n", DEBUG_STR, __func__, sa_elem->name);
-                              break;
-                           case BATTERY:
-                              if(m_elem->last->battery_vp != m_elem->current->battery_vp)
-                              {
-                                 VERBOSE(9) mea_log_printf("%s (%s) : %s - battery = %d (last = %d)\n",
-                                    INFO_STR, __func__, sa_elem->name, m_elem->current->battery_vp, m_elem->last->battery_vp);
-                                 float v1=(m_elem->current->battery_vp-3000.0)/1500.0*100.0;
-                                 if(v1>100.0) v1=100.0;
-                                 if(v1<0.0) v1=0.0;
-                                 float v2=(m_elem->last->battery_vp-3000.0)/1500.0*100.0;
-                                 if(v2>100.0) v2=100.0;
-                                 if(v2<0.0) v2=0.0;
-                                 if((int)v1!=(int)v2)
-                                 {
-                                    sprintf(str_value, "%3.0f", v1); 
-                                    sprintf(str_last,  "%3.0f", v2); 
-                                    type="battery";
-                                    data4db=(double)m_elem->current->battery_vp;
-                                    data4db2=(double)v1;
-                                 }
-                              }
-                              else
-                                 DEBUG_SECTION mea_log_printf("%s (%s) : %s - battery doesn't change\n", DEBUG_STR, __func__, sa_elem->name);
-                              break;
-                           case MODE:
-                              if(m_elem->last->setpoint != m_elem->current->setpoint)
-                              {
-                                 VERBOSE(9) mea_log_printf("%s (%s) : %s - setpoint = %d (last = %d)\n",
-                                    INFO_STR, __func__, sa_elem->name, m_elem->current->setpoint, m_elem->last->setpoint);
-                                 sprintf(str_value, "%d", m_elem->current->setpoint);
-                                 sprintf(str_last,  "%d", m_elem->last->setpoint);
-                                 type="generic";
-                                 data4db=(double)m_elem->current->setpoint;
-                                 data4dbComp=netatmo_therm_mode[m_elem->current->setpoint]; 
-                              }
-                              else
-                                 DEBUG_SECTION mea_log_printf("%s (%s) : %s - setpoint doesn't change\n", DEBUG_STR, __func__, sa_elem->name);
-                              break;
-                            case SETPOINT:
-                              if(m_elem->last->setpoint_temp != m_elem->current->setpoint_temp)
-                              {
-                                 VERBOSE(9) mea_log_printf("%s (%s) : %s - setpoint_temp = %4.1f °C (last = %4.1f °C)\n",
-                                    INFO_STR, __func__, sa_elem->name, m_elem->current->setpoint_temp, m_elem->last->setpoint_temp);
-                                 sprintf(str_value, "%4.1f", m_elem->current->setpoint_temp); 
-                                 sprintf(str_last,  "%4.1f", m_elem->last->setpoint_temp); 
-                                 type="setpoint";
-                                 data4db=(double)m_elem->current->setpoint_temp;
-                              }
-                              else
-                                 DEBUG_SECTION mea_log_printf("%s (%s) : %s - setpoint_temp doesn't change\n", DEBUG_STR, __func__, sa_elem->name);
-
-                              break;
-                           default:
-                              break;
-                        }
-                        if(type)
-                        {
-                           _interface_type_005_send_xPL_sensor_basic(i005, xPL_MESSAGE_TRIGGER, sa_elem->name, type, str_value, str_last);
-                           if(sa_elem->todbflag==1)
-                              dbServer_add_data_to_sensors_values(sa_elem->id, data4db, 0, data4db2, data4dbComp);
-                        }
-*/
+                        
                         ret=interface_type_005_current_last(sa_elem, type, str_value, str_last, &data4db, &data4db2, data4dbComp);
                         if(ret==1)
                         {
@@ -1001,7 +992,10 @@ int start_interface_type_005(int my_id, void *data, char *errmsg, int l_errmsg)
    struct interface_type_005_start_stop_params_s *start_stop_params=(struct interface_type_005_start_stop_params_s *)data; // données pour la gestion des arrêts/relances
    struct thread_interface_type_005_args_s *interface_type_005_thread_args=NULL; // parametre à transmettre au thread
 
-   load_interface_type_005(start_stop_params->i005, start_stop_params->sqlite3_param_db);
+   start_stop_params->i005->xPL_callback=NULL;
+
+   if(load_interface_type_005(start_stop_params->i005, start_stop_params->sqlite3_param_db)<0)
+      return -1;
  
    interface_type_005_thread_args=malloc(sizeof(struct thread_interface_type_005_args_s));
    if(!interface_type_005_thread_args)
@@ -1010,9 +1004,9 @@ int start_interface_type_005(int my_id, void *data, char *errmsg, int l_errmsg)
       perror("");
       goto start_interface_type_005_clean_exit;
    }
+   interface_type_005_thread_args->i005=start_stop_params->i005;
 
    // initialisation et préparation des données
-   interface_type_005_thread_args->i005=start_stop_params->i005;
    start_stop_params->i005->user[0]=0;
    start_stop_params->i005->password[0]=0;
    sscanf(start_stop_params->i005->dev, "NETATMO://%80[^/]/%80[^\n]", start_stop_params->i005->user, start_stop_params->i005->password);
@@ -1021,8 +1015,6 @@ int start_interface_type_005(int my_id, void *data, char *errmsg, int l_errmsg)
       VERBOSE(2) mea_log_printf("%s (%s) : bad netatmo dev - incorrect user/password%s\n", ERROR_STR, __func__, start_stop_params->i005->dev);
       goto start_interface_type_005_clean_exit;
    }
-
-   start_stop_params->i005->xPL_callback=interface_type_005_xPL_callback;
    
    interface_type_005_thread_id=(pthread_t *)malloc(sizeof(pthread_t));
    if(!interface_type_005_thread_id)
@@ -1036,8 +1028,9 @@ int start_interface_type_005(int my_id, void *data, char *errmsg, int l_errmsg)
       VERBOSE(2) mea_log_printf("%s (%s) : pthread_create - can't start thread\n",ERROR_STR,__func__);
       goto start_interface_type_005_clean_exit;
    }
-   
-   interface_type_005_thread_args->i005->thread=interface_type_005_thread_id;
+
+   start_stop_params->i005->xPL_callback=interface_type_005_xPL_callback;
+   start_stop_params->i005->thread=interface_type_005_thread_id;
    
    pthread_detach(*interface_type_005_thread_id);
    

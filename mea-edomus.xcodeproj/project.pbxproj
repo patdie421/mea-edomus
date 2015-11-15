@@ -2049,12 +2049,11 @@
 		4E4D4E7E1601F1510008C14C /* Interfaces manager */ = {
 			isa = PBXGroup;
 			children = (
-				4E83D2D91BF515F7009FF74F /* interface_type_005.c */,
-				4E83D2DA1BF515F7009FF74F /* interface_type_005.h */,
 				4E4ED05A1668186300820EF8 /* Interface_type_001 */,
 				4E4ED05B1668188400820EF8 /* Interface_type_002 */,
 				4E4F87771A98D24F00479945 /* Interface_type_003 */,
 				4E4292911AA4E82000E64F4F /* Interface_type_004 */,
+				4E83D2E21BF766AB009FF74F /* interface_type_005 */,
 				4E14ABFC16083B8C000686C3 /* interfacesServer.h */,
 				4EF3F6C21828400F00959B93 /* interfacesServer.c */,
 			);
@@ -4246,6 +4245,15 @@
 				4E798FFA19D4890D00F87593 /* processManager.h */,
 			);
 			name = "process manager";
+			sourceTree = "<group>";
+		};
+		4E83D2E21BF766AB009FF74F /* interface_type_005 */ = {
+			isa = PBXGroup;
+			children = (
+				4E83D2D91BF515F7009FF74F /* interface_type_005.c */,
+				4E83D2DA1BF515F7009FF74F /* interface_type_005.h */,
+			);
+			name = interface_type_005;
 			sourceTree = "<group>";
 		};
 		4E8E53351842967F006FB9D3 /* automator */ = {
