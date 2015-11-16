@@ -73,7 +73,7 @@
    8    /    PIN A4   / E/S dont entrée analogique
    9    /    PIN A5   / E/S dont entrée analogique
 
- Les communication/réaction au SMS sont contrôlés (ACL). Le module dispose d'un le carnet
+ Les communication/réaction au SMS sont contrôlés (ACL). Le module dispose d'un carnet
  de  numéro de téléphone (10 numéros disponibles) stockés en EEPROM (commandes MCU pour
  gérer la liste). Seul les numéros contenus dans cette liste peuvent agir sur le module
  par SMS. Le carnet fait également fonction de "liste de diffusion", les alarmes sont
@@ -105,7 +105,7 @@
  - en mettant P11 à LOW : le MCU doit interpréter les commandes en provenance du PC (les
    données ne sont alors pas transmises au SIM900). Lors de l'initialisation du module
    si la communication ne peut pas être établie dans les 10s avec un SIM900, le module
-   passe    automatiquement dans ce mode (les états de P10, 11 et P12 n'ont aucun effet et
+   passe automatiquement dans ce mode (les états de P10, 11 et P12 n'ont aucun effet et
    la LED (13) clignote rapidement).
  - en mettant P12 à LOW : le MCU n'interprète pas les données en provenance du SI900
    (mode transparent).
@@ -154,10 +154,10 @@
  
  Changer l'état des lignes :
   PIN 0 positionnée à HIGH
-  PIN 2 PWM à 10
+  PIN 2 PWM à 100
   lecture PIN 4
  
- > CMD:##0,L,H;1,A,10;4:A:G##
+ > CMD:##0,L,H;1,A,100;4:A:G##
  <à faire>
 
  Les commandes interprétés par le modules doivent avoir le formation suivant :
@@ -1351,6 +1351,7 @@ int addToCmndResults(struct data_s *data, int pin, int cmnd, long value)
   {
     if(*data->cmndResultsBufferPtr!=0)
       data->cmndResultsBuffer[*data->cmndResultsBufferPtr++]=';';
+
     data->cmndResultsBuffer[*data->cmndResultsBufferPtr++]=cmnd;
     data->cmndResultsBuffer[*data->cmndResultsBufferPtr++]='/';
     data->cmndResultsBuffer[*data->cmndResultsBufferPtr++]='P';
@@ -1378,6 +1379,7 @@ int doneToCmndResult(struct data_s *data)
   {
     if(*data->cmndResultsBufferPtr!=0)
       data->cmndResultsBuffer[*data->cmndResultsBufferPtr++]=';';
+
     data->cmndResultsBuffer[*data->cmndResultsBufferPtr++]='D';
     data->cmndResultsBuffer[*data->cmndResultsBufferPtr++]='O';
     data->cmndResultsBuffer[*data->cmndResultsBufferPtr++]='N';
@@ -1402,6 +1404,7 @@ int errToCmndResult(struct data_s *data, int errno)
   {
     if(*data->cmndResultsBufferPtr!=0)
       data->cmndResultsBuffer[*data->cmndResultsBufferPtr++]=';';
+
     data->cmndResultsBuffer[*data->cmndResultsBufferPtr++]='E';
     data->cmndResultsBuffer[*data->cmndResultsBufferPtr++]='R';
     data->cmndResultsBuffer[*data->cmndResultsBufferPtr++]='R';
@@ -1556,9 +1559,9 @@ int evalCmndString(char *buffer, void *dataPtr)
   data->cmndResultsBufferPtr=0;
 
   if(buffer[0]  =='#' &&
-    buffer[1]  =='#' &&
-    buffer[l-2]=='#' &&
-    buffer[l-1]=='#') // une commande via SMS ?
+     buffer[1]  =='#' &&
+     buffer[l-2]=='#' &&
+     buffer[l-1]=='#') // une commande via SMS ?
   {
     int ptr=2;
     l=l-4; // 4 "#" déjà traité
@@ -1784,7 +1787,8 @@ void sim900_broadcastSMS(char *text)
       Serial.print(num);
       Serial.print(':');
       Serial.println(text);
-      //      sim900.sendSMS(num,text);
+
+      sim900.sendSMS(num,text);
     }
   }
 }

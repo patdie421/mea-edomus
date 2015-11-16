@@ -936,8 +936,8 @@ int main(int argc, const char * argv[])
    int log_rotation_id=process_register("LOGROTATION");
    process_set_start_stop(log_rotation_id, logfile_rotation_job, NULL, (void *)log_file, 1);
    process_set_type(log_rotation_id, JOB);
-   process_job_set_scheduling_data(log_rotation_id, "0,5,10,15,20,25,30,35,40,45,50,55|*|*|*|*", 0);
-//   process_job_set_scheduling_data(log_rotation_id, "0|0|*|*|*", 0); // rotation des log tous les jours à minuit
+//   process_job_set_scheduling_data(log_rotation_id, "0,5,10,15,20,25,30,35,40,45,50,55|*|*|*|*", 0);
+   process_job_set_scheduling_data(log_rotation_id, "0|0|*|*|*", 0); // rotation des log tous les jours à minuit
    process_set_group(log_rotation_id, 7);
 
    // au démarrage : rotation des log.

@@ -25,5 +25,4 @@ CREATE TABLE IF NOT EXISTS sensors_values (
    PRIMARY KEY(id)
 );
 
-SHOW COLUMNS FROM pinst;
-
+SHOW COLUMNS FROM sensors_values;
