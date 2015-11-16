@@ -360,7 +360,7 @@ void *_thread_interface_type_003_enocean_data(void *args)
          {
             if(ret==ETIMEDOUT)
             {
-               DEBUG_SECTION mea_log_printf("%s (%s) : Nb elements in queue after TIMEOUT : %ld)\n", DEBUG_STR, __func__, params->queue->nb_elem);
+//               DEBUG_SECTION mea_log_printf("%s (%s) : Nb elements in queue after TIMEOUT : %ld)\n", DEBUG_STR, __func__, params->queue->nb_elem);
             }
             else
             {
@@ -493,7 +493,7 @@ void *_thread_interface_type_003_enocean_data(void *args)
       else
       {
          // pb d'accès aux données de la file
-         DEBUG_SECTION mea_log_printf("%s (%s) : mea_queue_out_elem - no data in queue\n", DEBUG_STR, __func__);
+//         DEBUG_SECTION mea_log_printf("%s (%s) : mea_queue_out_elem - no data in queue\n", DEBUG_STR, __func__);
       }
       pthread_testcancel();
    }

@@ -22,14 +22,20 @@
 
 extern char *interface_type_005_xplin_str;
 extern char *interface_type_005_xplout_str;
+extern char *interface_type_005_nbreaderror_str;
+extern char *interface_type_005_nbread_str;
 
 #define I005_XPLIN  interface_type_005_xplin_str
 #define I005_XPLOUT interface_type_005_xplout_str
+#define I005_NBREADERROR interface_type_005_nbreaderror_str
+#define I005_NBREAD interface_type_005_nbread_str
 
 struct interface_type_005_indicators_s
 {
    uint32_t xplin;
    uint32_t xplout;
+   uint32_t nbreaderror;
+   uint32_t nbread;
 };
 
 

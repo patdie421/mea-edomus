@@ -332,6 +332,7 @@ void *_thread_interface_type_006_genericserial_data(void *args)
          process_update_indicator(params->i006->monitoring_id, interface_type_006_senttoplugin_str, params->i006->indicators.senttoplugin);
          process_update_indicator(params->i006->monitoring_id, interface_type_006_xplin_str, params->i006->indicators.xplin);
          process_update_indicator(params->i006->monitoring_id, interface_type_006_serialin_str, params->i006->indicators.serialin);
+//         process_update_indicator(params->i006->monitoring_id, interface_type_006_serialout_str, params->i006->indicators.serialout);
       }
 
       if(params->i006->fd<0)
@@ -361,11 +362,12 @@ void *_thread_interface_type_006_genericserial_data(void *args)
                if(ret == 0)
                {
                   if(buffer_ptr>0)
-                     break;
+                     break; // après un "blanc" de 100 ms, si on a des données, on les envoie au plugin
                }
                else
                {
                   // erreur à traiter ...
+                  perror("");
                   close(params->i006->fd);
                   params->i006->fd=-1;
                   break;
@@ -375,18 +377,20 @@ void *_thread_interface_type_006_genericserial_data(void *args)
             if(ret!=-1)
             {
                buffer[buffer_ptr++]=c;
-               if(buffer_ptr >= sizeof(buffer))
+               if(buffer_ptr >= sizeof(buffer)-1)
                   break;
             }
          }
 
          if(buffer_ptr>0)
          {
-            params->i006->indicators.serialin++;
+            params->i006->indicators.serialin+=buffer_ptr;
          
             DEBUG_SECTION mea_log_printf("%s  (%s) : data from Serial : %s\n", INFO_STR, __func__, buffer);
          
             // transmettre buffer au plugin
+            buffer[buffer_ptr]=0;
+            fprintf(stderr,"%s\n",buffer);
 
             buffer_ptr=0;
 

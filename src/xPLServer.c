@@ -372,9 +372,7 @@ int16_t displayXPLMsg(xPL_MessagePtr theMessage)
 
    snprintf(xpl_schema,sizeof(xpl_schema),"%s.%s", xPL_getSchemaClass(theMessage), xPL_getSchemaType(theMessage));
 
-   mea_log_printf("%s (%s) : source = %s, destination = %s, schema = %s, body = {",DEBUG_STR,__func__,
-   xpl_source, xpl_destination
-   , xpl_schema);
+   mea_log_printf("%s (%s) : source = %s, destination = %s, schema = %s, body = {", DEBUG_STR, __func__, xpl_source, xpl_destination, xpl_schema);
 
    xPL_NameValueListPtr xpl_body = xPL_getMessageBody(theMessage);
    int n = xPL_getNamedValueCount(xpl_body);
@@ -399,7 +397,7 @@ void _cmndXPLMessageHandler(xPL_ServicePtr theService, xPL_MessagePtr theMessage
    schema_class = xPL_getSchemaClass(theMessage);
    schema_type  = xPL_getSchemaType(theMessage);
 
-   DEBUG_SECTION  displayXPLMsg(theMessage);
+//   DEBUG_SECTION  displayXPLMsg(theMessage);
    
    if(mea_strcmplower(schema_class, get_token_string_by_id(XPL_WATCHDOG_ID)) == 0 &&
       mea_strcmplower(schema_type, get_token_string_by_id(XPL_BASIC_ID)) == 0)
@@ -531,7 +529,7 @@ void *xPLServer_thread(void *data)
          xPL_sendMessage(xplWDMsg);
 #endif
 
-      VERBOSE(9) {
+      DEBUG_SECTION {
          static char compteur=0;
          if(compteur>59)
          {

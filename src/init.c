@@ -607,6 +607,7 @@ int populateMeaTypes(sqlite3 *sqlite3_param_db)
       {INTERFACE_TYPE_003,"INTYP03","Interface de type 03","","1","10"},
       {INTERFACE_TYPE_004,"INTYP04","Interface de type 04","","1","10"},
       {INTERFACE_TYPE_005,"INTYP05","Interface de type 05","","1","10"},
+      {INTERFACE_TYPE_006,"INTYP06","Interface de type 05","","1","10"},
       {201,"XBEECA","Capteurs et actionneurs a interface XBee","","1","10"},
       {1000,"PWRCTR","Capteur de compteur ERDF","","1","0"},
       {1001,"TYP1IN","Entree interface type 01","","1","0"},
@@ -1222,6 +1223,33 @@ exit_updateMeaEdomus:
 
 
 // une fonction pour chaque changement de version.
+int16_t upgrade_params_db_from_5_to_6(sqlite3 *sqlite3_param_db, struct upgrade_params_s *upgrade_params)
+{
+ int ret;
+ char *err = NULL;
+ 
+   VERBOSE(5) mea_log_printf ("%s (%s) : passage de la version 5 à la version 6\n",INFO_STR,__func__);
+   
+   struct types_value_s types_values[] = {
+      {INTERFACE_TYPE_006,"INTYP06","Interface de type 05","","1","10"},
+      {0,NULL,NULL,NULL,NULL,NULL}
+   };
+
+   addNewTypes(sqlite3_param_db, types_values);   // mise à journ de la version
+
+   ret = sqlite3_exec(sqlite3_param_db, "UPDATE 'application_parameters' set value = '5' WHERE key = 'PARAMSDBVERSION'", NULL, NULL, &err);
+   if( ret != SQLITE_OK )
+   {
+      VERBOSE(9) mea_log_printf ("%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
+      sqlite3_free(err);
+      return -1;
+   }
+   
+   return 0;
+}
+
+
+// une fonction pour chaque changement de version.
 int16_t upgrade_params_db_from_4_to_5(sqlite3 *sqlite3_param_db, struct upgrade_params_s *upgrade_params)
 {
  int ret;
@@ -1510,6 +1538,7 @@ upgrade_params_db_from_x_to_y_f upgrade_params_db_from_x_to_y[]= {
    upgrade_params_db_from_2_to_3,
    upgrade_params_db_from_3_to_4,
    upgrade_params_db_from_4_to_5,
+   upgrade_params_db_from_5_to_6,
    NULL };
 // #define NB_UPGRADE_FN 3
 

@@ -5,7 +5,8 @@
 
 enum netatmo_setpoint_mode_e
 {
-   PROGRAM,
+   NONE=-1,
+   PROGRAM=0,
    AWAY,
    HG,
    MANUAL,
