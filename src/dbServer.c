@@ -564,7 +564,8 @@ int flush_data(int heartbeat_flag)
    {
       if(heartbeat_flag)
       {
-         int hrtbt=process_heartbeat(_dbServer_monitoring_id);
+         process_heartbeat(_dbServer_monitoring_id);
+//         int hrtbt=process_heartbeat(_dbServer_monitoring_id);
 //         DEBUG_SECTION mea_log_printf("%s (%s) : heatbeat. Previous : %d seconds ago.\n", DEBUG_STR,__func__, hrtbt);
       }
       pthread_testcancel();
@@ -729,7 +730,8 @@ void *dbServer_thread(void *args)
    _md->conn=NULL; // descripteur com. MYSQL
    _md->started=0;
    
-   int hrtbt=process_heartbeat(_dbServer_monitoring_id);
+//   int hrtbt=process_heartbeat(_dbServer_monitoring_id);
+   process_heartbeat(_dbServer_monitoring_id);
 //   DEBUG_SECTION mea_log_printf("%s (%s) : heatbeat. Previous : %d seconds ago.\n", DEBUG_STR,__func__, hrtbt);
    pthread_testcancel();
 

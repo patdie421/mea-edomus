@@ -303,8 +303,8 @@ void *_thread_interface_type_006_genericserial_data(void *args)
    params->i006->thread_is_running=1;
    process_heartbeat(params->i006->monitoring_id);
    
-   sqlite3 *params_db=params->param_db;
-   int ret;
+//   sqlite3 *params_db=params->param_db;
+//   int ret;
    
    params->plugin_params=NULL;
    params->nb_plugin_params=0;
@@ -626,7 +626,6 @@ int start_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg)
    char buff[80];
    speed_t speed;
 
-   int fd=-1;
    int err;
    int ret;
    
@@ -797,3 +796,44 @@ clean_exit:
    
    return -1;
 }
+
+/*
+AT
+
+OK
+ATE0
+
+OK
+AT+CPIN=1234
+
+ERROR
+AT+CMGF=1
+
+OK
+AT+CNMI=2,2,0,0,0
+
+OK
+AT+CSDH=0
+
+OK
+
++CMT: "+33661665082","","15/11/17,23:51:28+04"
+Info télésurveillance 15/11/2015 15:40:20 : mise en marche via code NATHALIE du clavier ENTREE (zone 1) au 16 RUE JULES GUESDE - ROSNY SOUS
+
++CMT: "+33661665082","","15/11/17,23:51:52+04"
+##4,A,G;7,L,L##
+AT
+
+OK
+AT+CMGS="+33661665082"
+
+> A/PIN4=688;DONE
+
+> 
++CMGS: 94
+
+OK
+
++CMT: "+33661665082","","15/11/17,23:54:28+04"
+ Info télésurveillance 13/11/2015 08:40:27 : mise à l'arret via code NATHALIE du clavier ENTREE (zone 1) au 16 RUE JULES GUESDE - ROSNY SOUS
+*/

@@ -3,7 +3,7 @@
 #include <EEPROM.h>
 #include <avr/pgmspace.h>
 
-#define __DEBUG__ 1
+#define __DEBUG__ 0
 
 // utilisation des ports (ARDUINO UNO) Dans ce sketch
 /* PORTD
@@ -157,7 +157,7 @@
  PIN 2 PWM à 100
  lecture PIN 4
  
- > CMD:##0,L,H;1,A,100;4:A:G##
+ > CMD:##0,L,H;1,A,100;4,A,G##
  <à faire>
  
  Les commandes interprétés par le modules doivent avoir le formation suivant :
@@ -185,6 +185,7 @@ prog_char lastSMS[] PROGMEM  = {
   "LAST SMS: "};
 prog_char unsolicitedMsg[] PROGMEM  = {
   "CALL UNSOLICITED_MSG CALLBACK"};
+  
 void printDebugStringFromProgmem(prog_char *s)
 {
   int i=0;
@@ -197,6 +198,7 @@ void printDebugStringFromProgmem(prog_char *s)
     }
     else
       break;
+    i++;
   }
 }
 #endif
@@ -722,6 +724,7 @@ unsigned char *Sim900::readLine(long timeout)
     if(this->available())
     {
       c = (unsigned char)this->read();
+
       if(c == 10) // fin de ligne trouvée
       {
         buffer[bufferPtr]=0;
@@ -963,7 +966,9 @@ int Sim900::sync(long timeout)
     }
 
     // Commande AT de synchro
-    sendATCmnd(""); // ~ sendString("AT\r");
+    sendChar('A', echoOnOff);
+    sendChar('T', echoOnOff);
+    sendCr(echoOnOff);
     
     int ret = waitLines((char **)SIM900_standard_returns, 500);
     if(ret==0)
@@ -972,7 +977,10 @@ int Sim900::sync(long timeout)
     }
     
     if(diffMillis(start,  now) > timeout)
+    {
+      Serial.println("$$Sync KO$$");
       return -1;
+    }
 
     delay(500);
   }
@@ -1052,8 +1060,10 @@ int Sim900::analyseBuffer()
   {
     int ret = 0;
     if(SMSCallBack)
+    {
       ret = SMSCallBack((char *)buffer, userData);
-    smsFlag == 0;
+    }
+    smsFlag = 0;
     return ret;
   }
   else
@@ -1084,7 +1094,7 @@ int Sim900::analyseBuffer()
     lastSMSPhoneNumber[i]=0;
 #if __DEBUG__ > 0
     printDebugStringFromProgmem(lastSMS);
-    //    Serial.print("LAST SMS: ");
+//    Serial.print("LAST SMS: ");
     Serial.println((char *)lastSMSPhoneNumber);
 #endif
     smsFlag = 1; // la prochaine ligne est un SMS entrant
@@ -1094,10 +1104,10 @@ int Sim900::analyseBuffer()
   if(defaultCallBack)
   {
 #if __DEBUG__ > 0
-    printDebugStringFromProgmem(unsolicitedMsg);
-    //    Serial.println("CALL UNSOLICITED_MSG CALLBACK");
+//    printDebugStringFromProgmem(unsolicitedMsg);
+    Serial.println("CALL UNSOLICITED_MSG CALLBACK");
 #endif
-    return this->defaultCallBack((char *)buffer,userData);
+    return this->defaultCallBack((char *)buffer, userData);
   }
 
   // On à rien fait
@@ -1116,8 +1126,9 @@ int Sim900::analyseBuffer()
 
 
 // adresse de base des données en EEPROM
-#define EEPROM_ADDR_PIN 0
-#define EEPROM_ADDR_NUM 10
+#define EEPROM_INIT_SGN  0
+#define EEPROM_ADDR_PIN 10
+#define EEPROM_ADDR_NUM 20
 
 
 // taille max des données en EEPROM
@@ -1129,7 +1140,7 @@ int Sim900::analyseBuffer()
 // Buffer des résultats
 #define CMNDRESULTSBUFFERSIZE 141
 unsigned char cmndResultsBuffer[CMNDRESULTSBUFFERSIZE]; // zone de donnée du buffer
-int cmndResultsBufferPtr; // pointeur arrivée de caractères dans le buffer
+int cmndResultsBufferPtr=0; // pointeur arrivée de caractères dans le buffer
 // Buffer d'entrées pour les traitement MCU
 #define MCUSERIALBUFFERSIZE 200
 int mcuSerialBufferPtr=0; // pointeur arrivée de caractères dans le buffer
@@ -1142,7 +1153,7 @@ struct data_s
   unsigned char *cmndResultsBuffer;
   int *cmndResultsBufferPtr;
   unsigned char *lastSMSPhoneNumber;
-} 
+}
 sim900UserData, mcuUserData; // deux zones de données utilisateurs.
 
 
@@ -1166,6 +1177,31 @@ pinsWatcherData[PINSWATCHER_NBPINS] = {
   ,{
     7,0L,-1      }
 };
+
+
+int checkSgn()
+{
+   if(EEPROM.read(EEPROM_INIT_SGN)!=0xFD)
+      return -1;
+   if(EEPROM.read(EEPROM_INIT_SGN+1)!=0xFC)
+      return -1;
+   if(EEPROM.read(EEPROM_INIT_SGN+2)!=0xFB)
+      return -1;
+   if(EEPROM.read(EEPROM_INIT_SGN+3)!=0xFA)
+      return -1;
+   return 0;
+}
+
+
+int setSgn()
+{
+   EEPROM.write(EEPROM_INIT_SGN,0xFD);
+   EEPROM.write(EEPROM_INIT_SGN+1,0xFC);
+   EEPROM.write(EEPROM_INIT_SGN+2,0xFB);
+   EEPROM.write(EEPROM_INIT_SGN+3,0xFA);
+   
+   return 0;
+}
 
 
 int setPin(char *num)
@@ -1230,14 +1266,14 @@ int setNum(int pos, char *num)
  */
 {
   int i;
-  if(pos<0 && pos > 9)
+  if(pos<0 && pos>9)
     return -1;
   if(strlen(num)>=NUMSIZE)
     return -1;
   int base=EEPROM_ADDR_NUM+pos*NUMSIZE;
   for(i=0;num[i] && i<(NUMSIZE-1);i++)
     EEPROM.write(base++,num[i]);
-  EEPROM.write(base,0);
+  EEPROM.write(base, 0);
   return 0;
 }
 
@@ -1312,11 +1348,13 @@ int listRom()
     char c=EEPROM.read(i+EEPROM_ADDR_PIN);
     if(c==0)
     {
-      Serial.write('\n');
+      Serial.println("");
       break;
     }
     else
+    {
       Serial.write(c);
+    }
   }
 
   for(int i=0;i<10;i++)
@@ -1326,16 +1364,15 @@ int listRom()
     Serial.write('=');
     for(int j=0;j<NUMSIZE;j++)
     {
-      char c=EEPROM.read(j+EEPROM_ADDR_NUM);
+      char c=EEPROM.read(EEPROM_ADDR_NUM+i*NUMSIZE+j);
       if(c==0)
-      {
-        Serial.write('\n');
         break;
-      }
       else
         Serial.write(c);
     }
+    Serial.println("");
   }
+
   return 0;
 }
 
@@ -1353,25 +1390,30 @@ int addToCmndResults(struct data_s *data, int pin, int cmnd, long value)
   // à mettre dans cmndResults sous la forme : PINx=VALUE1;PINx=VALUE2 ... max 140 caractères
   char tmpstr[10];
 
-  itoa(value,tmpstr,10);
+  int i=*(data->cmndResultsBufferPtr);
 
-  if(*data->cmndResultsBufferPtr<CMNDRESULTSBUFFERSIZE-strlen(tmpstr)-8)
+  itoa(value, tmpstr, 10);
+  if(i < (CMNDRESULTSBUFFERSIZE-strlen(tmpstr)-8) )
   {
-    if(*data->cmndResultsBufferPtr!=0)
-      data->cmndResultsBuffer[*data->cmndResultsBufferPtr++]=';';
+    if(i!=0)
+      data->cmndResultsBuffer[i++]=';';
 
-    data->cmndResultsBuffer[*data->cmndResultsBufferPtr++]=cmnd;
-    data->cmndResultsBuffer[*data->cmndResultsBufferPtr++]='/';
-    data->cmndResultsBuffer[*data->cmndResultsBufferPtr++]='P';
-    data->cmndResultsBuffer[*data->cmndResultsBufferPtr++]='I';
-    data->cmndResultsBuffer[*data->cmndResultsBufferPtr++]='N';
-    data->cmndResultsBuffer[*data->cmndResultsBufferPtr++]=(char )(pin+'0');
-    data->cmndResultsBuffer[*data->cmndResultsBufferPtr++]='=';
-    for(int i=0;tmpstr[i];i++)
-      data->cmndResultsBuffer[*data->cmndResultsBufferPtr++]=tmpstr[i];
-    data->cmndResultsBuffer[*data->cmndResultsBufferPtr]=0;
+    data->cmndResultsBuffer[i++]=cmnd;
+    data->cmndResultsBuffer[i++]='/';
+    data->cmndResultsBuffer[i++]='P';
+    data->cmndResultsBuffer[i++]='I';
+    data->cmndResultsBuffer[i++]='N';
+    data->cmndResultsBuffer[i++]=(char )(pin+'0');
+    data->cmndResultsBuffer[i++]='=';
+    for(int j=0;tmpstr[j];j++)
+      data->cmndResultsBuffer[i++]=tmpstr[j];
+    data->cmndResultsBuffer[i]=0;
+    
+    (*data->cmndResultsBufferPtr)=i;
+
     return 0;
   }
+  Serial.println("ERR");
   return -1;
 }
 
@@ -1383,17 +1425,21 @@ int doneToCmndResult(struct data_s *data)
  * \return    -1 le buffer ne peut pas contenir le resultat, 0 sinon
  */
 {
-  if(*data->cmndResultsBufferPtr<CMNDRESULTSBUFFERSIZE-5)
+  int i=*(data->cmndResultsBufferPtr);
+
+  if(i<CMNDRESULTSBUFFERSIZE-5)
   {
-    if(*data->cmndResultsBufferPtr!=0)
-      data->cmndResultsBuffer[*data->cmndResultsBufferPtr++]=';';
+    if(i!=0)
+      data->cmndResultsBuffer[i++]=';';
 
-    data->cmndResultsBuffer[*data->cmndResultsBufferPtr++]='D';
-    data->cmndResultsBuffer[*data->cmndResultsBufferPtr++]='O';
-    data->cmndResultsBuffer[*data->cmndResultsBufferPtr++]='N';
-    data->cmndResultsBuffer[*data->cmndResultsBufferPtr++]='E';
-    data->cmndResultsBuffer[*data->cmndResultsBufferPtr]=0;
+    data->cmndResultsBuffer[i++]='D';
+    data->cmndResultsBuffer[i++]='O';
+    data->cmndResultsBuffer[i++]='N';
+    data->cmndResultsBuffer[i++]='E';
+    data->cmndResultsBuffer[i]=0;
 
+    *(data->cmndResultsBufferPtr)=i;
+    
     return 0;
   }
   return -1;
@@ -1408,20 +1454,25 @@ int errToCmndResult(struct data_s *data, int errno)
  * \return    -1 le buffer ne peut pas contenir le resultat, 0 sinon
  */
 {
-  if(*data->cmndResultsBufferPtr<CMNDRESULTSBUFFERSIZE-6)
+  int i=*(data->cmndResultsBufferPtr);
+  
+  if(i<CMNDRESULTSBUFFERSIZE-6)
   {
-    if(*data->cmndResultsBufferPtr!=0)
-      data->cmndResultsBuffer[*data->cmndResultsBufferPtr++]=';';
+    if(i!=0)
+      data->cmndResultsBuffer[i++]=';';
 
-    data->cmndResultsBuffer[*data->cmndResultsBufferPtr++]='E';
-    data->cmndResultsBuffer[*data->cmndResultsBufferPtr++]='R';
-    data->cmndResultsBuffer[*data->cmndResultsBufferPtr++]='R';
-    data->cmndResultsBuffer[*data->cmndResultsBufferPtr++]=':';
-    data->cmndResultsBuffer[*data->cmndResultsBufferPtr++]=errno+'A';
-    data->cmndResultsBuffer[*data->cmndResultsBufferPtr]=0;
+    data->cmndResultsBuffer[i++]='E';
+    data->cmndResultsBuffer[i++]='R';
+    data->cmndResultsBuffer[i++]='R';
+    data->cmndResultsBuffer[i++]=':';
+    data->cmndResultsBuffer[i++]=errno+'A';
+    data->cmndResultsBuffer[i]=0;
 
+    *(data->cmndResultsBufferPtr)=i;
+  
     return 0;
   }
+
   return -1;
 }
 
@@ -1442,6 +1493,9 @@ int sendCmndResults(struct data_s *data)
   {
     Serial.println((char *)data->cmndResultsBuffer);
   }
+  
+  data->cmndResultsBuffer[0]=0;
+  *(data->cmndResultsBufferPtr)=0;
 }
 
 
@@ -1485,7 +1539,7 @@ int doCmnd(struct data_s *data, int pin, int cmnd, long value)
     }
     else
     {  // positionne état logique sortie
-      if(pin==0 || pin == 1) // lecture seule
+      if(pin==0 || pin == 3) // lecture seule
       {
         errToCmndResult(data, 12);
         return -1;
@@ -1564,12 +1618,12 @@ int evalCmndString(char *buffer, void *dataPtr)
     goto evalCmndString_clean_exit;
   }
 
-  data->cmndResultsBufferPtr=0;
+  *(data->cmndResultsBufferPtr)=0;
 
   if(buffer[0]  =='#' &&
-    buffer[1]  =='#' &&
-    buffer[l-2]=='#' &&
-    buffer[l-1]=='#') // une commande via SMS ?
+    buffer[1]   =='#' &&
+    buffer[l-2] =='#' &&
+    buffer[l-1] =='#') // une commande via SMS ?
   {
     int ptr=2;
     l=l-4; // 4 "#" déjà traité
@@ -1697,7 +1751,6 @@ int evalCmndString(char *buffer, void *dataPtr)
       // à partir d'ici on traiter la demande
       doCmnd(data, pin, cmnd, valeur);
       // fin de traitement de la demande
-
       if(l)
       {
         ptr++;
@@ -1706,12 +1759,13 @@ int evalCmndString(char *buffer, void *dataPtr)
       else
         break;
     }
+    retour=0;
   }
 
-  retour=0;
-
 evalCmndString_clean_exit:
+if(retour==0)
   sendCmndResults(data);
+  
   return retour;
 }
 
@@ -1724,14 +1778,7 @@ int sim900_read()
  */
 {
   int c=sim900Serial.read();
-
-  Serial.print("[");
-  if(c<' ')
-     Serial.print(c);
-  else
-     Serial.print((char)c);
-  Serial.print("]");
-
+  Serial.print((char)c);
   return c;
 }
 
@@ -1744,6 +1791,7 @@ int sim900_write(char car)
  */
 {
   sim900Serial.write(car);
+  Serial.print(car);
   return 0;
 }
 
@@ -1787,17 +1835,20 @@ void sim900_broadcastSMS(char *text)
  * \return    resultat de now - chrono
  */
 {
+  Serial.println(text);
   char num[NUMSIZE];
   for(int i=0;i<10;i++)
   {
     for(int j=0;j<NUMSIZE;j++)
     {
-      char c=EEPROM.read(j+EEPROM_ADDR_NUM);
+      char c=EEPROM.read(EEPROM_ADDR_NUM+i*NUMSIZE+j);
       if(c==0)
       {
         num[j]=0;
         break;
       }
+      else
+        num[j]=c;
     }
     if(num[0])
     {
@@ -1833,6 +1884,7 @@ void pinsWatcher()
         break;
       }
 
+
       unsigned long now=millis();
       if(now == 0)
         now=1; // on perd 1 ms si on tombe pile poil sur 0 ... j'ai trop besoin du 0 ...
@@ -1847,7 +1899,7 @@ void pinsWatcher()
         // à revoir pour rendre plus asynchrone ...
         switch(i)
         {
-        case 4:
+        case 0:
           if(s==LOW) // front descendant
           {
             sim900_broadcastSMS("POWERDOWN");
@@ -1857,7 +1909,7 @@ void pinsWatcher()
             sim900_broadcastSMS("POWERUP");
           }
           break;
-        case 7:
+        case 1:
           if(s==LOW)
           {
             sim900_broadcastSMS("ALARMEON");
@@ -1932,9 +1984,15 @@ int mcuError(int errno)
       Serial.write(c);
     else
     {
-      Serial.write('\n');
-      break;
+      if(errno==MCU_PROMPT)
+        break;
+      else
+      {
+        Serial.println("");
+        break;
+      }
     }
+    i++;
   }
   return 0;
 }
@@ -1949,11 +2007,11 @@ int analyseMCUCmnd(char *buffer, struct data_s *data)
   // NUM:x,C - efface un numéro
   // CMD:##...## - voir evalCmndString - demande l'execution de commandes
   // LST - list le contenu de la ROM
+
+  Serial.println("");
+  
   if(buffer[0]==0)
-  {
-    mcuError(MCU_PROMPT);
     return 0;
-  }
 
   if(strstr((char *)buffer,"PIN:")==(char *)buffer)
   {
@@ -1990,14 +2048,14 @@ int analyseMCUCmnd(char *buffer, struct data_s *data)
   {
     char num[21];
     int x=buffer[4]-'0';
-    if(x >=0 && x<=9)
+    if(x>=0 && x<=9)
     { 
       if(buffer[5]==',')
       {
         if(buffer[6]=='C' && buffer[7]==0)
         {
           int ret;
-          ret = setNum(x, NULL);
+          ret = setNum(x, "");
           if(ret<0)
             mcuError(MCU_ROMERROR);
           else
@@ -2033,10 +2091,6 @@ int analyseMCUCmnd(char *buffer, struct data_s *data)
   if(strstr((char *)buffer,"CMD:")==(char *)buffer)
   {
     int ret = evalCmndString((char *)&(buffer[4]), (void *)data);
-    if(ret < 0)
-      mcuError(MCU_CMNDERROR);
-    else
-      mcuError(MCU_DONE);
     return ret;
   }
 
@@ -2062,22 +2116,16 @@ int processCmndFromSerial(unsigned char car, struct data_s *data)
   if(c == 13) // fin de ligne, on la traite
   {
     mcuSerialBuffer[mcuSerialBufferPtr]=0;
-    if(mcuSerialBufferPtr == 0)
-    {
-      mcuError(MCU_PROMPT);
-    }
-    else
-    {
-      analyseMCUCmnd((char *)mcuSerialBuffer, data);
-      mcuSerialBufferPtr=0; // RAZ du buffer
-      mcuError(MCU_PROMPT);
-    }
+    analyseMCUCmnd((char *)mcuSerialBuffer, data);
+    mcuSerialBufferPtr=0; // RAZ du buffer
+    mcuError(MCU_PROMPT);
   }
   else if(c == 10) // on n'a rien à faire de LF
   {
   }
   else // on range la donnée dans le buffer de ligne
   {
+    Serial.write((char)c);
     mcuSerialBuffer[mcuSerialBufferPtr]=(char)c;
     mcuSerialBufferPtr++;
     if(mcuSerialBufferPtr >= MCUSERIALBUFFERSIZE) // arg, plus de place dans le buffer ...
@@ -2116,22 +2164,23 @@ void setup()
   delay(5000); // on laisse le temps au sim900 de s'initialiser
   digitalWrite(13, HIGH);
 
-  Serial.print("Init Arduino ...");
   // déclaration des zones de données pour callback
   // initialisation des données
+  cmndResultsBufferPtr=0;
+  
   mcuUserData.dest=0;
   // buffer partager pour sim900 et MCU
   mcuUserData.cmndResultsBuffer=cmndResultsBuffer;
   mcuUserData.cmndResultsBufferPtr=&cmndResultsBufferPtr;
   // pas de numéro pour MCU
   mcuUserData.lastSMSPhoneNumber=NULL;
-
+  
   sim900UserData.dest=1;
   // buffer partager pour sim900 et MCU
   sim900UserData.cmndResultsBuffer=cmndResultsBuffer;
   sim900UserData.cmndResultsBufferPtr=&cmndResultsBufferPtr;
   sim900UserData.lastSMSPhoneNumber=sim900.getLastSMSPhoneNumber();
-
+  
   // association objet sim900 avec le port de com.
   sim900.setRead(sim900_read);
   sim900.setWrite(sim900_write);
@@ -2143,8 +2192,15 @@ void setup()
 
   // déclaration des callbacks
   sim900.setSMSCallBack(evalCmndString);
+  
+  if(checkSgn()<0)
+  {
+    setPin("");
+    for(int i=0;i<10;i++)
+       setNum(i,"");
+    setSgn();
+  }
 
-  Serial.print("com. with SIM900 ...");
   // synchronisation avec le sim900
   if(sim900.sync(10000)!=-1) // 10 secondes pour se synchroniser
   {
@@ -2158,20 +2214,6 @@ void setup()
   }
   else
     myBlinkLeds.setInterval(125);
-  /*
-  else
-   {
-   // faire quelque chose ici si on arrive pas à se synchroniser
-   // => refaire reset matériel du SIM900 ?
-   BlinkLeds myBlinkLeds_125ms(125);
-   while(1) // boucle sans fin avec clignotement rapide
-   {
-   myBlinkLeds_125ms.run();
-   digitalWrite(13, myBlinkLeds_125ms.getLedState()); // clignotement de la led "activité" (D13) de l'ATmega
-   }
-   }
-   */
-  Serial.println("done");
 
   // communication sim900 établie
   digitalWrite(13, LOW); // initialisation terminée
@@ -2203,23 +2245,25 @@ void loop()
     char serialInByte;
 
     serialInByte = (unsigned char)Serial.read();
-    if(!sim900_available || digitalRead(PIN_MCU_CMD_ONLY)==LOW)
+    if(!sim900_connected || digitalRead(PIN_MCU_CMD_ONLY)==LOW)
+    {
       processCmndFromSerial(serialInByte, &mcuUserData); // si PIN MCU_CMD_ONLY bas, les données sont destinées au MCU uniquement.
+    }
     else
     {
-      if(sim900_available)
+      if(sim900_connected)
         sim900.write(serialInByte); // toutes les données de la ligne serie sont envoyées vers le sim900
     }
   }
 
-  if(sim900_available && sim900.available())
+  if(sim900_connected && sim900.available())
   {
     char sim900SerialInByte;
 
     sim900SerialInByte = (unsigned char)sim900.read();
 
-    if(digitalRead(PIN_SIM900_ENABLE)==HIGH) // les données du sim900 ne sont pas retransmis si LOW
-      Serial.write(sim900SerialInByte);
+//    if(digitalRead(PIN_SIM900_ENABLE)==HIGH) // les données du sim900 ne sont pas retransmis si LOW
+//      Serial.write(sim900SerialInByte);
 
     if(digitalRead(PIN_MCU_BYPASS_PROCESSING)==HIGH) // les données du SIM900 ne sont pas traité localement par le MCU
       sim900.run(sim900SerialInByte);

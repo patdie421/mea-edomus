@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4E0096401BFBE7E40003C62D /* interface_type_006.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E00963E1BFBE7E40003C62D /* interface_type_006.c */; };
 		4E09454E17C10FB2003749FE /* init.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E09454D17C10FB2003749FE /* init.c */; };
 		4E207BB519F0529D00410B40 /* logServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E207BB419F0529D00410B40 /* logServer.c */; };
 		4E207BC919F1C14700410B40 /* mea-xpllogger.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E207BB819F1BA4300410B40 /* mea-xpllogger.c */; };
@@ -135,6 +136,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		4E00963E1BFBE7E40003C62D /* interface_type_006.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = interface_type_006.c; path = src/interface_type_006.c; sourceTree = "<group>"; };
+		4E00963F1BFBE7E40003C62D /* interface_type_006.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = interface_type_006.h; path = src/interface_type_006.h; sourceTree = "<group>"; };
+		4E015C881BFB81FE008E9A2B /* interface_SMS_SIM900.ino */ = {isa = PBXFileReference; lastKnownFileType = text; name = interface_SMS_SIM900.ino; path = interface_SMS_SIM900/interface_SMS_SIM900.ino; sourceTree = "<group>"; };
 		4E09454C17C10FA6003749FE /* init.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = init.h; path = src/init.h; sourceTree = "<group>"; };
 		4E09454D17C10FB2003749FE /* init.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = init.c; path = src/init.c; sourceTree = "<group>"; };
 		4E1496FA163F290200E08E6D /* sample_params_data.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = sample_params_data.sql; path = sql/sample_params_data.sql; sourceTree = "<group>"; };
@@ -1589,7 +1593,6 @@
 		4EF3BFCC1A713B5800080C6D /* class.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = class.js; path = gui/lib/js/class.js; sourceTree = "<group>"; };
 		4EF3BFCE1A713B5800080C6D /* mea-translation.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "mea-translation.js"; sourceTree = "<group>"; };
 		4EF3BFCF1A713B5800080C6D /* fsselector.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = fsselector.js; path = gui/lib/js/fsselector.js; sourceTree = "<group>"; };
-		4EF3BFD11A713C1000080C6D /* interface_type_005.ino */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; name = interface_type_005.ino; path = ../interface_type_005/interface_type_005.ino; sourceTree = "<group>"; };
 		4EF3BFD31A713CAA00080C6D /* interface_type_002_dht22.ino */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; path = interface_type_002_dht22.ino; sourceTree = "<group>"; };
 		4EF3BFD41A7BF56F00080C6D /* page3.php */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.php; name = page3.php; path = gui/page3.php; sourceTree = "<group>"; };
 		4EF3BFD51A7BF5A100080C6D /* application-view.php */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.php; path = "application-view.php"; sourceTree = "<group>"; };
@@ -2049,6 +2052,8 @@
 		4E4D4E7E1601F1510008C14C /* Interfaces manager */ = {
 			isa = PBXGroup;
 			children = (
+				4E00963E1BFBE7E40003C62D /* interface_type_006.c */,
+				4E00963F1BFBE7E40003C62D /* interface_type_006.h */,
 				4E4ED05A1668186300820EF8 /* Interface_type_001 */,
 				4E4ED05B1668188400820EF8 /* Interface_type_002 */,
 				4E4F87771A98D24F00479945 /* Interface_type_003 */,
@@ -5434,9 +5439,9 @@
 		4EC421A71A12747200D94204 /* arduino */ = {
 			isa = PBXGroup;
 			children = (
+				4E015C881BFB81FE008E9A2B /* interface_SMS_SIM900.ino */,
 				4EC421A81A12747300D94204 /* interface_type_001 */,
 				4EC421AA1A12747300D94204 /* interface_type_002 */,
-				4EF3BFD01A713C1000080C6D /* interface_type_005 */,
 				4EC421AC1A12747300D94204 /* Libraries */,
 			);
 			path = arduino;
@@ -5663,15 +5668,6 @@
 			);
 			name = fr;
 			path = gui/lib/js/fr;
-			sourceTree = "<group>";
-		};
-		4EF3BFD01A713C1000080C6D /* interface_type_005 */ = {
-			isa = PBXGroup;
-			children = (
-				4EF3BFD11A713C1000080C6D /* interface_type_005.ino */,
-			);
-			name = interface_type_005;
-			path = interface_type_003;
 			sourceTree = "<group>";
 		};
 		4EF3BFD21A713CAA00080C6D /* dht22 */ = {
@@ -5948,6 +5944,7 @@
 				4E5FC660172F0F91004266EB /* interface_type_001_sensors.c in Sources */,
 				4E5FC662172F103B004266EB /* interface_type_001_actuators.c in Sources */,
 				4E5FC67917357D72004266EB /* pythonPluginServer.c in Sources */,
+				4E0096401BFBE7E40003C62D /* interface_type_006.c in Sources */,
 				4E798FF919D4871400F87593 /* processManager.c in Sources */,
 				4E5E24C3173C34AE00B8CEFE /* mea_api.c in Sources */,
 				4EFBFCAE175E616E007BBFD1 /* guiServer.c in Sources */,

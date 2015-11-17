@@ -305,16 +305,15 @@ int16_t interface_type_005_xPL_sensor(interface_type_005_t *i005,
                                       struct type005_sensor_actuator_queue_elem_s *e)
 {
 // xPLSend -m cmnd -c sensor.request device=temp02 request=current
-   char err[81];
-   static time_t chrono=0;
-   
-   time_t now;
-   
    if(e->type==500)
    {
       char ntype[41], str_value[41], str_last[41];
 
 /*
+      char err[81];
+      static time_t chrono=0;
+      time_t now;
+   
       now=time(NULL);
       if(difftime(now, chrono)>10.0)
       {
