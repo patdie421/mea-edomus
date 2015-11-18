@@ -49,6 +49,7 @@
 char *interface_type_006_senttoplugin_str="SENT2PLUGIN";
 char *interface_type_006_xplin_str="XPLIN";
 char *interface_type_006_serialin_str="SERIALIN";
+char *interface_type_006_serialout_str="SERIALOUT";
 
 
 typedef void (*thread_f)(void *);
@@ -335,7 +336,7 @@ void *_thread_interface_type_006_genericserial_data(void *args)
          process_update_indicator(params->i006->monitoring_id, interface_type_006_senttoplugin_str, params->i006->indicators.senttoplugin);
          process_update_indicator(params->i006->monitoring_id, interface_type_006_xplin_str, params->i006->indicators.xplin);
          process_update_indicator(params->i006->monitoring_id, interface_type_006_serialin_str, params->i006->indicators.serialin);
-//         process_update_indicator(params->i006->monitoring_id, interface_type_006_serialout_str, params->i006->indicators.serialout);
+         process_update_indicator(params->i006->monitoring_id, interface_type_006_serialout_str, params->i006->indicators.serialout);
       }
 
       if(params->i006->fd<0)
@@ -343,8 +344,10 @@ void *_thread_interface_type_006_genericserial_data(void *args)
          params->i006->fd=serial_open(params->i006->real_dev, params->i006->real_speed);
          if(params->i006->fd < 0)
          {
-            VERBOSE(5) mea_log_printf("%s (%s) : can't open %s - ", ERROR_STR, __func__, params->i006->real_dev);
-            perror("");
+            VERBOSE(5) {
+               mea_log_printf("%s (%s) : can't open %s - ", ERROR_STR, __func__, params->i006->real_dev);
+               perror("");
+            }
          }
       }
 
@@ -375,7 +378,10 @@ void *_thread_interface_type_006_genericserial_data(void *args)
                else
                {
                   // erreur à traiter ...
-                  perror("");
+                  VERBOSE(5) {
+                     mea_log_printf("%s (%s) : select error - ", ERROR_STR, __func__);
+                     perror("");
+                  }
                   close(params->i006->fd);
                   params->i006->fd=-1;
                   break;
@@ -394,11 +400,10 @@ void *_thread_interface_type_006_genericserial_data(void *args)
          {
             params->i006->indicators.serialin+=buffer_ptr;
          
+            buffer[buffer_ptr]=0;
             DEBUG_SECTION mea_log_printf("%s (%s) : data from Serial : %s\n", INFO_STR, __func__, buffer);
          
             // transmettre buffer au plugin
-            buffer[buffer_ptr]=0;
-            fprintf(stderr,"%s\n",buffer);
 
             buffer_ptr=0;
 
@@ -439,8 +444,6 @@ pthread_t *start_interface_type_006_genericserial_data_thread(interface_type_006
    }
 
    params->param_db=db;
-//   pthread_mutex_init(&params->callback_lock, NULL);
-//   pthread_cond_init(&params->callback_cond, NULL);
    params->i006=(void *)i006;
    params->mainThreadState = NULL;
    params->myThreadState = NULL;
@@ -540,6 +543,7 @@ interface_type_006_t *malloc_and_init_interface_type_006(sqlite3 *sqlite3_param_
    i006->indicators.senttoplugin=0;
    i006->indicators.xplin=0;
    i006->indicators.serialin=0;
+   i006->indicators.serialout=0;
    
    i006->thread=NULL;
    i006->xPL_callback=NULL;
@@ -558,6 +562,7 @@ interface_type_006_t *malloc_and_init_interface_type_006(sqlite3 *sqlite3_param_
    process_add_indicator(i006->monitoring_id, interface_type_006_senttoplugin_str, 0);
    process_add_indicator(i006->monitoring_id, interface_type_006_xplin_str, 0);
    process_add_indicator(i006->monitoring_id, interface_type_006_serialin_str, 0);
+   process_add_indicator(i006->monitoring_id, interface_type_006_serialout_str, 0);
 
    return i006;
 }
