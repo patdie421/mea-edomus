@@ -1231,13 +1231,13 @@ int16_t upgrade_params_db_from_5_to_6(sqlite3 *sqlite3_param_db, struct upgrade_
    VERBOSE(5) mea_log_printf ("%s (%s) : passage de la version 5 à la version 6\n",INFO_STR,__func__);
    
    struct types_value_s types_values[] = {
-      {INTERFACE_TYPE_006,"INTYP06","Interface de type 05","","1","10"},
+      {INTERFACE_TYPE_006,"INTYP06","Interface de type 06","","1","10"},
       {0,NULL,NULL,NULL,NULL,NULL}
    };
 
    addNewTypes(sqlite3_param_db, types_values);   // mise à journ de la version
 
-   ret = sqlite3_exec(sqlite3_param_db, "UPDATE 'application_parameters' set value = '5' WHERE key = 'PARAMSDBVERSION'", NULL, NULL, &err);
+   ret = sqlite3_exec(sqlite3_param_db, "UPDATE 'application_parameters' set value = '6' WHERE key = 'PARAMSDBVERSION'", NULL, NULL, &err);
    if( ret != SQLITE_OK )
    {
       VERBOSE(9) mea_log_printf ("%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));

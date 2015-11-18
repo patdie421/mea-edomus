@@ -191,6 +191,9 @@ prog_char powerup_str[]    PROGMEM  = { "$$POWERUP$$\n" };
 prog_char powerdown_str[]  PROGMEM  = { "$$POWERDOWN$$\n" };
 prog_char alarmon_str[]    PROGMEM  = { "$$ALARMON$$\n" };
 prog_char alarmoff_str[]   PROGMEM  = { "$$ALARMOFF$$\n" };
+prog_char cmndon_str[]     PROGMEM  = { "$$CMNDON$$\n" };
+prog_char cmndoff_str[]    PROGMEM  = { "$$CMNDOFF$$\n" };
+
 #ifdef __DEBUG__ > 0
 prog_char lastSMS[]        PROGMEM  = { "LAST SMS: " };
 prog_char unsolicitedMsg[] PROGMEM  = { "CALL UNSOLICITED_MSG CALLBACK\n" };
@@ -987,7 +990,6 @@ int Sim900::sync(long timeout)
     
     if(diffMillis(start,  now) > timeout)
     {
-      Serial.println("$$Sync KO$$");
       return -1;
     }
 
@@ -1102,8 +1104,8 @@ int Sim900::analyseBuffer()
     }
     lastSMSPhoneNumber[i]=0;
 #if __DEBUG__ > 0
-    printStringFromProgmem(lastSMS);
-    Serial.println((char *)lastSMSPhoneNumber);
+//    printStringFromProgmem(lastSMS);
+//    Serial.println((char *)lastSMSPhoneNumber);
 #endif
     smsFlag = 1; // la prochaine ligne est un SMS entrant
     return 0;
@@ -1178,17 +1180,17 @@ struct pinsWatcherData_s
   unsigned char pin;
   unsigned long lastChrono;
   int lastState;
-} 
+};
 
-char char_from_pc_flag=0; // pour éviter les échos des emissions du côté PC
-
-pinsWatcherData[PINSWATCHER_NBPINS] = {
+struct pinsWatcherData_s pinsWatcherData[PINSWATCHER_NBPINS] = {
   {
     4,0L,-1      }
   ,{
     7,0L,-1      }
 };
 
+// pour éviter les échos des emissions du côté PC
+char char_from_pc_flag=0;
 
 int checkSgn()
 /**
@@ -1941,7 +1943,7 @@ void pinsWatcher()
           else // front montant
           {
             sim900_broadcastSMS("POWERUP");
-            printStringFromProgmem(powerdup_str);
+            printStringFromProgmem(powerup_str);
           }
           break;
         case 1:
@@ -2163,14 +2165,14 @@ int analyseMCUCmnd(char *buffer, struct data_s *data)
 
   if(strstr((char *)buffer,"RST")==(char *)buffer)
   {
-    soft_reset();
+//    soft_reset();
     return 0;
   }
 
   if(strstr((char *)buffer,"END")==(char *)buffer)
   {
     soft_cmd_mode = 0;
-    return 0;
+    return 1;
   }
 
   mcuError(MCU_ERROR);
@@ -2185,9 +2187,10 @@ int processCmndFromSerial(unsigned char car, struct data_s *data)
   if(c == 13) // fin de ligne, on la traite
   {
     mcuSerialBuffer[mcuSerialBufferPtr]=0;
-    analyseMCUCmnd((char *)mcuSerialBuffer, data);
+    int ret=analyseMCUCmnd((char *)mcuSerialBuffer, data);
     mcuSerialBufferPtr=0; // RAZ du buffer
-    mcuError(MCU_PROMPT);
+    if(ret!=1)
+       mcuError(MCU_PROMPT);
   }
   else if(c == 10) // on n'a rien à faire de LF
   {
@@ -2207,7 +2210,7 @@ int processCmndFromSerial(unsigned char car, struct data_s *data)
   return 0;
 }
 
-
+/*
 // voir si nécessaire ... a tester
 void wdt_init(void) __attribute__((naked)) __attribute__((section(".init3")));
 void wdt_init(void)
@@ -2217,7 +2220,7 @@ void wdt_init(void)
 
     return;
 }
-
+*/
 
 int sim900_connected = 0; // passé à 1 si un sim900 est détecté lors de l'initialisation
 
@@ -2250,7 +2253,7 @@ void setup()
      myBlinkLeds.run();
      digitalWrite(13, myBlinkLeds.getLedState());
   }
-  digitalWrite(13, LOW);
+  digitalWrite(13, HIGH);
 
   // déclaration des zones de données pour callback
   // initialisation des données
@@ -2304,7 +2307,7 @@ void setup()
     sim900.init(); // préparation "standard" du sim900
 
     sim900_broadcastSMS("STARTUP");
-    nb_broadcast_send=BCAST_CREDIT;
+    nb_broadcast_credit=BCAST_CREDIT;
 
     sim900_connected = 1;
     myBlinkLeds.setInterval(1000);
@@ -2315,7 +2318,7 @@ void setup()
 
     myBlinkLeds.setInterval(125);
   }
-  digitalWrite(13, HIGH); // initialisation terminée
+  digitalWrite(13, LOW); // initialisation terminée
 
   pinMode(PIN_MCU_CMD_ONLY, INPUT);
   digitalWrite(PIN_MCU_CMD_ONLY, HIGH); // pullup activé
@@ -2365,7 +2368,7 @@ void loop()
             {
                if(Serial.available())
                   break;
-               if(diffmillis(chrono, millis())>125)
+               if(diffMillis(chrono, millis())>125)
                {
                   timeout_flag=1;
                   break;

@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		4E0096401BFBE7E40003C62D /* interface_type_006.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E00963E1BFBE7E40003C62D /* interface_type_006.c */; };
+		4E0096431BFCFFC70003C62D /* serial.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E0096411BFCFFC70003C62D /* serial.c */; };
+		4E0096441BFCFFC70003C62D /* serial.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E0096411BFCFFC70003C62D /* serial.c */; };
 		4E09454E17C10FB2003749FE /* init.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E09454D17C10FB2003749FE /* init.c */; };
 		4E207BB519F0529D00410B40 /* logServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E207BB419F0529D00410B40 /* logServer.c */; };
 		4E207BC919F1C14700410B40 /* mea-xpllogger.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E207BB819F1BA4300410B40 /* mea-xpllogger.c */; };
@@ -138,6 +140,8 @@
 /* Begin PBXFileReference section */
 		4E00963E1BFBE7E40003C62D /* interface_type_006.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = interface_type_006.c; path = src/interface_type_006.c; sourceTree = "<group>"; };
 		4E00963F1BFBE7E40003C62D /* interface_type_006.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = interface_type_006.h; path = src/interface_type_006.h; sourceTree = "<group>"; };
+		4E0096411BFCFFC70003C62D /* serial.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = serial.c; path = src/serial.c; sourceTree = "<group>"; };
+		4E0096421BFCFFC70003C62D /* serial.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = serial.h; path = src/serial.h; sourceTree = "<group>"; };
 		4E015C881BFB81FE008E9A2B /* interface_SMS_SIM900.ino */ = {isa = PBXFileReference; lastKnownFileType = text; name = interface_SMS_SIM900.ino; path = interface_SMS_SIM900/interface_SMS_SIM900.ino; sourceTree = "<group>"; };
 		4E09454C17C10FA6003749FE /* init.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = init.h; path = src/init.h; sourceTree = "<group>"; };
 		4E09454D17C10FB2003749FE /* init.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = init.c; path = src/init.c; sourceTree = "<group>"; };
@@ -2077,6 +2081,8 @@
 		4E4D4E801601F2730008C14C /* Utils */ = {
 			isa = PBXGroup;
 			children = (
+				4E0096411BFCFFC70003C62D /* serial.c */,
+				4E0096421BFCFFC70003C62D /* serial.h */,
 				4E83D2DD1BF515F7009FF74F /* curl_adds.h */,
 				4E83D2DE1BF515F7009FF74F /* curl_adds.c */,
 				4E83D2A81BF12A81009FF74F /* mea_error.h */,
@@ -5868,6 +5874,7 @@
 				4E83D2BF1BF12A81009FF74F /* mea_string_utils.c in Sources */,
 				4E83D2CE1BF12FC9009FF74F /* enocean_logger.c in Sources */,
 				4E83D2C31BF12A81009FF74F /* mea_timer.c in Sources */,
+				4E0096441BFCFFC70003C62D /* serial.c in Sources */,
 				4E83D2BB1BF12A81009FF74F /* mea_sockets_utils.c in Sources */,
 				4E83D2D01BF130DD009FF74F /* mea_verbose.c in Sources */,
 				4E83D2B71BF12A81009FF74F /* mea_queue.c in Sources */,
@@ -5905,6 +5912,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4E2AD4D01A3F4C84004177D4 /* enocean.c in Sources */,
+				4E0096431BFCFFC70003C62D /* serial.c in Sources */,
 				4E4A5EA315F003420052ABF4 /* interface_type_001.c in Sources */,
 				4E4F885E1A9E76A000479945 /* cJSON.c in Sources */,
 				4E8787E61816732800A87FF0 /* sqlite3db_utils.c in Sources */,

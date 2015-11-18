@@ -339,6 +339,7 @@ void *_thread_interface_type_006_genericserial_data(void *args)
          process_update_indicator(params->i006->monitoring_id, interface_type_006_serialout_str, params->i006->indicators.serialout);
       }
 
+
       if(params->i006->fd<0)
       {
          params->i006->fd=serial_open(params->i006->real_dev, params->i006->real_speed);
@@ -353,19 +354,29 @@ void *_thread_interface_type_006_genericserial_data(void *args)
 
       if(params->i006->fd>=0)
       {
+         char c;
 
          char buffer[4096];
          int buffer_ptr=0;
          struct timeval timeout;
-         fd_set input_set;
-         char c;
-
-         FD_ZERO(&input_set);
-         FD_SET(params->i006->fd, &input_set);
+         
          while(1)
          {
+            if(mea_test_timer(&process_timer)==0)
+            {
+               process_heartbeat(params->i006->monitoring_id);
+               process_update_indicator(params->i006->monitoring_id, interface_type_006_senttoplugin_str, params->i006->indicators.senttoplugin);
+               process_update_indicator(params->i006->monitoring_id, interface_type_006_xplin_str, params->i006->indicators.xplin);
+               process_update_indicator(params->i006->monitoring_id, interface_type_006_serialin_str, params->i006->indicators.serialin);
+               process_update_indicator(params->i006->monitoring_id, interface_type_006_serialout_str, params->i006->indicators.serialout);
+            }
+
+            fd_set input_set;
+            FD_ZERO(&input_set);
+            FD_SET(params->i006->fd, &input_set);
+
             timeout.tv_sec  = 0; // timeout après
-            timeout.tv_usec = 100000; // 100 ms
+            timeout.tv_usec = 100000; // 100ms
 
             int ret = select(params->i006->fd+1, &input_set, NULL, NULL, &timeout);
             if (ret <= 0)
@@ -387,8 +398,17 @@ void *_thread_interface_type_006_genericserial_data(void *args)
                   break;
                }
             }
-            ret=read(params->i006->fd, &c, 1);
-            if(ret!=-1)
+            else
+            {
+               ret=read(params->i006->fd, &c, 1);
+               if(ret<0)
+               {
+                  close(params->i006->fd);
+                  params->i006->fd=-1;
+                  break;
+               }
+            }
+            if(ret>0)
             {
                buffer[buffer_ptr++]=c;
                if(buffer_ptr >= sizeof(buffer)-1)
@@ -406,8 +426,6 @@ void *_thread_interface_type_006_genericserial_data(void *args)
             // transmettre buffer au plugin
 
             buffer_ptr=0;
-
-            pthread_testcancel();
          }
 
          pthread_testcancel();
