@@ -41,8 +41,8 @@ struct interfacesServerData_s
 };  
 
 
-int16_t      get_dev_and_speed(char *device, char *dev, int16_t dev_l, speed_t *speed);
-int32_t      get_speed_from_speed_t(speed_t speed);
+//int16_t      get_dev_and_speed(char *device, char *dev, int16_t dev_l, speed_t *speed);
+//int32_t      get_speed_from_speed_t(speed_t speed);
 mea_queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db);
 void         stop_interfaces();
 void         dispatchXPLMessageToInterfaces(xPL_ServicePtr theService, xPL_MessagePtr theMessage);

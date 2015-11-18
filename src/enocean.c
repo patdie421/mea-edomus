@@ -21,6 +21,7 @@
 #include <sys/time.h>
 #include <limits.h>
 
+#include "serial.h"
 #include "enocean.h"
 //#include "debug.h"
 //#include "error.h"
@@ -64,6 +65,19 @@ unsigned long diffMillis(unsigned long chrono, unsigned long now)
 }
 
 
+int16_t _enocean_open(enocean_ed_t *ed, char *dev)
+{
+   int fd=serial_open(dev, B57600);
+   if(fd != -1)
+   {
+      strcpy(ed->serial_dev_name,dev);
+      ed->fd=fd;
+   }
+
+   return fd;
+}
+
+/*
 int16_t _enocean_open(enocean_ed_t *ed, char *dev)
 {
    struct termios options, options_old;
@@ -142,7 +156,7 @@ int16_t _enocean_open(enocean_ed_t *ed, char *dev)
 
    return fd;
 }
-
+*/
 
 int16_t enocean_init(enocean_ed_t *ed, char *dev)
 /**

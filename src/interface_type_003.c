@@ -32,6 +32,7 @@
 #include "macros.h"
 
 #include "enocean.h"
+#include "serial.h"
 #include "dbServer.h"
 #include "parameters_utils.h"
 #include "mea_api.h"

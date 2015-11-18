@@ -34,6 +34,7 @@
 #include "notify.h"
 
 #include "xbee.h"
+#include "serial.h"
 #include "dbServer.h"
 #include "mea_api.h"
 #include "pythonPluginServer.h"

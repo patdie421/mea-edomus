@@ -21,6 +21,7 @@
 #include <time.h>
 #include <sys/time.h>
 
+#include "serial.h"
 #include "comio2.h"
 //#include "debug.h"
 //#include "error.h"
@@ -83,15 +84,29 @@ uint16_t _comio2_get_frame_data_id(comio2_ad_t *ad)
 }
 
 
-int16_t _comio2_open(comio2_ad_t *ad, char *dev, speed_t speed)
+int _comio2_open(comio2_ad_t *ad, char *dev, int speed)
 /**
  * \brief     ouvre la communication série avec un arduino.
  * \details   ouvre et configure le port serie avec les parametres specifique a la communication avec un Arduino avec Comio2
  * \param     ad     descripteur comio2.
  * \param     dev    nom du peripherique dans /dev
  * \param     speed  debit du pour serie
- * \return    id     entre 1 et COMIO2_MAX_USER_FRAME_ID
+ * \return    descripteur de fichier 
  */
+{
+   int fd=serial_open(dev, speed);
+   if(fd != -1)
+   {
+      strcpy(ad->serial_dev_name,dev);
+      ad->speed=speed;
+      ad->fd=fd;
+   }
+
+   return fd;
+}
+
+/*
+int16_t _comio2_open(comio2_ad_t *ad, char *dev, speed_t speed)
 {
    struct termios options, options_old;
    int fd;
@@ -169,7 +184,7 @@ int16_t _comio2_open(comio2_ad_t *ad, char *dev, speed_t speed)
 
    return fd;
 }
-
+*/
 
 int16_t comio2_init(comio2_ad_t *ad, char *dev, speed_t speed)
 /**

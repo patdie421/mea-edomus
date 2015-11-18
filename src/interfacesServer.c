@@ -35,6 +35,7 @@
 #include "interface_type_003.h"
 #include "interface_type_004.h"
 #include "interface_type_005.h"
+#include "interface_type_006.h"
 
 mea_queue_t *_interfaces=NULL;
 
@@ -45,7 +46,7 @@ char *sql_select_device_info="SELECT sensors_actuators.id_sensor_actuator, senso
 
 char *sql_select_interface_info="SELECT * FROM interfaces";
 
-
+/*
 uint32_t speeds[][3]={
    {   300,    B300},
    {  1200,   B1200},
@@ -124,6 +125,7 @@ int16_t get_dev_and_speed(char *device, char *dev, int16_t dev_l, speed_t *speed
 
    return 0;
 }
+*/
 
 
 void dispatchXPLMessageToInterfaces(xPL_ServicePtr theService, xPL_MessagePtr theMessage)
@@ -176,6 +178,7 @@ void dispatchXPLMessageToInterfaces(xPL_ServicePtr theService, xPL_MessagePtr th
                   i004->xPL_callback(theService, theMessage, (xPL_ObjectPtr)i004);
                break;
             }
+
             case INTERFACE_TYPE_005:
             {
                interface_type_005_t *i005 = (interface_type_005_t *)(iq->context);
@@ -183,6 +186,15 @@ void dispatchXPLMessageToInterfaces(xPL_ServicePtr theService, xPL_MessagePtr th
                   i005->xPL_callback(theService, theMessage, (xPL_ObjectPtr)i005);
                break;
             }
+
+            case INTERFACE_TYPE_006:
+            {
+               interface_type_006_t *i006 = (interface_type_006_t *)(iq->context);
+               if(i006->monitoring_id>-1 && process_is_running(i006->monitoring_id) && i006->xPL_callback)
+                  i006->xPL_callback(theService, theMessage, (xPL_ObjectPtr)i006);
+               break;
+            }
+
             default:
                break;
          }
@@ -221,7 +233,6 @@ void stop_interfaces()
 
                if(i001->monitoring_id!=-1)
                {
-                  // struct interface_type_001_Data_s *interface_type_001Data = process_get_data_ptr(i001->monitoring_id);
                   struct interface_type_001_start_stop_params_s *interface_type_001_start_stop_params = (struct interface_type_001_start_stop_params_s *)process_get_data_ptr(i001->monitoring_id);
                   process_stop(i001->monitoring_id, NULL, 0);
                   process_unregister(i001->monitoring_id);
@@ -232,12 +243,12 @@ void stop_interfaces()
                      interface_type_001_start_stop_params=NULL;
                   }
                }
-
                clean_interface_type_001(i001);
                free(i001);
                i001=NULL;
                break;
             }
+
             case INTERFACE_TYPE_002:
             {
                interface_type_002_t *i002=(interface_type_002_t *)(iq->context);
@@ -247,7 +258,6 @@ void stop_interfaces()
                
                if(i002->monitoring_id!=-1)
                {
-                  // struct interface_type_002_Data_s *interface_type_002Data = process_get_data_ptr(i002->monitoring_id);
                   struct interface_type_002_start_stop_params_s *interface_type_002_start_stop_params = (struct interface_type_002_start_stop_params_s *)process_get_data_ptr(i002->monitoring_id);
                   process_stop(i002->monitoring_id, NULL, 0);
                   process_unregister(i002->monitoring_id);
@@ -278,7 +288,6 @@ void stop_interfaces()
                
                if(i003->monitoring_id!=-1)
                {
-                  // struct interface_type_003_Data_s *interface_type_003Data = process_get_data_ptr(i003->monitoring_id);
                   struct interface_type_003_start_stop_params_s *interface_type_003_start_stop_params = (struct interface_type_003_start_stop_params_s *)process_get_data_ptr(i003->monitoring_id);
                   process_stop(i003->monitoring_id, NULL, 0);
                   process_unregister(i003->monitoring_id);
@@ -309,7 +318,6 @@ void stop_interfaces()
                
                if(i004->monitoring_id!=-1)
                {
-                  // struct interface_type_004_Data_s *interface_type_004Data = process_get_data_ptr(i004->monitoring_id);
                   struct interface_type_004_start_stop_params_s *interface_type_004_start_stop_params = (struct interface_type_004_start_stop_params_s *)process_get_data_ptr(i004->monitoring_id);
                   process_stop(i004->monitoring_id, NULL, 0);
                   process_unregister(i004->monitoring_id);
@@ -358,6 +366,36 @@ void stop_interfaces()
                clean_interface_type_005(i005);
                free(i005);
                i005=NULL;
+               break;
+            }
+
+            case INTERFACE_TYPE_006:
+            {
+               interface_type_006_t *i006=(interface_type_006_t *)(iq->context);
+               
+               if(i006->xPL_callback)
+                  i006->xPL_callback=NULL;
+               
+               if(i006->monitoring_id!=-1)
+               {
+                  struct interface_type_006_start_stop_params_s *interface_type_006_start_stop_params = (struct interface_type_006_start_stop_params_s *)process_get_data_ptr(i006->monitoring_id);
+                  process_stop(i006->monitoring_id, NULL, 0);
+                  process_unregister(i006->monitoring_id);
+                  i006->monitoring_id=-1;
+                  if(interface_type_006_start_stop_params)
+                  {
+                     free(interface_type_006_start_stop_params);
+                     interface_type_006_start_stop_params=NULL;
+                  }
+                  if(i006->parameters)
+                  {
+                     free(i006->parameters);
+                     i006->parameters=NULL;
+                  }
+               }
+               clean_interface_type_006(i006);
+               free(i006);
+               i006=NULL;
                break;
             }
 
@@ -435,6 +473,14 @@ mea_queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
          
          if(state==1)
          {
+            iq=(interfaces_queue_elem_t *)malloc(sizeof(interfaces_queue_elem_t));
+            if(iq==NULL)
+            {
+               goto start_interfaces_clean_exit;
+            }
+
+            int monitoring_id=-1;
+
             switch(id_type)
             {
                case INTERFACE_TYPE_001:
@@ -444,15 +490,8 @@ mea_queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                   i001=malloc_and_init_interface_type_001(sqlite3_param_db, id_interface, (char *)name, (char *)dev, (char *)description);
                   if(i001 == NULL)
                      break;
-
-                  iq=(interfaces_queue_elem_t *)malloc(sizeof(interfaces_queue_elem_t));
-                  iq->type=id_type;
                   iq->context=i001;
-                  mea_queue_in_elem(_interfaces, iq);
-                  
-                  // lancement du process
-                  ret=process_start(i001->monitoring_id, NULL, 0);
-                  
+                  monitoring_id=i001->monitoring_id;
                   break;
                }
                  
@@ -463,15 +502,8 @@ mea_queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                   i002=malloc_and_init_interface_type_002(sqlite3_param_db, id_interface, (char *)name, (char *)dev, (char *)parameters ,(char *)description);
                   if(i002 == NULL)
                      break;
-
-                  iq=(interfaces_queue_elem_t *)malloc(sizeof(interfaces_queue_elem_t));
-                  iq->type=id_type;
                   iq->context=i002;
-                  mea_queue_in_elem(_interfaces, iq);
-                  
-                  // lancement du process
-                  ret=process_start(i002->monitoring_id, NULL, 0);
-                  
+                  monitoring_id=i002->monitoring_id;
                   break;
                }
                   
@@ -482,15 +514,8 @@ mea_queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                   i003=malloc_and_init_interface_type_003(sqlite3_param_db, id_interface, (char *)name, (char *)dev, (char *)parameters, (char *)description);
                   if(i003 == NULL)
                      break;
-
-                  iq=(interfaces_queue_elem_t *)malloc(sizeof(interfaces_queue_elem_t));
-                  iq->type=id_type;
                   iq->context=i003;
-                  mea_queue_in_elem(_interfaces, iq);
-                  
-                  // lancement du process
-                  ret=process_start(i003->monitoring_id, NULL, 0);
-                  
+                  monitoring_id=i003->monitoring_id;
                   break;
                }
 
@@ -501,15 +526,8 @@ mea_queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                   i004=malloc_and_init_interface_type_004(sqlite3_param_db, id_interface, (char *)name, (char *)dev, (char *)parameters, (char *)description);
                   if(i004 == NULL)
                      break;
-
-                  iq=(interfaces_queue_elem_t *)malloc(sizeof(interfaces_queue_elem_t));
-                  iq->type=id_type;
                   iq->context=i004;
-                  mea_queue_in_elem(_interfaces, iq);
-                  
-                  // lancement du process
-                  ret=process_start(i004->monitoring_id, NULL, 0);
-                  
+                  monitoring_id=i004->monitoring_id;
                   break;
                }
 
@@ -520,19 +538,37 @@ mea_queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                   i005=malloc_and_init_interface_type_005(sqlite3_param_db, id_interface, (char *)name, (char *)dev, (char *)parameters, (char *)description);
                   if(i005 == NULL)
                      break;
-
-                  iq=(interfaces_queue_elem_t *)malloc(sizeof(interfaces_queue_elem_t));
-                  iq->type=id_type;
                   iq->context=i005;
-                  mea_queue_in_elem(_interfaces, iq);
-                  
-                  // lancement du process
-                  ret=process_start(i005->monitoring_id, NULL, 0);
+                  monitoring_id=i005->monitoring_id;
+                  break;
+               }
+
+               case INTERFACE_TYPE_006:
+               {
+                  interface_type_006_t *i006;
+
+                  i006=malloc_and_init_interface_type_006(sqlite3_param_db, id_interface, (char *)name, (char *)dev, (char *)parameters, (char *)description);
+                  if(i006 == NULL)
+                     break;
+                  iq->context=i006;
+                  monitoring_id=i006->monitoring_id;
                   break;
                }
 
                default:
                   break;
+            }
+
+            if(monitoring_id!=-1)
+            {
+               iq->type=id_type;
+               mea_queue_in_elem(_interfaces, iq);
+               process_start(monitoring_id, NULL, 0);
+            }
+            else
+            {
+               free(iq);
+               iq=NULL;
             }
          }
          else

@@ -24,6 +24,7 @@
 #include <time.h>
 #include <sys/time.h>
 
+#include "serial.h"
 #include "xbee.h"
 //#include "debug.h"
 #include "mea_queue.h"
@@ -91,7 +92,20 @@ uint16_t
       _xbee_get_frame_data_id(xbee_xd_t *xd);
 
 
+int _xbee_open(xbee_xd_t *xd, char *dev, int speed)
+{
+   int fd=serial_open(dev, speed);
+   if(fd != -1)
+   {
+      strcpy(xd->serial_dev_name,dev);
+      xd->speed=speed;
+      xd->fd=fd;
+   }
 
+   return fd;
+}
+
+/*
 int   _xbee_open(xbee_xd_t *xd, char *dev, int speed)
 {
    struct termios options, options_old;
@@ -170,7 +184,7 @@ int   _xbee_open(xbee_xd_t *xd, char *dev, int speed)
    
    return xd->fd;
 }
-
+*/
 
 int   xbee_init(xbee_xd_t *xd, char *dev, int speed)
 /**

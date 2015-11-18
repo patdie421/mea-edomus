@@ -25,6 +25,8 @@
 #include "globals.h"
 #include "consts.h"
 
+#include "serial.h"
+
 #include "tokens.h"
 #include "tokens_da.h"
 
@@ -87,7 +89,7 @@ void set_interface_type_006_isnt_running(void *data)
    i006->thread_is_running=0;
 }
 
-
+/*
 int _serial_open(char *dev, int speed)
 {
    struct termios options, options_old;
@@ -163,7 +165,7 @@ int _serial_open(char *dev, int speed)
 
    return fd;
 }
-
+*/
 
 int16_t _interface_type_006_xPL_callback(xPL_ServicePtr theService, xPL_MessagePtr xplMsg, xPL_ObjectPtr userValue)
 {
@@ -321,7 +323,8 @@ void *_thread_interface_type_006_genericserial_data(void *args)
    mea_timer_t process_timer;
 
    mea_init_timer(&process_timer, 5, 1);
- 
+   mea_start_timer(&process_timer); 
+
    params->i006->fd=-1; 
 
    while(1)
@@ -337,7 +340,12 @@ void *_thread_interface_type_006_genericserial_data(void *args)
 
       if(params->i006->fd<0)
       {
-         params->i006->fd=_serial_open(params->i006->real_dev, params->i006->real_speed);
+         params->i006->fd=serial_open(params->i006->real_dev, params->i006->real_speed);
+         if(params->i006->fd < 0)
+         {
+            VERBOSE(5) mea_log_printf("%s (%s) : can't open %s - ", ERROR_STR, __func__, params->i006->real_dev);
+            perror("");
+         }
       }
 
       if(params->i006->fd>=0)
@@ -386,7 +394,7 @@ void *_thread_interface_type_006_genericserial_data(void *args)
          {
             params->i006->indicators.serialin+=buffer_ptr;
          
-            DEBUG_SECTION mea_log_printf("%s  (%s) : data from Serial : %s\n", INFO_STR, __func__, buffer);
+            DEBUG_SECTION mea_log_printf("%s (%s) : data from Serial : %s\n", INFO_STR, __func__, buffer);
          
             // transmettre buffer au plugin
             buffer[buffer_ptr]=0;
@@ -749,8 +757,8 @@ int start_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg)
    //
    // lancement du thread à faire ici ...
    //
-//   pthread_t *start_interface_type_006_genericserial_data_thread(i006, db, thread_f function);
-
+   start_stop_params->i006->thread=start_interface_type_006_genericserial_data_thread(start_stop_params->i006, start_stop_params->sqlite3_param_db, (thread_f)_thread_interface_type_006_genericserial_data);
+//   start_stop_params->i003->thread=start_interface_type_003_enocean_data_thread(start_stop_params->i003, ed, start_stop_params->sqlite3_param_db, (thread_f)_thread_interface_type_003_enocean_data);
 
    xpl_callback_params=(struct genericserial_callback_xpl_data_s *)malloc(sizeof(struct genericserial_callback_xpl_data_s));
    if(!xpl_callback_params)

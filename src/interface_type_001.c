@@ -25,8 +25,9 @@
 #include "mea_string_utils.h"
 #include "mea_verbose.h"
 
-#include "arduino_pins.h"
+#include "serial.h"
 #include "comio2.h"
+#include "arduino_pins.h"
 
 #include "notify.h"
 
