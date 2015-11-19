@@ -510,7 +510,6 @@ void *_thread_interface_type_006_genericserial_data(void *args)
 /*
                      for(int i=0;i<buffer_ptr;i++) fprintf(stderr,"%d:[%03d-%02x-%c] ", i, (unsigned char)buffer[i], (unsigned char)buffer[i], buffer[i]); fprintf(stderr,"\n");
 */
-                     for(int i=0;i<buffer_ptr;i++) fprintf(stderr,"s[%d]=%d\n", i, (unsigned char)buffer[i]); fprintf(stderr,"\n");
 
                      int ret=interface_type_006_data_to_plugin(params->myThreadState, stmt, GENERICSERIALDATA, (void *)buffer, buffer_ptr);
                      if(ret<0)
@@ -933,4 +932,77 @@ OK
 
 +CMT: "+33661665082","","15/11/17,23:54:28+04"
  Info télésurveillance 13/11/2015 08:40:27 : mise à l'arret via code NATHALIE du clavier ENTREE (zone 1) au 16 RUE JULES GUESDE - ROSNY SOUS
+*/
+
+/*
+# coding: utf8
+
+import re
+import string
+import sys
+import unicodedata
+
+try:
+    import mea
+except:
+    import mea_simulation as mea
+
+import mea_utils
+from mea_utils import verbose
+
+from sets import Set
+import string
+
+debug=0
+
+
+def mea_xplCmndMsg(data):
+   fn_name=sys._getframe().f_code.co_name
+
+   return 0
+
+
+def mea_serialData(data):
+   fn_name=sys._getframe().f_code.co_name
+
+   try:
+       id_sensor=data["device_id"]
+       serial_data=data["data"]
+       l_serial_data=data["l_data"]
+       parameters=data["device_parameters"]
+   except:
+      verbose(2, "ERROR (", fn_name, ") - invalid data")
+      return False
+
+   mem=mea.getMemory(id_sensor)
+#   verbose(2,"mem = ",mem)
+   paramsDict=mea_utils.parseKeyValueDatasToDictionary(parameters, ",", ":")
+
+# format du SMS que nous devons traiter :
+# +CMT: "+33661665082","","15/11/19,22:57:29+04",145,32,0,0,"+33660003151",145,140
+# Info télésurveillance 13/11/2015 08:40:27 : mise à l'arret via code NATHALIE du clavier ENTREE (zone 1) au 16 RUE JULES GUESDE - ROSNY SOUS
+
+   s=serial_data.decode('latin-1')
+
+   alarm=-1
+   numtel=u""
+   nbchars=0
+
+   s1=s.split("\r\n");
+   for i in range(len(s1)):
+      if len(s1[i]) <> 0:
+         if s1[i].find(u"+CMT:") <> -1:
+            s2=s1[i].split(",");
+            numtel  = s2[0].split('"')[1::2][0] # plus efficace qu'une expression régulière
+            nbchars = s2[10]
+            # on sait que les infos que nous attendons sont dans la ligne suivante (nbchars ne va pas nous servir dans ce cas ...
+            if s1[i+1].find(u"mise à l'arret") <> -1:
+               print "A l'arrêt"
+               alarm=1
+            elif s1[i+1].find(u"mise en marche") <> -1:
+               print "En marche"
+               alarm=2
+            break
+
+   return alarm
 */
