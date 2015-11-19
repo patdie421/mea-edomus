@@ -216,6 +216,10 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
          case ENOCEANDATA:
             fx="mea_enoceanData";
             break;
+         case GENERICSERIALDATA:
+            fx="mea_serialData";
+            break;
+
          default:
             return NOERROR;
       }
@@ -235,6 +239,7 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
          if (pValue != NULL)
          {
             DEBUG_SECTION mea_log_printf("%s (%s) : result of call of %s : %ld\n", DEBUG_STR, __func__, fx, PyInt_AsLong(pValue));
+            Py_DECREF(pValue); // verifier si nécessaire
          }
          else
          {
@@ -246,8 +251,6 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
             process_update_indicator(_pythonPluginServer_monitoring_id, "PYCALLERR", ++nbpycallerr_indicator);
             return_code=ERROR;
          }
-         
-         Py_DECREF(pValue); // verifier si nécessaire
       }
       else
       {

@@ -830,6 +830,7 @@ int16_t _process_register(char *name)
             managed_processes.processes_table[i]->heartbeat_counter=0; // nombre d'abscence de heartbeat entre de recovery.
             managed_processes.processes_table[i]->type=AUTOSTART;
             managed_processes.processes_table[i]->status=STOPPED; // arrêté par défaut
+            managed_processes.processes_table[i]->async_stop=0;
             managed_processes.processes_table[i]->start=NULL;
             managed_processes.processes_table[i]->stop=NULL;
             managed_processes.processes_table[i]->start_stop_data=NULL;
@@ -1277,11 +1278,14 @@ int _managed_processes_processes_check_heartbeats(int doRecovery)
       {
          time_t now = time(NULL);
 
-         // à remplacer par difftime ...
-         if( (    ( (now - managed_processes.processes_table[i]->last_heartbeat) < managed_processes.processes_table[i]->heartbeat_interval) &&
-                    (managed_processes.processes_table[i]->forced_watchdog_recovery_flag == 0) )
-               || ( managed_processes.processes_table[i]->type == TASK) 
-               || ( managed_processes.processes_table[i]->type == JOB) )
+         if(managed_processes.processes_table[i]->async_stop==1)
+         {
+            managed_processes.processes_table[i]->async_stop=0;
+            process_stop(i, NULL, 0);
+         }
+         else if((((now - managed_processes.processes_table[i]->last_heartbeat) < managed_processes.processes_table[i]->heartbeat_interval) && (managed_processes.processes_table[i]->forced_watchdog_recovery_flag == 0))
+               || ( managed_processes.processes_table[i]->type == TASK)
+               || ( managed_processes.processes_table[i]->type == JOB))
          {
             managed_processes.processes_table[i]->heartbeat_status=1;
             managed_processes.processes_table[i]->heartbeat_counter=0;
@@ -1432,6 +1436,31 @@ int process_start(int id, char *errmsg, int l_errmsg)
       pthread_cleanup_pop(0);
    }
 
+   return ret;
+}
+
+
+int process_async_stop(int id)
+{
+   int ret=1;
+
+   pthread_cleanup_push( (void *)pthread_rwlock_unlock, (void *)&managed_processes.rwlock );
+   pthread_rwlock_wrlock(&managed_processes.rwlock);
+
+   if(id>=0 &&
+      id<managed_processes.max_processes &&
+      managed_processes.processes_table[id] &&
+      managed_processes.processes_table[id]->status==RUNNING &&
+      managed_processes.processes_table[id]->type!=NOTMANAGED)
+   {
+      managed_processes.processes_table[id]->async_stop=1;
+   }
+   else
+      ret=-1;
+
+   pthread_rwlock_unlock(&managed_processes.rwlock);
+   pthread_cleanup_pop(0);
+   
    return ret;
 }
 

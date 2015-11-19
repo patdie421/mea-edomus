@@ -12,18 +12,18 @@
  * PIN 1 : PC(RX) [TX]
  * PIN 2 : - [INT] : <non utilisée>
  * PIN 3 : X [INT / PWM] : SORTIE : RESET du sim900
- * PIN 4 : X P0 - ENTREE : détection POWER UP/DOWN (LOW = DOWN, HIGH = UP), dispo en lecture seule par SMS
+ * PIN 4 : X P0 - ENTREE : détection POWER UP/DOWN (LOW = DOWN, HIGH = UP), dispo en lecture seule
  * PIN 5 : X P1 [PWM] : ENTREE/SORTIE - dispo pour I/O SMS
  * PIN 6 : X P2 [PWM] : ENTREE/SORTIE - dispo pour I/O SMS
- * PIN 7 : X P3 - ENTREE : détection ALARME, dispo en lecture seule par SMS
+ * PIN 7 : X P3 - ENTREE : détection ALARME, dispo en lecture seule
  *
  * PORDB
  * PIN 8 : SIM900_RX
  * PIN 9 : SIM900_TX
  * PIN 10 : X [PWM / SS]   - ENTREE : LOW = SIM900 desactivé
- * PIN 11 : X [PWM / MOSI] - ENTREE : LOW = command vers MCU uniquement (mode configuration)
+ * PIN 11 : X [PWM / MOSI] - ENTREE : LOW = command vers MCU uniquement (mode configuration/commande)
  * PIN 12 : X [MISO]       - ENTREE : LOW = interprétation par le MCU des messages non solicités desactivée (mode transparent)
- * PIN 13 : LED1 [LED / SCK] - SORTIE : led d'état - clignotement toutes les 500ms = fonctionnement nominal / toutes les 125ms = erreur, pas d'opération SIM900 possible
+ * PIN 13 : LED1 [LED / SCK] - SORTIE : led d'état - clignotement toutes les 1s = fonctionnement nominal / toutes les 125ms = erreur, pas d'opération SIM900 possible
  * PIN NA : x
  * PIN NA : x
  *
@@ -41,38 +41,38 @@
 /*
  Interface de commandes SMS via SIM900
  
- Ce programme permet de transformer un Arduino en un module "autonome et/ou connecté" 
+ Ce programme permet de "transformer" un Arduino en un module "autonome et/ou connecté" 
  capable de  contrôler 10 entrées/sorties. Relié à une interface SIM900, le module permet
  de piloter à distance des E/S en fonction d'ordres reçus par SMS. Il émet également des
- alerte SMS (POWER UP/DOWN et  ALARM ON/OFF)  lorsque l'une des deux entrées réservées à
+ alerte SMS (POWER UP/DOWN et  ALARM ON/OFF) lorsque l'une des deux entrées réservées à
  cet effet change d'état.
  
  Ce module dispose de :
  - 8 E/S libres, dont 6 peuvent être utilisées en entrées Analogiques et 2 en sorties PWM
  (analogiques). 
  - 2 Entrées logiques spécifiques qui permettent :
- * pour l'une de connaitre l'état d'un alimentation électrique (via un interface à 
+  * pour l'une de connaitre l'état d'un alimentation électrique (via un interface à 
  réaliser)
- * pour l'autre de connaitre l'état d'une alarme (interface à réaliser)
+  * pour l'autre de connaitre l'état d'une alarme (interface à réaliser)
  Un traitement spécifique est associé à ces deux entrées en plus de pouvoir être
- interrogées à distance comme les 8 autres entrés/sorties. Ces entrées réagissent sur
+ interrogées comme les 8 autres entrés/sorties. Ces entrées réagissent sur
  front pour le déclenchement d'alarmes. Les alarmes sont envoyées sous forme de SMS
  (POWER DOWN, POWER UP, ALARM ON, ALARM OFF).
  
  Les entrées/sorties sont numérotées de la façon suivante :
  
- MODULE /   ARDUINO   / Fonction
+ MODULE /  ARDUINO  / Fonction
  
- 0    /    PIN 4    / détection POWER UP/DOWN (LOW = DOWN, HIGH = UP), dispo en lecture
- 1    /    PIN 5    / E/S dont PWN
- 2    /    PIN 6    / E/S dont PWN
- 3    /    PIN 7    / détection ALARME, dispo en lecture seule
- 4    /    PIN A0   / E/S dont entrée analogique
- 5    /    PIN A1   / E/S dont entrée analogique
- 6    /    PIN A2   / E/S dont entrée analogique
- 7    /    PIN A3   / E/S dont entrée analogique
- 8    /    PIN A4   / E/S dont entrée analogique
- 9    /    PIN A5   / E/S dont entrée analogique
+ 0      /  PIN 4    / détection POWER UP/DOWN (LOW = DOWN, HIGH = UP), dispo en lecture
+ 1      /  PIN 5    / E/S dont PWN
+ 2      /  PIN 6    / E/S dont PWN
+ 3      /  PIN 7    / détection ALARME, dispo en lecture seule
+ 4      /  PIN A0   / E/S dont entrée analogique
+ 5      /  PIN A1   / E/S dont entrée analogique
+ 6      /  PIN A2   / E/S dont entrée analogique
+ 7      /  PIN A3   / E/S dont entrée analogique
+ 8      /  PIN A4   / E/S dont entrée analogique
+ 9      /  PIN A5   / E/S dont entrée analogique
  
  Les communication/réaction au SMS sont contrôlés (ACL). Le module dispose d'un carnet
  de  numéro de téléphone (10 numéros disponibles) stockés en EEPROM (commandes MCU pour
@@ -87,9 +87,10 @@
  
  Il se connecte au SIM900 via :
  - une liaison serie "logiciel" (AltSoftSerial) sur PIN 8 et 9
- - un ligne "reset" (P3) à connecter à l'entrée Reset d'un module SIM900.
+ - une ligne "reset" (P3) à connecter à l'entrée Reset d'un module SIM900.
  
- La LED (pin13) indique l'état de fonctionnement (clignotement lent = OK ou rapide = HS)
+ La LED (pin13) indique l'état de fonctionnement (clignotement lent = OK ou 
+ rapide = pas de sim900 ou mode commande)
  
  Le module peut être contrôle depuis le SIM900 (via SMS) ou depuis la liaison Serie. De
  plus il fait fonction de passerelle (transparente) entre les deux équipements, permettant
@@ -426,7 +427,7 @@ private:
 const char *SIM900_ok_str="OK";
 const char *SIM900_error_str="ERROR";
 const char *SIM900_standard_returns[]={
-  SIM900_ok_str,SIM900_error_str,NULL};
+  SIM900_ok_str, SIM900_error_str,NULL};
 const char *SIM900_smsPrompt="> ";
 
 inline int _sim900_read()
@@ -485,6 +486,8 @@ Sim900::Sim900()
   buffer[0]=0;
   lastSMSPhoneNumber[0]=0;
 
+  pinCode[0]=0;
+  
   echoOnOff=1; // echo activé par defaut
 
   write=_sim900_write;
@@ -810,7 +813,7 @@ int Sim900::waitString(char *val, long timeout)
  * \brief     Attent que la chaine "val" ait été lue sur le SIM900.
  * \details   lit tous les caractères arrivant du SIM900 et dès que la séquence de caractères est strictement identique à "val"
  *            la fonction retourne 0.
- *            Si "timeout" ms se sont écoulées avant la séquence de caractères attendu, la lecture s'arrête (la fonction retour -1 dans ce cas).
+ *            Si "timeout" ms se sont écoulées avant la séquence de caractères attendus, la lecture s'arrête (la fonction retour -1 dans ce cas).
  *            Cette fonction n'interprête pas CR/LF. Il est donc possible de faire sim900.waitString("\r\n",100); pour attendre une fin de ligne.
  * \param     timeout  durée maximum en ms pour obtenir la séquence de caractères recherchée
  * \return    0 lorsque la chaine est trouvée,
@@ -920,33 +923,32 @@ int Sim900::init()
 {
   // configuration du sim900 pour recevoir des SMS
   echoOff();
-  //  sendATCmnd("EO",0); // suppression de l'echo
-  //  waitLines((char **)standard_returns, 200);
 
   if(pinCode[0])
   {
     sendString("AT+CPIN=");
     sendString((char *)pinCode);
     sendCr();
-    //     waitLines(ok_str, error_str, 200);
     waitLines((char **)SIM900_standard_returns, atTimeout);
   }
 
-  sendATCmnd("+CMGF=1"); // mode text pour les sms
-  //  waitLines(ok_str, error_str, 200);
+  sendATCmnd("+CMGF=1"); // mode "text" pour les sms
   waitLines((char **)SIM900_standard_returns, atTimeout);
 
   // format UCS2 pour les données reçu
   // sendATCmnd("+CSCS=\"UCS2\"");
   // waitLines((char **)SIM900_standard_returns, atTimeout);
 
+  // pas de stockage des SMS, transmission direct sur la ligne serie
   sendATCmnd("+CNMI=2,2,0,0,0");
-  //  waitLines(ok_str, error_str, 200);
   waitLines((char **)SIM900_standard_returns, atTimeout);
 
-  sendATCmnd("+CSDH=0"); // pour avoir à la reception d'un : +CMT: "+12223334444","","14/05/30,00:13:34-32"
-  //  waitLines(ok_str, error_str, 200);
+  // pour avoir la longueur dans un retour CMT:
+  sendATCmnd("+CSDH=1");
   waitLines((char **)SIM900_standard_returns, atTimeout);
+
+  // sendATCmnd("+CSDH=0"); // pour avoir à la reception d'un : +CMT: "+12223334444","","14/05/30,00:13:34-32"
+  // waitLines((char **)SIM900_standard_returns, atTimeout);
 
   return 0;
 }
@@ -955,7 +957,7 @@ int Sim900::init()
 int Sim900::sync(long timeout)
 /**
  * \brief     synchronise la communication avec un SIM900
- * \details   vide le buffer d'entrée (lecture et oubli jusqu'à plus rien à lire.
+ * \details   vide le buffer d'entrée (lecture et oubli) jusqu'à plus rien à lire.
  *            envoie une commande AT et attend en retour un OK. Cela permet à l' "autobaud" de choisir la bonne vitesse de communication.
  *            si le retour n'est pas "OK", un nouveau cycle est réalisé.
  *            la tentative de synchro s'arrête après "timeout" ms.
@@ -978,9 +980,11 @@ int Sim900::sync(long timeout)
     }
 
     // Commande AT de synchro
-    sendChar('A', echoOnOff);
-    sendChar('T', echoOnOff);
-    sendCr(echoOnOff);
+    // on force l'attente d'un echo car on ne sait pas dans quel état est le sim900. Donc s'il y a un écho on le lit
+    // sinon le timeout nous rendra la main.
+    sendChar('A', 1);
+    sendChar('T', 1);
+    sendCr(1);
     
     int ret = waitLines((char **)SIM900_standard_returns, 500);
     if(ret==0)
@@ -1030,13 +1034,17 @@ int Sim900::run(unsigned char car)
 
   if(c == 10) // fin de ligne, on la traite
   {
+    buffer[bufferPtr++]=c;
     buffer[bufferPtr]=0;
     analyseBuffer();
     bufferPtr=0; // RAZ du buffer
   }
+/*
   else if(c == 13) // on n'a rien à faire de CR
   {
+    
   }
+*/
   else // on range la donnée dans le buffer de ligne
   {
     buffer[bufferPtr]=c;
@@ -1059,20 +1067,37 @@ int Sim900::analyseBuffer()
  *            - void setDefaultCallBack(int (*f)(char *, void *)
  *            Avec f :
  *               une fonction de prototype int f(char *line, void *userData)
- *            line est une sequence de caractère collecté jusqu'à l'apparition d'une sequence CR/LF
+ *            line est une sequence de caractères collectés jusqu'à l'apparition d'un LF (le CR éventuel est ignoré)
  *            userData est une zone de données "utilisateur" déclarée à Sim900 par :
  *               void setUserData(void *data)
  *            Le premier callback est déclenché lorsqu'un SMS arrive
- *            Le second est déclenché pour tout autre "ligne" reçue
+ *            Le second est déclenché pour toute autre "ligne" reçue
  * \return    -1 si la taille max du buffer est atteinte, 0 sinon.
  */
 {
-  if(smsFlag == 1)
+/*
+  Serial.println("%----------");
+  for(int j=0;buffer[j];j++)
+  {
+    if(buffer[j]<' ')
+    {
+       Serial.print("[");
+       Serial.print((int)buffer[j]);
+       Serial.print("]");
+    }
+    else
+       Serial.print((char)buffer[j]);
+  }
+  Serial.println("");   
+  Serial.println("----------%");
+*/
+  if(smsFlag == 1) // une entête SMS à été reçue précédemment.
   {
     int ret = 0;
     if(SMSCallBack)
     {
       ret = SMSCallBack((char *)buffer, userData);
+      bufferPtr=0;
     }
     smsFlag = 0;
     return ret;
@@ -1080,9 +1105,8 @@ int Sim900::analyseBuffer()
   else
     lastSMSPhoneNumber[0]=0;
 
-  smsFlag = 0;
-
-  if(strncmp((char *)buffer,"+CMT:",5) == 0)
+//  smsFlag = 0;
+  if(strncmp((char *)buffer,"+CMT:",5) == 0) // entête de SMS ?
   {
     // reception d'un SMS
 
@@ -1103,20 +1127,16 @@ int Sim900::analyseBuffer()
       ptr++;
     }
     lastSMSPhoneNumber[i]=0;
-#if __DEBUG__ > 0
-//    printStringFromProgmem(lastSMS);
-//    Serial.println((char *)lastSMSPhoneNumber);
-#endif
     smsFlag = 1; // la prochaine ligne est un SMS entrant
+    bufferPtr=0;
     return 0;
   }
 
   if(defaultCallBack)
   {
-#if __DEBUG__ > 0
-    printStringFromProgmem(unsolicitedMsg);
-#endif
-    return this->defaultCallBack((char *)buffer, userData);
+    int ret=this->defaultCallBack((char *)buffer, userData);
+    bufferPtr=0;
+    return ret;
   }
 
   // On à rien fait
@@ -1157,23 +1177,19 @@ int cmndResultsBufferPtr=0; // pointeur arrivée de caractères dans le buffer
 int mcuSerialBufferPtr=0; // pointeur arrivée de caractères dans le buffer
 unsigned char mcuSerialBuffer[MCUSERIALBUFFERSIZE];
 
+enum dest_e { TO_MCU=0, TO_SIM900=1 };
+
 // structure "userData" (pour les callback et les fonctions de traitement)
 struct data_s
 {
-  char dest;
+  enum dest_e dest;
   unsigned char *cmndResultsBuffer;
   int *cmndResultsBufferPtr;
   unsigned char *lastSMSPhoneNumber;
-}
-sim900UserData, mcuUserData; // deux zones de données utilisateurs.
+};
+struct data_s sim900UserData, mcuUserData; // deux zones de données utilisateurs.
 
-
-// objets globaux
-AltSoftSerial sim900Serial;
-Sim900 sim900;
-BlinkLeds myBlinkLeds(125);
-
-
+// paramétrage du pin watcher
 #define  PINSWATCHER_NBPINS 2
 struct pinsWatcherData_s
 {
@@ -1181,23 +1197,28 @@ struct pinsWatcherData_s
   unsigned long lastChrono;
   int lastState;
 };
-
 struct pinsWatcherData_s pinsWatcherData[PINSWATCHER_NBPINS] = {
-  {
-    4,0L,-1      }
-  ,{
-    7,0L,-1      }
+  { 4,0L, -1 },
+  { 7,0L, -1 },
 };
 
-// pour éviter les échos des emissions du côté PC
-char char_from_pc_flag=0;
+// objets globaux
+AltSoftSerial sim900Serial;
+Sim900 sim900;
+BlinkLeds myBlinkLeds(125);
+
+
+// variables globales
+char soft_cmd_mode_flag = 0;
+char sim900_connected_flag = 0; // passé à 1 si un sim900 est détecté lors de l'initialisation
+char char_from_pc_flag=0; // pour éviter les échos des emissions du côté PC
+
 
 int checkSgn()
 /**
  * \brief   verifie qu'une signature d'initialisation est présente
  *
  */
- 
 {
    if(EEPROM.read(EEPROM_INIT_SGN)  !=0xFD)
       return -1;
@@ -1506,7 +1527,7 @@ int sendCmndResults(struct data_s *data)
  * \return    toujours 0
  */
 {
-  if(data->dest==1)
+  if(data->dest==TO_SIM900) // vers sim900
   {
     if(sim900.sync(5000)==0)
       sim900.sendSMS((char *)data->lastSMSPhoneNumber, (char *)data->cmndResultsBuffer);
@@ -1628,13 +1649,13 @@ int evalCmndString(char *buffer, void *dataPtr)
   int l=strlen((char *)buffer); // nombre de caractères (encore à traiter)
   struct data_s *data = (struct data_s *)dataPtr;
 
-  if(data->dest==1 && data->lastSMSPhoneNumber[0]==0)
+  if(data->dest==TO_SIM900 && data->lastSMSPhoneNumber[0]==0) // pas de numéro de tel pour la réponse, on fait rien
   {
     errToCmndResult(data, 1);
     goto evalCmndString_clean_exit;
   }
 
-  if(data->dest==1 && numExist((char *)data->lastSMSPhoneNumber)==-1)
+  if(data->dest==TO_SIM900 && numExist((char *)data->lastSMSPhoneNumber)==-1)
   {
     errToCmndResult(data, 2);
     goto evalCmndString_clean_exit;
@@ -1645,7 +1666,7 @@ int evalCmndString(char *buffer, void *dataPtr)
   if(buffer[0]  =='#' &&
     buffer[1]   =='#' &&
     buffer[l-2] =='#' &&
-    buffer[l-1] =='#') // une commande via SMS ?
+    buffer[l-1] =='#') // une commande (elle doit être encadrée par de "##" ?
   {
     int ptr=2;
     l=l-4; // 4 "#" déjà traité
@@ -1655,7 +1676,8 @@ int evalCmndString(char *buffer, void *dataPtr)
       int pin = 0;
       char cmnd = 0;
       long valeur = 0;
-
+      int err = 0;
+      
       if(!l)
       {
         errToCmndResult(data, 3);
@@ -1666,6 +1688,8 @@ int evalCmndString(char *buffer, void *dataPtr)
       if(buffer[ptr]>='0' && buffer[ptr]<='9') // premier caractère numérique ?
       {
         pin=buffer[ptr]-'0';
+        ptr++; // passage au caractère suivant
+        l--;
       }
       else
       {
@@ -1673,11 +1697,9 @@ int evalCmndString(char *buffer, void *dataPtr)
         goto evalCmndString_clean_exit;
       }
 
-      ptr++; // passage au caractère suivant
-      l--;
       if(!l)
       {
-        errToCmndResult(data, 5);
+        errToCmndResult(data, 4);
         goto evalCmndString_clean_exit;
       }
 
@@ -1694,26 +1716,26 @@ int evalCmndString(char *buffer, void *dataPtr)
       // lecture du séparateur
       if(!l || buffer[ptr]!=',')
       {
-        errToCmndResult(data, 6);
+        errToCmndResult(data, 5);
         goto evalCmndString_clean_exit;
       }
       ptr++;
       l--;
       if(!l)
       {
-        errToCmndResult(data, 7);
+        errToCmndResult(data, 6);
         goto evalCmndString_clean_exit;
       }
 
       // lecture de la commande
       switch(buffer[ptr])
       {
-      case 'L': // sortie logique
-      case 'A': // sortie analogique
+      case 'L': // I/O logique
+      case 'A': // I/O analogique
         cmnd = buffer[ptr];
         break;
       default:
-        errToCmndResult(data, 8);
+        errToCmndResult(data, 7);
         goto evalCmndString_clean_exit;
       }
       ptr++;
@@ -1726,12 +1748,12 @@ int evalCmndString(char *buffer, void *dataPtr)
       l--;
       if(!l)
       {
-        errToCmndResult(data, 9);
+        errToCmndResult(data, 8);
         goto evalCmndString_clean_exit;
       }
 
       // lecture parametre
-      if(buffer[ptr]=='H' || buffer[ptr]=='L')
+      if(buffer[ptr]=='H' || buffer[ptr]=='L') // High ou Low
       {
         if(buffer[ptr]=='H')
           valeur=1;
@@ -1740,15 +1762,13 @@ int evalCmndString(char *buffer, void *dataPtr)
         ptr++;
         l--;
       }
-      // lecture 'G'
-      else if(buffer[ptr]=='G')
+      else if(buffer[ptr]=='G') // Get
       {
         valeur=-1;
         ptr++;
         l--;
       }
-      else
-        // lecture valeur numérique
+      else // lecture valeur numérique
       {
         while(1)
         {
@@ -1760,18 +1780,28 @@ int evalCmndString(char *buffer, void *dataPtr)
           }
           else if(!l || buffer[ptr]==';')
           {
-            break; // point de sortie de la boucle
+            break; // point de sortie "normal" de la boucle
           }
           else
           {
-            errToCmndResult(data, 10);
-            goto evalCmndString_clean_exit;
+            errToCmndResult(data, 9);
+            // a tester ...
+            for(;;) // on va jusqu'à la fin de la ligne ou au prochain ";"
+            {
+               ptr++;
+               l--;
+               if(!l || buffer[ptr]==';')
+                  break;
+            }
+            err=1;
+            break;
           }
         }
       }
 
       // à partir d'ici on traiter la demande
-      doCmnd(data, pin, cmnd, valeur);
+      if(err==0)
+         doCmnd(data, pin, cmnd, valeur);
       // fin de traitement de la demande
       if(l)
       {
@@ -1861,11 +1891,12 @@ void sim900_broadcastSMS(char *text)
   static unsigned long last_broadcast=0;
 
   unsigned long now = millis();
+  if(now==0) now=1; // jusque parceque j'ai besoin du 0.
 
   if(nb_broadcast_credit>0)
      return;
 
-  if(diffMillis(last_broadcast, now) < 60000) // pour limiter les broadcast, max 1 par minute
+  if(last_broadcast!=0 && diffMillis(last_broadcast, now) < 60000) // pour limiter les broadcasts, max 1 par minute
      return;
 
   last_broadcast=millis();
@@ -1884,6 +1915,7 @@ void sim900_broadcastSMS(char *text)
       else
         num[j]=c;
     }
+
     if(num[0])
     {
       Serial.print(num);
@@ -1891,6 +1923,7 @@ void sim900_broadcastSMS(char *text)
       Serial.println(text);
 
       sim900.sendSMS(num, text);
+      
       nb_broadcast_credit--;
     }
   }
@@ -1901,13 +1934,12 @@ void pinsWatcher()
 /**
  * \brief     surveille les changements d'état des lignes "POWER" et "ALARM" et réagit en concéquence.
  * \details   la surveillance gère un "anti-rebond" sur les deux lignes.
- *            dès qu'un frond (montant ou décendant) est validées un message SMS est envoyé.         
+ *            dès qu'un frond (montant ou décendant) est validés un message SMS est envoyé.
  */
 {
-  //  unsigned char pins[PINSWATCHER_NBPINS]={4,7};
-  //  static unsigned long lastChrono[PINSWATCHER_NBPINS]={0,0};
-  //  static int lastState[PINSWATCHER_NBPINS]={-1,-1};
-
+  char send_power=0;
+  char send_alarm=0;
+  
   for(int i=0;i<PINSWATCHER_NBPINS;i++)
   {
     int s=digitalRead(pinsWatcherData[i].pin); // lecture de l'entrée
@@ -1919,14 +1951,13 @@ void pinsWatcher()
         break;
       }
 
-
       unsigned long now=millis();
       if(now == 0)
-        now=1; // on perd 1 ms si on tombe pile poil sur 0 ... j'ai trop besoin du 0 ...
+        now=1; // ok, on perd 1 ms si on tombe pile poil sur 0 ... j'ai trop besoin du 0 ...
 
       if(pinsWatcherData[i].lastChrono==0) // front detecté
         pinsWatcherData[i].lastChrono=now; // on démarre le chrono
-      else if(diffMillis(pinsWatcherData[i].lastChrono,now) > 20) // plus de 20 ms depuis le front ?
+      else if(diffMillis(pinsWatcherData[i].lastChrono, now) > 20) // plus de 20 ms depuis le front ?
       { //oui : on prend en compte
         pinsWatcherData[i].lastState=s;
         pinsWatcherData[i].lastChrono=0;
@@ -1936,27 +1967,15 @@ void pinsWatcher()
         {
         case 0:
           if(s==LOW) // front descendant
-          {
-            sim900_broadcastSMS("POWERDOWN");
-            printStringFromProgmem(powerdown_str);
-          }
+            send_power=1;
           else // front montant
-          {
-            sim900_broadcastSMS("POWERUP");
-            printStringFromProgmem(powerup_str);
-          }
+            send_power=2;
           break;
         case 1:
           if(s==LOW)
-          {
-            sim900_broadcastSMS("ALARMEON");
-            printStringFromProgmem(alarmon_str);
-          }
+            send_alarm=1;
           else
-          {
-            sim900_broadcastSMS("ALARMEOFF");
-            printStringFromProgmem(alarmoff_str);
-          }
+            send_alarm=2;
           break;
         };
         // fin partie à revoir
@@ -1964,6 +1983,28 @@ void pinsWatcher()
     }
     else
       pinsWatcherData[i].lastChrono=0;
+  }
+  
+  if(send_power==1)
+  {
+     sim900_broadcastSMS("POWERDOWN");
+     printStringFromProgmem(powerdown_str);
+  }
+  else if(send_power==2)
+  {
+     sim900_broadcastSMS("POWERUP");
+     printStringFromProgmem(powerup_str);
+  }
+
+  if(send_alarm==1)
+  {
+     sim900_broadcastSMS("ALARMEOFF");
+     printStringFromProgmem(alarmoff_str);
+  }
+  else if(send_alarm==2)
+  {
+     sim900_broadcastSMS("ALARMEON");
+     printStringFromProgmem(alarmon_str);
   }
 }
 
@@ -2036,7 +2077,7 @@ int mcuError(int errno)
   return 0;
 }
 
-
+// attention, ne marche pas avec le bootloader standard de l'arduino
 #define soft_reset()        \
 do                          \
 {                           \
@@ -2047,28 +2088,27 @@ do                          \
 } while(0)
 
 
-int soft_cmd_mode = 0;
-
 int analyseMCUCmnd(char *buffer, struct data_s *data)
 {
   // les commandes :
-  // PIN:1234 - stockage du code pin de la sim en ROM
+  // PIN:NNNNNN - stockage du code pin de la sim en ROM (ex : PIN:1234)
   // PIN:C - efface le code pin
-  // NUM:x,nnnnnnnnnnnnnnnnnnn - ajoute un numero de telephone dans l'annuaire du MCU (10 positions disponibles, de 0 à 9)
+  // NUM:x,nnnnnnnnnnnnnnnnnnn - ajoute un numero de telephone dans l'annuaire du MCU (10 positions disponibles, de 0 à 9), 20 caractères maximum
   // NUM:x,C - efface un numéro
   // CMD:##...## - voir evalCmndString - demande l'execution de commandes
   // LST - list le contenu de la ROM
   // RST - reset
   // BCR - réinitialisation du nombre de credit de broadcast
   // END - sortie du mode commande demandé par le PC
-  Serial.println("");
+  Serial.println(""); // saut de ligne après réception d'une commande
   
-  if(buffer[0]==0)
+  if(buffer[0]==0) // rien à traiter
     return 0;
 
-  if(strstr((char *)buffer,"PIN:")==(char *)buffer)
+  if(strstr((char *)buffer,"PIN:")==(char *)buffer) // la ligne commande par "PIN:"
   {
-    if(buffer[4]=='C' && buffer[5]==0)
+    // "PIN:" avec quel parametre ?
+    if(buffer[4]=='C' && buffer[5]==0) // C : clear
     {
       int ret = clearPin();
       if(ret<0)
@@ -2078,6 +2118,7 @@ int analyseMCUCmnd(char *buffer, struct data_s *data)
       return ret;
     }
 
+    // PIN:NNNNNN ?
     char pinCode[9];
     int i;
     for(i=0;i<8 && buffer[i+4];i++)
@@ -2141,7 +2182,7 @@ int analyseMCUCmnd(char *buffer, struct data_s *data)
     }
   }
 
-  if(strstr((char *)buffer,"CMD:")==(char *)buffer)
+  if(strstr((char *)buffer,"CMD:")==(char *)buffer) // c'est une commande I/O
   {
     int ret = evalCmndString((char *)&(buffer[4]), (void *)data);
     return ret;
@@ -2171,7 +2212,7 @@ int analyseMCUCmnd(char *buffer, struct data_s *data)
 
   if(strstr((char *)buffer,"END")==(char *)buffer)
   {
-    soft_cmd_mode = 0;
+    soft_cmd_mode_flag = 0;
     return 1;
   }
 
@@ -2222,12 +2263,9 @@ void wdt_init(void)
 }
 */
 
-int sim900_connected = 0; // passé à 1 si un sim900 est détecté lors de l'initialisation
 
 void setup()
 {
-  char *line;
-
   // initialisation port de communication Serie
   Serial.begin(57600);
   printStringFromProgmem(starting_str);
@@ -2235,8 +2273,14 @@ void setup()
   pinMode(13, OUTPUT);
   digitalWrite(13, HIGH);
 
-  // intialisation port communication avec sim900
-  sim900Serial.begin(9600);
+  // initialisation EEPROM en cas de besoin  
+  if(checkSgn()<0) // premier démarrage ?
+  {
+    setPin("");
+    for(int i=0;i<10;i++)
+       setNum(i,"");
+    setSgn();
+  }
 
   // Reset "hardware" du sim900
   pinMode(PIN_SIM900_RESET, OUTPUT);
@@ -2248,31 +2292,22 @@ void setup()
 
   // attente (5s) pour initialisation complete du sim900 après reset
   unsigned long chrono=millis();
-  while( (millis()-chrono) < 5000 ) 
-  {
-     myBlinkLeds.run();
-     digitalWrite(13, myBlinkLeds.getLedState());
-  }
-  digitalWrite(13, HIGH);
-
-  // déclaration des zones de données pour callback
-  // initialisation des données
-  cmndResultsBufferPtr=0;
   
-  mcuUserData.dest=0;
-  // buffer partager pour sim900 et MCU
+  // initialisation buffer partagé
+  cmndResultsBufferPtr=0;
+  cmndResultsBuffer[0]=0;
+  
+  mcuUserData.dest=TO_MCU;
   mcuUserData.cmndResultsBuffer=cmndResultsBuffer;
   mcuUserData.cmndResultsBufferPtr=&cmndResultsBufferPtr;
-  // pas de numéro pour MCU
   mcuUserData.lastSMSPhoneNumber=NULL;
   
-  sim900UserData.dest=1;
-  // buffer partager pour sim900 et MCU
+  sim900UserData.dest=TO_SIM900;
   sim900UserData.cmndResultsBuffer=cmndResultsBuffer;
   sim900UserData.cmndResultsBufferPtr=&cmndResultsBufferPtr;
   sim900UserData.lastSMSPhoneNumber=sim900.getLastSMSPhoneNumber();
   
-  // association objet sim900 avec le port de com.
+  // association sim900 avec le port de com.
   sim900.setRead(sim900_read);
   sim900.setWrite(sim900_write);
   sim900.setAvailable(sim900_available);
@@ -2284,48 +2319,51 @@ void setup()
   // déclaration des callbacks
   sim900.setSMSCallBack(evalCmndString);
 
-  // initialisation EEPROM en cas de besoin  
-  if(checkSgn()<0)
+  // on attend que 5s se soit écoulée depuis la fin de la demande de reset en faisant cligoter rapidement la led
+  myBlinkLeds.setInterval(125);
+  while( (millis()-chrono) < 5000 )
   {
-    setPin("");
-    for(int i=0;i<10;i++)
-       setNum(i,"");
-    setSgn();
+     myBlinkLeds.run();
+     digitalWrite(13, myBlinkLeds.getLedState());
   }
+  digitalWrite(13, HIGH); // led allumée en continue pendant l'init de communication avec sim900
+
+  // intialisation port communication avec sim900
+  sim900Serial.begin(9600);
 
   // synchronisation avec le sim900
-  sim900_connected = 0;
   if(sim900.sync(10000)!=-1) // 10 secondes pour se synchroniser
   {
-    printStringFromProgmem(syncok_str);
-
-    // récupération du code PIN si nécessaire
+    // récupération du code PIN dans l'EEPROM
     char pinCode[PINCODESIZE];
-    if(getPin(pinCode,PINCODESIZE)==0)
+    if(getPin(pinCode, PINCODESIZE)==0)
       sim900.setPinCode(pinCode);
 
     sim900.init(); // préparation "standard" du sim900
 
-    sim900_broadcastSMS("STARTUP");
+    sim900_broadcastSMS("STARTUP"); // information démarrage envoyé par SMS
     nb_broadcast_credit=BCAST_CREDIT;
 
-    sim900_connected = 1;
-    myBlinkLeds.setInterval(1000);
+    sim900_connected_flag = 1;
+    printStringFromProgmem(syncok_str);
+    myBlinkLeds.setInterval(1000); // cligontement lent dans la boucle principale => mode normal
   }
   else
   {
+    // sim900 pas détecté
+    sim900_connected_flag = 0;
     printStringFromProgmem(syncko_str);
-
-    myBlinkLeds.setInterval(125);
+    myBlinkLeds.setInterval(125); // clignotement rapide dans la boucle principale => pas de communication
   }
-  digitalWrite(13, LOW); // initialisation terminée
+  digitalWrite(13, LOW); // initialisation terminée, led éteinte
 
-  pinMode(PIN_MCU_CMD_ONLY, INPUT);
-  digitalWrite(PIN_MCU_CMD_ONLY, HIGH); // pullup activé
-  pinMode(PIN_SIM900_ENABLE, INPUT);
-  digitalWrite(PIN_SIM900_ENABLE, HIGH); // pullup activé
-  pinMode(PIN_MCU_BYPASS_PROCESSING, INPUT);
-  digitalWrite(PIN_MCU_BYPASS_PROCESSING, HIGH); // pullup activé
+  // préparation de I/O
+  pinMode(PIN_MCU_CMD_ONLY, INPUT); // selection mode commande
+  digitalWrite(PIN_MCU_CMD_ONLY, HIGH); // pullup activé, pas de mode commande
+  pinMode(PIN_SIM900_ENABLE, INPUT); // selection activation sim900
+  digitalWrite(PIN_SIM900_ENABLE, HIGH); // pullup activé, communication vers sim900 activé
+  pinMode(PIN_MCU_BYPASS_PROCESSING, INPUT); // selection traitement des données par MCU
+  digitalWrite(PIN_MCU_BYPASS_PROCESSING, HIGH); // pullup activé, le MCU traite les données du sim900
 
   // entrée d'alarme
   pinMode(4, INPUT); // detection de tension
@@ -2338,31 +2376,35 @@ void loop()
 {
   myBlinkLeds.run();
   digitalWrite(13, myBlinkLeds.getLedState()); // clignotement de la led "activité" (D13) de l'ATmega
-  unsigned char buff[4];
-  int buff_ptr=0;
 
   pinsWatcher();
 
   if(Serial.available())
   {
-    char serialInByte;
+    unsigned char serialInByte = (unsigned char)Serial.read();
 
-    serialInByte = (unsigned char)Serial.read();
-
-    if(!sim900_connected || digitalRead(PIN_MCU_CMD_ONLY)==LOW || soft_cmd_mode == 1)
+    // On est en mode commande si :
+    if(   !sim900_connected_flag                   // pas de sim900 détecté
+       || digitalRead(PIN_MCU_CMD_ONLY)==LOW  // PIN MCU_CMD_ONLY est à bas
+       || soft_cmd_mode_flag == 1)                 // on est passé en mode commande avec la séquence "~~~~" précédemment
     {
-      processCmndFromSerial(serialInByte, &mcuUserData); // si PIN MCU_CMD_ONLY bas, les données sont destinées au MCU uniquement.
+      myBlinkLeds.setInterval(125); // en mode commande on clignote plus vite
+      processCmndFromSerial(serialInByte, &mcuUserData);
     }
-    else
+    else // Sinon on transmet au sim900 mais on vérifie qu'on à pas un séquence "~~~~"
     {
-      buff_ptr=0;
-      buff[buff_ptr++]=serialInByte;
-      if(serialInByte=='~') // premier d'une serie ?
+      unsigned char buff[4]; // mini buffer
+      char buff_ptr=1;
+      buff[0]=serialInByte;
+      
+      myBlinkLeds.setInterval(1000); // hors mode commande on clignote moins vite
+      if(serialInByte=='~') // premier '~' d'une serie de 4 ?
       {
-         soft_cmd_mode=1;
-         for(int i=0;i<3;i++) // on attend la suite de la serie (encore 3)
+         soft_cmd_mode_flag=1; // on est potentiellement en situation de passer en mode commande
+         for(char i=0;i<3;i++) // on attend la suite de la serie (encore 3)
          {
-            int timeout_flag=0;
+            // attente du caractère suivant avec timeout
+            char timeout_flag=0;
             unsigned long chrono = millis();
             for(;;)
             {
@@ -2375,31 +2417,33 @@ void loop()
                }
             }
 
-            if(timeout_flag==0)
+            if(timeout_flag==0) // caractère reçu et pas de timeout
             {
                buff[buff_ptr]=(unsigned char)Serial.read();
                if(buff[buff_ptr++]!='~')
                {
-                  soft_cmd_mode=0;
+                  soft_cmd_mode_flag=0;
                   break;
                }
             }
             else
-              break;
+              break; // timeout => on sort de la boucle d'attente des caractères de mode commande
          }
       }
 
-      if(sim900_connected && soft_cmd_mode==0)
+//      if(sim900_connected_flag && soft_cmd_mode_flag==0)
+      if(soft_cmd_mode_flag==0) // on n'est pas passer en mode commande
       {
+        // on vide le mini buffer vers le sim900.
         char_from_pc_flag=1; // les données viennent du PC
-        for(int i=0;i<buff_ptr;i++)
+        for(char i=0;i<buff_ptr;i++)
            sim900.write(buff[i]); // toutes les données de la ligne serie sont envoyées vers le sim900
         char_from_pc_flag=0; // fin des données du PC
       }
     }
   }
 
-  if(sim900_connected && sim900.available())
+  if(sim900_connected_flag && sim900.available())
   {
     char sim900SerialInByte = (unsigned char)sim900.read();
 

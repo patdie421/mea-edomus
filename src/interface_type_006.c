@@ -83,6 +83,146 @@ struct genericserial_thread_params_s
 };
 
 
+
+#define python_lock() \
+   pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL); \
+   PyEval_AcquireLock(); \
+   PyThreadState *__mainThreadState=PyThreadState_Get(); \
+   PyThreadState *__myThreadState = PyThreadState_New(__mainThreadState->interp); \
+   PyThreadState *__tempState = PyThreadState_Swap(__myThreadState)
+   
+#define python_unlock() \
+   PyThreadState_Swap(__tempState); \
+   PyThreadState_Clear(__myThreadState); \
+   PyThreadState_Delete(__myThreadState); \
+   PyEval_ReleaseLock(); \
+   pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL)
+
+   
+int python_call_function(char *plugin_name, char *plugin_func, PyObject *plugin_params_dict)
+{
+   PyObject *pName, *pModule, *pFunc;
+   PyObject *pArgs, *pValue=NULL;
+   int retour=-1;
+
+   PyErr_Clear();
+   pName = PyString_FromString(plugin_name);
+   pModule = PyImport_Import(pName);
+   if(!pModule)
+   {
+      VERBOSE(5) mea_log_printf("%s (%s) : %s not found\n", ERROR_STR, __func__, plugin_name);
+   }
+   else
+   {
+      pFunc = PyObject_GetAttrString(pModule, plugin_func);
+      if (pFunc && PyCallable_Check(pFunc))
+      {
+         pArgs = PyTuple_New(1);
+         Py_INCREF(plugin_params_dict); // PyTuple_SetItem va voler la référence, on en rajoute une pour pouvoir ensuite faire un Py_DECREF
+         PyTuple_SetItem(pArgs, 0, plugin_params_dict);
+         
+         pValue = PyObject_CallObject(pFunc, pArgs); // appel du plugin
+         if (pValue != NULL)
+         {
+            retour=(int)PyInt_AsLong(pValue);
+            Py_DECREF(pValue);
+            DEBUG_SECTION mea_log_printf("%s (%s) : Result of call of %s : %ld\n", DEBUG_STR, __func__, plugin_func, plugin_name);
+         }
+         Py_DECREF(pArgs);
+      }
+      else
+      {
+         VERBOSE(5) mea_log_printf("%s (%s) : %s not fount in %s module\n", ERROR_STR, __func__, plugin_func, plugin_name);
+      }
+      Py_XDECREF(pFunc);
+   }
+   Py_XDECREF(pModule);
+   Py_DECREF(pName);
+   PyErr_Clear();
+      
+   return retour;
+}
+
+
+int interface_type_006_data_to_plugin(PyThreadState *myThreadState, sqlite3_stmt * stmt, int data_type, void *data, int l_data)
+{
+   parsed_parameters_t *plugin_params=NULL;
+   int nb_plugin_params;
+   int err;
+
+/*
+0:sensors_actuators.id_sensor_actuator
+1:sensors_actuators.id_location
+2:sensors_actuators.state
+3:sensors_actuators.parameters
+4:sensors_actuators.id_type
+5lower(sensors_actuators.name)
+*/
+   
+   plugin_params=alloc_parsed_parameters((char *)sqlite3_column_text(stmt, 3), valid_genericserial_plugin_params, &nb_plugin_params, &err, 0);
+   if(!plugin_params || !plugin_params->parameters[GENERICSERIAL_PLUGIN_PARAMS_PLUGIN].value.s)
+   {
+      if(plugin_params)
+         release_parsed_parameters(&plugin_params);
+
+      return -1;
+   }
+
+   plugin_queue_elem_t *plugin_elem = (plugin_queue_elem_t *)malloc(sizeof(plugin_queue_elem_t));
+   if(plugin_elem)
+   {
+      plugin_elem->type_elem=data_type;
+            
+      { // appel des fonctions Python
+         PyEval_AcquireLock();
+         PyThreadState *tempState = PyThreadState_Swap(myThreadState);
+               
+         plugin_elem->aDict=PyDict_New();
+         if(!plugin_elem->aDict)
+         {
+            free(plugin_elem);
+            plugin_elem=NULL;
+            release_parsed_parameters(&plugin_params);
+            return -1;
+         }
+
+         mea_addLong_to_pydict(plugin_elem->aDict, get_token_string_by_id(DEVICE_ID_ID), sqlite3_column_int(stmt, 0));
+         mea_addString_to_pydict(plugin_elem->aDict, get_token_string_by_id(DEVICE_NAME_ID), (char *)sqlite3_column_text(stmt, 5));
+         mea_addLong_to_pydict(plugin_elem->aDict, get_token_string_by_id(DEVICE_TYPE_ID_ID), sqlite3_column_int(stmt, 4));
+         mea_addLong_to_pydict(plugin_elem->aDict, get_token_string_by_id(DEVICE_LOCATION_ID_ID), sqlite3_column_int(stmt, 1));
+         mea_addString_to_pydict(plugin_elem->aDict, get_token_string_by_id(DEVICE_STATE_ID), (char *)sqlite3_column_text(stmt, 2));
+//         mea_addLong_to_pydict(data_dict, get_token_string_by_id(TODBFLAG_ID), sqlite3_column_int(stmt, 11));
+         
+         PyObject *value = PyByteArray_FromStringAndSize((char *)data, l_data);
+         PyDict_SetItemString(plugin_elem->aDict, "data", value);
+         Py_DECREF(value);
+         
+         mea_addLong_to_pydict(plugin_elem->aDict, "l_data", (long)l_data);
+
+         if(plugin_params->parameters[GENERICSERIAL_PLUGIN_PARAMS_PARAMETERS].value.s)
+            mea_addString_to_pydict(plugin_elem->aDict, DEVICE_PARAMETERS_STR_C, plugin_params->parameters[GENERICSERIAL_PLUGIN_PARAMS_PARAMETERS].value.s);
+
+         // ajouter ici les datas
+         // en fonction de data_type mettre les bonnes données
+         
+         PyThreadState_Swap(tempState);
+         PyEval_ReleaseLock();
+      } // fin appel des fonctions Python
+      
+      pythonPluginServer_add_cmd(plugin_params->parameters[GENERICSERIAL_PLUGIN_PARAMS_PLUGIN].value.s, (void *)plugin_elem, sizeof(plugin_queue_elem_t));
+      
+      free(plugin_elem);
+      plugin_elem=NULL;
+                        
+      release_parsed_parameters(&plugin_params);
+      
+      return 0;
+   }
+   
+   return -1;
+}
+
+
 void set_interface_type_006_isnt_running(void *data)
 {
    interface_type_006_t *i006 = (interface_type_006_t *)data;
@@ -90,83 +230,6 @@ void set_interface_type_006_isnt_running(void *data)
    i006->thread_is_running=0;
 }
 
-/*
-int _serial_open(char *dev, int speed)
-{
-   struct termios options, options_old;
-   int fd;
-
-   // ouverture du port
-   int flags;
-
-   flags=O_RDWR | O_NOCTTY | O_NDELAY | O_EXCL;
-#ifdef O_CLOEXEC
-   flags |= O_CLOEXEC;
-#endif
-
-   fd = open(dev, flags);
-   if (fd == -1)
-   {
-      // ouverture du port serie impossible
-      return -1;
-   }
-
-   // sauvegarde des caractéristiques du port serie
-   tcgetattr(fd, &options_old);
-
-   // initialisation à 0 de la structure des options (termios)
-   memset(&options, 0, sizeof(struct termios));
-
-   // paramétrage du débit
-   if(cfsetispeed(&options, speed)<0)
-   {
-      // modification du debit d'entrée impossible
-      return -1;
-   }
-   if(cfsetospeed(&options, speed)<0)
-   {
-      // modification du debit de sortie impossible
-      return -1;
-   }
-
-   // ???
-   options.c_cflag |= (CLOCAL | CREAD); // mise à 1 du CLOCAL et CREAD
-
-   // 8 bits de données, pas de parité, 1 bit de stop (8N1):
-   options.c_cflag &= ~PARENB; // pas de parité (N)
-   options.c_cflag &= ~CSTOPB; // 1 bit de stop seulement (1)
-   options.c_cflag &= ~CSIZE;
-   options.c_cflag |= CS8; // 8 bits (8)
-
-   // bit ICANON = 0 => port en RAW (au lieu de canonical)
-   // bit ECHO =   0 => pas d'écho des caractères
-   // bit ECHOE =  0 => pas de substitution du caractère d'"erase"
-   // bit ISIG =   0 => interruption non autorisées
-   options.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
-
-   // pas de contrôle de parité
-   options.c_iflag &= ~INPCK;
-
-   // pas de contrôle de flux
-   options.c_iflag &= ~(IXON | IXOFF | IXANY);
-
-   // parce qu'on est en raw
-   options.c_oflag &=~ OPOST;
-
-   // VMIN : Nombre minimum de caractère à lire
-   // VTIME : temps d'attentes de données (en 10eme de secondes)
-   // à 0 car O_NDELAY utilisé
-   options.c_cc[VMIN] = 0;
-   options.c_cc[VTIME] = 0;
-
-   // réécriture des options
-   tcsetattr(fd, TCSANOW, &options);
-
-   // préparation du descripteur
-
-   return fd;
-}
-*/
 
 int16_t _interface_type_006_xPL_callback(xPL_ServicePtr theService, xPL_MessagePtr xplMsg, xPL_ObjectPtr userValue)
 {
@@ -220,7 +283,7 @@ int16_t _interface_type_006_xPL_callback(xPL_ServicePtr theService, xPL_MessageP
             if(plugin_params)
                release_parsed_parameters(&plugin_params);
 
-            continue; // si pas de parametre (=> pas de plugin) ou pas de fonction ... pas la peine d'aller plus loin pour ce capteur
+            continue;
          }
          plugin_queue_elem_t *plugin_elem = (plugin_queue_elem_t *)malloc(sizeof(plugin_queue_elem_t));
          if(plugin_elem)
@@ -232,11 +295,11 @@ int16_t _interface_type_006_xPL_callback(xPL_ServicePtr theService, xPL_MessageP
                PyThreadState *tempState = PyThreadState_Swap(params->myThreadState);
                
                plugin_elem->aDict=mea_stmt_to_pydict_device(stmt);
- 
-               // 
-               // données (capteur/actionneur et xpl) à transmettre au plugin à préparer ici
-               // 
-
+               if(plugin_params->parameters[GENERICSERIAL_PLUGIN_PARAMS_PARAMETERS].value.s)
+                  mea_addString_to_pydict(plugin_elem->aDict, DEVICE_PARAMETERS_STR_C, plugin_params->parameters[GENERICSERIAL_PLUGIN_PARAMS_PARAMETERS].value.s);
+                  
+               // ajouter ici les données xpl ...
+               
                PyThreadState_Swap(tempState);
                PyEval_ReleaseLock();
             } // fin appel des fonctions Python
@@ -271,6 +334,12 @@ void *_thread_interface_type_006_genericserial_data_cleanup(void *args)
 
    if(!params)
       return NULL;
+   
+   if(params->i006->fd!=-1)
+   {
+      close(params->i006->fd);
+   }
+   
    if(params->myThreadState)
    {
       PyEval_AcquireLock();
@@ -306,13 +375,16 @@ void *_thread_interface_type_006_genericserial_data(void *args)
    params->i006->thread_is_running=1;
    process_heartbeat(params->i006->monitoring_id);
    
-//   sqlite3 *params_db=params->param_db;
+   int err_counter=0;
+   
+   sqlite3 *params_db=params->param_db;
 //   int ret;
    
    params->plugin_params=NULL;
    params->nb_plugin_params=0;
    params->stmt=NULL;
    
+   // on se met un context python sous le coude pour ce thread
    pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
    PyEval_AcquireLock();
    params->mainThreadState = PyThreadState_Get();
@@ -330,16 +402,6 @@ void *_thread_interface_type_006_genericserial_data(void *args)
 
    while(1)
    {
-      if(mea_test_timer(&process_timer)==0)
-      {
-         process_heartbeat(params->i006->monitoring_id);
-         process_update_indicator(params->i006->monitoring_id, interface_type_006_senttoplugin_str, params->i006->indicators.senttoplugin);
-         process_update_indicator(params->i006->monitoring_id, interface_type_006_xplin_str, params->i006->indicators.xplin);
-         process_update_indicator(params->i006->monitoring_id, interface_type_006_serialin_str, params->i006->indicators.serialin);
-         process_update_indicator(params->i006->monitoring_id, interface_type_006_serialout_str, params->i006->indicators.serialout);
-      }
-
-
       if(params->i006->fd<0)
       {
          params->i006->fd=serial_open(params->i006->real_dev, params->i006->real_speed);
@@ -359,6 +421,8 @@ void *_thread_interface_type_006_genericserial_data(void *args)
          char buffer[4096];
          int buffer_ptr=0;
          struct timeval timeout;
+         
+         err_counter=0;
          
          while(1)
          {
@@ -421,25 +485,81 @@ void *_thread_interface_type_006_genericserial_data(void *args)
             params->i006->indicators.serialin+=buffer_ptr;
          
             buffer[buffer_ptr]=0;
-            DEBUG_SECTION mea_log_printf("%s (%s) : data from Serial : %s\n", INFO_STR, __func__, buffer);
-         
-            // transmettre buffer au plugin
+//            DEBUG_SECTION mea_log_printf("%s (%s) : data from Serial : %s\n", INFO_STR, __func__, buffer);
+
+            // transmettre buffer aux plugins            
+            char sql_request[1024];
+            sqlite3_stmt * stmt;
+
+            sprintf(sql_request, "SELECT sensors_actuators.id_sensor_actuator, sensors_actuators.id_location, sensors_actuators.state, sensors_actuators.parameters, sensors_actuators.id_type, lower(sensors_actuators.name) FROM sensors_actuators WHERE id_interface=%d and sensors_actuators.state='1'", params->i006->id_interface);
+            
+            int ret = sqlite3_prepare_v2(params_db, sql_request, strlen(sql_request)+1, &stmt, NULL);
+            if(ret)
+            {
+               VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (params_db));
+               return ERROR;
+            }
+            else
+            {
+               while(1)
+               {
+                  int s=sqlite3_step(stmt);
+                  
+                  if(s==SQLITE_ROW)
+                  {
+/*
+                     for(int i=0;i<buffer_ptr;i++) fprintf(stderr,"%d:[%03d-%02x-%c] ", i, (unsigned char)buffer[i], (unsigned char)buffer[i], buffer[i]); fprintf(stderr,"\n");
+*/
+                     for(int i=0;i<buffer_ptr;i++) fprintf(stderr,"s[%d]=%d\n", i, (unsigned char)buffer[i]); fprintf(stderr,"\n");
+
+                     int ret=interface_type_006_data_to_plugin(params->myThreadState, stmt, GENERICSERIALDATA, (void *)buffer, buffer_ptr);
+                     if(ret<0)
+                     {
+                        fprintf(stderr,"ERROR\n");
+                     }
+                  }
+                  else if (s==SQLITE_DONE) 
+                  {
+                     sqlite3_finalize(stmt);
+                     break; 
+                  }
+                  else 
+                  {
+                     fprintf(stderr,"ERREUR\n");
+                     // traitement d'erreur à faire ici 
+                     sqlite3_finalize(stmt);
+                  }
+               }
+            }
 
             buffer_ptr=0;
+         }
+         else
+         {
          }
 
          pthread_testcancel();
       }
       else
       {
-         sleep(5);
+         err_counter++;
+         if(err_counter<5)
+            sleep(5);
+         else
+         {
+            goto _thread_interface_type_006_genericserial_data_clean_exit;
+         }
       }
 
       pthread_testcancel();
    }
-   
+
+_thread_interface_type_006_genericserial_data_clean_exit:
    pthread_cleanup_pop(1);
    pthread_cleanup_pop(1);
+
+   process_async_stop(params->i006->monitoring_id);
+   for(;;) sleep(1);
    
    return NULL;
 }
@@ -650,27 +770,21 @@ int16_t check_status_interface_type_006(interface_type_006_t *i006)
    return 0;
 }
 
-
 int start_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg)
 {
    char dev[81];
    char buff[80];
    speed_t speed;
-
-   int err;
-   int ret;
-   
+   int err=0;
+   char err_str[128];
+   int ret=0;
    struct genericserial_callback_xpl_data_s *xpl_callback_params=NULL;
-   
-   struct interface_type_006_data_s *start_stop_params=(struct interface_type_006_data_s *)data;
-
-   start_stop_params->i006->thread=NULL;
-
    int interface_nb_parameters=0;
    parsed_parameters_t *interface_parameters=NULL;
-   
-   char err_str[128];
-   
+    
+   struct interface_type_006_data_s *start_stop_params=(struct interface_type_006_data_s *)data;
+   start_stop_params->i006->thread=NULL;
+
    ret=get_dev_and_speed((char *)start_stop_params->i006->dev, buff, sizeof(buff), &speed);
    if(!ret)
    {
@@ -687,16 +801,14 @@ int start_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg)
    }
    else
    {
-      VERBOSE(2) mea_log_printf("%s (%s) : incorrect device/speed interface - %s\n", ERROR_STR,__func__,start_stop_params->i006->dev);
+      VERBOSE(2) mea_log_printf("%s (%s) : incorrect device/speed interface - %s\n", ERROR_STR, __func__, start_stop_params->i006->dev);
       mea_notify_printf('E', "%s can't be launched - incorrect device/speed interface - %s.\n", start_stop_params->i006->name, start_stop_params->i006->dev);
       goto clean_exit;
    }
    strncpy(start_stop_params->i006->real_dev, dev, sizeof( start_stop_params->i006->real_dev)-1);
    start_stop_params->i006->real_speed=speed;
 
-   /*
-    * exécution du plugin de paramétrage
-    */
+
    interface_parameters=alloc_parsed_parameters(start_stop_params->i006->parameters, valid_genericserial_plugin_params, &interface_nb_parameters, &err, 0);
    if(!interface_parameters || !interface_parameters->parameters[GENERICSERIAL_PLUGIN_PARAMS_PLUGIN].value.s)
    {
@@ -708,81 +820,30 @@ int start_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg)
          VERBOSE(9) mea_log_printf("%s  (%s) : no python plugin specified\n", INFO_STR, __func__);
       }
       else
-      {
          VERBOSE(5) mea_log_printf("%s (%s) : invalid or no python plugin parameters (%s)\n", ERROR_STR, __func__, start_stop_params->i006->parameters);
-      }
    }
    else
    {
-      PyObject *plugin_params_dict=NULL;
-      PyObject *pName, *pModule, *pFunc;
-      PyObject *pArgs, *pValue=NULL;
-      
-      pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
-      PyEval_AcquireLock();
-      PyThreadState *mainThreadState=PyThreadState_Get();
-      PyThreadState *myThreadState = PyThreadState_New(mainThreadState->interp);
-      
-      PyThreadState *tempState = PyThreadState_Swap(myThreadState);
+      python_lock();
 
-      PyErr_Clear();
-      pName = PyString_FromString(interface_parameters->parameters[GENERICSERIAL_PLUGIN_PARAMS_PLUGIN].value.s);
-      pModule = PyImport_Import(pName);
-      if(!pModule)
-      {
-         VERBOSE(5) mea_log_printf("%s (%s) : %s not found\n", ERROR_STR, __func__, interface_parameters->parameters[GENERICSERIAL_PLUGIN_PARAMS_PLUGIN].value.s);
-      }
-      else
-      {
-         pFunc = PyObject_GetAttrString(pModule, "mea_init");
-         if (pFunc && PyCallable_Check(pFunc))
-         {
-            // préparation du parametre du module
-            plugin_params_dict=PyDict_New();
-
-            //
-            // ajouter les données nécessaires ici
-            //
-
-            pArgs = PyTuple_New(1);
-            Py_INCREF(plugin_params_dict); // PyTuple_SetItem va voler la référence, on en rajoute une pour pouvoir ensuite faire un Py_DECREF
-            PyTuple_SetItem(pArgs, 0, plugin_params_dict);
-         
-            pValue = PyObject_CallObject(pFunc, pArgs); // appel du plugin
-            if (pValue != NULL)
-            {
-               DEBUG_SECTION mea_log_printf("%s (%s) : Result of call of mea_init : %ld\n", DEBUG_STR, __func__, PyInt_AsLong(pValue));
-            }
-            Py_DECREF(pValue);
-            Py_DECREF(pArgs);
-            Py_DECREF(plugin_params_dict);
-         }
-         else
-         {
-            VERBOSE(5) mea_log_printf("%s (%s) : mea_init not fount in %s module\n", ERROR_STR, __func__, interface_parameters->parameters[GENERICSERIAL_PLUGIN_PARAMS_PLUGIN].value.s);
-         }
-         Py_XDECREF(pFunc);
-      }
-      Py_XDECREF(pModule);
-      Py_DECREF(pName);
-      PyErr_Clear();
+      PyObject *plugin_params_dict=PyDict_New();
+      mea_addLong_to_pydict(plugin_params_dict, INTERFACE_ID_STR_C, start_stop_params->i006->id_interface);
       
-      PyThreadState_Swap(tempState);
-      PyThreadState_Clear(myThreadState);
-      PyThreadState_Delete(myThreadState);
-      PyEval_ReleaseLock();
-      pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+      if(interface_parameters->parameters[GENERICSERIAL_PLUGIN_PARAMS_PARAMETERS].value.s)
+         mea_addString_to_pydict(plugin_params_dict, INTERFACE_PARAMETERS_STR_C, interface_parameters->parameters[GENERICSERIAL_PLUGIN_PARAMS_PARAMETERS].value.s);
+      
+      python_call_function(interface_parameters->parameters[GENERICSERIAL_PLUGIN_PARAMS_PLUGIN].value.s, "mea_init", plugin_params_dict);
+      
+      Py_DECREF(plugin_params_dict);
+      
+      python_unlock();
 
       if(interface_parameters)
          release_parsed_parameters(&interface_parameters);
    }
 
-   //
-   // lancement du thread à faire ici ...
-   //
-   start_stop_params->i006->thread=start_interface_type_006_genericserial_data_thread(start_stop_params->i006, start_stop_params->sqlite3_param_db, (thread_f)_thread_interface_type_006_genericserial_data);
-//   start_stop_params->i003->thread=start_interface_type_003_enocean_data_thread(start_stop_params->i003, ed, start_stop_params->sqlite3_param_db, (thread_f)_thread_interface_type_003_enocean_data);
 
+   // données pour les callbacks xpl
    xpl_callback_params=(struct genericserial_callback_xpl_data_s *)malloc(sizeof(struct genericserial_callback_xpl_data_s));
    if(!xpl_callback_params)
    {
@@ -790,27 +851,33 @@ int start_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg)
       VERBOSE(2) {
          mea_log_printf("%s (%s) : %s - %s\n", ERROR_STR, __func__, MALLOC_ERROR_STR, err_str);
       }
-      mea_notify_printf('E', "%s can't be launched - %s.\n", start_stop_params->i006->name, err_str);
+      mea_notify_printf('E', "%s can't be launched - %s", start_stop_params->i006->name, err_str);
       goto clean_exit;
    }
    xpl_callback_params->param_db=start_stop_params->sqlite3_param_db;
    xpl_callback_params->mainThreadState=NULL;
    xpl_callback_params->myThreadState=NULL;
-   
    start_stop_params->i006->xPL_callback_data=xpl_callback_params;
    start_stop_params->i006->xPL_callback=_interface_type_006_xPL_callback;
+
+   start_stop_params->i006->thread=start_interface_type_006_genericserial_data_thread(start_stop_params->i006, start_stop_params->sqlite3_param_db, (thread_f)_thread_interface_type_006_genericserial_data);
    
-   VERBOSE(2) mea_log_printf("%s  (%s) : %s %s.\n", INFO_STR, __func__,start_stop_params->i006->name, launched_successfully_str);
-   mea_notify_printf('S', "%s %s", start_stop_params->i006->name, launched_successfully_str);
-   
-   return 0;
+   if(start_stop_params->i006->thread!=0)
+   {
+      VERBOSE(2) mea_log_printf("%s  (%s) : %s %s.\n", INFO_STR, __func__,start_stop_params->i006->name, launched_successfully_str);
+      mea_notify_printf('S', "%s %s", start_stop_params->i006->name, launched_successfully_str);
+      return 0;
+   }
+
+   strerror_r(errno, err_str, sizeof(err_str));
+   VERBOSE(2) mea_log_printf("%s  (%s) : %s can't start - %s.\n", ERROR_STR, __func__, start_stop_params->i006->name, err_str);
+   mea_notify_printf('E', "%s can't be launched - %s", start_stop_params->i006->name, err_str);
    
 clean_exit:
    if(start_stop_params->i006->thread)
    {
       stop_interface_type_006(start_stop_params->i006->monitoring_id, start_stop_params, NULL, 0);
    }
-
    
    if(interface_parameters)
    {
@@ -827,7 +894,6 @@ clean_exit:
    
    return -1;
 }
-
 /*
 AT
 
@@ -860,7 +926,7 @@ AT+CMGS="+33661665082"
 
 > A/PIN4=688;DONE
 
-> 
+> 
 +CMGS: 94
 
 OK

@@ -25,7 +25,7 @@
 }
 
 
-typedef enum {XBEEDATA=1, XPLMSG=2, COMMISSIONNING=3, ENOCEANDATA=4} pythonPlugin_type;
+typedef enum {XBEEDATA=1, XPLMSG=2, COMMISSIONNING=3, ENOCEANDATA=4, GENERICSERIALDATA=5} pythonPlugin_type;
 
 
 struct pythonPluginServer_start_stop_params_s

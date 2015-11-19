@@ -54,6 +54,7 @@ struct managed_processes_process_s
    int group_id;
    int type; // 0 = autostart, 1 = notmanaged, 2 = task (start mais pas de stop, ...), 3 = job (traitement planifier à date)
    int status; // running=1, stopped=0, ...
+   int async_stop;
    struct managed_processes_scheduling_data_s *scheduling_data;
 
    managed_processes_process_f stop;
@@ -99,6 +100,7 @@ int   process_stop(int id, char *errmsg, int l_errmsg);
 int   process_restart(int id, char *errmsg, int l_errmsg);
 int   process_is_running(int id);
 int   process_run_task(int id, char *errmsg, int l_errmsg);
+int   process_async_stop(int id);
 
 int   process_set_start_stop(int id,  managed_processes_process_f start, managed_processes_process_f stop, void *start_stop_data, int type);
 int   process_set_watchdog_recovery(int id, managed_processes_process_f recovery_task, void *recovery_data);
