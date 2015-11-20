@@ -187,5 +187,4 @@ def mea_enoceanData(data):
                verbose(2,"Nb boutons appuyes = ", (packet[7] & 0b11100000) >> 5);
                verbose(2,"Energy bow = ", (packet[7] & 0b00010000) >> 4);
                return True
-   
-   return 0
+   return False
