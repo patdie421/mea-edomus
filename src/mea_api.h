@@ -29,6 +29,9 @@ static PyObject *mea_enoceanCRC(PyObject *self, PyObject *args);
 
 static PyObject *mea_addDataToSensorsValuesTable(PyObject *self, PyObject *args);
 
+static PyObject *mea_write(PyObject *self, PyObject *args);
+static PyObject *mea_read(PyObject *self, PyObject *args);
+
 PyObject *mea_xplMsgToPyDict(xPL_MessagePtr xplMsg);
 
 #endif

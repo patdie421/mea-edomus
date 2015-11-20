@@ -74,7 +74,7 @@ typedef struct enocean_ed_s
    pthread_mutex_t write_lock;
    pthread_mutex_t ed_lock;
    char            serial_dev_name[255];
-   mea_queue_t         *queue;
+   mea_queue_t    *queue;
    uint16_t        signal_flag;
    enocean_callback_f enocean_callback;
    void            *enocean_callback_data;

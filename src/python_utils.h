@@ -9,6 +9,21 @@
 #ifndef mea_eDomus_python_utils_h
 #define mea_eDomus_python_utils_h
 
+#define python_lock() \
+   pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL); \
+   PyEval_AcquireLock(); \
+   PyThreadState *__mainThreadState=PyThreadState_Get(); \
+   PyThreadState *__myThreadState = PyThreadState_New(__mainThreadState->interp); \
+   PyThreadState *__tempState = PyThreadState_Swap(__myThreadState)
+
+#define python_unlock() \
+   PyThreadState_Swap(__tempState); \
+   PyThreadState_Clear(__myThreadState); \
+   PyThreadState_Delete(__myThreadState); \
+   PyEval_ReleaseLock(); \
+   pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL)
+
+
 PyObject *mea_getMemory(PyObject *self, PyObject *args, PyObject *mea_memory);
 
 void mea_addLong_to_pydict(PyObject *data_dict, char *key, long value);
@@ -19,5 +34,7 @@ void mea_addpydict_to_pydict(PyObject *data_dict, char *key, PyObject *adict);
 PyObject *mea_stmt_to_pydict(sqlite3_stmt * stmt);
 PyObject *mea_stmt_to_pydict_device(sqlite3_stmt * stmt);
 PyObject *mea_stmt_to_pydict_interface(sqlite3_stmt * stmt);
+
+int mea_call_python_function(char *plugin_name, char *plugin_func, PyObject *plugin_params_dict);
 
 #endif

@@ -1281,7 +1281,18 @@ int _managed_processes_processes_check_heartbeats(int doRecovery)
          if(managed_processes.processes_table[i]->async_stop==1)
          {
             managed_processes.processes_table[i]->async_stop=0;
-            process_stop(i, NULL, 0);
+            managed_processes_process_f f=NULL;
+            void *d=NULL;
+            if(managed_processes.processes_table[i]->stop)
+            {
+               f=managed_processes.processes_table[i]->stop;
+               d=managed_processes.processes_table[i]->start_stop_data;
+               if(f)
+                  ret=f(i, d, NULL, 0);
+               managed_processes.processes_table[i]->status=0;
+            }
+            //process_stop(i, NULL, 0);
+
          }
          else if((((now - managed_processes.processes_table[i]->last_heartbeat) < managed_processes.processes_table[i]->heartbeat_interval) && (managed_processes.processes_table[i]->forced_watchdog_recovery_flag == 0))
                || ( managed_processes.processes_table[i]->type == TASK)

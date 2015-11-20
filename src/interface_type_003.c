@@ -322,6 +322,7 @@ void *_thread_interface_type_003_enocean_data(void *args)
    process_heartbeat(params->i003->monitoring_id);
    
    sqlite3 *params_db=params->param_db;
+   enocean_ed_t *ed=params->ed;
    enocean_data_queue_elem_t *e;
    int ret;
    
@@ -340,6 +341,9 @@ void *_thread_interface_type_003_enocean_data(void *args)
    
    while(1)
    {
+      if(ed->signal_flag==1)
+         goto _thread_interface_type_003_enocean_data_clean_exit;
+
       process_heartbeat(params->i003->monitoring_id);
       process_update_indicator(params->i003->monitoring_id, interface_type_003_senttoplugin_str, params->i003->indicators.senttoplugin);
       process_update_indicator(params->i003->monitoring_id, interface_type_003_xplin_str, params->i003->indicators.xplin);
@@ -498,12 +502,17 @@ void *_thread_interface_type_003_enocean_data(void *args)
       }
       pthread_testcancel();
    }
-   
+
+_thread_interface_type_003_enocean_data_clean_exit:   
    pthread_cleanup_pop(1);
    pthread_cleanup_pop(1);
-   
+  
+   process_async_stop(params->i003->monitoring_id);
+   for(;;) sleep(1);
+ 
    return NULL;
 }
+
 
 pthread_t *start_interface_type_003_enocean_data_thread(interface_type_003_t *i003, enocean_ed_t *ed, sqlite3 *db, thread_f function)
 /**  
@@ -991,7 +1000,7 @@ int start_interface_type_003(int my_id, void *data, char *errmsg, int l_errmsg)
    start_stop_params->i003->xPL_callback_data=xpl_callback_params;
    start_stop_params->i003->xPL_callback=_interface_type_003_xPL_callback;
    
-   VERBOSE(2) mea_log_printf("%s  (%s) : %s %s.\n", INFO_STR, __func__,start_stop_params->i003->name, launched_successfully_str);
+   VERBOSE(2) mea_log_printf("%s  (%s) : %s %s.\n", INFO_STR, __func__, start_stop_params->i003->name, launched_successfully_str);
    mea_notify_printf('S', "%s %s", start_stop_params->i003->name, launched_successfully_str);
    
    return 0;

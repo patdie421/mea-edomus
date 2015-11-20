@@ -8,22 +8,21 @@
 #include <stdio.h>
 
 #include "globals.h"
-//#include "error.h"
-#include "mea_verbose.h"
-//#include "debug.h"
-#include "mea_queue.h"
 #include "xPL.h"
 #include "xPLServer.h"
 #include "tokens.h"
 #include "dbServer.h"
 #include "xbee.h"
 #include "enocean.h"
+#include "mea_verbose.h"
 
 #include "python_utils.h"
+
 #include "mea_api.h"
 
 
 PyObject *mea_memory=NULL;
+PyObject *mea_module=NULL;
 
 
 static PyMethodDef MeaMethods[] = {
@@ -37,6 +36,8 @@ static PyMethodDef MeaMethods[] = {
    {"xplGetInstanceID",             mea_xplGetInstanceID,             METH_VARARGS, "InstanceID"},
    {"xplSendMsg",                   mea_xplSendMsg,                   METH_VARARGS, "Envoie un message XPL"},
    {"addDataToSensorsValuesTable",  mea_addDataToSensorsValuesTable,  METH_VARARGS, "Envoi des donnees dans la table sensors_values"},
+   {"sendSerialData",               mea_write,                        METH_VARARGS, "Envoi des donnees vers une ligne serie"},
+   {"receiveSerialData",            mea_read,                         METH_VARARGS, "recupere des donnees depuis une ligne serie"},
    {NULL, NULL, 0, NULL}
 };
 
@@ -303,7 +304,7 @@ void mea_api_init()
 {
    mea_memory=PyDict_New(); // initialisation de la mémoire
    
-   Py_InitModule("mea", MeaMethods);  
+   mea_module=Py_InitModule("mea", MeaMethods);  
 }
 
 
@@ -312,6 +313,8 @@ void mea_api_release()
 // /!\ a ecrire pour librérer tous le contenu de la memoire partagé ...
    if(mea_memory)
       Py_DECREF(mea_memory);
+   if(mea_module)
+      Py_DECREF(mea_module);
 }
 
 
@@ -664,7 +667,6 @@ static PyObject *mea_sendAtCmdAndWaitResp(PyObject *self, PyObject *args)
    return t; // return True
    
 mea_AtCmdToXbee_arg_err:
-   DEBUG_SECTION mea_log_printf("%s (%s) : arguments error.\n", DEBUG_STR, __func__);
    if(host)
    {
       free(host);
@@ -827,18 +829,15 @@ static PyObject *mea_addDataToSensorsValuesTable(PyObject *self, PyObject *args)
    else
       goto mea_addDataToSensorsValuesTable_arg_err;
 
-   DEBUG_SECTION mea_log_printf("%s (%s) : loggin request : sensor_id = %d, data = (%f, %f, %d, %s)\n", DEBUG_STR ,__func__,sensor_id, value1, unit, value2, complement);
    sqlite3 *db=get_sqlite3_param_db();
    if(db)
    {
       if(_check_todbflag(db, sensor_id)==1)
       {
          dbServer_add_data_to_sensors_values(sensor_id, value1, unit, value2, complement);
-         DEBUG_SECTION mea_log_printf("%s (%s) : data transmited to db\n", DEBUG_STR ,__func__);
       }
       else
       {
-         DEBUG_SECTION mea_log_printf("%s (%s) : data not transmited\n", DEBUG_STR ,__func__);
       }
    }
    
@@ -849,3 +848,96 @@ mea_addDataToSensorsValuesTable_arg_err:
    PyErr_BadArgument();
    return NULL;
 }
+
+
+static PyObject *mea_read(PyObject *self, PyObject *args)
+{
+   PyObject *arg;
+
+   int fd=-1;
+   char *data=NULL;
+   int l_data=0;
+
+   // récupération des paramètres et contrôle des types
+   if(PyTuple_Size(args)!=2)
+      goto mea_write_arg_err;
+
+   arg=PyTuple_GetItem(args, 0);
+   if(PyNumber_Check(arg))
+      fd=(int)PyLong_AsLong(arg);
+   else
+      goto mea_write_arg_err;
+
+   arg=PyTuple_GetItem(args, 1);
+   if(PyNumber_Check(arg))
+      l_data=PyLong_AsLong(arg);
+   else
+      goto mea_write_arg_err;
+
+   data=malloc(l_data);
+   if(data==NULL)
+   {
+      PyErr_SetString(PyExc_RuntimeError, "malloc error");
+      return NULL;
+   }
+ 
+   int ret=read(fd, data, l_data);
+   if(ret<0)
+   {
+      PyErr_SetString(PyExc_RuntimeError, strerror(errno));
+      return NULL;
+   }
+   else
+   {
+      PyObject *_ret;
+       _ret=PyByteArray_FromStringAndSize(data, ret);
+      return _ret;
+   }
+
+mea_write_arg_err:
+   PyErr_BadArgument();
+   return NULL;
+}
+
+
+static PyObject *mea_write(PyObject *self, PyObject *args)
+{
+   PyObject *arg;
+
+   int fd=-1;
+   char *data=NULL;
+   int l_data=0;
+
+   // récupération des paramètres et contrôle des types
+   if(PyTuple_Size(args)!=2)
+      goto mea_write_arg_err;
+
+   arg=PyTuple_GetItem(args, 0);
+   if(PyNumber_Check(arg))
+      fd=(int)PyLong_AsLong(arg);
+   else
+      goto mea_write_arg_err;
+
+   arg=PyTuple_GetItem(args, 1);
+   if(PyByteArray_Check(arg))
+   {
+      data=PyByteArray_AsString(arg);
+      l_data=PyByteArray_Size(arg);
+   }
+   else
+      goto mea_write_arg_err;
+
+   int ret=write(fd,data,l_data);
+   if(ret<0)
+   {
+      PyErr_SetString(PyExc_RuntimeError, strerror(errno));
+      return NULL; // False
+   }
+   else
+      return PyLong_FromLong(1L); // True
+
+mea_write_arg_err:
+   PyErr_BadArgument();
+   return NULL;
+}
+

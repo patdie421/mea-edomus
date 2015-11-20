@@ -70,10 +70,7 @@ struct genericserial_callback_xpl_data_s
 
 struct genericserial_thread_params_s
 {
-//   int                   fd;
    sqlite3              *param_db;
-//   pthread_mutex_t       callback_lock;
-//   pthread_cond_t        callback_cond;
    PyThreadState        *mainThreadState;
    PyThreadState        *myThreadState;
    parsed_parameters_t  *plugin_params;
@@ -81,67 +78,6 @@ struct genericserial_thread_params_s
    sqlite3_stmt         *stmt;
    interface_type_006_t *i006;
 };
-
-
-
-#define python_lock() \
-   pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL); \
-   PyEval_AcquireLock(); \
-   PyThreadState *__mainThreadState=PyThreadState_Get(); \
-   PyThreadState *__myThreadState = PyThreadState_New(__mainThreadState->interp); \
-   PyThreadState *__tempState = PyThreadState_Swap(__myThreadState)
-   
-#define python_unlock() \
-   PyThreadState_Swap(__tempState); \
-   PyThreadState_Clear(__myThreadState); \
-   PyThreadState_Delete(__myThreadState); \
-   PyEval_ReleaseLock(); \
-   pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL)
-
-   
-int python_call_function(char *plugin_name, char *plugin_func, PyObject *plugin_params_dict)
-{
-   PyObject *pName, *pModule, *pFunc;
-   PyObject *pArgs, *pValue=NULL;
-   int retour=-1;
-
-   PyErr_Clear();
-   pName = PyString_FromString(plugin_name);
-   pModule = PyImport_Import(pName);
-   if(!pModule)
-   {
-      VERBOSE(5) mea_log_printf("%s (%s) : %s not found\n", ERROR_STR, __func__, plugin_name);
-   }
-   else
-   {
-      pFunc = PyObject_GetAttrString(pModule, plugin_func);
-      if (pFunc && PyCallable_Check(pFunc))
-      {
-         pArgs = PyTuple_New(1);
-         Py_INCREF(plugin_params_dict); // PyTuple_SetItem va voler la référence, on en rajoute une pour pouvoir ensuite faire un Py_DECREF
-         PyTuple_SetItem(pArgs, 0, plugin_params_dict);
-         
-         pValue = PyObject_CallObject(pFunc, pArgs); // appel du plugin
-         if (pValue != NULL)
-         {
-            retour=(int)PyInt_AsLong(pValue);
-            Py_DECREF(pValue);
-            DEBUG_SECTION mea_log_printf("%s (%s) : Result of call of %s : %ld\n", DEBUG_STR, __func__, plugin_func, plugin_name);
-         }
-         Py_DECREF(pArgs);
-      }
-      else
-      {
-         VERBOSE(5) mea_log_printf("%s (%s) : %s not fount in %s module\n", ERROR_STR, __func__, plugin_func, plugin_name);
-      }
-      Py_XDECREF(pFunc);
-   }
-   Py_XDECREF(pModule);
-   Py_DECREF(pName);
-   PyErr_Clear();
-      
-   return retour;
-}
 
 
 int interface_type_006_data_to_plugin(PyThreadState *myThreadState, sqlite3_stmt * stmt, int data_type, void *data, int l_data)
@@ -371,7 +307,6 @@ void *_thread_interface_type_006_genericserial_data(void *args)
    int err_counter=0;
    
    sqlite3 *params_db=params->param_db;
-//   int ret;
    
    params->plugin_params=NULL;
    params->nb_plugin_params=0;
@@ -822,7 +757,7 @@ int start_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg)
       if(interface_parameters->parameters[GENERICSERIAL_PLUGIN_PARAMS_PARAMETERS].value.s)
          mea_addString_to_pydict(plugin_params_dict, INTERFACE_PARAMETERS_STR_C, interface_parameters->parameters[GENERICSERIAL_PLUGIN_PARAMS_PARAMETERS].value.s);
       
-      python_call_function(interface_parameters->parameters[GENERICSERIAL_PLUGIN_PARAMS_PLUGIN].value.s, "mea_init", plugin_params_dict);
+      mea_call_python_function(interface_parameters->parameters[GENERICSERIAL_PLUGIN_PARAMS_PLUGIN].value.s, "mea_init", plugin_params_dict);
       
       Py_DECREF(plugin_params_dict);
       
