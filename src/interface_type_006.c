@@ -156,7 +156,8 @@ int interface_type_006_data_to_plugin(PyThreadState *myThreadState, sqlite3_stmt
 2:sensors_actuators.state
 3:sensors_actuators.parameters
 4:sensors_actuators.id_type
-5lower(sensors_actuators.name)
+5:lower(sensors_actuators.name)
+6:sensors_actuators.todbflag
 */
    
    plugin_params=alloc_parsed_parameters((char *)sqlite3_column_text(stmt, 3), valid_genericserial_plugin_params, &nb_plugin_params, &err, 0);
@@ -164,7 +165,6 @@ int interface_type_006_data_to_plugin(PyThreadState *myThreadState, sqlite3_stmt
    {
       if(plugin_params)
          release_parsed_parameters(&plugin_params);
-
       return -1;
    }
 
@@ -191,19 +191,18 @@ int interface_type_006_data_to_plugin(PyThreadState *myThreadState, sqlite3_stmt
          mea_addLong_to_pydict(plugin_elem->aDict, get_token_string_by_id(DEVICE_TYPE_ID_ID), sqlite3_column_int(stmt, 4));
          mea_addLong_to_pydict(plugin_elem->aDict, get_token_string_by_id(DEVICE_LOCATION_ID_ID), sqlite3_column_int(stmt, 1));
          mea_addString_to_pydict(plugin_elem->aDict, get_token_string_by_id(DEVICE_STATE_ID), (char *)sqlite3_column_text(stmt, 2));
-//         mea_addLong_to_pydict(data_dict, get_token_string_by_id(TODBFLAG_ID), sqlite3_column_int(stmt, 11));
-         
+         mea_addLong_to_pydict(plugin_elem->aDict, get_token_string_by_id(TODBFLAG_ID), sqlite3_column_int(stmt, 6));
+
+         // les datas         
          PyObject *value = PyByteArray_FromStringAndSize((char *)data, l_data);
          PyDict_SetItemString(plugin_elem->aDict, "data", value);
          Py_DECREF(value);
-         
          mea_addLong_to_pydict(plugin_elem->aDict, "l_data", (long)l_data);
 
+         // parametres spécifiques
          if(plugin_params->parameters[GENERICSERIAL_PLUGIN_PARAMS_PARAMETERS].value.s)
             mea_addString_to_pydict(plugin_elem->aDict, DEVICE_PARAMETERS_STR_C, plugin_params->parameters[GENERICSERIAL_PLUGIN_PARAMS_PARAMETERS].value.s);
 
-         // ajouter ici les datas
-         // en fonction de data_type mettre les bonnes données
          
          PyThreadState_Swap(tempState);
          PyEval_ReleaseLock();
@@ -213,7 +212,6 @@ int interface_type_006_data_to_plugin(PyThreadState *myThreadState, sqlite3_stmt
       
       free(plugin_elem);
       plugin_elem=NULL;
-                        
       release_parsed_parameters(&plugin_params);
       
       return 0;
@@ -491,13 +489,12 @@ void *_thread_interface_type_006_genericserial_data(void *args)
             char sql_request[1024];
             sqlite3_stmt * stmt;
 
-            sprintf(sql_request, "SELECT sensors_actuators.id_sensor_actuator, sensors_actuators.id_location, sensors_actuators.state, sensors_actuators.parameters, sensors_actuators.id_type, lower(sensors_actuators.name) FROM sensors_actuators WHERE id_interface=%d and sensors_actuators.state='1'", params->i006->id_interface);
+            sprintf(sql_request, "SELECT sensors_actuators.id_sensor_actuator, sensors_actuators.id_location, sensors_actuators.state, sensors_actuators.parameters, sensors_actuators.id_type, lower(sensors_actuators.name), sensors_actuators.todbflag FROM sensors_actuators WHERE id_interface=%d and sensors_actuators.state='1'", params->i006->id_interface);
             
             int ret = sqlite3_prepare_v2(params_db, sql_request, strlen(sql_request)+1, &stmt, NULL);
             if(ret)
             {
                VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (params_db));
-               return ERROR;
             }
             else
             {

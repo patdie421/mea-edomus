@@ -23,7 +23,7 @@ def verbose(level, *args):
 
 
 # retourne True si tous les caracteres sont autorises en tenant compte de
-# dash_allowe et si la longueur est inferieure a max_str_len
+# dash_allowed et si la longueur est inferieure a max_str_len
 def isXplValidCharacters(s, max_str_len, dash_allowed=True):
    if len(s) < 1 or len(s) > max_str_len:
       return False

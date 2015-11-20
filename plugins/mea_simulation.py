@@ -1,6 +1,6 @@
 mem={}
 
-def get_memory(id):
+def getMemory(id):
    try:
       return mem[id]
    except:
