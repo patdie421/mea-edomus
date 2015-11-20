@@ -638,7 +638,7 @@ int stop_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg)
 
    struct interface_type_006_data_s *start_stop_params=(struct interface_type_006_data_s *)data;
 
-   VERBOSE(1) mea_log_printf("%s  (%s) : %s shutdown thread ... ", INFO_STR, __func__, start_stop_params->i006->name);
+   VERBOSE(1) mea_log_printf("%s  (%s) : %s shutdown thread ...\n", INFO_STR, __func__, start_stop_params->i006->name);
 
    if(start_stop_params->i006->xPL_callback_data)
    {

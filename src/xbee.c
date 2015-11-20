@@ -26,7 +26,6 @@
 
 #include "serial.h"
 #include "xbee.h"
-//#include "debug.h"
 #include "mea_queue.h"
 
 #define XBEE_TIMEOUT_DELAY 1
@@ -97,7 +96,7 @@ int _xbee_open(xbee_xd_t *xd, char *dev, int speed)
    int fd=serial_open(dev, speed);
    if(fd != -1)
    {
-      strcpy(xd->serial_dev_name,dev);
+      strcpy(xd->serial_dev_name, dev);
       xd->speed=speed;
       xd->fd=fd;
    }
@@ -1601,12 +1600,12 @@ void *_xbee_thread(void *args)
                   mea_log_printf("%s (%s) : communication error (nerr=%d).\n", ERROR_STR,__func__,nerr);
                   perror("");
                }
-               xd->signal_flag=1;
                if(_xbee_reopen(xd)<0)
                {
                   VERBOSE(1) {
                      mea_log_printf("%s (%s) : xbee thread is down\n", ERROR_STR,__func__);
                   }
+                  xd->signal_flag=1;
                   pthread_exit(NULL);
                }
                xd->signal_flag=0;

@@ -62,10 +62,8 @@ char *valid_xbee_plugin_params[]={"S:PLUGIN","S:PARAMETERS", NULL};
 /*
 //char *sql_select_device_info="SELECT sensors_actuators.id_sensor_actuator, sensors_actuators.id_location, sensors_actuators.state, sensors_actuators.parameters, types.parameters, sensors_actuators.id_type, lower(sensors_actuators.name), lower(interfaces.name), interfaces.id_type, (SELECT lower(types.name) FROM types WHERE types.id_type = interfaces.id_type), interfaces.dev FROM sensors_actuators INNER JOIN interfaces ON sensors_actuators.id_interface = interfaces.id_interface INNER JOIN types ON sensors_actuators.id_type = types.id_type";
 char *sql_select_device_info="SELECT sensors_actuators.id_sensor_actuator, sensors_actuators.id_location, sensors_actuators.state, sensors_actuators.parameters, types.parameters, sensors_actuators.id_type, lower(sensors_actuators.name), lower(interfaces.name), interfaces.id_type, (SELECT lower(types.name) FROM types WHERE types.id_type = interfaces.id_type), interfaces.dev, sensors_actuators.todbflag FROM sensors_actuators INNER JOIN interfaces ON sensors_actuators.id_interface = interfaces.id_interface INNER JOIN types ON sensors_actuators.id_type = types.id_type";
-
 char *sql_select_interface_info="SELECT * FROM interfaces";
 */
-
 //extern char *sql_select_device_info;
 //extern char *sql_select_interface_info;
 
@@ -108,9 +106,8 @@ struct callback_xpl_data_s
 struct thread_params_s
 {
    xbee_xd_t            *xd;
-//   tomysqldb_md_t       *md;
    sqlite3              *param_db;
-   mea_queue_t              *queue;
+   mea_queue_t          *queue;
    pthread_mutex_t       callback_lock;
    pthread_cond_t        callback_cond;
    PyThreadState        *mainThreadState;
@@ -119,7 +116,6 @@ struct thread_params_s
    int                   nb_plugin_params;
    sqlite3_stmt         *stmt;
    data_queue_elem_t    *e;
-//   int                   monitoring_id;
    interface_type_002_t *i002;
 };
 
@@ -631,6 +627,7 @@ void *_thread_interface_type_002_xbeedata(void *args)
    
    sqlite3 *params_db=params->param_db;
    data_queue_elem_t *e;
+   xbee_xd_t *xd=params->xd;
    int ret;
    
    params->plugin_params=NULL;
@@ -653,6 +650,11 @@ void *_thread_interface_type_002_xbeedata(void *args)
       process_update_indicator(params->i002->monitoring_id, interface_type_002_xplin_str, params->i002->indicators.xplin);
       process_update_indicator(params->i002->monitoring_id, interface_type_002_xbeedatain_str, params->i002->indicators.xbeedatain);
       process_update_indicator(params->i002->monitoring_id, interface_type_002_commissionning_request_str, params->i002->indicators.commissionning_request);
+
+      if(xd->signal_flag==1)
+      {
+         goto _thread_interface_type_002_xbeedata_clean_exit;
+      }
 
       pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)(&params->callback_lock) );
       pthread_mutex_lock(&params->callback_lock);
@@ -758,18 +760,6 @@ void *_thread_interface_type_002_xbeedata(void *args)
                      Py_DECREF(value);
                      mea_addLong_to_pydict(plugin_elem->aDict, "l_cmd_data", (long)plugin_elem->l_buff-12);
 
-/*
-                     value = PyBuffer_FromMemory(&(plugin_elem->buff[12]), plugin_elem->l_buff-12);
-                     PyDict_SetItemString(plugin_elem->aDict, "cmd_data", value);
-                     Py_DECREF(value);
-                     addLong_to_pydict(plugin_elem->aDict, "l_cmd_data", (long)plugin_elem->l_buff-12);
-
-                     value = PyBuffer_FromMemory(plugin_elem->buff, plugin_elem->l_buff);
-                     PyDict_SetItemString(plugin_elem->aDict, "cmd", value);
-                     Py_DECREF(value);
-                     addLong_to_pydict(plugin_elem->aDict, "l_cmd", (long)plugin_elem->l_buff);
-*/
-
                      mea_addLong_to_pydict(plugin_elem->aDict, "data_type", (long)data_type);
                      mea_addLong_to_pydict(plugin_elem->aDict, get_token_string_by_id(ID_XBEE_ID), (long)params->xd);
                      
@@ -826,10 +816,14 @@ void *_thread_interface_type_002_xbeedata(void *args)
       }
       pthread_testcancel();
    }
-   
+
+_thread_interface_type_002_xbeedata_clean_exit:
    pthread_cleanup_pop(1);
    pthread_cleanup_pop(1);
-   
+
+   process_async_stop(params->i002->monitoring_id);
+   for(;;) sleep(1);
+  
    return NULL;
 }
 
@@ -871,14 +865,12 @@ pthread_t *start_interface_type_002_xbeedata_thread(interface_type_002_t *i002, 
    mea_queue_init(params->queue);
 
    params->xd=xd;
-//   params->md=md;
    params->param_db=db;
    pthread_mutex_init(&params->callback_lock, NULL);
    pthread_cond_init(&params->callback_cond, NULL);
    params->i002=(void *)i002;
    params->mainThreadState = NULL;
    params->myThreadState = NULL;
-//   params->monitoring_id = i002->monitoring_id;
    
    // préparation des données pour les callback io_data et data_flow dont les données sont traitées par le même thread
    callback_xbeedata=(struct callback_data_s *)malloc(sizeof(struct callback_data_s));
@@ -1176,14 +1168,14 @@ int restart_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg
 }
 
 
-int16_t check_status_interface_type_002(interface_type_002_t *it002)
+int16_t check_status_interface_type_002(interface_type_002_t *i002)
 /**  
  * \brief     indique si une anomalie a généré l'emission d'un signal SIGHUP
  * \param     i002           descripteur de l'interface  
  * \return    ERROR signal émis ou NOERROR sinon
  **/ 
 {
-   if(it002->xd->signal_flag!=0)
+   if(i002->xd->signal_flag!=0)
       return -1;
    return 0;
 }
