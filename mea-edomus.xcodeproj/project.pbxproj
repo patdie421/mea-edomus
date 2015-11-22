@@ -162,6 +162,7 @@
 		4E328D711AB35D3B00AA3C35 /* automatorServer2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = automatorServer2.h; path = src/automator/automatorServer2.h; sourceTree = "<group>"; };
 		4E3AF2361A5AB35100723560 /* indicateurs-view.php */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.php; path = "indicateurs-view.php"; sourceTree = "<group>"; };
 		4E3AF2371A5AB44500723560 /* services-view.php */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.php; path = "services-view.php"; sourceTree = "<group>"; };
+		4E3B804E1BFF902D00757EF8 /* serial_sms_alarme_epc.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = serial_sms_alarme_epc.py; path = plugins/serial_sms_alarme_epc.py; sourceTree = "<group>"; };
 		4E3F341D19F80BA40066A9CC /* __init__.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = __init__.py; sourceTree = "<group>"; };
 		4E3F341E19F80BA40066A9CC /* pyparsing.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = pyparsing.py; sourceTree = "<group>"; };
 		4E3F341F19F80BA40066A9CC /* settings.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = settings.py; sourceTree = "<group>"; };
@@ -1991,6 +1992,7 @@
 		4E48119F19C37C46001C5F48 /* plugins */ = {
 			isa = PBXGroup;
 			children = (
+				4E3B804E1BFF902D00757EF8 /* serial_sms_alarme_epc.py */,
 				4E4292A41AB22FBA00E64F4F /* enocean_f6-02-01_xplonoff.py */,
 				4E4811A219C37D43001C5F48 /* mea_simulation.py */,
 				4E4811A319C37D43001C5F48 /* mea_utils.py */,

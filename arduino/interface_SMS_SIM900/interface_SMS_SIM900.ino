@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <AltSoftSerial.h>
 #include <EEPROM.h>
+#include <inttypes.h>
 #include <avr/pgmspace.h>
 #include <avr/wdt.h>
 
@@ -185,7 +186,7 @@
  <à faire><mettre les codes erreurs disponible>
  */
 
-prog_char starting_str[]   PROGMEM  = { "$$STARTING ...$$\n" };
+prog_char starting_str[]   PROGMEM  = { "$$STARTING$$\n" };
 prog_char syncok_str[]     PROGMEM  = { "$$SYNC OK$$\n" };
 prog_char syncko_str[]     PROGMEM  = { "$$SYNC_KO$$\n" };
 prog_char powerup_str[]    PROGMEM  = { "$$POWERUP$$\n" };
@@ -215,6 +216,21 @@ void printStringFromProgmem(prog_char *s)
     i++;
   }
 }
+
+
+char *trim(char *buffer)
+{
+  char *p1=buffer;
+  while(*p1 && isspace(*p1))
+    p1++;
+  char *p2=p1;
+  while(*p2 && !isspace(*p2))
+    p2++;
+  *p2=0;
+
+  return p1;
+}
+
 
 /******************************************************************************/
 //
@@ -287,6 +303,8 @@ public:
   Sim900();
   int sync(long timeout);
   int init();
+
+  int connectionCheck();
 
   int echoOff();
   int echoOn();
@@ -395,6 +413,9 @@ private:
   int atTimeout; // timeout d'une commande AT
   int smsTimeout; // timeout de la commande d'envoie d'un SMS
 
+  // timer
+  unsigned long check_timer;
+  
   // buffers
   unsigned char buffer[SIM900_BUFFER_SIZE];
   int bufferPtr;
@@ -501,6 +522,8 @@ Sim900::Sim900()
 
   userData = NULL;
   SMSCallBack = NULL;
+  
+  check_timer=0;
 }
 
 
@@ -915,6 +938,75 @@ int Sim900::readStringTo(char *str, int l_str, char *val, long timeout)
 }
 
 
+int Sim900::connectionCheck()
+{
+  int ret=-1;
+  
+  if(diffMillis(check_timer, millis())>30000)
+  {
+    if(bufferPtr)
+      return 0;
+    
+    sendString("AT+CSQ");
+    sendCr();
+    readLine(atTimeout);
+    char *resp=(char *)readLine(atTimeout);
+    if(resp!=NULL)
+    {
+      if(resp=strstr((char *)resp,"+CSQ: "))
+      {
+        resp+=6;
+        unsigned char i=0;
+        while(resp[i] && isdigit(resp[i]))
+           i++;
+        resp[i]=0;
+        int csq=atoi(resp);
+      }
+    }
+    bufferPtr=0;
+    ret=waitLines((char **)SIM900_standard_returns, atTimeout);
+    bufferPtr=0;
+    
+    sendString("AT+CREG?");
+    sendCr();
+    readLine(atTimeout);
+    resp=(char *)readLine(atTimeout);
+    if(resp=strstr((char *)resp,"+CREG: "))
+    {
+      unsigned char i=0;
+      resp+=7;
+      while(resp[i] && resp[i]!=',')
+        i++;
+      resp[i]=0;
+       /* int v=atoi(resp); */
+      i++;
+      resp=resp+i;
+      while(resp[i] && isdigit(resp[i]))
+        i++;
+      resp[i]=0;
+      int creg=atoi(resp);
+       
+      if(creg!=5)
+      {
+        Serial.println("Try recovery");
+        if(pinCode[0])
+        {
+          sendString("AT+CPIN=");
+          sendString((char *)pinCode);
+          sendCr();
+          waitLines((char **)SIM900_standard_returns, atTimeout);
+        }
+      }
+    }
+    bufferPtr=0;
+    ret=waitLines((char **)SIM900_standard_returns, atTimeout);
+    bufferPtr=0;
+    
+    check_timer=millis();
+  }
+}
+
+
 int Sim900::init()
 /**
  * \brief     initialise le SIM900 pour recevoir des SMS texte et supprime l'echo
@@ -949,7 +1041,11 @@ int Sim900::init()
 
   // sendATCmnd("+CSDH=0"); // pour avoir à la reception d'un : +CMT: "+12223334444","","14/05/30,00:13:34-32"
   // waitLines((char **)SIM900_standard_returns, atTimeout);
-
+  
+  bufferPtr=0;
+  
+  check_timer=millis();
+  
   return 0;
 }
 
@@ -1094,9 +1190,12 @@ int Sim900::analyseBuffer()
   if(smsFlag == 1) // une entête SMS à été reçue précédemment.
   {
     int ret = 0;
+
     if(SMSCallBack)
     {
-      ret = SMSCallBack((char *)buffer, userData);
+      buffer[bufferPtr]=0;
+      char *_buffer=trim((char *)buffer);
+      ret = SMSCallBack((char *)_buffer, userData);
       bufferPtr=0;
     }
     smsFlag = 0;
@@ -1815,6 +1914,8 @@ int evalCmndString(char *buffer, void *dataPtr)
   }
 
 evalCmndString_clean_exit:
+Serial.print("Retour:");
+Serial.println(retour);
 if(retour==0)
   sendCmndResults(data);
   
@@ -2263,6 +2364,7 @@ void wdt_init(void)
 }
 */
 
+unsigned long signal_timer=0;
 
 void setup()
 {
@@ -2372,13 +2474,16 @@ void setup()
   digitalWrite(7, HIGH); // pullup activé
 }
 
+
 void loop()
 {
   myBlinkLeds.run();
   digitalWrite(13, myBlinkLeds.getLedState()); // clignotement de la led "activité" (D13) de l'ATmega
-
+  
   pinsWatcher();
 
+  sim900.connectionCheck();
+  
   if(Serial.available())
   {
     unsigned char serialInByte = (unsigned char)Serial.read();

@@ -94,8 +94,9 @@ def _analyseData(s):
          alarm=2
       else:
          return(False, 3)
-      code      = _wordsafter(s, u"via code ")[0]
       date_time = _wordsafter(s, u"surveillance ")
+      if s.find(u"via code" <> -1):
+         code = _wordsafter(s, u"via code ")[0]
       return (alarm, code, date_time[0], date_time[1])
    except:
       return (False, 4)
@@ -152,36 +153,9 @@ def mea_serialData(data):
    mem['time']=str(alarm[3])
 
    # emission XPL
-#   if mem['last'] <> mem['current']:
-#      xplMsg=mea_utils.xplMsgNew('me', "*", "xpl-trig", "sensor", "basic")
-#      mea_utils.xplMsgAddValue(xplMsg, "device", data["device_name"])
-#      mea_utils.xplMsgAddValue(xplMsg, 'current', mem['current']) 
-#      mea.xplSendMsg(xplMsg)
+   xplMsg=mea_utils.xplMsgNew('me', "*", "xpl-trig", "sensor", "basic")
+   mea_utils.xplMsgAddValue(xplMsg, "device", data["device_name"])
+   mea_utils.xplMsgAddValue(xplMsg, 'current', mem['current'])
+   mea.xplSendMsg(xplMsg)
 
-   print mem
    return True
-
-def test_serial():
-   testdata1=bytearray('\r\n"+CMT: "+33661665082\","","15/11/19,22:57:29+04",145,32,0,0,"+33660003151",145,140\r\n Info telesurveillance 13/11/2015 08:40:27 : mise a l\'arret via code NATHALIE du clavier ENTREE (zone 1) au 16 RUE JULES GUESDE - ROSNY SOUS"\r\n')
-   testdata2=bytearray('\r\n"+CMT: "+33661665082\","","15/11/19,22:57:29+04",145,32,0,0,"+33660003151",145,140\r\n Info telesurveillance 13/11/2015 08:40:27 : mise a l\'arret via code NATHALIE du clavier ENTREE (zone 1) au 16 RUE JULES GUESDE - ROSNY SOUS"\r\n')
-
-   data1={}
-   data1['data']=testdata1
-   data1['l_data']=len(testdata1)
-   data1['device_id']=5
-   data1['device_parameters']='A:10'
-   data1["device_name"]="TEST"
-
-   data2={}
-   data2['data']=testdata2
-   data2['l_data']=len(testdata2)
-   data2['device_id']=5
-   data2['device_parameters']='A:10'
-   data2["device_name"]="TEST"
-
-   res=mea_serialData(data1)
-   print res
-   res=mea_serialData(data2)
-   print res
-
-test_serial()

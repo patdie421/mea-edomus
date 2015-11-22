@@ -188,6 +188,7 @@ int16_t _interface_type_006_xPL_callback(xPL_ServicePtr theService, xPL_MessageP
    sqlite3_stmt * stmt;
    
    sprintf(sql,"%s WHERE lower(sensors_actuators.name)='%s' and sensors_actuators.state='1';", sql_select_device_info, device);
+   fprintf(stderr,"%s\n",sql);
    ret = sqlite3_prepare_v2(params_db, sql, strlen(sql)+1, &stmt, NULL);
    if(ret)
    {
@@ -410,6 +411,7 @@ void *_thread_interface_type_006_genericserial_data(void *args)
 
          if(buffer_ptr>0)
          {
+            fprintf(stderr,"%s\n",buffer);
             params->i006->indicators.serialin+=buffer_ptr;
          
             buffer[buffer_ptr]=0;
@@ -437,7 +439,7 @@ void *_thread_interface_type_006_genericserial_data(void *args)
                   {
 //                     for(int i=0;i<buffer_ptr;i++) fprintf(stderr,"%d:[%03d-%02x-%c] ", i, (unsigned char)buffer[i], (unsigned char)buffer[i], buffer[i]); fprintf(stderr,"\n");
 
-                     int ret=interface_type_006_data_to_plugin(params->myThreadState, stmt, GENERICSERIALDATA, (void *)buffer, buffer_ptr);
+                     int ret=interface_type_006_data_to_plugin(params->myThreadState, stmt, GENERICSERIALDATA, (void *)buffer, buffer_ptr+1);
                      if(ret<0)
                      {
                         fprintf(stderr,"ERROR\n");
