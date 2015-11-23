@@ -195,6 +195,8 @@ prog_char alarmon_str[]    PROGMEM  = { "$$ALARMON$$\n" };
 prog_char alarmoff_str[]   PROGMEM  = { "$$ALARMOFF$$\n" };
 prog_char cmndon_str[]     PROGMEM  = { "$$CMNDON$$\n" };
 prog_char cmndoff_str[]    PROGMEM  = { "$$CMNDOFF$$\n" };
+prog_char sig_str[]        PROGMEM  = { "$$SIG="};
+prog_char dollar_dollar_str PROGMEM = { "$$"};
 
 #ifdef __DEBUG__ > 0
 prog_char lastSMS[]        PROGMEM  = { "LAST SMS: " };
@@ -304,7 +306,6 @@ public:
   int sync(long timeout);
   int init();
 
-  int connectionCheck();
 
   int echoOff();
   int echoOn();
@@ -369,6 +370,12 @@ public:
     return sendSMSFromProgmem(num, text, echoOnOff); 
   };
 
+  inline void resetInputBuffer() { bufferPtr=0; };
+
+  int connectionCheck();
+  float getSignalQuality();
+  int connectionStatus();
+
   void setPinCode(char *code);
   int run(unsigned char c);
   int (* read)(void);
@@ -416,7 +423,7 @@ private:
   // timer
   unsigned long check_timer;
   
-  // buffers
+  // buffers d'entrée de données
   unsigned char buffer[SIM900_BUFFER_SIZE];
   int bufferPtr;
 
@@ -910,15 +917,21 @@ int Sim900::readStringTo(char *str, int l_str, char *val, long timeout)
 
     if(this->available())
     {
-      if(strptr >= l_str-1)
+      if(str)
       {
-        str[l_str-1]=0;
-        return -1;
+         if(strptr >= l_str-1)
+         {
+           str[l_str-1]=0;
+           return -1;
+         }
       }
 
       int c = (unsigned char)this->read();
-      str[strptr]=c;
-      strptr++;
+      if(str)
+      {
+         str[strptr]=c;
+         strptr++;
+      }
 
       if(c == val[i])
         i++;
@@ -938,43 +951,44 @@ int Sim900::readStringTo(char *str, int l_str, char *val, long timeout)
 }
 
 
-int Sim900::connectionCheck()
+float Sim900::getSignalQuality()
 {
-  int ret=-1;
-  
-  if(diffMillis(check_timer, millis())>30000)
+  int csq=-1;
+  sendATCmnd("+CSQ");
+  if(readStringTo(NULL, 0, "+CSQ: ", atTimeout)==0)
   {
-    if(bufferPtr)
-      return 0;
+     resp=(char *)readLine(atTimeout);
+     if(resp!=NULL)
+     {
+       unsigned char i=0;
+       while(resp[i] && isdigit(resp[i]))
+         i++;
+       resp[i]=0;
+       csq=atoi(resp);
+    }
+    ret=waitLines((char **)SIM900_standard_returns, atTimeout);
+    resetInputBuffer();
     
-    sendString("AT+CSQ");
-    sendCr();
-    readLine(atTimeout);
-    char *resp=(char *)readLine(atTimeout);
+    if(csq<0 || csq >31)
+       return -1.0;
+    else
+       return (float)csq * 100.0 / 31.0; 
+  }
+  else
+    return -1.0;
+}
+
+
+int Sim900::connectionStatus()
+{
+  int creg=-1;
+  sendATCmnd("+CREG?");
+  if(readStringTo(NULL, 0, "+CREG: ", atTimeout)==0)
+  {
+    resp=(char *)readLine(atTimeout);
     if(resp!=NULL)
     {
-      if(resp=strstr((char *)resp,"+CSQ: "))
-      {
-        resp+=6;
-        unsigned char i=0;
-        while(resp[i] && isdigit(resp[i]))
-           i++;
-        resp[i]=0;
-        int csq=atoi(resp);
-      }
-    }
-    bufferPtr=0;
-    ret=waitLines((char **)SIM900_standard_returns, atTimeout);
-    bufferPtr=0;
-    
-    sendString("AT+CREG?");
-    sendCr();
-    readLine(atTimeout);
-    resp=(char *)readLine(atTimeout);
-    if(resp=strstr((char *)resp,"+CREG: "))
-    {
       unsigned char i=0;
-      resp+=7;
       while(resp[i] && resp[i]!=',')
         i++;
       resp[i]=0;
@@ -984,24 +998,34 @@ int Sim900::connectionCheck()
       while(resp[i] && isdigit(resp[i]))
         i++;
       resp[i]=0;
-      int creg=atoi(resp);
-       
-      if(creg!=5)
-      {
-        Serial.println("Try recovery");
-        if(pinCode[0])
-        {
-          sendString("AT+CPIN=");
-          sendString((char *)pinCode);
-          sendCr();
-          waitLines((char **)SIM900_standard_returns, atTimeout);
-        }
-      }
-    }
-    bufferPtr=0;
-    ret=waitLines((char **)SIM900_standard_returns, atTimeout);
-    bufferPtr=0;
-    
+      creg=atoi(resp);
+   }
+   int ret=waitLines((char **)SIM900_standard_returns, atTimeout);
+   resetInputBuffer();
+   if(ret==0)
+     return creg;
+   else
+     return -1;
+}
+
+
+int Sim900::connectionCheck()
+{
+  int ret=-1;
+  
+  if(diffMillis(check_timer, millis())>30000)
+  {
+    if(bufferPtr)
+      return 0;
+ 
+    printStringFromProgmem(sig_str);
+    Serial.print(getSignalQuality()); 
+    printStringFromProgmem(dollar_dollar_str);
+    Serial.println("");
+     
+    if(connectionCheck!=5)
+      init(); 
+
     check_timer=millis();
   }
 }
@@ -1041,8 +1065,7 @@ int Sim900::init()
 
   // sendATCmnd("+CSDH=0"); // pour avoir à la reception d'un : +CMT: "+12223334444","","14/05/30,00:13:34-32"
   // waitLines((char **)SIM900_standard_returns, atTimeout);
-  
-  bufferPtr=0;
+  resetInputBuffer(); 
   
   check_timer=millis();
   
@@ -1133,7 +1156,7 @@ int Sim900::run(unsigned char car)
     buffer[bufferPtr++]=c;
     buffer[bufferPtr]=0;
     analyseBuffer();
-    bufferPtr=0; // RAZ du buffer
+    bufferPtr=0;
   }
 /*
   else if(c == 13) // on n'a rien à faire de CR
@@ -1227,14 +1250,14 @@ int Sim900::analyseBuffer()
     }
     lastSMSPhoneNumber[i]=0;
     smsFlag = 1; // la prochaine ligne est un SMS entrant
-    bufferPtr=0;
+    resetInputBuffer();
     return 0;
   }
 
   if(defaultCallBack)
   {
     int ret=this->defaultCallBack((char *)buffer, userData);
-    bufferPtr=0;
+    resetInputBuffer();
     return ret;
   }
 
@@ -1542,9 +1565,6 @@ int addToCmndResults(struct data_s *data, int pin, int cmnd, long value)
 
     data->cmndResultsBuffer[i++]=cmnd;
     data->cmndResultsBuffer[i++]='/';
-    data->cmndResultsBuffer[i++]='P';
-    data->cmndResultsBuffer[i++]='I';
-    data->cmndResultsBuffer[i++]='N';
     data->cmndResultsBuffer[i++]=(char )(pin+'0');
     data->cmndResultsBuffer[i++]='=';
     for(int j=0;tmpstr[j];j++)
@@ -1688,8 +1708,9 @@ int doCmnd(struct data_s *data, int pin, int cmnd, long value)
       }
       pinMode(pins[pin],OUTPUT);
       digitalWrite(pins[pin],(int)value);
+      addToCmndResults(data,pin,cmnd,(int)value);
+      //doneToCmndResult(data);
     }
-    doneToCmndResult(data);
     return 0;
   case 'A':
     if(value==-1 && pins[pin] >= 14)
@@ -1702,7 +1723,8 @@ int doCmnd(struct data_s *data, int pin, int cmnd, long value)
     {
       pinMode(pins[pin],OUTPUT);
       analogWrite(pins[pin],value & 0x3FF);
-      doneToCmndResult(data);
+      addToCmndResults(data,pin,cmnd,value & 0x3FF);
+      //doneToCmndResult(data);
       return 0;
     }
     else
@@ -1914,8 +1936,6 @@ int evalCmndString(char *buffer, void *dataPtr)
   }
 
 evalCmndString_clean_exit:
-Serial.print("Retour:");
-Serial.println(retour);
 if(retour==0)
   sendCmndResults(data);
   
@@ -2178,6 +2198,7 @@ int mcuError(int errno)
   return 0;
 }
 
+
 // attention, ne marche pas avec le bootloader standard de l'arduino
 #define soft_reset()        \
 do                          \
@@ -2352,17 +2373,6 @@ int processCmndFromSerial(unsigned char car, struct data_s *data)
   return 0;
 }
 
-/*
-// voir si nécessaire ... a tester
-void wdt_init(void) __attribute__((naked)) __attribute__((section(".init3")));
-void wdt_init(void)
-{
-    MCUSR = 0;
-    wdt_disable();
-
-    return;
-}
-*/
 
 unsigned long signal_timer=0;
 
@@ -2477,6 +2487,8 @@ void setup()
 
 void loop()
 {
+  static unsigned long pcin_chrono=0; 
+
   myBlinkLeds.run();
   digitalWrite(13, myBlinkLeds.getLedState()); // clignotement de la led "activité" (D13) de l'ATmega
   
@@ -2486,6 +2498,7 @@ void loop()
   
   if(Serial.available())
   {
+    pcin_chrono=millis(); 
     unsigned char serialInByte = (unsigned char)Serial.read();
 
     // On est en mode commande si :
@@ -2536,7 +2549,6 @@ void loop()
          }
       }
 
-//      if(sim900_connected_flag && soft_cmd_mode_flag==0)
       if(soft_cmd_mode_flag==0) // on n'est pas passer en mode commande
       {
         // on vide le mini buffer vers le sim900.
@@ -2545,6 +2557,14 @@ void loop()
            sim900.write(buff[i]); // toutes les données de la ligne serie sont envoyées vers le sim900
         char_from_pc_flag=0; // fin des données du PC
       }
+    }
+  }
+  else
+  {
+    if(diffMillis(pcin_chrono, millis())>1000) // pas de données depuis 1 seconde ...
+    {
+      pcin_chrono=millis();
+      resetInputBuffer();
     }
   }
 
