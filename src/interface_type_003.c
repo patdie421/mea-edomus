@@ -395,7 +395,7 @@ void *_thread_interface_type_003_enocean_data(void *args)
          addr = addr >> 8;
          a=addr & 0xFF;
          
-         mea_log_printf("%s  (%s) : enocean data from - %02x-%02x-%02x-%02x\n", INFO_STR, __func__,a,b,c,d);
+         mea_log_printf("%s (%s) : enocean data from - %02x-%02x-%02x-%02x\n", INFO_STR, __func__, a, b, c, d);
          
          sprintf(sql,"%s WHERE interfaces.dev ='ENOCEAN://%02x-%02x-%02x-%02x' and sensors_actuators.state='1';", sql_select_device_info,a,b,c,d);
          
@@ -724,7 +724,7 @@ int stop_interface_type_003(int my_id, void *data, char *errmsg, int l_errmsg)
 
    struct interface_type_003_data_s *start_stop_params=(struct interface_type_003_data_s *)data;
 
-   VERBOSE(1) mea_log_printf("%s  (%s) : %s shutdown thread ... ", INFO_STR, __func__, start_stop_params->i003->name);
+   VERBOSE(1) mea_log_printf("%s (%s) : %s shutdown thread ... ", INFO_STR, __func__, start_stop_params->i003->name);
 
    if(start_stop_params->i003->xPL_callback_data)
    {
@@ -891,9 +891,9 @@ int start_interface_type_003(int my_id, void *data, char *errmsg, int l_errmsg)
       if(interface_parameters)
       {
          // pas de plugin spécifié
-         free(interface_parameters);
+         release_parsed_parameters(&interface_parameters);
          interface_parameters=NULL;
-         VERBOSE(9) mea_log_printf("%s  (%s) : no python plugin specified\n", INFO_STR, __func__);
+         VERBOSE(9) mea_log_printf("%s (%s) : no python plugin specified\n", INFO_STR, __func__);
       }
       else
       {
@@ -904,7 +904,7 @@ int start_interface_type_003(int my_id, void *data, char *errmsg, int l_errmsg)
    else
    {
       //
-      // Toutes cette partie est mutualisable avec interface_type_002
+      // a remplacer par appel a python_call ... (voir python_utils.c)
       //
       
       PyObject *plugin_params_dict=NULL;
@@ -933,12 +933,9 @@ int start_interface_type_003(int my_id, void *data, char *errmsg, int l_errmsg)
          {
             // préparation du parametre du module
             plugin_params_dict=PyDict_New();
-//            mea_addLong_to_pydict(plugin_params_dict, get_token_string_by_id(ID_ENOCEAN_ID), (long)ed);
             mea_addLong_to_pydict(plugin_params_dict, ID_ENOCEAN_STR_C, (long)ed);
-//            mea_addLong_to_pydict(plugin_params_dict, get_token_string_by_id(INTERFACE_ID_ID), start_stop_params->i003->id_interface);
             mea_addLong_to_pydict(plugin_params_dict, INTERFACE_ID_STR_C, start_stop_params->i003->id_interface);
             if(interface_parameters->parameters[ENOCEAN_PLUGIN_PARAMS_PARAMETERS].value.s)
-//               mea_addString_to_pydict(plugin_params_dict, get_token_string_by_id(INTERFACE_PARAMETERS_ID), interface_parameters->parameters[ENOCEAN_PLUGIN_PARAMS_PARAMETERS].value.s);
                mea_addString_to_pydict(plugin_params_dict, INTERFACE_PARAMETERS_STR_C, interface_parameters->parameters[ENOCEAN_PLUGIN_PARAMS_PARAMETERS].value.s);
 
             pArgs = PyTuple_New(1);
@@ -1000,7 +997,7 @@ int start_interface_type_003(int my_id, void *data, char *errmsg, int l_errmsg)
    start_stop_params->i003->xPL_callback_data=xpl_callback_params;
    start_stop_params->i003->xPL_callback=_interface_type_003_xPL_callback;
    
-   VERBOSE(2) mea_log_printf("%s  (%s) : %s %s.\n", INFO_STR, __func__, start_stop_params->i003->name, launched_successfully_str);
+   VERBOSE(2) mea_log_printf("%s (%s) : %s %s.\n", INFO_STR, __func__, start_stop_params->i003->name, launched_successfully_str);
    mea_notify_printf('S', "%s %s", start_stop_params->i003->name, launched_successfully_str);
    
    return 0;

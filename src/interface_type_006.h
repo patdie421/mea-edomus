@@ -44,6 +44,8 @@ typedef struct interface_type_006_s
    volatile sig_atomic_t thread_is_running;
    xpl_f            xPL_callback;
    void            *xPL_callback_data;
+
+//   PyObject /* *pName, */ *pModule, *pFunc, *pParams;
    
    struct interface_type_006_indicators_s indicators;
 } interface_type_006_t;

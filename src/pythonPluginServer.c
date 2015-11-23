@@ -562,7 +562,7 @@ int stop_pythonPluginServer(int my_id, void *data, char *errmsg, int l_errmsg)
 
    _pythonPluginServer_monitoring_id=-1;
 
-   VERBOSE(1) mea_log_printf("%s  (%s) : %s %s.\n", INFO_STR, __func__, pythonPlugin_server_name_str, stopped_successfully_str);
+   VERBOSE(1) mea_log_printf("%s (%s) : %s %s.\n", INFO_STR, __func__, pythonPlugin_server_name_str, stopped_successfully_str);
    mea_notify_printf('S', "%s %s.", pythonPlugin_server_name_str, stopped_successfully_str);
 
    return 0;
@@ -600,7 +600,7 @@ int start_pythonPluginServer(int my_id, void *data, char *errmsg, int l_errmsg)
       return -1;
    }
 
-   VERBOSE(2) mea_log_printf("%s  (%s) : %s %s.\n", INFO_STR, __func__, pythonPlugin_server_name_str, launched_successfully_str);
+   VERBOSE(2) mea_log_printf("%s (%s) : %s %s.\n", INFO_STR, __func__, pythonPlugin_server_name_str, launched_successfully_str);
    mea_notify_printf('S', "%s %s.", pythonPlugin_server_name_str, launched_successfully_str);
 
    return 0;

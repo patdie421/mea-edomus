@@ -180,7 +180,7 @@ int16_t dbServer_add_data_to_sensors_values(uint16_t sensor_id, double value1, u
    pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(_md->lock));
    pthread_mutex_lock(&(_md->lock));
 
-   VERBOSE(9) mea_log_printf("%s  (%s) : data to queue(%ld) (sensor_id=%d, value1=%f)\n",INFO_STR,__func__,_md->queue->nb_elem,sensor_id,value1);
+   VERBOSE(9) mea_log_printf("%s (%s) : data to queue(%ld) (sensor_id=%d, value1=%f)\n", INFO_STR, __func__, _md->queue->nb_elem, sensor_id, value1);
    if(mea_queue_in_elem(_md->queue,(void *)elem)==ERROR)
    {
       free_value(elem->data);
@@ -281,7 +281,7 @@ int move_sqlite3_queries_to_mysql()
          }
          else
          {
-            VERBOSE(9) mea_log_printf("%s  (%s) : mysql_query = %s\n",INFO_STR,__func__,query);
+            VERBOSE(9) mea_log_printf("%s (%s) : mysql_query = %s\n", INFO_STR, __func__, query);
             mysqlwrite_indicator++;
          }
 
@@ -418,7 +418,7 @@ int write_data_to_db(dbServer_queue_elem_t *elem)
    if(!_md) // pas de descripteur == pas de stockage dans la base ...
       return 0;
    
-   VERBOSE(9) mea_log_printf("%s  (%s) : insertion data type %d\n",INFO_STR,__func__,elem->type);
+   VERBOSE(9) mea_log_printf("%s (%s) : insertion data type %d\n", INFO_STR, __func__, elem->type);
 
    switch(elem->type)
    {
@@ -436,7 +436,7 @@ int write_data_to_db(dbServer_queue_elem_t *elem)
       int ret = exec_mysql_query(query);
       if(ret==0)
       {
-         DEBUG_SECTION mea_log_printf("%s  (%s) : insert in mysql db\n",INFO_STR,__func__);
+         DEBUG_SECTION mea_log_printf("%s (%s) : insert in mysql db\n", INFO_STR, __func__);
          mysqlwrite_indicator++;
       }
       else
@@ -446,7 +446,7 @@ int write_data_to_db(dbServer_queue_elem_t *elem)
    }
    else if(_md->db)
    {
-      DEBUG_SECTION mea_log_printf("%s  (%s) : insertion in sqlite db\n",INFO_STR,__func__);
+      DEBUG_SECTION mea_log_printf("%s (%s) : insertion in sqlite db\n", INFO_STR, __func__);
       move_mysql_query_to_sqlite3(query);
    }
    else
@@ -651,7 +651,7 @@ int select_database(int selection) // section : 0 auto, 1 mysql, 2 sqlite3
       ret=mysql_ping(_md->conn); // le ping pour éventuellement forcer une reconnexion
       if(ret) // pas de réponse au ping et donc reconnexion impossible.
       {
-         VERBOSE(5) mea_log_printf("%s  (%s) : mysql_ping - %u: %s\n",INFO_STR,__func__,mysql_errno(_md->conn), mysql_error(_md->conn));
+         VERBOSE(5) mea_log_printf("%s (%s) : mysql_ping - %u: %s\n", INFO_STR, __func__, mysql_errno(_md->conn), mysql_error(_md->conn));
          mysql_close(_md->conn);
          mysql_thread_end();
          _md->conn=NULL;
@@ -666,7 +666,7 @@ int select_database(int selection) // section : 0 auto, 1 mysql, 2 sqlite3
             // faire ce qu'il y a a faire en cas de reconnexion
             // voir ici pour les info : http://dev.mysql.com/doc/refman/5.0/en/auto-reconnect.html
             // pour l'instant on ne fait rien
-            VERBOSE(9) mea_log_printf("%s  (%s) : a mysql_ping auto-reconnect occured.\n", INFO_STR,__func__);
+            VERBOSE(9) mea_log_printf("%s (%s) : a mysql_ping auto-reconnect occured.\n", INFO_STR, __func__);
          }
       }
       DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, good, mysql connection check and available (%d)\n",DEBUG_STR, __func__,(int)(time(NULL)-now));
@@ -1035,11 +1035,11 @@ int start_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
    }
    _dbServer_monitoring_id=my_id;
 
-   VERBOSE(1) mea_log_printf("%s  (%s) : DBSERVER %s.\n", INFO_STR, __func__, launched_successfully_str);
+   VERBOSE(1) mea_log_printf("%s (%s) : DBSERVER %s.\n", INFO_STR, __func__, launched_successfully_str);
    mea_notify_printf('S', "DBSERVER %s.", launched_successfully_str);
 
 #else
-   VERBOSE(9) mea_log_printf("%s  (%s) : dbServer desactivated.\n", INFO_STR,__func__);
+   VERBOSE(9) mea_log_printf("%s (%s) : dbServer desactivated.\n", INFO_STR, __func__);
 #endif
    return 0;
 }

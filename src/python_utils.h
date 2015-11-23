@@ -10,6 +10,7 @@
 #define mea_eDomus_python_utils_h
 
 #define python_lock() \
+   { \
    pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL); \
    PyEval_AcquireLock(); \
    PyThreadState *__mainThreadState=PyThreadState_Get(); \
@@ -21,7 +22,8 @@
    PyThreadState_Clear(__myThreadState); \
    PyThreadState_Delete(__myThreadState); \
    PyEval_ReleaseLock(); \
-   pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL)
+   pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL); \
+   }
 
 
 PyObject *mea_getMemory(PyObject *self, PyObject *args, PyObject *mea_memory);
@@ -36,5 +38,6 @@ PyObject *mea_stmt_to_pydict_device(sqlite3_stmt * stmt);
 PyObject *mea_stmt_to_pydict_interface(sqlite3_stmt * stmt);
 
 int mea_call_python_function(char *plugin_name, char *plugin_func, PyObject *plugin_params_dict);
+int mea_call_python_function2(PyObject *pFunc, PyObject *plugin_params_dict);
 
 #endif

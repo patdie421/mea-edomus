@@ -96,7 +96,7 @@ int stop_nodejsServer(int my_id, void *data, char *errmsg, int l_errmsg)
       _pid_nodejs=-1;
    }
    
-   VERBOSE(1) mea_log_printf("%s  (%s) : nodejsServer %s.\n", INFO_STR, __func__,stopped_successfully_str);
+   VERBOSE(1) mea_log_printf("%s (%s) : nodejsServer %s.\n", INFO_STR, __func__,stopped_successfully_str);
    mea_notify_printf('S', "nodejsServer %s.",stopped_successfully_str);
    
    return 0;
@@ -191,7 +191,7 @@ int start_nodejsServer(int my_id, void *data, char *errmsg, int l_errmsg)
 
    _nodejsServer_monitoring_id=my_id;
    
-   VERBOSE(2) mea_log_printf("%s  (%s) : nodejs server %s.\n", INFO_STR, __func__, launched_successfully_str);
+   VERBOSE(2) mea_log_printf("%s (%s) : nodejs server %s.\n", INFO_STR, __func__, launched_successfully_str);
    mea_notify_printf('S', "nodejs server %s.", launched_successfully_str);
    
    return 0;
@@ -208,5 +208,3 @@ int restart_nodejsServer(int my_id, void *data, char *errmsg, int l_errmsg)
    }
    return ret;
 }
-
-

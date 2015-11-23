@@ -274,7 +274,7 @@ long seek_to_previous_line(FILE *fp, long *pos)
       if(ferror(fp))
       {
          DEBUG_SECTION {
-            mea_log_printf("%s  (%s) : fseek - ", INFO_STR, __func__);
+            mea_log_printf("%s (%s) : fseek - ", INFO_STR, __func__);
             perror("");
          }
          *pos=-1;
@@ -445,7 +445,7 @@ void *logServer_thread(void *data)
             if(!fp)
             {
                DEBUG_SECTION {
-                  mea_log_printf("%s  (%s) : fopen - ", INFO_STR, __func__);
+                  mea_log_printf("%s (%s) : fopen - ", INFO_STR, __func__);
                   perror("");
                }
                sleep(5); // on attends un peu
@@ -527,7 +527,7 @@ int stop_logServer(int my_id, void *data, char *errmsg, int l_errmsg)
    }
 
    _livelog_enable=0;
-   VERBOSE(1) mea_log_printf("%s  (%s) : %s %s.\n", INFO_STR, __func__, log_server_name_str, stopped_successfully_str);
+   VERBOSE(1) mea_log_printf("%s (%s) : %s %s.\n", INFO_STR, __func__, log_server_name_str, stopped_successfully_str);
    mea_notify_printf('S', "%s %s (%d).",stopped_successfully_str, log_server_name_str, ret);
 
    return 0;
@@ -568,7 +568,7 @@ int start_logServer(int my_id, void *data, char *errmsg, int l_errmsg)
    pthread_detach(*_logServer_thread);
    _logServer_monitoring_id=my_id;
 
-   VERBOSE(1) mea_log_printf("%s  (%s) :  %s %s.\n", INFO_STR, __func__, log_server_name_str, launched_successfully_str);
+   VERBOSE(1) mea_log_printf("%s (%s) : %s %s.\n", INFO_STR, __func__, log_server_name_str, launched_successfully_str);
    mea_notify_printf('S', "%s %s.", log_server_name_str, launched_successfully_str);
    return 0;
 }

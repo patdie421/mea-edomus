@@ -114,7 +114,7 @@ int16_t interface_type_001_counters_process_traps(int16_t numTrap, char *buff, i
          VERBOSE(9) {
             char now[30];
             strftime(now,30,"%d/%m/%y;%H:%M:%S",localtime(&tv.tv_sec));
-            mea_log_printf("%s  (%s) : %s;%s;%f;%f;%f\n",INFO_STR,__func__,counter->name,now,counter->t,counter->t-t_old,counter->power);
+            mea_log_printf("%s (%s) : %s;%s;%f;%f;%f\n", INFO_STR, __func__, counter->name, now, counter->t, counter->t-t_old, counter->power);
          }
       }
    }
@@ -410,7 +410,7 @@ int16_t interface_type_001_counters_poll_inputs(interface_type_001_t *i001)
 
             counter_to_xpl(i001, counter);
 
-            VERBOSE(9) mea_log_printf("%s  (%s) : counter %s %ld (WH=%ld KWH=%ld)\n",INFO_STR,__func__,counter->name, (long)counter->counter, (long)counter->wh_counter,(long)counter->kwh_counter);
+            VERBOSE(9) mea_log_printf("%s (%s) : counter %s %ld (WH=%ld KWH=%ld)\n", INFO_STR, __func__, counter->name, (long)counter->counter, (long)counter->wh_counter, (long)counter->kwh_counter);
          }
          mea_queue_next(counters_list);
       }

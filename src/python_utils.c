@@ -157,10 +157,36 @@ PyObject *mea_stmt_to_pydict(sqlite3_stmt * stmt)
 }
 
 
+int mea_call_python_function2(PyObject *pFunc, PyObject *plugin_params_dict)
+{
+   PyObject *pArgs, *pValue=NULL;
+   int retour=-1;
+
+   if (pFunc && PyCallable_Check(pFunc))
+   {
+      pArgs = PyTuple_New(1);
+      Py_INCREF(plugin_params_dict); // PyTuple_SetItem va voler la référence, on en rajoute une pour pouvoir ensuite faire un Py_DECREF
+      PyTuple_SetItem(pArgs, 0, plugin_params_dict);
+
+      pValue = PyObject_CallObject(pFunc, pArgs); // appel du plugin
+      if (pValue != NULL)
+      {
+         retour=(int)PyInt_AsLong(pValue);
+         Py_DECREF(pValue);
+         DEBUG_SECTION mea_log_printf("%s (%s) : Result of call : %d\n", DEBUG_STR, __func__, retour);
+      }
+      Py_DECREF(pArgs);
+
+      return retour;
+   }
+   else
+      return -1;
+}
+
+
 int mea_call_python_function(char *plugin_name, char *plugin_func, PyObject *plugin_params_dict)
 {
    PyObject *pName, *pModule, *pFunc;
-   PyObject *pArgs, *pValue=NULL;
    int retour=-1;
 
    PyErr_Clear();
@@ -173,20 +199,9 @@ int mea_call_python_function(char *plugin_name, char *plugin_func, PyObject *plu
    else
    {
       pFunc = PyObject_GetAttrString(pModule, plugin_func);
-      if (pFunc && PyCallable_Check(pFunc))
+      if(pFunc)
       {
-         pArgs = PyTuple_New(1);
-         Py_INCREF(plugin_params_dict); // PyTuple_SetItem va voler la référence, on en rajoute une pour pouvoir ensuite faire un Py_DECREF
-         PyTuple_SetItem(pArgs, 0, plugin_params_dict);
-
-         pValue = PyObject_CallObject(pFunc, pArgs); // appel du plugin
-         if (pValue != NULL)
-         {
-            retour=(int)PyInt_AsLong(pValue);
-            Py_DECREF(pValue);
-            DEBUG_SECTION mea_log_printf("%s (%s) : Result of call of %s : %ld\n", DEBUG_STR, __func__, plugin_func, plugin_name);
-         }
-         Py_DECREF(pArgs);
+         retour=mea_call_python_function2(pFunc, plugin_params_dict);
       }
       else
       {

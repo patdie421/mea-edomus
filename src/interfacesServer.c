@@ -134,7 +134,7 @@ void dispatchXPLMessageToInterfaces(xPL_ServicePtr theService, xPL_MessagePtr th
 
    interfaces_queue_elem_t *iq;
 
-   DEBUG_SECTION mea_log_printf("%s  (%s) : Reception message xPL\n",INFO_STR,__func__);
+   DEBUG_SECTION mea_log_printf("%s (%s) : Reception message xPL\n", INFO_STR, __func__);
 
    pthread_cleanup_push( (void *)pthread_rwlock_unlock, (void *)&interfaces_queue_rwlock);
    pthread_rwlock_rdlock(&interfaces_queue_rwlock);
@@ -573,7 +573,7 @@ mea_queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
          }
          else
          {
-            VERBOSE(9) mea_log_printf("%s  (%s) : %s not activated (state = %d)\n",INFO_STR,__func__,dev,state);
+            VERBOSE(9) mea_log_printf("%s (%s) : %s not activated (state = %d)\n", INFO_STR, __func__, dev, state);
          }
       }
       else if (s == SQLITE_DONE)

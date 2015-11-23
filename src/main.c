@@ -333,7 +333,7 @@ void clean_all_and_exit()
    release_strings_da();
    release_tokens();
 
-   VERBOSE(9) mea_log_printf("%s  (%s) : mea-edomus down ...\n",INFO_STR,__func__);
+   VERBOSE(9) mea_log_printf("%s (%s) : mea-edomus down ...\n", INFO_STR, __func__);
 
    exit(0);
 }
@@ -347,7 +347,7 @@ static void _signal_STOP(int signal_number)
  * \param     signal_number  numéro du signal (pas utilisé mais nécessaire pour la déclaration du handler).
  */
 {
-   VERBOSE(9) mea_log_printf("%s  (%s) : Stopping mea-edomus requested (signal = %d).\n",INFO_STR,__func__,signal_number);
+   VERBOSE(9) mea_log_printf("%s (%s) : Stopping mea-edomus requested (signal = %d).\n", INFO_STR, __func__, signal_number);
 
    clean_all_and_exit();
 }
@@ -784,7 +784,9 @@ int main(int argc, const char * argv[])
    dup2(fd, 2);
    close(fd);
 
-   DEBUG_SECTION mea_log_printf("INFO  Starting MEA-EDOMUS %s\n",__MEA_EDOMUS_VERSION__);
+   logfile_rotation_job(-1, (void *)log_file, NULL, 0);
+
+   DEBUG_SECTION mea_log_printf("INFO Starting MEA-EDOMUS %s\n",__MEA_EDOMUS_VERSION__);
 
    //
    // initialisation gestions des signaux (arrêt de l'appli et réinitialisation
@@ -902,6 +904,7 @@ int main(int argc, const char * argv[])
       VERBOSE(1) mea_log_printf("%s (%s) : can't start python plugin server\n",ERROR_STR,__func__);
       clean_all_and_exit();
    }
+   sleep(1);
 
    //
    // xPLServer
@@ -941,9 +944,9 @@ int main(int argc, const char * argv[])
    process_set_group(log_rotation_id, 7);
 
    // au démarrage : rotation des log.
-   process_run_task(log_rotation_id, NULL, 0);
+//   process_run_task(log_rotation_id, NULL, 0);
 
-   VERBOSE(1) mea_log_printf("%s  (%s) : MEA-EDOMUS %s starded\n", INFO_STR, __func__, __MEA_EDOMUS_VERSION__);
+   VERBOSE(1) mea_log_printf("%s (%s) : MEA-EDOMUS %s starded\n", INFO_STR, __func__, __MEA_EDOMUS_VERSION__);
 
    time_t start_time;
    long uptime = 0;

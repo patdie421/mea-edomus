@@ -81,19 +81,19 @@ int16_t interface_type_001_xPL_callback(xPL_ServicePtr theService, xPL_MessagePt
    
    (i001->indicators.nbxplin)++;
    
-   VERBOSE(9) mea_log_printf("%s  (%s) : xPL Message to process : %s.%s\n",INFO_STR,__func__,schema_class,schema_type);
+   VERBOSE(9) mea_log_printf("%s (%s) : xPL Message to process : %s.%s\n", INFO_STR, __func__, schema_class, schema_type);
 
    if(mea_strcmplower(schema_class, get_token_string_by_id(XPL_CONTROL_ID)) == 0 &&
       mea_strcmplower(schema_type, get_token_string_by_id(XPL_BASIC_ID)) == 0)
    {
       if(!device)
       {
-         VERBOSE(5) mea_log_printf("%s  (%s) : xPL message no device\n",INFO_STR,__func__);
+         VERBOSE(5) mea_log_printf("%s (%s) : xPL message no device\n", INFO_STR, __func__);
          return 0;
       }
       if(!type)
       {
-         VERBOSE(5) mea_log_printf("%s  (%s) : xPL message no type\n",INFO_STR,__func__);
+         VERBOSE(5) mea_log_printf("%s (%s) : xPL message no type\n", INFO_STR, __func__);
          return 0;
       }
       return xpl_actuator(i001, ListNomsValeursPtr, device, type);
@@ -104,12 +104,12 @@ int16_t interface_type_001_xPL_callback(xPL_ServicePtr theService, xPL_MessagePt
       char *request = xPL_getNamedValue(ListNomsValeursPtr, get_token_string_by_id(XPL_REQUEST_ID));
       if(!request)
       {
-         VERBOSE(5) mea_log_printf("%s  (%s) : xPL message no request\n",INFO_STR,__func__);
+         VERBOSE(5) mea_log_printf("%s (%s) : xPL message no request\n", INFO_STR, __func__);
          return 0;
       }
       if(mea_strcmplower(request,get_token_string_by_id(XPL_CURRENT_ID))!=0)
       {
-         VERBOSE(5) mea_log_printf("%s  (%s) : xPL message request!=current\n",INFO_STR,__func__);
+         VERBOSE(5) mea_log_printf("%s (%s) : xPL message request!=current\n", INFO_STR, __func__);
          return 0;
       }
       
@@ -523,7 +523,7 @@ int stop_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
       comio2_free_ad(start_stop_params->i001->ad);
       start_stop_params->i001->ad=NULL;
    }
-   VERBOSE(2) mea_log_printf("%s  (%s) : %s %s.\n", INFO_STR, __func__, start_stop_params->i001->name, stopped_successfully_str);
+   VERBOSE(2) mea_log_printf("%s (%s) : %s %s.\n", INFO_STR, __func__, start_stop_params->i001->name, stopped_successfully_str);
    mea_notify_printf('S', "%s %s.", start_stop_params->i001->name, stopped_successfully_str);
 
    return 0;
@@ -638,7 +638,7 @@ int start_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
    
    pthread_detach(*interface_type_001_thread_id);
    
-   VERBOSE(2) mea_log_printf("%s  (%s) : %s %s.\n", INFO_STR, __func__, start_stop_params->i001->name, launched_successfully_str);
+   VERBOSE(2) mea_log_printf("%s (%s) : %s %s.\n", INFO_STR, __func__, start_stop_params->i001->name, launched_successfully_str);
    mea_notify_printf('S', "%s %s", start_stop_params->i001->name, launched_successfully_str);
    
    return 0;

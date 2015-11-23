@@ -187,8 +187,8 @@
  */
 
 prog_char starting_str[]   PROGMEM  = { "$$STARTING$$\n" };
-prog_char syncok_str[]     PROGMEM  = { "$$SYNC OK$$\n" };
-prog_char syncko_str[]     PROGMEM  = { "$$SYNC_KO$$\n" };
+prog_char syncok_str[]     PROGMEM  = { "$$SYNCOK$$\n" };
+prog_char syncko_str[]     PROGMEM  = { "$$SYNCKO$$\n" };
 prog_char powerup_str[]    PROGMEM  = { "$$POWERUP$$\n" };
 prog_char powerdown_str[]  PROGMEM  = { "$$POWERDOWN$$\n" };
 prog_char alarmon_str[]    PROGMEM  = { "$$ALARMON$$\n" };
@@ -2552,7 +2552,7 @@ void loop()
       if(soft_cmd_mode_flag==0) // on n'est pas passer en mode commande
       {
         // on vide le mini buffer vers le sim900.
-        char_from_pc_flag=1; // les données viennent du PC
+        char_from_pc_flag=1; // les données viennent du PC => pas d'echo
         for(char i=0;i<buff_ptr;i++)
            sim900.write(buff[i]); // toutes les données de la ligne serie sont envoyées vers le sim900
         char_from_pc_flag=0; // fin des données du PC
@@ -2563,8 +2563,8 @@ void loop()
   {
     if(diffMillis(pcin_chrono, millis())>1000) // pas de données depuis 1 seconde ...
     {
-      pcin_chrono=millis();
-      resetInputBuffer();
+      pcin_chrono=millis(); // on reprend le chrono
+      sim900.resetInputBuffer(); // on vide le buffer
     }
   }
 

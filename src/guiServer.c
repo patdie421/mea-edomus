@@ -638,7 +638,7 @@ mea_error_t start_httpServer(uint16_t port, char *home, char *php_cgi, char *php
 int stop_guiServer(int my_id, void *data, char *errmsg, int l_errmsg)
 {
    stop_httpServer();
-   VERBOSE(1) mea_log_printf("%s  (%s) : HTTPSERVER %s.\n", INFO_STR, __func__, stopped_successfully_str);
+   VERBOSE(1) mea_log_printf("%s (%s) : HTTPSERVER %s.\n", INFO_STR, __func__, stopped_successfully_str);
    mea_notify_printf('S', "HTTPSERVER %s.", stopped_successfully_str);
    return 0;
 }
@@ -664,13 +664,13 @@ int start_guiServer(int my_id, void *data, char *errmsg, int l_errmsg)
          guiport=strtol(httpServerData->params_list[GUIPORT],&end,10);
          if(*end!=0 || errno==ERANGE)
          {
-            VERBOSE(9) mea_log_printf("%s (%s) : GUI port (%s), not a number, 8083 will be used.\n",INFO_STR,__func__,httpServerData->params_list[GUIPORT]);
+            VERBOSE(9) mea_log_printf("%s (%s) : GUI port (%s), not a number, 8083 will be used.\n", INFO_STR, __func__, httpServerData->params_list[GUIPORT]);
             guiport=8083;
          }
       }
       else
       {
-         VERBOSE(9) mea_log_printf("%s (%s) : can't get GUI port, 8083 will be used.\n",INFO_STR,__func__);
+         VERBOSE(9) mea_log_printf("%s (%s) : can't get GUI port, 8083 will be used.\n", INFO_STR, __func__);
          guiport=8083;
       }
       
@@ -691,7 +691,7 @@ int start_guiServer(int my_id, void *data, char *errmsg, int l_errmsg)
             phpcgibin=NULL;
          }
          
-         VERBOSE(2) mea_log_printf("%s  (%s) : GUISERVER %s.\n", INFO_STR, __func__, launched_successfully_str);
+         VERBOSE(2) mea_log_printf("%s (%s) : GUISERVER %s.\n", INFO_STR, __func__, launched_successfully_str);
          mea_notify_printf('S', "GUISERVER %s.", launched_successfully_str);
          process_heartbeat(_httpServer_monitoring_id); // un premier heartbeat pour le faire au plus vite ...
          return 0;

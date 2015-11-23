@@ -364,19 +364,19 @@ int16_t interface_type_005_xPL_callback(xPL_ServicePtr theService, xPL_MessagePt
    mea_strtolower(device);
    if(!device)
    {
-      VERBOSE(5) mea_log_printf("%s (%s) : xPL message no device\n",INFO_STR,__func__);
+      VERBOSE(5) mea_log_printf("%s (%s) : xPL message no device\n", INFO_STR, __func__);
       return -1;
    }
 
    struct type005_sensor_actuator_queue_elem_s *elem=_find_sensor_actuator(&(i005->devices_list), device);
    if(elem==NULL)
    {
-      DEBUG_SECTION mea_log_printf("%s (%s) : %s not for me\n",INFO_STR,__func__, device);
+      DEBUG_SECTION mea_log_printf("%s (%s) : %s not for me\n", INFO_STR, __func__, device);
       return -1;
    } 
    (i005->indicators.xplin)++;
    
-   VERBOSE(9) mea_log_printf("%s (%s) : xPL Message to process : %s.%s\n",INFO_STR,__func__,schema_class,schema_type);
+   VERBOSE(9) mea_log_printf("%s (%s) : xPL Message to process : %s.%s\n", INFO_STR, __func__, schema_class, schema_type);
    
    if(mea_strcmplower(schema_class, get_token_string_by_id(XPL_CONTROL_ID)) == 0 &&
       mea_strcmplower(schema_type, get_token_string_by_id(XPL_BASIC_ID)) == 0)
@@ -389,12 +389,12 @@ int16_t interface_type_005_xPL_callback(xPL_ServicePtr theService, xPL_MessagePt
       char *request = xPL_getNamedValue(ListNomsValeursPtr, get_token_string_by_id(XPL_REQUEST_ID));
       if(!request)
       {
-         VERBOSE(5) mea_log_printf("%s (%s) : xPL message no request\n",INFO_STR,__func__);
+         VERBOSE(5) mea_log_printf("%s (%s) : xPL message no request\n", INFO_STR, __func__);
          return -1;
       }
       if(mea_strcmplower(request,get_token_string_by_id(XPL_CURRENT_ID))!=0 && mea_strcmplower(request,get_token_string_by_id(XPL_LAST_ID))!=0)
       {
-         VERBOSE(5) mea_log_printf("%s (%s) : xPL message request!=current or request!=last\n",INFO_STR,__func__);
+         VERBOSE(5) mea_log_printf("%s (%s) : xPL message request!=current or request!=last\n", INFO_STR, __func__);
          return -1;
       }
 
@@ -751,15 +751,19 @@ void *_thread_interface_type_005(void *thread_data)
          ret=netatmo_get_token(client_id, client_secret, i005->user, i005->password, "read_thermostat write_thermostat", &(i005->token), err, sizeof(err)-1);
          if(ret!=0)
          {
-            fprintf(MEA_STDERR, "Authentification error : ");
-            if(ret<0)
-               fprintf(MEA_STDERR, "%d\n", ret);
-            else
-               fprintf(MEA_STDERR, "%s (%d)\n", err, ret);
+            VERBOSE(5) {
+               mea_log_printf("%s (%s) : Authentification error - ", ERROR_STR, __func__);
+               if(ret<0)
+                  fprintf(MEA_STDERR, "%d\n", ret);
+               else
+                  fprintf(MEA_STDERR, "%s (%d)\n", err, ret);
+            }
          }
          else
          {
-            fprintf(MEA_STDERR, "Authentification done : %s\n", i005->token.access);
+            VERBOSE(9) {
+               mea_log_printf("%s (%s) : Authentification done - %s\n", INFO_STR, __func__, i005->token.access);
+            }
           
             auth_flag=1;
             mea_init_timer(&refresh_timer,(int)((float)i005->token.expire_in*0.95), 0);
@@ -771,7 +775,9 @@ void *_thread_interface_type_005(void *thread_data)
          ret=netatmo_refresh_token(client_id, client_secret, &(i005->token), err, sizeof(err)-1);
          if(ret!=0)
          {
-            fprintf(MEA_STDERR, "Authentification error : ");
+            VERBOSE(9) {
+               mea_log_printf("%s (%s) : Authentification error\n", INFO_STR, __func__);
+            }
             auth_flag=0;
             continue;
          }
@@ -857,7 +863,6 @@ interface_type_005_t *malloc_and_init_interface_type_005(sqlite3 *sqlite3_param_
 {
    interface_type_005_t *i005=NULL;
    
-//   i005=(interface_type_005_t *)malloc(sizeof(interface_type_005_t));
    i005=(interface_type_005_t *)calloc(1, sizeof(interface_type_005_t));
    if(!i005)
    {
@@ -956,7 +961,7 @@ int stop_interface_type_005(int my_id, void *data, char *errmsg, int l_errmsg)
    
    struct interface_type_005_start_stop_params_s *start_stop_params=(struct interface_type_005_start_stop_params_s *)data;
    
-   VERBOSE(1) mea_log_printf("%s  (%s) : %s shutdown thread ...\n", INFO_STR, __func__, start_stop_params->i005->name);
+   VERBOSE(1) mea_log_printf("%s (%s) : %s shutdown thread ...\n", INFO_STR, __func__, start_stop_params->i005->name);
    
    start_stop_params->i005->xPL_callback=NULL;
    
@@ -1058,7 +1063,7 @@ int start_interface_type_005(int my_id, void *data, char *errmsg, int l_errmsg)
 
    pthread_detach(*interface_type_005_thread_id);
  
-   VERBOSE(2) mea_log_printf("%s  (%s) : %s %s.\n", INFO_STR, __func__, start_stop_params->i005->name, launched_successfully_str);
+   VERBOSE(2) mea_log_printf("%s (%s) : %s %s.\n", INFO_STR, __func__, start_stop_params->i005->name, launched_successfully_str);
    mea_notify_printf('S', "%s %s", start_stop_params->i005->name, launched_successfully_str);
  
    return 0;

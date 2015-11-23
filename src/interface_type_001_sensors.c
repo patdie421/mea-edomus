@@ -207,7 +207,7 @@ int16_t interface_type_001_sensors_process_traps(int16_t numTrap, char *data, in
          sprintf(value,"high");
       }
       
-      VERBOSE(9) mea_log_printf("%s  (%s) : sensor %s = %s\n",INFO_STR,__func__,sensor->name,value);
+      VERBOSE(9) mea_log_printf("%s (%s) : sensor %s = %s\n", INFO_STR, __func__, sensor->name, value);
       
       xPL_setSchema(sensorMessageStat, get_token_string_by_id(XPL_SENSOR_ID), get_token_string_by_id(XPL_BASIC_ID));
       xPL_setMessageNamedValue(sensorMessageStat, get_token_string_by_id(XPL_DEVICE_ID),sensor->name);
@@ -481,7 +481,7 @@ mea_error_t interface_type_001_sensors_process_xpl_msg(interface_type_001_t *i00
          
          if(send_xpl_flag)
          {
-            VERBOSE(9) mea_log_printf("%s  (%s) : sensor %s = %s\n",INFO_STR,__func__,sensor->name,value);
+            VERBOSE(9) mea_log_printf("%s (%s) : sensor %s = %s\n", INFO_STR, __func__, sensor->name, value);
             xPL_MessagePtr sensorMessageStat = xPL_createBroadcastMessage(theService, xPL_MESSAGE_STATUS) ;
             xPL_setBroadcastMessage(sensorMessageStat, FALSE);
 
@@ -566,17 +566,17 @@ int16_t interface_type_001_sensors_poll_inputs(interface_type_001_t *i001)
                   
                if(sensor->compute==XPL_TEMP_ID)
                {
-                  VERBOSE(9) mea_log_printf("%s  (%s) : temperature sensor %s =  %.1f °C (%d) \n",INFO_STR,__func__,sensor->name,sensor->computed_val,sensor->val);
+                  VERBOSE(9) mea_log_printf("%s (%s) : temperature sensor %s =  %.1f °C (%d) \n", INFO_STR, __func__, sensor->name, sensor->computed_val, sensor->val);
                   unit = UNIT_C;
                }
                else if(sensor->compute==XPL_VOLTAGE_ID)
                {
-                  VERBOSE(9) mea_log_printf("%s  (%s) : voltage sensor %s =  %.1f V (%d) \n",INFO_STR,__func__,sensor->name,sensor->computed_val,sensor->val);
+                  VERBOSE(9) mea_log_printf("%s (%s) : voltage sensor %s =  %.1f V (%d) \n", INFO_STR, __func__, sensor->name, sensor->computed_val, sensor->val);
                   unit = UNIT_V;
                }
                else
                {
-                  VERBOSE(9) mea_log_printf("%s  (%s) : raw sensor %s = %d\n",INFO_STR,__func__,sensor->name,sensor->val);
+                  VERBOSE(9) mea_log_printf("%s (%s) : raw sensor %s = %d\n", INFO_STR, __func__, sensor->name, sensor->val);
                }
                   
                char str_value[20];

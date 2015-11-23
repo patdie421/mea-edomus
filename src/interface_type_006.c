@@ -73,11 +73,44 @@ struct genericserial_thread_params_s
    sqlite3              *param_db;
    PyThreadState        *mainThreadState;
    PyThreadState        *myThreadState;
-   parsed_parameters_t  *plugin_params;
-   int                   nb_plugin_params;
    sqlite3_stmt         *stmt;
+   PyObject /* *pName, */ *pModule, *pFunc, *pParams;
    interface_type_006_t *i006;
 };
+
+
+int interface_type_006_data_pre(PyThreadState *myThreadState, struct genericserial_thread_params_s *params, void *data, int l_data)
+{
+   int retour=-1;
+   if(params->pFunc)
+   {
+      PyEval_AcquireLock();
+      PyThreadState *tempState = PyThreadState_Swap(myThreadState);
+
+      PyObject *aDict=PyDict_New();
+      if(aDict)
+      {
+         PyObject *value = PyByteArray_FromStringAndSize((char *)data, l_data);
+         PyDict_SetItemString(aDict, "data", value);
+         Py_DECREF(value);
+         mea_addLong_to_pydict(aDict, "l_data", (long)l_data);
+
+         mea_addLong_to_pydict(aDict, INTERFACE_ID_STR_C, params->i006->id_interface);
+
+         if(params->pParams)
+            PyDict_SetItemString(aDict, "plugin_paramters", params->pParams);
+
+         retour=mea_call_python_function2(params->pFunc, aDict);
+
+         Py_DECREF(aDict);
+      }
+
+      PyThreadState_Swap(tempState);
+      PyEval_ReleaseLock();
+   }
+
+   return retour;
+}
 
 
 int interface_type_006_data_to_plugin(PyThreadState *myThreadState, sqlite3_stmt * stmt, int data_type, void *data, int l_data)
@@ -188,7 +221,6 @@ int16_t _interface_type_006_xPL_callback(xPL_ServicePtr theService, xPL_MessageP
    sqlite3_stmt * stmt;
    
    sprintf(sql,"%s WHERE lower(sensors_actuators.name)='%s' and sensors_actuators.state='1';", sql_select_device_info, device);
-   fprintf(stderr,"%s\n",sql);
    ret = sqlite3_prepare_v2(params_db, sql, strlen(sql)+1, &stmt, NULL);
    if(ret)
    {
@@ -273,15 +305,54 @@ void *_thread_interface_type_006_genericserial_data_cleanup(void *args)
    if(params->myThreadState)
    {
       PyEval_AcquireLock();
+
+      PyThreadState *tempState = PyThreadState_Swap(params->myThreadState);
+
+      if(params->pFunc)
+      {
+         Py_XDECREF(params->pFunc);
+         params->pFunc=NULL;
+      } 
+      if(params->pModule)
+      {
+         Py_XDECREF(params->pModule);
+         params->pModule=NULL;
+      }
+      if(params->pParams)
+      {
+         Py_XDECREF(params->pParams);
+         params->pParams=NULL;
+      }
+
+      PyThreadState_Swap(tempState);
+
       PyThreadState_Clear(params->myThreadState);
       PyThreadState_Delete(params->myThreadState);
       PyEval_ReleaseLock();
+
       params->myThreadState=NULL;
    }
-   
-   if(params->plugin_params)
-      release_parsed_parameters(&(params->plugin_params));
-   
+   else
+   {
+      python_lock();
+      if(params->pFunc)
+      {
+         Py_XDECREF(params->pFunc);
+         params->pFunc=NULL;
+      }
+      if(params->pModule)
+      {
+         Py_XDECREF(params->pModule);
+         params->pModule=NULL;
+      }
+      if(params->pParams)
+      {
+         Py_XDECREF(params->pParams);
+         params->pParams=NULL;
+      }
+      python_unlock();
+   }
+      
    if(params->stmt)
    {
       sqlite3_finalize(params->stmt);
@@ -309,8 +380,6 @@ void *_thread_interface_type_006_genericserial_data(void *args)
    
    sqlite3 *params_db=params->param_db;
    
-   params->plugin_params=NULL;
-   params->nb_plugin_params=0;
    params->stmt=NULL;
    
    // on se met un context python sous le coude pour ce thread
@@ -411,60 +480,58 @@ void *_thread_interface_type_006_genericserial_data(void *args)
 
          if(buffer_ptr>0)
          {
-            fprintf(stderr,"%s\n",buffer);
             params->i006->indicators.serialin+=buffer_ptr;
-         
             buffer[buffer_ptr]=0;
 
-            // ajouter ici le transfert des données vers le plugin de l'interface s'il existe
+            // ajouter ici le transfert des données vers le plugin de l'interface s'il existe pour la validation des données
 
-            // transmettre buffer aux plugins
-            char sql_request[1024];
-            sqlite3_stmt * stmt;
+            int ret=interface_type_006_data_pre(params->myThreadState, params, (void *)buffer, buffer_ptr+1);
+            if(ret!=0)
+            {
+               // transmettre buffer aux plugins
+               char sql_request[1024];
+               sqlite3_stmt * stmt;
 
-            sprintf(sql_request, "SELECT sensors_actuators.id_sensor_actuator, sensors_actuators.id_location, sensors_actuators.state, sensors_actuators.parameters, sensors_actuators.id_type, lower(sensors_actuators.name), sensors_actuators.todbflag, sensors_actuators.id_interface FROM sensors_actuators WHERE id_interface=%d and sensors_actuators.state='1'", params->i006->id_interface);
+               sprintf(sql_request, "SELECT sensors_actuators.id_sensor_actuator, sensors_actuators.id_location, sensors_actuators.state, sensors_actuators.parameters, sensors_actuators.id_type, lower(sensors_actuators.name), sensors_actuators.todbflag, sensors_actuators.id_interface FROM sensors_actuators WHERE id_interface=%d and sensors_actuators.state='1'", params->i006->id_interface);
             
-            int ret = sqlite3_prepare_v2(params_db, sql_request, strlen(sql_request)+1, &stmt, NULL);
-            if(ret)
-            {
-               VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (params_db));
-            }
-            else
-            {
-               while(1)
+               int ret = sqlite3_prepare_v2(params_db, sql_request, strlen(sql_request)+1, &stmt, NULL);
+               if(ret)
                {
-                  int s=sqlite3_step(stmt);
+                  VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (params_db));
+               }
+               else
+               {
+                  while(1)
+                  {
+                     int s=sqlite3_step(stmt);
                   
-                  if(s==SQLITE_ROW)
-                  {
-//                     for(int i=0;i<buffer_ptr;i++) fprintf(stderr,"%d:[%03d-%02x-%c] ", i, (unsigned char)buffer[i], (unsigned char)buffer[i], buffer[i]); fprintf(stderr,"\n");
-
-                     int ret=interface_type_006_data_to_plugin(params->myThreadState, stmt, GENERICSERIALDATA, (void *)buffer, buffer_ptr+1);
-                     if(ret<0)
+                     if(s==SQLITE_ROW)
                      {
-                        fprintf(stderr,"ERROR\n");
+//                        for(int i=0;i<buffer_ptr;i++) fprintf(stderr,"%d:[%03d-%02x-%c] ", i, (unsigned char)buffer[i], (unsigned char)buffer[i], buffer[i]); fprintf(stderr,"\n");
+                        int ret=interface_type_006_data_to_plugin(params->myThreadState, stmt, GENERICSERIALDATA, (void *)buffer, buffer_ptr+1);
+                        if(ret<0)
+                        {
+                           VERBOSE(5) mea_log_printf("%s (%s) : can't send to plugin\n", ERROR_STR, __func__);
+                        }
                      }
-                  }
-                  else if (s==SQLITE_DONE) 
-                  {
-                     sqlite3_finalize(stmt);
-                     break; 
-                  }
-                  else 
-                  {
-                     fprintf(stderr,"ERREUR\n");
-                     // traitement d'erreur à faire ici 
-                     sqlite3_finalize(stmt);
+                     else if (s==SQLITE_DONE) 
+                     {
+                        sqlite3_finalize(stmt);
+                        break; 
+                     }
+                     else 
+                     {
+                        // traitement d'erreur à faire ici 
+                        sqlite3_finalize(stmt);
+                     }
                   }
                }
             }
-
-            buffer_ptr=0;
+            else
+            {
+            }
          }
-         else
-         {
-         }
-
+         buffer_ptr=0;
          pthread_testcancel();
       }
       else
@@ -492,7 +559,7 @@ _thread_interface_type_006_genericserial_data_clean_exit:
 }
 
 
-pthread_t *start_interface_type_006_genericserial_data_thread(interface_type_006_t *i006, sqlite3 *db, thread_f function)
+pthread_t *start_interface_type_006_genericserial_data_thread(interface_type_006_t *i006, sqlite3 *db,  parsed_parameters_t *interface_parameters, thread_f function)
 {
    pthread_t *thread=NULL;
    struct genericserial_thread_params_s *params=NULL;
@@ -512,6 +579,38 @@ pthread_t *start_interface_type_006_genericserial_data_thread(interface_type_006
    params->i006=(void *)i006;
    params->mainThreadState = NULL;
    params->myThreadState = NULL;
+
+   PyObject *pName=NULL, *pModule=NULL, *pFunc=NULL;
+
+   // recherche pré-traitement du plugin
+   python_lock(); // attention python_lock / python_unlock définissent un block ({ }) les variables déclérées restent locales au bloc
+   pName = PyString_FromString(interface_parameters->parameters[GENERICSERIAL_PLUGIN_PARAMS_PLUGIN].value.s);
+   pModule =  PyImport_Import(pName);
+   Py_XDECREF(pName);
+   pName=NULL;
+   if(pModule)
+   {
+      pFunc = PyObject_GetAttrString(pModule, "mea_pre");
+      if(pFunc && PyCallable_Check(pFunc))
+      {
+         params->pModule=pModule;
+         params->pFunc=pFunc;
+         if(interface_parameters->parameters[GENERICSERIAL_PLUGIN_PARAMS_PARAMETERS].value.s)
+            params->pParams=PyString_FromString(interface_parameters->parameters[GENERICSERIAL_PLUGIN_PARAMS_PARAMETERS].value.s);
+         else
+            params->pParams=NULL;
+      }
+      else
+      {
+         VERBOSE(5) mea_log_printf("%s (%s) : no mea_pre\n", ERROR_STR, __func__);
+         if(pFunc)
+           Py_XDECREF(pFunc);
+         Py_XDECREF(pModule);
+         pFunc=NULL;
+         pModule=NULL;
+      }
+   }
+   python_unlock();
 
    thread=(pthread_t *)malloc(sizeof(pthread_t));
    if(!thread)
@@ -640,7 +739,7 @@ int stop_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg)
 
    struct interface_type_006_data_s *start_stop_params=(struct interface_type_006_data_s *)data;
 
-   VERBOSE(1) mea_log_printf("%s  (%s) : %s shutdown thread ...\n", INFO_STR, __func__, start_stop_params->i006->name);
+   VERBOSE(1) mea_log_printf("%s (%s) : %s shutdown thread ...\n", INFO_STR, __func__, start_stop_params->i006->name);
 
    if(start_stop_params->i006->xPL_callback_data)
    {
@@ -652,7 +751,6 @@ int stop_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg)
    {
       start_stop_params->i006->xPL_callback=NULL;
    }
-   
 
    if(start_stop_params->i006->thread)
    {
@@ -677,7 +775,7 @@ int stop_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg)
       free(start_stop_params->i006->thread);
       start_stop_params->i006->thread=NULL;
    }
-   
+ 
    mea_notify_printf('S', "%s %s", start_stop_params->i006->name, stopped_successfully_str);
 
    return 0;
@@ -735,40 +833,36 @@ int start_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg)
    strncpy(start_stop_params->i006->real_dev, dev, sizeof( start_stop_params->i006->real_dev)-1);
    start_stop_params->i006->real_speed=speed;
 
-
    interface_parameters=alloc_parsed_parameters(start_stop_params->i006->parameters, valid_genericserial_plugin_params, &interface_nb_parameters, &err, 0);
    if(!interface_parameters || !interface_parameters->parameters[GENERICSERIAL_PLUGIN_PARAMS_PLUGIN].value.s)
    {
       if(interface_parameters)
       {
          // pas de plugin spécifié
-         free(interface_parameters);
+         release_parsed_parameters(&interface_parameters);
          interface_parameters=NULL;
-         VERBOSE(9) mea_log_printf("%s  (%s) : no python plugin specified\n", INFO_STR, __func__);
+         VERBOSE(9) mea_log_printf("%s (%s) : no python plugin specified\n", INFO_STR, __func__);
       }
       else
          VERBOSE(5) mea_log_printf("%s (%s) : invalid or no python plugin parameters (%s)\n", ERROR_STR, __func__, start_stop_params->i006->parameters);
    }
    else
    {
-      python_lock();
+      // execution de l'init du plugin
+      PyObject *pName=NULL, *pModule=NULL, *pFunc=NULL;
 
+      python_lock(); // attention python_lock / python_unlock définissent un block ({ }) les variables déclérées restent locales au bloc
       PyObject *plugin_params_dict=PyDict_New();
       mea_addLong_to_pydict(plugin_params_dict, INTERFACE_ID_STR_C, start_stop_params->i006->id_interface);
-      
+
       if(interface_parameters->parameters[GENERICSERIAL_PLUGIN_PARAMS_PARAMETERS].value.s)
          mea_addString_to_pydict(plugin_params_dict, INTERFACE_PARAMETERS_STR_C, interface_parameters->parameters[GENERICSERIAL_PLUGIN_PARAMS_PARAMETERS].value.s);
       
-      mea_call_python_function(interface_parameters->parameters[GENERICSERIAL_PLUGIN_PARAMS_PLUGIN].value.s, "mea_init", plugin_params_dict);
-      
+      int ret=mea_call_python_function(interface_parameters->parameters[GENERICSERIAL_PLUGIN_PARAMS_PLUGIN].value.s, "mea_init", plugin_params_dict);
       Py_DECREF(plugin_params_dict);
-      
       python_unlock();
 
-      if(interface_parameters)
-         release_parsed_parameters(&interface_parameters);
    }
-
 
    // données pour les callbacks xpl
    xpl_callback_params=(struct genericserial_callback_xpl_data_s *)malloc(sizeof(struct genericserial_callback_xpl_data_s));
@@ -784,14 +878,15 @@ int start_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg)
    xpl_callback_params->param_db=start_stop_params->sqlite3_param_db;
    xpl_callback_params->mainThreadState=NULL;
    xpl_callback_params->myThreadState=NULL;
+
    start_stop_params->i006->xPL_callback_data=xpl_callback_params;
    start_stop_params->i006->xPL_callback=_interface_type_006_xPL_callback;
 
-   start_stop_params->i006->thread=start_interface_type_006_genericserial_data_thread(start_stop_params->i006, start_stop_params->sqlite3_param_db, (thread_f)_thread_interface_type_006_genericserial_data);
+   start_stop_params->i006->thread=start_interface_type_006_genericserial_data_thread(start_stop_params->i006, start_stop_params->sqlite3_param_db, interface_parameters, (thread_f)_thread_interface_type_006_genericserial_data);
    
    if(start_stop_params->i006->thread!=0)
    {
-      VERBOSE(2) mea_log_printf("%s  (%s) : %s %s.\n", INFO_STR, __func__,start_stop_params->i006->name, launched_successfully_str);
+      VERBOSE(2) mea_log_printf("%s (%s) : %s %s.\n", INFO_STR, __func__,start_stop_params->i006->name, launched_successfully_str);
       mea_notify_printf('S', "%s %s", start_stop_params->i006->name, launched_successfully_str);
       return 0;
    }

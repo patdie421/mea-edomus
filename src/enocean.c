@@ -870,11 +870,11 @@ uint16_t enocean_get_local_addr(enocean_ed_t *ed, uint32_t *addr, int16_t *nerr)
    if(enocean_send_packet(ed, request, ptr, response, &l_response, nerr)!=-1)
    {
       VERBOSE(5) {
-         mea_log_printf("%s  ENOCEAN_RD_VERSION : Description  = %s\n",INFO_STR,&response[23]);
-         mea_log_printf("%s  ENOCEAN_RD_VERSION : Version APP  = %02d, %02d, %02d, %02d\n",INFO_STR,response[7],response[8],response[9],response[10]);
-         mea_log_printf("%s  ENOCEAN_RD_VERSION : Version API  = %02d, %02d, %02d, %02d\n",INFO_STR,response[11],response[12],response[13],response[14]);
-         mea_log_printf("%s  ENOCEAN_RD_VERSION : Chip ID      = %02x-%02x-%02x-%02x\n",INFO_STR,response[15],response[16],response[17],response[18]);
-         mea_log_printf("%s  ENOCEAN_RD_VERSION : Chip Version = %02d, %02d, %02d, %02d\n",INFO_STR,response[19],response[20],response[21],response[22]);
+         mea_log_printf("%s ENOCEAN_RD_VERSION : Description  = %s\n",INFO_STR,&response[23]);
+         mea_log_printf("%s ENOCEAN_RD_VERSION : Version APP  = %02d, %02d, %02d, %02d\n",INFO_STR,response[7],response[8],response[9],response[10]);
+         mea_log_printf("%s ENOCEAN_RD_VERSION : Version API  = %02d, %02d, %02d, %02d\n",INFO_STR,response[11],response[12],response[13],response[14]);
+         mea_log_printf("%s ENOCEAN_RD_VERSION : Chip ID      = %02x-%02x-%02x-%02x\n",INFO_STR,response[15],response[16],response[17],response[18]);
+         mea_log_printf("%s ENOCEAN_RD_VERSION : Chip Version = %02d, %02d, %02d, %02d\n",INFO_STR,response[19],response[20],response[21],response[22]);
       }
 
       *addr = _enocean_calc_addr(response[15],response[16],response[17],response[18]);
@@ -928,7 +928,7 @@ int _enocean_reopen(enocean_ed_t *ed)
 
    strncpy(dev, ed->serial_dev_name, sizeof(dev));
    
-   VERBOSE(9) mea_log_printf("%s  (%s) : try to reset communication (%s).\n",INFO_STR,__func__,dev);
+   VERBOSE(9) mea_log_printf("%s (%s) : try to reset communication (%s).\n",INFO_STR,__func__,dev);
    
    close(ed->fd);
    
@@ -956,7 +956,7 @@ int _enocean_reopen(enocean_ed_t *ed)
       return -1;
    }
    
-   VERBOSE(5) mea_log_printf("%s  (%s) : communication reset successful.\n",INFO_STR,__func__);
+   VERBOSE(5) mea_log_printf("%s (%s) : communication reset successful.\n",INFO_STR,__func__);
 
    return 0;
 }
@@ -1002,7 +1002,7 @@ void *_enocean_thread(void *args)
    
    enocean_ed_t *ed=(enocean_ed_t *)args;
    
-   VERBOSE(5) mea_log_printf("%s  (%s) : starting enocean read thread %s\n", INFO_STR, __func__, ed->serial_dev_name);
+   VERBOSE(5) mea_log_printf("%s (%s) : starting enocean read thread %s\n", INFO_STR, __func__, ed->serial_dev_name);
    while(1)
    {
       l_packet = sizeof(packet);
