@@ -196,7 +196,8 @@ prog_char alarmoff_str[]   PROGMEM  = { "$$ALARMOFF$$\n" };
 prog_char cmndon_str[]     PROGMEM  = { "$$CMNDON$$\n" };
 prog_char cmndoff_str[]    PROGMEM  = { "$$CMNDOFF$$\n" };
 prog_char sig_str[]        PROGMEM  = { "$$SIG="};
-prog_char dollar_dollar_str PROGMEM = { "$$"};
+prog_char dollar_dollar_str[] PROGMEM = { "$$" };
+prog_char nosignal_str[]   PROGMEM  = { "$$NOSIGNAL$$" };
 
 #ifdef __DEBUG__ > 0
 prog_char lastSMS[]        PROGMEM  = { "LAST SMS: " };
@@ -223,13 +224,27 @@ void printStringFromProgmem(prog_char *s)
 char *trim(char *buffer)
 {
   char *p1=buffer;
+  
+  if(!*p1)
+     return p1;
+     
   while(*p1 && isspace(*p1))
     p1++;
+  
   char *p2=p1;
-  while(*p2 && !isspace(*p2))
+  while(*p2)
     p2++;
-  *p2=0;
 
+  do
+  {
+     p2--;
+     if(isspace(*p2))
+        *p2=0;
+     else
+        break;
+  }
+  while(p2>p1);
+  
   return p1;
 }
 
@@ -954,6 +969,9 @@ int Sim900::readStringTo(char *str, int l_str, char *val, long timeout)
 float Sim900::getSignalQuality()
 {
   int csq=-1;
+  char *resp=NULL;
+  int ret=-1;
+  
   sendATCmnd("+CSQ");
   if(readStringTo(NULL, 0, "+CSQ: ", atTimeout)==0)
   {
@@ -982,6 +1000,9 @@ float Sim900::getSignalQuality()
 int Sim900::connectionStatus()
 {
   int creg=-1;
+  char *resp=NULL;
+  int ret=-1;
+
   sendATCmnd("+CREG?");
   if(readStringTo(NULL, 0, "+CREG: ", atTimeout)==0)
   {
@@ -999,13 +1020,14 @@ int Sim900::connectionStatus()
         i++;
       resp[i]=0;
       creg=atoi(resp);
-   }
-   int ret=waitLines((char **)SIM900_standard_returns, atTimeout);
-   resetInputBuffer();
-   if(ret==0)
-     return creg;
-   else
-     return -1;
+    }
+  } 
+  ret=waitLines((char **)SIM900_standard_returns, atTimeout);
+  resetInputBuffer();
+  if(ret==0)
+    return creg;
+  else
+    return -1;
 }
 
 
@@ -1015,15 +1037,26 @@ int Sim900::connectionCheck()
   
   if(diffMillis(check_timer, millis())>30000)
   {
+    if(smsFlag == 1)
+      return 0;
+
     if(bufferPtr)
       return 0;
  
-    printStringFromProgmem(sig_str);
-    Serial.print(getSignalQuality()); 
-    printStringFromProgmem(dollar_dollar_str);
-    Serial.println("");
+    float signal=getSignalQuality();
+    if(signal>-1.0)
+    {
+       printStringFromProgmem(sig_str);
+       Serial.print(signal); 
+       printStringFromProgmem(dollar_dollar_str);
+       Serial.println("");
+    }
+    else
+    {
+       printStringFromProgmem(nosignal_str);
+    }
      
-    if(connectionCheck!=5)
+    if(connectionStatus() != 5)
       init(); 
 
     check_timer=millis();
@@ -2494,7 +2527,8 @@ void loop()
   
   pinsWatcher();
 
-  sim900.connectionCheck();
+  if(sim900_connected_flag)
+    sim900.connectionCheck();
   
   if(Serial.available())
   {
