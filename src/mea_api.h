@@ -15,6 +15,7 @@
 void mea_api_init();
 void mea_api_release();
 
+/*
 static PyObject *mea_api_getMemory(PyObject *self, PyObject *args);
 
 static PyObject *mea_sendAtCmdAndWaitResp(PyObject *self, PyObject *args);
@@ -31,7 +32,8 @@ static PyObject *mea_addDataToSensorsValuesTable(PyObject *self, PyObject *args)
 
 static PyObject *mea_write(PyObject *self, PyObject *args);
 static PyObject *mea_read(PyObject *self, PyObject *args);
+*/
 
-PyObject *mea_xplMsgToPyDict(xPL_MessagePtr xplMsg);
+//PyObject *mea_xplMsgToPyDict(xPL_MessagePtr xplMsg);
 
 #endif

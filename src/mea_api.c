@@ -25,6 +25,20 @@ PyObject *mea_memory=NULL;
 PyObject *mea_module=NULL;
 
 
+static PyObject *mea_api_getMemory(PyObject *self, PyObject *args);
+static PyObject *mea_sendAtCmdAndWaitResp(PyObject *self, PyObject *args);
+static PyObject *mea_sendAtCmd(PyObject *self, PyObject *args);
+static PyObject *mea_sendEnoceanPacketAndWaitResp(PyObject *self, PyObject *args);
+static PyObject *mea_enoceanCRC(PyObject *self, PyObject *args);
+static PyObject *mea_xplGetVendorID();
+static PyObject *mea_xplGetDeviceID();
+static PyObject *mea_xplGetInstanceID();
+static PyObject *mea_xplSendMsg(PyObject *self, PyObject *args);
+static PyObject *mea_addDataToSensorsValuesTable(PyObject *self, PyObject *args);
+static PyObject *mea_write(PyObject *self, PyObject *args);
+static PyObject *mea_read(PyObject *self, PyObject *args);
+
+
 static PyMethodDef MeaMethods[] = {
    {"getMemory",                    mea_api_getMemory,                METH_VARARGS, "Return a dictionary"},
    {"sendXbeeCmdAndWaitResp",       mea_sendAtCmdAndWaitResp,         METH_VARARGS, "Envoie d'une commande AT et recupere la reponse"},
@@ -42,13 +56,31 @@ static PyMethodDef MeaMethods[] = {
 };
 
 
+void mea_api_init()
+{
+   mea_memory=PyDict_New(); // initialisation de la mémoire
+   
+   mea_module=Py_InitModule("mea", MeaMethods);  
+}
+
+
+void mea_api_release()
+{
+// /!\ a ecrire pour librérer tous le contenu de la memoire partagé ...
+   if(mea_memory)
+      Py_DECREF(mea_memory);
+   if(mea_module)
+      Py_DECREF(mea_module);
+}
+
+
 static PyObject *mea_api_getMemory(PyObject *self, PyObject *args)
 {
    return mea_getMemory(self, args, mea_memory);
 }
 
 
-int16_t _check_todbflag(sqlite3 *db, uint16_t sensor_id)
+static int16_t _check_todbflag(sqlite3 *db, uint16_t sensor_id)
 {
    char sql[255];
    sqlite3_stmt * stmt;
@@ -90,7 +122,7 @@ int16_t _check_todbflag(sqlite3 *db, uint16_t sensor_id)
 }
 
 
-uint32_t _indianConvertion(uint32_t val_x86)
+static uint32_t _indianConvertion(uint32_t val_x86)
 {
    uint32_t val_xbee;
    char *val_x86_ptr;
@@ -107,7 +139,7 @@ uint32_t _indianConvertion(uint32_t val_x86)
 }
 
 
-PyObject *mea_enoceanCRC(PyObject *self, PyObject *args)
+static PyObject *mea_enoceanCRC(PyObject *self, PyObject *args)
 {
    PyObject *arg;
 
@@ -141,7 +173,7 @@ mea_enoceanCRC_arg_err:
 }
 
 
-PyObject *mea_sendEnoceanPacketAndWaitResp(PyObject *self, PyObject *args)
+static PyObject *mea_sendEnoceanPacketAndWaitResp(PyObject *self, PyObject *args)
 {
    PyObject *arg;
    enocean_ed_t *ed;
@@ -203,7 +235,7 @@ mea_sendEnoceanPacketAndWaitResp_arg_err:
    return NULL;
 }
 
-
+/*
 PyObject *mea_xplMsgToPyDict(xPL_MessagePtr xplMsg)
 {
    PyObject *pyXplMsg;
@@ -298,25 +330,7 @@ PyObject *mea_xplMsgToPyDict(xPL_MessagePtr xplMsg)
    
    return pyXplMsg;
 }
-
-
-void mea_api_init()
-{
-   mea_memory=PyDict_New(); // initialisation de la mémoire
-   
-   mea_module=Py_InitModule("mea", MeaMethods);  
-}
-
-
-void mea_api_release()
-{
-// /!\ a ecrire pour librérer tous le contenu de la memoire partagé ...
-   if(mea_memory)
-      Py_DECREF(mea_memory);
-   if(mea_module)
-      Py_DECREF(mea_module);
-}
-
+*/
 
 static PyObject *mea_xplGetVendorID()
 {

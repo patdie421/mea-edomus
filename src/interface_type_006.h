@@ -20,6 +20,7 @@ struct interface_type_006_indicators_s
 {
    uint32_t senttoplugin;
    uint32_t xplin;
+   uint32_t xplout;
    uint32_t serialin;
    uint32_t serialout;
 };

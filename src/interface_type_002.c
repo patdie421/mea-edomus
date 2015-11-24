@@ -36,7 +36,7 @@
 #include "xbee.h"
 #include "serial.h"
 #include "dbServer.h"
-#include "mea_api.h"
+//#include "mea_api.h"
 #include "pythonPluginServer.h"
 #include "python_utils.h"
 
