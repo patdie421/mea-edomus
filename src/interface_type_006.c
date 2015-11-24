@@ -134,6 +134,8 @@ int interface_type_006_data_to_plugin(PyThreadState *myThreadState, sqlite3_stmt
             
       { // appel des fonctions Python => on lock
          PyEval_AcquireLock();
+         pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL); // trop compliquer de traiter avec pthread_cleanup => on interdit les arrêts lors des commandes python
+
          PyThreadState *tempState = PyThreadState_Swap(myThreadState);
                
          plugin_elem->aDict=PyDict_New();
@@ -154,8 +156,8 @@ int interface_type_006_data_to_plugin(PyThreadState *myThreadState, sqlite3_stmt
          mea_addLong_to_pydict(plugin_elem->aDict, get_token_string_by_id(TODBFLAG_ID), sqlite3_column_int(stmt, 6));
          mea_addLong_to_pydict(plugin_elem->aDict, get_token_string_by_id(INTERFACE_ID_ID), sqlite3_column_int(stmt, 7));
 
-         // les datas         
-         PyObject *value = PyByteArray_FromStringAndSize((char *)data, l_data);
+         // les datas
+         PyObject *value = PyByteArray_FromStringAndSize((char *)data, (long)l_data);
          PyDict_SetItemString(plugin_elem->aDict, "data", value);
          Py_DECREF(value);
          mea_addLong_to_pydict(plugin_elem->aDict, "l_data", (long)l_data);
@@ -163,8 +165,9 @@ int interface_type_006_data_to_plugin(PyThreadState *myThreadState, sqlite3_stmt
          // parametres spécifiques
          if(plugin_params->parameters[GENERICSERIAL_PLUGIN_PARAMS_PARAMETERS].value.s)
             mea_addString_to_pydict(plugin_elem->aDict, DEVICE_PARAMETERS_STR_C, plugin_params->parameters[GENERICSERIAL_PLUGIN_PARAMS_PARAMETERS].value.s);
-         
+
          PyThreadState_Swap(tempState);
+         pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL); // on réauthorise les arrêts         
          PyEval_ReleaseLock();
       } // fin appel des fonctions Python
      
@@ -307,7 +310,6 @@ void *_thread_interface_type_006_genericserial_data_cleanup(void *args)
       PyEval_AcquireLock();
 
       PyThreadState *tempState = PyThreadState_Swap(params->myThreadState);
-
       if(params->pFunc)
       {
          Py_XDECREF(params->pFunc);
@@ -323,9 +325,7 @@ void *_thread_interface_type_006_genericserial_data_cleanup(void *args)
          Py_XDECREF(params->pParams);
          params->pParams=NULL;
       }
-
       PyThreadState_Swap(tempState);
-
       PyThreadState_Clear(params->myThreadState);
       PyThreadState_Delete(params->myThreadState);
       PyEval_ReleaseLock();
@@ -438,7 +438,7 @@ void *_thread_interface_type_006_genericserial_data(void *args)
             FD_SET(params->i006->fd, &input_set);
 
             timeout.tv_sec  = 0; // timeout après
-            timeout.tv_usec = 100000; // 100ms
+            timeout.tv_usec = 200000; // 100ms
 
             int ret = select(params->i006->fd+1, &input_set, NULL, NULL, &timeout);
             if (ret <= 0)
@@ -485,6 +485,7 @@ void *_thread_interface_type_006_genericserial_data(void *args)
 
             // ajouter ici le transfert des données vers le plugin de l'interface s'il existe pour la validation des données
 
+            //int ret=1;
             int ret=interface_type_006_data_pre(params->myThreadState, params, (void *)buffer, buffer_ptr+1);
             if(ret!=0)
             {
@@ -861,9 +862,7 @@ int start_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg)
       int ret=mea_call_python_function(interface_parameters->parameters[GENERICSERIAL_PLUGIN_PARAMS_PLUGIN].value.s, "mea_init", plugin_params_dict);
       Py_DECREF(plugin_params_dict);
       python_unlock();
-
    }
-
    // données pour les callbacks xpl
    xpl_callback_params=(struct genericserial_callback_xpl_data_s *)malloc(sizeof(struct genericserial_callback_xpl_data_s));
    if(!xpl_callback_params)
