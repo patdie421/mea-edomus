@@ -57,7 +57,10 @@ def mea_xplCmndMsg(data):
 
 
 def _wordsafter(s, phrase):
-    return s[s.index(phrase)+len(phrase):].split()
+   try:
+      return s[s.index(phrase)+len(phrase):].split()
+   except:
+      return False
 
 
 # +CMT: "+33661665082","","15/11/19,22:57:29+04",145,32,0,0,"+33660003151",145,140
@@ -86,31 +89,35 @@ def mea_getSMS(s):
 # format du SMS que nous devons traiter :
 # Info télésurveillance 13/11/2015 08:40:27 : mise à l'arret via code NATHALIE du clavier ENTREE (zone 1) au 16 RUE JULES GUESDE - ROSNY SOUS
 def _analyseData(s):
-   try:
-      alarm=-1
-      if s.find(u"l'arret") <> -1:
-         alarm=1
-      elif s.find(u"en marche") <> -1:
-         alarm=2
-      else:
-         return(False, 3)
-      date_time = _wordsafter(s, u"surveillance ")
-      if s.find(u"via code" <> -1):
-         code = _wordsafter(s, u"via code ")[0]
+   alarm=-1
+   if s.find(u"l'arret") <> -1:
+      alarm=1
+   elif s.find(u"en marche") <> -1:
+      alarm=2
+   else:
+      return(False, 3)
+
+   date_time = _wordsafter(s, u"surveillance ")
+   if date_time == False:
+      return(False, 4)
+
+   if s.find(u"via code") <> -1:
+      code = _wordsafter(s, u"via code ")[0]
       return (alarm, code, date_time[0], date_time[1])
-   except:
-      return (False, 4)
+   else:
+      return (alarm, False, date_time[0], date_time[1])
 
 
 def mea_serialData(data):
    fn_name=sys._getframe().f_code.co_name
 
+   parameters=False
    try:
        id_sensor=data["device_id"]
        device=data["device_name"]
        serial_data=data["data"]
        l_serial_data=data["l_data"]
-       parameters=data["device_parameters"]
+#       parameters=data["device_parameters"]
    except:
       verbose(2, "ERROR (", fn_name, ") - invalid data")
       return False
@@ -118,9 +125,10 @@ def mea_serialData(data):
    mem=mea.getMemory(id_sensor)
 
    # récupération des paramétres
-   params=mea_utils.parseKeyValueDatasToDictionary(parameters, ",", ":")
+   if parameters <> False:
+      params=mea_utils.parseKeyValueDatasToDictionary(parameters, ",", ":")
 
-   # faire ce qu'il faut ici avec les parametres
+   # faire ce qu'il faut ici avec les parametres ici s'il y en a
 
    # conversion des données si nécessaire
    # récupération des données dans une chaine de caractères unicode
@@ -131,15 +139,15 @@ def mea_serialData(data):
    sms=mea_getSMS(s)
    if sms[0] == False:
       if sms[1] == 1:
-         verbose(2, "ERROR (", fn_name, ") - incomplete SMS data")
+         verbose(9, "ERROR (", fn_name, ") - incomplete SMS data")
       else:
-         verbose(2, "ERROR (", fn_name, ") - not a SMS")
+         verbose(9, "ERROR (", fn_name, ") - not a SMS")
       return False
 
    # analyse des données
    alarm=_analyseData(sms[1])
    if alarm[0] == False:
-      verbose(2, "ERROR (", fn_name, ") - not an EPG SMS")
+      verbose(2, "ERROR (", fn_name, ") - not an EPG SMS : ", alarm[1])
       return False
 
    # stockage des données

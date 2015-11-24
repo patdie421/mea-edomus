@@ -11,10 +11,11 @@
 #include <stdio.h>
 #include <sqlite3.h>
 
-//#include "debug.h"
-//#include "error.h"
+#include "xPL.h"
+
 #include "mea_verbose.h"
 #include "tokens.h"
+#include "tokens_da.h"
 
 
 PyObject *mea_getMemory(PyObject *self, PyObject *args, PyObject *mea_memory)
@@ -48,7 +49,6 @@ PyObject *mea_getMemory(PyObject *self, PyObject *args, PyObject *mea_memory)
          return NULL;
       }
    }
-   
    Py_INCREF(mem);
    
    return mem;
@@ -214,5 +214,101 @@ int mea_call_python_function(char *plugin_name, char *plugin_func, PyObject *plu
    PyErr_Clear();
 
    return retour;
+}
+
+
+PyObject *mea_xplMsgToPyDict(xPL_MessagePtr xplMsg)
+{
+   PyObject *pyXplMsg;
+   PyObject *s;
+   PyObject *l;
+   char tmpStr[35]; // chaine temporaire. Taille max pour vendorID(8) + "-"(1) + deviceID(8) + "."(1) + instanceID(16)
+   
+   
+   pyXplMsg = PyDict_New();
+   if(!pyXplMsg)
+   {
+      PyErr_SetString(PyExc_RuntimeError, "ERROR (mea_xplMSgToPyDict) : PyDict_New error");
+      return NULL;
+   }
+   
+   // xplmsg
+   l = PyLong_FromLong(1L);
+   PyDict_SetItemString(pyXplMsg, "xplmsg", l);
+   Py_DECREF(l);
+   
+   // message-type
+   switch(xPL_getMessageType(xplMsg))
+   {
+      case xPL_MESSAGE_COMMAND:
+         s=PyString_FromString("xpl-cmnd");
+         break;
+      case xPL_MESSAGE_STATUS:
+         s= PyString_FromString("xpl-stat");
+         break;
+      case xPL_MESSAGE_TRIGGER:
+         s= PyString_FromString("xpl-trig");
+         break;
+      default:
+         PyErr_SetString(PyExc_RuntimeError, "ERROR (mea_xplMsgSend) : ...");
+         return NULL;
+   }
+   PyDict_SetItemString(pyXplMsg, "message_xpl_type", s);
+   Py_DECREF(s);
+   
+   // hop
+   sprintf(tmpStr,"%d",xPL_getHopCount(xplMsg));
+   s=PyString_FromString(tmpStr);
+   PyDict_SetItemString(pyXplMsg, "hop", s);
+   Py_DECREF(s);
+
+   // source
+   sprintf(tmpStr,"%s-%s.%s", xPL_getSourceVendor(xplMsg), xPL_getSourceDeviceID(xplMsg), xPL_getSourceInstanceID(xplMsg));
+   s=PyString_FromString(tmpStr);
+   PyDict_SetItemString(pyXplMsg, "source", s);
+   Py_DECREF(s);
+
+   if (xPL_isBroadcastMessage(xplMsg))
+   {
+      strcpy(tmpStr,"*");
+   }
+   else
+   {
+      sprintf(tmpStr,"%s-%s.%s", xPL_getTargetVendor(xplMsg), xPL_getTargetDeviceID(xplMsg), xPL_getTargetInstanceID(xplMsg));
+   }
+   s=PyString_FromString(tmpStr);
+   PyDict_SetItemString(pyXplMsg, "target", s);
+   Py_DECREF(s);
+   
+   // schema
+   sprintf(tmpStr,"%s.%s", xPL_getSchemaClass(xplMsg), xPL_getSchemaType(xplMsg));
+   s=PyString_FromString(tmpStr);
+   PyDict_SetItemString(pyXplMsg, "schema", s);
+   Py_DECREF(s);
+   
+   // body
+   PyObject *pyBody=PyDict_New();
+   xPL_NameValueListPtr body = xPL_getMessageBody(xplMsg);
+   int n = xPL_getNamedValueCount(body);
+   for (int16_t i = 0; i < n; i++)
+   {
+      xPL_NameValuePairPtr keyValuePtr = xPL_getNamedValuePairAt(body, i);
+      if (keyValuePtr->itemValue != NULL)
+      {
+         s=PyString_FromString(keyValuePtr->itemValue);
+      }
+      else
+      {
+         s=Py_None;
+         Py_INCREF(s);
+      }
+      PyDict_SetItemString(pyBody, keyValuePtr->itemName, s);
+      Py_DECREF(s);
+   }
+   
+   PyDict_SetItemString(pyXplMsg, "body", pyBody);
+   Py_DECREF(pyBody);
+   
+   return pyXplMsg;
 }
 

@@ -99,7 +99,7 @@ mea_error_t pythonPluginServer_add_cmd(char *module, void *data, int l_data)
    e->data=(char *)malloc(l_data);
    if(!e->data)
       goto exit_pythonPluginServer_add_cmd;
-   memcpy(e->data,data,l_data);
+   memcpy(e->data, data, l_data);
    
    e->l_data=l_data;
    
@@ -405,7 +405,6 @@ void *_pythonPlugin_thread(void *data)
          PyThreadState_Swap(tempState);
          PyEval_ReleaseLock();
          pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
-
 
          if(e)
          {
