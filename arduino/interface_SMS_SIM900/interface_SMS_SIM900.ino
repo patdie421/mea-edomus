@@ -186,22 +186,22 @@
  <à faire><mettre les codes erreurs disponible>
  */
 
-prog_char starting_str[]   PROGMEM  = { "$$STARTING$$\n" };
-prog_char syncok_str[]     PROGMEM  = { "$$SYNCOK$$\n" };
-prog_char syncko_str[]     PROGMEM  = { "$$SYNCKO$$\n" };
-prog_char powerup_str[]    PROGMEM  = { "$$POWERUP$$\n" };
-prog_char powerdown_str[]  PROGMEM  = { "$$POWERDOWN$$\n" };
-prog_char alarmon_str[]    PROGMEM  = { "$$ALARMON$$\n" };
-prog_char alarmoff_str[]   PROGMEM  = { "$$ALARMOFF$$\n" };
-prog_char cmndon_str[]     PROGMEM  = { "$$CMNDON$$\n" };
-prog_char cmndoff_str[]    PROGMEM  = { "$$CMNDOFF$$\n" };
-prog_char sig_str[]        PROGMEM  = { "$$SIG="};
+prog_char starting_str[]      PROGMEM  = { "$$STARTING$$\n" };
+prog_char syncok_str[]        PROGMEM  = { "$$SYNCOK$$\n" };
+prog_char syncko_str[]        PROGMEM  = { "$$SYNCKO$$\n" };
+prog_char powerup_str[]       PROGMEM  = { "$$POWERUP$$\n" };
+prog_char powerdown_str[]     PROGMEM  = { "$$POWERDOWN$$\n" };
+prog_char alarmon_str[]       PROGMEM  = { "$$ALARMON$$\n" };
+prog_char alarmoff_str[]      PROGMEM  = { "$$ALARMOFF$$\n" };
+prog_char cmndon_str[]        PROGMEM  = { "$$CMNDON$$\n" };
+prog_char cmndoff_str[]       PROGMEM  = { "$$CMNDOFF$$\n" };
+prog_char sig_str[]           PROGMEM  = { "$$SIG="};
 prog_char dollar_dollar_str[] PROGMEM = { "$$" };
-prog_char nosignal_str[]   PROGMEM  = { "$$NOSIGNAL$$" };
+prog_char nosignal_str[]      PROGMEM  = { "$$NOSIGNAL$$" };
 
 #ifdef __DEBUG__ > 0
-prog_char lastSMS[]        PROGMEM  = { "LAST SMS: " };
-prog_char unsolicitedMsg[] PROGMEM  = { "CALL UNSOLICITED_MSG CALLBACK\n" };
+prog_char lastSMS[]           PROGMEM  = { "LAST SMS: " };
+prog_char unsolicitedMsg[]    PROGMEM  = { "CALL UNSOLICITED_MSG CALLBACK\n" };
 #endif
 
 void printStringFromProgmem(prog_char *s)
@@ -223,19 +223,18 @@ void printStringFromProgmem(prog_char *s)
 
 char *trim(char *buffer)
 {
-  char *p1=buffer;
-  
-  if(!*p1)
-     return p1;
-     
+  // deplacement du point jusqu'au premier caractère non blanc
+  char *p1=buffer;     
   while(*p1 && isspace(*p1))
     p1++;
   
+  // déplacement jusqu'à la fin de la ligne
   char *p2=p1;
   while(*p2)
     p2++;
 
-  do
+  // retour en arrière tant qu'on a des caractères blancs on remplace par des 0
+  while(p2>p1)
   {
      p2--;
      if(isspace(*p2))
@@ -243,7 +242,6 @@ char *trim(char *buffer)
      else
         break;
   }
-  while(p2>p1);
   
   return p1;
 }
@@ -386,7 +384,7 @@ public:
   };
 
   inline void resetInputBuffer() { bufferPtr=0; };
-
+  inline void resetCheckTimer() { check_timer = millis(); };
   int connectionCheck();
   float getSignalQuality();
   int connectionStatus();
@@ -434,7 +432,6 @@ private:
   int echoTimeout; // echo du caractère du SIM900
   int atTimeout; // timeout d'une commande AT
   int smsTimeout; // timeout de la commande d'envoie d'un SMS
-
   // timer
   unsigned long check_timer;
   
@@ -598,16 +595,17 @@ int Sim900::sendSMS(char *tel, char *text, char isEchoOn)
  *            Utiliser sim900.sync si nécessaire.
  */
 {
-  //  char *prompt="> ";
+  resetCheckTimer();
+    
   if(sendString("AT+CMGS=\"", isEchoOn)<0)
     return -1;
   if(sendString(tel, isEchoOn)<0)
     return -1;
   if(sendChar('"',isEchoOn)<0)
     return -1;
-  //  sendString("\"", isEchoOn);
   if(sendCr(isEchoOn)<0)
     return -1;
+    
   if(waitString((char *)SIM900_smsPrompt, smsTimeout)<0)
     return -1;
 
@@ -615,6 +613,7 @@ int Sim900::sendSMS(char *tel, char *text, char isEchoOn)
     return -1;
   if(sendCr(isEchoOn)<0)
     return -1;
+    
   if(waitString((char *)SIM900_smsPrompt, smsTimeout)<0)
     return -1;
 
@@ -635,6 +634,8 @@ int Sim900::sendSMSFromProgmem(char *tel, prog_char *text, char isEchoOn)
  *            Utiliser sim900.sync si nécessaire.
  */
 {
+  resetCheckTimer();
+    
   //  char *prompt="> ";
   if(sendString("AT+CMGS=\"",isEchoOn)<0)
     return -1;
@@ -642,9 +643,9 @@ int Sim900::sendSMSFromProgmem(char *tel, prog_char *text, char isEchoOn)
     return -1;
   if(sendChar('"',isEchoOn)<0)
     return -1;
-  //  sendString("\"",isEchoOn);
   if(sendCr(isEchoOn)<0)
     return -1;
+
   if(waitString((char *)SIM900_smsPrompt, smsTimeout)<0)
     return -1;
 
@@ -652,6 +653,7 @@ int Sim900::sendSMSFromProgmem(char *tel, prog_char *text, char isEchoOn)
     return -1;
   if(sendCr(isEchoOn)<0)
     return -1;
+
   if(waitString((char *)SIM900_smsPrompt, smsTimeout)<0)
     return -1;
 
@@ -701,6 +703,8 @@ int Sim900::sendATCmnd(char *atCmnd, int isEchoOn)
  *            Utiliser sim900.sync si nécessaire.
  */
 {
+  resetCheckTimer();
+    
   if(sendChar('A', isEchoOn)<0)
     return -1;
   if(sendChar('T', isEchoOn)<0)
@@ -726,7 +730,7 @@ int Sim900::sendString(char *str, int isEchoOn)
  */
 {
   char c;
-
+  
   for(int i=0;str[i];i++)
   {
     if(sendChar(str[i],isEchoOn)<0)
@@ -748,6 +752,7 @@ int Sim900::sendStringFromProgmem(prog_char *str, int isEchoOn)
  */
 {
   int i=0;
+
   while(1)
   {
     char c =  pgm_read_byte_near(str + i);
@@ -1033,16 +1038,15 @@ int Sim900::connectionStatus()
 
 int Sim900::connectionCheck()
 {
+  if(smsFlag == 1)
+      return 0;
+  if(bufferPtr)
+      return 0;
+ 
   int ret=-1;
   
   if(diffMillis(check_timer, millis())>30000)
   {
-    if(smsFlag == 1)
-      return 0;
-
-    if(bufferPtr)
-      return 0;
- 
     float signal=getSignalQuality();
     if(signal>-1.0)
     {
@@ -1243,6 +1247,8 @@ int Sim900::analyseBuffer()
   Serial.println("");   
   Serial.println("----------%");
 */
+  resetCheckTimer(); // on reset le timer si on a des opérations en cours.
+
   if(smsFlag == 1) // une entête SMS à été reçue précédemment.
   {
     int ret = 0;
@@ -2047,12 +2053,13 @@ void sim900_broadcastSMS(char *text)
   unsigned long now = millis();
   if(now==0) now=1; // jusque parceque j'ai besoin du 0.
 
-  if(nb_broadcast_credit>0)
+  Serial.println(nb_broadcast_credit);
+  if(nb_broadcast_credit<=0)
      return;
-
+  
   if(last_broadcast!=0 && diffMillis(last_broadcast, now) < 60000) // pour limiter les broadcasts, max 1 par minute
      return;
-
+  
   last_broadcast=millis();
 
   char num[NUMSIZE];
