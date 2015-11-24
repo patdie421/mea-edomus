@@ -197,7 +197,7 @@ prog_char cmndon_str[]        PROGMEM  = { "$$CMNDON$$\n" };
 prog_char cmndoff_str[]       PROGMEM  = { "$$CMNDOFF$$\n" };
 prog_char sig_str[]           PROGMEM  = { "$$SIG="};
 prog_char dollar_dollar_str[] PROGMEM = { "$$" };
-prog_char nosignal_str[]      PROGMEM  = { "$$NOSIGNAL$$" };
+prog_char nosignal_str[]      PROGMEM  = { "$$NOSIGNAL$$\n" };
 
 #ifdef __DEBUG__ > 0
 prog_char lastSMS[]           PROGMEM  = { "LAST SMS: " };
@@ -244,6 +244,165 @@ char *trim(char *buffer)
   }
   
   return p1;
+}
+
+
+/******************************************************************************/
+//
+// Pulse
+//
+/******************************************************************************/
+#define MAX_PULSES 5
+
+struct pulse_context_s
+{
+   unsigned long prev_millis;
+   unsigned int  duration;
+   unsigned char pin;
+   unsigned char front;
+};
+
+struct pulse_context_s pulses_context_list[MAX_PULSES];
+unsigned char nb_active_pulses;
+
+unsigned char pin_direction(unsigned char pin)
+{
+   unsigned char port;
+   unsigned char output;
+   unsigned char state;
+   unsigned char mask;
+   
+   port=pin / 8;
+   output=pin % 8;
+   mask=1 << output;
+   
+   switch(port)
+   {
+      case 0:
+         state = DDRD & mask;
+         break;
+      case 1:
+         state = DDRB & mask;
+         break;
+      case 2:
+         state = DDRC & mask;
+         break;
+   }
+   if(state>0)
+      return HIGH;
+   else
+      return LOW;
+}
+
+
+void init_pulses()
+{
+   for(int i=0;i<MAX_PULSES;i++)
+      pulses_context_list[i].pin=0;
+   nb_active_pulses=0;
+}
+
+
+int pulseUp(unsigned char pin, unsigned int duration, unsigned char reactivable)
+{
+   // réactivable or not
+   for(int i=0;i<MAX_PULSES;i++)
+   {
+      if(pulses_context_list[i].pin==pin)
+      {
+         if(reactivable==1)
+         {
+            pulses_context_list[i].prev_millis=millis();
+            return 0;
+         }
+         else
+            return -1;
+      }
+   }
+   
+   if(nb_active_pulses==MAX_PULSES)
+      return -1;
+   
+   for(int i=0;i<MAX_PULSES;i++)
+   {
+      if(pulses_context_list[i].pin==0)
+      {
+         digitalWrite(pin,HIGH);
+         // toggle_output_pin(pulses_context_list[i].pin);
+         nb_active_pulses++;
+         pulses_context_list[i].pin=pin;
+         pulses_context_list[i].duration=duration;
+         pulses_context_list[i].prev_millis=millis();
+         pulses_context_list[i].front=1; // pulsation positive
+         break;
+      }
+   }
+}
+
+
+int pulse(unsigned char pin, unsigned int duration, unsigned char reactivable, unsigned char front)
+{
+   // réactivable or not
+   for(int i=0;i<MAX_PULSES;i++)
+   {
+      if(pulses_context_list[i].pin==pin)
+      {
+         if(reactivable==1)
+         {
+            pulses_context_list[i].prev_millis=millis();
+            return 0;
+         }
+         else
+            return -1;
+      }
+   }
+   
+   if(nb_active_pulses==MAX_PULSES)
+      return -1;
+   
+   for(int i=0;i<MAX_PULSES;i++)
+   {
+      if(pulses_context_list[i].pin==0)
+      {
+         if(front)
+            digitalWrite(pin,HIGH);
+         else
+            digitalWrite(pin,LOW);
+
+         nb_active_pulses++;
+         pulses_context_list[i].pin=pin;
+         pulses_context_list[i].duration=duration;
+         pulses_context_list[i].prev_millis=millis();
+         pulses_context_list[i].front=front;
+         break;
+      }
+   }
+}
+
+
+void pulses()
+{
+   if(!nb_active_pulses)
+      return;
+   
+   unsigned long now = millis();
+   
+   for(int i=0;i<MAX_PULSES;i++)
+   {
+      if(pulses_context_list[i].pin!=0)
+      {
+         if( (now - pulses_context_list[i].prev_millis) > pulses_context_list[i].duration)
+         {
+            if(pulses_context_list[i].front==1)
+               digitalWrite(pulses_context_list[i].pin, LOW);
+            else
+               digitalWrite(pulses_context_list[i].pin, HIGH);
+               
+            nb_active_pulses--;
+            pulses_context_list[i].pin=0;
+         }
+      }
+   }
 }
 
 
@@ -595,8 +754,6 @@ int Sim900::sendSMS(char *tel, char *text, char isEchoOn)
  *            Utiliser sim900.sync si nécessaire.
  */
 {
-  resetCheckTimer();
-    
   if(sendString("AT+CMGS=\"", isEchoOn)<0)
     return -1;
   if(sendString(tel, isEchoOn)<0)
@@ -634,9 +791,6 @@ int Sim900::sendSMSFromProgmem(char *tel, prog_char *text, char isEchoOn)
  *            Utiliser sim900.sync si nécessaire.
  */
 {
-  resetCheckTimer();
-    
-  //  char *prompt="> ";
   if(sendString("AT+CMGS=\"",isEchoOn)<0)
     return -1;
   if(sendString(tel,isEchoOn)<0)
@@ -671,6 +825,8 @@ int Sim900::sendSMSFromProgmem(char *tel, prog_char *text, char isEchoOn)
  */
 int Sim900::sendChar(char c, int isEchoOn)
 {
+  resetCheckTimer();
+    
   this->write(c);
   // lecture de l'echo si nécessaire
   if(isEchoOn)
@@ -703,8 +859,6 @@ int Sim900::sendATCmnd(char *atCmnd, int isEchoOn)
  *            Utiliser sim900.sync si nécessaire.
  */
 {
-  resetCheckTimer();
-    
   if(sendChar('A', isEchoOn)<0)
     return -1;
   if(sendChar('T', isEchoOn)<0)
@@ -1045,7 +1199,7 @@ int Sim900::connectionCheck()
  
   int ret=-1;
   
-  if(diffMillis(check_timer, millis())>30000)
+  if(diffMillis(check_timer, millis())>60000)
   {
     float signal=getSignalQuality();
     if(signal>-1.0)
@@ -1082,6 +1236,7 @@ int Sim900::init()
     sendString("AT+CPIN=");
     sendString((char *)pinCode);
     sendCr();
+    delay(100);
     waitLines((char **)SIM900_standard_returns, atTimeout);
   }
 
@@ -1096,15 +1251,11 @@ int Sim900::init()
   sendATCmnd("+CNMI=2,2,0,0,0");
   waitLines((char **)SIM900_standard_returns, atTimeout);
 
-  // pour avoir la longueur dans un retour CMT:
-  sendATCmnd("+CSDH=1");
+  sendATCmnd("+CSDH=1"); // pour avoir la longueur dans un retour CMT:
+  // sendATCmnd("+CSDH=0"); // pour avoir à la reception d'un : +CMT: "+12223334444","","14/05/30,00:13:34-32"
   waitLines((char **)SIM900_standard_returns, atTimeout);
 
-  // sendATCmnd("+CSDH=0"); // pour avoir à la reception d'un : +CMT: "+12223334444","","14/05/30,00:13:34-32"
-  // waitLines((char **)SIM900_standard_returns, atTimeout);
-  resetInputBuffer(); 
-  
-  check_timer=millis();
+  resetInputBuffer();
   
   return 0;
 }
@@ -1186,6 +1337,8 @@ int Sim900::run(unsigned char car)
  * \return    -1 aucun traitement n'a été déclenché, 0 sinon.
  */
 {
+  resetCheckTimer(); // on reset le timer si on a des opérations en cours.
+
   char c=toupper(car);
 
   if(c == 10) // fin de ligne, on la traite
@@ -1247,8 +1400,6 @@ int Sim900::analyseBuffer()
   Serial.println("");   
   Serial.println("----------%");
 */
-  resetCheckTimer(); // on reset le timer si on a des opérations en cours.
-
   if(smsFlag == 1) // une entête SMS à été reçue précédemment.
   {
     int ret = 0;
@@ -1596,7 +1747,13 @@ int addToCmndResults(struct data_s *data, int pin, int cmnd, long value)
 
   int i=*(data->cmndResultsBufferPtr);
 
-  itoa(value, tmpstr, 10);
+  if(value==-2)
+  {
+    tmpstr[0]='P';
+    tmpstr[1]=0;
+  }
+  else
+    itoa(value, tmpstr, 10);
   if(i < (CMNDRESULTSBUFFERSIZE-strlen(tmpstr)-8) )
   {
     if(i!=0)
@@ -1678,7 +1835,7 @@ int errToCmndResult(struct data_s *data, int errno)
 }
 
 
-int sendCmndResults(struct data_s *data)
+int sendCmndResults(int retour, struct data_s *data)
 /**
  * \brief     emet le resultat d'execution vers la ligne Serie ou sous forme d'un SMS.
  * \param     data    données spécifiques au traitement (user data de callback)
@@ -1687,7 +1844,7 @@ int sendCmndResults(struct data_s *data)
 {
   if(data->dest==TO_SIM900) // vers sim900
   {
-    if(sim900.sync(5000)==0)
+    if(retour==0 && sim900.sync(5000)==0)
       sim900.sendSMS((char *)data->lastSMSPhoneNumber, (char *)data->cmndResultsBuffer);
   }
   else
@@ -1718,13 +1875,13 @@ int doCmnd(struct data_s *data, int pin, int cmnd, long value)
 
   if(pin<0 || pin>9)
   {
-    errToCmndResult(data, 11);
+    errToCmndResult(data, 10); // ERRK
     return -1;
   }
 
-  if(value < -1 || value > 0xFFFF)
+  if(value < -2 || value > 0xFFFF)
   {
-    errToCmndResult(data, 11);
+    errToCmndResult(data, 11); // ERRL
     return -1;
   }
 
@@ -1737,6 +1894,18 @@ int doCmnd(struct data_s *data, int pin, int cmnd, long value)
         pinMode(pins[pin],INPUT);
       v=digitalRead(pins[pin]);
       addToCmndResults(data,pin,cmnd,v);
+    }
+    else if(value==-2)
+    { // impulsion
+      if(pin==0 || pin == 3) // lecture seule
+      {
+        errToCmndResult(data, 12);
+        return -1;
+      }
+      pinMode(pins[pin],OUTPUT);
+      digitalWrite(pins[pin],LOW);
+      pulseUp(pins[pin], 500, 0);
+      addToCmndResults(data,pin,cmnd,(int)value);
     }
     else
     {  // positionne état logique sortie
@@ -1811,13 +1980,13 @@ int evalCmndString(char *buffer, void *dataPtr)
 
   if(data->dest==TO_SIM900 && data->lastSMSPhoneNumber[0]==0) // pas de numéro de tel pour la réponse, on fait rien
   {
-    errToCmndResult(data, 1);
+    errToCmndResult(data, 1); // ERRB
     goto evalCmndString_clean_exit;
   }
 
   if(data->dest==TO_SIM900 && numExist((char *)data->lastSMSPhoneNumber)==-1)
   {
-    errToCmndResult(data, 2);
+    errToCmndResult(data, 2); // ERRC
     goto evalCmndString_clean_exit;
   }
 
@@ -1840,7 +2009,7 @@ int evalCmndString(char *buffer, void *dataPtr)
       
       if(!l)
       {
-        errToCmndResult(data, 3);
+        errToCmndResult(data, 3); // ERRD
         goto evalCmndString_clean_exit;
       }
 
@@ -1853,13 +2022,13 @@ int evalCmndString(char *buffer, void *dataPtr)
       }
       else
       {
-        errToCmndResult(data, 4);
+        errToCmndResult(data, 4); // ERRE
         goto evalCmndString_clean_exit;
       }
 
       if(!l)
       {
-        errToCmndResult(data, 4);
+        errToCmndResult(data, 4); // ERRE
         goto evalCmndString_clean_exit;
       }
 
@@ -1876,14 +2045,14 @@ int evalCmndString(char *buffer, void *dataPtr)
       // lecture du séparateur
       if(!l || buffer[ptr]!=',')
       {
-        errToCmndResult(data, 5);
+        errToCmndResult(data, 5); // ERRF
         goto evalCmndString_clean_exit;
       }
       ptr++;
       l--;
       if(!l)
       {
-        errToCmndResult(data, 6);
+        errToCmndResult(data, 6); // ERRG
         goto evalCmndString_clean_exit;
       }
 
@@ -1895,7 +2064,7 @@ int evalCmndString(char *buffer, void *dataPtr)
         cmnd = buffer[ptr];
         break;
       default:
-        errToCmndResult(data, 7);
+        errToCmndResult(data, 7); // ERRH
         goto evalCmndString_clean_exit;
       }
       ptr++;
@@ -1908,17 +2077,21 @@ int evalCmndString(char *buffer, void *dataPtr)
       l--;
       if(!l)
       {
-        errToCmndResult(data, 8);
+        errToCmndResult(data, 8); // ERRI
         goto evalCmndString_clean_exit;
       }
 
       // lecture parametre
-      if(buffer[ptr]=='H' || buffer[ptr]=='L') // High ou Low
+      if(buffer[ptr]=='H' || buffer[ptr]=='L' || buffer[ptr]=='P') // High ou Low
       {
         if(buffer[ptr]=='H')
           valeur=1;
-        else
+        else if(buffer[ptr]=='L')
           valeur=0;
+        else
+        {
+          valeur=-2;
+        }
         ptr++;
         l--;
       }
@@ -1944,7 +2117,7 @@ int evalCmndString(char *buffer, void *dataPtr)
           }
           else
           {
-            errToCmndResult(data, 9);
+            errToCmndResult(data, 9); // ERRJ
             // a tester ...
             for(;;) // on va jusqu'à la fin de la ligne ou au prochain ";"
             {
@@ -1975,8 +2148,7 @@ int evalCmndString(char *buffer, void *dataPtr)
   }
 
 evalCmndString_clean_exit:
-if(retour==0)
-  sendCmndResults(data);
+  sendCmndResults(retour, data);
   
   return retour;
 }
@@ -2053,7 +2225,6 @@ void sim900_broadcastSMS(char *text)
   unsigned long now = millis();
   if(now==0) now=1; // jusque parceque j'ai besoin du 0.
 
-  Serial.println(nb_broadcast_credit);
   if(nb_broadcast_credit<=0)
      return;
   
@@ -2493,7 +2664,9 @@ void setup()
 
     sim900.init(); // préparation "standard" du sim900
 
-    sim900_broadcastSMS("STARTUP"); // information démarrage envoyé par SMS
+    delay(2500);
+
+//    sim900_broadcastSMS("STARTUP"); // information démarrage envoyé par SMS
     nb_broadcast_credit=BCAST_CREDIT;
 
     sim900_connected_flag = 1;
@@ -2517,6 +2690,9 @@ void setup()
   pinMode(PIN_MCU_BYPASS_PROCESSING, INPUT); // selection traitement des données par MCU
   digitalWrite(PIN_MCU_BYPASS_PROCESSING, HIGH); // pullup activé, le MCU traite les données du sim900
 
+  // pour la gestion des impulsions
+  init_pulses();
+  
   // entrée d'alarme
   pinMode(4, INPUT); // detection de tension
   digitalWrite(4, HIGH); // pullup activé
@@ -2530,9 +2706,10 @@ void loop()
   static unsigned long pcin_chrono=0; 
 
   myBlinkLeds.run();
-  digitalWrite(13, myBlinkLeds.getLedState()); // clignotement de la led "activité" (D13) de l'ATmega
-  
+  pulses();
   pinsWatcher();
+
+  digitalWrite(13, myBlinkLeds.getLedState()); // clignotement de la led "activité" (D13) de l'ATmega
 
   if(sim900_connected_flag)
     sim900.connectionCheck();
