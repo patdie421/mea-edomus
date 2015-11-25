@@ -180,9 +180,11 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
       int ret=unlink(str_module_py);
       if(!ret)
       {
-         pModule = PyImport_ReloadModule(pModule);
+         PyObject *m = pModule;
+         pModule = PyImport_ReloadModule(m); // possible fute ici voir l'utilisation de Reload
          if(pModule)
          {
+            Py_XDECREF(m);
             PyDict_SetItem(known_modules, pName, pModule);
          }
          else

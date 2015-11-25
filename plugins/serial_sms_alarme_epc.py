@@ -4,6 +4,7 @@ import re
 import string
 import sys
 import unicodedata
+from datetime import datetime
 
 try:
     import mea
@@ -111,12 +112,15 @@ def _analyseData(s):
 def mea_serialData(data):
    fn_name=sys._getframe().f_code.co_name
 
+   verbose(9, data)
+
    parameters=False
    try:
        id_sensor=data["device_id"]
        device=data["device_name"]
        serial_data=data["data"]
        l_serial_data=data["l_data"]
+       toDbFlag=data["todbflag"]
 #       parameters=data["device_parameters"]
    except:
       verbose(2, "ERROR (", fn_name, ") - invalid data")
@@ -128,7 +132,7 @@ def mea_serialData(data):
    if parameters <> False:
       params=mea_utils.parseKeyValueDatasToDictionary(parameters, ",", ":")
 
-   # faire ce qu'il faut ici avec les parametres ici s'il y en a
+   # faire ce qu'il faut ici avec les parametres
 
    # conversion des données si nécessaire
    # récupération des données dans une chaine de caractères unicode
@@ -139,26 +143,57 @@ def mea_serialData(data):
    sms=mea_getSMS(s)
    if sms[0] == False:
       if sms[1] == 1:
-         verbose(9, "ERROR (", fn_name, ") - incomplete SMS data")
+         verbose(2, "ERROR (", fn_name, ") - incomplete SMS data")
       else:
-         verbose(9, "ERROR (", fn_name, ") - not a SMS")
+         verbose(2, "ERROR (", fn_name, ") - not a SMS")
       return False
 
    # analyse des données
    alarm=_analyseData(sms[1])
    if alarm[0] == False:
-      verbose(2, "ERROR (", fn_name, ") - not an EPG SMS : ", alarm[1])
+      verbose(2, "ERROR (", fn_name, ") - not an EPG message : ", alarm[1])
+      return False
+   verbose(9, alarm)
+
+   # vérification validité
+   try:
+      last_date = datetime.strptime( mem['date']+"-"+ mem['time'], '%d/%m/%Y-%H:%M:%S')
+   except:
+      last_date = datetime.fromtimestamp(0);
+
+   try:
+      current_date = datetime.strptime( alarm[2]+"-"+ alarm[3], '%d/%m/%Y-%H:%M:%S')
+   except:
+      verbose(9, "ERROR (", fn_name, ") - EPG message date and time error : ", alarm[2]+"-"+alarm[3]+" ?")
       return False
 
-   # stockage des données
+   if current_date < last_date:
+      verbose(9, "ERROR (", fn_name, ") - older EPG message than previous received")
+      return False
+
+   now = datetime.now()
+   d = (now - current_date).total_seconds() / 60;
+   verbose (9, d)
+   if d > 15:
+      verbose(9, "ERROR (", fn_name, ") - too old EPG message")
+      return False
+
+   # memorisation des données
    try:
       mem['last']=mem['current']
    except:
       mem['last']=-1
    mem['current']=alarm[0]
-   mem['who']=str(alarm[1])
+
+   if alarm[1]==False:
+      who="";
+   else:
+      who=str(alarm[1])
+   mem['who']=who
    mem['date']=str(alarm[2])
    mem['time']=str(alarm[3])
+
+   mea.addDataToSensorsValuesTable(id_sensor,mem['current'],0,0,who)
 
    # emission XPL
    xplMsg=mea_utils.xplMsgNew('me', "*", "xpl-trig", "sensor", "basic")

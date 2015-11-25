@@ -2,6 +2,7 @@ from sets import Set
 import string
 import re
 import sys
+from datetime import datetime
 
 try:
    import mea
@@ -16,6 +17,10 @@ current_verbose_level=9
 
 def verbose(level, *args):
    if level <= current_verbose_level:
+      sys.stderr.write("[")
+      now = datetime.now()
+      sys.stderr.write(now.strftime('%Y-%m-%d %H:%M:%S'))
+      sys.stderr.write("] ")
       for i in args:
          sys.stderr.write(str(i))
       sys.stderr.write("\n")
@@ -23,7 +28,7 @@ def verbose(level, *args):
 
 
 # retourne True si tous les caracteres sont autorises en tenant compte de
-# dash_allowed et si la longueur est inferieure a max_str_len
+# dash_allowe et si la longueur est inferieure a max_str_len
 def isXplValidCharacters(s, max_str_len, dash_allowed=True):
    if len(s) < 1 or len(s) > max_str_len:
       return False

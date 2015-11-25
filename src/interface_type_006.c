@@ -97,6 +97,7 @@ int interface_type_006_call_data_pre(struct genericserial_thread_params_s *param
          mea_addLong_to_pydict(aDict, "l_data", (long)l_data);
 
          mea_addLong_to_pydict(aDict, INTERFACE_ID_STR_C, params->i006->id_interface);
+         mea_addLong_to_pydict(aDict, "fd", params->i006->fd);
 
          if(params->pParams)
             PyDict_SetItemString(aDict, "plugin_paramters", params->pParams);
@@ -114,7 +115,7 @@ int interface_type_006_call_data_pre(struct genericserial_thread_params_s *param
 }
 
 
-int interface_type_006_data_to_plugin(PyThreadState *myThreadState, sqlite3_stmt * stmt, int data_type, void *data, int l_data)
+int interface_type_006_data_to_plugin(PyThreadState *myThreadState, int fd, sqlite3_stmt * stmt, int data_type, void *data, int l_data)
 {
    parsed_parameters_t *plugin_params=NULL;
    int nb_plugin_params;
@@ -154,6 +155,8 @@ int interface_type_006_data_to_plugin(PyThreadState *myThreadState, sqlite3_stmt
          PyDict_SetItemString(plugin_elem->aDict, "data", value);
          Py_DECREF(value);
          mea_addLong_to_pydict(plugin_elem->aDict, "l_data", (long)l_data);
+
+         mea_addLong_to_pydict(plugin_elem->aDict, "fd", fd);
 
          // parametres spécifiques
          if(plugin_params->parameters[GENERICSERIAL_PLUGIN_PARAMS_PARAMETERS].value.s)
@@ -517,7 +520,7 @@ void *_thread_interface_type_006_genericserial_data(void *args)
                      if(s==SQLITE_ROW)
                      {
 //                        for(int i=0;i<buffer_ptr;i++) fprintf(stderr,"%d:[%03d-%02x-%c] ", i, (unsigned char)buffer[i], (unsigned char)buffer[i], buffer[i]); fprintf(stderr,"\n");
-                        int ret=interface_type_006_data_to_plugin(params->myThreadState, stmt, GENERICSERIALDATA, (void *)buffer, buffer_ptr+1);
+                        int ret=interface_type_006_data_to_plugin(params->myThreadState, params->i006->fd, stmt, GENERICSERIALDATA, (void *)buffer, buffer_ptr+1);
                         if(ret<0)
                         {
                            VERBOSE(5) mea_log_printf("%s (%s) : can't send to plugin\n", ERROR_STR, __func__);
@@ -602,6 +605,10 @@ pthread_t *start_interface_type_006_genericserial_data_thread(interface_type_006
    pName=NULL;
    if(pModule)
    {
+      PyObject *m;
+      m=pModule;
+      pModule=PyImport_ReloadModule(m); // on force le rechargement (c'est pour simplifier)
+      Py_DECREF(m); 
       pFunc = PyObject_GetAttrString(pModule, "mea_pre");
       if(pFunc && PyCallable_Check(pFunc))
       {
