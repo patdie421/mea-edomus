@@ -178,7 +178,7 @@
  - 'L' : nouvelle valeur logique
  - 'A' : nouvelle valeur analogique
  PARAM     parametre de la commande :
- - pour 'L' => H (set high), L (set low)
+ - pour 'L' => H (set high), L (set low), P (Pulse) = pulsation up/down de 250 ms
  - pour 'A' => entier positif
  - pour 'L' et 'A' => 'G' = Get value : lecture d'une valeur
  
@@ -1205,7 +1205,7 @@ int Sim900::connectionCheck()
     if(signal>-1.0)
     {
        printStringFromProgmem(sig_str);
-       Serial.print(signal); 
+       Serial.print(10*(int)(signal/10.0)); 
        printStringFromProgmem(dollar_dollar_str);
        Serial.println("");
     }

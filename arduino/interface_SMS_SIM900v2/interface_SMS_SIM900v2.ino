@@ -566,7 +566,7 @@ public:
   int connectionStatus();
 
   void setPinCode(char *code);
-  int run(unsigned char c);
+  void run();
   int (* read)(void);
   int (* write)(char c);
   int (* available)(void);
@@ -694,8 +694,6 @@ inline int _sim900_flush()
 
 Sim900::Sim900()
 {
-  smsFlag = 0;
-
   bufferPtr = 0;
   buffer[0]=0;
   lastSMSPhoneNumber[0]=0;
@@ -846,7 +844,7 @@ void Sim900::analyse(int c)
   {
      case 0:
        SMSInFlag=1;
-       numTel[0]=0;
+       lastSMSPhoneNumber[0]=0;
        if(c == '+')
          state++;
        break;
@@ -890,6 +888,7 @@ void Sim900::analyse(int c)
        }
        else
          state = -1;
+       break;
      case 7:
        if(c=='"')
        {
@@ -927,48 +926,42 @@ void Sim900::analyse(int c)
        if(isdigit(c))
          msgLen=msgLen*10+(c-'0');
        else
+       {
+         Serial.println("");
+         Serial.println((int)msgLen);
          state++;
+       }
        break;
      
-     // lecture /r/n     
      case 10:
-       state++;
-       break;
-     case 11:
        bufferPtr=0;
        state++;
        break;
-     case 12:
+
+     case 11:
      // lecture message
-       if(msgLen)
+       if(bufferPtr<(sizeof(buffer)-1))
        {
-         Serial.print('[');
-         Serial.print(c);
-         Serail.print(']');
-         if(bufferPtr<(sizeof(buffer)-1))
-            buffer[bufferPtr++]=toupper(c);
-         msgLen--;
+          buffer[bufferPtr++]=toupper(c);
+          msgLen--;
        }
-       else
+       if(!msgLen)
        {
           buffer[bufferPtr]=0;
-          state++;
+          Serial.println("");
+          Serial.print("MESSAGE:");
+          Serial.println((char *)buffer);
+          Serial.print("FROM:");
+          Serial.println((char *)lastSMSPhoneNumber);
+          
+          state=-1;
+          if(SMSCallBack)
+          {
+             char *_buffer=trim((char *)buffer);
+             SMSCallBack((char *)_buffer, userData);
+             bufferPtr=0;
+          }
        }
-       break;
-
-     // lecture /r/n     
-     case 13:
-       state++;
-       break;
-     case 14:
-       // déclenchement traitement ici
-       Serial.println("");
-       if(SMSCallBack)
-       {
-          char *_buffer=trim((char *)buffer);
-          SMSCallBack((char *)_buffer, userData);
-       }
-       state=-1;
        break;
        
      default:
@@ -980,6 +973,7 @@ void Sim900::analyse(int c)
    {
       SMSInFlag=0;
       state=0;
+      nbCar=0;
    }
 }
 
@@ -992,12 +986,12 @@ void Sim900::analyse(int c)
 int Sim900::getChar()
 {
   int c = this->read();
+  
   if(c >= 0)
     resetCheckTimer();
   
   if(MCUAnalyseFlag)
      analyse(c);
-
   return c;
 }
 
@@ -1135,7 +1129,7 @@ unsigned char *Sim900::readLine(char *str, int l_str, long timeout)
       if(c == 10) // fin de ligne trouvée
       {
         str[strPtr]=0;
-        return str;
+        return (unsigned char *)str;
       }
       else if(c == 13)
       {
@@ -1460,8 +1454,6 @@ int Sim900::init()
   sendATCmnd("+CSDH=1"); // pour avoir la longueur dans un retour CMT:
   // sendATCmnd("+CSDH=0"); // pour avoir à la reception d'un : +CMT: "+12223334444","","14/05/30,00:13:34-32"
   waitLines((char **)SIM900_standard_returns, atTimeout);
-
-  resetInputBuffer();
   
   return 0;
 }
@@ -1536,12 +1528,12 @@ void Sim900::run()
  *            }
  */
 {
-  if(Sim900.available())
+  if(this->available())
   {
-     char getChar();
+     char c=(char)getChar();
   }
   
-  return 0;
+  return;
 }
 
 
@@ -1924,7 +1916,7 @@ int errToCmndResult(struct data_s *data, int errno)
 }
 
 
-int sendCmndResults(int retour, struct data_s *data)
+int sendCmndResults(struct data_s *data)
 /**
  * \brief     emet le resultat d'execution vers la ligne Serie ou sous forme d'un SMS.
  * \param     data    données spécifiques au traitement (user data de callback)
@@ -1933,8 +1925,7 @@ int sendCmndResults(int retour, struct data_s *data)
 {
   if(data->dest==TO_SIM900) // vers sim900
   {
-    if(retour==0 && sim900.sync(5000)==0)
-      sim900.sendSMS((char *)data->lastSMSPhoneNumber, (char *)data->cmndResultsBuffer);
+    sim900.sendSMS((char *)data->lastSMSPhoneNumber, (char *)data->cmndResultsBuffer);
   }
   else
   {
@@ -2021,9 +2012,16 @@ int doCmnd(struct data_s *data, int pin, int cmnd, long value)
         errToCmndResult(data, 12); // ERRM (read only pin)
         return -1;
       }
+      
+      if(value<10 && value>32000)
+      {
+        errToCmndResult(data, 15); // ERRM (value error)
+        return -1;
+      }
+      
       pinMode(pins[pin],OUTPUT);
-      pulseUp(pins[pin],(int value), 0);
       digitalWrite(pins[pin], 0);
+      pulseUp(pins[pin],(int)value, 0);
       addToCmndResults(data,pin,cmnd,(int)value);
       break;
   default:
@@ -2233,7 +2231,7 @@ int evalCmndString(char *buffer, void *dataPtr)
   }
 
 evalCmndString_clean_exit:
-  sendCmndResults(retour, data);
+  sendCmndResults(data);
   
   return retour;
 }
@@ -2805,7 +2803,9 @@ void loop()
     sim900.connectionCheck();
   
   if(sim900_connected_flag)
+  {
     sim900.run();
+  }
     
   if(Serial.available())
   {

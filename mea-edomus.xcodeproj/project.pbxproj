@@ -142,7 +142,7 @@
 		4E00963F1BFBE7E40003C62D /* interface_type_006.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = interface_type_006.h; path = src/interface_type_006.h; sourceTree = "<group>"; };
 		4E0096411BFCFFC70003C62D /* serial.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = serial.c; path = src/serial.c; sourceTree = "<group>"; };
 		4E0096421BFCFFC70003C62D /* serial.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = serial.h; path = src/serial.h; sourceTree = "<group>"; };
-		4E015C881BFB81FE008E9A2B /* interface_SMS_SIM900.ino */ = {isa = PBXFileReference; lastKnownFileType = text; name = interface_SMS_SIM900.ino; path = interface_SMS_SIM900/interface_SMS_SIM900.ino; sourceTree = "<group>"; };
+		4E015C881BFB81FE008E9A2B /* interface_SMS_SIM900.ino */ = {isa = PBXFileReference; explicitFileType = sourcecode.c; name = interface_SMS_SIM900.ino; path = interface_SMS_SIM900/interface_SMS_SIM900.ino; sourceTree = "<group>"; };
 		4E09454C17C10FA6003749FE /* init.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = init.h; path = src/init.h; sourceTree = "<group>"; };
 		4E09454D17C10FB2003749FE /* init.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = init.c; path = src/init.c; sourceTree = "<group>"; };
 		4E1496FA163F290200E08E6D /* sample_params_data.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = sample_params_data.sql; path = sql/sample_params_data.sql; sourceTree = "<group>"; };
@@ -163,6 +163,7 @@
 		4E3AF2361A5AB35100723560 /* indicateurs-view.php */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.php; path = "indicateurs-view.php"; sourceTree = "<group>"; };
 		4E3AF2371A5AB44500723560 /* services-view.php */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.php; path = "services-view.php"; sourceTree = "<group>"; };
 		4E3B804E1BFF902D00757EF8 /* serial_sms_alarme_epc.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = serial_sms_alarme_epc.py; path = plugins/serial_sms_alarme_epc.py; sourceTree = "<group>"; };
+		4E3B804F1C063F8A00757EF8 /* interface_SMS_SIM900v2.ino */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = interface_SMS_SIM900v2.ino; path = interface_SMS_SIM900v2/interface_SMS_SIM900v2.ino; sourceTree = "<group>"; };
 		4E3F341D19F80BA40066A9CC /* __init__.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = __init__.py; sourceTree = "<group>"; };
 		4E3F341E19F80BA40066A9CC /* pyparsing.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = pyparsing.py; sourceTree = "<group>"; };
 		4E3F341F19F80BA40066A9CC /* settings.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = settings.py; sourceTree = "<group>"; };
@@ -5447,6 +5448,7 @@
 		4EC421A71A12747200D94204 /* arduino */ = {
 			isa = PBXGroup;
 			children = (
+				4E3B804F1C063F8A00757EF8 /* interface_SMS_SIM900v2.ino */,
 				4E015C881BFB81FE008E9A2B /* interface_SMS_SIM900.ino */,
 				4EC421A81A12747300D94204 /* interface_type_001 */,
 				4EC421AA1A12747300D94204 /* interface_type_002 */,
