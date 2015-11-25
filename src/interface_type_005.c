@@ -478,10 +478,10 @@ int load_interface_type_005(interface_type_005_t *i005, sqlite3 *db)
          const unsigned char *parameters=sqlite3_column_text(stmt, 7);
          int todbflag=sqlite3_column_int(stmt, 9);
 
-         netatmo_sa_params=alloc_parsed_parameters((char *)parameters, valid_netatmo_sa_params, &nb_netatmo_sa_params, &nerr, 0); // les deux parametres sont obligatoires
+         netatmo_sa_params=alloc_parsed_parameters((char *)parameters, valid_netatmo_sa_params, &nb_netatmo_sa_params, &nerr, 0);
          if(netatmo_sa_params &&
             netatmo_sa_params->parameters[PARAMS_DEVICE_ID].value.s &&
-            netatmo_sa_params->parameters[PARAMS_MODULE_ID].value.s)
+            netatmo_sa_params->parameters[PARAMS_MODULE_ID].value.s) // les deux parametres sont obligatoires
          {
             char *device_id=netatmo_sa_params->parameters[PARAMS_DEVICE_ID].value.s;
             char *module_id=netatmo_sa_params->parameters[PARAMS_MODULE_ID].value.s;
@@ -515,7 +515,7 @@ int load_interface_type_005(interface_type_005_t *i005, sqlite3 *db)
             }
  
             mea_queue_first(&(d_elem->modules_list));
-            for(int i=0; i<d_elem->modules_list.nb_elem; i++) // on cherche le module est déjà associé au device
+            for(int i=0; i<d_elem->modules_list.nb_elem; i++) // on cherche si le module est déjà associé au device
             {
                mea_queue_current(&(d_elem->modules_list), (void **)&m_elem);
                if(strcmp(m_elem->module_id, module_id)==0)
@@ -526,7 +526,6 @@ int load_interface_type_005(interface_type_005_t *i005, sqlite3 *db)
             }
             if(m_elem==NULL) // pas encore associé on le créé
             {
-               //fprintf(stderr,"creation module\n");
                m_elem=(struct type005_module_queue_elem_s *)malloc(sizeof(struct type005_module_queue_elem_s));
                if(m_elem==NULL)
                {
@@ -630,7 +629,7 @@ int load_interface_type_005(interface_type_005_t *i005, sqlite3 *db)
             }
             else
             {
-               VERBOSE(2) mea_log_printf("%s (%s) : %s, configuration error - incorrect (INPUT ou OUPUT only allowed) type\n", ERROR_STR,__func__, name);
+               VERBOSE(2) mea_log_printf("%s (%s) : %s, configuration error - incorrect (INPUT or OUPUT only allowed) type\n", ERROR_STR,__func__, name);
                goto load_interface_type_005_clean_queues;
             }
 
@@ -714,16 +713,22 @@ void set_interface_type_005_isnt_running(void *data)
 void *_thread_interface_type_005(void *thread_data)
 {
    struct thread_interface_type_005_args_s *args = (struct thread_interface_type_005_args_s *)thread_data;
-   
-   interface_type_005_t *i005=args->i005;
-  
+   interface_type_005_t *i005=NULL;
+
+   if(thread_data)
+   {   
+      i005=args->i005;
+      free(thread_data);
+   } 
+   else
+      return NULL; 
    // récupérer ici les données nécessaires
  
-   free(thread_data);
    
    pthread_cleanup_push( (void *)set_interface_type_005_isnt_running, (void *)i005 );
    i005->thread_is_running=1;
 
+   // à récupérer dans un fichier de config ou dans les parametres de l'interface
    char *client_id="563e5ce3cce37c07407522f2";
    char *client_secret="lE1CUF1k3TxxSceiPpmIGY8QXJWIeXJv0tjbTRproMy4";
 
@@ -791,6 +796,7 @@ void *_thread_interface_type_005(void *thread_data)
       if(auth_flag!=0 && mea_test_timer(&getdata_timer)==0)
       {
          struct type005_device_queue_elem_s *d_elem;
+
          mea_queue_first(&(i005->devices_list));
          for(int i=0;i<i005->devices_list.nb_elem;i++)
          {
@@ -808,7 +814,7 @@ void *_thread_interface_type_005(void *thread_data)
                {
                   (i005->indicators.nbread)++;
                   struct netatmo_thermostat_data_s *tmp;
-               // switch des espaces de données last et current 
+               // switch les espaces de données last et current 
                   tmp=m_elem->last;
                   m_elem->last=m_elem->current;
                   m_elem->current=tmp;

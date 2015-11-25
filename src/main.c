@@ -23,6 +23,8 @@
 #include <sys/wait.h>
 #include <sqlite3.h>
 
+#include <mcheck.h>
+
 #include "globals.h"
 #include "macros.h"
 #include "mea_queue.h"
@@ -374,7 +376,9 @@ int main(int argc, const char * argv[])
  */
 {
    int ret; // sqlite function need int
-   
+  
+//   mtrace();
+ 
    // toutes les options possibles
    static struct option long_options[] = {
       {"init",              no_argument,       0,  'i'                  },
