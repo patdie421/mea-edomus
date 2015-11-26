@@ -521,7 +521,8 @@ public:
   };
 
   int sendCr(int isEchoOn) {
-    return sendChar('\r',isEchoOn); 
+    return sendChar('\r',isEchoOn) | sendChar('\n', isEchoOn);
+//    return sendChar('\r',isEchoOn); 
   };
   inline int sendCr() {
     return sendCr(echoOnOff); 
@@ -768,6 +769,8 @@ int Sim900::sendSMS(char *tel, char *text, char isEchoOn)
  *            Utiliser sim900.sync si nécessaire.
  */
 {
+  if(sendATCmnd("", isEchoOn)<0)
+    return -1;
   if(sendString("AT+CMGS=\"", isEchoOn)<0)
     return -1;
   if(sendString(tel, isEchoOn)<0)
@@ -805,6 +808,8 @@ int Sim900::sendSMSFromProgmem(char *tel, prog_char *text, char isEchoOn)
  *            Utiliser sim900.sync si nécessaire.
  */
 {
+  if(sendATCmnd("", isEchoOn)<0)
+    return -1;
   if(sendString("AT+CMGS=\"",isEchoOn)<0)
     return -1;
   if(sendString(tel,isEchoOn)<0)
@@ -1916,20 +1921,22 @@ int errToCmndResult(struct data_s *data, int errno)
 }
 
 
-int sendCmndResults(struct data_s *data)
+int sendCmndResults(int retour, struct data_s *data)
 /**
  * \brief     emet le resultat d'execution vers la ligne Serie ou sous forme d'un SMS.
  * \param     data    données spécifiques au traitement (user data de callback)
  * \return    toujours 0
  */
 {
-  if(data->dest==TO_SIM900) // vers sim900
+  if(data->dest==TO_SIM900 && retour != -2) // vers sim900
   {
     sim900.sendSMS((char *)data->lastSMSPhoneNumber, (char *)data->cmndResultsBuffer);
   }
   else
   {
-    Serial.println((char *)data->cmndResultsBuffer);
+    Serial.print("$$");
+    Serial.print((char *)data->cmndResultsBuffer);
+    Serial.println("$$");
   }
   
   data->cmndResultsBuffer[0]=0;
@@ -2053,7 +2060,7 @@ int evalCmndString(char *buffer, void *dataPtr)
  * PIN 1 PWM à 10
  * lecture PIN 4
  * Le résultat de la commande sera :
- * DONE;DONE;PIN4=234
+ * <>
  * \param     buffer    pointeur sur la ligne de commande à analyser
  * \param     dataPtr   données spécifiques au traitement (user data de callback)
  * \return    -1 une erreur c'est produite, le traitement n'a pas été jusqu'au bout mais certaine
@@ -2066,13 +2073,15 @@ int evalCmndString(char *buffer, void *dataPtr)
 
   if(data->dest==TO_SIM900 && data->lastSMSPhoneNumber[0]==0) // pas de numéro de tel pour la réponse, on fait rien
   {
-    errToCmndResult(data, 1); // ERRB
+    errToCmndResult(data, 0); // ERRA : no expeditor
+    retour = -2;
     goto evalCmndString_clean_exit;
   }
 
   if(data->dest==TO_SIM900 && numExist((char *)data->lastSMSPhoneNumber)==-1)
   {
-    errToCmndResult(data, 2); // ERRC
+    errToCmndResult(data, 1); // ERRB : expeditor unknown
+    retour = -2;
     goto evalCmndString_clean_exit;
   }
 
@@ -2095,7 +2104,7 @@ int evalCmndString(char *buffer, void *dataPtr)
       
       if(!l)
       {
-        errToCmndResult(data, 3); // ERRD
+        errToCmndResult(data, 2); // ERRC : cmd size error
         goto evalCmndString_clean_exit;
       }
 
@@ -2108,13 +2117,13 @@ int evalCmndString(char *buffer, void *dataPtr)
       }
       else
       {
-        errToCmndResult(data, 4); // ERRE
+        errToCmndResult(data, 3); // ERRD : incorrect pin number
         goto evalCmndString_clean_exit;
       }
 
       if(!l)
       {
-        errToCmndResult(data, 4); // ERRE
+        errToCmndResult(data, 4); // ERRE : cmd size error 
         goto evalCmndString_clean_exit;
       }
 
@@ -2131,14 +2140,14 @@ int evalCmndString(char *buffer, void *dataPtr)
       // lecture du séparateur
       if(!l || buffer[ptr]!=',')
       {
-        errToCmndResult(data, 5); // ERRF
+        errToCmndResult(data, 5); // ERRF : syntax error (bad separator)
         goto evalCmndString_clean_exit;
       }
       ptr++;
       l--;
       if(!l)
       {
-        errToCmndResult(data, 6); // ERRG
+        errToCmndResult(data, 6); // ERRG : cmd size error
         goto evalCmndString_clean_exit;
       }
 
@@ -2152,7 +2161,6 @@ int evalCmndString(char *buffer, void *dataPtr)
         break;
       default:
         errToCmndResult(data, 7); // ERRH
-        goto evalCmndString_clean_exit;
       }
       ptr++;
       l--;
@@ -2231,8 +2239,9 @@ int evalCmndString(char *buffer, void *dataPtr)
   }
 
 evalCmndString_clean_exit:
-  sendCmndResults(data);
-  
+  sendCmndResults(retour, data);
+  if(retour<-1)
+    retour=-2;
   return retour;
 }
 

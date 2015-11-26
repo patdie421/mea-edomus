@@ -205,7 +205,7 @@ int16_t _interface_type_006_xPL_callback(xPL_ServicePtr theService, xPL_MessageP
    char *device;
    int ret;
    int err;
-   
+  
    interface_type_006_t *interface=(interface_type_006_t *)userValue;
    struct genericserial_callback_xpl_data_s *params=(struct genericserial_callback_xpl_data_s *)interface->xPL_callback_data;
    

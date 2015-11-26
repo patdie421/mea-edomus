@@ -157,6 +157,13 @@ int mea_socket_read(int *s, char *message, int l_message, int t)
 }
 
 
+void *_free(void *r)
+{
+   if(r)
+      free(r);
+}
+
+
 char *httpRequest(uint8_t type, char *server, int port, char *url, char *data, uint32_t l_data, char *response, uint32_t *l_response, int16_t *nerr)
 {
    static char *httpMethodes[]={"GET","POST","PUT","DELETE"};
@@ -168,7 +175,9 @@ char *httpRequest(uint8_t type, char *server, int port, char *url, char *data, u
    
    // creation de la requete
    char *requete = NULL;
-   
+
+   pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
+
    if(type==HTTP_GET || type==HTTP_DELETE)
    {
       requete = (char *)malloc( (strlen(sprintf_get_delete_template) - 6) + strlen(httpMethodes[type]) + strlen(url) + strlen(server) + 1 );
@@ -195,7 +204,7 @@ char *httpRequest(uint8_t type, char *server, int port, char *url, char *data, u
          }
          goto httpRequest_clean_exit;
       }
-      sprintf(requete,sprintf_put_post_template, httpMethodes[type], url, server, l_data);
+      sprintf(requete, sprintf_put_post_template, httpMethodes[type], url, server, l_data);
    }
    else
    {
@@ -205,6 +214,11 @@ char *httpRequest(uint8_t type, char *server, int port, char *url, char *data, u
       }
       goto httpRequest_clean_exit;
    }
+
+   pthread_cleanup_push( (void *)_free, (void *)requete );
+
+   pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+   pthread_testcancel();
 
    if(mea_socket_connect(&sockfd, server, port)<0)
    {
@@ -321,7 +335,9 @@ char *httpRequest(uint8_t type, char *server, int port, char *url, char *data, u
    if(ptr)
       ptr+=4;
    return ptr; // on retourne 1 pointeur sur la zone de données de la requete http
-   
+  
+   pthread_cleanup_pop(1);
+
 httpRequest_clean_exit:
    if(sockfd)
    {
