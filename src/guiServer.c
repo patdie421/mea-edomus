@@ -22,8 +22,6 @@
 
 #include "globals.h"
 #include "consts.h"
-//#include "debug.h"
-//#include "error.h"
 #include "mea_verbose.h"
 #include "guiServer.h"
 #include "mongoose.h"
@@ -580,7 +578,8 @@ static int _begin_request_handler(struct mg_connection *conn)
 
 int stop_httpServer()
 {
-   mg_stop(g_mongooseContext);
+   if(g_mongooseContext)
+      mg_stop(g_mongooseContext);
    
    return 0;
 }

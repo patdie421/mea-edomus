@@ -1113,7 +1113,7 @@ int stop_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
       pthread_cancel(*(start_stop_params->i002->thread));
       
       int counter=100;
-      int stopped=-1;
+//      int stopped=-1;
       while(counter--)
       {
          if(start_stop_params->i002->thread_is_running)
@@ -1122,7 +1122,7 @@ int stop_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
          }
          else
          {
-            stopped=0;
+//            stopped=0;
             break;
          }
       }

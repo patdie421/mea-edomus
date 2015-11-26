@@ -516,7 +516,7 @@ int16_t interface_type_001_sensors_poll_inputs(interface_type_001_t *i001)
    struct sensor_s *sensor;
 
    int16_t comio2_err;
-   int unit;
+   int unit=0;
 
    mea_queue_first(sensors_list);
    for(int16_t i=0; i<sensors_list->nb_elem; i++)

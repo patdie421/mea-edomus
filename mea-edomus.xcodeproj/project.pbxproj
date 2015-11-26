@@ -164,6 +164,7 @@
 		4E3AF2371A5AB44500723560 /* services-view.php */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.php; path = "services-view.php"; sourceTree = "<group>"; };
 		4E3B804E1BFF902D00757EF8 /* serial_sms_alarme_epc.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = serial_sms_alarme_epc.py; path = plugins/serial_sms_alarme_epc.py; sourceTree = "<group>"; };
 		4E3B804F1C063F8A00757EF8 /* interface_SMS_SIM900v2.ino */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = interface_SMS_SIM900v2.ino; path = interface_SMS_SIM900v2/interface_SMS_SIM900v2.ino; sourceTree = "<group>"; };
+		4E3B80501C0790B000757EF8 /* mea_serial.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = mea_serial.py; path = plugins/mea_serial.py; sourceTree = "<group>"; };
 		4E3F341D19F80BA40066A9CC /* __init__.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = __init__.py; sourceTree = "<group>"; };
 		4E3F341E19F80BA40066A9CC /* pyparsing.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = pyparsing.py; sourceTree = "<group>"; };
 		4E3F341F19F80BA40066A9CC /* settings.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = settings.py; sourceTree = "<group>"; };
@@ -1746,6 +1747,15 @@
 			name = locations;
 			sourceTree = "<group>";
 		};
+		4E3B80511C07942600757EF8 /* Interface_type_006 */ = {
+			isa = PBXGroup;
+			children = (
+				4E00963E1BFBE7E40003C62D /* interface_type_006.c */,
+				4E00963F1BFBE7E40003C62D /* interface_type_006.h */,
+			);
+			name = Interface_type_006;
+			sourceTree = "<group>";
+		};
 		4E3F341B19F80BA40066A9CC /* mea-xPLHub */ = {
 			isa = PBXGroup;
 			children = (
@@ -1993,6 +2003,7 @@
 		4E48119F19C37C46001C5F48 /* plugins */ = {
 			isa = PBXGroup;
 			children = (
+				4E3B80501C0790B000757EF8 /* mea_serial.py */,
 				4E3B804E1BFF902D00757EF8 /* serial_sms_alarme_epc.py */,
 				4E4292A41AB22FBA00E64F4F /* enocean_f6-02-01_xplonoff.py */,
 				4E4811A219C37D43001C5F48 /* mea_simulation.py */,
@@ -2059,8 +2070,7 @@
 		4E4D4E7E1601F1510008C14C /* Interfaces manager */ = {
 			isa = PBXGroup;
 			children = (
-				4E00963E1BFBE7E40003C62D /* interface_type_006.c */,
-				4E00963F1BFBE7E40003C62D /* interface_type_006.h */,
+				4E3B80511C07942600757EF8 /* Interface_type_006 */,
 				4E4ED05A1668186300820EF8 /* Interface_type_001 */,
 				4E4ED05B1668188400820EF8 /* Interface_type_002 */,
 				4E4F87771A98D24F00479945 /* Interface_type_003 */,

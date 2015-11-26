@@ -724,7 +724,7 @@ void *dbServer_thread(void *args)
    int ret;
    int nb=-1;
    
-   time_t last_time = time(NULL);
+   time_t last_time = 0;
    
    _md->db=NULL; // descritpteur SQLITE
    _md->conn=NULL; // descripteur com. MYSQL
@@ -900,7 +900,7 @@ int stop_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
       {
          pthread_cancel(_md->thread);
          int counter=500; // 5 secondes environ
-         int stopped=-1;
+//         int stopped=-1;
          while(counter--)
          {
             if(_dbServer_thread_is_running)
@@ -909,7 +909,7 @@ int stop_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
             }
             else
             {
-               stopped=0;
+//               stopped=0;
                break;
             }
             DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, fin après %d itération (%d)\n",DEBUG_STR, __func__,500-counter,(int)(time(NULL)-now));

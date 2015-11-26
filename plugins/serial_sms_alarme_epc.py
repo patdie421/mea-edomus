@@ -21,7 +21,7 @@ debug=0
 
 
 def mea_xplCmndMsg(data):
-   fn_name=sys._getframe().f_code.co_name
+   fn_name=str(sys._getframe().f_code.co_name) + "/" + __name__
 
    # récupération des données xpl
    try:
@@ -34,7 +34,7 @@ def mea_xplCmndMsg(data):
    try:
       id_sensor=data["device_id"]
    except:
-      verbose(2, "ERROR - (mea_xplCmndMsg) : no device id")
+      verbose(2, "ERROR - (", fn_name, ") : no device id")
       return False
    mem=mea.getMemory(id_sensor)
 
@@ -46,7 +46,7 @@ def mea_xplCmndMsg(data):
       try:
          value=mem[body['request']]
       except:
-         verbose(2, "ERROR - (mea_xplCmndMsg) : ", body['request'], " data not found")
+         verbose(2, "ERROR - (", fn_name, ") : ", body['request'], " data not found")
          return False
 
 #      xplMsg=mea_utils.xplMsgNew('me', target, "xpl-stat", "sensor", "basic")
@@ -110,7 +110,7 @@ def _analyseData(s):
 
 
 def mea_serialData(data):
-   fn_name=sys._getframe().f_code.co_name
+   fn_name=str(sys._getframe().f_code.co_name) + "/" + __name__
 
    verbose(9, data)
 

@@ -87,7 +87,7 @@ int _notify( char *hostname, int port, char *notif_str, char notif_type)
 int mea_notify_printf(int notif_type, char const* fmt, ...)
 {
    char notif_str[256];
-   int l_notif;
+//   int l_notif;
    
    if(_notify_enable==0)
       return 0;
@@ -95,7 +95,8 @@ int mea_notify_printf(int notif_type, char const* fmt, ...)
    va_list args;
    va_start(args, fmt);
    
-   l_notif = vsnprintf(notif_str, sizeof(notif_str), fmt, args);
+//   l_notif = vsnprintf(notif_str, sizeof(notif_str), fmt, args);
+   vsnprintf(notif_str, sizeof(notif_str), fmt, args);
    
    va_end(args);
 

@@ -161,6 +161,7 @@ void *_free(void *r)
 {
    if(r)
       free(r);
+   return NULL;
 }
 
 

@@ -898,6 +898,12 @@ static PyObject *mea_read(PyObject *self, PyObject *args)
    int ret=read(fd, data, l_data);
    if(ret<0)
    {
+      if(data)
+      {
+         free(data);
+         data=NULL;
+      }
+      
       PyErr_SetString(PyExc_RuntimeError, strerror(errno));
       return NULL;
    }

@@ -15,7 +15,7 @@ from mea_utils import verbose
 
 def mea_xplCmndMsg(data):
 
-   fn_name=str(sys._getframe().f_code.co_name)+"/"+__name__
+   fn_name=str(sys._getframe().f_code.co_name) + "/" + __name__
 
    try:
       id_actuator=data["device_id"]

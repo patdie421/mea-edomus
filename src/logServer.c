@@ -507,7 +507,7 @@ int stop_logServer(int my_id, void *data, char *errmsg, int l_errmsg)
    {
       pthread_cancel(*_logServer_thread);
       int counter=100;
-      int stopped=-1;
+//      int stopped=-1;
       while(counter--)
       {
         if(_logServer_thread_is_running)
@@ -516,7 +516,7 @@ int stop_logServer(int my_id, void *data, char *errmsg, int l_errmsg)
         }
         else
         {
-           stopped=0;
+//           stopped=0;
            break;
         }
       }

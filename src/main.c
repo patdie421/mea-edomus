@@ -23,8 +23,6 @@
 #include <sys/wait.h>
 #include <sqlite3.h>
 
-#include <mcheck.h>
-
 #include "globals.h"
 #include "macros.h"
 #include "mea_queue.h"

@@ -121,12 +121,13 @@ int interface_type_006_data_to_plugin(PyThreadState *myThreadState, int fd, sqli
    int nb_plugin_params;
    int err;
    int retour=-1;
+   plugin_queue_elem_t *plugin_elem = NULL;
 
    plugin_params=alloc_parsed_parameters((char *)sqlite3_column_text(stmt, 3), valid_genericserial_plugin_params, &nb_plugin_params, &err, 0);
    if(!plugin_params || !plugin_params->parameters[GENERICSERIAL_PLUGIN_PARAMS_PLUGIN].value.s)
       goto interface_type_006_data_to_plugin_clean_exit;
 
-   plugin_queue_elem_t *plugin_elem = (plugin_queue_elem_t *)malloc(sizeof(plugin_queue_elem_t));
+   plugin_elem = (plugin_queue_elem_t *)malloc(sizeof(plugin_queue_elem_t));
    if(plugin_elem)
    {
       plugin_elem->type_elem=data_type;
@@ -546,7 +547,7 @@ void *_thread_interface_type_006_genericserial_data(void *args)
             {
             }
          }
-         buffer_ptr=0;
+//         buffer_ptr=0;
          pthread_testcancel();
       }
       else
@@ -602,6 +603,8 @@ pthread_t *start_interface_type_006_genericserial_data_thread(interface_type_006
    PyObject *pName=NULL, *pModule=NULL, *pFunc=NULL;
 
    python_lock(); // attention python_lock / python_unlock définissent un block ({ }) les variables déclérées restent locales au bloc
+   if(interface_parameters && interface_parameters->parameters[GENERICSERIAL_PLUGIN_PARAMS_PLUGIN].value.s)
+   {
    pName = PyString_FromString(interface_parameters->parameters[GENERICSERIAL_PLUGIN_PARAMS_PLUGIN].value.s);
    pModule =  PyImport_Import(pName);
    Py_XDECREF(pName);
@@ -631,6 +634,7 @@ pthread_t *start_interface_type_006_genericserial_data_thread(interface_type_006
          pFunc=NULL;
          pModule=NULL;
       }
+   }
    }
    python_unlock();
 
@@ -780,7 +784,7 @@ int stop_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg)
       pthread_cancel(*(start_stop_params->i006->thread));
       
       int counter=100;
-      int stopped=-1;
+//      int stopped=-1;
       while(counter--)
       {
          if(start_stop_params->i006->thread_is_running)
@@ -789,7 +793,7 @@ int stop_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg)
          }
          else
          {
-            stopped=0;
+//            stopped=0;
             break;
          }
       }
@@ -873,7 +877,7 @@ int start_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg)
    else
    {
       // execution de l'init du plugin
-      PyObject *pName=NULL, *pModule=NULL, *pFunc=NULL;
+//      PyObject *pName=NULL, *pModule=NULL, *pFunc=NULL;
 
       python_lock(); // attention python_lock / python_unlock définissent un block ({ }) les variables déclérées restent locales au bloc
       PyObject *plugin_params_dict=PyDict_New();

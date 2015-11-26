@@ -527,7 +527,7 @@ int stop_pythonPluginServer(int my_id, void *data, char *errmsg, int l_errmsg)
    {
       pthread_cancel(*_pythonPluginServer_thread_id);
       int counter=100;
-      int stopped=-1;
+//      int stopped=-1;
       while(counter--)
       {
          if(_pythonPluginServer_thread_is_running)
@@ -536,7 +536,7 @@ int stop_pythonPluginServer(int my_id, void *data, char *errmsg, int l_errmsg)
          }
          else
          {
-            stopped=0;
+//            stopped=0;
             break;
          }
       }

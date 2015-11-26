@@ -769,8 +769,10 @@ int Sim900::sendSMS(char *tel, char *text, char isEchoOn)
  *            Utiliser sim900.sync si nécessaire.
  */
 {
-  if(sendATCmnd("", isEchoOn)<0)
-    return -1;
+//  if(sendATCmnd("", isEchoOn)<0)
+//    return -1;
+//  if(waitString((char *)SIM900_standard_returns, smsTimeout)<0)
+//    return -1;
   if(sendString("AT+CMGS=\"", isEchoOn)<0)
     return -1;
   if(sendString(tel, isEchoOn)<0)
@@ -779,18 +781,14 @@ int Sim900::sendSMS(char *tel, char *text, char isEchoOn)
     return -1;
   if(sendCr(isEchoOn)<0)
     return -1;
-    
   if(waitString((char *)SIM900_smsPrompt, smsTimeout)<0)
     return -1;
-
   if(sendString(text, isEchoOn)<0)
     return -1;
   if(sendCr(isEchoOn)<0)
     return -1;
-    
   if(waitString((char *)SIM900_smsPrompt, smsTimeout)<0)
     return -1;
-
   if(sendChar(26,isEchoOn)<0) // CTRL-Z
     return -1; 
 
@@ -810,6 +808,8 @@ int Sim900::sendSMSFromProgmem(char *tel, prog_char *text, char isEchoOn)
 {
   if(sendATCmnd("", isEchoOn)<0)
     return -1;
+  if(waitString((char *)SIM900_standard_returns, smsTimeout)<0)
+    return -1;
   if(sendString("AT+CMGS=\"",isEchoOn)<0)
     return -1;
   if(sendString(tel,isEchoOn)<0)
@@ -818,18 +818,14 @@ int Sim900::sendSMSFromProgmem(char *tel, prog_char *text, char isEchoOn)
     return -1;
   if(sendCr(isEchoOn)<0)
     return -1;
-
   if(waitString((char *)SIM900_smsPrompt, smsTimeout)<0)
     return -1;
-
   if(sendStringFromProgmem(text,isEchoOn)<0)
     return -1;
   if(sendCr(isEchoOn)<0)
     return -1;
-
   if(waitString((char *)SIM900_smsPrompt, smsTimeout)<0)
     return -1;
-
   if(sendChar(26,isEchoOn)<0) // CTRL-Z
     return -1;
 }
@@ -932,8 +928,6 @@ void Sim900::analyse(int c)
          msgLen=msgLen*10+(c-'0');
        else
        {
-         Serial.println("");
-         Serial.println((int)msgLen);
          state++;
        }
        break;
@@ -953,12 +947,13 @@ void Sim900::analyse(int c)
        if(!msgLen)
        {
           buffer[bufferPtr]=0;
+/*
           Serial.println("");
           Serial.print("MESSAGE:");
           Serial.println((char *)buffer);
           Serial.print("FROM:");
           Serial.println((char *)lastSMSPhoneNumber);
-          
+*/          
           state=-1;
           if(SMSCallBack)
           {
@@ -1928,7 +1923,13 @@ int sendCmndResults(int retour, struct data_s *data)
  * \return    toujours 0
  */
 {
-  if(data->dest==TO_SIM900 && retour != -2) // vers sim900
+  Serial.println("");
+  Serial.print("retour=");
+  Serial.println(retour);
+  Serial.print("msg=");
+  Serial.println((char *)data->cmndResultsBuffer);
+  
+  if(data->dest==TO_SIM900 && retour != -1) // vers sim900
   {
     sim900.sendSMS((char *)data->lastSMSPhoneNumber, (char *)data->cmndResultsBuffer);
   }
@@ -2074,7 +2075,7 @@ int evalCmndString(char *buffer, void *dataPtr)
   if(data->dest==TO_SIM900 && data->lastSMSPhoneNumber[0]==0) // pas de numéro de tel pour la réponse, on fait rien
   {
     errToCmndResult(data, 0); // ERRA : no expeditor
-    retour = -2;
+    retour = -1;
     goto evalCmndString_clean_exit;
   }
 
@@ -2161,6 +2162,8 @@ int evalCmndString(char *buffer, void *dataPtr)
         break;
       default:
         errToCmndResult(data, 7); // ERRH
+        goto evalCmndString_clean_exit;
+        break;
       }
       ptr++;
       l--;
@@ -2240,8 +2243,7 @@ int evalCmndString(char *buffer, void *dataPtr)
 
 evalCmndString_clean_exit:
   sendCmndResults(retour, data);
-  if(retour<-1)
-    retour=-2;
+
   return retour;
 }
 
