@@ -176,7 +176,7 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
       strcat(str_module_py,module);
       strcat(str_module_py,".");
       strcat(str_module_py,"reload");
-      
+     
       int ret=unlink(str_module_py);
       if(!ret)
       {
@@ -196,6 +196,8 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
             }
          }
       }
+      else
+         perror("");
    }
    
    Py_DECREF(pName);

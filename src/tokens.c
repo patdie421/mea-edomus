@@ -92,6 +92,7 @@ static struct token_s tokens_list[]={ /// liste de tous les tokens connus. Le de
    {"true",                       TRUE_ID},
    {"false",                      FALSE_ID},
    {"on",                         ON_ID},
+   {"typeoftype",                 TYPEOFTYPE_ID},
    {"LOCAL_XBEE_ADDR_H",          LOCAL_XBEE_ADDR_H_ID},
    {"LOCAL_XBEE_ADDR_L",          LOCAL_XBEE_ADDR_L_ID},
    {"name",                       NAME_ID},

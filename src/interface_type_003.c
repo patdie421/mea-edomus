@@ -143,7 +143,7 @@ int16_t _interface_type_003_xPL_callback(xPL_ServicePtr theService, xPL_MessageP
    if(!device)
       return -1;
    
-   char sql[1024];
+   char sql[2048];
    sqlite3_stmt * stmt;
    
    sprintf(sql,"%s WHERE lower(sensors_actuators.name)='%s' and sensors_actuators.state='1';", sql_select_device_info, device);
@@ -381,7 +381,7 @@ void *_thread_interface_type_003_enocean_data(void *args)
       
       if(!ret)
       {
-         char sql[1024];
+         char sql[2048];
          uint32_t addr;
          
          params->i003->indicators.enoceandatain++;

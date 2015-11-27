@@ -352,7 +352,7 @@ int16_t _interface_type_002_xPL_callback(xPL_ServicePtr theService, xPL_MessageP
    if(!device)
       return ERROR;
    
-   char sql[1024];
+   char sql[2048];
    sqlite3_stmt * stmt;
    
    sprintf(sql,"%s WHERE lower(sensors_actuators.name)='%s' and sensors_actuators.state='1';", sql_select_device_info, device);
@@ -688,7 +688,7 @@ void *_thread_interface_type_002_xbeedata(void *args)
       
       if(!ret)
       {
-         char sql[1024];
+         char sql[2048];
          char addr[18];
          
          params->i002->indicators.xbeedatain++;

@@ -103,6 +103,8 @@ PyObject *mea_stmt_to_pydict_device(sqlite3_stmt * stmt)
    mea_addString_to_pydict(data_dict, get_token_string_by_id(DEVICE_STATE_ID), (char *)sqlite3_column_text(stmt, 2));
    mea_addString_to_pydict(data_dict, get_token_string_by_id(DEVICE_TYPE_PARAMETERS_ID), (char *)sqlite3_column_text(stmt, 4));
    mea_addLong_to_pydict(data_dict, get_token_string_by_id(TODBFLAG_ID), sqlite3_column_int(stmt, 11));
+   mea_addLong_to_pydict(data_dict, get_token_string_by_id(TYPEOFTYPE_ID), sqlite3_column_int(stmt, 12));
+   mea_addLong_to_pydict(data_dict, get_token_string_by_id(INTERFACE_ID_ID), sqlite3_column_int(stmt, 13));
 
    return data_dict;
 }
