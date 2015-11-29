@@ -80,10 +80,8 @@ def mea_xplCmndMsg(data):
       verbose(2, "ERROR (", fn_name, ") - no or incomplet xpl message error") 
       return True
 
-
    # préparation de la commande
    _cmnd=str(pinNum)+","
-
 
    if schema=="control.basic" and typeoftype==1:
       type=body["type"]
@@ -93,7 +91,7 @@ def mea_xplCmndMsg(data):
                data1=body["data1"]
                if not data1.isdigit():
                   verbose(2, "ERROR (", fn_name, ") - data1 not numeric value")
-                  return True
+                  return False
                data1=int(data1)
             else:
                data1=200
@@ -107,7 +105,7 @@ def mea_xplCmndMsg(data):
       elif type=="variable" and pinType=='a':
          if pinNum != 1 and pinNum != 2:
             verbose(2, "ERROR (", fn_name, ") - Analog output(PWM) only available on pin 1 and 2")
-            return True
+            return False
          else:
             value=0
             if 'current' in mem_interface[pinNum]:
@@ -122,12 +120,12 @@ def mea_xplCmndMsg(data):
                   value=int(current)
                else:
                   verbose(2, "ERROR (", fn_name, ") - analog value error (",current,")")
-                  return True
+                  return False
             elif current.isdigit():
                value=int(current)
             else:
                verbose(2, "ERROR (", fn_name, ") - analog value error (",current,")")
-               return True
+               return False
 
             if value<0:
                value=0;
@@ -136,21 +134,21 @@ def mea_xplCmndMsg(data):
             _cmnd=_cmnd+"A,"+str(value)
       else:
          verbose(2, "ERROR (", fn_name, ") - xpl command error")
-         return True
-   
+         return False
+
    elif schema!="sensor.basic":
       if current!="request":
          verbose(2, "ERROR (", fn_name, ") - xpl error current!=request")
-         return True
+         return False
       if typeoftype==1:
          _cmnd=_cmnd+pinType.upper()+",G"
       else:
          _cmnd=False
          # récupérer les info aux niveaux de l'interface et les transmettre
-      
+
    else:
       verbose(2, "ERROR (", fn_name, ") - xpl schema incompatible with sensor/actuator (", schema, ")")
-      return True
+      return False
 
    if _cmnd != False:
       cmnd="~~~~CMD:##"+_cmnd+"##\r\nEND\r\n"
@@ -158,6 +156,7 @@ def mea_xplCmndMsg(data):
       mea.sendSerialData(data['fd'],bytearray(cmnd))
 
    return True
+
 
 
 def mea_serialData(data):
@@ -169,14 +168,14 @@ def mea_serialData(data):
       device_id=data["device_id"]
    except:
       verbose(2, "ERROR (", fn_name, ") - device_id not found")
-      return 0
+      return False
 
    try:
       interface_id=data["interface_id"]
       parameters=data["device_parameters"]
       parameters=parameters.strip().lower()
       params=mea_utils.parseKeyValueDatasToDictionary(parameters, ",", ":")
-
+      typeoftype=data["typeoftype"]
    except:
       verbose(2, "ERROR (", fn_name, ") - invalid data")
       return False
@@ -191,28 +190,30 @@ def mea_serialData(data):
       pin=params["pin"]
    except:
       verbose(2, "ERROR (", fn_name, ") - parameters error : no PIN defined")
+      return False
       
    if len(pin) != 2:
       verbose(2, "ERROR (", fn_name, ") - PIN format error") 
-      return True
+      return False
 
    if pin[0]!='l' and pin[0]!='a':
       verbose(2, "ERROR (", fn_name, ") - PIN type error") 
-      return True
+      return Flase
    else:
       pinType=pin[0]
 
    if pin[1]<'0' or pin[1]>'9':
       verbose(2, "ERROR (", fn_name, ") - PIN number error") 
-      return True
+      return False
    else:
       pinNum=int(pin[1])
 
    verbose(9, "pin=",pinNum," pinType=", pinType, " sendFlag=", mem_interface[pinNum]["sendFlag"], " current=", mem_interface[pinNum]["current"])
 
-   if mem_interface[pinNum]["sendFlag"]:
+   if mem_interface[pinNum]["sendFlag"] == True and typeoftype == 0:
+
       mea.addDataToSensorsValuesTable(device_id, mem_interface[pinNum]["current"],0,0,"")
-        
+
       xplMsg=mea_utils.xplMsgNew("me", "*", "xpl-trig", "sensor", "basic")
       mea_utils.xplMsgAddValue(xplMsg, "device", data["device_name"])
       mea_utils.xplMsgAddValue(xplMsg, "current", mem_interface[pinNum]["current"])
@@ -221,11 +222,10 @@ def mea_serialData(data):
    return True
 
 
+
 def mea_pre(data):
    fn_name=str(sys._getframe().f_code.co_name) + "/" + __name__
-
 #   verbose(9, "DEBUG (", fn_name, ") data = ", data)
-
    try:
        serial_data=data["data"]
        interface_id=data["interface_id"]
@@ -305,8 +305,9 @@ def mea_pre(data):
 
       # on recommence avec la suite de la chaine
       s=s[ptrStart+ptrEnd+2:]  
-   
+
    return retour
+
 
 
 def mea_init(data):

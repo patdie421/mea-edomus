@@ -203,7 +203,7 @@ prog_char alarmoff_str[]      PROGMEM  = { "$$ALARMOFF$$\n" };
 prog_char cmndon_str[]        PROGMEM  = { "$$CMNDON$$\n" };
 prog_char cmndoff_str[]       PROGMEM  = { "$$CMNDOFF$$\n" };
 prog_char sig_str[]           PROGMEM  = { "$$SIG="};
-prog_char dollar_dollar_str[] PROGMEM = { "$$" };
+prog_char dollar_dollar_str[] PROGMEM  = { "$$" };
 prog_char nosignal_str[]      PROGMEM  = { "$$NOSIGNAL$$\n" };
 
 #if __DEBUG__ > 0

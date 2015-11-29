@@ -506,10 +506,7 @@ void *_thread_interface_type_006_genericserial_data(void *args)
                char sql_request[1024];
                sqlite3_stmt * stmt;
 
-//               sprintf(sql_request, "SELECT sensors_actuators.id_sensor_actuator, sensors_actuators.id_location, sensors_actuators.state, sensors_actuators.parameters, sensors_actuators.id_type, lower(sensors_actuators.name), sensors_actuators.todbflag, sensors_actuators.id_interface FROM sensors_actuators INNER JOIN types ON sensors_actuators.id_type = types.id_type WHERE sensors_actuators.id_interface=%d and sensors_actuators.state='1' and typeoftype=0", params->i006->id_interface);
-               sprintf(sql_request, "SELECT sensors_actuators.id_sensor_actuator, sensors_actuators.id_location, sensors_actuators.state, sensors_actuators.parameters, sensors_actuators.id_type, lower(sensors_actuators.name), sensors_actuators.todbflag, sensors_actuators.id_interface, types.typeoftype FROM sensors_actuatorsINNER JOIN types ON sensors_actuators.id_type = types.id_type WHERE sensors_actuators.id_interface=%d and sensors_actuators.state='1'", params->i006->id_interface);
-
-            
+               sprintf(sql_request, "SELECT sensors_actuators.id_sensor_actuator, sensors_actuators.id_location, sensors_actuators.state, sensors_actuators.parameters, sensors_actuators.id_type, lower(sensors_actuators.name), sensors_actuators.todbflag, sensors_actuators.id_interface, types.typeoftype FROM sensors_actuators INNER JOIN types ON sensors_actuators.id_type = types.id_type WHERE sensors_actuators.id_interface=%d and sensors_actuators.state='1'", params->i006->id_interface);
                int ret = sqlite3_prepare_v2(params_db, sql_request, strlen(sql_request)+1, &stmt, NULL);
                if(ret)
                {
@@ -537,17 +534,13 @@ void *_thread_interface_type_006_genericserial_data(void *args)
                      }
                      else 
                      {
-                        // traitement d'erreur à faire ici 
+                        VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_step - %s\n", ERROR_STR, __func__, sqlite3_errmsg (params_db));
                         sqlite3_finalize(stmt);
                      }
                   }
                }
             }
-            else
-            {
-            }
          }
-//         buffer_ptr=0;
          pthread_testcancel();
       }
       else
@@ -555,10 +548,7 @@ void *_thread_interface_type_006_genericserial_data(void *args)
          err_counter++;
          if(err_counter<5)
             sleep(5);
-         else
-         {
-            goto _thread_interface_type_006_genericserial_data_clean_exit;
-         }
+         else goto _thread_interface_type_006_genericserial_data_clean_exit;
       }
 
       pthread_testcancel();
