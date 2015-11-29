@@ -150,6 +150,7 @@ int interface_type_006_data_to_plugin(PyThreadState *myThreadState, int fd, sqli
          mea_addString_to_pydict(plugin_elem->aDict, get_token_string_by_id(DEVICE_STATE_ID), (char *)sqlite3_column_text(stmt, 2));
          mea_addLong_to_pydict(plugin_elem->aDict, get_token_string_by_id(TODBFLAG_ID), sqlite3_column_int(stmt, 6));
          mea_addLong_to_pydict(plugin_elem->aDict, get_token_string_by_id(INTERFACE_ID_ID), sqlite3_column_int(stmt, 7));
+         mea_addLong_to_pydict(plugin_elem->aDict, get_token_string_by_id(TYPEOFTYPE_ID), sqlite3_column_int(stmt, 8));
 
          // les datas
          PyObject *value = PyByteArray_FromStringAndSize((char *)data, (long)l_data);
@@ -505,9 +506,8 @@ void *_thread_interface_type_006_genericserial_data(void *args)
                char sql_request[1024];
                sqlite3_stmt * stmt;
 
-//               sprintf(sql_request, "SELECT sensors_actuators.id_sensor_actuator, sensors_actuators.id_location, sensors_actuators.state, sensors_actuators.parameters, sensors_actuators.id_type, lower(sensors_actuators.name), sensors_actuators.todbflag, sensors_actuators.id_interface FROM sensors_actuators WHERE sensors_actuators.id_interface=%d and sensors_actuators.state='1'", params->i006->id_interface);
-//               sprintf(sql_request, "SELECT sensors_actuators.id_sensor_actuator, sensors_actuators.id_location, sensors_actuators.state, sensors_actuators.parameters, sensors_actuators.id_type, lower(sensors_actuators.name), sensors_actuators.todbflag, sensors_actuators.id_interface, (SELECT types.typeoftype FROM types WHERE types.id_type == sensors_actuators.id_type) as typeoftype FROM sensors_actuators WHERE sensors_actuators.id_interface=%d and sensors_actuators.state='1' and typeoftype=0", params->i006->id_interface);
-               sprintf(sql_request, "SELECT sensors_actuators.id_sensor_actuator, sensors_actuators.id_location, sensors_actuators.state, sensors_actuators.parameters, sensors_actuators.id_type, lower(sensors_actuators.name), sensors_actuators.todbflag, sensors_actuators.id_interface FROM sensors_actuators INNER JOIN types ON sensors_actuators.id_type = types.id_type WHERE sensors_actuators.id_interface=%d and sensors_actuators.state='1' and typeoftype=0", params->i006->id_interface);
+//               sprintf(sql_request, "SELECT sensors_actuators.id_sensor_actuator, sensors_actuators.id_location, sensors_actuators.state, sensors_actuators.parameters, sensors_actuators.id_type, lower(sensors_actuators.name), sensors_actuators.todbflag, sensors_actuators.id_interface FROM sensors_actuators INNER JOIN types ON sensors_actuators.id_type = types.id_type WHERE sensors_actuators.id_interface=%d and sensors_actuators.state='1' and typeoftype=0", params->i006->id_interface);
+               sprintf(sql_request, "SELECT sensors_actuators.id_sensor_actuator, sensors_actuators.id_location, sensors_actuators.state, sensors_actuators.parameters, sensors_actuators.id_type, lower(sensors_actuators.name), sensors_actuators.todbflag, sensors_actuators.id_interface, types.typeoftype FROM sensors_actuatorsINNER JOIN types ON sensors_actuators.id_type = types.id_type WHERE sensors_actuators.id_interface=%d and sensors_actuators.state='1'", params->i006->id_interface);
 
             
                int ret = sqlite3_prepare_v2(params_db, sql_request, strlen(sql_request)+1, &stmt, NULL);

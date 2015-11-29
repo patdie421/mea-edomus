@@ -112,8 +112,6 @@ def _analyseData(s):
 def mea_serialData(data):
    fn_name=str(sys._getframe().f_code.co_name) + "/" + __name__
 
-   verbose(9, data)
-
    parameters=False
    try:
        id_sensor=data["device_id"]

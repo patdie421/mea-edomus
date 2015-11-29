@@ -189,6 +189,10 @@
  <à faire><mettre les codes erreurs disponible>
  */
 
+#ifndef prog_char
+typedef const char prog_char;
+#endif
+
 prog_char starting_str[]      PROGMEM  = { "$$STARTING$$\n" };
 prog_char syncok_str[]        PROGMEM  = { "$$SYNCOK$$\n" };
 prog_char syncko_str[]        PROGMEM  = { "$$SYNCKO$$\n" };
@@ -202,12 +206,12 @@ prog_char sig_str[]           PROGMEM  = { "$$SIG="};
 prog_char dollar_dollar_str[] PROGMEM = { "$$" };
 prog_char nosignal_str[]      PROGMEM  = { "$$NOSIGNAL$$\n" };
 
-#ifdef __DEBUG__ > 0
+#if __DEBUG__ > 0
 prog_char lastSMS[]           PROGMEM  = { "LAST SMS: " };
 prog_char unsolicitedMsg[]    PROGMEM  = { "CALL UNSOLICITED_MSG CALLBACK\n" };
 #endif
 
-#ifdef __DEBUG__ > 1
+#if __DEBUG__ > 1
 int freeRam () {
   extern int __heap_start, *__brkval;
   int v;
@@ -533,8 +537,8 @@ public:
     return sendString(str, echoOnOff); 
   };
 
-  int sendStringFromProgmem(char *str, int isEchoOn);
-  inline int sendStringFromProgmem(char *str) {
+  int sendStringFromProgmem(prog_char *str, int isEchoOn);
+  inline int sendStringFromProgmem(prog_char *str) {
     return sendStringFromProgmem(str, echoOnOff); 
   };
 
@@ -727,7 +731,7 @@ int Sim900::echoOff()
  * \return    résultat de l'emission de la commande AT (-1 : erreur de communication (echoTimeout), 0 = reponse "OK", 1 = reponse "ERROR").
  */
 {
-  if(sendATCmnd("E0",0)<0) // suppression de l'echo
+  if(sendATCmnd((char *)"E0",0)<0) // suppression de l'echo
     return -1;
   echoOnOff=0;
   return waitLines((char **)SIM900_standard_returns, atTimeout);
@@ -741,7 +745,7 @@ int Sim900::echoOn()
  * \return    résultat de l'emission de la commande AT (-1 : erreur de communication (echoTimeout), 0 = reponse "OK", 1 = reponse "ERROR").
  */
 {
-  if(sendATCmnd("E1",0)<0)  // suppression de l'echo
+  if(sendATCmnd((char *)"E1",0)<0)  // suppression de l'echo
     return -1;
   echoOnOff=1;
   return waitLines((char **)SIM900_standard_returns, atTimeout);
@@ -769,11 +773,11 @@ int Sim900::sendSMS(char *tel, char *text, char isEchoOn)
  *            Utiliser sim900.sync si nécessaire.
  */
 {
-//  if(sendATCmnd("", isEchoOn)<0)
+//  if(sendATCmnd((char *)"", isEchoOn)<0)
 //    return -1;
 //  if(waitString((char *)SIM900_standard_returns, smsTimeout)<0)
 //    return -1;
-  if(sendString("AT+CMGS=\"", isEchoOn)<0)
+  if(sendString((char *)"AT+CMGS=\"", isEchoOn)<0)
     return -1;
   if(sendString(tel, isEchoOn)<0)
     return -1;
@@ -806,11 +810,11 @@ int Sim900::sendSMSFromProgmem(char *tel, prog_char *text, char isEchoOn)
  *            Utiliser sim900.sync si nécessaire.
  */
 {
-  if(sendATCmnd("", isEchoOn)<0)
+  if(sendATCmnd((char *)"", isEchoOn)<0)
     return -1;
   if(waitString((char *)SIM900_standard_returns, smsTimeout)<0)
     return -1;
-  if(sendString("AT+CMGS=\"",isEchoOn)<0)
+  if(sendString((char *)"AT+CMGS=\"",isEchoOn)<0)
     return -1;
   if(sendString(tel,isEchoOn)<0)
     return -1;
@@ -1320,8 +1324,8 @@ float Sim900::getSignalQuality()
   int ret=-1;
   char str[20];
   
-  sendATCmnd("+CSQ");
-  if(readStringTo(NULL, 0, "+CSQ: ", atTimeout)==0)
+  sendATCmnd((char *)"+CSQ");
+  if(readStringTo(NULL, 0, (char *)"+CSQ: ", atTimeout)==0)
   {
      resp=(char *)readLine(str, 80, atTimeout);
      if(resp!=NULL)
@@ -1355,8 +1359,8 @@ int Sim900::connectionStatus()
   int ret=-1;
   char str[20];
   
-  sendATCmnd("+CREG?");
-  if(readStringTo(NULL, 0, "+CREG: ", atTimeout)==0)
+  sendATCmnd((char *)"+CREG?");
+  if(readStringTo(NULL, 0, (char *)"+CREG: ", atTimeout)==0)
   {
     resp=(char *)readLine(str, 80, atTimeout);
     if(resp!=NULL)
@@ -1433,26 +1437,26 @@ int Sim900::init()
 
   if(pinCode[0])
   {
-    sendString("AT+CPIN=");
+    sendString((char *)"AT+CPIN=");
     sendString((char *)pinCode);
     sendCr();
     delay(100);
     waitLines((char **)SIM900_standard_returns, atTimeout);
   }
 
-  sendATCmnd("+CMGF=1"); // mode "text" pour les sms
+  sendATCmnd((char *)"+CMGF=1"); // mode "text" pour les sms
   waitLines((char **)SIM900_standard_returns, atTimeout);
 
   // format UCS2 pour les données reçu
-  // sendATCmnd("+CSCS=\"UCS2\"");
+  // sendATCmnd((char *)"+CSCS=\"UCS2\"");
   // waitLines((char **)SIM900_standard_returns, atTimeout);
 
   // pas de stockage des SMS, transmission direct sur la ligne serie
-  sendATCmnd("+CNMI=2,2,0,0,0");
+  sendATCmnd((char *)"+CNMI=2,2,0,0,0");
   waitLines((char **)SIM900_standard_returns, atTimeout);
 
-  sendATCmnd("+CSDH=1"); // pour avoir la longueur dans un retour CMT:
-  // sendATCmnd("+CSDH=0"); // pour avoir à la reception d'un : +CMT: "+12223334444","","14/05/30,00:13:34-32"
+  sendATCmnd((char *)"+CSDH=1"); // pour avoir la longueur dans un retour CMT:
+  // sendATCmnd((char *)"+CSDH=0"); // pour avoir à la reception d'un : +CMT: "+12223334444","","14/05/30,00:13:34-32"
   waitLines((char **)SIM900_standard_returns, atTimeout);
   
   return 0;
@@ -2413,23 +2417,23 @@ void pinsWatcher()
   
   if(send_power==1)
   {
-     sim900_broadcastSMS("POWERDOWN");
+     sim900_broadcastSMS((char *)"POWERDOWN");
      printStringFromProgmem(powerdown_str);
   }
   else if(send_power==2)
   {
-     sim900_broadcastSMS("POWERUP");
+     sim900_broadcastSMS((char *)"POWERUP");
      printStringFromProgmem(powerup_str);
   }
 
   if(send_alarm==1)
   {
-     sim900_broadcastSMS("ALARMEOFF");
+     sim900_broadcastSMS((char *)"ALARMEOFF");
      printStringFromProgmem(alarmoff_str);
   }
   else if(send_alarm==2)
   {
-     sim900_broadcastSMS("ALARMEON");
+     sim900_broadcastSMS((char *)"ALARMEON");
      printStringFromProgmem(alarmon_str);
   }
 }
@@ -2576,7 +2580,7 @@ int analyseMCUCmnd(char *buffer, struct data_s *data)
         if(buffer[6]=='C' && buffer[7]==0)
         {
           int ret;
-          ret = setNum(x, "");
+          ret = setNum(x, (char *)"");
           if(ret<0)
             mcuError(MCU_ROMERROR);
           else
@@ -2693,9 +2697,9 @@ void setup()
   // initialisation EEPROM en cas de besoin  
   if(checkSgn()<0) // premier démarrage ?
   {
-    setPin("");
+    setPin((char *)"");
     for(int i=0;i<10;i++)
-       setNum(i,"");
+       setNum(i,(char *)"");
     setSgn();
   }
 

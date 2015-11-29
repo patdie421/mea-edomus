@@ -25,7 +25,6 @@ def mea_xplCmndMsg(data):
       verbose(2, "ERROR (", fn_name, ") - device_id not found")
       return 0
 
-   verbose(9, data)
    try:
       interface_id=data["interface_id"]
       parameters=data["device_parameters"]
@@ -39,7 +38,7 @@ def mea_xplCmndMsg(data):
 
    mem_actuator=mea.getMemory(id_actuator)
    mem_interface=mea.getMemory("interface"+str(interface_id))
-   verbose(9, mem_interface)
+   verbose(9, "DEBUG (", fn_name, ") mem_interface=", mem_interface)
 
    # validation du parametre
    pin=0
@@ -75,7 +74,6 @@ def mea_xplCmndMsg(data):
       schema=x["schema"]
       body=x["body"]
 
-      type=body["type"]
       current=body["current"]
       device=body["device"]
    except:
@@ -88,6 +86,7 @@ def mea_xplCmndMsg(data):
 
 
    if schema=="control.basic" and typeoftype==1:
+      type=body["type"]
       if type=="output" and pinType=='l':
          if current=="pulse":
             if "data1" in body:
@@ -155,34 +154,36 @@ def mea_xplCmndMsg(data):
 
    if _cmnd != False:
       cmnd="~~~~CMD:##"+_cmnd+"##\r\nEND\r\n"
+      verbose(9, cmnd)
       mea.sendSerialData(data['fd'],bytearray(cmnd))
-#               mea.addDataToSensorsValuesTable(device_id,value,0,0,"")
-#               xplMsg=mea_utils.xplMsgNew("me", "*", "xpl-trig", "sensor", "basic")
-#               mea_utils.xplMsgAddValue(xplMsg,"device", data["device_name"])
-#               mea_utils.xplMsgAddValue(xplMsg,"current",_value)
-#               mea.xplSendMsg(xplMsg)
+
    return True
 
 
 def mea_serialData(data):
    fn_name=str(sys._getframe().f_code.co_name) + "/" + __name__
 
-   verbose(9, data)
+   verbose(9, "DEBUG (", fn_name, ") data = ", data)
+
+   try:
+      device_id=data["device_id"]
+   except:
+      verbose(2, "ERROR (", fn_name, ") - device_id not found")
+      return 0
 
    try:
       interface_id=data["interface_id"]
       parameters=data["device_parameters"]
       parameters=parameters.strip().lower()
       params=mea_utils.parseKeyValueDatasToDictionary(parameters, ",", ":")
-      typeoftype=data["typeoftype"]
 
    except:
       verbose(2, "ERROR (", fn_name, ") - invalid data")
       return False
 
-   mem_actuator=mea.getMemory(id_actuator)
+   mem_device=mea.getMemory(device_id)
    mem_interface=mea.getMemory("interface"+str(interface_id))
-   verbose(9, mem_interface)
+   verbose(9, "DEBUG (", fn_name, ") mem_interface = ", mem_interface)
 
    # validation du parametre
    pin=0
@@ -207,13 +208,23 @@ def mea_serialData(data):
    else:
       pinNum=int(pin[1])
 
+   verbose(9, "pin=",pinNum," pinType=", pinType, " sendFlag=", mem_interface[pinNum]["sendFlag"], " current=", mem_interface[pinNum]["current"])
+
+   if mem_interface[pinNum]["sendFlag"]:
+      mea.addDataToSensorsValuesTable(device_id, mem_interface[pinNum]["current"],0,0,"")
+        
+      xplMsg=mea_utils.xplMsgNew("me", "*", "xpl-trig", "sensor", "basic")
+      mea_utils.xplMsgAddValue(xplMsg, "device", data["device_name"])
+      mea_utils.xplMsgAddValue(xplMsg, "current", mem_interface[pinNum]["current"])
+      mea.xplSendMsg(xplMsg)
+
    return True
 
 
 def mea_pre(data):
-   fn_name=sys._getframe().f_code.co_name
+   fn_name=str(sys._getframe().f_code.co_name) + "/" + __name__
 
-   verbose(9, data)
+#   verbose(9, "DEBUG (", fn_name, ") data = ", data)
 
    try:
        serial_data=data["data"]
@@ -223,15 +234,16 @@ def mea_pre(data):
       return False
 
    mem_interface=mea.getMemory("interface"+str(interface_id))
-   verbose(9, mem_interface)
+#   verbose(9, "DEBUG (", fn_name, ") mem_interface = ", mem_interface)
 
    try:
       s=serial_data.decode('latin-1')
    except:
-      return True
+      return False
 
    for i in range(0, 9):
       mem_interface[i]["sendFlag"]=False
+   verbose(9, "DEBUG (", fn_name, ") mem_interface = ", mem_interface)
 
    retour=False
    if s.find(u"CMT: ") > 0: # un sms dans le buffer ?
@@ -286,7 +298,7 @@ def mea_pre(data):
 
                mem_interface[pinNum]["current"]=int(value)
                mem_interface[pinNum]["sendFlag"]=True
-               retour=1;
+               retour=True;
 
             else:
                continue
