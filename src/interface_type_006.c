@@ -103,7 +103,6 @@ int interface_type_006_call_data_pre(struct genericserial_thread_params_s *param
             PyDict_SetItemString(aDict, "plugin_paramters", params->pParams);
 
          retour=mea_call_python_function2(params->pFunc, aDict);
-
          Py_DECREF(aDict);
       }
 
@@ -605,7 +604,7 @@ pthread_t *start_interface_type_006_genericserial_data_thread(interface_type_006
       m=pModule;
       pModule=PyImport_ReloadModule(m); // on force le rechargement (c'est pour simplifier)
       Py_DECREF(m); 
-      pFunc = PyObject_GetAttrString(pModule, "mea_pre");
+      pFunc = PyObject_GetAttrString(pModule, "mea_serialDataPre");
       if(pFunc && PyCallable_Check(pFunc))
       {
          params->pModule=pModule;
@@ -617,7 +616,7 @@ pthread_t *start_interface_type_006_genericserial_data_thread(interface_type_006
       }
       else
       {
-         VERBOSE(5) mea_log_printf("%s (%s) : no mea_pre\n", ERROR_STR, __func__);
+         VERBOSE(5) mea_log_printf("%s (%s) : no mea_serialDataPre entry point\n", ERROR_STR, __func__);
          if(pFunc)
            Py_XDECREF(pFunc);
          Py_XDECREF(pModule);

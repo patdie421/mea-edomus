@@ -197,7 +197,10 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
          }
       }
       else
-         perror("");
+      {
+         if(errno!=ENOENT)
+            perror("");
+      }
    }
    
    Py_DECREF(pName);
@@ -242,7 +245,7 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
 
          if (pValue != NULL)
          {
-            DEBUG_SECTION mea_log_printf("%s (%s) : result of call of %s : %ld\n", DEBUG_STR, __func__, fx, PyInt_AsLong(pValue));
+//            DEBUG_SECTION mea_log_printf("%s (%s) : result of call of %s : %ld\n", DEBUG_STR, __func__, fx, PyInt_AsLong(pValue));
             Py_DECREF(pValue); // verifier si nécessaire
          }
          else
@@ -265,6 +268,7 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
                PyErr_Print();
                fprintf(MEA_STDERR, "\n");
             }
+            PyErr_Clear();
             return_code=ERROR;
             goto call_pythonPlugin_clean_exit;
          }

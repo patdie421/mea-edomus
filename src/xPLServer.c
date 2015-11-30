@@ -488,6 +488,7 @@ void *xPLServer_thread(void *data)
    
    xPL_addServiceListener(xPLService, _cmndXPLMessageHandler, xPL_MESSAGE_COMMAND, "control", "basic", (xPL_ObjectPtr)data) ;
    xPL_addServiceListener(xPLService, _cmndXPLMessageHandler, xPL_MESSAGE_COMMAND, "sensor", "request", (xPL_ObjectPtr)data) ;
+   xPL_addServiceListener(xPLService, _cmndXPLMessageHandler, xPL_MESSAGE_COMMAND, "sendmsg", "basic", (xPL_ObjectPtr)data) ;
    
 #ifdef XPL_EXTERNAL_WD
    mea_timer_t xPLWDSendMsgTimer;
@@ -496,7 +497,7 @@ void *xPLServer_thread(void *data)
    
    char xpl_instanceWDID[17];
    snprintf(xpl_instanceWDID,sizeof(xpl_instanceWDID)-1,"%s%s",xpl_instanceID,"wd");
-   
+
    xplWDMsg=mea_createSendableMessage(xPL_MESSAGE_TRIGGER, xpl_vendorID, xpl_deviceID, xpl_instanceWDID);
    xPL_setBroadcastMessage(xplWDMsg, FALSE);
    xPL_setSchema(xplWDMsg, "watchdog", "basic");

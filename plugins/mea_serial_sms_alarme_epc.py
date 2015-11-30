@@ -49,11 +49,12 @@ def mea_xplCmndMsg(data):
          verbose(2, "ERROR - (", fn_name, ") : ", body['request'], " data not found")
          return False
 
-#      xplMsg=mea_utils.xplMsgNew('me', target, "xpl-stat", "sensor", "basic")
-#      mea_utils.xplMsgAddValue(xplMsg, "device", data["device_name"])
-#      mea_utils.xplMsgAddValue(xplMsg, body['request'], value)
-#      mea.xplSendMsg(xplMsg)
+      xplMsg=mea_utils.xplMsgNew('me', target, "xpl-stat", "sensor", "basic")
+      mea_utils.xplMsgAddValue(xplMsg, "device", data["device_name"])
+      mea_utils.xplMsgAddValue(xplMsg, body['request'], value)
+      mea.xplSendMsg(xplMsg)
       return True
+
    return False
 
 
@@ -143,13 +144,13 @@ def mea_serialData(data):
       if sms[1] == 1:
          verbose(2, "ERROR (", fn_name, ") - incomplete SMS data")
       else:
-         verbose(2, "ERROR (", fn_name, ") - not a SMS")
+         verbose(9, "DEBUG (", fn_name, ") - not a SMS")
       return False
 
    # analyse des données
    alarm=_analyseData(sms[1])
    if alarm[0] == False:
-      verbose(2, "ERROR (", fn_name, ") - not an EPG message : ", alarm[1])
+      verbose(9, "DEBUG (", fn_name, ") - not an EPG message : ", alarm[1])
       return False
    verbose(9, alarm)
 
