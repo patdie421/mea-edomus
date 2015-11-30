@@ -75,11 +75,11 @@ def mea_serialData(data):
    except:
       return False
 
-   if mem_actuator['msg']==False:
+   mem_actuator=mea.getMemory(id_actuator)
+   if not 'msg' in mem_actuator or mem_actuator['msg']==False:
       return True
 
    now=int(round(time.time() * 1000))
-   mem_actuator=mea.getMemory(id_actuator)
    if mem_actuator['chrono'] <> False:
       if now -  mem_actuator['chrono'] < 5000:  
          if s.find(u"\r\n> ") >=0:
