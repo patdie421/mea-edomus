@@ -163,7 +163,7 @@
 		4E3AF2361A5AB35100723560 /* indicateurs-view.php */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.php; path = "indicateurs-view.php"; sourceTree = "<group>"; };
 		4E3AF2371A5AB44500723560 /* services-view.php */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.php; path = "services-view.php"; sourceTree = "<group>"; };
 		4E3B804E1BFF902D00757EF8 /* serial_sms_alarme_epc.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = serial_sms_alarme_epc.py; path = plugins/serial_sms_alarme_epc.py; sourceTree = "<group>"; };
-		4E3B804F1C063F8A00757EF8 /* interface_SMS_SIM900v2.ino */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = interface_SMS_SIM900v2.ino; path = interface_SMS_SIM900v2/interface_SMS_SIM900v2.ino; sourceTree = "<group>"; };
+		4E3B804F1C063F8A00757EF8 /* interface_SMS_SIM900v2.ino */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = interface_SMS_SIM900v2.ino; path = interface_SMS_SIM900v2/interface_SMS_SIM900v2.ino; sourceTree = "<group>"; };
 		4E3B80501C0790B000757EF8 /* mea_serial.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = mea_serial.py; path = plugins/mea_serial.py; sourceTree = "<group>"; };
 		4E3F341D19F80BA40066A9CC /* __init__.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = __init__.py; sourceTree = "<group>"; };
 		4E3F341E19F80BA40066A9CC /* pyparsing.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = pyparsing.py; sourceTree = "<group>"; };
@@ -5830,7 +5830,7 @@
 		08FB7793FE84155DC02AAC07 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0620;
+				LastUpgradeCheck = 0710;
 				TargetAttributes = {
 					4E4F876D1A979A4800479945 = {
 						CreatedOnToolsVersion = 6.1.1;
@@ -6043,6 +6043,7 @@
 		1DEB928A08733DD80010E9CD /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
@@ -6057,7 +6058,7 @@
 					"-lm",
 					"-lmysqlclient",
 				);
-				SDKROOT = macosx10.9;
+				SDKROOT = macosx;
 			};
 			name = Debug;
 		};
@@ -6076,7 +6077,7 @@
 					"-lm",
 					"-lmysqlclient",
 				);
-				SDKROOT = macosx10.9;
+				SDKROOT = macosx;
 			};
 			name = Release;
 		};
