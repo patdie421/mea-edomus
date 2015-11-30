@@ -12,6 +12,7 @@ except:
 import mea_utils
 from mea_utils import verbose
 from time import sleep
+from time import time
 import string
 
 debug=0
@@ -27,6 +28,8 @@ def mea_xplCmndMsg(data):
       return False
 
    mem_actuator=mea.getMemory(id_actuator)
+   if mem_actuator['msg']!=False: # un sms est déjà en cours d'envoi, on ne peut traiter qu'un seul à la fois
+      return False
 
    # récupération des données xpl
    try:
@@ -46,6 +49,8 @@ def mea_xplCmndMsg(data):
 
       mea.sendSerialData(data['fd'], bytearray("AT+CMGS=\""+to+"\"\r\n"))
       mem_actuator['msg']= msg
+      mem_actuator['chrono']=int(round(time.time() * 1000))
+
       return True
    else:
       return False
@@ -70,8 +75,17 @@ def mea_serialData(data):
    except:
       return False
 
+   if mem_actuator['msg']==False:
+      return True
+
+   now=int(round(time.time() * 1000))
    mem_actuator=mea.getMemory(id_actuator)
-   if mem_actuator['msg']!=False:
-      if s.find(u"\r\n> ") >=0:
-         mea.sendSerialData(data['fd'], bytearray(mem_actuator['msg']+"\r\n"+chr(26)))
-      mem_actuator['msg']==False
+   if mem_actuator['chrono'] <> False:
+      if now -  mem_actuator['chrono'] < 5000:  
+         if s.find(u"\r\n> ") >=0:
+            mea.sendSerialData(data['fd'], bytearray(mem_actuator['msg']+"\r\n"+chr(26)))
+            mem_actuator['msg']==False
+            mem_actuator['chrono']=False
+      else:
+         mem_actuator['chrono']=False
+         mem_actuator['msg']==False
