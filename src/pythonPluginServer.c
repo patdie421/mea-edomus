@@ -51,6 +51,22 @@ PyObject *known_modules;
 long nbpycall_indicator = 0;
 long nbpycallerr_indicator = 0;
 
+
+static unsigned long _millis()
+{
+  struct timeval tv;
+  gettimeofday(&tv,NULL);
+
+  return 1000 * tv.tv_sec + tv.tv_usec/1000;
+}
+
+
+static unsigned long _diffMillis(unsigned long chrono, unsigned long now)
+{
+   return now >= chrono ? now - chrono : ULONG_MAX - chrono + now;
+}
+
+
 void set_pythonPluginServer_isnt_running(void *data)
 {
    _pythonPluginServer_thread_is_running=0;
@@ -197,7 +213,10 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
          }
       }
       else
-         perror("");
+      {
+         if(errno!=ENOENT)
+            perror("");
+      }
    }
    
    Py_DECREF(pName);
@@ -231,6 +250,7 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
 
       if (pFunc && PyCallable_Check(pFunc))
       {
+         unsigned long chrono=_millis();
          pArgs = PyTuple_New(1);
          // data_dict
          Py_INCREF(data_dict); // incrément car PyTuple_SetItem vole la référence
@@ -242,7 +262,8 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
 
          if (pValue != NULL)
          {
-            DEBUG_SECTION mea_log_printf("%s (%s) : result of call of %s : %ld\n", DEBUG_STR, __func__, fx, PyInt_AsLong(pValue));
+            unsigned long exectime=_diffMillis(chrono, _millis());
+            DEBUG_SECTION mea_log_printf("%s (%s) : result of call of %s : %ld (%ld)\n", DEBUG_STR, __func__, fx, PyInt_AsLong(pValue), exectime);
             Py_DECREF(pValue); // verifier si nécessaire
          }
          else
@@ -265,6 +286,7 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
                PyErr_Print();
                fprintf(MEA_STDERR, "\n");
             }
+            PyErr_Clear();
             return_code=ERROR;
             goto call_pythonPlugin_clean_exit;
          }

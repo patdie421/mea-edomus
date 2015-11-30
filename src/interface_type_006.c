@@ -103,7 +103,6 @@ int interface_type_006_call_data_pre(struct genericserial_thread_params_s *param
             PyDict_SetItemString(aDict, "plugin_paramters", params->pParams);
 
          retour=mea_call_python_function2(params->pFunc, aDict);
-
          Py_DECREF(aDict);
       }
 
@@ -496,9 +495,6 @@ void *_thread_interface_type_006_genericserial_data(void *args)
             params->i006->indicators.serialin+=buffer_ptr;
             buffer[buffer_ptr]=0;
 
-            // ajouter ici le transfert des données vers le plugin de l'interface s'il existe pour la validation des données
-
-            //int ret=1;
             int ret=interface_type_006_call_data_pre(params, (void *)buffer, buffer_ptr+1);
             if(ret!=0)
             {
@@ -520,7 +516,6 @@ void *_thread_interface_type_006_genericserial_data(void *args)
                   
                      if(s==SQLITE_ROW)
                      {
-//                        for(int i=0;i<buffer_ptr;i++) fprintf(stderr,"%d:[%03d-%02x-%c] ", i, (unsigned char)buffer[i], (unsigned char)buffer[i], buffer[i]); fprintf(stderr,"\n");
                         int ret=interface_type_006_data_to_plugin(params->myThreadState, params->i006->fd, stmt, GENERICSERIALDATA, (void *)buffer, buffer_ptr+1);
                         if(ret<0)
                         {
@@ -595,36 +590,39 @@ pthread_t *start_interface_type_006_genericserial_data_thread(interface_type_006
    python_lock(); // attention python_lock / python_unlock définissent un block ({ }) les variables déclérées restent locales au bloc
    if(interface_parameters && interface_parameters->parameters[GENERICSERIAL_PLUGIN_PARAMS_PLUGIN].value.s)
    {
-   pName = PyString_FromString(interface_parameters->parameters[GENERICSERIAL_PLUGIN_PARAMS_PLUGIN].value.s);
-   pModule =  PyImport_Import(pName);
-   Py_XDECREF(pName);
-   pName=NULL;
-   if(pModule)
-   {
-      PyObject *m;
-      m=pModule;
-      pModule=PyImport_ReloadModule(m); // on force le rechargement (c'est pour simplifier)
-      Py_DECREF(m); 
-      pFunc = PyObject_GetAttrString(pModule, "mea_pre");
-      if(pFunc && PyCallable_Check(pFunc))
+      pName = PyString_FromString(interface_parameters->parameters[GENERICSERIAL_PLUGIN_PARAMS_PLUGIN].value.s);
+      pModule =  PyImport_Import(pName);
+      Py_XDECREF(pName);
+      pName=NULL;
+
+      if(pModule)
       {
-         params->pModule=pModule;
-         params->pFunc=pFunc;
-         if(interface_parameters->parameters[GENERICSERIAL_PLUGIN_PARAMS_PARAMETERS].value.s)
-            params->pParams=PyString_FromString(interface_parameters->parameters[GENERICSERIAL_PLUGIN_PARAMS_PARAMETERS].value.s);
+         // rechargement à revoir ...
+         PyObject *m;
+         m=pModule;
+         pModule=PyImport_ReloadModule(m); // on force le rechargement (c'est pour simplifier)
+         Py_DECREF(m); 
+         pFunc = PyObject_GetAttrString(pModule, "mea_serialDataPre");
+
+         if(pFunc && PyCallable_Check(pFunc))
+         {
+            params->pModule=pModule;
+            params->pFunc=pFunc;
+            if(interface_parameters->parameters[GENERICSERIAL_PLUGIN_PARAMS_PARAMETERS].value.s)
+               params->pParams=PyString_FromString(interface_parameters->parameters[GENERICSERIAL_PLUGIN_PARAMS_PARAMETERS].value.s);
+            else
+               params->pParams=NULL;
+         }
          else
-            params->pParams=NULL;
+         {
+            VERBOSE(5) mea_log_printf("%s (%s) : no mea_serialDataPre entry point\n", ERROR_STR, __func__);
+            if(pFunc)
+              Py_XDECREF(pFunc);
+            Py_XDECREF(pModule);
+            pFunc=NULL;
+            pModule=NULL;
+         }
       }
-      else
-      {
-         VERBOSE(5) mea_log_printf("%s (%s) : no mea_pre\n", ERROR_STR, __func__);
-         if(pFunc)
-           Py_XDECREF(pFunc);
-         Py_XDECREF(pModule);
-         pFunc=NULL;
-         pModule=NULL;
-      }
-   }
    }
    python_unlock();
 
@@ -806,11 +804,12 @@ int restart_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg
    return process_start(my_id, NULL, 0);
 }
 
-
+/*
 int16_t check_status_interface_type_006(interface_type_006_t *i006)
 {
    return 0;
 }
+*/
 
 int start_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg)
 {
@@ -866,10 +865,8 @@ int start_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg)
    }
    else
    {
-      // execution de l'init du plugin
-//      PyObject *pName=NULL, *pModule=NULL, *pFunc=NULL;
-
       python_lock(); // attention python_lock / python_unlock définissent un block ({ }) les variables déclérées restent locales au bloc
+
       PyObject *plugin_params_dict=PyDict_New();
       mea_addLong_to_pydict(plugin_params_dict, INTERFACE_ID_STR_C, start_stop_params->i006->id_interface);
 
@@ -878,6 +875,7 @@ int start_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg)
       
       int ret=mea_call_python_function(interface_parameters->parameters[GENERICSERIAL_PLUGIN_PARAMS_PLUGIN].value.s, "mea_init", plugin_params_dict);
       Py_DECREF(plugin_params_dict);
+
       python_unlock();
    }
    // données pour les callbacks xpl

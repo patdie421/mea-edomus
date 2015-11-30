@@ -265,6 +265,50 @@ char *trim(char *buffer)
 }
 
 
+/*
+DDRx avec x :
+-B (digital pin 8 to 13) 
+-C (analog input pins) 
+-D (digital pins 0 to 7)
+*/
+int getPinDirection(int pinNum)
+{
+   num=pinNum;
+   unsigned char _ddrx=0;
+
+   if(pinNum>=0 && pinNum >=8)
+      _ddrx=DDRD;
+   else if(pinNum>=8 && pinNum<=13)
+   {
+      _ddrx=DDRB
+      num=pinNum-8;
+   }
+   else if(pinNum>=14 && pinNum<=21)
+   {
+      _ddrx=DDRC
+      num=pinNum-14;
+   }
+
+   int state= _ddrx & (1 << num);
+
+   if(state>0)
+      return 1;
+   else
+      return 0;
+}
+
+
+int interfacePinNum(int arduinoPin)
+{
+   if(arduinoPin >=4 && arduinoPin <=7)
+      return arduinoPin - 4;
+   else if(arduinoPin>=14 && arduinoPin <=21)
+      return arduinoPin - 14;
+   else
+      return -1;
+}
+
+
 /******************************************************************************/
 //
 // Pulse
@@ -306,6 +350,10 @@ unsigned char pin_direction(unsigned char pin)
          state = DDRC & mask;
          break;
    }
+   _ddrx=_ddrx ^ 0xFF;
+
+   state = _ddrx & (1 << num);
+
    if(state>0)
       return HIGH;
    else
@@ -1587,16 +1635,31 @@ struct data_s
 struct data_s sim900UserData, mcuUserData; // deux zones de données utilisateurs.
 
 // paramétrage du pin watcher
-#define  PINSWATCHER_NBPINS 2
+//#define  PINSWATCHER_NBPINS 2
+#define  PINSWATCHER_NBPINS 10
 struct pinsWatcherData_s
 {
   unsigned char pin;
+  char lastState;
   unsigned long lastChrono;
-  int lastState;
 };
+/*
 struct pinsWatcherData_s pinsWatcherData[PINSWATCHER_NBPINS] = {
   { 4,0L, -1 },
   { 7,0L, -1 },
+};
+*/
+struct pinsWatcherData_s pinsWatcherData[PINSWATCHER_NBPINS] = {
+  { 4,  0L, -1 }, 
+  { 5,  0L, -1 },
+  { 6,  0L, -1 },
+  { 7,  0L, -1 },
+  { 14, 0L, -1 },
+  { 15, 0L, -1 },
+  { 16, 0L, -1 },
+  { 17, 0L, -1 },
+  { 18, 0L, -1 },
+  { 19, 0L, -1 },
 };
 
 // objets globaux
@@ -1932,8 +1995,11 @@ int sendCmndResults(int retour, struct data_s *data)
   Serial.println(retour);
   Serial.print("msg=");
   Serial.println((char *)data->cmndResultsBuffer);
-  
-  if(data->dest==TO_SIM900 && retour != -1) // vers sim900
+ 
+  if(retour==-1)
+     return -1;
+ 
+  if(data->dest==TO_SIM900) // vers sim900
   {
     sim900.sendSMS((char *)data->lastSMSPhoneNumber, (char *)data->cmndResultsBuffer);
   }
@@ -2372,8 +2438,11 @@ void pinsWatcher()
   
   for(int i=0;i<PINSWATCHER_NBPINS;i++)
   {
+    if(getPinDirection(pinsWatcherData[i].pin)==0)
+       continue;
+
     int s=digitalRead(pinsWatcherData[i].pin); // lecture de l'entrée
-    if(pinsWatcherData[i].lastState != s)
+    if(pinsWatcherData[i].lastState != (char)s)
     {
       if(pinsWatcherData[i].lastState==-1) // premier passage, on initialise
       {
@@ -2406,6 +2475,21 @@ void pinsWatcher()
             send_alarm=1;
           else
             send_alarm=2;
+          break;
+        default:
+          Serial.print('$');
+          Serial.print('$');
+          Serial.print(interfacePinNum(pinsWatcherData[i].pin));
+          Serial.print(',');
+          Serial.print('L');
+          Serial.print(',');
+          if(s==LOW)
+             Serial.print('L');
+          else
+             Serial.print('H');
+          Serial.print('$');
+          Serial.print('$');
+          Serial.print('\n');
           break;
         };
         // fin partie à revoir
@@ -2703,14 +2787,6 @@ void setup()
     setSgn();
   }
 
-  // Reset "hardware" du sim900
-  pinMode(PIN_SIM900_RESET, OUTPUT);
-  digitalWrite(PIN_SIM900_RESET, HIGH);
-  delay(100);
-  digitalWrite(PIN_SIM900_RESET, LOW);
-  delay(1000);
-  digitalWrite(PIN_SIM900_RESET, HIGH);
-
   // attente (5s) pour initialisation complete du sim900 après reset
   unsigned long chrono=millis();
   
@@ -2740,21 +2816,42 @@ void setup()
   // déclaration des callbacks
   sim900.setSMSCallBack(evalCmndString);
 
-  // on attend que 5s se soit écoulée depuis la fin de la demande de reset en faisant cligoter rapidement la led
-  myBlinkLeds.setInterval(125);
-  while( (millis()-chrono) < 5000 )
+  char i=0;
+  char init_done=-1;
+
+  while(i<3) // trois chance de s'initialiser
   {
-     myBlinkLeds.run();
-     digitalWrite(13, myBlinkLeds.getLedState());
+  // Reset "hardware" du sim900
+     pinMode(PIN_SIM900_RESET, OUTPUT);
+     digitalWrite(PIN_SIM900_RESET, HIGH);
+     delay(100);
+     digitalWrite(PIN_SIM900_RESET, LOW);
+     delay(1000);
+     digitalWrite(PIN_SIM900_RESET, HIGH);
+
+     // on attend que 5s se soit écoulée depuis la fin de la demande de reset en faisant cligoter rapidement la led
+     myBlinkLeds.setInterval(125);
+     while( (millis()-chrono) < 5000 )
+     {
+        myBlinkLeds.run();
+        digitalWrite(13, myBlinkLeds.getLedState());
+     }
+     digitalWrite(13, HIGH); // led allumée en continue pendant l'init de communication avec sim900
+
+     // intialisation port communication avec sim900
+     sim900Serial.begin(9600);
+
+     // synchronisation avec le sim900
+     if(sim900.sync(5000)!=-1) // 5 secondes pour se synchroniser avec le sim900
+     {
+        init_done=0;
+        break;
+     }
+     i++;
   }
-  digitalWrite(13, HIGH); // led allumée en continue pendant l'init de communication avec sim900
-
-  // intialisation port communication avec sim900
-  sim900Serial.begin(9600);
-
-  // synchronisation avec le sim900
-  if(sim900.sync(10000)!=-1) // 10 secondes pour se synchroniser
-  {
+ 
+  if(init_done==0)
+  { 
     // récupération du code PIN dans l'EEPROM
     char pinCode[PINCODESIZE];
     if(getPin(pinCode, PINCODESIZE)==0)

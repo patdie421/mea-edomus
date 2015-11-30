@@ -177,12 +177,26 @@ int mea_call_python_function2(PyObject *pFunc, PyObject *plugin_params_dict)
          Py_DECREF(pValue);
          DEBUG_SECTION mea_log_printf("%s (%s) : Result of call : %d\n", DEBUG_STR, __func__, retour);
       }
+      else
+      {
+         if (PyErr_Occurred())
+         {
+            VERBOSE(5) {
+               mea_log_printf("%s (%s) : python error - ", ERROR_STR, __func__ );
+               PyErr_Print();
+               fprintf(MEA_STDERR, "\n");
+            }
+         PyErr_Clear();
+         }
+      }
       Py_DECREF(pArgs);
 
       return retour;
    }
    else
+   {
       return -1;
+   }
 }
 
 
