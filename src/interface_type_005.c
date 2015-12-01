@@ -201,7 +201,7 @@ int16_t interface_type_005_current_last(struct type005_sensor_actuator_queue_ele
             sprintf(str_last, "%d", e->module->last->setpoint);
          strcpy(type,"generic");
          if(d1) *d1=(double)e->module->current->setpoint;
-         if(comp) strcpy(comp, netatmo_therm_mode[e->module->current->setpoint]);
+         if(comp) strcpy(comp, netatmo_thermostat_mode[e->module->current->setpoint]);
          break;
 
      case SETPOINT:
@@ -265,9 +265,9 @@ int16_t interface_type_005_xPL_actuator(interface_type_005_t *i005,
                return -1;
          }
 
-         for(int i=0;netatmo_therm_mode[i];i++)
+         for(int i=0;netatmo_thermostat_mode[i];i++)
          {
-            if(strcmp(netatmo_therm_mode[i],mode)==0)
+            if(strcmp(netatmo_thermostat_mode[i],mode)==0)
             {
                _mode=i;
                break;
