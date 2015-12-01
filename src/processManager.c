@@ -236,6 +236,7 @@ int process_job_set_scheduling_data(int id, char *str, int16_t condition)
    }
    else
       mps->schedule_command_mem=tmp_ptr;
+   s = mps->schedule_command_mem;
    
    mps->schedule_command_strings_ptr[0]=s;
    
@@ -1029,7 +1030,7 @@ int process_add_indicator(int id, char *name, long initial_value)
 
 int process_del_indicator(int id, char *name)
 {
-   int ret=-1;
+//   int ret=-1;
    
    process_heartbeat(id);// à compléter
 
@@ -1049,7 +1050,7 @@ int process_del_indicator(int id, char *name)
             if(strcmp(name, e->name) == 0)
             {
                mea_queue_remove_current(managed_processes.processes_table[id]->indicators_list);
-               ret=0;
+//               ret=0;
                goto process_del_indicator_clean_exit;
             }
             else

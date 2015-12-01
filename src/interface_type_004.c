@@ -688,13 +688,13 @@ int _interface_type_004_clean_configs_lists(interface_type_004_t *i004)
       
       HASH_ITER(hh_scenename, i004->scenesListBySceneName, s, ts)
       {
-         HASH_DELETE(hh_scenename, i004->scenesListBySceneName, s);
          if(s->scenename)
          {
             free((void *)(s->scenename));
             s->scenename=NULL;
          }
-         free(s);
+         HASH_DELETE(hh_scenename, i004->scenesListBySceneName, s);
+//         free(s);
       }
       i004->scenesListBySceneName=NULL;
    }

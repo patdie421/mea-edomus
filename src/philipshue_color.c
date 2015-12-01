@@ -76,26 +76,26 @@ int16_t _triangleForGamutID(int8_t gamut_id, point_t triangle[])
          triangle[RED].x   = 0.704;
          triangle[RED].y   = 0.296;
          triangle[GREEN].x = 0.2151;
-         triangle[GREEN].x = 0.7106;
+         triangle[GREEN].y = 0.7106;
          triangle[BLUE].x  = 0.138;
-         triangle[BLUE].x  = 0.08;
+         triangle[BLUE].y  = 0.08;
          break;
       case 2:
          triangle[RED].x   = 0.675;
          triangle[RED].y   = 0.322;
          triangle[GREEN].x = 0.409;
-         triangle[GREEN].x = 0.518;
+         triangle[GREEN].y = 0.518;
          triangle[BLUE].x  = 0.167;
-         triangle[BLUE].x  = 0.04;
+         triangle[BLUE].y  = 0.04;
          break;
       default:
          triangle[RED].x   = 1.0;
          triangle[RED].y   = 0.0;
          triangle[GREEN].x = 0.0;
-         triangle[GREEN].x = 1.0;
+         triangle[GREEN].y = 1.0;
          triangle[BLUE].x  = 0.0;
-         triangle[BLUE].x  = 0.0;
-         return -1;
+         triangle[BLUE].y  = 0.0;
+//         return -1;
          break;
    }
    return 0;
@@ -351,7 +351,8 @@ int16_t X_Y_B_ForGamutIDFromRgbUint32(uint32_t rgb, int16_t gamutID, float *x, f
    xyBriColor_t xyBri_Color;
    xyBriColor_t xyBri_Color_corrected;
    
-   rgbColorToXyBriColor(&rgbColor, &xyBri_Color);
+   if(rgbColorToXyBriColor(&rgbColor, &xyBri_Color)<0)
+      return -1;
 
    xyBriColorForGamutID(&xyBri_Color, gamutID, &xyBri_Color_corrected);
  

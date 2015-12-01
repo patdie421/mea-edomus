@@ -162,7 +162,6 @@
 		4E328D711AB35D3B00AA3C35 /* automatorServer2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = automatorServer2.h; path = src/automator/automatorServer2.h; sourceTree = "<group>"; };
 		4E3AF2361A5AB35100723560 /* indicateurs-view.php */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.php; path = "indicateurs-view.php"; sourceTree = "<group>"; };
 		4E3AF2371A5AB44500723560 /* services-view.php */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.php; path = "services-view.php"; sourceTree = "<group>"; };
-		4E3B804E1BFF902D00757EF8 /* serial_sms_alarme_epc.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = serial_sms_alarme_epc.py; path = plugins/serial_sms_alarme_epc.py; sourceTree = "<group>"; };
 		4E3B804F1C063F8A00757EF8 /* interface_SMS_SIM900v2.ino */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = interface_SMS_SIM900v2.ino; path = interface_SMS_SIM900v2/interface_SMS_SIM900v2.ino; sourceTree = "<group>"; };
 		4E3B80501C0790B000757EF8 /* mea_serial.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = mea_serial.py; path = plugins/mea_serial.py; sourceTree = "<group>"; };
 		4E3F341D19F80BA40066A9CC /* __init__.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = __init__.py; sourceTree = "<group>"; };
@@ -925,6 +924,8 @@
 		4E8787E71816733F00A87FF0 /* sqlite3db_utils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = sqlite3db_utils.h; path = src/sqlite3db_utils.h; sourceTree = "<group>"; };
 		4E8A87AE1A095D4A00A99E80 /* nodejsServer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = nodejsServer.c; path = src/nodejsServer.c; sourceTree = "<group>"; };
 		4E8A87AF1A095D4A00A99E80 /* nodejsServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = nodejsServer.h; path = src/nodejsServer.h; sourceTree = "<group>"; };
+		4E98B6181C0CF76200985383 /* mea_serial_send_sms.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = mea_serial_send_sms.py; path = plugins/mea_serial_send_sms.py; sourceTree = "<group>"; };
+		4E98B6191C0CF76200985383 /* mea_serial_sms_alarme_epc.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = mea_serial_sms_alarme_epc.py; path = plugins/mea_serial_sms_alarme_epc.py; sourceTree = "<group>"; };
 		4EA173041A48B1DD00A8BADB /* types-ctrl.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "types-ctrl.js"; sourceTree = "<group>"; };
 		4EA1CFBD1A1FAFD6008E82D8 /* get_sensors_actuators.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; name = get_sensors_actuators.php; path = gui/models/get_sensors_actuators.php; sourceTree = "<group>"; };
 		4EA1CFBE1A1FE570008E82D8 /* get_types_select.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; name = get_types_select.php; path = gui/models/get_types_select.php; sourceTree = "<group>"; };
@@ -2003,8 +2004,9 @@
 		4E48119F19C37C46001C5F48 /* plugins */ = {
 			isa = PBXGroup;
 			children = (
+				4E98B6181C0CF76200985383 /* mea_serial_send_sms.py */,
+				4E98B6191C0CF76200985383 /* mea_serial_sms_alarme_epc.py */,
 				4E3B80501C0790B000757EF8 /* mea_serial.py */,
-				4E3B804E1BFF902D00757EF8 /* serial_sms_alarme_epc.py */,
 				4E4292A41AB22FBA00E64F4F /* enocean_f6-02-01_xplonoff.py */,
 				4E4811A219C37D43001C5F48 /* mea_simulation.py */,
 				4E4811A319C37D43001C5F48 /* mea_utils.py */,

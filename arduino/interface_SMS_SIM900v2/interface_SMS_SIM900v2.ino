@@ -273,21 +273,24 @@ DDRx avec x :
 */
 int getPinDirection(int pinNum)
 {
-   num=pinNum;
+   int num=pinNum;
    unsigned char _ddrx=0;
 
    if(pinNum>=0 && pinNum >=8)
       _ddrx=DDRD;
+
    else if(pinNum>=8 && pinNum<=13)
    {
-      _ddrx=DDRB
+      _ddrx=DDRB;
       num=pinNum-8;
    }
    else if(pinNum>=14 && pinNum<=21)
    {
-      _ddrx=DDRC
+      _ddrx=DDRC;
       num=pinNum-14;
    }
+
+   _ddrx=_ddrx ^ 0xFF;
 
    int state= _ddrx & (1 << num);
 
@@ -350,9 +353,6 @@ unsigned char pin_direction(unsigned char pin)
          state = DDRC & mask;
          break;
    }
-   _ddrx=_ddrx ^ 0xFF;
-
-   state = _ddrx & (1 << num);
 
    if(state>0)
       return HIGH;
@@ -544,7 +544,7 @@ public:
   int sync(long timeout);
   int init();
 
-
+  int getSMSInFlag() { return SMSInFlag; };
   int echoOff();
   int echoOn();
   inline int getEchoOnOff() {
@@ -1640,8 +1640,8 @@ struct data_s sim900UserData, mcuUserData; // deux zones de données utilisateur
 struct pinsWatcherData_s
 {
   unsigned char pin;
-  char lastState;
   unsigned long lastChrono;
+  char lastState;
 };
 /*
 struct pinsWatcherData_s pinsWatcherData[PINSWATCHER_NBPINS] = {
@@ -2049,7 +2049,10 @@ int doCmnd(struct data_s *data, int pin, int cmnd, long value)
     if(value==-1)
     {  // lecture état logique
       if(pin!=0 & pin != 3)
+      {
         pinMode(pins[pin],INPUT);
+        digitalWrite(pins[pin], HIGH);
+      }
       v=digitalRead(pins[pin]);
       addToCmndResults(data,pin,cmnd,v);
     }
@@ -2470,7 +2473,7 @@ void pinsWatcher()
           else // front montant
             send_power=2;
           break;
-        case 1:
+        case 3:
           if(s==LOW)
             send_alarm=1;
           else
@@ -2887,14 +2890,32 @@ void setup()
 
   // pour la gestion des impulsions
   init_pulses();
-  
+
   // entrée d'alarme
   pinMode(4, INPUT); // detection de tension
   digitalWrite(4, HIGH); // pullup activé
   pinMode(7, INPUT); // déclenchement alarme
   digitalWrite(7, HIGH); // pullup activé
-  
-  FREERAM;
+
+  // autres entrées
+  pinMode(5, INPUT);
+  digitalWrite(5, HIGH);
+  pinMode(6, INPUT);
+  digitalWrite(6, HIGH);
+  pinMode(14, INPUT);
+  digitalWrite(14, HIGH);
+  pinMode(15, INPUT);
+  digitalWrite(15, HIGH);
+  pinMode(16, INPUT);
+  digitalWrite(16, HIGH);
+  pinMode(17, INPUT);
+  digitalWrite(17, HIGH);
+  pinMode(18, INPUT);
+  digitalWrite(18, HIGH);
+  pinMode(19, INPUT);
+  digitalWrite(19, HIGH);
+
+//  FREERAM;
 }
 
 
@@ -2902,9 +2923,9 @@ void loop()
 {
   myBlinkLeds.run();
   pulses();
-  pinsWatcher();
-
-  digitalWrite(13, myBlinkLeds.getLedState()); // clignotement de la led "activité" (D13) de l'ATmega
+  
+  if(sim900_connected_flag == 0 || sim900.getSMSInFlag()==0)
+    pinsWatcher();
 
   if(digitalRead(PIN_MCU_BYPASS_PROCESSING)==HIGH)
      sim900.MCUAnalyseOn();
@@ -2915,18 +2936,18 @@ void loop()
     sim900.connectionCheck();
   
   if(sim900_connected_flag)
-  {
     sim900.run();
-  }
-    
+
+  digitalWrite(13, myBlinkLeds.getLedState()); // clignotement de la led "activité" (D13) de l'ATmega
+
   if(Serial.available())
   {
     unsigned char serialInByte = (unsigned char)Serial.read();
 
     // On est en mode commande si :
-    if(   !sim900_connected_flag                   // pas de sim900 détecté
+    if(   !sim900_connected_flag              // pas de sim900 détecté
        || digitalRead(PIN_MCU_CMD_ONLY)==LOW  // PIN MCU_CMD_ONLY est à bas
-       || soft_cmd_mode_flag == 1)                 // on est passé en mode commande avec la séquence "~~~~" précédemment
+       || soft_cmd_mode_flag == 1)            // on est passé en mode commande avec la séquence "~~~~" précédemment
     {
       myBlinkLeds.setInterval(125); // en mode commande on clignote plus vite
       processCmndFromSerial(serialInByte, &mcuUserData);

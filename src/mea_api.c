@@ -910,7 +910,11 @@ static PyObject *mea_read(PyObject *self, PyObject *args)
    else
    {
       PyObject *_ret;
-       _ret=PyByteArray_FromStringAndSize(data, ret);
+      _ret=PyByteArray_FromStringAndSize(data, ret);
+      
+      free(data);
+      data=NULL;
+      
       return _ret;
    }
 

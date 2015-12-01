@@ -373,7 +373,7 @@ void *_pythonPlugin_thread(void *data)
       pthread_mutex_lock(&pythonPluginCmd_queue_lock);
    
       pass=0; // pour faire en sorte de n'avoir qu'un seul pthread_mutex_unlock en face du pthread_mutex_lock ci-dessus
-      ret=0;
+//      ret=0;
       if(pythonPluginCmd_queue && pythonPluginCmd_queue->nb_elem==0)
       {
          struct timeval tv;

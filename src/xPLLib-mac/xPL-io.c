@@ -516,7 +516,8 @@ static Bool setupBroadcastAddr() {
   }
 
   /* See if we need to find a default interface */
-  if ((xPLInterfaceName == NULL) || (strlen(xPLInterfaceName) == 0)) {
+//  if ((xPLInterfaceName == NULL) || (strlen(xPLInterfaceName) == 0)) {
+  if (strlen(xPLInterfaceName) == 0) {
     if (!findDefaultInterface(sockfd)) {
       xPL_Error("Could not find a working, non-loopback network interface");
       close(sockfd);

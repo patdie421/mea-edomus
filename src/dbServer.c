@@ -724,7 +724,7 @@ void *dbServer_thread(void *args)
    int ret;
    int nb=-1;
    
-   time_t last_time = 0;
+//   time_t last_time = 0;
    
    _md->db=NULL; // descritpteur SQLITE
    _md->conn=NULL; // descripteur com. MYSQL
@@ -787,15 +787,7 @@ void *dbServer_thread(void *args)
    first_start=0;
    while(1)
    {
-      time_t now = time(NULL);
- 
-      DEBUG_SECTION {
-//        mea_log_printf("%s (%s) : last loop %d seconds ago.\n", DEBUG_STR,__func__,now-last_time);
-        last_time=now;
-      }
-
-      int hrtbt=process_heartbeat(_dbServer_monitoring_id);
-//      DEBUG_SECTION mea_log_printf("%s (%s) : heatbeat. Previous : %d seconds ago.\n", DEBUG_STR,__func__, hrtbt);
+      process_heartbeat(_dbServer_monitoring_id);
       pthread_testcancel();
 
       process_update_indicator(_dbServer_monitoring_id, "DBSERVERINSQLITE", insqlite_indicator);
@@ -822,7 +814,7 @@ void *dbServer_thread(void *args)
          }
       }
       
-      hrtbt=process_heartbeat(_dbServer_monitoring_id);
+      process_heartbeat(_dbServer_monitoring_id);
 //      DEBUG_SECTION mea_log_printf("%s (%s) : heatbeat. Previous : %d seconds ago.\n", DEBUG_STR,__func__, hrtbt);
       pthread_testcancel();
       sleep(10);

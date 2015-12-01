@@ -787,7 +787,8 @@ static Bool parseMessageHeader(xPL_MessagePtr theMessage, xPL_NameValueListPtr n
 /* or NULL if there is a parse error                              */
 xPL_MessagePtr parseMessage(String theText) {
   int textLen = strlen(theText);
-  int parsedChars, parsedThisTime;
+  int parsedChars;
+  int parsedThisTime;
   String blockHeaderKeyword;
   String blockDelimPtr, periodPtr = NULL;
   xPL_MessagePtr theMessage;

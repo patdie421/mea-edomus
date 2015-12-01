@@ -274,6 +274,8 @@ def mea_serialData(data):
 def mea_serialDataPre(data):
    fn_name= __name__ + "/" + str(sys._getframe().f_code.co_name)
 
+   verbose(9, data)
+   
    try:
        serial_data=data["data"]
        interface_id=data["interface_id"]

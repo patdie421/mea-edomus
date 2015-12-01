@@ -86,7 +86,7 @@ static int16_t _parsed_parameters_clean_cache(int t, int force)
        if(HASH_COUNT(s->parsed_parameters_cache_elems) == 0)
        {
           HASH_DEL(_parsed_parameters_cache_list, s); 
-          free(s);
+//          free(s);
        }
    }
    

@@ -180,22 +180,26 @@ void init_tokens()
       perror("init_tokens_index: ");
       return;
    }
-
+   tokens_index->nb_tokens=0;
+   tokens_index->index_by_id=NULL;
+   tokens_index->index_by_string=NULL;
+   
    int i=0;
    for(;tokens_list[i].str;i++); // comptage du nombre de tokens
    if(i>0)
    {
       tokens_index->nb_tokens=i;
-   
       tokens_index->index_by_string = (int16_t *)malloc(tokens_index->nb_tokens*sizeof(int16_t));
       if(tokens_index->index_by_string == NULL)
       {
+         tokens_index->nb_tokens=0;
          DEBUG_SECTION PRINT_MALLOC_ERROR;
          return;
       }
       tokens_index->index_by_id = (int16_t *)malloc(tokens_index->nb_tokens*sizeof(int16_t));
       if(tokens_index->index_by_id  == NULL)
       {
+         tokens_index->nb_tokens=0;
          DEBUG_SECTION PRINT_MALLOC_ERROR;
          free(tokens_index->index_by_string);
          tokens_index->index_by_string=NULL;
@@ -294,10 +298,13 @@ enum token_id_e get_token_id_by_string(char *str)
       return _UNKNOWN;
 #endif
    }
-     
+   if(!tokens_index->index_by_string || tokens_index->nb_tokens<1)
+      return _UNKNOWN;
+   
    int16_t start = 0;
+   
    int16_t end = tokens_index->nb_tokens - 1;
-   int _cmpres;
+   int _cmpres = 0;
   
    do 
    {

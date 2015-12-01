@@ -749,7 +749,7 @@ int stop_interface_type_003(int my_id, void *data, char *errmsg, int l_errmsg)
       pthread_cancel(*(start_stop_params->i003->thread));
       
       int counter=100;
-      int stopped=-1;
+//      int stopped=-1;
       while(counter--)
       {
          if(start_stop_params->i003->thread_is_running)
@@ -758,7 +758,7 @@ int stop_interface_type_003(int my_id, void *data, char *errmsg, int l_errmsg)
          }
          else
          {
-            stopped=0;
+//            stopped=0;
             break;
          }
       }
@@ -946,9 +946,9 @@ int start_interface_type_003(int my_id, void *data, char *errmsg, int l_errmsg)
             if (pValue != NULL)
             {
                DEBUG_SECTION mea_log_printf("%s (%s) : Result of call of mea_init : %ld\n", DEBUG_STR, __func__, PyInt_AsLong(pValue));
+               Py_DECREF(pValue);
             }
             PyErr_Clear(); 
-            Py_DECREF(pValue);
             Py_DECREF(pArgs);
             Py_DECREF(plugin_params_dict);
          }
