@@ -35,7 +35,6 @@
 
 #include "dbServer.h"
 #include "parameters_utils.h"
-//#include "mea_api.h"
 #include "pythonPluginServer.h"
 #include "python_utils.h"
 
@@ -80,7 +79,7 @@ struct genericserial_thread_params_s
 };
 
 
-int interface_type_006_call_data_pre(struct genericserial_thread_params_s *params, void *data, int l_data)
+int interface_type_006_call_serialDataPre(struct genericserial_thread_params_s *params, void *data, int l_data)
 {
    int retour=-1;
    if(params->pFunc)
@@ -141,7 +140,7 @@ int interface_type_006_data_to_plugin(PyThreadState *myThreadState, int fd, sqli
          if(!plugin_elem->aDict)
             goto interface_type_006_data_to_plugin_clean_exit;
 
-         // le contexte
+         // le contexte necessaire au traitement
          mea_addLong_to_pydict(plugin_elem->aDict, get_token_string_by_id(DEVICE_ID_ID), sqlite3_column_int(stmt, 0));
          mea_addString_to_pydict(plugin_elem->aDict, get_token_string_by_id(DEVICE_NAME_ID), (char *)sqlite3_column_text(stmt, 5));
          mea_addLong_to_pydict(plugin_elem->aDict, get_token_string_by_id(DEVICE_TYPE_ID_ID), sqlite3_column_int(stmt, 4));
@@ -450,7 +449,7 @@ void *_thread_interface_type_006_genericserial_data(void *args)
             FD_SET(params->i006->fd, &input_set);
 
             timeout.tv_sec  = 0; // timeout après
-            timeout.tv_usec = 200000; // 100ms
+            timeout.tv_usec = 200000; // 200ms
 
             int ret = select(params->i006->fd+1, &input_set, NULL, NULL, &timeout);
             if (ret <= 0)
@@ -458,7 +457,7 @@ void *_thread_interface_type_006_genericserial_data(void *args)
                if(ret == 0)
                {
                   if(buffer_ptr>0)
-                     break; // après un "blanc" de 100 ms, si on a des données, on les envoie au plugin
+                     break; // après un "blanc" de 200 ms, si on a des données, on les envoie au plugin
                }
                else
                {
@@ -495,7 +494,7 @@ void *_thread_interface_type_006_genericserial_data(void *args)
             params->i006->indicators.serialin+=buffer_ptr;
             buffer[buffer_ptr]=0;
 
-            int ret=interface_type_006_call_data_pre(params, (void *)buffer, buffer_ptr+1);
+            int ret=interface_type_006_call_serialDataPre(params, (void *)buffer, buffer_ptr+1);
             if(ret!=0)
             {
                // transmettre buffer aux plugins

@@ -72,10 +72,15 @@ def mea_xplCmndMsg(data):
    try: 
       x=data["xplmsg"]
       schema=x["schema"]
+      msgtype=x["message_xpl_type"]
       body=x["body"]
       device=body["device"]
    except:
       verbose(2, "ERROR (", fn_name, ") - no or incomplet xpl message error") 
+      return False
+
+   if msgtype!="xpl-cmnd":
+      verbose(9, data)
       return False
 
    current=False
@@ -185,6 +190,7 @@ def mea_xplCmndMsg(data):
          mea.xplSendMsg(xplMsg)
          return True
    else:
+      verbose(9, data)
       verbose(2, "ERROR (", fn_name, ") - xpl schema incompatible with sensor/actuator (", schema, ")")
       return False
 

@@ -33,8 +33,8 @@
 #define XPL_VERSION "0.1a2"
 
 
-#define XPL_EXTERNAL_WD 1
-#ifdef XPL_EXTERNAL_WD
+#define XPL_WD 1
+#ifdef XPL_WD
 xPL_MessagePtr xplWDMsg;
 mea_timer_t xPLnoMsgReceivedTimer;
 #endif
@@ -75,7 +75,8 @@ extern xPL_MessagePtr createSendableMessage(xPL_MessageType messageType, char *v
 export xPL_MessagePtr createReceivedMessage(xPL_MessageType messageType);
 */
 
-void _cmndXPLMessageHandler(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xPL_ObjectPtr userValue);
+//void _cmndXPLMessageHandler(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xPL_ObjectPtr userValue);
+void _cmndXPLMessageHandler(xPL_MessagePtr theMessage, xPL_ObjectPtr userValue);
 
 
 void set_xPLServer_isnt_running(void *data)
@@ -86,15 +87,17 @@ void set_xPLServer_isnt_running(void *data)
 
 void clean_xPLServer(void *data)
 {
-   xPL_removeServiceListener(xPLService, _cmndXPLMessageHandler);
-   xPL_removeServiceListener(xPLService, _cmndXPLMessageHandler);
-#ifdef XPL_EXTERNAL_WD
-   xPL_removeServiceListener(xPLService, _cmndXPLMessageHandler);
+   xPL_removeMessageListener(_cmndXPLMessageHandler);
+
+//   xPL_removeServiceListener(xPLService, _cmndXPLMessageHandler);
+//   xPL_removeServiceListener(xPLService, _cmndXPLMessageHandler);
+#ifdef XPL_WD
+//   xPL_removeServiceListener(xPLService, _cmndXPLMessageHandler);
 #endif
    xPL_setServiceEnabled(xPLService, FALSE);
    xPL_releaseService(xPLService);
 
-#ifdef XPL_EXTERNAL_WD
+#ifdef XPL_WD
    if(xplWDMsg)
    {
       xPL_releaseMessage(xplWDMsg);
@@ -388,27 +391,45 @@ int16_t displayXPLMsg(xPL_MessagePtr theMessage)
 }
 
 
-void _cmndXPLMessageHandler(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
+//void _cmndXPLMessageHandler(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
+void _cmndXPLMessageHandler(xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
 {
-#ifdef XPL_EXTERNAL_WD
+#ifdef XPL_WD
    mea_start_timer(&xPLnoMsgReceivedTimer);
 #endif
-   char *schema_type, *schema_class;
+   char *schema_type, *schema_class, *vendor, *deviceID, *instanceID;
    schema_class = xPL_getSchemaClass(theMessage);
    schema_type  = xPL_getSchemaType(theMessage);
+   vendor       = xPL_getSourceVendor(theMessage);
+   deviceID     = xPL_getSourceDeviceID(theMessage);
+   instanceID   = xPL_getSourceInstanceID(theMessage);
+
+   int fromMe=-1;
+   if( strcmp(vendor,     xpl_vendorID)   ==  0 &&
+       strcmp(deviceID,   xpl_deviceID)   == 0 &&
+       strcmp(instanceID, xpl_instanceID) == 0)
+      fromMe=0;
 
 //   DEBUG_SECTION  displayXPLMsg(theMessage);
    
    if(mea_strcmplower(schema_class, get_token_string_by_id(XPL_WATCHDOG_ID)) == 0 &&
-      mea_strcmplower(schema_type, get_token_string_by_id(XPL_BASIC_ID)) == 0)
+      mea_strcmplower(schema_type, get_token_string_by_id(XPL_BASIC_ID)) == 0 &&
+      fromMe==0)
    {
-      // un message wd ... voir s'il faut faire quelque chose ...
+//      DEBUG_SECTION mea_log_printf("%s (%s) : watchdog xpl\n", DEBUG_STR, __func__);
    }
-   else
-   {
-      process_update_indicator(_xplServer_monitoring_id, xpl_server_xplin_str, ++xplin_indicator);
-      dispatchXPLMessageToInterfaces(theService, theMessage);
-   }
+
+// on filtre un peu avant de transmettre pour traitement
+   if(fromMe==0) // c'est de moi, pas la peine de traiter
+      return;
+
+   if(mea_strcmplower(schema_class, "hbeat") == 0 &&
+      mea_strcmplower(schema_type, "app")    == 0) // hbeat.app : pas la peine de traiter
+      return;
+
+   process_update_indicator(_xplServer_monitoring_id, xpl_server_xplin_str, ++xplin_indicator);
+//   dispatchXPLMessageToInterfaces(theService, theMessage);
+   dispatchXPLMessageToInterfaces(xPLService, theMessage);
 }
 
 
@@ -485,27 +506,30 @@ void *xPLServer_thread(void *data)
    xPL_setRespondingToBroadcasts(xPLService, TRUE);
    xPL_setServiceVersion(xPLService, XPL_VERSION);
    xPL_setHeartbeatInterval(xPLService, 5000); // en milliseconde
-   
+
+   xPL_addMessageListener(_cmndXPLMessageHandler, NULL);
+/*   
    xPL_addServiceListener(xPLService, _cmndXPLMessageHandler, xPL_MESSAGE_COMMAND, "control", "basic", (xPL_ObjectPtr)data) ;
    xPL_addServiceListener(xPLService, _cmndXPLMessageHandler, xPL_MESSAGE_COMMAND, "sensor", "request", (xPL_ObjectPtr)data) ;
    xPL_addServiceListener(xPLService, _cmndXPLMessageHandler, xPL_MESSAGE_COMMAND, "sendmsg", "basic", (xPL_ObjectPtr)data) ;
-   
-#ifdef XPL_EXTERNAL_WD
+*/   
+#ifdef XPL_WD
    mea_timer_t xPLWDSendMsgTimer;
-   mea_init_timer(&xPLnoMsgReceivedTimer, 90, 1);
-   mea_init_timer(&xPLWDSendMsgTimer, 30, 1);
+   mea_init_timer(&xPLnoMsgReceivedTimer, 30, 1);
+   mea_init_timer(&xPLWDSendMsgTimer, 10, 1);
    
-   char xpl_instanceWDID[17];
-   snprintf(xpl_instanceWDID,sizeof(xpl_instanceWDID)-1,"%s%s",xpl_instanceID,"wd");
+//   char xpl_instanceWDID[17];
+//   snprintf(xpl_instanceWDID,sizeof(xpl_instanceWDID)-1,"%s%s",xpl_instanceID,"wd");
 
-   xplWDMsg=mea_createSendableMessage(xPL_MESSAGE_TRIGGER, xpl_vendorID, xpl_deviceID, xpl_instanceWDID);
+//   xplWDMsg=mea_createSendableMessage(xPL_MESSAGE_TRIGGER, xpl_vendorID, xpl_deviceID, xpl_instanceWDID);
+   xplWDMsg=mea_createSendableMessage(xPL_MESSAGE_TRIGGER, xpl_vendorID, xpl_deviceID, xpl_instanceID);
    xPL_setBroadcastMessage(xplWDMsg, FALSE);
    xPL_setSchema(xplWDMsg, "watchdog", "basic");
    xPL_setTarget(xplWDMsg, xpl_vendorID, xpl_deviceID, xpl_instanceID);
-   xPL_setMessageNamedValue(xplWDMsg, "interval", "5");
+   xPL_setMessageNamedValue(xplWDMsg, "interval", "10");
    mea_start_timer(&xPLnoMsgReceivedTimer);
    mea_start_timer(&xPLWDSendMsgTimer);
-   xPL_addServiceListener(xPLService, _cmndXPLMessageHandler, xPL_MESSAGE_TRIGGER, "watchdog", "basic", (xPL_ObjectPtr)data);
+//   xPL_addServiceListener(xPLService, _cmndXPLMessageHandler, xPL_MESSAGE_TRIGGER, "watchdog", "basic", (xPL_ObjectPtr)data);
 #endif
 
    xPL_setServiceEnabled(xPLService, TRUE);
@@ -515,18 +539,18 @@ void *xPLServer_thread(void *data)
       pthread_testcancel();
       process_heartbeat(_xplServer_monitoring_id); // heartbeat après chaque boucle
       
-#ifdef XPL_EXTERNAL_WD
+#ifdef XPL_WD
       if(mea_test_timer(&xPLnoMsgReceivedTimer)==0)
       {
-         // pas de message depuis 10 secondes
+         // pas de message depuis 90 secondes
          VERBOSE(2) {
-            mea_log_printf("%s (%s) : no xPL message since 10 seconds, but we should have one ... I send me one !\n", ERROR_STR, __func__);
+            mea_log_printf("%s (%s) : no xPL message since 30 seconds, but we should have one ... I send me three !\n", ERROR_STR, __func__);
             mea_log_printf("%s (%s) : watchdog_recovery forced ...\n", ERROR_STR, __func__);
          }
          process_forced_watchdog_recovery(_xplServer_monitoring_id);
       }
       
-      if(mea_test_timer(&xPLWDSendMsgTimer)==0) // envoie d'un message toutes les 5 secondes
+      if(mea_test_timer(&xPLWDSendMsgTimer)==0) // envoie d'un message toutes les 30 secondes
          xPL_sendMessage(xplWDMsg);
 #endif
 

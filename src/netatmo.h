@@ -14,7 +14,7 @@ enum netatmo_setpoint_mode_e
    MAX,
 };
 
-extern char *netatmo_therm_mode[];
+extern char *netatmo_thermostat_mode[];
 
 struct netatmo_token_s
 {
@@ -31,6 +31,23 @@ struct netatmo_thermostat_data_s
    enum netatmo_setpoint_mode_e setpoint;
    double setpoint_temp;
 };
+
+
+struct netatmo_module_data_s
+{
+   char id[18];
+   char name[40];
+   char dataType;
+   double temperature;
+   double humidity;
+};
+
+struct netatmo_station_data_s
+{
+   double temperature;
+   struct netatmo_module_data_s modules_data[5];
+};
+
 
 int netatmo_get_token(char *client_id, char *client_secret, char *username, char *password, char *scope, struct netatmo_token_s *netatmo_token, char *err, int l_err);
 int netatmo_refresh_token(char *client_id, char *client_secret, struct netatmo_token_s *netatmo_token, char *err, int l_err);

@@ -291,9 +291,9 @@ long seek_to_previous_line(FILE *fp, long *pos)
       p = end-256*i; // on prévoit de remonter d'un nouveau bloc de 256 octets par rapport à la fin du fichier
       if(p<0) // bloc trop court (on a atteint le début du fichier), on ajuste
       {
-         block_size=256+p;
+         block_size=256+p; // rappel : ici p est négatif (c'est donc un soustraction ...)
          p=0;
-         fseek(fp,0,SEEK_SET); // on point au début du fichier
+         fseek(fp,0,SEEK_SET); // on pointe au début du fichier
       }
       else
       {
@@ -313,7 +313,7 @@ long seek_to_previous_line(FILE *fp, long *pos)
          else if(c==EOF && feof(fp)) // plus rien à lire (fin de fichier)
          {
             clearerr(fp); // c'est pas une erreur ... mais il faut clearer quand même
-            break; // et on qui le boucle for
+            break; // et on quitte la boucle for
          }
          else if(c==0x0A || (c==0x0D && previous_caracter==0x0A)) // une fin de ligne
          {
@@ -429,7 +429,6 @@ void *logServer_thread(void *data)
    process_heartbeat(_logServer_monitoring_id);
 
    snprintf(log_file, sizeof(log_file)-1, "%s/mea-edomus.log", logServer_thread_data->log_path);
-   _livelog_enable=1;
    mea_init_timer(&log_timer, 5, 1); // heartbeat toutes les 5 secondes
    mea_start_timer(&log_timer);
 
