@@ -10,7 +10,9 @@
 #include "mea_verbose.h"
 #include "mea_string_utils.h"
 
+
 char *netatmo_therm_mode[]={"program", "away", "hg", "manual", "off", "max", NULL};
+
 
 static int _netatmo_parse_return_json(char *response, char *err, int l_err)
 {
@@ -534,7 +536,7 @@ int main(int argc, char *argv[])
    char err[80];
    int ret;
 
-   ret=netatmo_get_token("563e5ce3cce37c07407522f2","lE1CUF1k3TxxSceiPpmIGY8QXJWIeXJv0tjbTRproMy4","patrice.dietsch@gmail.com","WEBcdpii10", "read_thermostat write_thermostat", &token, err, sizeof(err)-1);
+   ret=netatmo_get_token("563e5ce3cce37c07407522f2","lE1CUF1k3TxxSceiPpmIGY8QXJWIeXJv0tjbTRproMy4","patrice.dietsch@gmail.com","xxxxxxxxx", "read_thermostat write_thermostat", &token, err, sizeof(err)-1);
    if(ret!=0)
    {
       if(ret<0)

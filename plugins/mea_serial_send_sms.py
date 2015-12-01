@@ -21,6 +21,8 @@ debug=0
 def mea_xplCmndMsg(data):
    fn_name=str(sys._getframe().f_code.co_name) + "/" + __name__
 
+   verbose(9, fn_name," data=",data)
+
    try:
       id_actuator=data["device_id"]
    except:
@@ -28,7 +30,22 @@ def mea_xplCmndMsg(data):
       return False
 
    mem_actuator=mea.getMemory(id_actuator)
-   if mem_actuator['msg']!=False: # un sms est déjà en cours d'envoi, on ne peut traiter qu'un seul à la fois
+   verbose(9, fn_name," mem_actuator=",mem_actuator)
+
+   # premier passage, pas encore de msg
+   if not 'chrono' in mem_actuator or not 'msg' in mem_actuator: 
+      mem_actuator['chrono']=False
+      mem_actuator['msg']=False
+
+
+   # le dernier message n'a pas encore été envoyé après 5 secondes
+   if mem_actuator['chrono']<>False:
+      now=int(round(time() * 1000))
+      if now - mem_actuator['chrono'] > 5000:
+         mem_actuator['chrono']=False
+         mem_actuator['msg']=False
+
+   if mem_actuator['msg']!=False and mem_actuator['chrono']!=False: # un sms est déjà en cours d'envoi, on ne peut traiter qu'un seul à la fois
       return False
 
    # récupération des données xpl
@@ -49,7 +66,7 @@ def mea_xplCmndMsg(data):
 
       mea.sendSerialData(data['fd'], bytearray("AT+CMGS=\""+to+"\"\r\n"))
       mem_actuator['msg']= msg
-      mem_actuator['chrono']=int(round(time.time() * 1000))
+      mem_actuator['chrono']=int(round(time() * 1000))
 
       return True
    else:
@@ -59,6 +76,8 @@ def mea_xplCmndMsg(data):
 
 def mea_serialData(data):
    fn_name= __name__ + "/" + str(sys._getframe().f_code.co_name)
+
+   verbose(9, fn_name, "data=", data)
 
    try:
       id_actuator=data["device_id"]
@@ -76,11 +95,13 @@ def mea_serialData(data):
       return False
 
    mem_actuator=mea.getMemory(id_actuator)
+   verbose(9, fn_name, "mem_actuator=", mem_actuator)
+   
    if not 'msg' in mem_actuator or mem_actuator['msg']==False:
       return True
 
-   now=int(round(time.time() * 1000))
-   if mem_actuator['chrono'] <> False:
+   now=int(round(time() * 1000))
+   if 'chrono' in mem_actuator and mem_actuator['chrono'] <> False:
       if now -  mem_actuator['chrono'] < 5000:  
          if s.find(u"\r\n> ") >=0:
             mea.sendSerialData(data['fd'], bytearray(mem_actuator['msg']+"\r\n"+chr(26)))

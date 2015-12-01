@@ -12,6 +12,7 @@
 #include <signal.h>
 #include <errno.h>
 #include <inttypes.h>
+#include <time.h>
 
 #include "xPL.h"
 
@@ -22,11 +23,23 @@ char *xpl_msg_command = "xpl-cmnd";
 char *xpl_msg_status = "xpl-stat";
 char *xpl_msg_trigger = "xpl-trig";
 
+static unsigned long _millis()
+{
+  struct timeval tv;
+  gettimeofday(&tv,NULL);
+
+  return 1000 * tv.tv_sec + tv.tv_usec/1000;
+}
+
 int16_t displayXPLMsg(xPL_MessagePtr theMessage)
 {
    char xpl_source[48];
    char xpl_destination[48];
    char xpl_schema[48];
+
+   static unsigned long last = 0;
+
+   unsigned long now=_millis();
 
    snprintf(xpl_source, sizeof(xpl_source), "%s-%s.%s", xPL_getSourceVendor(theMessage), xPL_getSourceDeviceID(theMessage), xPL_getSourceInstanceID(theMessage));
    if(xPL_isBroadcastMessage(theMessage))
@@ -61,7 +74,8 @@ int16_t displayXPLMsg(xPL_MessagePtr theMessage)
    
    snprintf(xpl_schema,sizeof(xpl_schema),"%s.%s", xPL_getSchemaClass(theMessage), xPL_getSchemaType(theMessage));
 
-   fprintf(stdout, "%s: source = %s, destination = %s, schema = %s, body = [",msgTypeStrPtr, xpl_source, xpl_destination
+  
+   fprintf(stdout, "[%10ld][%06ld] %s: source = %s, destination = %s, schema = %s, body = [",now, now-last, msgTypeStrPtr, xpl_source, xpl_destination
    , xpl_schema);
 
    xPL_NameValueListPtr xpl_body = xPL_getMessageBody(theMessage);
@@ -75,6 +89,8 @@ int16_t displayXPLMsg(xPL_MessagePtr theMessage)
       fprintf(stdout,"%s = %s",keyValuePtr->itemName, keyValuePtr->itemValue);
    }
    fprintf(stdout,"]\n");
+
+   last=now;
    return 0;
 }
 
