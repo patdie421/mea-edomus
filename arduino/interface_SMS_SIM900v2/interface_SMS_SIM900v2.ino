@@ -1990,12 +1990,13 @@ int sendCmndResults(int retour, struct data_s *data)
  * \return    toujours 0
  */
 {
+/*
   Serial.println("");
   Serial.print("retour=");
   Serial.println(retour);
   Serial.print("msg=");
   Serial.println((char *)data->cmndResultsBuffer);
- 
+*/ 
   if(retour==-1)
      return -1;
  
@@ -2915,7 +2916,7 @@ void setup()
   pinMode(19, INPUT);
   digitalWrite(19, HIGH);
 
-//  FREERAM;
+  FREERAM;
 }
 
 
@@ -2945,9 +2946,9 @@ void loop()
     unsigned char serialInByte = (unsigned char)Serial.read();
 
     // On est en mode commande si :
-    if(   !sim900_connected_flag              // pas de sim900 détecté
+    if(   !sim900_connected_flag                   // pas de sim900 détecté
        || digitalRead(PIN_MCU_CMD_ONLY)==LOW  // PIN MCU_CMD_ONLY est à bas
-       || soft_cmd_mode_flag == 1)            // on est passé en mode commande avec la séquence "~~~~" précédemment
+       || soft_cmd_mode_flag == 1)                 // on est passé en mode commande avec la séquence "~~~~" précédemment
     {
       myBlinkLeds.setInterval(125); // en mode commande on clignote plus vite
       processCmndFromSerial(serialInByte, &mcuUserData);
