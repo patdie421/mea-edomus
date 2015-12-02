@@ -254,6 +254,8 @@ static int _netatmo_get_data_from_dashboard_json(cJSON *dashboard, int data_type
       }
       flag=flag << 1;
    }
+   
+   return 0;
 }
 
 
