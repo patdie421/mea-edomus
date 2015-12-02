@@ -284,8 +284,8 @@ static int _netatmo_get_data_from_dashboard_json(cJSON *dashboard, int dataTypeF
       }
       flag=flag << 1;
    }
-   
-   return 0;
+
+   return retour;
 }
 
 
@@ -339,7 +339,6 @@ static int _netatmo_parse_station_data_json(char *response, char *station_id, st
       int data_type_flags=_data_type_from_json_to_flags(data_type);
       if(data_type_flags!=-1)
       {
-         struct netatmo_data_s data;
          if(!dashboard_data || _netatmo_get_data_from_dashboard_json(dashboard_data, data_type_flags, &(station_data->data))!=0)
             goto _netatmo_parse_station_data_json_clean_exit;
       }

@@ -74,8 +74,9 @@ char *valid_netatmo_sa_params[]={"S:DEVICE_ID","S:MODULE_ID", "S:SENSOR", "S:ACT
 #define PARAMS_SENSOR    2
 #define PARAMS_ACTUATOR  3
 
+enum netatmo_sensor_e { TEMP, RELAY_CMD, BATTERY, SETPOINT, MODE };
 
-enum netatmo_sensor_e { TEMPERATURE, RELAY_CMD, BATTERY, SETPOINT, MODE };
+// enum netatmo_sensor_e { TEMPERATURE, RELAY_CMD, BATTERY, SETPOINT, MODE };
 
 char *interface_type_005_xplin_str="XPLIN";
 char *interface_type_005_xplout_str="XPLOUT";
@@ -157,7 +158,7 @@ int16_t interface_type_005_current_last(struct type005_sensor_actuator_queue_ele
 
    switch(e->sensor)
    {
-      case TEMPERATURE:
+      case TEMP:
          sprintf(str_current, "%4.1f", e->module->current->temperature);
          if(e->module->last->temperature>0.0)
          	sprintf(str_last,    "%4.1f", e->module->last->temperature);
@@ -587,7 +588,7 @@ int load_interface_type_005(interface_type_005_t *i005, sqlite3 *db)
                {
                   mea_strtolower(sensor);
                   if(strcmp(sensor, "temperature")==0)
-                     sa_elem->sensor=TEMPERATURE;
+                     sa_elem->sensor=TEMP;
                   else if(strcmp(sensor, "relay_cmd")==0)
                      sa_elem->sensor=RELAY_CMD;
                   else if(strcmp(sensor, "battery")==0)

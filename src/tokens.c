@@ -422,6 +422,7 @@ void release_tokens()
             s->str=NULL;
          }
          HASH_DELETE(hh_token_by_string, tokens_hash_by_string, s);
+         free(s);
       } 
       tokens_hash_by_string=NULL;
    }
@@ -437,6 +438,7 @@ void release_tokens()
             s->str=NULL;
          }
          HASH_DELETE(hh_token_by_id, tokens_hash_by_id, s);
+         free(s);
       } 
       tokens_hash_by_id=NULL;
    }

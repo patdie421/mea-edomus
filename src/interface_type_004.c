@@ -694,7 +694,7 @@ int _interface_type_004_clean_configs_lists(interface_type_004_t *i004)
             s->scenename=NULL;
          }
          HASH_DELETE(hh_scenename, i004->scenesListBySceneName, s);
-//         free(s);
+         free(s);
       }
       i004->scenesListBySceneName=NULL;
    }
