@@ -48,20 +48,13 @@ _netatmo_parse_return_json_clean_exit:
 }
 
 
-static int _netatmo_parse_thermostat_data_json(char *response, char *thermostat_id, struct netatmo_thermostat_data_s *thermostat_data,  char *err, int l_err)
+static int _netatmo_check_error_data_json(cJSON *j,  int *err_code, char *err, int l_err)
 {
-   int ret_code=-1;
-
-   cJSON *response_cjson=cJSON_Parse(response);
-   if(response_cjson==NULL)
-   {
-       DEBUG_SECTION mea_log_printf("%s (%s) : JSON error\n", DEBUG_STR, __func__);
-       goto _netatmo_parse_data_json_clean_exit;
-   }
-
    cJSON *e = NULL;
 
-   e=cJSON_GetObjectItem(response_cjson, "error");
+   *err_code=0;
+ 
+   e=cJSON_GetObjectItem(j, "error");
    if(e)
    {
       cJSON *a=cJSON_GetObjectItem(e, "message");
@@ -77,11 +70,32 @@ static int _netatmo_parse_thermostat_data_json(char *response, char *thermostat_
       }
       a=cJSON_GetObjectItem(e, "code");
       if(a)
-         ret_code=a->valueint;
+         *err_code=a->valueint;
       else
-         ret_code=9999;
-      goto _netatmo_parse_data_json_clean_exit;
+         *err_code=9999;
+      return -1;
    }
+   else
+      return 0;
+
+}
+
+
+static int _netatmo_parse_thermostat_data_json(char *response, char *thermostat_id, struct netatmo_thermostat_data_s *thermostat_data,  char *err, int l_err)
+{
+   int ret_code=-1;
+
+   cJSON *response_cjson=cJSON_Parse(response);
+   if(response_cjson==NULL)
+   {
+       DEBUG_SECTION mea_log_printf("%s (%s) : JSON error\n", DEBUG_STR, __func__);
+       goto _netatmo_parse_data_json_clean_exit;
+   }
+
+   if(_netatmo_check_error_data_json(response_cjson,  &ret_code, err, l_err)<0)
+      goto _netatmo_parse_data_json_clean_exit;
+
+   cJSON *e = NULL;
 
    ret_code=-2;
    e=cJSON_GetObjectItem(response_cjson, "body"); 
@@ -199,13 +213,7 @@ _netatmo_parse_data_json_clean_exit:
 
 
 
-#define TEMPERATURE 0x01
-#define CO2         0x02
-#define HUMIDITY    0x04
-#define NOISE       0x08
-#define PRESSURE    0x10
-
-char *types_str[]={ "Temperature", "CO2", "Humidity", "Noise", "Pressure", NULL };
+char *types_str[]={ "Temperature", "CO2", "Humidity", "Noise", "Pressure", "Rain", "WindAngle", "WindStrength", NULL };
 
 static int _data_type_from_json_to_flags(cJSON *data_type)
 {
@@ -217,40 +225,62 @@ static int _data_type_from_json_to_flags(cJSON *data_type)
       cJSON *type=NULL;
       while((type=cJSON_GetArrayItem(data_type, i))!=NULL)
       {
-         fprintf(stderr,"%s\n", type->valuestring);
-         if(strcmp(type->valuestring, types_str[0])==0)
-            flag=flag | TEMPERATURE;
+         if(strcmp(type->valuestring, types_str[TEMPERATURE])==0)
+            flag=flag | TEMPERATURE_BIT;
          if(strcmp(type->valuestring, types_str[1])==0)
-            flag=flag | CO2;
+            flag=flag | CO2_BIT;
          if(strcmp(type->valuestring, types_str[2])==0)
-            flag=flag | HUMIDITY;
+            flag=flag | HUMIDITY_BIT;
          if(strcmp(type->valuestring, types_str[3])==0)
-            flag=flag | NOISE;
+            flag=flag | NOISE_BIT;
          if(strcmp(type->valuestring, types_str[4])==0)
-            flag=flag | PRESSURE;
+            flag=flag | PRESSURE_BIT;
+         if(strcmp(type->valuestring, types_str[RAIN])==0)
+            flag=flag | RAIN_BIT;
+         if(strcmp(type->valuestring, "Wind")==0)
+            flag=flag | WINDANGLE_BIT | WINDSTRENGTH_BIT;
          i++;
       }
-
       return flag;
    }
    else
       return -1;
 }
 
-static int _netatmo_get_data_from_dashboard_json(cJSON *dashboard, int data_type)
+
+static void print_netatmo_data(struct netatmo_data_s *data)
+{
+   int flag=1;
+   int i=TEMPERATURE;
+   for(;i<NETATMO_MAX_DATA;i++)
+   {
+      if(data->dataTypeFlags & flag)
+      {
+         fprintf(stderr,"%s = %f\n", types_str[i], data->data[i]);
+      }
+      flag=flag << 1;
+   }
+}
+
+
+static int _netatmo_get_data_from_dashboard_json(cJSON *dashboard, int dataTypeFlags, struct netatmo_data_s *data)
 {
    if(dashboard==NULL || dashboard->type!=cJSON_Object)
       return -1;
-
+   data->dataTypeFlags=dataTypeFlags;
+   int retour=-1;
    int flag=1;
-   int i=0;
-   for(;types_str[i];i++)
+   int i=TEMPERATURE;
+   for(;i<NETATMO_MAX_DATA;i++)
    {
-      if(data_type & flag)
+      if(dataTypeFlags & flag)
       {
          cJSON *mesure=cJSON_GetObjectItem(dashboard, types_str[i]);
          if(mesure)
-            fprintf(stderr,"%s=%f\n", types_str[i], mesure->valuedouble);
+         {
+            data->data[i]=mesure->valuedouble;
+            retour=0;
+         }
       }
       flag=flag << 1;
    }
@@ -267,63 +297,87 @@ static int _netatmo_parse_station_data_json(char *response, char *station_id, st
 
    if(response_cjson==NULL)
    {
-       DEBUG_SECTION mea_log_printf("%s (%s) : JSON error\n", DEBUG_STR, __func__);
-       goto _netatmo_parse_station_data_json_clean_exit;
+      DEBUG_SECTION mea_log_printf("%s (%s) : JSON error\n", DEBUG_STR, __func__);
+      goto _netatmo_parse_station_data_json_clean_exit;
    }
 
-   cJSON *e = NULL;
+   ret_code=-2;
+   if(_netatmo_check_error_data_json(response_cjson,  &ret_code, err, l_err)<0)
+      goto _netatmo_parse_station_data_json_clean_exit;
 
-   e=cJSON_GetObjectItem(response_cjson, "error");
-   if(e)
+   cJSON *e=cJSON_GetObjectItem(response_cjson, "body"); 
+   if(e!=NULL)
    {
-      cJSON *a=cJSON_GetObjectItem(e, "message");
-      if(a)
+      e=cJSON_GetObjectItem(e, "devices");
+      cJSON *device=e->child;
+      e = NULL;
+      while(device)
       {
-         if(err)
-            strncpy(err, a->valuestring, l_err);
+         cJSON *_id=cJSON_GetObjectItem(device, "_id");
+         if(_id && strcmp(_id->valuestring, station_id)==0)
+         {
+            cJSON *station_name=cJSON_GetObjectItem(device, "station_name");
+            if(station_name)
+            {
+               strcpy(station_data->id, _id->valuestring);
+               strcpy(station_data->name, station_name->valuestring);
+               e = device;
+               break;
+            }
+         }
+         device=device->next;
       }
-      else
-      {
-         if(err)
-            strncpy(err,"unknown error", l_err);
-      }
-      a=cJSON_GetObjectItem(e, "code");
-      if(a)
-         ret_code=a->valueint;
-      else
-         ret_code=9999;
-      goto _netatmo_parse_station_data_json_clean_exit;
    }
 
-   e=cJSON_GetObjectItem(response_cjson, "body"); 
    if(e==NULL)
       goto _netatmo_parse_station_data_json_clean_exit;
 
-   e=cJSON_GetObjectItem(e, "devices");
-   if(e==NULL || e->type!=cJSON_Array)
-       goto _netatmo_parse_station_data_json_clean_exit;
-
-   e=cJSON_GetArrayItem(e, 0);
-   if(e==NULL)
-       goto _netatmo_parse_station_data_json_clean_exit;
-
-
-   cJSON *modules=cJSON_GetObjectItem(e, "modules");
-
-   // donnees de la station
    cJSON *data_type=cJSON_GetObjectItem(e, "data_type");
-   if(data_type)
+   cJSON *dashboard_data=cJSON_GetObjectItem(e, "dashboard_data");
+   if(data_type && dashboard_data)
    {
       int data_type_flags=_data_type_from_json_to_flags(data_type);
       if(data_type_flags!=-1)
       {
-         cJSON *dashboard_data=cJSON_GetObjectItem(e, "dashboard_data");
-         if(!dashboard_data || _netatmo_get_data_from_dashboard_json(dashboard_data, data_type_flags)!=1)
+         struct netatmo_data_s data;
+         if(!dashboard_data || _netatmo_get_data_from_dashboard_json(dashboard_data, data_type_flags, &(station_data->data))!=0)
             goto _netatmo_parse_station_data_json_clean_exit;
-         }
+      }
    }
    else
       goto _netatmo_parse_station_data_json_clean_exit;
+
+   cJSON *modules=cJSON_GetObjectItem(e, "modules");
+   cJSON *m=modules->child;
+   int num_module=0;
+   while(m)
+   {
+      cJSON *_id=cJSON_GetObjectItem(m, "_id");
+      cJSON *module_name=cJSON_GetObjectItem(m, "module_name");
+      cJSON *battery_vp = cJSON_GetObjectItem(m, "battery_vp");
+      cJSON *data_type=cJSON_GetObjectItem(m, "data_type");
+      cJSON *type=cJSON_GetObjectItem(m, "type");
+      cJSON *dashboard_data = cJSON_GetObjectItem(m, "dashboard_data");
+
+      if(_id && data_type && module_name && dashboard_data && battery_vp)
+      {
+         strncpy(station_data->modules_data[num_module].id, _id->valuestring, sizeof(station_data->modules_data[num_module].id));
+         strncpy(station_data->modules_data[num_module].name, module_name->valuestring, sizeof(station_data->modules_data[num_module].name));
+         strncpy(station_data->modules_data[num_module].type, type->valuestring, sizeof(station_data->modules_data[num_module].type));
+         station_data->modules_data[num_module].battery=battery_vp->valueint;
+         int data_type_flags=_data_type_from_json_to_flags(data_type);
+         if(data_type_flags!=-1)
+         {
+            if(!dashboard_data || _netatmo_get_data_from_dashboard_json(dashboard_data, data_type_flags, &(station_data->modules_data[num_module].data))!=0)
+               goto _netatmo_parse_station_data_json_clean_exit;
+         }
+      }
+      m=m->next;
+      num_module++;
+   }
+   station_data->nb_modules=num_module;
+
+   // donnees de la station
 
 _netatmo_parse_station_data_json_clean_exit:
    if(ret_code<0)
@@ -738,7 +792,75 @@ int netatmo_get_station_data(char *access_token, char *station_id, struct netatm
 
 
 #ifdef NETATMO_MODULE_TEST
-char *_data="{\"body\":{\"devices\":[{\"_id\":\"70:ee:50:12:5b:c2\",\"alarm_config\":{\"default_alarm\":[{\"db_alarm_number\":0},{\"db_alarm_number\":1},{\"db_alarm_number\":2},{\"db_alarm_number\":6},{\"db_alarm_number\":4},{\"db_alarm_number\":5},{\"db_alarm_number\":7}],\"personnalized\":[{\"threshold\":1,\"data_type\":0,\"direction\":1,\"db_alarm_number\":19}]},\"cipher_id\":\"enc:16:bZV9YUcYITcw2z3GIdM8K0OVEZ2dqVgMBNcbd1jpWTeFClCSotzCr+45x68b0MF\",\"co2_calibrating\":false,\"firmware\":111,\"last_status_store\":1448978187,\"last_upgrade\":1440372667,\"module_name\":\"Station\",\"modules\":[{\"_id\":\"02:00:00:12:79:9a\",\"module_name\":\"Ext\u00e9rieur\",\"type\":\"NAModule1\",\"firmware\":43,\"last_message\":1448978181,\"last_seen\":1448978136,\"rf_status\":89,\"battery_vp\":6242,\"dashboard_data\":{\"time_utc\":1448978136,\"Temperature\":12.9,\"temp_trend\":\"stable\",\"Humidity\":73,\"date_max_temp\":1448976958,\"date_min_temp\":1448924920,\"min_temp\":11.4,\"max_temp\":12.9},\"data_type\":[\"Temperature\",\"Humidity\"]}],\"place\":{\"altitude\":110,\"city\":\"Fontenay-sous-Bois\",\"country\":\"FR\",\"improveLocProposed\":true,\"location\":[2.4953483110451,48.8745462],\"timezone\":\"EuropeParis\"},\"station_name\":\"Maison\",\"type\":\"NAMain\",\"wifi_status\":41,\"dashboard_data\":{\"AbsolutePressure\":1014.9,\"time_utc\":1448978172,\"Noise\":47,\"Temperature\":21.5,\"temp_trend\":\"stable\",\"Humidity\":58,\"Pressure\":1028.2,\"pressure_trend\":\"up\",\"CO2\":0,\"date_max_temp\":1448975149,\"date_min_temp\":1448938249,\"min_temp\":19.3,\"max_temp\":21.6},\"data_type\":[\"Temperature\",\"CO2\",\"Humidity\",\"Noise\",\"Pressure\"]}],\"user\":{\"mail\":\"patrice.dietsch@gmail.com\",\"administrative\":{\"reg_locale\":\"fr-FR\",\"lang\":\"fr-FR\",\"unit\":0,\"windunit\":0,\"pressureunit\":0,\"feel_like_algo\":0}}},\"status\":\"ok\",\"time_exec\":2.2652621269226,\"time_server\":1448978661}";
+char *_data=" \
+{ \
+   \"body\":\
+   {\
+      \"devices\": [ \
+         { \
+            \"_id\": \"70:ee:50:12:5b:c2\", \
+            \"alarm_config\": \
+            { \
+               \"default_alarm\":[{\"db_alarm_number\":0},{\"db_alarm_number\":1},{\"db_alarm_number\":2},{\"db_alarm_number\":6},{\"db_alarm_number\":4},{\"db_alarm_number\":5},{\"db_alarm_number\":7}], \
+               \"personnalized\":[{\"threshold\":1,\"data_type\":0,\"direction\":1,\"db_alarm_number\":19}] \
+            }, \
+            \"cipher_id\": \"enc:16:bZV9YUcYITcw2z3GIdM8K0OVEZ2dqVgMBNcbd1jpWTeFClCSotzCr+45x68b0MF\", \
+            \"co2_calibrating\": false, \
+            \"firmware\":111, \
+            \"last_status_store\": 1448978187, \
+            \"last_upgrade\": 1440372667, \
+            \"module_name\": \"Station\", \
+            \"modules\": [{ \
+               \"_id\":\"02:00:00:12:79:9a\", \
+               \"module_name\":\"Ext\u00e9rieur\", \
+               \"type\":\"NAModule1\", \
+               \"firmware\":43, \
+               \"last_message\":1448978181, \
+               \"last_seen\":1448978136, \
+               \"rf_status\":89, \
+               \"battery_vp\":6242, \
+               \"dashboard_data\": \
+               { \
+                  \"time_utc\":1448978136, \
+                  \"Temperature\":12.9, \
+                  \"temp_trend\":\"stable\", \
+                  \"Humidity\":73, \
+                  \"date_max_temp\":1448976958, \
+                  \"date_min_temp\":1448924920, \
+                  \"min_temp\":11.4, \
+                  \"max_temp\":12.9 \
+               }, \
+               \"data_type\": [\"Temperature\",\"Humidity\"] \
+            }], \
+            \"place\":{\"altitude\":110,\"city\":\"Fontenay-sous-Bois\",\"country\":\"FR\",\"improveLocProposed\":true,\"location\":[2.4953483110451,48.8745462],\"timezone\":\"EuropeParis\"}, \
+            \"station_name\":\"Maison\", \
+            \"type\":\"NAMain\", \
+            \"wifi_status\":41, \
+            \"dashboard_data\": \
+            { \
+               \"AbsolutePressure\":1014.9, \
+               \"time_utc\":1448978172, \
+               \"Noise\":47, \
+               \"Temperature\":21.5, \
+               \"temp_trend\":\"stable\", \
+               \"Humidity\":58, \
+               \"Pressure\":1028.2, \
+               \"pressure_trend\":\"up\", \
+               \"CO2\":0, \
+               \"date_max_temp\":1448975149, \
+               \"date_min_temp\":1448938249, \
+               \"min_temp\":19.3, \
+               \"max_temp\":21.6 \
+            }, \
+            \"data_type\": [\"Temperature\",\"CO2\",\"Humidity\",\"Noise\",\"Pressure\"] \
+         } \
+      ], \
+      \"user\": {\"mail\":\"patrice.dietsch@gmail.com\",\"administrative\":{\"reg_locale\":\"fr-FR\",\"lang\":\"fr-FR\",\"unit\":0,\"windunit\":0,\"pressureunit\":0,\"feel_like_algo\":0}} \
+   }, \
+   \"status\": \"ok\", \
+   \"time_exec\":2.2652621269226, \
+   \"time_server\":1448978661 \
+}";
 
 int main(int argc, char *argv[])
 {
@@ -747,7 +869,6 @@ int main(int argc, char *argv[])
    char err[80];
    int ret;
 
-/*
    ret=netatmo_get_token("563e5ce3cce37c07407522f2","lE1CUF1k3TxxSceiPpmIGY8QXJWIeXJv0tjbTRproMy4","patrice.dietsch@gmail.com","WEBcdpii10", "read_thermostat write_thermostat read_station", &token, err, sizeof(err)-1);
    if(ret!=0)
    {
@@ -779,112 +900,24 @@ int main(int argc, char *argv[])
    struct netatmo_station_data_s station_data;
 
    netatmo_get_station_data(token.access, "70:ee:50:12:5b:c2", &station_data, err,  sizeof(err)-1);
-*/
+
 //   netatmo_set_thermostat_setpoint(token.access, "70:ee:50:0a:34:e0", "04:00:00:0a:37:8c", MANUAL, 3600, 19.5, err, sizeof(err)-1);
 //   netatmo_set_thermostat_setpoint(token.access, "70:ee:50:0a:34:e0", "04:00:00:0a:37:8c", MAX, 3600, -1.0, err, sizeof(err)-1);
 //   netatmo_set_thermostat_setpoint(token.access, "70:ee:50:0a:34:e0", "04:00:00:0a:37:8c", AWAY, 3600, -1.0, err, sizeof(err)-1);
 
-   _netatmo_parse_station_data_json(_data, NULL, NULL, NULL, 0);
+   struct netatmo_station_data_s station;
+
+   ret=netatmo_get_station_data(token.access, "70:ee:50:12:5b:c2", &station, err,  sizeof(err)-1);
+   if(ret==0)
+   {
+      fprintf(stderr,"%s %s\n", station.id, station.name);
+      print_netatmo_data(&(station.data));
+      int i=0;
+      for(;i<station.nb_modules;i++)
+      {
+         fprintf(stderr,"%s %s %s %d\n", station.modules_data[i].id, station.modules_data[i].name, station.modules_data[i].type, station.modules_data[i].battery);
+         print_netatmo_data(&(station.modules_data[i].data));
+      }
+   }
 }
 #endif
-
-/*
-{
-        "body": {
-                "devices":      [{
-                                "_id":  "70:ee:50:12:5b:c2",
-                                "alarm_config": {
-                                        "default_alarm":        [{
-                                                        "db_alarm_number":      0
-                                                }, {
-                                                        "db_alarm_number":      1
-                                                }, {
-                                                        "db_alarm_number":      2
-                                                }, {
-                                                        "db_alarm_number":      6
-                                                }, {
-                                                        "db_alarm_number":      4
-                                                }, {
-                                                        "db_alarm_number":      5
-                                                }, {
-                                                        "db_alarm_number":      7
-                                                }],
-                                        "personnalized":        [{
-                                                        "threshold":    1,
-                                                        "data_type":    0,
-                                                        "direction":    1,
-                                                        "db_alarm_number":      19
-                                                }]
-                                },
-                                "cipher_id":    "enc:16:bZV9YUcYITcw2z3GIdM8K0OVEZ2dqVgMBNcb/d1jpWTeFClCSotzCr+45x68b0MF",
-                                "co2_calibrating":      false,
-                                "firmware":     111,
-                                "last_status_store":    1448975763,
-                                "last_upgrade": 1440372667,
-                                "module_name":  "Station",
-                                "modules":      [{
-                                                "_id":  "02:00:00:12:79:9a",
-                                                "module_name":  "Extérieur",
-                                                "type": "NAModule1",
-                                                "firmware":     43,
-                                                "last_message": 1448975759,
-                                                "last_seen":    1448975727,
-                                                "rf_status":    87,
-                                                "battery_vp":   6242,
-                                                "dashboard_data":       {
-                                                        "time_utc":     1448975727,
-                                                        "Temperature":  12.800000,
-                                                        "temp_trend":   "stable",
-                                                        "Humidity":     73,
-                                                        "date_max_temp":        1448975727,
-                                                        "date_min_temp":        1448924920,
-                                                        "min_temp":     11.400000,
-                                                        "max_temp":     12.800000
-                                                },
-                                                "data_type":    ["Temperature", "Humidity"]
-                                        }],
-                                "place":        {
-                                        "altitude":     110,
-                                        "city": "Fontenay-sous-Bois",
-                                        "country":      "FR",
-                                        "improveLocProposed":   true,
-                                        "location":     [2.495348, 48.874546],
-                                        "timezone":     "Europe/Paris"
-                                },
-                                "station_name": "Maison",
-                                "type": "NAMain",
-                                "wifi_status":  41,
-                                "dashboard_data":       {
-                                        "AbsolutePressure":     1015,
-                                        "time_utc":     1448975754,
-                                        "Noise":        59,
-                                        "Temperature":  21.600000,
-                                        "temp_trend":   "up",
-                                        "Humidity":     58,
-                                        "Pressure":     1028.300000,
-                                        "pressure_trend":       "up",
-                                        "CO2":  0,
-                                        "date_max_temp":        1448975149,
-                                        "date_min_temp":        1448938249,
-                                        "min_temp":     19.300000,
-                                        "max_temp":     21.600000
-                                },
-                                "data_type":    ["Temperature", "CO2", "Humidity", "Noise", "Pressure"]
-                        }],
-                "user": {
-                        "mail": "patrice.dietsch@gmail.com",
-                        "administrative":       {
-                                "reg_locale":   "fr-FR",
-                                "lang": "fr-FR",
-                                "unit": 0,
-                                "windunit":     0,
-                                "pressureunit": 0,
-                                "feel_like_algo":       0
-                        }
-                }
-        },
-        "status":       "ok",
-        "time_exec":    0.021476,
-        "time_server":  1448976059
-}
-*/

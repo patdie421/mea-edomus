@@ -33,19 +33,39 @@ struct netatmo_thermostat_data_s
 };
 
 
-struct netatmo_module_data_s
+enum netatmo_data_types_e { TEMPERATURE=0, CO2, HUMIDITY, NOISE, PRESSURE, RAIN, WINDANGLE, WINDSTRENGTH, NETATMO_MAX_DATA };
+
+#define TEMPERATURE_BIT (1 << TEMPERATURE)
+#define CO2_BIT         (1 << CO2)
+#define HUMIDITY_BIT    (1 << HUMIDITY)
+#define NOISE_BIT       (1 << NOISE)
+#define PRESSURE_BIT    (1 << PRESSURE)
+#define RAIN_BIT        (1 << RAIN)
+#define WINDANGLE_BIT   (1 << WINDANGLE)
+#define WINDSTRENGTH_BIT (1 << WINDSTRENGTH)
+
+struct netatmo_data_s
+{
+   int dataTypeFlags;
+   float data[NETATMO_MAX_DATA];
+};
+
+struct netatmo_module_s
 {
    char id[18];
    char name[40];
-   char dataType;
-   double temperature;
-   double humidity;
+   char type[20];
+   int battery;
+   struct netatmo_data_s data;
 };
 
 struct netatmo_station_data_s
 {
-   double temperature;
-   struct netatmo_module_data_s modules_data[5];
+   char id[18];
+   char name[40];
+   struct netatmo_data_s data;
+   int nb_modules;
+   struct netatmo_module_s modules_data[5];
 };
 
 
@@ -53,6 +73,7 @@ int netatmo_get_token(char *client_id, char *client_secret, char *username, char
 int netatmo_refresh_token(char *client_id, char *client_secret, struct netatmo_token_s *netatmo_token, char *err, int l_err);
 int netatmo_set_thermostat_setpoint(char *access_token, char *relay_id, char *thermostat_id, enum netatmo_setpoint_mode_e mode, uint32_t delay, double temp, char *err, int l_err);
 int netatmo_get_thermostat_data(char *access_token, char *relay_id, char *thermostat_id, struct netatmo_thermostat_data_s *thermostat_data, char *err, int l_err);
+int netatmo_get_station_data(char *access_token, char *station_id, struct netatmo_station_data_s *station_data, char *err, int l_err);
 
 #endif
 

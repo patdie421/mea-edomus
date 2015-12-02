@@ -21,6 +21,7 @@
 #include "mea_queue.h"
 #include "mea_timer.h"
 #include "tokens.h"
+#include "tokens_da.h"
 #include "xPLServer.h"
 #include "mea_string_utils.h"
 #include "processManager.h"
@@ -32,6 +33,11 @@
 
 #define XPL_VERSION "0.1a2"
 
+#include "cJSON.h"
+extern char *rules;
+cJSON *_rules;
+cJSON *automator_load_rules(char *rules);
+int automator_match_rules(cJSON *rules, xPL_MessagePtr message);
 
 #define XPL_WD 1
 #ifdef XPL_WD
@@ -62,7 +68,7 @@ long xplout_indicator = 0;
 // gestion de des messages xpl internes
 uint32_t requestId = 1;
 pthread_mutex_t requestId_lock;
-mea_queue_t        *xplRespQueue;
+mea_queue_t    *xplRespQueue;
 pthread_cond_t  xplRespQueue_sync_cond;
 pthread_mutex_t xplRespQueue_sync_lock;
 int             _xPLServer_mutex_initialized=0;
@@ -227,14 +233,14 @@ uint16_t mea_sendXPLMessage(xPL_MessagePtr xPLMsg)
    process_update_indicator(_xplServer_monitoring_id, xpl_server_xplout_str, ++xplout_indicator);
 
    addr = xPL_getSourceDeviceID(xPLMsg);
-   if(addr && strcmp(addr,"internal")==0) // source interne => dispatching sans passer par le réseau
+   if(addr && strcmp(addr,INTERNAL_STR_C)==0) // source interne => dispatching sans passer par le réseau
    {
       dispatchXPLMessageToInterfaces(xPLService, xPLMsg);
       return 0;
    }
    
    addr = xPL_getTargetDeviceID(xPLMsg);
-   if(addr && strcmp(addr,"internal")==0) // destination interne, retour à mettre dans une file (avec timestamp) ...
+   if(addr && strcmp(addr,INTERNAL_STR_C)==0) // destination interne, retour à mettre dans une file (avec timestamp) ...
    {
       int id;
       
@@ -419,16 +425,25 @@ void _cmndXPLMessageHandler(xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
 //      DEBUG_SECTION mea_log_printf("%s (%s) : watchdog xpl\n", DEBUG_STR, __func__);
    }
 
-// on filtre un peu avant de transmettre pour traitement
+   // on filtre un peu avant de transmettre pour traitement
+
+   automator_match_rules(_rules, theMessage);
+
    if(fromMe==0) // c'est de moi, pas la peine de traiter
       return;
 
+   if(xPL_getMessageType(theMessage)!=xPL_MESSAGE_COMMAND)
+   {
+      // faire quelque chose ici si nécessaire (ex : automate)
+      // automator_match_rules(_rules, theMessage);
+      return;
+   }
+/*
    if(mea_strcmplower(schema_class, "hbeat") == 0 &&
       mea_strcmplower(schema_type, "app")    == 0) // hbeat.app : pas la peine de traiter
       return;
-
+*/
    process_update_indicator(_xplServer_monitoring_id, xpl_server_xplin_str, ++xplin_indicator);
-//   dispatchXPLMessageToInterfaces(theService, theMessage);
    dispatchXPLMessageToInterfaces(xPLService, theMessage);
 }
 
@@ -494,6 +509,8 @@ void _xplRespQueue_free_queue_elem(void *d)
 
 void *xPLServer_thread(void *data)
 {
+   _rules=automator_load_rules(rules);
+
    pthread_cleanup_push( (void *)set_xPLServer_isnt_running, (void *)NULL );
    pthread_cleanup_push( (void *)clean_xPLServer, (void *)NULL);
    
@@ -517,11 +534,12 @@ void *xPLServer_thread(void *data)
    mea_timer_t xPLWDSendMsgTimer;
    mea_init_timer(&xPLnoMsgReceivedTimer, 30, 1);
    mea_init_timer(&xPLWDSendMsgTimer, 10, 1);
-   
-//   char xpl_instanceWDID[17];
-//   snprintf(xpl_instanceWDID,sizeof(xpl_instanceWDID)-1,"%s%s",xpl_instanceID,"wd");
 
-//   xplWDMsg=mea_createSendableMessage(xPL_MESSAGE_TRIGGER, xpl_vendorID, xpl_deviceID, xpl_instanceWDID);
+/*   
+   char xpl_instanceWDID[17];
+   snprintf(xpl_instanceWDID,sizeof(xpl_instanceWDID)-1,"%s%s",xpl_instanceID,"wd");
+   xplWDMsg=mea_createSendableMessage(xPL_MESSAGE_TRIGGER, xpl_vendorID, xpl_deviceID, xpl_instanceWDID);
+*/
    xplWDMsg=mea_createSendableMessage(xPL_MESSAGE_TRIGGER, xpl_vendorID, xpl_deviceID, xpl_instanceID);
    xPL_setBroadcastMessage(xplWDMsg, FALSE);
    xPL_setSchema(xplWDMsg, "watchdog", "basic");
@@ -578,8 +596,6 @@ void *xPLServer_thread(void *data)
 
 pthread_t *xPLServer()
 {
-//   pthread_t *xPL_thread=NULL;
-
    if(!xpl_deviceID || !xpl_instanceID || !xpl_vendorID)
    {
       return NULL;
@@ -653,7 +669,7 @@ int stop_xPLServer(int my_id, void *data,  char *errmsg, int l_errmsg)
          }
       }
 
-      DEBUG_SECTION mea_log_printf("%s (%s) : %s, fin après %d itération\n",DEBUG_STR, __func__,xpl_server_name_str,100-counter);
+      DEBUG_SECTION mea_log_printf("%s (%s) : %s, fin après %d itération(s)\n",DEBUG_STR, __func__,xpl_server_name_str,100-counter);
       ret=stopped;
    }
 
@@ -744,7 +760,6 @@ int start_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg)
    }
 }
 
-
 int restart_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg)
 {
    int ret=0;
@@ -756,3 +771,363 @@ int restart_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg)
    return ret;
 }
 
+
+char *__rules="{[ \
+                   { \
+                      \"name\" : \"V1\", \
+                      \"value\" : 1.0, \
+                   }, \
+                   { \
+                      \"name\" : \"E1\", \
+                      \"value\" : \"current\", \
+                      \"conditions\" : { \
+                                        \"source\" : {\"op\" : \"==\", \"value\" : \"mea-edomus.home\" }, \
+                                        \"schema\" : {\"op\" : \"==\", \"value\" : \"sensor.basic\"}, \
+                                        \"device\" : {\"op\" : \"==\", \"value\" : \"BUTTON1\"}, \
+                                        \"type\"   : {\"op\" : \"==\", \"value\" : \"input\"} \
+                                     }, \
+                      \"break\" : \"false\" \
+                   }, \
+                   { \
+                      \"name\" : \"E2\", \
+                      \"value\" : \"current\", \
+                      \"conditions\" : { \
+                                        \"source\" : {\"op\" : \"==\", \"value\" : \"mea-edomus.home\" }, \
+                                        \"schema\" : {\"op\" : \"==\", \"value\" : \"sensor.basic\"}, \
+                                        \"device\" : {\"op\" : \"==\", \"value\" : \"BUTTON2\"} \
+                                     } \
+                      \"break\" : \"true\" \
+                   }, \
+                   { \
+                      \"name\" : \"T1\", \
+                      \"value\" : \"$now()\", \
+                      \"conditions\" : { \
+                                        \"source\" : {\"op\" : \"==\", \"value\" : \"mea-edomus.home\" }, \
+                                        \"schema\" : {\"op\" : \"==\", \"value\" : \"sensor.basic\"}, \
+                                        \"device\" : {\"op\" : \"==\", \"value\" : \"BUTTON2\"} \
+                                     } \
+                      \"break\" : \"true\" \
+                   } \
+]}";
+
+char *rules="[ \
+   { \
+      \"name\": \"E1\", \
+      \"value\" : \"current\", \
+      \"conditions\" : { \
+         \"source\" : {\"op\" : \"==\", \"value\" : \"mea-edomus.home\" }, \
+         \"schema\" : {\"op\" : \"==\", \"value\" : \"sensor.basic\"}, \
+         \"device\" : {\"op\" : \"==\", \"value\" : \"BUTTON1\"}, \
+         \"type\"   : {\"op\" : \"==\", \"value\" : \"input\"} \
+      }, \
+      \"break\": true \
+   }, \
+   { \
+      \"name\": \"E2\", \
+      \"value\" : \"#2.0\", \
+      \"conditions\" : { \
+         \"source\" : {\"op\" : \"==\", \"value\" : \"mea-edomus.home\" }, \
+         \"schema\" : {\"op\" : \"==\", \"value\" : \"sensor.basic\"}, \
+         \"device\" : {\"op\" : \"==\", \"value\" : \"BUTTON2\"}, \
+         \"type\"   : {\"op\" : \"==\", \"value\" : \"input\"} \
+      }, \
+      \"break\": false \
+   } \
+]";
+/*
+# les règles sont évaluées dans l'ordre
+# par defaut toutes les règles sont évaluées
+# le comportement par défaut est modifiée par "onmatch" : break : l'évaluation s'arrête, continue : l'évaluation se poursuit
+# mon langage de regles
+# V1 is: #1
+# V2 is: #2.1     if: (source == mea-edomus.home, schema == sensor.basic, device == "BUTTON3", current == #2) onmatch: break
+# V2 is: #10      if: (source == mea-edomus.home, schema == sensor.basic, device == "BUTTON3", current > #3, current < #5) onmatch: continue
+# E1 is: current  if: (source == mea-edomus.home, schema == sensor.basic, device == "BUTTON1", type == "input") onmatch: break
+# E2 is: last     if: (source == mea-edomus.home, schema == sensor.basic, device == "BUTTON2") onmatch: continue
+# T2 is: $now()   if: (source == mea-edomus.home, schema == sensor.basic, device == "BUTTON2") onmatch: continue
+# P1 is: current  if: (source == mea-edomus.home, schema == sensor.basic, device == "CONSO", type == "power") onmatch: continue
+# P2 is: current  if: (source == mea-edomus.home, schema == sensor.basic, device == "CONSO", type == "power", current != #0) onmatch: continue
+# P3 is: current  if: (source == mea-edomus.home, schema == sensor.basic, device == "PROD", type == "power", current != {V1}) onmatch: continue
+# C1 is: current  if: (source == mea-edomus.home, schema == sensor.basic, device == "PROD", type == "power", {T2}>0 ) onmatch: continue
+#
+# if faut ecrire une fonction "loadrules" qui traduit ce langage en dictionaire
+
+# un exemple de règle "compliqué"
+# T1_last is: {T1} if: (source == mea-edomus.home, schema == sensor.basic, device == "BUTTON2", current == "high")
+# T1 is: $now() if: (source == mea-edomus.home, schema == sensor.basic, device == "BUTTON2", current == "high")
+# DIFF is: $eval({T2} - {T2_last}) if: (source == mea-edomus.home, schema == sensor.basic, device == "BUTTON2", current == "high")
+# P1 is: "high" if: (source == mea-edomus.home, schema == sensor.basic, device == "BUTTON2", current == "high", {DIFF} > #1000)
+# P1 is: "low"  if: (source == mea-edomus.home, schema == sensor.basic, device == "BUTTON2", current == "high", {DIFF} <= #1000)
+#
+*/
+cJSON *automator_load_rules(char *rules)
+{
+   cJSON *rules_json = cJSON_Parse(rules);
+
+   if(rules_json==NULL)
+   {
+      fprintf(stderr,"%s\n", cJSON_GetErrorPtr);
+   }
+   else
+   {
+      char *r=cJSON_Print(rules_json);
+      fprintf(stderr,"%s\n", r);
+      free(r);
+   }
+
+   return rules_json;
+}
+
+
+struct value_s {
+   char type;
+   union {
+      char strval[20];
+      float floatval;
+   } val;
+};
+
+
+static int printVal(struct value_s *v)
+{
+   if(v->type==0)
+      fprintf(stderr,"(float)%f",v->val.floatval);
+   else
+      fprintf(stderr,"(string)%s",v->val.strval);
+}
+
+
+static int getNumber(char *s, float *v)
+{
+   char *n;
+ 
+   *v=strtof(s, &n);
+
+   if(*n!=0)
+      return -1;
+   else
+      return 0;
+}
+
+
+static int setValueFromStr(struct value_s *v, char *str)
+{
+   float f;
+
+   if(getNumber(str, &f)==0)
+   {
+      v->type=0;
+      v->val.floatval=f; 
+   }
+   else
+   {
+      v->type=1;
+      strncpy(v->val.strval, str, sizeof(v->val.strval)); 
+   }
+
+   return 0;
+}
+
+
+static int operation(struct value_s *v1, char *op, struct value_s *v2)
+{
+   if(op[2]!=0)
+      return -1;
+
+   if(v1->type == 1 || v2->type == 1)
+   {
+      if(op[0]=='=' && op[1]=='=')
+      {
+         if(v1->type != v2->type)
+            return 0;
+         else
+            return (mea_strcmplower(v1->val.strval, v2->val.strval)==0);
+      }
+      else if(op[0]=='!' && op[1]=='=')
+      {
+         if(v1->type != v2->type)
+            return 1;
+         else
+            return !(mea_strcmplower(v1->val.strval,v2->val.strval)==0);
+      }
+      else
+         return 0;
+   }
+   else
+   {
+      if(op[0]=='=' && op[1]=='=')
+         return (v1->val.floatval == v2->val.floatval);
+      else if(op[0]=='!' && op[1]=='=')
+         return (v1->val.floatval != v2->val.floatval);
+      else
+         return 0;
+   }
+}
+
+
+int automator_match_rules(cJSON *rules, xPL_MessagePtr message)
+{
+   char *schema_type, *schema_class, *vendor, *deviceID, *instanceID;
+   schema_class = xPL_getSchemaClass(message);
+   schema_type  = xPL_getSchemaType(message);
+   vendor       = xPL_getSourceVendor(message);
+   deviceID     = xPL_getSourceDeviceID(message);
+   instanceID   = xPL_getSourceInstanceID(message);
+
+   xPL_NameValueListPtr ListNomsValeursPtr;
+   ListNomsValeursPtr = xPL_getMessageBody(message);
+
+   char source[80]="";
+   char schema[80]="";
+
+   sprintf(source,"%s-%s.%s", vendor, deviceID, instanceID);
+   sprintf(schema,"%s.%s", schema_class, schema_type);
+
+   cJSON *e=rules->child;
+
+   while(e)
+   {
+      struct value_s res, val1, val2;
+
+      cJSON *name=cJSON_GetObjectItem(e,"name");
+      cJSON *value=cJSON_GetObjectItem(e,"value");
+      cJSON *onmatch=cJSON_GetObjectItem(e,"break");
+
+      if(!name || !value || !onmatch)
+         continue;
+
+
+      // préparation récupération de la value
+      if(value->valuestring[0]=='#')
+      {
+         float v=0;
+         if(getNumber(&value->valuestring[1], &v)==0)
+         {
+            res.type=0;
+            res.val.floatval=v;
+         }
+         else
+         {
+            fprintf(stderr,"value error\n");
+            goto next_rule;
+         }
+      }
+      else if(value->valuestring[0]=='$')
+      {
+         // a faire
+         fprintf(stderr,"%s = call %s ", name->valuestring, &value->valuestring[1]);
+         res.type=0;
+         res.val.floatval=0.0;
+      }
+      else if(value->valuestring[0]=='{')
+      {
+         // a faire
+         fprintf(stderr,"%s = get %s ", name->valuestring, value->valuestring);
+      }
+      else
+      {
+         char *_value=xPL_getNamedValue(ListNomsValeursPtr, value->valuestring);
+         if(_value==NULL)
+         {
+            goto next_rule;
+         }
+         else
+         {
+            res.type=1;
+            strncpy(res.val.strval, _value, sizeof(res.val.strval));
+         }
+      }
+
+      // évaluation des conditions 
+      cJSON *conditions=cJSON_GetObjectItem(e,"conditions"); 
+      if(conditions==NULL)
+      {
+         goto next_rule;
+      }
+      cJSON *c=conditions->child;
+      int match=1;
+      while(c)
+      {
+         cJSON *op = cJSON_GetObjectItem(c, "op");
+         cJSON *value2 = cJSON_GetObjectItem(c, "value");
+         if(!op || !value2)
+         {
+            match=0;
+            break;
+         }
+
+         // cas spécifique pour source et schema
+         if(strcmp(c->string, "source")==0)
+         {
+            setValueFromStr(&val1, source); 
+            setValueFromStr(&val2, value2->valuestring); 
+            int ret=operation(&val1, op->valuestring, &val2);
+            if(!ret)
+            {
+               match=0;
+               break;
+            }
+         }
+         else if(strcmp(c->string, "schema")==0)
+         {
+            setValueFromStr(&val1, schema); 
+            setValueFromStr(&val2, value2->valuestring); 
+            int ret=operation(&val1, op->valuestring, &val2);
+            if(!ret)
+            {
+               match=0;
+               break;
+            }
+         }
+         else // value du body du message xpl
+         { 
+            char *value1=xPL_getNamedValue(ListNomsValeursPtr, c->string);
+            if(!value1)
+            {
+               match=0;
+               break;
+            }
+            else
+            {
+               setValueFromStr(&val1, value1); 
+               if(value2->valuestring[0]=='#')
+               {
+                  setValueFromStr(&val2, &value2->valuestring[1]); 
+                  if(val2.type!=0)
+                  {
+                     goto next_rule;
+                  }
+               }
+               else
+                  setValueFromStr(&val2, value2->valuestring); 
+
+               int ret=operation(&val1, op->valuestring, &val2);
+               if(!ret)
+               {
+                  match=0;
+                  break;
+               }
+            }
+         }
+         c=c->next; 
+      }
+
+      if(match==0)
+      {
+         fprintf(stderr,"not match\n");
+      }
+      else
+      {
+         cJSON *breakFlag=cJSON_GetObjectItem(e,"break"); 
+         fprintf(stderr,"Rule %s = ", name->valuestring);
+         printval(&res);
+         fprintf(stderr,"\n"); 
+         if(breakFlag->type == cJSON_True)
+         {
+            break;
+         }
+      }
+next_rule:
+      e=e->next;
+   }
+}

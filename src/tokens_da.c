@@ -78,6 +78,7 @@ int16_t init_strings_da()
    tokens_string_da->interface_state_str_c            = get_token_string_by_id(INTERFACE_STATE_ID);
    tokens_string_da->local_xbee_addr_h_str_c          = get_token_string_by_id(LOCAL_XBEE_ADDR_H_ID);
    tokens_string_da->local_xbee_addr_l_str_c          = get_token_string_by_id(LOCAL_XBEE_ADDR_L_ID);
+   tokens_string_da->internal_str_c                   = get_token_string_by_id(INTERNAL_ID);
 #endif
    return 0;
 }
