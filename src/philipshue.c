@@ -38,7 +38,7 @@ cJSON *my_cJSON_GetItemByName(cJSON *object, const char *name)
    if(object->type != cJSON_Object)
       return NULL;
    cJSON *c=object->child;
-   while (c && strcmp(c->string,name))
+   while (c && strcmp(c->string, name))
       c=c->next;
    return c;
 }

@@ -21,6 +21,7 @@
 #include "mea_queue.h"
 #include "mea_timer.h"
 #include "tokens.h"
+#include "tokens_da.h"
 #include "xPLServer.h"
 #include "mea_string_utils.h"
 #include "processManager.h"
@@ -62,7 +63,7 @@ long xplout_indicator = 0;
 // gestion de des messages xpl internes
 uint32_t requestId = 1;
 pthread_mutex_t requestId_lock;
-mea_queue_t        *xplRespQueue;
+mea_queue_t    *xplRespQueue;
 pthread_cond_t  xplRespQueue_sync_cond;
 pthread_mutex_t xplRespQueue_sync_lock;
 int             _xPLServer_mutex_initialized=0;
@@ -227,14 +228,14 @@ uint16_t mea_sendXPLMessage(xPL_MessagePtr xPLMsg)
    process_update_indicator(_xplServer_monitoring_id, xpl_server_xplout_str, ++xplout_indicator);
 
    addr = xPL_getSourceDeviceID(xPLMsg);
-   if(addr && strcmp(addr,"internal")==0) // source interne => dispatching sans passer par le réseau
+   if(addr && strcmp(addr,INTERNAL_STR_C)==0) // source interne => dispatching sans passer par le réseau
    {
       dispatchXPLMessageToInterfaces(xPLService, xPLMsg);
       return 0;
    }
    
    addr = xPL_getTargetDeviceID(xPLMsg);
-   if(addr && strcmp(addr,"internal")==0) // destination interne, retour à mettre dans une file (avec timestamp) ...
+   if(addr && strcmp(addr,INTERNAL_STR_C)==0) // destination interne, retour à mettre dans une file (avec timestamp) ...
    {
       int id;
       
@@ -419,16 +420,22 @@ void _cmndXPLMessageHandler(xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
 //      DEBUG_SECTION mea_log_printf("%s (%s) : watchdog xpl\n", DEBUG_STR, __func__);
    }
 
-// on filtre un peu avant de transmettre pour traitement
+   // on filtre un peu avant de transmettre pour traitement
+
    if(fromMe==0) // c'est de moi, pas la peine de traiter
       return;
 
+   if(xPL_getMessageType(theMessage)!=xPL_MESSAGE_COMMAND)
+   {
+      // faire quelque chose ici si nécessaire (ex : automate)
+      return;
+   }
+/*
    if(mea_strcmplower(schema_class, "hbeat") == 0 &&
       mea_strcmplower(schema_type, "app")    == 0) // hbeat.app : pas la peine de traiter
       return;
-
+*/
    process_update_indicator(_xplServer_monitoring_id, xpl_server_xplin_str, ++xplin_indicator);
-//   dispatchXPLMessageToInterfaces(theService, theMessage);
    dispatchXPLMessageToInterfaces(xPLService, theMessage);
 }
 
@@ -517,11 +524,12 @@ void *xPLServer_thread(void *data)
    mea_timer_t xPLWDSendMsgTimer;
    mea_init_timer(&xPLnoMsgReceivedTimer, 30, 1);
    mea_init_timer(&xPLWDSendMsgTimer, 10, 1);
-   
-//   char xpl_instanceWDID[17];
-//   snprintf(xpl_instanceWDID,sizeof(xpl_instanceWDID)-1,"%s%s",xpl_instanceID,"wd");
 
-//   xplWDMsg=mea_createSendableMessage(xPL_MESSAGE_TRIGGER, xpl_vendorID, xpl_deviceID, xpl_instanceWDID);
+/*   
+   char xpl_instanceWDID[17];
+   snprintf(xpl_instanceWDID,sizeof(xpl_instanceWDID)-1,"%s%s",xpl_instanceID,"wd");
+   xplWDMsg=mea_createSendableMessage(xPL_MESSAGE_TRIGGER, xpl_vendorID, xpl_deviceID, xpl_instanceWDID);
+*/
    xplWDMsg=mea_createSendableMessage(xPL_MESSAGE_TRIGGER, xpl_vendorID, xpl_deviceID, xpl_instanceID);
    xPL_setBroadcastMessage(xplWDMsg, FALSE);
    xPL_setSchema(xplWDMsg, "watchdog", "basic");
@@ -578,8 +586,6 @@ void *xPLServer_thread(void *data)
 
 pthread_t *xPLServer()
 {
-//   pthread_t *xPL_thread=NULL;
-
    if(!xpl_deviceID || !xpl_instanceID || !xpl_vendorID)
    {
       return NULL;

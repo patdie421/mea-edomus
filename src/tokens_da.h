@@ -59,6 +59,7 @@ struct tokens_strings_da_s
    char *local_xbee_addr_l_str_c;
    char *reachable_str_c;
    char *state_str_c;
+   char *internal_str_c;
 };
 
 extern struct tokens_strings_da_s *tokens_string_da;
@@ -103,6 +104,7 @@ extern struct tokens_strings_da_s *tokens_string_da;
 #define INTERFACE_STATE_STR_C            tokens_string_da->interface_state_str_c
 #define LOCAL_XBEE_ADDR_H_STR_C          tokens_string_da->local_xbee_addr_h_str_c
 #define LOCAL_XBEE_ADDR_L_STR_C          tokens_string_da->local_xbee_addr_l_str_c
+#define INTERNAL_STR_C                   tokens_string_da->internal_str_c
 
 #else
 #define DEVICE_PARAMETERS_STR_C          get_token_string_by_id(DEVICE_PARAMETERS_ID)
@@ -144,6 +146,7 @@ extern struct tokens_strings_da_s *tokens_string_da;
 #define INTERFACE_STATE_STR_C            get_token_string_by_id(INTERFACE_STATE_ID)
 #define LOCAL_XBEE_ADDR_H_STR_C          get_token_string_by_id(LOCAL_XBEE_ADDR_H_ID)
 #define LOCAL_XBEE_ADDR_L_STR_C          get_token_string_by_id(LOCAL_XBEE_ADDR_L_ID)
+#define INTERNAL_STR_C                   get_token_string_by_id(INTERNAL_ID)
 
 #endif
 

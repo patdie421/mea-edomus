@@ -48,20 +48,13 @@ _netatmo_parse_return_json_clean_exit:
 }
 
 
-static int _netatmo_parse_thermostat_data_json(char *response, char *thermostat_id, struct netatmo_thermostat_data_s *thermostat_data,  char *err, int l_err)
+static int _netatmo_check_error_data_json(cJSON *j,  int *err_code, char *err, int l_err)
 {
-   int ret_code=-1;
-
-   cJSON *response_cjson=cJSON_Parse(response);
-   if(response_cjson==NULL)
-   {
-       DEBUG_SECTION mea_log_printf("%s (%s) : JSON error\n", DEBUG_STR, __func__);
-       goto _netatmo_parse_data_json_clean_exit;
-   }
-
    cJSON *e = NULL;
 
-   e=cJSON_GetObjectItem(response_cjson, "error");
+   *err_code=0;
+ 
+   e=cJSON_GetObjectItem(j, "error");
    if(e)
    {
       cJSON *a=cJSON_GetObjectItem(e, "message");
@@ -77,11 +70,32 @@ static int _netatmo_parse_thermostat_data_json(char *response, char *thermostat_
       }
       a=cJSON_GetObjectItem(e, "code");
       if(a)
-         ret_code=a->valueint;
+         *err_code=a->valueint;
       else
-         ret_code=9999;
-      goto _netatmo_parse_data_json_clean_exit;
+         *err_code=9999;
+      return -1;
    }
+   else
+      return 0;
+
+}
+
+
+static int _netatmo_parse_thermostat_data_json(char *response, char *thermostat_id, struct netatmo_thermostat_data_s *thermostat_data,  char *err, int l_err)
+{
+   int ret_code=-1;
+
+   cJSON *response_cjson=cJSON_Parse(response);
+   if(response_cjson==NULL)
+   {
+       DEBUG_SECTION mea_log_printf("%s (%s) : JSON error\n", DEBUG_STR, __func__);
+       goto _netatmo_parse_data_json_clean_exit;
+   }
+
+   if(_netatmo_check_error_data_json(response_cjson,  &ret_code, err, l_err)<0)
+      goto _netatmo_parse_data_json_clean_exit;
+
+   cJSON *e = NULL;
 
    ret_code=-2;
    e=cJSON_GetObjectItem(response_cjson, "body"); 
@@ -265,50 +279,26 @@ static int _netatmo_parse_station_data_json(char *response, char *station_id, st
 
    if(response_cjson==NULL)
    {
-       DEBUG_SECTION mea_log_printf("%s (%s) : JSON error\n", DEBUG_STR, __func__);
-       goto _netatmo_parse_station_data_json_clean_exit;
+      DEBUG_SECTION mea_log_printf("%s (%s) : JSON error\n", DEBUG_STR, __func__);
+      goto _netatmo_parse_station_data_json_clean_exit;
    }
 
-   cJSON *e = NULL;
+   if(_netatmo_check_error_data_json(response_cjson,  &ret_code, err, l_err)<0)
+      goto _netatmo_parse_station_data_json_clean_exit;
 
-   e=cJSON_GetObjectItem(response_cjson, "error");
-   if(e)
+   cJSON *e=cJSON_GetObjectItem(response_cjson, "body"); 
+   if(e!=NULL)
    {
-      cJSON *a=cJSON_GetObjectItem(e, "message");
-      if(a)
+      e=cJSON_GetObjectItem(e, "devices");
+      if(e!=NULL && e->type==cJSON_Array)
       {
-         if(err)
-            strncpy(err, a->valuestring, l_err);
+         e=cJSON_GetArrayItem(e, 0);
       }
-      else
-      {
-         if(err)
-            strncpy(err,"unknown error", l_err);
-      }
-      a=cJSON_GetObjectItem(e, "code");
-      if(a)
-         ret_code=a->valueint;
-      else
-         ret_code=9999;
-      goto _netatmo_parse_station_data_json_clean_exit;
    }
-
-   e=cJSON_GetObjectItem(response_cjson, "body"); 
    if(e==NULL)
       goto _netatmo_parse_station_data_json_clean_exit;
+  
 
-   e=cJSON_GetObjectItem(e, "devices");
-   if(e==NULL || e->type!=cJSON_Array)
-       goto _netatmo_parse_station_data_json_clean_exit;
-
-   e=cJSON_GetArrayItem(e, 0);
-   if(e==NULL)
-       goto _netatmo_parse_station_data_json_clean_exit;
-
-
-   cJSON *modules=cJSON_GetObjectItem(e, "modules");
-
-   // donnees de la station
    cJSON *data_type=cJSON_GetObjectItem(e, "data_type");
    if(data_type)
    {
@@ -318,10 +308,14 @@ static int _netatmo_parse_station_data_json(char *response, char *station_id, st
          cJSON *dashboard_data=cJSON_GetObjectItem(e, "dashboard_data");
          if(!dashboard_data || _netatmo_get_data_from_dashboard_json(dashboard_data, data_type_flags)!=1)
             goto _netatmo_parse_station_data_json_clean_exit;
-         }
+      }
    }
    else
       goto _netatmo_parse_station_data_json_clean_exit;
+
+   cJSON *modules=cJSON_GetObjectItem(e, "modules");
+
+   // donnees de la station
 
 _netatmo_parse_station_data_json_clean_exit:
    if(ret_code<0)
