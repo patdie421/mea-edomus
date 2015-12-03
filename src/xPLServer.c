@@ -35,10 +35,16 @@
 
 
 #include "cJSON.h"
-extern char *rules;
-cJSON *_rules;
+extern char *inputs_rules;
+extern char *outputs_rules;
+
+cJSON *_inputs_rules;
+cJSON *_outputs_rules;
+
 cJSON *automator_load_rules(char *rules);
-int automator_match_rules(cJSON *rules, xPL_MessagePtr message);
+int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message);
+int automator_play_output_rules(cJSON *rules);
+int automator_reset_inputs_change_flags();
 
 
 #define XPL_WD 1
@@ -429,7 +435,9 @@ void _cmndXPLMessageHandler(xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
 
    // on filtre un peu avant de transmettre pour traitement
 
-   automator_match_rules(_rules, theMessage);
+   automator_match_inputs_rules(_inputs_rules, theMessage);
+   automator_play_output_rules(_outputs_rules);
+   automator_reset_inputs_change_flags();
 
    if(fromMe==0) // c'est de moi, pas la peine de traiter
       return;
@@ -511,7 +519,8 @@ void _xplRespQueue_free_queue_elem(void *d)
 
 void *xPLServer_thread(void *data)
 {
-   _rules=automator_load_rules(rules);
+   _inputs_rules=automator_load_rules(inputs_rules);
+   _outputs_rules=automator_load_rules(outputs_rules);
 
    pthread_cleanup_push( (void *)set_xPLServer_isnt_running, (void *)NULL );
    pthread_cleanup_push( (void *)clean_xPLServer, (void *)NULL);
@@ -773,11 +782,44 @@ int restart_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg)
    return ret;
 }
 
-
 // RULES :
 // xpl-trig: source = mea-edomus.home, destination = *, schema = sensor.basic, body = [device = conso, type = power, current = 274.591704]
 // xpl-trig: source = mea-edomus.home, destination = *, schema = sensor.basic, body = [device = epgstat01, current = 1]
-char *rules="[ \
+char *outputs_rules="[ \
+   { \
+      \"name\": \"A1\", \
+      \"action\" : \"xPLSend\", \
+      \"parameters\" : [ \
+         { \"schema\"  : \"'control.basic'\" }, \
+         { \"device\"  : \"'toto'\" }, \
+         { \"current\" : \"{E3}\" } \
+      ], \
+      \"condition\" : { \"'E3'\" : \"raise\"} \
+   }, \
+   { \
+      \"name\": \"A2\", \
+      \"action\" : \"xPLSend\", \
+      \"parameters\" : [ \
+         { \"schema\"  : \"'control.basic'\" }, \
+         { \"device\"  : \"'toto'\" }, \
+         { \"current\" : \"{E3}\" } \
+      ], \
+      \"condition\" : { \"'E3'\" : \"fall\"} \
+   }, \
+   { \
+      \"name\": \"A3\", \
+      \"action\" : \"xPLSend\", \
+      \"parameters\" : [ \
+         { \"schema\"  : \"'control.basic'\" }, \
+         { \"target\"  : \"'mea-edomus.test'\" }, \
+         { \"device\"  : \"'tata'\" }, \
+         { \"current\" : \"{E3}\" } \
+      ], \
+      \"condition\" : { \"'E3'\" : \"change\"} \
+   } \
+]";
+
+char *inputs_rules="[ \
    { \
       \"name\": \"V1\", \
       \"value\" : \"$now()\", \
@@ -899,12 +941,11 @@ char *rules="[ \
 # T2 is: $now()    if: (source == 'mea-edomus.home', schema == 'sensor.basic', device == 'BUTTON2') onmatch: continue
 # P1 is: current   if: (source == 'mea-edomus.home', schema == 'sensor.basic', device == 'CONSO', type == 'power') onmatch: continue
 # P2 is: current   if: (source == 'mea-edomus.home', schema == 'sensor.basic', device == 'CONSO', type == 'power', current != #0) onmatch: continue
-# P3 is: current   if: (source == 'mea-edomus.home', schema == 'sensor.basic', device == 'PROD', type == 'power', current != {V1}) onmatch: continue
-# C1 is: current   if: (source == 'mea-edomus.home', schema == 'sensor.basic', device == 'PROD', type == 'power', {T2}>0 ) onmatch: moveforward S2
-# B1 is: &false    if: (source == 'mea-edomus.home', schema == 'sensor.basic', device == 'TEMP', type == 'temp', current > 0) onmatch: continue
-# S1 is: 'toto'    if: (source == 'mea-edomus.home', schema == 'sensor.basic', device == 'TEMP', type == 'temp', current <= #0) onmatch: continue
-# S2 is: [A1]      if: ($change('C1') == &true)
-#
+# P3 is: current   if: (source == 'mea-edomus.home', schema == 'sensor.basic', device == 'PROD',  type == 'power', current != {V1}) onmatch: continue
+# C1 is: current   if: (source == 'mea-edomus.home', schema == 'sensor.basic', device == 'PROD',  type == 'power', {T2}>0 ) onmatch: moveforward S1
+# B1 is: &false    if: (source == 'mea-edomus.home', schema == 'sensor.basic', device == 'TEMP',  type == 'temp',  current > 0)   onmatch: continue
+# S1 is: 'toto'    if: (source == 'mea-edomus.home', schema == 'sensor.basic', device == 'TEMP',  type == 'temp',  current <= #0) onmatch: continue
+# S2 is: &true     if: ($timer('timer1')==&true) onmatch: continue
 
 # des exemples de règles "compliqués"
 # T1_last is: {T1} if: (source == mea-edomus.home, schema == sensor.basic, device == "BUTTON2", current == "high")
@@ -919,9 +960,11 @@ char *rules="[ \
 
 # Pour les actions :
 #
-# A1 is: send(schema='control.basic', device='toto', current={E1})
-# A2 is: send(schema='control.basic', device='toto', current={E1})
-#
+# A1 do: xPLSend with: (schema='control.basic', device='toto', current={E1}) when: 'C1' raise
+# A2 do: xPLSend with: (schema='control.basic', device='toto', current={E1}) when: 'C1' fall
+# A3 do: xPLSend with: (schema='control.basic', device='tata', current={E1}) when: 'C1' change
+# A4 do: xPLSend with: (schema='control.basic', device='tata', current=$eval(!{E1})) when: 'C1' change
+# A5 do: timerstart with: (name='timer1', value=10, unit='s', autorestart=&false) when: 'E1' raise
 */
 
 struct value_s {
@@ -936,7 +979,7 @@ struct value_s {
 
 #include "uthash.h"
 
-enum input_state_e { RAISE, FALL, STAY, TYPECHANGE, UNKNOWN };
+enum input_state_e { NEW, RAISE, FALL, STAY, CHANGE, TYPECHANGE, UNKNOWN };
 
 struct inputs_table_s
 {
@@ -950,6 +993,7 @@ struct inputs_table_s
 
 int automator_add_to_inputs_table(char *name, struct value_s *v);
 int automator_print_inputs_table();
+int reset_inputs_table_change_flag();
 static int eval_string(char *str, struct value_s *v, xPL_NameValueListPtr ListNomsValeursPtr);
 
 
@@ -1083,22 +1127,25 @@ static int operation(struct value_s *v1, char *op, struct value_s *v2)
 
 static int eval_function(char *str, struct value_s *v, xPL_NameValueListPtr ListNomsValeursPtr)
 {
+   int retour=-1;
    int l=strlen(str);
    char *f=(char *)malloc(l+1);
    if(f==NULL)
       return -1;
    strcpy(f, str);
    
+   // fonction now
    if(strcmp(f,"now()")==0)
    {
       time_t t=time(NULL);
       v->type=0;
       v->val.floatval=(double)t;
       
-      free(f);
-      return 0;
+      retour=0;
+      goto eval_function_clean_exit;
    }
-   else if(strstr(f,"exist(")==f && f[l-1]==')')
+   // fonction exist
+   else if(ListNomsValeursPtr && strstr(f,"exist(")==f && f[l-1]==')')
    {
       struct inputs_table_s *e = NULL;
       f[l-1]=0; 
@@ -1116,20 +1163,52 @@ static int eval_function(char *str, struct value_s *v, xPL_NameValueListPtr List
             v->val.booleanval=1;
          else
             v->val.booleanval=0;
-         free(f);
-         return 0;
+         retour=0;
+         goto eval_function_clean_exit;
       }
       else
       {
-         free(f);
-         return -1;
+         goto eval_function_clean_exit;
+      }
+   }
+   else if(ListNomsValeursPtr && strstr(f,"raise(")==f && f[l-1]==')')
+   {
+      struct inputs_table_s *e = NULL;
+      f[l-1]=0; 
+      char *p=&(f[6]);
+      struct value_s res;
+
+      int ret=eval_string(p,&res,ListNomsValeursPtr);
+//      fprintf(stderr,"EVAL de %s : ", p); fprintf(stderr, "%d => RES : ", ret); printVal(&res); fprintf(stderr,"\n");
+      if(ret==0 && res.type==1)
+      {
+         f[l-1]=0;
+         v->type=2;
+         HASH_FIND_STR(inputs_table, res.val.strval, e);
+         if(e)
+         {
+            if(e->state==RAISE)
+               v->val.booleanval=1;
+            else
+               v->val.booleanval=0;
+         }
+         retour=0;
+         goto eval_function_clean_exit;
+      }
+      else
+      {
+         goto eval_function_clean_exit;
       }
    }
    else
    {
-      free(f);
-      return -1;
+      goto eval_function_clean_exit;
    }
+   
+eval_function_clean_exit:
+   if(f)
+     free(f);
+   return retour;
 }
 
 
@@ -1211,31 +1290,184 @@ static int eval_string(char *str, struct value_s *v, xPL_NameValueListPtr ListNo
 }
 
 
-int automator_match_rules(cJSON *rules, xPL_MessagePtr message)
+int sendxpl_from_rule(cJSON *parameters)
+{
+   if(parameters==NULL || parameters->child==NULL)
+      return -1;
+   
+   cJSON *e=parameters->child;
+
+   char schema[40]="control.basic";
+   char target[40]="*";
+   
+   while(e)
+   {
+      struct value_s v;
+      
+      if(eval_string(e->child->valuestring, &v, NULL)==0)
+      {
+         if(strcmp(e->child->string,"schema")==0)
+         {
+            strncpy(schema, e->child->valuestring, sizeof(schema)-1);
+            schema[sizeof(schema)-1]=0;
+         }
+         else if(strcmp(e->child->string,"source")==0)
+         {
+            fprintf(stderr,"   source no allowed\n");
+            return -1;
+         }
+         else if(strcmp(e->child->string,"target")==0)
+         {
+            strncpy(target, e->child->valuestring, sizeof(target)-1);
+            schema[sizeof(target)-1]=0;
+         }
+         else
+         {
+            fprintf(stderr,"   %s : ", e->child->string);
+            printVal(&v);
+            fprintf(stderr,"\n");
+         }
+      }
+      else
+      {
+         fprintf(stderr,"   %s : ????\n", e->child->string);
+         return -1;
+      }
+      e=e->next;
+   }
+   
+   fprintf(stderr,"   schema=%s\n",schema);
+   fprintf(stderr,"   target=%s\n",target);
+   
+   return 0;
+}
+
+
+int automator_play_output_rules(cJSON *rules)
 {
    if(rules==NULL)
    {
-      fprintf(stderr,"NO RULES\n");
+      fprintf(stderr,"NO OUTPUT RULE\n");
       return -1;
    }
 
    double start=mea_now();
 
-   char *schema_type, *schema_class, *vendor, *deviceID, *instanceID;
-   schema_class = xPL_getSchemaClass(message);
-   schema_type  = xPL_getSchemaType(message);
-   vendor       = xPL_getSourceVendor(message);
-   deviceID     = xPL_getSourceDeviceID(message);
-   instanceID   = xPL_getSourceInstanceID(message);
+   cJSON *e=rules->child;
+   while(e) // balayage des règles
+   {
+/*
+      \"name\": \"A1\", \
+      \"action\" : \"send\", \
+      \"parameters\" : [ \
+         { \"schema\"  : \"'control.basic'\" }, \
+         { \"device\"  : \"'toto'\" }, \
+         { \"current\" : \"{E1}\" } \
+      ], \
+      \"condition\" : { \"'C1'\" : \"raise\"} \
 
-   xPL_NameValueListPtr ListNomsValeursPtr;
-   ListNomsValeursPtr = xPL_getMessageBody(message);
+*/
+      cJSON *name       = cJSON_GetObjectItem(e,"name");
+      cJSON *action     = cJSON_GetObjectItem(e,"action");
+      cJSON *parameters = cJSON_GetObjectItem(e,"parameters");
+      cJSON *condition  = cJSON_GetObjectItem(e,"condition");
+      
+      fprintf(stderr,"%s\n",name->valuestring);
+      if(strcmp(action->valuestring,"xPLSend")==0)
+      {
+         fprintf(stderr,"xPLSend :\n");
+         sendxpl_from_rule(parameters);
+      }
+      else
+      {
+         fprintf(stderr,"unknown action\n");
+         goto next_rule;
+      }
+      
+      struct value_s v;
+      if(eval_string(condition->child->string, &v, NULL)!=0)
+      {
+         fprintf(stderr,"%s : can't eval\n", condition->child->string);
+         goto next_rule;
+      }
+      if(v.type!=1)
+      {
+         fprintf(stderr,"%s : evaluation result not a string\n", condition->child->string);
+         goto next_rule;
+      }
+      
+      struct inputs_table_s *i = NULL;
+      HASH_FIND_STR(inputs_table, v.val.strval, i);
+      if(i==NULL)
+      {
+         fprintf(stderr,"Input rule (%s) not found\n", v.val.strval);
+         goto next_rule;
+      }
+      
+      if(strcmp(condition->child->valuestring, "raise")==0)
+      {
+         if(i->state==RAISE)
+            fprintf(stderr, "OK raise => send\n");
+         else
+            fprintf(stderr, "don't raise\n");
+      }
+      else if(strcmp(condition->child->valuestring, "fall")==0)
+      {
+         if(i->state==FALL)
+            fprintf(stderr, "OK fall => send\n");
+         else
+            fprintf(stderr, "don't fall\n");
+      }
+      else if(strcmp(condition->child->valuestring, "change")==0)
+      {
+         if(i->state==CHANGE || i->state==RAISE || i->state==FALL)
+            fprintf(stderr, "OK change => send\n");
+         else
+            fprintf(stderr, "don't change\n");
+      }
+      else
+      {
+         fprintf(stderr,"condition error\n");
+         goto next_rule;
+      }
+next_rule:
+      e=e->next;
+   }
+   
+   double now=mea_now();
+   fprintf(stderr,"\nrule processing time=%f\n", now-start);
 
+   return 0;
+}
+
+int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
+{
+   if(rules==NULL)
+   {
+      fprintf(stderr,"NO INPUT RULE\n");
+      return -1;
+   }
+
+   double start=mea_now();
+
+   xPL_NameValueListPtr ListNomsValeursPtr = NULL;
+   char *schema_type = NULL, *schema_class = NULL, *vendor = NULL, *deviceID = NULL, *instanceID = NULL;
    char source[80]="";
    char schema[80]="";
+   
+   if(message)
+   {
+      schema_class = xPL_getSchemaClass(message);
+      schema_type  = xPL_getSchemaType(message);
+      vendor       = xPL_getSourceVendor(message);
+      deviceID     = xPL_getSourceDeviceID(message);
+      instanceID   = xPL_getSourceInstanceID(message);
 
-   sprintf(source,"%s-%s.%s", vendor, deviceID, instanceID);
-   sprintf(schema,"%s.%s", schema_class, schema_type);
+      ListNomsValeursPtr = xPL_getMessageBody(message);
+      
+      sprintf(source,"%s-%s.%s", vendor, deviceID, instanceID);
+      sprintf(schema,"%s.%s", schema_class, schema_type);
+   }
 
    cJSON *e=rules->child;
    while(e) // balayage des règles
@@ -1251,20 +1483,20 @@ int automator_match_rules(cJSON *rules, xPL_MessagePtr message)
       if(!name || !value || !onmatch)
          continue;
 
-      fprintf(stderr,"\nRULE : %s\n", name->valuestring);
+//      fprintf(stderr,"\nRULE : %s\n", name->valuestring);
       int ret=eval_string(value->valuestring, &res, ListNomsValeursPtr);
       if(ret<0)
       {
-         fprintf(stderr,"   [%s] not found\n", value->valuestring);
+//         fprintf(stderr,"   [%s] not found\n", value->valuestring);
          match=0;
          goto next_rule;
       }
-      fprintf(stderr,"   RES = "); printVal(&res); fprintf(stderr," (%s)\n",  value->valuestring);
+//      fprintf(stderr,"   RES = "); printVal(&res); fprintf(stderr," (%s)\n",  value->valuestring);
       // évaluation des conditions
       cJSON *conditions=cJSON_GetObjectItem(e,"conditions");
       if(conditions!=NULL)
       {
-         fprintf(stderr,"   CONDITIONS : \n");
+//         fprintf(stderr,"   CONDITIONS : \n");
          cJSON *c=conditions->child;
          while(c)
          {
@@ -1286,7 +1518,7 @@ int automator_match_rules(cJSON *rules, xPL_MessagePtr message)
             {
                setValueFromStr(&val1, source);
                int ret=operation(&val1, op->valuestring, &val2);
-               fprintf(stderr,"   "); printVal(&val1); fprintf(stderr," %s ",  op->valuestring); printVal(&val2); fprintf(stderr," ret=%d\n",ret);
+//               fprintf(stderr,"   "); printVal(&val1); fprintf(stderr," %s ",  op->valuestring); printVal(&val2); fprintf(stderr," ret=%d\n",ret);
                if(!ret)
                {
                   match=0;
@@ -1297,7 +1529,7 @@ int automator_match_rules(cJSON *rules, xPL_MessagePtr message)
             {
                setValueFromStr(&val1, schema);
                int ret=operation(&val1, op->valuestring, &val2);
-               fprintf(stderr,"   "); printVal(&val1); fprintf(stderr," %s ",  op->valuestring); printVal(&val2); fprintf(stderr," ret=%d\n",ret);
+//               fprintf(stderr,"   "); printVal(&val1); fprintf(stderr," %s ",  op->valuestring); printVal(&val2); fprintf(stderr," ret=%d\n",ret);
                if(!ret)
                {
                   match=0;
@@ -1314,7 +1546,7 @@ int automator_match_rules(cJSON *rules, xPL_MessagePtr message)
                   goto next_rule;
                }
                ret=operation(&val1, op->valuestring, &val2);
-               fprintf(stderr,"   "); printVal(&val1); fprintf(stderr," %s ",  op->valuestring); printVal(&val2); fprintf(stderr," ret=%d\n",ret);
+//               fprintf(stderr,"   "); printVal(&val1); fprintf(stderr," %s ",  op->valuestring); printVal(&val2); fprintf(stderr," ret=%d\n",ret);
                if(!ret)
                {
                   match=0;
@@ -1326,18 +1558,18 @@ int automator_match_rules(cJSON *rules, xPL_MessagePtr message)
       }
       else
       {
-         fprintf(stderr,"   NO CONDITION\n");
+//         fprintf(stderr,"   NO CONDITION\n");
       }
 
    next_rule:
       if(match==1)
       {
-         fprintf(stderr,"   MATCH !\n");
+//         fprintf(stderr,"   MATCH !\n");
          if(strcmp(name->valuestring, "<NOP>")!=0)
             automator_add_to_inputs_table(name->valuestring, &res);
          else
          {
-            fprintf(stderr, "   Result discarded\n");
+//            fprintf(stderr, "   Result discarded\n");
          }
          if(onmatch==NULL)
          {
@@ -1360,12 +1592,13 @@ int automator_match_rules(cJSON *rules, xPL_MessagePtr message)
       }
       else
       {
-         fprintf(stderr,"   NOT MATCH !\n");
+//         fprintf(stderr,"   NOT MATCH !\n");
       }
       e=e->next;
    }
    double now=mea_now();
    fprintf(stderr,"\nrule processing time=%f\n", now-start);
+
    automator_print_inputs_table();
    
    return 0;
@@ -1387,17 +1620,64 @@ int automator_add_to_inputs_table(char *_name, struct value_s *v)
    HASH_FIND_STR(inputs_table, _name, e);
    if(e)
    {
+      enum input_state_e state = UNKNOWN;
+      
+      if((e->v.type == v->type) && v->type!=1)
+      {
+         if(e->v.type == 0) // double
+         {
+            if(e->v.val.floatval == v->val.floatval)
+               state=STAY;
+            else if(e->v.val.floatval < v->val.floatval)
+               state=RAISE;
+            else
+               state=FALL;
+         }
+         else // boolean
+         {
+            if(e->v.val.booleanval == v->val.booleanval)
+               state=STAY;
+            else if(e->v.val.booleanval < v->val.booleanval)
+               state=RAISE;
+            else
+               state=FALL;
+         }
+      }
+      else if((e->v.type == v->type) && v->type==1)
+      {
+         if(strcmp(e->v.val.strval, v->val.strval)==0)
+            state=STAY;
+         else
+            state=CHANGE;
+      }
+      else
+         state=TYPECHANGE;
+
       memcpy(&(e->v), v,sizeof(struct value_s));
+      e->state = state;
    }
    else
    {
       struct inputs_table_s *s=(struct inputs_table_s *)malloc(sizeof(struct inputs_table_s));
       strncpy(s->name, _name, sizeof(s->name));
       s->name[sizeof(s->name)-1]=0;
+      s->state=NEW;
       memcpy(&(s->v), v, sizeof(struct value_s));
 
       HASH_ADD_STR(inputs_table, name, s);
    }
+   return 0;
+}
+
+
+int automator_reset_inputs_change_flags()
+{
+   struct inputs_table_s *s;
+
+   for(s=inputs_table; s != NULL; s=s->hh.next)
+      s->state=STAY
+      ;
+   
    return 0;
 }
 
@@ -1412,9 +1692,11 @@ int automator_print_inputs_table()
    {
       fprintf(stderr,"rule %s: ", s->name);
       printVal(&(s->v));
-      fprintf(stderr,"\n");
+      fprintf(stderr," (%d)\n", s->state);
    }
    fprintf(stderr,"--------------\n");
+   
+   return 0;
 }
 
 
