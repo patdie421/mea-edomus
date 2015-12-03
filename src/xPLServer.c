@@ -46,11 +46,6 @@ int automator_match_rules(cJSON *rules, xPL_MessagePtr message);
 xPL_MessagePtr xplWDMsg;
 mea_timer_t xPLnoMsgReceivedTimer;
 #endif
-#include "cJSON.h"
-extern char *rules;
-cJSON *_rules;
-cJSON *automator_load_rules(char *rules);
-int automator_match_rules(cJSON *rules, xPL_MessagePtr message);
 
 
 char *xpl_server_name_str="XPLSERVER";
@@ -779,78 +774,114 @@ int restart_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg)
 }
 
 
-char *__rules="{[ \
-                   { \
-                      \"name\" : \"V1\", \
-                      \"value\" : 1.0, \
-                   }, \
-                   { \
-                      \"name\" : \"E1\", \
-                      \"value\" : \"current\", \
-                      \"conditions\" : { \
-                                        \"source\" : {\"op\" : \"==\", \"value\" : \"mea-edomus.home\" }, \
-                                        \"schema\" : {\"op\" : \"==\", \"value\" : \"sensor.basic\"}, \
-                                        \"device\" : {\"op\" : \"==\", \"value\" : \"BUTTON1\"}, \
-                                        \"type\"   : {\"op\" : \"==\", \"value\" : \"input\"} \
-                                     }, \
-                      \"break\" : \"false\" \
-                   }, \
-                   { \
-                      \"name\" : \"E2\", \
-                      \"value\" : \"current\", \
-                      \"conditions\" : { \
-                                        \"source\" : {\"op\" : \"==\", \"value\" : \"mea-edomus.home\" }, \
-                                        \"schema\" : {\"op\" : \"==\", \"value\" : \"sensor.basic\"}, \
-                                        \"device\" : {\"op\" : \"==\", \"value\" : \"BUTTON2\"} \
-                                     } \
-                      \"break\" : \"true\" \
-                   }, \
-                   { \
-                      \"name\" : \"T1\", \
-                      \"value\" : \"$now()\", \
-                      \"conditions\" : { \
-                                        \"source\" : {\"op\" : \"==\", \"value\" : \"mea-edomus.home\" }, \
-                                        \"schema\" : {\"op\" : \"==\", \"value\" : \"sensor.basic\"}, \
-                                        \"device\" : {\"op\" : \"==\", \"value\" : \"BUTTON2\"} \
-                                     } \
-                      \"break\" : \"true\" \
-                   } \
-]}";
-
+// RULES :
 // xpl-trig: source = mea-edomus.home, destination = *, schema = sensor.basic, body = [device = conso, type = power, current = 274.591704]
+// xpl-trig: source = mea-edomus.home, destination = *, schema = sensor.basic, body = [device = epgstat01, current = 1]
 char *rules="[ \
    { \
-      \"name\": \"E1\", \
+      \"name\": \"V1\", \
+      \"value\" : \"$now()\", \
+      \"onmatch\": \"continue\" \
+   }, \
+   { \
+      \"name\": \"<NOP>\", \
+      \"value\" : \"#0\", \
+      \"conditions\" : { \
+         \"schema\" : {\"op\" : \"==\", \"value\" : \"'hbeat.app'\" } \
+      }, \
+      \"onmatch\": \"break\" \
+   }, \
+   { \
+      \"name\": \"<NOP>\", \
+      \"value\" : \"#0\", \
+      \"conditions\" : { \
+         \"schema\" : {\"op\" : \"==\", \"value\" : \"'watchdog.basic'\" } \
+      }, \
+      \"onmatch\": \"break\" \
+   }, \
+   { \
+      \"name\": \"STOPEVAL\", \
       \"value\" : \"current\", \
       \"conditions\" : { \
          \"source\" : {\"op\" : \"==\", \"value\" : \"'mea-edomus.home'\" }, \
          \"schema\" : {\"op\" : \"==\", \"value\" : \"'sensor.basic'\"}, \
+         \"device\" : {\"op\" : \"==\", \"value\" : \"'stopeval01'\"} \
+      }, \
+      \"onmatch\": \"continue\" \
+   }, \
+   { \
+      \"name\": \"BREAK\", \
+      \"value\" : \"#0\", \
+      \"conditions\" : { \
+         \"{STOPEVAL}\" : {\"op\" : \"==\", \"value\" : \"&true\" } \
+      }, \
+      \"onmatch\": \"break\" \
+   }, \
+   { \
+      \"name\": \"T1\", \
+      \"value\" : \"#1\", \
+      \"conditions\" : { \
+         \"$exist('T1')\" : {\"op\" : \"==\", \"value\" : \"&false\" } \
+      }, \
+      \"onmatch\": \"continue\" \
+   }, \
+   { \
+      \"name\": \"V2\", \
+      \"value\" : \"{E1}\", \
+      \"onmatch\": \"continue\" \
+   }, \
+   { \
+      \"name\": \"E1\", \
+      \"value\" : \"current\", \
+      \"conditions\" : { \
          \"device\" : {\"op\" : \"==\", \"value\" : \"'BUTTON1'\"}, \
+         \"source\" : {\"op\" : \"==\", \"value\" : \"'mea-edomus.home'\" }, \
+         \"schema\" : {\"op\" : \"==\", \"value\" : \"'sensor.basic'\"}, \
          \"type\"   : {\"op\" : \"==\", \"value\" : \"'input'\"} \
       }, \
-      \"break\": true \
+      \"onmatch\": \"break\" \
    }, \
    { \
       \"name\": \"E2\", \
-      \"value\" : \"#2.0\", \
+      \"value\" : \"current\", \
       \"conditions\" : { \
+         \"device\" : {\"op\" : \"==\", \"value\" : \"'BUTTON2'\"}, \
          \"source\" : {\"op\" : \"==\", \"value\" : \"'mea-edomus.home'\" }, \
          \"schema\" : {\"op\" : \"==\", \"value\" : \"'sensor.basic'\"}, \
-         \"device\" : {\"op\" : \"==\", \"value\" : \"'BUTTON2'\"}, \
          \"type\"   : {\"op\" : \"==\", \"value\" : \"'input'\"} \
       }, \
-      \"break\": false \
+      \"onmatch\": \"break\" \
    }, \
    { \
       \"name\": \"E3\", \
       \"value\" : \"current\", \
       \"conditions\" : { \
+         \"device\" : {\"op\" : \"==\", \"value\" : \"'conso'\"}, \
          \"source\" : {\"op\" : \"==\", \"value\" : \"'mea-edomus.home'\" }, \
          \"schema\" : {\"op\" : \"==\", \"value\" : \"'sensor.basic'\"}, \
-         \"device\" : {\"op\" : \"==\", \"value\" : \"'conso'\"}, \
          \"type\"   : {\"op\" : \"==\", \"value\" : \"'power'\"} \
       }, \
-      \"break\": false \
+      \"onmatch\": \"break\" \
+   }, \
+   { \
+      \"name\": \"TEMP1\", \
+      \"value\" : \"current\", \
+      \"conditions\" : { \
+         \"device\" : {\"op\" : \"==\", \"value\" : \"'temp01'\"}, \
+         \"source\" : {\"op\" : \"==\", \"value\" : \"'mea-edomus.home'\" }, \
+         \"schema\" : {\"op\" : \"==\", \"value\" : \"'sensor.basic'\"} \
+      }, \
+      \"onmatch\": \"break\" \
+   }, \
+   { \
+      \"name\": \"E4\", \
+      \"value\" : \"current\", \
+      \"conditions\" : { \
+         \"device\" : {\"op\" : \"==\", \"value\" : \"'epgstat01'\"}, \
+         \"source\" : {\"op\" : \"==\", \"value\" : \"'mea-edomus.home'\" }, \
+         \"schema\" : {\"op\" : \"==\", \"value\" : \"'sensor.basic'\"} \
+      }, \
+      \"onmatch\": \"break\" \
    } \
 ]";
 /*
@@ -858,35 +889,46 @@ char *rules="[ \
 # par defaut toutes les règles sont évaluées
 # le comportement par défaut est modifiée par "onmatch" : break : l'évaluation s'arrête, continue : l'évaluation se poursuit
 # mon langage de regles
+# 
+# D1 is: <NOP>     if: (schema == 'hbeat.app') onmatch: break 
 # V1 is: #1
-# V2 is: #2.1     if: (source == mea-edomus.home, schema == sensor.basic, device == 'BUTTON3', current == #2) onmatch: break
-# V2 is: #10      if: (source == mea-edomus.home, schema == sensor.basic, device == 'BUTTON3', current > #3, current < #5) onmatch: continue
-# E1 is: current  if: (source == mea-edomus.home, schema == sensor.basic, device == 'BUTTON1', type == "input") onmatch: break
-# E2 is: last     if: (source == mea-edomus.home, schema == sensor.basic, device == 'BUTTON2') onmatch: continue
-# T2 is: $now()   if: (source == mea-edomus.home, schema == sensor.basic, device == 'BUTTON2') onmatch: continue
-# P1 is: current  if: (source == mea-edomus.home, schema == sensor.basic, device == 'CONSO', type == "power") onmatch: continue
-# P2 is: current  if: (source == mea-edomus.home, schema == sensor.basic, device == 'CONSO', type == "power", current != #0) onmatch: continue
-# P3 is: current  if: (source == mea-edomus.home, schema == sensor.basic, device == 'PROD', type == "power", current != {V1}) onmatch: continue
-# C1 is: current  if: (source == mea-edomus.home, schema == sensor.basic, device == 'PROD', type == "power", {T2}>0 ) onmatch: continue
-# B1 is: &false   if: (source == mea-edomus.home, schema == sensor.basic, device == 'TEMP', type == "temp", current > 0) onmatch: continue
-# S1 is: 'toto'   if: (source == mea-edomus.home, schema == sensor.basic, device == 'TEMP', type == "temp", current <= #0) onmatch: continue
+# V2 is: #2.1      if: (source == 'mea-edomus.home', schema == 'sensor.basic', device == 'BUTTON3', current == #2) onmatch: break
+# V2 is: #10       if: (source == 'mea-edomus.home', schema == 'sensor.basic', device == 'BUTTON3', current > #3, current < #5) onmatch: continue
+# E1 is: current   if: (source == 'mea-edomus.home', schema == 'sensor.basic', device == 'BUTTON1', type == 'input') onmatch: break
+# E2 is: last      if: (source == 'mea-edomus.home', schema == 'sensor.basic', device == 'BUTTON2') onmatch: continue
+# T2 is: $now()    if: (source == 'mea-edomus.home', schema == 'sensor.basic', device == 'BUTTON2') onmatch: continue
+# P1 is: current   if: (source == 'mea-edomus.home', schema == 'sensor.basic', device == 'CONSO', type == 'power') onmatch: continue
+# P2 is: current   if: (source == 'mea-edomus.home', schema == 'sensor.basic', device == 'CONSO', type == 'power', current != #0) onmatch: continue
+# P3 is: current   if: (source == 'mea-edomus.home', schema == 'sensor.basic', device == 'PROD', type == 'power', current != {V1}) onmatch: continue
+# C1 is: current   if: (source == 'mea-edomus.home', schema == 'sensor.basic', device == 'PROD', type == 'power', {T2}>0 ) onmatch: moveforward S2
+# B1 is: &false    if: (source == 'mea-edomus.home', schema == 'sensor.basic', device == 'TEMP', type == 'temp', current > 0) onmatch: continue
+# S1 is: 'toto'    if: (source == 'mea-edomus.home', schema == 'sensor.basic', device == 'TEMP', type == 'temp', current <= #0) onmatch: continue
+# S2 is: [A1]      if: ($change('C1') == &true)
 #
-# if faut ecrire une fonction "loadrules" qui traduit ce langage en dictionaire
 
-# un exemple de règle "compliqué"
+# des exemples de règles "compliqués"
 # T1_last is: {T1} if: (source == mea-edomus.home, schema == sensor.basic, device == "BUTTON2", current == "high")
 # T1 is: $now() if: (source == mea-edomus.home, schema == sensor.basic, device == "BUTTON2", current == "high")
-# DIFF is: $eval({T2} - {T2_last}) if: (source == mea-edomus.home, schema == sensor.basic, device == "BUTTON2", current == "high")
+# DIFF is: $eval({T2} - {T2_last}) if: (source == mea-edomus.home, schema == sensor.basic, device == "BUTTON2", current == 'high')
 # P1 is: &high if: (source == mea-edomus.home, schema == sensor.basic, device == "BUTTON2", current == &high, {DIFF} > #1000)
 # P1 is: &low  if: (source == mea-edomus.home, schema == sensor.basic, device == "BUTTON2", current == &high, {DIFF} <= #1000)
+# exemple de compteur
+# C1 is: #0 if: $exist('C1') == &false // initialisation du compteur
+# C1 is: $eval({C1}+#1)
+#
+
+# Pour les actions :
+#
+# A1 is: send(schema='control.basic', device='toto', current={E1})
+# A2 is: send(schema='control.basic', device='toto', current={E1})
 #
 */
 
 struct value_s {
    char type;
    union {
-      char strval[20];
-      float floatval;
+      char strval[41];
+      double floatval;
       char booleanval;
    } val;
 };
@@ -894,22 +936,30 @@ struct value_s {
 
 #include "uthash.h"
 
-struct inputs_s
+enum input_state_e { RAISE, FALL, STAY, TYPECHANGE, UNKNOWN };
+
+struct inputs_table_s
 {
    char name[20];
+   enum input_state_e state;
    struct value_s v;
 
    UT_hash_handle hh;
 };
 
 
-struct inputs_s *inputs = NULL;
+int automator_add_to_inputs_table(char *name, struct value_s *v);
+int automator_print_inputs_table();
+static int eval_string(char *str, struct value_s *v, xPL_NameValueListPtr ListNomsValeursPtr);
+
+
+struct inputs_table_s *inputs_table = NULL;
 
 static int printVal(struct value_s *v)
 {
    if(v->type==0)
       fprintf(stderr,"(float)%f",v->val.floatval);
-   else if(v->type==0)
+   else if(v->type==2)
       fprintf(stderr,"(boolean)%d",v->val.booleanval);
    else
       fprintf(stderr,"(string)%s",v->val.strval);
@@ -920,22 +970,25 @@ static int printVal(struct value_s *v)
 static int getBoolean(char *s, char *b)
 {
    *b=-1;
-   if(mea_strcmplower(s,"true")==0 || mea_strcmplower(s, "high"))
+   if(mea_strcmplower(s,"true")==0 || mea_strcmplower(s, "high")==0)
+   {
       *b=1;
-   else if(mea_strcmplower(s,"false")==0 || mea_strcmplower(s, "low"))
+      return 0;
+   }
+   else if(mea_strcmplower(s,"false")==0 || mea_strcmplower(s, "low")==0)
+   {
       *b=0;
-   else
-      return -1;
-
-   return 0;
+      return 0;
+   }
+   return -1;
 }
 
 
-static int getNumber(char *s, float *v)
+static int getNumber(char *s, double *v)
 {
    char *n;
  
-   *v=strtof(s, &n);
+   *v=strtod(s, &n);
 
    if(*n!=0)
       return -1;
@@ -946,7 +999,7 @@ static int getNumber(char *s, float *v)
 
 static int setValueFromStr(struct value_s *v, char *str)
 {
-   float f;
+   double f;
    char b;
 
    if(getNumber(str, &f)==0)
@@ -954,7 +1007,7 @@ static int setValueFromStr(struct value_s *v, char *str)
       v->type=0;
       v->val.floatval=f; 
    }
-   else if(getBoolean(str, &b))
+   else if(getBoolean(str, &b)==0)
    {
       v->type=2;
       v->val.booleanval=b;
@@ -963,6 +1016,7 @@ static int setValueFromStr(struct value_s *v, char *str)
    {
       v->type=1;
       strncpy(v->val.strval, str, sizeof(v->val.strval)); 
+      v->val.strval[sizeof(v->val.strval)-1]=0;
    }
    return 0;
 }
@@ -1015,14 +1069,67 @@ static int operation(struct value_s *v1, char *op, struct value_s *v2)
    {
       if(op[0]=='=' && op[1]=='=')
       {
-         return (v1->val.floatval == v2->val.floatval);
+         return ((int)v1->val.booleanval == (int)v2->val.booleanval);
       }
       else if(op[0]=='!' && op[1]=='=')
       {
-         return (v1->val.floatval != v2->val.floatval);
+         return ((int)v1->val.booleanval != (int)v2->val.booleanval);
       }
    }
+
    return 0;
+}
+
+
+static int eval_function(char *str, struct value_s *v, xPL_NameValueListPtr ListNomsValeursPtr)
+{
+   int l=strlen(str);
+   char *f=(char *)malloc(l+1);
+   if(f==NULL)
+      return -1;
+   strcpy(f, str);
+   
+   if(strcmp(f,"now()")==0)
+   {
+      time_t t=time(NULL);
+      v->type=0;
+      v->val.floatval=(double)t;
+      
+      free(f);
+      return 0;
+   }
+   else if(strstr(f,"exist(")==f && f[l-1]==')')
+   {
+      struct inputs_table_s *e = NULL;
+      f[l-1]=0; 
+      char *p=&(f[6]);
+      struct value_s res;
+
+      int ret=eval_string(p,&res,ListNomsValeursPtr);
+//      fprintf(stderr,"EVAL de %s : ", p); fprintf(stderr, "%d => RES : ", ret); printVal(&res); fprintf(stderr,"\n");
+      if(ret==0 && res.type==1)
+      {
+         f[l-1]=0;
+         v->type=2;
+         HASH_FIND_STR(inputs_table, res.val.strval, e);
+         if(e)
+            v->val.booleanval=1;
+         else
+            v->val.booleanval=0;
+         free(f);
+         return 0;
+      }
+      else
+      {
+         free(f);
+         return -1;
+      }
+   }
+   else
+   {
+      free(f);
+      return -1;
+   }
 }
 
 
@@ -1030,7 +1137,7 @@ static int eval_string(char *str, struct value_s *v, xPL_NameValueListPtr ListNo
 {
    if(str[0]=='#') // une constante numérique
    {
-      float f=0;
+      double f=0;
       if(getNumber(&str[1], &f)==0)
       {
          v->type=0;
@@ -1041,15 +1148,17 @@ static int eval_string(char *str, struct value_s *v, xPL_NameValueListPtr ListNo
    }
    else if(str[0]=='\'') // une constante chaine de caractères
    {
-      strncpy(v->val.strval, &(str[1]), sizeof(v->val.strval));
-      int l=strlen(v->val.strval);
-      if(v->val.strval[l-1]=='\'')
-      {
-         v->val.strval[l-1]=0;
-         v->type=1;
-      }
-      else
+      int l=strlen(str);
+      if(str[l-1]!='\'')
          return -1;
+
+      l=l-2;
+      if(l>sizeof(v->val.strval)-1)
+         l=sizeof(v->val.strval)-1;
+      strncpy(v->val.strval, &(str[1]), l);
+      v->val.strval[l]=0; // pour supprimer le "'" en fin de chaine
+      v->type=1;
+      return 0;
    }
    else if(str[0]=='&') // une constante booleen
    {
@@ -1061,15 +1170,34 @@ static int eval_string(char *str, struct value_s *v, xPL_NameValueListPtr ListNo
       }
       else
          return -1;
+      return 0;
    }
-/*
    else if(str[0]=='$')
    {
+      int ret=eval_function(&(str[1]), v, ListNomsValeursPtr);
+      return ret;
    }
    else if(str[0]=='{')
    {
+      int l=strlen(str);
+      if(str[l-1]!='}')
+         return -1;
+
+      char name[20];
+      struct inputs_table_s *e = NULL;
+
+      if(l>sizeof(name))
+         l=sizeof(name);
+      strncpy(name, &(str[1]), l-2);
+      name[l-2]=0;
+
+      HASH_FIND_STR(inputs_table, name, e);
+     if(e)
+        memcpy(v, &(e->v), sizeof(struct value_s));
+     else
+        return -1;
+     return 0;
    }
-*/
    else
    {
       char *_value=xPL_getNamedValue(ListNomsValeursPtr, str);
@@ -1077,6 +1205,7 @@ static int eval_string(char *str, struct value_s *v, xPL_NameValueListPtr ListNo
          setValueFromStr(v, _value);
       else
          return -1;
+      return 0;
    }
    return 0;
 }
@@ -1084,6 +1213,14 @@ static int eval_string(char *str, struct value_s *v, xPL_NameValueListPtr ListNo
 
 int automator_match_rules(cJSON *rules, xPL_MessagePtr message)
 {
+   if(rules==NULL)
+   {
+      fprintf(stderr,"NO RULES\n");
+      return -1;
+   }
+
+   double start=mea_now();
+
    char *schema_type, *schema_class, *vendor, *deviceID, *instanceID;
    schema_class = xPL_getSchemaClass(message);
    schema_type  = xPL_getSchemaType(message);
@@ -1099,8 +1236,8 @@ int automator_match_rules(cJSON *rules, xPL_MessagePtr message)
 
    sprintf(source,"%s-%s.%s", vendor, deviceID, instanceID);
    sprintf(schema,"%s.%s", schema_class, schema_type);
-   cJSON *e=rules->child;
 
+   cJSON *e=rules->child;
    while(e) // balayage des règles
    {
       int match=1;
@@ -1109,21 +1246,25 @@ int automator_match_rules(cJSON *rules, xPL_MessagePtr message)
       
       cJSON *name    = cJSON_GetObjectItem(e,"name");
       cJSON *value   = cJSON_GetObjectItem(e,"value");
-      cJSON *onmatch = cJSON_GetObjectItem(e,"break");
+      cJSON *onmatch = cJSON_GetObjectItem(e,"onmatch");
       
       if(!name || !value || !onmatch)
          continue;
 
-      if(eval_string(value->valuestring, &res, ListNomsValeursPtr)<0)
+      fprintf(stderr,"\nRULE : %s\n", name->valuestring);
+      int ret=eval_string(value->valuestring, &res, ListNomsValeursPtr);
+      if(ret<0)
       {
+         fprintf(stderr,"   [%s] not found\n", value->valuestring);
          match=0;
          goto next_rule;
       }
-
+      fprintf(stderr,"   RES = "); printVal(&res); fprintf(stderr," (%s)\n",  value->valuestring);
       // évaluation des conditions
       cJSON *conditions=cJSON_GetObjectItem(e,"conditions");
       if(conditions!=NULL)
       {
+         fprintf(stderr,"   CONDITIONS : \n");
          cJSON *c=conditions->child;
          while(c)
          {
@@ -1145,6 +1286,7 @@ int automator_match_rules(cJSON *rules, xPL_MessagePtr message)
             {
                setValueFromStr(&val1, source);
                int ret=operation(&val1, op->valuestring, &val2);
+               fprintf(stderr,"   "); printVal(&val1); fprintf(stderr," %s ",  op->valuestring); printVal(&val2); fprintf(stderr," ret=%d\n",ret);
                if(!ret)
                {
                   match=0;
@@ -1155,52 +1297,76 @@ int automator_match_rules(cJSON *rules, xPL_MessagePtr message)
             {
                setValueFromStr(&val1, schema);
                int ret=operation(&val1, op->valuestring, &val2);
+               fprintf(stderr,"   "); printVal(&val1); fprintf(stderr," %s ",  op->valuestring); printVal(&val2); fprintf(stderr," ret=%d\n",ret);
                if(!ret)
                {
                   match=0;
                   break;
                }
             }
-            else // value du body du message xpl
+            // cas général pour tous le reste
+            else
             {
-               char *value1=xPL_getNamedValue(ListNomsValeursPtr, c->string);
-               if(!value1)
+               int ret=eval_string(c->string, &val1, ListNomsValeursPtr);
+               if(ret<0)
+               {
+                  match=0;
+                  goto next_rule;
+               }
+               ret=operation(&val1, op->valuestring, &val2);
+               fprintf(stderr,"   "); printVal(&val1); fprintf(stderr," %s ",  op->valuestring); printVal(&val2); fprintf(stderr," ret=%d\n",ret);
+               if(!ret)
                {
                   match=0;
                   break;
-               }
-               else
-               {
-                  setValueFromStr(&val1, value1);
-                  int ret=operation(&val1, op->valuestring, &val2);
-                  if(!ret)
-                  {
-                     match=0;
-                     break;
-                  }
                }
             }
             c=c->next;
          }
       }
-
-   next_rule:
-      if(match==0)
-      {
-      }
       else
       {
-         cJSON *breakFlag=cJSON_GetObjectItem(e,"break");
-         fprintf(stderr,"Rule %s = ", name->valuestring);
-         printVal(&res);
-         fprintf(stderr,"\n");
-         if(breakFlag->type == cJSON_True)
+         fprintf(stderr,"   NO CONDITION\n");
+      }
+
+   next_rule:
+      if(match==1)
+      {
+         fprintf(stderr,"   MATCH !\n");
+         if(strcmp(name->valuestring, "<NOP>")!=0)
+            automator_add_to_inputs_table(name->valuestring, &res);
+         else
+         {
+            fprintf(stderr, "   Result discarded\n");
+         }
+         if(onmatch==NULL)
          {
             break;
          }
+         else
+         {
+            if(strcmp(onmatch->valuestring,"break")==0)
+            {
+               break;
+            }
+            else if(strcmp(onmatch->valuestring,"continue")==0)
+            {
+            }
+            else
+            {
+               // jump to rule à écrire
+            } 
+         }
+      }
+      else
+      {
+         fprintf(stderr,"   NOT MATCH !\n");
       }
       e=e->next;
    }
+   double now=mea_now();
+   fprintf(stderr,"\nrule processing time=%f\n", now-start);
+   automator_print_inputs_table();
    
    return 0;
 }
@@ -1210,43 +1376,52 @@ cJSON *automator_load_rules(char *rules)
 {
    cJSON *rules_json = cJSON_Parse(rules);
 
-   if(rules_json==NULL)
-   {
-      fprintf(stderr,"%s\n", (char *)cJSON_GetErrorPtr);
-   }
-   else
-   {
-      char *r=cJSON_Print(rules_json);
-      fprintf(stderr,"%s\n", r);
-      free(r);
-   }
-
    return rules_json;
 }
 
 
-int automator_add_input_table(char *name, struct value_s *v)
+int automator_add_to_inputs_table(char *_name, struct value_s *v)
 {
-   struct inputs_s *e = NULL;
-   
-   HASH_FIND_STR(inputs, name, e);
+   struct inputs_table_s *e = NULL;
+
+   HASH_FIND_STR(inputs_table, _name, e);
    if(e)
    {
       memcpy(&(e->v), v,sizeof(struct value_s));
    }
    else
    {
-      struct inputs_s *s=(struct inputs_s *)malloc(sizeof(struct inputs_s));
-      strncpy(s->name, name, sizeof(s->name));
+      struct inputs_table_s *s=(struct inputs_table_s *)malloc(sizeof(struct inputs_table_s));
+      strncpy(s->name, _name, sizeof(s->name));
+      s->name[sizeof(s->name)-1]=0;
       memcpy(&(s->v), v, sizeof(struct value_s));
-      HASH_ADD_STR(inputs, name, s);
+
+      HASH_ADD_STR(inputs_table, name, s);
    }
    return 0;
 }
 
 
+int automator_print_inputs_table()
+{
+   struct inputs_table_s *s;
+
+   fprintf(stderr,"INPUTS TABLE :\n");
+   fprintf(stderr,"--------------\n");
+   for(s=inputs_table; s != NULL; s=s->hh.next)
+   {
+      fprintf(stderr,"rule %s: ", s->name);
+      printVal(&(s->v));
+      fprintf(stderr,"\n");
+   }
+   fprintf(stderr,"--------------\n");
+}
+
+
 int automator_init()
 {
+   inputs_table = NULL;
+
    return 0;
 }
 
