@@ -64,4 +64,5 @@ int           start_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg)
 int           stop_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg);
 int           restart_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg);
 
+int16_t       displayXPLMsg(xPL_MessagePtr theMessage);
 #endif

@@ -265,18 +265,16 @@ int16_t mea_strcmplower(char *str1, char *str2)
  * \return    0 chaines égales, 1 chaines différentes
  */
 {
-   int i;
-   
    if(!str1 || !str2)
       return 0;
    
-   for(i=0;str1[i];i++) {
-      if(tolower(str1[i])!=tolower(str2[i]))
-         return 1;
+   int i=0;
+   int d=0;
+   for(;str1[i] && str2[i];i++) {
+      if(tolower(str1[i]) - tolower(str2[i])!=0)
+         break;
    }
-   if(str1[i]!=str2[i])
-      return 1;
-   return 0;
+   return tolower(str1[i]) - tolower(str2[i]);
 }
 
 
