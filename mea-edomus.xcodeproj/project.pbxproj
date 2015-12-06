@@ -50,7 +50,6 @@
 		4E76CEB2163F175100A3EBA9 /* tokens.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E76CEB0163F175100A3EBA9 /* tokens.c */; };
 		4E798FF919D4871400F87593 /* processManager.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E798FF819D4871400F87593 /* processManager.c */; };
 		4E7A0B011AB766DE00ABF5ED /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E4A5E9815F003420052ABF4 /* main.c */; };
-		4E7A0B0B1AB7675300ABF5ED /* automatorServer2.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E328D701AB35D2600AA3C35 /* automatorServer2.c */; };
 		4E7A0B0C1AB7682C00ABF5ED /* tokens.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E76CEB0163F175100A3EBA9 /* tokens.c */; };
 		4E7A0B121AB7684200ABF5ED /* consts.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E3F343A19F970150066A9CC /* consts.c */; };
 		4E7A0B141AB7684A00ABF5ED /* parameters_utils.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E76CEA9163F146900A3EBA9 /* parameters_utils.c */; };
@@ -91,6 +90,7 @@
 		4E83D2E11BF515F7009FF74F /* curl_adds.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E83D2DE1BF515F7009FF74F /* curl_adds.c */; };
 		4E8787E61816732800A87FF0 /* sqlite3db_utils.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E8787E51816732800A87FF0 /* sqlite3db_utils.c */; };
 		4E8A87B01A095D4A00A99E80 /* nodejsServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E8A87AE1A095D4A00A99E80 /* nodejsServer.c */; };
+		4E98B61F1C12282E00985383 /* automatorServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E98B61D1C12282E00985383 /* automatorServer.c */; };
 		4EF3D8FC19B3C02200892F29 /* comio2.c in Sources */ = {isa = PBXBuildFile; fileRef = 4EF3D8FA19B3C02200892F29 /* comio2.c */; };
 		4EF3F6C31828400F00959B93 /* interfacesServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4EF3F6C21828400F00959B93 /* interfacesServer.c */; };
 		4EFBFCAE175E616E007BBFD1 /* guiServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4EFBFCAD175E616E007BBFD1 /* guiServer.c */; };
@@ -158,8 +158,6 @@
 		4E2AD4D41A434AA5004177D4 /* get_locations.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; name = get_locations.php; path = gui/models/get_locations.php; sourceTree = "<group>"; };
 		4E2AD4D51A434AA5004177D4 /* new_locations.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; name = new_locations.php; path = gui/models/new_locations.php; sourceTree = "<group>"; };
 		4E2AD4D61A434AA5004177D4 /* update_locations.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; name = update_locations.php; path = gui/models/update_locations.php; sourceTree = "<group>"; };
-		4E328D701AB35D2600AA3C35 /* automatorServer2.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = automatorServer2.c; path = src/automator/automatorServer2.c; sourceTree = "<group>"; };
-		4E328D711AB35D3B00AA3C35 /* automatorServer2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = automatorServer2.h; path = src/automator/automatorServer2.h; sourceTree = "<group>"; };
 		4E3AF2361A5AB35100723560 /* indicateurs-view.php */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.php; path = "indicateurs-view.php"; sourceTree = "<group>"; };
 		4E3AF2371A5AB44500723560 /* services-view.php */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.php; path = "services-view.php"; sourceTree = "<group>"; };
 		4E3B804F1C063F8A00757EF8 /* interface_SMS_SIM900v2.ino */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = interface_SMS_SIM900v2.ino; path = interface_SMS_SIM900v2/interface_SMS_SIM900v2.ino; sourceTree = "<group>"; };
@@ -899,7 +897,6 @@
 		4E7A0AA61AB74D8600ABF5ED /* library.mk */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = library.mk; path = src/library.mk; sourceTree = "<group>"; };
 		4E7A0AA71AB74D9F00ABF5ED /* library.mk */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = library.mk; path = "src/xPLLib-mac/library.mk"; sourceTree = "<group>"; };
 		4E7A0B0A1AB766FB00ABF5ED /* mea-automator */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "mea-automator"; sourceTree = BUILT_PRODUCTS_DIR; };
-		4E7A0B231AB8C65000ABF5ED /* automator.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = automator.py; path = automator/automator.py; sourceTree = "<group>"; };
 		4E83D2A81BF12A81009FF74F /* mea_error.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mea_error.h; path = src/mea_error.h; sourceTree = "<group>"; };
 		4E83D2A91BF12A81009FF74F /* mea_queue.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mea_queue.c; path = src/mea_queue.c; sourceTree = "<group>"; };
 		4E83D2AA1BF12A81009FF74F /* mea_queue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mea_queue.h; path = src/mea_queue.h; sourceTree = "<group>"; };
@@ -926,6 +923,9 @@
 		4E8A87AF1A095D4A00A99E80 /* nodejsServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = nodejsServer.h; path = src/nodejsServer.h; sourceTree = "<group>"; };
 		4E98B6181C0CF76200985383 /* mea_serial_send_sms.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = mea_serial_send_sms.py; path = plugins/mea_serial_send_sms.py; sourceTree = "<group>"; };
 		4E98B6191C0CF76200985383 /* mea_serial_sms_alarme_epc.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = mea_serial_sms_alarme_epc.py; path = plugins/mea_serial_sms_alarme_epc.py; sourceTree = "<group>"; };
+		4E98B61D1C12282E00985383 /* automatorServer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = automatorServer.c; path = src/automatorServer.c; sourceTree = "<group>"; };
+		4E98B61E1C12282E00985383 /* automatorServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = automatorServer.h; path = src/automatorServer.h; sourceTree = "<group>"; };
+		4E98B6201C1486CB00985383 /* mea-compilr.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = "mea-compilr.py"; path = "commands/mea-compilr/mea-compilr.py"; sourceTree = "<group>"; };
 		4EA173041A48B1DD00A8BADB /* types-ctrl.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "types-ctrl.js"; sourceTree = "<group>"; };
 		4EA1CFBD1A1FAFD6008E82D8 /* get_sensors_actuators.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; name = get_sensors_actuators.php; path = gui/models/get_sensors_actuators.php; sourceTree = "<group>"; };
 		4EA1CFBE1A1FE570008E82D8 /* get_types_select.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; name = get_types_select.php; path = gui/models/get_types_select.php; sourceTree = "<group>"; };
@@ -1693,7 +1693,7 @@
 				4EE28EAA162F4DD00090B5B3 /* xPL manager */,
 				4E79947819DDDA5D00F87593 /* process manager */,
 				1AB674ADFE9D54B511CA2CBB /* Products */,
-				4E8E53351842967F006FB9D3 /* automator */,
+				4E8E53351842967F006FB9D3 /* automator manager */,
 			);
 			name = src;
 			sourceTree = "<group>";
@@ -1709,6 +1709,7 @@
 		4E207BB919F1BA5900410B40 /* commands */ = {
 			isa = PBXGroup;
 			children = (
+				4E98B6211C1486D500985383 /* mea-compilr */,
 				4E7A0AA51AB74D3C00ABF5ED /* commands.mk */,
 				4E4F87681A96870900479945 /* mea-enocean */,
 				4E3F341B19F80BA40066A9CC /* mea-xPLHub */,
@@ -4282,14 +4283,21 @@
 			name = interface_type_005;
 			sourceTree = "<group>";
 		};
-		4E8E53351842967F006FB9D3 /* automator */ = {
+		4E8E53351842967F006FB9D3 /* automator manager */ = {
 			isa = PBXGroup;
 			children = (
-				4E7A0B231AB8C65000ABF5ED /* automator.py */,
-				4E328D701AB35D2600AA3C35 /* automatorServer2.c */,
-				4E328D711AB35D3B00AA3C35 /* automatorServer2.h */,
+				4E98B61D1C12282E00985383 /* automatorServer.c */,
+				4E98B61E1C12282E00985383 /* automatorServer.h */,
 			);
-			name = automator;
+			name = "automator manager";
+			sourceTree = "<group>";
+		};
+		4E98B6211C1486D500985383 /* mea-compilr */ = {
+			isa = PBXGroup;
+			children = (
+				4E98B6201C1486CB00985383 /* mea-compilr.py */,
+			);
+			name = "mea-compilr";
 			sourceTree = "<group>";
 		};
 		4EA1CFBC1A1FAFBB008E82D8 /* models */ = {
@@ -5915,7 +5923,6 @@
 				4E7A0B151AB7684D00ABF5ED /* python_utils.c in Sources */,
 				4E7A0B1A1AB7686A00ABF5ED /* xPL-io.c in Sources */,
 				4E7A0B1D1AB7687300ABF5ED /* xPL-store.c in Sources */,
-				4E7A0B0B1AB7675300ABF5ED /* automatorServer2.c in Sources */,
 				4E83D2C41BF12A81009FF74F /* mea_timer.c in Sources */,
 				4E7A0B161AB7685000ABF5ED /* sqlite3db_utils.c in Sources */,
 				4E7A0B1E1AB7687600ABF5ED /* xPL-listeners.c in Sources */,
@@ -5955,6 +5962,7 @@
 				4EF3D8FC19B3C02200892F29 /* comio2.c in Sources */,
 				4E76CE9F163F120C00A3EBA9 /* xPL-utils.c in Sources */,
 				4E83D2C51BF12A81009FF74F /* mea_verbose.c in Sources */,
+				4E98B61F1C12282E00985383 /* automatorServer.c in Sources */,
 				4E83D2BD1BF12A81009FF74F /* mea_string_utils.c in Sources */,
 				4E76CEA2163F124200A3EBA9 /* xPLServer.c in Sources */,
 				4E4292961AA7AEC700E64F4F /* philipshue_color.c in Sources */,

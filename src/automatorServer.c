@@ -9,6 +9,8 @@
 #include <unistd.h>
 #include <time.h>
 #include <sys/time.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <signal.h>
 #include <errno.h>
 #include <string.h>
@@ -81,43 +83,43 @@ char *inputs_rules="[ \
    { \
       \"name\": \"<NOP>\", \
       \"value\" : \"#0\", \
-      \"conditions\" : { \
-         \"schema\" : {\"op\" : \"==\", \"value\" : \"'hbeat.app'\" } \
-      }, \
+      \"conditions\" : [ \
+         { \"value1\" : \"schema\", \"op\" : \"==\", \"value2\" : \"'hbeat.app'\" } \
+      ], \
       \"onmatch\": \"break\" \
    }, \
    { \
       \"name\": \"<NOP>\", \
       \"value\" : \"#0\", \
-      \"conditions\" : { \
-         \"schema\" : {\"op\" : \"==\", \"value\" : \"'watchdog.basic'\" } \
-      }, \
+      \"conditions\" : [ \
+         { \"value1\" : \"schema\", \"op\" : \"==\", \"value2\" : \"'watchdog.basic'\" } \
+      ], \
       \"onmatch\": \"break\" \
    }, \
    { \
       \"name\": \"STOPEVAL\", \
       \"value\" : \"current\", \
-      \"conditions\" : { \
-         \"source\" : {\"op\" : \"==\", \"value\" : \"'mea-edomus.home'\" }, \
-         \"schema\" : {\"op\" : \"==\", \"value\" : \"'sensor.basic'\"}, \
-         \"device\" : {\"op\" : \"==\", \"value\" : \"'stopeval01'\"} \
-      }, \
+      \"conditions\" : [ \
+         { \"value1\" : \"source\", \"op\" : \"==\", \"value2\" : \"'mea-edomus.home'\" }, \
+         { \"value1\" : \"schema\", \"op\" : \"==\", \"value2\" : \"'sensor.basic'\"}, \
+         { \"value1\" : \"device\", \"op\" : \"==\", \"value2\" : \"'stopeval01'\"} \
+      ], \
       \"onmatch\": \"continue\" \
    }, \
    { \
       \"name\": \"BREAK\", \
       \"value\" : \"#0\", \
-      \"conditions\" : { \
-         \"{STOPEVAL}\" : {\"op\" : \"==\", \"value\" : \"&true\" } \
-      }, \
+      \"conditions\" : [ \
+         { \"value1\" : \"{STOPEVAL}\", \"op\" : \"==\", \"value2\" : \"&true\" } \
+      ], \
       \"onmatch\": \"break\" \
    }, \
    { \
       \"name\": \"T1\", \
       \"value\" : \"#0\", \
-      \"conditions\" : { \
-         \"$exist('T1')\" : {\"op\" : \"==\", \"value\" : \"&false\" } \
-      }, \
+      \"conditions\" : [ \
+         { \"value1\" : \"$exist('T1')\", \"op\" : \"==\", \"value\" : \"&false\" } \
+      ], \
       \"onmatch\": \"continue\" \
    }, \
    { \
@@ -128,65 +130,77 @@ char *inputs_rules="[ \
    { \
       \"name\": \"E1\", \
       \"value\" : \"current\", \
-      \"conditions\" : { \
-         \"device\" : {\"op\" : \"==\", \"value\" : \"'BUTTON1'\"}, \
-         \"source\" : {\"op\" : \"==\", \"value\" : \"'mea-edomus.home'\" }, \
-         \"schema\" : {\"op\" : \"==\", \"value\" : \"'sensor.basic'\"}, \
-         \"type\"   : {\"op\" : \"==\", \"value\" : \"'input'\"} \
-      }, \
+      \"conditions\" : [ \
+         { \"value1\" : \"device\", \"op\" : \"==\", \"value2\" : \"'BUTTON1'\"}, \
+         { \"value1\" : \"source\", \"op\" : \"==\", \"value2\" : \"'mea-edomus.home'\" }, \
+         { \"value1\" : \"schema\", \"op\" : \"==\", \"value2\" : \"'sensor.basic'\"}, \
+         { \"value1\" : \"type\",   \"op\" : \"==\", \"value2\" : \"'input'\"} \
+      ], \
       \"onmatch\": \"break\" \
    }, \
    { \
       \"name\": \"E2\", \
       \"value\" : \"current\", \
-      \"conditions\" : { \
-         \"device\" : {\"op\" : \"==\", \"value\" : \"'BUTTON2'\"}, \
-         \"source\" : {\"op\" : \"==\", \"value\" : \"'mea-edomus.home'\" }, \
-         \"schema\" : {\"op\" : \"==\", \"value\" : \"'sensor.basic'\"}, \
-         \"type\"   : {\"op\" : \"==\", \"value\" : \"'input'\"} \
-      }, \
+      \"conditions\" : [ \
+         { \"value1\" : \"device\", \"op\" : \"==\", \"value2\" : \"'BUTTON2'\"}, \
+         { \"value1\" : \"source\", \"op\" : \"==\", \"value2\" : \"'mea-edomus.home'\" }, \
+         { \"value1\" : \"schema\", \"op\" : \"==\", \"value2\" : \"'sensor.basic'\"}, \
+         { \"value1\" : \"type\",   \"op\" : \"==\", \"value2\" : \"'input'\"} \
+      ], \
       \"onmatch\": \"break\" \
    }, \
    { \
       \"name\": \"E3\", \
       \"value\" : \"current\", \
-      \"conditions\" : { \
-         \"device\" : {\"op\" : \"==\", \"value\" : \"'conso'\"}, \
-         \"source\" : {\"op\" : \"==\", \"value\" : \"'mea-edomus.home'\" }, \
-         \"schema\" : {\"op\" : \"==\", \"value\" : \"'sensor.basic'\"}, \
-         \"type\"   : {\"op\" : \"==\", \"value\" : \"'power'\"} \
-      }, \
+      \"conditions\" : [ \
+         { \"value1\" : \"device\", \"op\" : \"==\", \"value2\" : \"'conso'\"}, \
+         { \"value1\" : \"source\", \"op\" : \"==\", \"value2\" : \"'mea-edomus.home'\" }, \
+         { \"value1\" : \"schema\", \"op\" : \"==\", \"value2\" : \"'sensor.basic'\"}, \
+         { \"value1\" : \"type\",   \"op\" : \"==\", \"value2\" : \"'power'\"} \
+      ], \
       \"onmatch\": \"break\" \
    }, \
    { \
       \"name\": \"TEMP1\", \
       \"value\" : \"current\", \
-      \"conditions\" : { \
-         \"device\" : {\"op\" : \"==\", \"value\" : \"'temp01'\"}, \
-         \"source\" : {\"op\" : \"==\", \"value\" : \"'mea-edomus.home'\" }, \
-         \"schema\" : {\"op\" : \"==\", \"value\" : \"'sensor.basic'\"} \
-      }, \
+      \"conditions\" : [ \
+         { \"value1\" : \"device\", \"op\" : \"==\", \"value2\" : \"'temp01'\"}, \
+         { \"value1\" : \"source\", \"op\" : \"==\", \"value2\" : \"'mea-edomus.home'\" }, \
+         { \"value1\" : \"schema\", \"op\" : \"==\", \"value2\" : \"'sensor.basic'\"} \
+      ], \
       \"onmatch\": \"break\" \
    }, \
    { \
       \"name\": \"E4\", \
       \"value\" : \"current\", \
-      \"conditions\" : { \
-         \"device\" : {\"op\" : \"==\", \"value\" : \"'epgstat01'\"}, \
-         \"source\" : {\"op\" : \"==\", \"value\" : \"'mea-edomus.home'\" }, \
-         \"schema\" : {\"op\" : \"==\", \"value\" : \"'sensor.basic'\"} \
-      }, \
+      \"conditions\" : [ \
+         { \"value1\" : \"device\", \"op\" : \"==\", \"value2\" : \"'epgstat01'\"}, \
+         { \"value1\" : \"source\", \"op\" : \"==\", \"value2\" : \"'mea-edomus.home'\" }, \
+         { \"value1\" : \"schema\", \"op\" : \"==\", \"value2\" : \"'sensor.basic'\"} \
+      ], \
       \"onmatch\": \"break\" \
    } \
 ]";
 
 /*
-# les règles sont évaluées dans l'ordre
-# par defaut toutes les règles sont évaluées
-# le comportement par défaut est modifiée par "onmatch" : break : l'évaluation s'arrête, continue : l'évaluation se poursuit
-# mon langage de regles
-# 
-# D1 is: <NOP>     if: (schema == 'hbeat.app') onmatch: break 
+# les règles sont évaluées dans l'ordre. Par defaut toutes les règles sont évaluées l'une après l'autre
+# ce comportement par défaut est modifiée par "onmatch:" (break, continue, moveforward, ...)
+#
+# syntaxe d'une règle d'entréee :
+# <inputname> is: <value> | <"<NOP>">
+# <inputname> is: <value> | <"<NOP>"> if: ( <condition1> [, condition2] ... [, conditionN])
+# <inputname> is: <value> | <"<NOP>"> onmatch: <matchvalue>
+# <inputname> is: <value> | <"<NOP>"> if: ( <condition1> [, condition2] ... [, conditionN]) onmatch: <matchvalue>
+#
+# avec :
+# <value> :
+#   key (valeur associée à une clé dans le message xPL)
+#   'chaine'
+#   #numerique
+#   &boolean (&true, &false, &high, &low)
+#   $function()
+#
+# D1 is: <NOP>     if: (schema == 'hbeat.app') onmatch: break
 # V1 is: #1
 # V2 is: #2.1      if: (source == 'mea-edomus.home', schema == 'sensor.basic', device == 'BUTTON3', current == #2) onmatch: break
 # V2 is: #10       if: (source == 'mea-edomus.home', schema == 'sensor.basic', device == 'BUTTON3', current > #3, current < #5) onmatch: continue
@@ -386,12 +400,14 @@ static int getOperator(char *str)
 static int valueCmp(struct value_s *v1, int operator, struct value_s *v2)
 {
    // cas type différent : seule la différence peut retourner 1
-   if(v1->type != v2->type)
-      if(operator == O_NE)
+   if(v1->type != v2->type) {
+      if(operator == O_NE) {
          return 1;
-      else
+      }
+      else {
          return 0;
-
+      }
+   }
    // autres cas
    int cmp=0; 
    if(v1->type == 0) // numérique
@@ -421,7 +437,7 @@ static int valueCmp(struct value_s *v1, int operator, struct value_s *v2)
          if(cmp>0)  return 1;
          break;
       case O_LO:
-         if(cmp<-1) return 1;
+         if(cmp<0)  return 1;
          break;
       case O_GE:
          if(cmp>=0) return 1;
@@ -770,7 +786,7 @@ int automator_play_output_rules(cJSON *rules)
    cJSON *e=rules->child;
    while(e) // balayage des règles
    {
-      cJSON *name       = cJSON_GetObjectItem(e,"name");
+//      cJSON *name       = cJSON_GetObjectItem(e,"name");
       cJSON *action     = cJSON_GetObjectItem(e,"action");
       cJSON *parameters = cJSON_GetObjectItem(e,"parameters");
       cJSON *condition  = cJSON_GetObjectItem(e,"condition");
@@ -834,6 +850,21 @@ next_rule:
 }
 
 
+int automator_getValue(cJSON *value, struct value_s *v, char *source, char *schema, xPL_NameValueListPtr ListNomsValeursPtr)
+{
+   int ret=0;
+   
+   if(strcmp(value->valuestring, "source")==0)
+      ret=setValueFromStr(v, source);
+   else if(strcmp(value->valuestring, "schema")==0)
+      ret=setValueFromStr(v, schema);
+   else
+      ret=evalStr(value->valuestring, v, ListNomsValeursPtr);
+   
+   return ret;
+}
+
+
 int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
 {
    if(rules==NULL)
@@ -874,8 +905,11 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
       cJSON *value   = cJSON_GetObjectItem(e,"value");
       cJSON *onmatch = cJSON_GetObjectItem(e,"onmatch");
       
-      if(!name || !value || !onmatch)
+      if(!name || !value)
+      {
+         e=e->next;
          continue;
+      }
 
 //      fprintf(stderr,"\nRULE : %s\n", name->valuestring);
       int ret=evalStr(value->valuestring, &res, ListNomsValeursPtr);
@@ -895,9 +929,10 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
          while(c)
          {
             int operator=-1;
-            cJSON *value2 = cJSON_GetObjectItem(c, "value");
+            cJSON *value1 = cJSON_GetObjectItem(c, "value1");
             cJSON *op     = cJSON_GetObjectItem(c, "op");
-            if(!op || !value2)
+            cJSON *value2 = cJSON_GetObjectItem(c, "value2");
+            if(!value1 || !op || !value2)
             {
                match=0;
                goto next_rule;
@@ -911,23 +946,13 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
                goto next_rule;
             }
 
-            // récuperation valeur1 :
-            // cas spécifique pour source et schema
-            if(strcmp(c->string, "source")==0)
-               setValueFromStr(&val1, source);
-            else if(strcmp(c->string, "schema")==0)
-               setValueFromStr(&val1, schema);
-            else
+            if(automator_getValue(value1, &val1, source, schema, ListNomsValeursPtr)<0)
             {
-               if(evalStr(c->string, &val1, ListNomsValeursPtr) < 0)
-               {
-                  match=0;
-                  goto next_rule;
-               }
+               match=0;
+               goto next_rule;
             }
-
-            // récupération valeur2
-            if( evalStr(value2->valuestring, &val2, ListNomsValeursPtr) < 0 )
+            
+            if(automator_getValue(value2, &val2, source, schema, ListNomsValeursPtr)<0)
             {
                match=0;
                goto next_rule;
@@ -1117,10 +1142,58 @@ cJSON *automator_load_rules(char *rules)
 }
 
 
+cJSON *automator_load_rules_from_file(char *file)
+{
+   cJSON *rules_json = NULL;
+   FILE *fd = NULL;
+   
+   fd = fopen(file, "r");
+   if(fd == NULL)
+      return NULL;
+   
+   int d = fileno(fd); //if you have a stream (e.g. from fopen), not a file descriptor.
+   struct stat buf;
+   fstat(d, &buf);
+   int size = buf.st_size;
+   
+   char *rules = (char *)malloc(size);
+   if(rules !=NULL)
+   {
+      int nbread = fread(rules, 1, size, fd);
+      
+      if (nbread != size)
+      {
+         perror("");
+         free(rules);
+         fclose(fd);
+
+         return NULL;
+      }
+      else
+         rules_json = automator_load_rules(rules);
+   }
+
+   fclose(fd);
+   
+   return rules_json;
+}
+
+
 int automator_init()
 {
    inputs_table = NULL;
+   
+//   _inputs_rules=automator_load_rules(inputs_rules);
+//   _outputs_rules=automator_load_rules(outputs_rules);
 
+   cJSON *_rules = NULL;
+   
+   _rules = automator_load_rules_from_file("/Data/mea-edomus.rules");
+   if(_rules)
+   {
+      _inputs_rules = cJSON_GetObjectItem(_rules, "inputs");
+      _outputs_rules = cJSON_GetObjectItem(_rules, "outputs");
+   }
+   
    return 0;
 }
-

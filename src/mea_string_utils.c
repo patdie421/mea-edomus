@@ -269,7 +269,6 @@ int16_t mea_strcmplower(char *str1, char *str2)
       return 0;
    
    int i=0;
-   int d=0;
    for(;str1[i] && str2[i];i++) {
       if(tolower(str1[i]) - tolower(str2[i])!=0)
          break;

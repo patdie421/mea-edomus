@@ -506,8 +506,7 @@ void _xplRespQueue_free_queue_elem(void *d)
 
 void *xPLServer_thread(void *data)
 {
-   _inputs_rules=automator_load_rules(inputs_rules);
-   _outputs_rules=automator_load_rules(outputs_rules);
+   automator_init();
 
    pthread_cleanup_push( (void *)set_xPLServer_isnt_running, (void *)NULL );
    pthread_cleanup_push( (void *)clean_xPLServer, (void *)NULL);
