@@ -1709,8 +1709,8 @@
 		4E207BB919F1BA5900410B40 /* commands */ = {
 			isa = PBXGroup;
 			children = (
-				4E98B6211C1486D500985383 /* mea-compilr */,
 				4E7A0AA51AB74D3C00ABF5ED /* commands.mk */,
+				4E98B6211C1486D500985383 /* mea-compilr */,
 				4E4F87681A96870900479945 /* mea-enocean */,
 				4E3F341B19F80BA40066A9CC /* mea-xPLHub */,
 				4E207BC119F1C13A00410B40 /* mea-xpllogger */,

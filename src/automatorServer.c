@@ -38,6 +38,7 @@
 // RULES :
 // xpl-trig: source = mea-edomus.home, destination = *, schema = sensor.basic, body = [device = conso, type = power, current = 274.591704]
 // xpl-trig: source = mea-edomus.home, destination = *, schema = sensor.basic, body = [device = epgstat01, current = 1]
+/*
 char *outputs_rules="[ \
    { \
       \"name\": \"O1\", \
@@ -181,7 +182,7 @@ char *inputs_rules="[ \
       \"onmatch\": \"break\" \
    } \
 ]";
-
+*/
 /*
 # les règles sont évaluées dans l'ordre. Par defaut toutes les règles sont évaluées l'une après l'autre
 # ce comportement par défaut est modifiée par "onmatch:" (break, continue, moveforward, ...)
@@ -496,7 +497,7 @@ static int getFunctionNum(char *str, char *params, int l_params)
 static int getInputEdge(char *expr, int direction,  struct value_s *v, xPL_NameValueListPtr ListNomsValeursPtr)
 {
    if((direction==CHANGE ||
-       direction==RISE  ||
+       direction==RISE   ||
        direction==STAY   ||
        direction==FALL)  &&
       expr[0]!=0)
@@ -1047,7 +1048,7 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
 }
 
 
-int automator_add_to_inputs_table(char *_name, struct value_s *v)
+static int automator_add_to_inputs_table(char *_name, struct value_s *v)
 {
    struct inputs_table_s *e = NULL;
 
@@ -1134,7 +1135,8 @@ static int automator_print_inputs_table()
 }
 #endif
 
-cJSON *automator_load_rules(char *rules)
+
+cJSON *automator_load_rules_from_string(char *rules)
 {
    cJSON *rules_json = cJSON_Parse(rules);
 
@@ -1170,7 +1172,7 @@ cJSON *automator_load_rules_from_file(char *file)
          return NULL;
       }
       else
-         rules_json = automator_load_rules(rules);
+         rules_json = automator_load_rules_from_string(rules);
    }
 
    fclose(fd);
