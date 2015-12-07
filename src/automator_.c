@@ -1,10 +1,9 @@
 //
 //  mea-eDomus
 //
-//  Created by Patrice Dietsch on 04/05/13.
+//  Created by Patrice Dietsch on 07/12/15.
 //
 //
-#include <Python.h>
 
 #include <stdio.h>
 #include <stdio.h>
@@ -14,10 +13,10 @@
 #include <sys/time.h>
 #include <signal.h>
 //#include <errno.h>
-#include "mea_verbose.h"
 #include <string.h>
 #include <pthread.h>
 
+#include "mea_verbose.h"
 #include "globals.h"
 #include "consts.h"
 //#include "error.h"
@@ -25,31 +24,22 @@
 #include "mea_queue.h"
 #include "tokens.h"
 
-#include "pythonPluginServer.h"
 #include "processManager.h"
 #include "notify.h"
 
-// #define free(x) free(x);
 
-#include "mea_api.h"
+char *automator_server_name_str="AUTOMATORSERVER";
 
-char *pythonPlugin_server_name_str="PYTHONPLUGINSERVER";
-
-char *plugin_path=NULL;
+char *rules_path=NULL;
 
 // globales pour le fonctionnement du thread
-pthread_t *_pythonPluginServer_thread_id=NULL;
-int _pythonPluginServer_thread_is_running=0;
-int _pythonPluginServer_monitoring_id=-1;
+pthread_t *_automatorServer_thread_id=NULL;
+int _automatorServer_thread_is_running=0;
+int _automatorServer_monitoring_id=-1;
 
-mea_queue_t *pythonPluginCmd_queue;
-pthread_cond_t pythonPluginCmd_queue_cond;
-pthread_mutex_t pythonPluginCmd_queue_lock;
-
-PyObject *known_modules;
-
-long nbpycall_indicator = 0;
-long nbpycallerr_indicator = 0;
+mea_queue_t *automator_in_queue;
+pthread_cond_t automator_in_queue_cond;
+pthread_mutex_t automator_in_queue_lock;
 
 
 static unsigned long _millis()
@@ -67,36 +57,26 @@ static unsigned long _diffMillis(unsigned long chrono, unsigned long now)
 }
 
 
-void set_pythonPluginServer_isnt_running(void *data)
+void set_automatorServer_isnt_running(void *data)
 {
-   _pythonPluginServer_thread_is_running=0;
+   _automatorServer_thread_is_running=0;
 }
 
 
-void _pythonPlugin_thread_cleanup_PyEval_AcquireLock(void *arg)
+void setRulesPath(char *path)
 {
-   PyThreadState *tempState=(PyThreadState *)arg;
-   
-   if(tempState)
-      PyThreadState_Swap(tempState);
-   PyEval_ReleaseLock();
-}
-
-
-void setPythonPluginPath(char *path)
-{
-   if(plugin_path)
+   if(rules_path)
    {
-      free(plugin_path);
+      free(rules_path);
       plugin_path=NULL;
    }
-   plugin_path=malloc(strlen(path)+1);
+   rules_path=malloc(strlen(path)+1);
    
-   strcpy(plugin_path, path);
+   strcpy(rules_path, path);
 }
 
 
-mea_error_t pythonPluginServer_add_cmd(char *module, void *data, int l_data)
+mea_error_t automatorServer_add_msg(xPL_MessagePtr theMessage)
 {
    pythonPlugin_cmd_t *e=NULL;
    int ret=NOERROR;
