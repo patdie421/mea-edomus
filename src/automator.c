@@ -239,6 +239,7 @@ char *inputs_rules="[ \
 # A5 do: timerstart with: (name='timer1', value=10, unit='s', autorestart=&false) when: 'E1' rise (à faire)
 */
 
+cJSON *_rules;
 cJSON *_inputs_rules;
 cJSON *_outputs_rules;
 
@@ -723,7 +724,8 @@ static int automator_sendxpl(cJSON *parameters)
             }
          }
          else if(strcmp(e->child->string, "schema")==0) {
-            strncpy(schema, e->child->valuestring, sizeof(schema)-1);
+         
+            strncpy(schema, v.val.strval, sizeof(schema)-1);
             schema[sizeof(schema)-1]=0;
          }
          else if(strcmp(e->child->string,"source")==0) {
@@ -731,7 +733,7 @@ static int automator_sendxpl(cJSON *parameters)
             break;
          }
          else if(strcmp(e->child->string,"target")==0) {
-            strncpy(target, e->child->valuestring, sizeof(target)-1);
+            strncpy(target, v.val.strval, sizeof(target)-1);
             target[sizeof(target)-1]=0;
          }
          else
@@ -796,7 +798,7 @@ int automator_play_output_rules(cJSON *rules)
       struct value_s v;
       if(evalStr(condition->child->string, &v, NULL)!=0)
       {
-//         fprintf(stderr,"%s : can't eval\n", condition->child->string);
+         fprintf(stderr,"%s : can't eval\n", condition->child->string);
          goto next_rule;
       }
       if(v.type!=1)
@@ -846,7 +848,8 @@ next_rule:
    }
    
    double now=mea_now();
-   fprintf(stderr,"\noutputs rules processing time=%f\n", now-start);
+   long exectime=(long)((now-start)*1000);
+   fprintf(stderr,"\noutputs rules processing time=%ld us\n", exectime);
 
    return 0;
 }
@@ -1041,9 +1044,9 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
       e=e->next;
    }
    double now=mea_now();
-   fprintf(stderr,"\ninputs rules processing time=%f\n", now-start);
-
-   automator_print_inputs_table();
+   long exectime=(long)((now-start)*1000);
+   fprintf(stderr,"\ninputs rules processing time=%ld us\n", exectime);
+//   automator_print_inputs_table();
    
    return 0;
 }
@@ -1182,16 +1185,29 @@ cJSON *automator_load_rules_from_file(char *file)
 }
 
 
-int automator_init()
+int automator_init(char *rulesfile)
 {
-   inputs_table = NULL;
-   
-//   _inputs_rules=automator_load_rules(inputs_rules);
-//   _outputs_rules=automator_load_rules(outputs_rules);
+   if(inputs_table)
+   {
+      struct inputs_table_s  *current, *tmp;
 
-   cJSON *_rules = NULL;
+      HASH_ITER(hh, inputs_table, current, tmp)
+      {
+         HASH_DEL(inputs_table, current);
+         free(current);
+      }
+      inputs_table = NULL;
+   }
    
-   _rules = automator_load_rules_from_file("/Data/mea-edomus.rules");
+   if(_rules)
+   {
+      cJSON_Delete(_rules);
+      _rules = NULL;
+      _inputs_rules = NULL;
+      _outputs_rules = NULL;
+   }
+   
+   _rules = automator_load_rules_from_file(rulesfile);
    if(_rules)
    {
       _inputs_rules = cJSON_GetObjectItem(_rules, "inputs");
@@ -1200,3 +1216,16 @@ int automator_init()
    
    return 0;
 }
+
+
+int automator_clean()
+{
+   if(_inputs_rules)
+      cJSON_Delete(_inputs_rules);
+
+   if(_outputs_rules)
+      cJSON_Delete(_outputs_rules);
+
+   return 0;
+}
+

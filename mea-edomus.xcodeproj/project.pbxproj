@@ -91,6 +91,7 @@
 		4E8787E61816732800A87FF0 /* sqlite3db_utils.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E8787E51816732800A87FF0 /* sqlite3db_utils.c */; };
 		4E8A87B01A095D4A00A99E80 /* nodejsServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E8A87AE1A095D4A00A99E80 /* nodejsServer.c */; };
 		4E98B61F1C12282E00985383 /* automatorServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E98B61D1C12282E00985383 /* automatorServer.c */; };
+		4E98B6241C15D04200985383 /* automator.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E98B6221C15D04200985383 /* automator.c */; };
 		4EF3D8FC19B3C02200892F29 /* comio2.c in Sources */ = {isa = PBXBuildFile; fileRef = 4EF3D8FA19B3C02200892F29 /* comio2.c */; };
 		4EF3F6C31828400F00959B93 /* interfacesServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4EF3F6C21828400F00959B93 /* interfacesServer.c */; };
 		4EFBFCAE175E616E007BBFD1 /* guiServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4EFBFCAD175E616E007BBFD1 /* guiServer.c */; };
@@ -926,6 +927,8 @@
 		4E98B61D1C12282E00985383 /* automatorServer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = automatorServer.c; path = src/automatorServer.c; sourceTree = "<group>"; };
 		4E98B61E1C12282E00985383 /* automatorServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = automatorServer.h; path = src/automatorServer.h; sourceTree = "<group>"; };
 		4E98B6201C1486CB00985383 /* mea-compilr.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = "mea-compilr.py"; path = "commands/mea-compilr/mea-compilr.py"; sourceTree = "<group>"; };
+		4E98B6221C15D04200985383 /* automator.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = automator.c; path = src/automator.c; sourceTree = "<group>"; };
+		4E98B6231C15D04200985383 /* automator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = automator.h; path = src/automator.h; sourceTree = "<group>"; };
 		4EA173041A48B1DD00A8BADB /* types-ctrl.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "types-ctrl.js"; sourceTree = "<group>"; };
 		4EA1CFBD1A1FAFD6008E82D8 /* get_sensors_actuators.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; name = get_sensors_actuators.php; path = gui/models/get_sensors_actuators.php; sourceTree = "<group>"; };
 		4EA1CFBE1A1FE570008E82D8 /* get_types_select.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; name = get_types_select.php; path = gui/models/get_types_select.php; sourceTree = "<group>"; };
@@ -1672,6 +1675,7 @@
 				4E798FFB19DC9C8B00F87593 /* package */,
 				08FB7795FE84155DC02AAC07 /* src */,
 				4E48119F19C37C46001C5F48 /* plugins */,
+				1AB674ADFE9D54B511CA2CBB /* Products */,
 				4E3F343D19F97F970066A9CC /* others */,
 			);
 			name = Comio;
@@ -1692,7 +1696,6 @@
 				4EFBFCAB175E612D007BBFD1 /* gui manager */,
 				4EE28EAA162F4DD00090B5B3 /* xPL manager */,
 				4E79947819DDDA5D00F87593 /* process manager */,
-				1AB674ADFE9D54B511CA2CBB /* Products */,
 				4E8E53351842967F006FB9D3 /* automator manager */,
 			);
 			name = src;
@@ -4286,6 +4289,8 @@
 		4E8E53351842967F006FB9D3 /* automator manager */ = {
 			isa = PBXGroup;
 			children = (
+				4E98B6221C15D04200985383 /* automator.c */,
+				4E98B6231C15D04200985383 /* automator.h */,
 				4E98B61D1C12282E00985383 /* automatorServer.c */,
 				4E98B61E1C12282E00985383 /* automatorServer.h */,
 			);
@@ -5966,6 +5971,7 @@
 				4E83D2BD1BF12A81009FF74F /* mea_string_utils.c in Sources */,
 				4E76CEA2163F124200A3EBA9 /* xPLServer.c in Sources */,
 				4E4292961AA7AEC700E64F4F /* philipshue_color.c in Sources */,
+				4E98B6241C15D04200985383 /* automator.c in Sources */,
 				4E76CEA5163F12C800A3EBA9 /* arduino_pins.c in Sources */,
 				4E76CEAB163F146900A3EBA9 /* parameters_utils.c in Sources */,
 				4E76CEB2163F175100A3EBA9 /* tokens.c in Sources */,

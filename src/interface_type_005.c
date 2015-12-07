@@ -826,6 +826,7 @@ void *_thread_interface_type_005(void *thread_data)
                   for(int k=0;k<m_elem->sensors_actuators_list.nb_elem;k++)
                   {
                      mea_queue_current(&(m_elem->sensors_actuators_list), (void **)&sa_elem);
+                     
                      if(sa_elem->type==500)
                      {
                         char str_value[20], str_last[20], type[20];
@@ -840,8 +841,8 @@ void *_thread_interface_type_005(void *thread_data)
                            if(sa_elem->todbflag==1)
                               dbServer_add_data_to_sensors_values(sa_elem->id, data4db, 0, data4db2, data4dbComp);
                         } 
-                        mea_queue_next(&(m_elem->sensors_actuators_list));
                      }
+                     mea_queue_next(&(m_elem->sensors_actuators_list));
                   }
                }
                else

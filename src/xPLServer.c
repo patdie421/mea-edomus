@@ -27,7 +27,7 @@
 #include "processManager.h"
 #include "automator.h"
 #include "interfacesServer.h"
-
+#include "automatorServer.h"
 #include "mea_sockets_utils.h"
 #include "notify.h"
 
@@ -185,7 +185,7 @@ xPL_MessagePtr xPLCpyMsg(xPL_MessagePtr msg)
    {
       xPL_NameValuePairPtr keyValuePtr = xPL_getNamedValuePairAt(body, i);
       if (keyValuePtr->itemValue != NULL)
-          xPL_addMessageNamedValue(newMsg, keyValuePtr->itemValue, keyValuePtr->itemValue);
+          xPL_addMessageNamedValue(newMsg, keyValuePtr->itemName, keyValuePtr->itemValue);
    }
 
    newMsg->isGroupMessage = msg->isGroupMessage;
@@ -464,27 +464,17 @@ void _cmndXPLMessageHandler(xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
    xPL_MessagePtr msg=xPLCpyMsg(theMessage);
    if(msg)
    {
-      automator_match_inputs_rules(_inputs_rules, theMessage);
-      automator_play_output_rules(_outputs_rules);
-      automator_reset_inputs_change_flags();
-
-      xPL_releaseMessage(msg); 
+      automatorServer_add_msg(msg);
    }
 
-   if(fromMe==0) // c'est de moi, pas la peine de traiter
-      return;
+//   if(fromMe==0) // c'est de moi, pas la peine de traiter
+//      return;
 
    if(xPL_getMessageType(theMessage)!=xPL_MESSAGE_COMMAND)
    {
-      // faire quelque chose ici si nécessaire (ex : automate)
-      // automator_match_rules(_rules, theMessage);
       return;
    }
-/*
-   if(mea_strcmplower(schema_class, "hbeat") == 0 &&
-      mea_strcmplower(schema_type, "app")    == 0) // hbeat.app : pas la peine de traiter
-      return;
-*/
+
    process_update_indicator(_xplServer_monitoring_id, xpl_server_xplin_str, ++xplin_indicator);
    dispatchXPLMessageToInterfaces(xPLService, theMessage);
 }
@@ -551,8 +541,6 @@ void _xplRespQueue_free_queue_elem(void *d)
 
 void *xPLServer_thread(void *data)
 {
-   automator_init();
-
    pthread_cleanup_push( (void *)set_xPLServer_isnt_running, (void *)NULL );
    pthread_cleanup_push( (void *)clean_xPLServer, (void *)NULL);
    

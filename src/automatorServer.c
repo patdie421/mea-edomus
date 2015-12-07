@@ -16,6 +16,7 @@
 #include <pthread.h>
 
 #include "xPL.h"
+#include "xPLServer.h"
 #include "mea_verbose.h"
 #include "globals.h"
 #include "consts.h"
@@ -25,6 +26,7 @@
 #include "processManager.h"
 #include "notify.h"
 
+#include "automator.h"
 #include "automatorServer.h"
 
 char *automator_server_name_str="AUTOMATORSERVER";
@@ -111,6 +113,8 @@ void *_automator_thread(void *data)
    _automatorServer_thread_is_running=1;
    process_heartbeat(_automatorServer_monitoring_id);
 
+   automator_init(rules_file);
+
    int16_t timeout;
    
    while(1)
@@ -125,7 +129,7 @@ void *_automator_thread(void *data)
          struct timeval tv;
          struct timespec ts;
          gettimeofday(&tv, NULL);
-         ts.tv_sec = tv.tv_sec + 10; // timeout de 10 secondes
+         ts.tv_sec = tv.tv_sec + 30; // timeout de 10 secondes
          ts.tv_nsec = 0;
          
          ret=pthread_cond_timedwait(&automator_msg_queue_cond, &automator_msg_queue_lock, &ts);
@@ -155,24 +159,32 @@ void *_automator_thread(void *data)
 
       process_heartbeat(_automatorServer_monitoring_id); 
 
-      if (timeout) // une erreur ou timeout, si timeout => un tour d'automate, sinon retour au début de la boucle
+      if (timeout==1) // timeout => un tour d'automate
       {
          pthread_testcancel();
-         fprintf(stderr,"Automator ICI\n");
+         
+         automator_match_inputs_rules(_inputs_rules, NULL);
+         automator_play_output_rules(_outputs_rules);
+         automator_reset_inputs_change_flags();
          continue;
       }
      
       if(!ret) // on a sortie un élément de la queue
       {
+         DEBUG_SECTION displayXPLMsg(e->msg);
+
+         automator_match_inputs_rules(_inputs_rules, e->msg);
+         automator_play_output_rules(_outputs_rules);
+         automator_reset_inputs_change_flags();
+
          // faire ici ce qu'il y a à faire
-         fprintf(stderr,"Automator LA\n");
          if(e)
          {
             if(e->msg)
             {
                // liberer le message
+               
                xPL_releaseMessage(e->msg);
-               free(e->msg);
                e->msg=NULL;
             }
             free(e);
@@ -306,9 +318,11 @@ int start_automatorServer(int my_id, void *data, char *errmsg, int l_errmsg)
 
    char err_str[80], notify_str[256];
 
+   fprintf(stderr,"%s\n",automatorServer_start_stop_params->params_list[RULES_FILE]);
    if(automatorServer_start_stop_params->params_list[RULES_FILE])
    {
       setAutomatorRulesFile(automatorServer_start_stop_params->params_list[RULES_FILE]);
+      
       _automatorServer_thread_id=automatorServer();
       if(_automatorServer_thread_id==NULL)
       {

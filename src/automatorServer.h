@@ -17,7 +17,7 @@ extern char* automator_server_name_str;
 struct automatorServer_start_stop_params_s
 {
    char **params_list;
-   sqlite3 *sqlite3_param_db;
+//   sqlite3 *sqlite3_param_db;
 };
 
 

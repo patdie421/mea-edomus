@@ -938,7 +938,7 @@ int main(int argc, const char * argv[])
    //
    struct automatorServer_start_stop_params_s automatorServer_start_stop_params;
    automatorServer_start_stop_params.params_list=params_list;
-   automatorServer_start_stop_params.sqlite3_param_db=sqlite3_param_db;
+//   automatorServer_start_stop_params.sqlite3_param_db=sqlite3_param_db;
    automatorServer_monitoring_id=process_register(automator_server_name_str);
    process_set_start_stop(automatorServer_monitoring_id, start_automatorServer, stop_automatorServer, (void *)(&automatorServer_start_stop_params), 1);
    process_set_watchdog_recovery(automatorServer_monitoring_id, restart_automatorServer, (void *)(&automatorServer_start_stop_params));
@@ -956,7 +956,8 @@ int main(int argc, const char * argv[])
    struct interfacesServerData_s interfacesServerData;
    interfacesServerData.params_list=params_list;
    interfacesServerData.sqlite3_param_db=sqlite3_param_db;
-   interfaces=start_interfaces(params_list, sqlite3_param_db); // démarrage des interfaces
+   interfaces=start_interfaces
+   (params_list, sqlite3_param_db); // démarrage des interfaces
    int interfaces_reload_task_id=process_register("RELOAD"); // mise en place de la tâche de rechargement des paramètrages des interfaces
    process_set_group(interfaces_reload_task_id, 2);
    process_set_start_stop(interfaces_reload_task_id , restart_interfaces, NULL, (void *)(&interfacesServerData), 1);
