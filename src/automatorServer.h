@@ -1,18 +1,41 @@
+//
+//  automatorServer.h
+//
+//  Created by Patrice Dietsch on 07/12/15.
+//
+//
+
 #ifndef __automatorServer_h
 #define __automatorServer_h
 
-#include "cJSON.h"
+#include <pthread.h>
+
 #include "xPL.h"
 
-extern char *inputs_rules;
-extern char *outputs_rules;
+extern char* automator_server_name_str;
 
-extern cJSON *_inputs_rules;
-extern cJSON *_outputs_rules;
+struct automatorServer_start_stop_params_s
+{
+   char **params_list;
+   sqlite3 *sqlite3_param_db;
+};
 
-cJSON *automator_load_rules(char *rules);
-int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message);
-int automator_play_output_rules(cJSON *rules);
-int automator_reset_inputs_change_flags();
+
+typedef struct automator_msg_s
+{
+   xPL_MessagePtr msg;
+} automator_msg_t;
+
+
+typedef struct automator_queue_elem_s
+{
+} automator_queue_elem_t;
+
+
+mea_error_t automatorServer_add_msg(xPL_MessagePtr msg);
+void        setAutomatorRulesFile(char *file);
+int         start_automatorServer(int my_id, void *data, char *errmsg, int l_errmsg);
+int         stop_automatorServer(int my_id, void *data, char *errmsg, int l_errmsg);
+int         restart_automatorServer(int my_id, void *data, char *errmsg, int l_errmsg);
 
 #endif

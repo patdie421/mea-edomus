@@ -25,7 +25,7 @@
 #include "xPLServer.h"
 #include "mea_string_utils.h"
 #include "processManager.h"
-#include "automatorServer.h"
+#include "automator.h"
 #include "interfacesServer.h"
 
 #include "mea_sockets_utils.h"
@@ -154,6 +154,45 @@ xPL_MessagePtr mea_createReceivedMessage(xPL_MessageType messageType)
 
   // And we are done
   return theMessage;
+}
+
+
+xPL_MessagePtr xPLCpyMsg(xPL_MessagePtr msg)
+{
+   xPL_MessagePtr newMsg;
+
+   newMsg = mea_createReceivedMessage(xPL_getMessageType(msg));
+
+   xPL_setSourceVendor(newMsg, xPL_getSourceVendor(msg));
+   xPL_setSourceDeviceID(newMsg, xPL_getSourceDeviceID(msg));
+   xPL_setSourceInstanceID(newMsg, xPL_getSourceInstanceID(msg));
+
+   if (!xPL_isBroadcastMessage(msg))
+   {
+      xPL_setTargetVendor(newMsg, xPL_getTargetVendor(msg));
+      xPL_setTargetDeviceID(newMsg, xPL_getTargetDeviceID(msg));
+      xPL_setTargetInstanceID(newMsg, xPL_getTargetInstanceID(msg));
+   }
+   else
+      newMsg->isBroadcastMessage = msg->isBroadcastMessage;
+
+   xPL_setSchemaClass(newMsg, xPL_getSchemaClass(msg));
+   xPL_setSchemaType(newMsg, xPL_getSchemaType(msg));
+
+   xPL_NameValueListPtr body = xPL_getMessageBody(msg);
+   int n = xPL_getNamedValueCount(body);
+   for (int16_t i = 0; i < n; i++)
+   {
+      xPL_NameValuePairPtr keyValuePtr = xPL_getNamedValuePairAt(body, i);
+      if (keyValuePtr->itemValue != NULL)
+          xPL_addMessageNamedValue(newMsg, keyValuePtr->itemValue, keyValuePtr->itemValue);
+   }
+
+   newMsg->isGroupMessage = msg->isGroupMessage;
+   newMsg->hopCount=msg->hopCount;
+   newMsg->receivedMessage=msg->receivedMessage;
+
+   return newMsg;
 }
 
 
@@ -422,9 +461,15 @@ void _cmndXPLMessageHandler(xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
 
    // on filtre un peu avant de transmettre pour traitement
 
-   automator_match_inputs_rules(_inputs_rules, theMessage);
-   automator_play_output_rules(_outputs_rules);
-   automator_reset_inputs_change_flags();
+   xPL_MessagePtr msg=xPLCpyMsg(theMessage);
+   if(msg)
+   {
+      automator_match_inputs_rules(_inputs_rules, theMessage);
+      automator_play_output_rules(_outputs_rules);
+      automator_reset_inputs_change_flags();
+
+      xPL_releaseMessage(msg); 
+   }
 
    if(fromMe==0) // c'est de moi, pas la peine de traiter
       return;

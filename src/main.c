@@ -25,30 +25,32 @@
 
 #include "globals.h"
 #include "macros.h"
-#include "mea_queue.h"
-#include "mea_string_utils.h"
-#include "mea_verbose.h"
 #include "consts.h"
+
 #include "tokens.h"
 #include "tokens_da.h"
+
+#include "mea_verbose.h"
+#include "mea_queue.h"
+#include "mea_string_utils.h"
+#include "mea_sockets_utils.h"
 #include "parameters_utils.h"
 
 #include "init.h"
 
-#include "interfacesServer.h"
-#include "interface_type_001.h"
-#include "interface_type_002.h"
+#include "processManager.h"
 
 #include "dbServer.h"
 #include "xPLServer.h"
 #include "pythonPluginServer.h"
 #include "guiServer.h"
 #include "logServer.h"
-//#include "automator/automatorServer2.h"
-#include "mea_sockets_utils.h"
-
-#include "processManager.h"
+#include "automatorServer.h"
 #include "nodejsServer.h"
+#include "interfacesServer.h"
+#include "interface_type_001.h"
+#include "interface_type_002.h"
+
 #include "notify.h"
 
 int xplServer_monitoring_id=-1;
@@ -122,6 +124,7 @@ void usage(char *cmd)
       "  --guipath, -G       (défaut : basepath/lib/mea-gui)",
       "  --logpath, -L       (défaut : basepath/var/log ou /var/log si basepath=/usr)",
       "  --pluginspath, -A   (défaut : basepath/lib/mea-plugins)",
+      "  --rulesfile, -r     (défaut : basepath/lib/rules/automator.rules)",
       "  --bufferdb, -B      (défaut : basepath/var/db/queries.db ou",
       "                                /var/db/mea-queries.db si basepath=/usr)",
       "  --dbserver, -D      (défaut : 127.0.0.1)",
@@ -202,6 +205,7 @@ void init_param_names(char *param_names[])
    param_names[NODEJSDATA_PORT]      = "NODEJSDATAPORT";
    param_names[PARAMSDBVERSION]      = "PARAMSDBVERSION";
    param_names[INTERFACE]            = "INTERFACE";
+   param_names[RULES_FILE]           = "RULESFILE";
 }
 
 
@@ -310,12 +314,11 @@ void clean_all_and_exit()
       nodejsServer_monitoring_id=-1;
    }
    
-   if(automator_pid>0)
+   if(automatorServer_monitoring_id!=-1)
    {
-      int status;
-
-      kill(automator_pid, SIGTERM);
-      wait(&status);
+      process_stop(automatorServer_monitoring_id, NULL, 0);
+      process_unregister(automatorServer_monitoring_id);
+      automatorServer_monitoring_id=-1;
    }
    
    process_unregister(main_monitoring_id);
@@ -402,6 +405,7 @@ int main(int argc, const char * argv[])
       {"deviceid",          required_argument, 0,  DEVICE_ID            }, // 'E'
       {"instanceid",        required_argument, 0,  INSTANCE_ID          }, // 'S'
       {"verboselevel",      required_argument, 0,  VERBOSELEVEL         }, // 'v'
+      {"rulesfile",         required_argument, 0,  RULES_FILE           }, // 'r'
       {"nodejspath",        required_argument, 0,  NODEJS_PATH          }, // 'j'
       {"nodejssocketioport",required_argument, 0,  NODEJSIOSOCKET_PORT  }, // 'J'
       {"nodejsdataport",    required_argument, 0,  NODEJSDATA_PORT      }, // 'k'
@@ -600,6 +604,10 @@ int main(int argc, const char * argv[])
 
          case 'I':
             c=INTERFACE;
+            break;
+
+         case 'r':
+            c=RULES_FILE;
             break;
       }
 
@@ -925,6 +933,22 @@ int main(int argc, const char * argv[])
       clean_all_and_exit();
    }
 
+   //
+   // automatorServer
+   //
+   struct automatorServer_start_stop_params_s automatorServer_start_stop_params;
+   automatorServer_start_stop_params.params_list=params_list;
+   automatorServer_start_stop_params.sqlite3_param_db=sqlite3_param_db;
+   automatorServer_monitoring_id=process_register(automator_server_name_str);
+   process_set_start_stop(automatorServer_monitoring_id, start_automatorServer, stop_automatorServer, (void *)(&automatorServer_start_stop_params), 1);
+   process_set_watchdog_recovery(automatorServer_monitoring_id, restart_automatorServer, (void *)(&automatorServer_start_stop_params));
+//   process_add_indicator(automatorServer_monitoring_id, automator_server_xplin_str, 0);
+//   process_add_indicator(automatorServer_monitoring_id, automator_server_xplout_str, 0);
+   if(process_start(automatorServer_monitoring_id, NULL, 0)<0)
+   {
+      VERBOSE(1) mea_log_printf("%s (%s) : can't start automator server\n",ERROR_STR,__func__);
+      clean_all_and_exit();
+   }
 
    //
    // interfacesServer

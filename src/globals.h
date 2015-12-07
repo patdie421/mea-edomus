@@ -43,9 +43,10 @@
 #define NODEJSDATA_PORT       23
 #define PARAMSDBVERSION       24
 #define INTERFACE             25
-#define MAX_LIST_SIZE         26
+#define RULES_FILE            26
+#define MAX_LIST_SIZE         27
 
-#define CURRENT_PARAMS_DB_VERSION 6
+#define CURRENT_PARAMS_DB_VERSION 7
 sqlite3 *get_sqlite3_param_db();
 
 // voir ou mettre

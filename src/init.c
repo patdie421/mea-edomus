@@ -27,8 +27,6 @@
 #include "init.h"
 
 #include "globals.h"
-//#include "debug.h"
-//#include "error.h"
 #include "mea_verbose.h"
 #include "mea_string_utils.h"
 #include "sqlite3db_utils.h"
@@ -275,8 +273,8 @@ int16_t checkInstallationPaths(char *base_path, int16_t try_to_create_flag)
   * \return    0 si l'installation est ok, -1 = erreur bloquante, -2 = au moins un répertoire n'existe pas
   */
 {
-    const char *default_paths_list[]={NULL,"bin","etc","lib","lib/mea-plugins","var","var/db","var/log","var/sessions","lib/mea-gui",NULL};
-    const char *usr_paths_list[]={"/etc","/usr/lib/mea-plugins","/var/db","/var/log","/tmp","/usr/lib/mea-gui",NULL};
+    const char *default_paths_list[]={NULL,"bin","etc","lib","lib/mea-plugins","var","var/db","var/log","var/sessions","lib/mea-gui","lib/mea-rules", NULL};
+    const char *usr_paths_list[]={"/etc","/usr/lib/mea-plugins","/var/db","/var/log","/tmp","/usr/lib/mea-gui","/usr/lib/mea-rules", NULL};
     
     char **paths_list;
     
@@ -932,6 +930,7 @@ int16_t autoInit(char **params_list, char **keys)
    _construct_path(params_list,   PHPSESSIONS_PATH,  p_str,                 sessions_str);
    _construct_path(params_list,   GUI_PATH,          params_list[MEA_PATH], "lib/mea-gui");
    _construct_path(params_list,   PLUGINS_PATH,      params_list[MEA_PATH], "lib/mea-plugins");
+   _construct_path(params_list,   RULES_FILE,        params_list[MEA_PATH], "lib/mea-rules/automator.rules");
    _construct_path(params_list,   LOG_PATH,          p_str,                 "var/log");
    _construct_path(params_list,   SQLITE3_DB_BUFF_PATH, p_str, "var/db/queries.db");
 
@@ -1043,6 +1042,7 @@ int16_t interactiveInit(char **params_list, char **keys)
    
    _read_path(params_list,   GUI_PATH,         params_list[MEA_PATH], "lib/mea-gui",     "PATH to gui directory");
    _read_path(params_list,   PLUGINS_PATH,     params_list[MEA_PATH], "lib/mea-plugins", "PATH to plugins directory");
+   _read_path(params_list,   RULES_FILE,       params_list[MEA_PATH], "lib/mea-rules/automator.rules", "automator rules file");
    _read_path(params_list,   PHPCGI_PATH,      params_list[MEA_PATH], "bin",             "PATH to 'php-cgi' directory");
    _read_path(params_list,   PHPINI_PATH,      p_str,                 "etc",             "PATH to 'php.ini' directory");
    _read_path(params_list,   PHPSESSIONS_PATH, p_str,                 sessions_str,      "PATH to php sessions directory");
@@ -1219,6 +1219,45 @@ exit_updateMeaEdomus:
    if(sqlite3_param_db)
         sqlite3_close(sqlite3_param_db);
    return retcode;
+}
+
+
+// une fonction pour chaque changement de version.
+int16_t upgrade_params_db_from_6_to_7(sqlite3 *sqlite3_param_db, struct upgrade_params_s *upgrade_params)
+{
+ int ret;
+ char *err = NULL;
+ char sql[256];
+ int16_t n;
+ 
+   VERBOSE(5) mea_log_printf ("%s (%s) : passage de la version 6 à la version 7\n",INFO_STR,__func__);
+  
+   n=snprintf(sql, sizeof(sql), "REPLACE INTO 'application_parameters' (id, key, value, complement) VALUES ('%d', 'RULESFILE', '%s/lib/mea-rules/automator.rules', '')", RULES_FILE, upgrade_params->params_list[MEA_PATH]);
+   if(n<0 || n==sizeof(sql))
+   {
+      VERBOSE(9) {
+         mea_log_printf ("%s (%s) : snprintf - ", DEBUG_STR,__func__);
+         perror("");
+      }
+      return -1;
+   }
+   ret = sqlite3_exec(sqlite3_param_db, sql, NULL, NULL, &err);
+   if( ret != SQLITE_OK )
+   {
+      VERBOSE(9) mea_log_printf ("%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__, sqlite3_errmsg(sqlite3_param_db));
+      sqlite3_free(err);
+      return -1;
+   }
+ 
+   ret = sqlite3_exec(sqlite3_param_db, "UPDATE 'application_parameters' set value = '7' WHERE key = 'PARAMSDBVERSION'", NULL, NULL, &err);
+   if( ret != SQLITE_OK )
+   {
+      VERBOSE(9) mea_log_printf ("%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
+      sqlite3_free(err);
+      return -1;
+   }
+   
+   return 0;
 }
 
 
@@ -1539,8 +1578,8 @@ upgrade_params_db_from_x_to_y_f upgrade_params_db_from_x_to_y[]= {
    upgrade_params_db_from_3_to_4,
    upgrade_params_db_from_4_to_5,
    upgrade_params_db_from_5_to_6,
+   upgrade_params_db_from_6_to_7,
    NULL };
-// #define NB_UPGRADE_FN 3
 
 
 int16_t upgrade_params_db(sqlite3 *sqlite3_param_db, uint16_t fromVersion, uint16_t toVersion, struct upgrade_params_s *upgrade_params)
