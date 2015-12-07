@@ -238,6 +238,7 @@ char *inputs_rules="[ \
 # A4 do: xPLSend with: (schema='control.basic', device='tata', current=$eval(!{E1})) when: 'C1' change
 # A5 do: timerstart with: (name='timer1', value=10, unit='s', autorestart=&false) when: 'E1' rise (à faire)
 */
+
 cJSON *_inputs_rules;
 cJSON *_outputs_rules;
 
