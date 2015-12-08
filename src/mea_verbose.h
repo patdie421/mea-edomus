@@ -5,6 +5,10 @@
 #include <stdarg.h>
 #include <inttypes.h>
 
+#ifndef DEBUGFLAGON
+#define DEBUGFLAGON 0
+#endif
+
 #define ERROR_STR        _error_str
 #define INFO_STR         _info_str
 #define DEBUG_STR        _debug_str
@@ -13,6 +17,8 @@
 #define MALLOC_ERROR_STR _malloc_error_str
 
 #define DEBUG_SECTION if(debug_msg)
+#define DEBUG_SECTION2(x) if((x))
+
 #define VERBOSE(v) if(v <= verbose_level)
 #define MEA_STDERR stderr
 

@@ -10,9 +10,19 @@
 
 #include <pthread.h>
 
+#include "mea_error.h"
 #include "xPL.h"
 
-extern char* automator_server_name_str;
+extern char *automator_server_name_str;
+extern char *automator_input_exec_time_str;
+extern char *automator_output_exec_time_str;
+extern char *automator_xplin_str;
+extern char *automator_xplout_str;
+
+extern long automator_xplin_indicator;
+extern long automator_xplout_indicator;
+
+extern int _automatorServer_monitoring_id;
 
 struct automatorServer_start_stop_params_s
 {

@@ -76,7 +76,6 @@ extern xPL_MessagePtr createSendableMessage(xPL_MessageType messageType, char *v
 export xPL_MessagePtr createReceivedMessage(xPL_MessageType messageType);
 */
 
-//void _cmndXPLMessageHandler(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xPL_ObjectPtr userValue);
 void _cmndXPLMessageHandler(xPL_MessagePtr theMessage, xPL_ObjectPtr userValue);
 
 
@@ -281,6 +280,8 @@ uint16_t mea_sendXPLMessage(xPL_MessagePtr xPLMsg)
       sscanf(xPL_getTargetInstanceID(xPLMsg), "%d", &id);
 
       // duplication du message xPL
+      newXPLMsg = xPLCpyMsg(xPLMsg);
+/*
       newXPLMsg = xPL_createBroadcastMessage(xPLService, xPL_getMessageType(xPLMsg));
 
       xPL_setSchema(newXPLMsg, xPL_getSchemaClass(xPLMsg), xPL_getSchemaType(xPLMsg));
@@ -293,7 +294,7 @@ uint16_t mea_sendXPLMessage(xPL_MessagePtr xPLMsg)
          xPL_NameValuePairPtr keyValuePtr = xPL_getNamedValuePairAt(body, i);
          xPL_setMessageNamedValue(newXPLMsg, keyValuePtr->itemName, keyValuePtr->itemValue);
       }
-
+*/
       // ajout de la copie du message dans la file
       pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(xplRespQueue_sync_lock) );
       pthread_mutex_lock(&xplRespQueue_sync_lock);
@@ -459,21 +460,16 @@ void _cmndXPLMessageHandler(xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
 //      DEBUG_SECTION mea_log_printf("%s (%s) : watchdog xpl\n", DEBUG_STR, __func__);
    }
 
-   // on filtre un peu avant de transmettre pour traitement
-
+   // on envoie tous les messages à l'automate (à lui de filtrer ...)
    xPL_MessagePtr msg=xPLCpyMsg(theMessage);
    if(msg)
-   {
       automatorServer_add_msg(msg);
-   }
 
-//   if(fromMe==0) // c'est de moi, pas la peine de traiter
-//      return;
+   // pour les autres on filtre un peu avant de transmettre pour traitement
 
+   // on ne traite que les cmnd au niveau des interfaces
    if(xPL_getMessageType(theMessage)!=xPL_MESSAGE_COMMAND)
-   {
       return;
-   }
 
    process_update_indicator(_xplServer_monitoring_id, xpl_server_xplin_str, ++xplin_indicator);
    dispatchXPLMessageToInterfaces(xPLService, theMessage);

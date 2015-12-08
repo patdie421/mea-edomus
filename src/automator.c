@@ -18,6 +18,7 @@
 #include <ctype.h>
 
 #include "automator.h"
+#include "automatorServer.h"
 
 #include "globals.h"
 #include "consts.h"
@@ -664,6 +665,20 @@ static int evalStr(char *str, struct value_s *v, xPL_NameValueListPtr ListNomsVa
         return -1;
      return 0;
    }
+   else if(p[0]=='<')
+   {
+      int l=strlen(p);
+      if(p[l-1]!='>')
+          return -1; 
+
+      if(strstr(p,"NOP")==&(p[1]) && l==5)
+      {
+         strncpy(v->val.strval, &(p[1]), 5);
+         v->val.strval[5]=0;
+      }
+      else
+         return -1;
+   }
    else
    {
       char *_value=xPL_getNamedValue(ListNomsValeursPtr, p);
@@ -767,6 +782,7 @@ static int automator_sendxpl(cJSON *parameters)
    }
 
    // emission du message
+   automator_xplout_indicator++;
    mea_sendXPLMessage(xplMessage);
 
 //   displayXPLMsg(xplMessage);
@@ -848,8 +864,30 @@ next_rule:
    }
    
    double now=mea_now();
-   long exectime=(long)((now-start)*1000);
-   fprintf(stderr,"\noutputs rules processing time=%ld us\n", exectime);
+
+   {
+      static mea_timer_t calc_timer;
+      static char istimerinit=0;
+      static int output_cntr=0;
+      static long exectime=0;
+
+      if(istimerinit==0)
+      {
+         mea_init_timer(&calc_timer, 5, 1);
+         mea_start_timer(&calc_timer);
+         istimerinit=1;
+      }
+
+      exectime=exectime+(long)((now-start)*1000);
+      output_cntr++;
+
+      if(mea_test_timer(&calc_timer)==0)
+      {
+         process_update_indicator(_automatorServer_monitoring_id, automator_output_exec_time_str, exectime/(output_cntr+1));
+         output_cntr=0;
+         exectime=0L;
+      }
+   }
 
    return 0;
 }
@@ -1043,9 +1081,34 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
       }
       e=e->next;
    }
+
    double now=mea_now();
-   long exectime=(long)((now-start)*1000);
-   fprintf(stderr,"\ninputs rules processing time=%ld us\n", exectime);
+
+   {
+      static mea_timer_t calc_timer;
+      static char istimerinit=0;
+      static int input_cntr=0;
+      static long exectime=0;
+
+      if(istimerinit==0)
+      {
+         mea_init_timer(&calc_timer, 5, 1);
+         mea_start_timer(&calc_timer);
+         istimerinit=1;
+      }
+
+      exectime=exectime+(long)((now-start)*1000);
+      input_cntr++;
+
+      if(mea_test_timer(&calc_timer)==0)
+      {
+         process_update_indicator(_automatorServer_monitoring_id, automator_input_exec_time_str, exectime/(input_cntr+1));
+         input_cntr=0;
+         exectime=0L;
+      }
+   }
+
+//   fprintf(stderr,"\ninputs rules processing time=%ld us\n", exectime);
 //   automator_print_inputs_table();
    
    return 0;

@@ -942,8 +942,10 @@ int main(int argc, const char * argv[])
    automatorServer_monitoring_id=process_register(automator_server_name_str);
    process_set_start_stop(automatorServer_monitoring_id, start_automatorServer, stop_automatorServer, (void *)(&automatorServer_start_stop_params), 1);
    process_set_watchdog_recovery(automatorServer_monitoring_id, restart_automatorServer, (void *)(&automatorServer_start_stop_params));
-//   process_add_indicator(automatorServer_monitoring_id, automator_server_xplin_str, 0);
-//   process_add_indicator(automatorServer_monitoring_id, automator_server_xplout_str, 0);
+   process_add_indicator(automatorServer_monitoring_id, automator_input_exec_time_str, 0);
+   process_add_indicator(automatorServer_monitoring_id, automator_output_exec_time_str, 0);
+   process_add_indicator(automatorServer_monitoring_id, automator_xplin_str, 0);
+   process_add_indicator(automatorServer_monitoring_id, automator_xplout_str, 0);
    if(process_start(automatorServer_monitoring_id, NULL, 0)<0)
    {
       VERBOSE(1) mea_log_printf("%s (%s) : can't start automator server\n",ERROR_STR,__func__);

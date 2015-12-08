@@ -30,6 +30,13 @@
 #include "automatorServer.h"
 
 char *automator_server_name_str="AUTOMATORSERVER";
+char *automator_input_exec_time_str="INEXECTIME";
+char *automator_output_exec_time_str="OUTEXECTIME";
+char *automator_xplin_str="XPLIN";
+char *automator_xplout_str="XPLOUT";
+
+long automator_xplin_indicator=0;
+long automator_xplout_indicator=0;
 
 char *rules_file=NULL;
 
@@ -113,6 +120,13 @@ void *_automator_thread(void *data)
    _automatorServer_thread_is_running=1;
    process_heartbeat(_automatorServer_monitoring_id);
 
+   automator_xplin_indicator=0;
+   automator_xplout_indicator=0;
+
+   mea_timer_t indicator_timer;
+   mea_init_timer(&indicator_timer, 5, 1);
+   mea_start_timer(&indicator_timer);
+
    automator_init(rules_file);
 
    int16_t timeout;
@@ -122,16 +136,31 @@ void *_automator_thread(void *data)
       process_heartbeat(_automatorServer_monitoring_id);
       pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&automator_msg_queue_lock);
       pthread_mutex_lock(&automator_msg_queue_lock);
+
+      if(mea_test_timer(&indicator_timer)==0)
+      {
+         process_update_indicator(_automatorServer_monitoring_id, automator_xplin_str, automator_xplin_indicator);
+         process_update_indicator(_automatorServer_monitoring_id, automator_xplout_str, automator_xplout_indicator);
+      }
    
       timeout=0; // pour faire en sorte de n'avoir qu'un seul pthread_mutex_unlock en face du pthread_mutex_lock ci-dessus
       if(automator_msg_queue && automator_msg_queue->nb_elem==0)
       {
          struct timeval tv;
-         struct timespec ts;
+         struct timespec ts, tstimeout;
          gettimeofday(&tv, NULL);
-         ts.tv_sec = tv.tv_sec + 30; // timeout de 10 secondes
-         ts.tv_nsec = 0;
-         
+/*
+         ts.tv_sec = tv.tv_sec + 10; // timeout de 10 secondes
+         ts.tv_nsec = tv.tv_nsec;
+*/
+         long ns_timeout=1000 * 1000 * 50; // 50 ms en nanoseconde
+         ts.tv_sec = tv.tv_sec; // timeout de 10 secondes
+         ts.tv_nsec = (tv.tv_usec * 1000) + ns_timeout;
+         if(ts.tv_nsec>1000000000L) // 1.000.000.000 ns = 1 seconde
+         {
+            ts.tv_sec++;
+            ts.tv_nsec=ts.tv_nsec - 1000000000L;
+         }
          ret=pthread_cond_timedwait(&automator_msg_queue_cond, &automator_msg_queue_lock, &ts);
          if(ret!=0)
          {
@@ -171,11 +200,11 @@ void *_automator_thread(void *data)
      
       if(!ret) // on a sortie un élément de la queue
       {
-         DEBUG_SECTION displayXPLMsg(e->msg);
-
+//         DEBUG_SECTION displayXPLMsg(e->msg);
          automator_match_inputs_rules(_inputs_rules, e->msg);
          automator_play_output_rules(_outputs_rules);
          automator_reset_inputs_change_flags();
+         automator_xplin_indicator++;
 
          // faire ici ce qu'il y a à faire
          if(e)

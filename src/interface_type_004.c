@@ -1,5 +1,7 @@
 #include "interface_type_004.h"
 
+#define DEBUGFLAGON 1
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -240,7 +242,10 @@ int16_t interface_type_004_xPL_actuator(interface_type_004_t *i004, xPL_ServiceP
    
    pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(i004->lock) );
    pthread_mutex_lock(&(i004->lock));
-   
+
+   DEBUG_SECTION2(DEBUGFLAGON) {
+      mea_log_printf("%s  (%s) : processing %s (current_value_id = %d, type_id = %d)\n", DEBUG_STR, __func__, device, current_value_id, type_id);
+   }
    HASH_FIND(hh_actuatorname, i004->lightsListByActuatorName, device, strlen(device), e);
    if(e)
    {
@@ -251,10 +256,12 @@ int16_t interface_type_004_xPL_actuator(interface_type_004_t *i004, xPL_ServiceP
       {
          case HIGH_ID:
             ret=setLightStateByName(i004->currentHueLightsState, (char *)e->huename, 1, i004->server, i004->port, i004->user);
+            DEBUG_SECTION2(DEBUGFLAGON) mea_log_printf("%s  (%s) : setLightStateByName(%s, high) => ret = %d\n", DEBUG_STR, __func__, (char *)e->huename, ret);
             state=1;
             break;
          case LOW_ID:
             ret=setLightStateByName(i004->currentHueLightsState, (char *)e->huename, 0, i004->server, i004->port, i004->user);
+            DEBUG_SECTION2(DEBUGFLAGON) mea_log_printf("%s  (%s) : setLightStateByName(%s, low) => ret = %d\n", DEBUG_STR, __func__, (char *)e->huename, ret);
             state=0;
             break;
          default:
@@ -268,11 +275,13 @@ int16_t interface_type_004_xPL_actuator(interface_type_004_t *i004, xPL_ServiceP
                   if(color==0) // off => on envoie low
                   {
                      ret=setLightStateByName(i004->currentHueLightsState, (char *)e->huename, 0, i004->server, i004->port, i004->user);
+                     DEBUG_SECTION2(DEBUGFLAGON) mea_log_printf("%s  (%s) : setLightStateByName(%s, low) => ret = %d\n", DEBUG_STR, __func__, (char *)e->huename, ret);
                      state=0;
                   }
                   else // on envoie la couleur
                   {
                      ret=setLightColorByName(i004->currentHueLightsState, (char *)e->huename, color, i004->server, i004->port, i004->user);
+                     DEBUG_SECTION2(DEBUGFLAGON) mea_log_printf("%s  (%s) : setLightColorByName(%s, %d) => ret = %d\n", DEBUG_STR, __func__, (char *)e->huename, color, ret);
                      state=1;
                   }
                }
@@ -293,6 +302,8 @@ int16_t interface_type_004_xPL_actuator(interface_type_004_t *i004, xPL_ServiceP
    }
    else
    {
+      DEBUG_SECTION2(DEBUGFLAGON) mea_log_printf("%s  (%s) : device %s not found in lights list, try in groups list\n", DEBUG_STR, __func__, device);
+
       struct groupsListElem_s *g = NULL;
       HASH_FIND(hh_groupname, i004->groupsListByGroupName, device, strlen(device), g);
       if(g)
@@ -335,6 +346,7 @@ int16_t interface_type_004_xPL_actuator(interface_type_004_t *i004, xPL_ServiceP
       }
       else
       {
+         DEBUG_SECTION2(DEBUGFLAGON) mea_log_printf("%s  (%s) : device %s not found in groups list, try in scenes list\n", DEBUG_STR, __func__, device);
          struct scenesListElem_s *s = NULL;
          HASH_FIND(hh_scenename, i004->scenesListBySceneName, device, strlen(device), s);
          if(s)
@@ -354,7 +366,10 @@ int16_t interface_type_004_xPL_actuator(interface_type_004_t *i004, xPL_ServiceP
             }
          }
          else
+         {
+            DEBUG_SECTION2(DEBUGFLAGON) mea_log_printf("%s  (%s) : device %s not found !!!\n", DEBUG_STR, __func__, device);
             ret = -1;
+         }
       }
    }
    
@@ -2197,3 +2212,4 @@ start_interface_type_004_clean_exit:
 	}
  }
  */
+
