@@ -1,0 +1,292 @@
+{
+    "files": [
+        "filters.srules",
+        "inputs.crules"
+    ],
+    "inputs": [
+        {
+            "onmatch": "break",
+            "name": "D1",
+            "value": "<NOP>",
+            "file": 0,
+            "line": 2,
+            "conditions": [
+                {
+                    "value2": "'hbeat.app'",
+                    "value1": "schema",
+                    "op": "=="
+                }
+            ]
+        },
+        {
+            "conditions": [
+                {
+                    "value2": "'CONSO'",
+                    "value1": "device",
+                    "op": "=="
+                },
+                {
+                    "value2": "'power'",
+                    "value1": "type",
+                    "op": "=="
+                }
+            ],
+            "file": 1,
+            "line": 3,
+            "name": "CC1",
+            "value": "current"
+        },
+        {
+            "conditions": [
+                {
+                    "value2": "'CONSO'",
+                    "value1": "device",
+                    "op": "=="
+                },
+                {
+                    "value2": "'power'",
+                    "value1": "type",
+                    "op": "=="
+                },
+                {
+                    "value2": "#600.0",
+                    "value1": "current",
+                    "op": "<="
+                }
+            ],
+            "file": 1,
+            "line": 4,
+            "name": "CC1B",
+            "value": "&false"
+        },
+        {
+            "conditions": [
+                {
+                    "value2": "'CONSO'",
+                    "value1": "device",
+                    "op": "=="
+                },
+                {
+                    "value2": "'power'",
+                    "value1": "type",
+                    "op": "=="
+                },
+                {
+                    "value2": "#600.0",
+                    "value1": "current",
+                    "op": ">"
+                }
+            ],
+            "file": 1,
+            "line": 5,
+            "name": "CC1B",
+            "value": "&true"
+        },
+        {
+            "conditions": [
+                {
+                    "value2": "'CONSO'",
+                    "value1": "device",
+                    "op": "=="
+                },
+                {
+                    "value2": "'energy'",
+                    "value1": "type",
+                    "op": "=="
+                }
+            ],
+            "file": 1,
+            "line": 6,
+            "name": "IC1",
+            "value": "current"
+        },
+        {
+            "conditions": [
+                {
+                    "value2": "'PROD'",
+                    "value1": "device",
+                    "op": "=="
+                },
+                {
+                    "value2": "'power'",
+                    "value1": "type",
+                    "op": "=="
+                }
+            ],
+            "file": 1,
+            "line": 8,
+            "name": "CP1",
+            "value": "current"
+        },
+        {
+            "conditions": [
+                {
+                    "value2": "'PROD'",
+                    "value1": "device",
+                    "op": "=="
+                },
+                {
+                    "value2": "'energy'",
+                    "value1": "type",
+                    "op": "=="
+                }
+            ],
+            "file": 1,
+            "line": 9,
+            "name": "IP1",
+            "value": "current"
+        },
+        {
+            "conditions": [
+                {
+                    "value2": "'xpile01'",
+                    "value1": "device",
+                    "op": "=="
+                }
+            ],
+            "file": 1,
+            "line": 11,
+            "name": "PILE1",
+            "value": "current"
+        },
+        {
+            "conditions": [
+                {
+                    "value2": "'xpile02'",
+                    "value1": "device",
+                    "op": "=="
+                }
+            ],
+            "file": 1,
+            "line": 12,
+            "name": "PILE2",
+            "value": "current"
+        },
+        {
+            "conditions": [
+                {
+                    "value2": "'xtemp01'",
+                    "value1": "device",
+                    "op": "=="
+                }
+            ],
+            "file": 1,
+            "line": 14,
+            "name": "TEMP01",
+            "value": "current"
+        },
+        {
+            "conditions": [
+                {
+                    "value2": "'xtemp02'",
+                    "value1": "device",
+                    "op": "=="
+                }
+            ],
+            "file": 1,
+            "line": 15,
+            "name": "TEMP02",
+            "value": "current"
+        },
+        {
+            "conditions": [
+                {
+                    "value2": "'temp01'",
+                    "value1": "device",
+                    "op": "=="
+                }
+            ],
+            "file": 1,
+            "line": 16,
+            "name": "TEMP03",
+            "value": "current"
+        },
+        {
+            "conditions": [
+                {
+                    "value2": "'temp02'",
+                    "value1": "device",
+                    "op": "=="
+                }
+            ],
+            "file": 1,
+            "line": 17,
+            "name": "TEMP04",
+            "value": "current"
+        },
+        {
+            "conditions": [
+                {
+                    "value2": "'xhumi01'",
+                    "value1": "device",
+                    "op": "=="
+                }
+            ],
+            "file": 1,
+            "line": 19,
+            "name": "HUMI01",
+            "value": "current"
+        },
+        {
+            "conditions": [
+                {
+                    "value2": "'xhumi02'",
+                    "value1": "device",
+                    "op": "=="
+                }
+            ],
+            "file": 1,
+            "line": 20,
+            "name": "HUMI02",
+            "value": "current"
+        }
+    ],
+    "outputs": [
+        {
+            "name": "O1",
+            "parameters": [
+                {
+                    "device": "'TEST2A'"
+                },
+                {
+                    "schema": "'control.basic'"
+                },
+                {
+                    "current": "'high'"
+                },
+                {
+                    "type": "'output'"
+                }
+            ],
+            "file": 1,
+            "action": "xPLSend",
+            "line": 22,
+            "condition": {
+                "'CC1B'": "rise"
+            }
+        },
+        {
+            "name": "O1",
+            "parameters": [
+                {
+                    "device": "'TEST2A'"
+                },
+                {
+                    "schema": "'control.basic'"
+                },
+                {
+                    "current": "'low'"
+                },
+                {
+                    "type": "'output'"
+                }
+            ],
+            "file": 1,
+            "action": "xPLSend",
+            "line": 23,
+            "condition": {
+                "'CC1B'": "fall"
+            }
+        }
+    ]
+}

@@ -88,7 +88,7 @@ def rulesToJSON(file, verboseFlag, debugFlag, numFile):
                   conditionsList=_conditions[1:-1].split(",")
                   for i in conditionsList:
                      i=i.strip()
-                     c=re.split('(==|!=|<|>|<=|>=)',i)
+                     c=re.split('(==|!=|<=|>=|<|>)',i)
                      rule['conditions'].append({ 'value1' : c[0].strip(), 'op' : c[1].strip(), 'value2' : c[2].strip() })
                else:
                   print "line "+str(numLine)+": conditions error"
@@ -202,7 +202,7 @@ def main():
          print "unexpected error: ", sys.exc_info()[0]
          exit(1)
    else:
-      print data
+      print _rules 
 
 
 if __name__ == "__main__":

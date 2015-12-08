@@ -1,0 +1,23 @@
+** compteurs 
+
+CC1 is: current   if: (device == 'CONSO', type == 'power')
+CC1B is: &false   if: (device == 'CONSO', type == 'power', current <= #600.0)
+CC1B is: &true    if: (device == 'CONSO', type == 'power', current > #600.0)
+IC1 is: current   if: (device == 'CONSO', type == 'energy')
+
+CP1 is: current   if: (device == 'PROD',  type == 'power')
+IP1 is: current   if: (device == 'PROD',  type == 'energy')
+
+PILE1 is: current if: (device == 'xpile01')
+PILE2 is: current if: (device == 'xpile02')
+
+TEMP01 is: current if: (device == 'xtemp01')
+TEMP02 is: current if: (device == 'xtemp02')
+TEMP03 is: current if: (device == 'temp01')
+TEMP04 is: current if: (device == 'temp02')
+
+HUMI01 is: current if: (device == 'xhumi01')
+HUMI02 is: current if: (device == 'xhumi02')
+
+O1 do: xPLSend with: ( device = 'TEST2A', schema = 'control.basic', current='high', type='output' ) when: 'CC1B' rise
+O1 do: xPLSend with: ( device = 'TEST2A', schema = 'control.basic', current='low', type='output' ) when: 'CC1B' fall
