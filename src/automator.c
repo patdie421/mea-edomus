@@ -4,6 +4,9 @@
 //  Created by Patrice DIETSCH on 05/12/15.
 //
 //
+
+#define DEBUGFLAGON 0
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -35,6 +38,7 @@
 #include "uthash.h"
 
 #define DEBUG
+#define USEALLOCA
 
 // RULES :
 // xpl-trig: source = mea-edomus.home, destination = *, schema = sensor.basic, body = [device = conso, type = power, current = 274.591704]
@@ -276,13 +280,13 @@ static int evalStr(char *str, struct value_s *v, xPL_NameValueListPtr ListNomsVa
 static int getBoolean(char *s, char *b)
 {
    *b=-1;
-   if(mea_strcmplower(s,"true")==0 ||
+   if(mea_strcmplower(s, "true")==0 ||
       mea_strcmplower(s, "high")==0)
    {
       *b=1;
       return 0;
    }
-   else if(mea_strcmplower(s,"false")==0 ||
+   else if(mea_strcmplower(s, "false")==0 ||
            mea_strcmplower(s, "low")==0)
    {
       *b=0;
@@ -532,7 +536,12 @@ static int callFunction(char *str, struct value_s *v, xPL_NameValueListPtr ListN
    char *_f, *f;
    int retour=-1;
 
+#ifndef USEALLOCA
    _f=(char *)malloc(strlen(str)+1);
+#else
+   _f=(char *)alloca(strlen(str)+1);
+#endif
+
    if(_f==NULL)
       return -1;
    strcpy(_f, str);
@@ -585,9 +594,11 @@ static int callFunction(char *str, struct value_s *v, xPL_NameValueListPtr ListN
          break;
    }
 
-callFunction_clean_exit:
-   if(f)
-     free(f);
+//callFunction_clean_exit:
+#ifndef USEALLOCA
+   if(_f)
+     free(_f);
+#endif
    return retour;
 }
 
@@ -819,7 +830,7 @@ int automator_play_output_rules(cJSON *rules)
       }
       if(v.type!=1)
       {
-//         fprintf(stderr,"%s : evaluation result not a string\n", condition->child->string);
+         DEBUG_SECTION2(DEBUGFLAGON) fprintf(stderr,"%s : evaluation result not a string\n", condition->child->string);
          goto next_rule;
       }
       
@@ -827,7 +838,7 @@ int automator_play_output_rules(cJSON *rules)
       HASH_FIND_STR(inputs_table, v.val.strval, i);
       if(i==NULL)
       {
-//         fprintf(stderr,"Input rule (%s) no data found\n", v.val.strval);
+         DEBUG_SECTION2(DEBUGFLAGON) fprintf(stderr,"Input rule (%s) no data found\n", v.val.strval);
          goto next_rule;
       }
      
@@ -849,7 +860,7 @@ int automator_play_output_rules(cJSON *rules)
       }
       else
       {
-//         fprintf(stderr,"condition error\n");
+         DEBUG_SECTION2(DEBUGFLAGON) fprintf(stderr,"condition error\n");
          goto next_rule;
       }
 
@@ -887,6 +898,10 @@ next_rule:
          output_cntr=0;
          exectime=0L;
       }
+
+      DEBUG_SECTION2(DEBUGFLAGON) {
+         fprintf(stderr,"\noutputs rules processing time=%ld us\n", exectime);
+      } 
    }
 
    return 0;
@@ -954,20 +969,20 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
          continue;
       }
 
-//      fprintf(stderr,"\nRULE : %s\n", name->valuestring);
+      DEBUG_SECTION2(DEBUGFLAGON) fprintf(stderr,"\nRULE : %s\n", name->valuestring);
       int ret=evalStr(value->valuestring, &res, ListNomsValeursPtr);
       if(ret<0)
       {
-//         fprintf(stderr,"   [%s] not found\n", value->valuestring);
+         DEBUG_SECTION2(DEBUGFLAGON) fprintf(stderr,"   [%s] not found\n", value->valuestring);
          match=0;
          goto next_rule;
       }
-//      fprintf(stderr,"   RES = "); valuePrint(&res); fprintf(stderr," (%s)\n",  value->valuestring);
+      DEBUG_SECTION2(DEBUGFLAGON) fprintf(stderr,"   RES = "); valuePrint(&res); fprintf(stderr," (%s)\n",  value->valuestring);
       // évaluation des conditions
       cJSON *conditions=cJSON_GetObjectItem(e,"conditions");
       if(conditions!=NULL)
       {
-//         fprintf(stderr,"   CONDITIONS : \n");
+         DEBUG_SECTION2(DEBUGFLAGON) fprintf(stderr,"   CONDITIONS : \n");
          cJSON *c=conditions->child;
          while(c)
          {
@@ -1013,17 +1028,19 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
       }
       else
       {
-//         fprintf(stderr,"   NO CONDITION\n");
+         DEBUG_SECTION2(DEBUGFLAGON) fprintf(stderr,"   NO CONDITION\n");
       }
 
    next_rule:
       if(match==1)
       {
-//         fprintf(stderr,"   MATCH !\n");
+         DEBUG_SECTION2(DEBUGFLAGON) fprintf(stderr,"   MATCH !\n");
          if(strcmp(name->valuestring, "<NOP>")!=0)
             automator_add_to_inputs_table(name->valuestring, &res);
-//         else
-//            fprintf(stderr, "   Result discarded\n");
+         else
+         {
+            DEBUG_SECTION2(DEBUGFLAGON) fprintf(stderr, "   Result discarded\n");
+         }
 
          if(onmatch) // post action
          {
@@ -1077,7 +1094,7 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
       }
       else
       {
-//         fprintf(stderr,"   NOT MATCH !\n");
+         DEBUG_SECTION2(DEBUGFLAGON) fprintf(stderr,"   NOT MATCH !\n");
       }
       e=e->next;
    }
@@ -1106,11 +1123,13 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
          input_cntr=0;
          exectime=0L;
       }
+
+      DEBUG_SECTION2(DEBUGFLAGON) {
+         fprintf(stderr,"\ninputs rules processing time=%ld us\n", exectime);
+         automator_print_inputs_table();
+      } 
    }
 
-//   fprintf(stderr,"\ninputs rules processing time=%ld us\n", exectime);
-//   automator_print_inputs_table();
-   
    return 0;
 }
 
@@ -1224,8 +1243,12 @@ cJSON *automator_load_rules_from_file(char *file)
    struct stat buf;
    fstat(d, &buf);
    int size = buf.st_size;
-   
+
+#ifndef USEALLOCA   
    char *rules = (char *)malloc(size);
+#else
+   char *rules = (char *)alloca(size);
+#endif
    if(rules !=NULL)
    {
       int nbread = fread(rules, 1, size, fd);
@@ -1233,7 +1256,9 @@ cJSON *automator_load_rules_from_file(char *file)
       if (nbread != size)
       {
          perror("");
+#ifndef USEALLOCA
          free(rules);
+#endif
          fclose(fd);
 
          return NULL;
