@@ -4,7 +4,7 @@
 //  Created by Patrice Dietsch on 07/12/15.
 //
 //
-#define DEBUGFLAGON 1
+#define DEBUGFLAGON 0
 
 #include <stdio.h>
 #include <stdio.h>
@@ -134,6 +134,7 @@ void *_automator_thread(void *data)
    
    while(1)
    {
+      ret=0;
       process_heartbeat(_automatorServer_monitoring_id);
       pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&automator_msg_queue_lock);
       pthread_mutex_lock(&automator_msg_queue_lock);
@@ -148,7 +149,7 @@ void *_automator_thread(void *data)
       if(automator_msg_queue && automator_msg_queue->nb_elem==0)
       {
          struct timeval tv;
-         struct timespec ts, tstimeout;
+         struct timespec ts;
          gettimeofday(&tv, NULL);
 /*
          ts.tv_sec = tv.tv_sec + 10; // timeout de 10 secondes
@@ -175,6 +176,7 @@ void *_automator_thread(void *data)
                // autres erreurs à traiter
                DEBUG_SECTION2(DEBUGFLAGON) mea_log_printf("%s (%s) : pthread_cond_timedwait error - ", DEBUG_STR, __func__);
                perror("");
+               pthread_exit(NULL);
             }
          }
       }
@@ -225,6 +227,8 @@ void *_automator_thread(void *data)
       {
          // pb d'accés aux données de la file
          VERBOSE(9) mea_log_printf("%s (%s) : mea_queue_out_elem - can't access queue element\n", ERROR_STR, __func__);
+//         DEBUG_SECTION2(1) fprintf(stderr,"ret = %d, timeout = %d\n", ret, timeout);
+//         exit(1); // DEBUG
       }
       
       pthread_testcancel();
@@ -348,7 +352,7 @@ int start_automatorServer(int my_id, void *data, char *errmsg, int l_errmsg)
 
    char err_str[80], notify_str[256];
 
-   fprintf(stderr,"%s\n",automatorServer_start_stop_params->params_list[RULES_FILE]);
+//   fprintf(stderr,"%s\n",automatorServer_start_stop_params->params_list[RULES_FILE]);
    if(automatorServer_start_stop_params->params_list[RULES_FILE])
    {
       setAutomatorRulesFile(automatorServer_start_stop_params->params_list[RULES_FILE]);

@@ -977,7 +977,7 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
          match=0;
          goto next_rule;
       }
-      DEBUG_SECTION2(DEBUGFLAGON) fprintf(stderr,"   RES = "); valuePrint(&res); fprintf(stderr," (%s)\n",  value->valuestring);
+      DEBUG_SECTION2(DEBUGFLAGON) { fprintf(stderr,"   RES = "); valuePrint(&res); fprintf(stderr," (%s)\n",  value->valuestring); }
       // évaluation des conditions
       cJSON *conditions=cJSON_GetObjectItem(e,"conditions");
       if(conditions!=NULL)

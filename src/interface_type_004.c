@@ -1,6 +1,6 @@
 #include "interface_type_004.h"
 
-#define DEBUGFLAGON 1
+#define DEBUGFLAGON 0
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -729,6 +729,8 @@ int load_interface_type_004(interface_type_004_t *i004, sqlite3 *db)
    
    i004->loaded=0;
    
+   fprintf(stderr,"LOAD INTERFACE TYPE 004\n");
+   
    // on vide d'abord les listes s'il y a déjà des données
    _interface_type_004_clean_configs_lists(i004);
 
@@ -980,6 +982,7 @@ int load_interface_type_004(interface_type_004_t *i004, sqlite3 *db)
          goto load_interface_type_004_clean_exit;
       }
    }
+   
    i004->loaded=1;
    return 0;
    
@@ -1088,6 +1091,7 @@ interface_type_004_t *malloc_and_init_interface_type_004(sqlite3 *sqlite3_param_
    i004->port=0;
    i004->xPL_callback=NULL;
    i004->thread=NULL;
+   i004->loaded=0;
    
    i004->monitoring_id=process_register((char *)name);
    i004_start_stop_params->sqlite3_param_db = sqlite3_param_db;
