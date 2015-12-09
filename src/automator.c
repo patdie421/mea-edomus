@@ -385,29 +385,29 @@ static int valueToStr(struct value_s *v, char *str, int l_str, enum conversion_e
 }
 
 
-char *cmpOperators[] = {"==","!=",">","<",">=","<=",NULL};
-enum operator_e { O_EQ=0, O_NE, O_GR, O_LO, O_GE, O_LE };
+char *comparators[] = {"==","!=",">","<",">=","<=",NULL};
+enum comparator_e { O_EQ=0, O_NE, O_GR, O_LO, O_GE, O_LE };
 
-static int getOperator(char *str)
+static int getComparator(char *str)
 {
-   int operatorNum=-1;
-   for(int i=0;cmpOperators[i];i++)
+   int comparatorNum=-1;
+   for(int i=0;comparators[i];i++)
    {
-      if(strcmp(cmpOperators[i], str)==0)
+      if(strcmp(comparators[i], str)==0)
       {
-         operatorNum=i;
+         comparatorNum=i;
          break;
       }
    }
-   return operatorNum;
+   return comparatorNum;
 }
 
  
-static int valueCmp(struct value_s *v1, int operator, struct value_s *v2)
+static int valueCmp(struct value_s *v1, int comparator, struct value_s *v2)
 {
    // cas type différent : seule la différence peut retourner 1
    if(v1->type != v2->type) {
-      if(operator == O_NE) {
+      if(comparator == O_NE) {
          return 1;
       }
       else {
@@ -431,7 +431,7 @@ static int valueCmp(struct value_s *v1, int operator, struct value_s *v2)
    else // boolean
       cmp=v1->val.booleanval - v2->val.booleanval;
 
-   switch(operator)
+   switch(comparator)
    {
       case O_EQ:
          if(cmp==0) return 1; 
@@ -598,6 +598,338 @@ static int callFunction(char *str, struct value_s *v, xPL_NameValueListPtr ListN
      free(_f);
 #endif
    return retour;
+}
+
+
+static int getSpace(char *str, char **newptr)
+{
+   char *p = str;
+   while(*p && isspace(*p)) p++;
+   *newptr=p;
+   
+   return 0;
+}
+
+
+static int getOperator(char *str, char **newptr)
+{
+   char *p = str;
+   *newptr = p;
+
+   switch(*p)
+   {
+      case '+':
+      case '-':
+      case '*':
+      case '/':
+         *newptr=p+1;
+         return(*p);
+   }
+   return -1;
+}
+
+
+static int isfunction(char *str, int l)
+{
+   fprintf(stderr,"%s l=%d\n", str, l);
+   return 0;
+}
+
+
+enum eval_token_e { NUMERIC_T = 1, FUNCTION_T };
+static enum eval_token_e getToken(char *str, char **newptr, struct value_s *v)
+{
+   char *p = str;
+   *newptr=p;
+ 
+   switch(*p)
+   {
+      case '#':
+         {
+            char *n = NULL;
+            ++p;
+            double d=strtod(p, &n);
+            if(p!=n)
+            {
+               v->type=0;
+               v->val.floatval=d;
+               *newptr=n;
+               return NUMERIC_T;
+            }
+            else
+               return -1;
+         }
+         break;
+      case '{':
+         {
+            ++p;
+            while(*p && *p!='}')
+               ++p;
+            if(*p=='}')
+            {
+               char name[41];
+               strncpy(name, str+1, (int)(p-str)-1);
+               name[(int)(p-str-1)]=0; 
+
+               // récupérer ici la valeur
+
+               v->type=0;
+               v->val.floatval=-9999.0;
+               p++;
+               *newptr=p;
+               return NUMERIC_T;
+            }
+            else
+               return -1;
+         }
+         break;
+
+      default:
+         {
+            ++p;
+
+            if(!isalpha(*p))
+               return -1;
+            ++p;
+            while(*p && isalpha(*p))
+               ++p;
+            if(isfunction(str, (int)(p-str))==0)
+            {
+               *newptr=p;
+               return FUNCTION_T;
+            }
+            else
+               return -1;
+         }
+         break;
+   }
+   return -1;
+}
+
+
+int operatorPriority(int op)
+{
+   switch(op)
+   {
+      case 'F':
+         return 3;
+      case '+':
+      case '-':
+         return 1;
+      case '*':
+      case '/':
+         return 2;
+      default:
+         return -1;
+   }
+
+   return -1;
+}
+
+
+int operatorPriorityCmp(int op1, int op2)
+{
+   return operatorPriority(op1) - operatorPriority(op2);
+}
+
+
+struct eval_stack_s {
+   char type;
+   union {
+      char op;
+      double value;
+   } val;
+};
+
+
+static int push_eval_stack(int type, void *value, struct eval_stack_s **stack, int *stack_size, int *stack_index)
+{
+   ++(*stack_index);
+   if(*stack_index >= *stack_size)
+   {
+      *stack_size = *stack_size + 10;
+      struct eval_stack_s *tmp;
+      tmp = *stack;
+      *stack = (struct eval_stack_s *)realloc(*stack, *stack_size * sizeof(struct eval_stack_s));
+      if(*stack == NULL)
+      {
+         *stack = tmp;
+         return -1;
+      }
+   }
+
+   struct eval_stack_s *s=*stack;
+
+   s[*stack_index].type=type;
+   switch(type)
+   {
+      case 1:
+         s[*stack_index].val.value=*((double *)value);
+         break;
+      default:
+         s[*stack_index].val.op=*((char *)value);
+         break;
+   }
+
+   return 0;
+}
+
+
+static int _calcStr(char *str, char **newptr, int *lvl, struct eval_stack_s *stack, int *stack_size, int *stack_index, int *err)
+{
+   int operators[10];
+   int operators_index=-1;
+
+   if(!*str)
+   {
+      *err=1;
+      return -1;
+   }
+
+   if(*lvl>5)
+   {
+      *err=2;
+      return -1;
+   }
+
+   struct value_s v;
+   char *p=str;
+   char *s;
+
+   do
+   {
+      s=p;
+      getSpace(s, &p);
+      int ret=0;
+      
+      s=p;
+      if(*s=='(')
+      {
+         s++;
+         *lvl=*lvl+1;
+         if(_calcStr(s, &p, lvl, stack, stack_size, stack_index, err)<0)
+            return -1;
+         *lvl=*lvl-1;
+         
+         s=p;
+         getSpace(s, &p);
+         
+         if(*p==')')
+            p++;
+         else
+         {
+            *newptr=p;
+            *err=3;
+            return -1;
+         }
+      }
+      else
+      {
+         int ret=getToken(s, &p, &v);
+         if(ret==NUMERIC_T)
+         {
+            push_eval_stack(1, (void *)&(v.val.floatval), &stack, stack_size, stack_index);
+         }
+         else if(ret==FUNCTION_T)
+         {
+            s=p;
+            getSpace(s, &p);
+            
+            s=p;
+            if(*s!='(')
+            {
+               *err=6;
+               return -1;
+            }
+            else
+            {
+               s++;
+               if(_calcStr(s, &p, lvl, stack, stack_size, stack_index, err)<0)
+                  return -1;
+               s=p;
+               getSpace(s,&p);
+               
+               s=p;
+               if(*s!=')')
+               {
+                  *err=7;
+                  return -1;
+               }
+               p++;
+               s=p;
+               fprintf(stderr,">%s\n",s);
+               int op='F';
+               push_eval_stack(2, (void *)&(op), &stack, stack_size, stack_index);
+            }
+         }
+         else
+         {
+            *err=4;
+            return -1;
+         }
+      }
+      
+      s=p;
+      getSpace(s, &p);
+      
+      s=p;
+      ret=getOperator(s, &p);
+      if(ret!=-1)
+      {
+         if(operators_index==-1)
+            operators[++operators_index]=ret;
+         else
+         {
+            if(operatorPriorityCmp(ret, operators[operators_index])<=0)
+            {
+               push_eval_stack(2, (void *)&(operators[operators_index]), &stack, stack_size, stack_index);
+               operators[operators_index]=ret;
+            }
+         }
+         
+         s=p;
+      }
+      
+      if(*s == 0 || *s == ')')
+         break;
+
+      *err=5;
+      return -1;
+   }
+   while(1);
+   
+   *newptr=p;
+
+   for(;operators_index>=0;--operators_index)
+      push_eval_stack(2, (void *)&(operators[operators_index]), &stack, stack_size, stack_index);
+
+   return 0;
+}
+
+
+int calc(char *str, char **p)
+{
+   int lvl=0;
+   int err=0;
+   struct eval_stack_s *stack;
+   int stack_index=-1;
+   int stack_size = 80;
+
+   stack = (struct eval_stack_s *)malloc(stack_size * (sizeof(struct eval_stack_s)));
+   if(stack==NULL)
+      return -1;
+
+   int ret=_calcStr(str, p, &lvl, stack, &stack_size, &stack_index, &err);
+
+   for(;stack_index>=0;--stack_index)
+      if(stack[stack_index].type==1)
+         fprintf(stderr,"%d value=%f\n", stack_index, stack[stack_index].val.value);
+      else
+         fprintf(stderr,"%d op=%c\n", stack_index, stack[stack_index].val.op);
+
+   fprintf(stderr,"err=%d\n", err);
+
+   return ret;
 }
 
 
@@ -794,7 +1126,7 @@ static int automator_sendxpl(cJSON *parameters)
    automator_xplout_indicator++;
    mea_sendXPLMessage(xplMessage);
 
-//   displayXPLMsg(xplMessage);
+   DEBUG_SECTION2(DEBUGFLAG) displayXPLMsg(xplMessage);
 
    xPL_releaseMessage(xplMessage);
  
@@ -995,7 +1327,7 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
             }
 
             // récuperation de l'opération
-            operator=getOperator(op->valuestring);
+            operator=getComparator(op->valuestring);
             if(operator<0)
             {
                match=0;
@@ -1253,7 +1585,7 @@ cJSON *automator_load_rules_from_file(char *file)
       
       if (nbread != size)
       {
-         perror("");
+         perror("automator_load_rules_from_string:");
 #ifndef USEALLOCA
          free(rules);
 #endif

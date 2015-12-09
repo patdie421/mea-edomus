@@ -171,12 +171,22 @@ void *_automator_thread(void *data)
                timeout=1;
                ret=0;
             }
+            else if(ret==EINVAL)
+            {
+               DEBUG_SECTION2(DEBUGFLAG) {
+                  mea_log_printf("%s (%s) : pthread_cond_timedwait EINVAL error\n", DEBUG_STR, __func__);
+               }
+            }
             else
             {
                // autres erreurs à traiter
-               DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s (%s) : pthread_cond_timedwait error - ", DEBUG_STR, __func__);
-               perror("");
-               pthread_exit(NULL);
+               VERBOSE(2) {
+                  mea_log_printf("%s (%s) : pthread_cond_timedwait error (%d) - ", DEBUG_STR, __func__, ret);
+                  perror("");
+               }
+               
+               process_async_stop(_automatorServer_monitoring_id);
+               for(;;) sleep(1);
             }
          }
       }
@@ -227,8 +237,6 @@ void *_automator_thread(void *data)
       {
          // pb d'accés aux données de la file
          VERBOSE(9) mea_log_printf("%s (%s) : mea_queue_out_elem - can't access queue element\n", ERROR_STR, __func__);
-//         DEBUG_SECTION2(1) fprintf(stderr,"ret = %d, timeout = %d\n", ret, timeout);
-//         exit(1); // DEBUG
       }
       
       pthread_testcancel();
@@ -271,8 +279,10 @@ pthread_t *automatorServer()
    
    if(pthread_create (automator_thread, NULL, _automator_thread, NULL))
    {
-      VERBOSE(1) mea_log_printf("%s (%s) : pthread_create - can't start thread - ", FATAL_ERROR_STR, __func__);
-      perror("");
+      VERBOSE(1) {
+         mea_log_printf("%s (%s) : pthread_create - can't start thread - ", FATAL_ERROR_STR, __func__);
+         perror("");
+      }
       goto automatorServer_clean_exit;
 
    }

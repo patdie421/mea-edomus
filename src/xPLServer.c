@@ -183,7 +183,7 @@ xPL_MessagePtr xPLCpyMsg(xPL_MessagePtr msg)
    for (int16_t i = 0; i < n; i++)
    {
       xPL_NameValuePairPtr keyValuePtr = xPL_getNamedValuePairAt(body, i);
-      if (keyValuePtr->itemValue != NULL)
+      if (keyValuePtr->itemValue != NULL && keyValuePtr->itemName != NULL)
           xPL_addMessageNamedValue(newMsg, keyValuePtr->itemName, keyValuePtr->itemValue);
    }
 

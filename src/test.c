@@ -4,7 +4,7 @@
 //  Created by Patrice DIETSCH on 05/12/15.
 //
 //
-#define DEBUGFLAGON 0
+#define DEBUGFLAGON 1
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -310,6 +310,8 @@ int getSpace(char *str, char **newptr)
    char *p = str;
    while(*p && isspace(*p)) p++;
    *newptr=p;
+   
+   return 0;
 }
 
 
@@ -331,14 +333,29 @@ int getOperator(char *str, char **newptr)
 }
 
 
-int isfunction(char *str, int l)
+int getFunctionId(char *str, int l)
 {
-   fprintf(stderr,"%s l=%d\n", str, l);
+   char name[41];
+   int functionId = -1;
+   
+   if(l>(sizeof(name)-1))
+      l=sizeof(name)-1;
+   
+   strncpy(name, str, l);
+   name[l]=0;
+   
+   fprintf(stderr,"function: %s\n", name);
+   
+   functionId=150;
+   
+   return functionId;
+   
    return 0;
 }
 
 
 enum eval_token_e { STRING_T = 1, NUMERIC_T, FUNCTION_T };
+
 enum eval_token_e getToken(char *str, char **newptr, struct value_s *v)
 {
    char *p = str;
@@ -377,7 +394,7 @@ enum eval_token_e getToken(char *str, char **newptr, struct value_s *v)
 
                v->type=0;
                v->val.floatval=-9999.0;
-               *p++;
+               p++;
                *newptr=p;
                return NUMERIC_T;
             }
@@ -396,8 +413,12 @@ enum eval_token_e getToken(char *str, char **newptr, struct value_s *v)
             ++p;
             while(*p && isalpha(*p))
                ++p;
-            if(isfunction(str, (int)(p-str))==0)
+            int ret=getFunctionId(str, (int)(p-str));
+            if(ret>=0)
             {
+               v->type=0;
+               v->val.floatval=(double)ret;
+
                *newptr=p;
                return FUNCTION_T;
             }
@@ -410,12 +431,36 @@ enum eval_token_e getToken(char *str, char **newptr, struct value_s *v)
 }
 
 
-int operatorPriority(int op)
+int doOperation(double *d, double d1, int op, double d2)
 {
    switch(op)
    {
-      case 'F':
-         return 3;
+      case '+':
+         *d=d1+d2;
+         break;
+      case '-':
+         *d=d1-d2;
+         break;
+      case '/':
+         *d=d1/d2;
+         break;
+      default:
+      case '*':
+         *d=d1*d2;
+         break;
+         return -1;
+   }
+   return 0;
+}
+
+
+int operatorPriority(int op)
+{
+   if(op>127) // c'est un id fonction
+      return 3;
+
+   switch(op)
+   {
       case '+':
       case '-':
          return 1;
@@ -445,7 +490,7 @@ struct eval_stack_s {
 };
 
 
-static int push_eval_stack(int type, void *value, struct eval_stack_s **stack, int *stack_size, int *stack_index)
+static int pushToStack(int type, void *value, struct eval_stack_s **stack, int *stack_size, int *stack_index)
 {
    ++(*stack_index);
    if(*stack_index >= *stack_size)
@@ -477,8 +522,8 @@ static int push_eval_stack(int type, void *value, struct eval_stack_s **stack, i
    return 0;
 }
 
-
-static int _eval_str(char *str, char **newptr, int *lvl, struct eval_stack_s *stack, int *stack_size, int *stack_index, int *err)
+#define DIRECTINTERP 1
+static int _calcStr(char *str, char **newptr, int *lvl, struct eval_stack_s *stack, int *stack_size, int *stack_index, int *err)
 {
    int operators[10];
    int operators_index=-1;
@@ -499,127 +544,146 @@ static int _eval_str(char *str, char **newptr, int *lvl, struct eval_stack_s *st
    char *p=str;
    char *s;
 
-   s=p;
-   getSpace(s, &p);
-   int ret=0;
-
-   s=p;
-   if(*s=='(')
+   do
    {
-      s++;
-      *lvl=*lvl+1;
-
-      if(_eval_str(s, &p, lvl, stack, stack_size, stack_index, err)<0)
-         return -1;
-
-      *lvl=*lvl-1;
+      int ret=0;
 
       s=p;
       getSpace(s, &p);
-
-      if(*p==')')
-         p++;
-      else
+      
+      s=p;
+      if(*s=='(')
       {
-         *newptr=p;
-         *err=3;
-         return -1;
-      }
-   }
-   else
-   {
-      int ret=getToken(s, &p, &v);
-      if(ret==NUMERIC_T)
-      {
-         push_eval_stack(1, (void *)&(v.val.floatval), &stack, stack_size, stack_index);
-      }
-      else if(ret==FUNCTION_T)
-      {
+         s++;
+         *lvl=*lvl+1;
+         if(_calcStr(s, &p, lvl, stack, stack_size, stack_index, err)<0)
+            return -1;
+         *lvl=*lvl-1;
+         
          s=p;
          getSpace(s, &p);
-
-         s=p;
-         if(*s!='(')
+         
+         if(*p==')')
+            p++;
+         else
          {
-            *err=6;
+            *newptr=p;
+            *err=3;
             return -1;
+         }
+      }
+      else
+      {
+         int ret=getToken(s, &p, &v);
+         if(ret==NUMERIC_T)
+         {
+            pushToStack(1, (void *)&(v.val.floatval), &stack, stack_size, stack_index);
+         }
+         else if(ret==FUNCTION_T)
+         {
+            s=p;
+            getSpace(s, &p);
+            
+            s=p;
+            if(*s!='(')
+            {
+               *err=6;
+               return -1;
+            }
+            else
+            {
+               s++;
+               *lvl=*lvl+1;
+               if(_calcStr(s, &p, lvl, stack, stack_size, stack_index, err)<0)
+                  return -1;
+               *lvl=*lvl-1;
+               s=p;
+               getSpace(s,&p);
+               
+               s=p;
+               if(*s!=')')
+               {
+                  *err=7;
+                  return -1;
+               }
+               p++;
+               s=p;
+
+               int op=(int)v.val.floatval+127;
+
+               pushToStack(2, (void *)&(op), &stack, stack_size, stack_index);
+            }
          }
          else
          {
-            s++;
-            if(_eval_str(s, &p, lvl, stack, stack_size, stack_index, err)<0)
-               return -1;
-            s=p;
-            getSpace(s,&p);
-
-            s=p;
-            if(*s!=')')
-            {
-               *err=7;
-               return -1;
-            }
-            p++;
-            s=p;
-            fprintf(stderr,">%s\n",s);
-            int op='F';
-            push_eval_stack(2, (void *)&(op), &stack, stack_size, stack_index);
+            *err=4;
+            return -1;
          }
       }
+      
+      s=p;
+      getSpace(s, &p);
+      
+      s=p;
+      ret=getOperator(s, &p);
+      if(ret!=-1)
+      {
+         if(operators_index==-1)
+            operators[++operators_index]=ret;
+         else
+         {
+            if(operatorPriorityCmp(ret, operators[operators_index])<=0)
+            {
+#if DIRECTINTERP==0
+               pushToStack(2, (void *)&(operators[operators_index]), &stack, stack_size, stack_index);
+               operators[operators_index]=ret;
+#else
+               double d, d1, d2;
+               d2=stack[(*stack_index)--].val.value;
+               d1=stack[(*stack_index)--].val.value;
+               doOperation(&d, d1, operators[operators_index], d2);
+               pushToStack(1, (void *)&d, &stack, stack_size, stack_index);
+               operators[operators_index]=ret;
+#endif
+            }
+            else
+            {
+               operators[++operators_index]=ret;
+            }
+         }
+      }
+      else if((*s == 0) || (*s == ')' && *lvl > 0))
+         break;
       else
       {
+         fprintf(stderr,"%s\n",s);
          *err=4;
          return -1;
       }
    }
-
-   s=p;
-   getSpace(s, &p);
-
-   s=p;
-   ret=getOperator(s, &p);
-   if(ret!=-1)
-   {
-      if(operators_index==-1)
-         operators[++operators_index]=ret;
-      else
-      {
-         if(operatorPriorityCmp(ret, operators[operators_index])<=0)
-         {
-            push_eval_stack(2, (void *)&(operators[operators_index]), &stack, stack_size, stack_index);
-            operators[operators_index]=ret;
-         }
-      }
-
-      s=p;
-      getSpace(s, &p);
-
-      s=p;
-      if(_eval_str(s, &p, lvl, stack, stack_size, stack_index, err)<0)
-      {
-         return -1;
-      }
-   }
-   else
-   {
-      if(*s && *s!=')')
-      {
-         *err=5;
-         return -1;
-      }
-   }
-
+   while(1);
+   
    *newptr=p;
-
+#if DIRECTINTERP==0
    for(;operators_index>=0;--operators_index)
-      push_eval_stack(2, (void *)&(operators[operators_index]), &stack, stack_size, stack_index);
+      pushToStack(2, (void *)&(operators[operators_index]), &stack, stack_size, stack_index);
+#else
+   for(;operators_index>=0;--operators_index)
+   {
+      double d, d1, d2;
+      d2=stack[(*stack_index)--].val.value;
+      d1=stack[(*stack_index)--].val.value;
+      doOperation(&d, d1, operators[operators_index], d2);
+      pushToStack(1, (void *)&d, &stack, stack_size, stack_index);
+   }
+#endif
    return 0;
 }
 
 
-int eval_str(char *str, char **p)
+int calc(char *str, char **p, double *r, int *err)
 {
    int lvl=0;
-   int err=0;
    struct eval_stack_s *stack;
    int stack_index=-1;
    int stack_size = 80;
@@ -628,16 +692,29 @@ int eval_str(char *str, char **p)
    if(stack==NULL)
       return -1;
 
-   int ret=_eval_str(str, p, &lvl, stack, &stack_size, &stack_index, &err);
+   int ret=_calcStr(str, p, &lvl, stack, &stack_size, &stack_index, err);
 
+#if DIRECTINTERP==0
+// faire l'interprétation ici
    for(;stack_index>=0;--stack_index)
+   {
       if(stack[stack_index].type==1)
          fprintf(stderr,"%d value=%f\n", stack_index, stack[stack_index].val.value);
       else
          fprintf(stderr,"%d op=%c\n", stack_index, stack[stack_index].val.op);
-
-   fprintf(stderr,"err=%d\n", err);
-
+   }
+#else
+   if(stack_index!=0 && stack[0].type!=1 && *p != 0)
+   {
+      *r=0.0;
+      return -1;
+   }
+   else
+   {
+      *r=stack[0].val.value;
+      return 0;
+   }
+#endif
    return ret;
 }
 
@@ -645,12 +722,18 @@ int eval_str(char *str, char **p)
 int main(int argc, char *argv[])
 {
 //   char *expr = "int(#99) + #123.4 * (#567.8 + #10) * (#1 / (#2 + #3))";
-   char *expr = "{tata} - #123.4 * (#567.8 + #10) * (#1 / (#2 + #3))";
+//   char *expr = "sin(#2 + #1 + {tata} * #12) - #123.4 * (#567.8 + #10) * (#1 / (#2 + #3))";
+//   char *expr = "(#2 + #1 + {tata} * #12) - #123.4 * (#567.8 + #10) * (#1 / (#2 + #3))";
+   char *expr = "(#2 + #1 + (#-9999) * #12) - #123.4 * (#567.8 + #10) * (#1 / (#2 + #3))";
    char *p;
+   int err;
+   double d;
+   
+   fprintf(stderr,"%s = ", expr);
 
-   fprintf(stderr,"%s\n", expr);
+   int ret=calc(expr, &p, &d, &err);
+   
+   fprintf(stderr,"#%f\n", d);
 
-   int ret=eval_str(expr, &p);
-
-   fprintf(stderr,"fin [%s] %d\n", p, ret);
+//   fprintf(stderr,"fin [%s] %d\n", p, ret);
 }
