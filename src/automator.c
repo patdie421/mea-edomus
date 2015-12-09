@@ -5,7 +5,7 @@
 //
 //
 
-#define DEBUGFLAGON 0
+#define DEBUGFLAG 0
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -830,7 +830,7 @@ int automator_play_output_rules(cJSON *rules)
       }
       if(v.type!=1)
       {
-         DEBUG_SECTION2(DEBUGFLAGON) fprintf(stderr,"%s : evaluation result not a string\n", condition->child->string);
+         DEBUG_SECTION2(DEBUGFLAG) fprintf(stderr,"%s : evaluation result not a string\n", condition->child->string);
          goto next_rule;
       }
       
@@ -838,7 +838,7 @@ int automator_play_output_rules(cJSON *rules)
       HASH_FIND_STR(inputs_table, v.val.strval, i);
       if(i==NULL)
       {
-         DEBUG_SECTION2(DEBUGFLAGON) fprintf(stderr,"Input rule (%s) no data found\n", v.val.strval);
+         DEBUG_SECTION2(DEBUGFLAG) fprintf(stderr,"Input rule (%s) no data found\n", v.val.strval);
          goto next_rule;
       }
      
@@ -860,7 +860,7 @@ int automator_play_output_rules(cJSON *rules)
       }
       else
       {
-         DEBUG_SECTION2(DEBUGFLAGON) fprintf(stderr,"condition error\n");
+         DEBUG_SECTION2(DEBUGFLAG) fprintf(stderr,"condition error\n");
          goto next_rule;
       }
 
@@ -899,7 +899,7 @@ next_rule:
          exectime=0L;
       }
 
-      DEBUG_SECTION2(DEBUGFLAGON) {
+      DEBUG_SECTION2(DEBUGFLAG) {
          fprintf(stderr,"\noutputs rules processing time=%ld us\n", exectime);
       } 
    }
@@ -969,20 +969,20 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
          continue;
       }
 
-      DEBUG_SECTION2(DEBUGFLAGON) fprintf(stderr,"\nRULE : %s\n", name->valuestring);
+      DEBUG_SECTION2(DEBUGFLAG) fprintf(stderr,"\nRULE : %s\n", name->valuestring);
       int ret=evalStr(value->valuestring, &res, ListNomsValeursPtr);
       if(ret<0)
       {
-         DEBUG_SECTION2(DEBUGFLAGON) fprintf(stderr,"   [%s] not found\n", value->valuestring);
+         DEBUG_SECTION2(DEBUGFLAG) fprintf(stderr,"   [%s] not found\n", value->valuestring);
          match=0;
          goto next_rule;
       }
-      DEBUG_SECTION2(DEBUGFLAGON) { fprintf(stderr,"   RES = "); valuePrint(&res); fprintf(stderr," (%s)\n",  value->valuestring); }
+      DEBUG_SECTION2(DEBUGFLAG) { fprintf(stderr,"   RES = "); valuePrint(&res); fprintf(stderr," (%s)\n",  value->valuestring); }
       // évaluation des conditions
       cJSON *conditions=cJSON_GetObjectItem(e,"conditions");
       if(conditions!=NULL)
       {
-         DEBUG_SECTION2(DEBUGFLAGON) fprintf(stderr,"   CONDITIONS : \n");
+         DEBUG_SECTION2(DEBUGFLAG) fprintf(stderr,"   CONDITIONS : \n");
          cJSON *c=conditions->child;
          while(c)
          {
@@ -1028,18 +1028,18 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
       }
       else
       {
-         DEBUG_SECTION2(DEBUGFLAGON) fprintf(stderr,"   NO CONDITION\n");
+         DEBUG_SECTION2(DEBUGFLAG) fprintf(stderr,"   NO CONDITION\n");
       }
 
    next_rule:
       if(match==1)
       {
-         DEBUG_SECTION2(DEBUGFLAGON) fprintf(stderr,"   MATCH !\n");
+         DEBUG_SECTION2(DEBUGFLAG) fprintf(stderr,"   MATCH !\n");
          if(strcmp(name->valuestring, "<NOP>")!=0)
             automator_add_to_inputs_table(name->valuestring, &res);
          else
          {
-            DEBUG_SECTION2(DEBUGFLAGON) fprintf(stderr, "   Result discarded\n");
+            DEBUG_SECTION2(DEBUGFLAG) fprintf(stderr, "   Result discarded\n");
          }
 
          if(onmatch) // post action
@@ -1094,7 +1094,7 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
       }
       else
       {
-         DEBUG_SECTION2(DEBUGFLAGON) fprintf(stderr,"   NOT MATCH !\n");
+         DEBUG_SECTION2(DEBUGFLAG) fprintf(stderr,"   NOT MATCH !\n");
       }
       e=e->next;
    }
@@ -1124,7 +1124,7 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
          exectime=0L;
       }
 
-      DEBUG_SECTION2(DEBUGFLAGON) {
+      DEBUG_SECTION2(DEBUGFLAG) {
          fprintf(stderr,"\ninputs rules processing time=%ld us\n", exectime);
          automator_print_inputs_table();
       } 

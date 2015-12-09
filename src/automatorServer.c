@@ -4,7 +4,7 @@
 //  Created by Patrice Dietsch on 07/12/15.
 //
 //
-#define DEBUGFLAGON 0
+#define DEBUGFLAG 0
 
 #include <stdio.h>
 #include <stdio.h>
@@ -174,7 +174,7 @@ void *_automator_thread(void *data)
             else
             {
                // autres erreurs à traiter
-               DEBUG_SECTION2(DEBUGFLAGON) mea_log_printf("%s (%s) : pthread_cond_timedwait error - ", DEBUG_STR, __func__);
+               DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s (%s) : pthread_cond_timedwait error - ", DEBUG_STR, __func__);
                perror("");
                pthread_exit(NULL);
             }
@@ -203,7 +203,7 @@ void *_automator_thread(void *data)
      
       if(!ret) // on a sortie un élément de la queue
       {
-//         DEBUG_SECTION2(DEBUGFLAGON) displayXPLMsg(e->msg);
+//         DEBUG_SECTION2(DEBUGFLAG) displayXPLMsg(e->msg);
          automator_match_inputs_rules(_inputs_rules, e->msg);
          automator_play_output_rules(_outputs_rules);
          automator_reset_inputs_change_flags();
@@ -319,7 +319,7 @@ int stop_automatorServer(int my_id, void *data, char *errmsg, int l_errmsg)
          else
             break;
       }
-      DEBUG_SECTION2(DEBUGFLAGON) mea_log_printf("%s (%s) : %s, fin après %d itération(s)\n",DEBUG_STR, __func__, automator_server_name_str, 100-counter);
+      DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s (%s) : %s, fin après %d itération(s)\n",DEBUG_STR, __func__, automator_server_name_str, 100-counter);
 
       
       free(_automatorServer_thread_id);
