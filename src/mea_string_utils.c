@@ -1,5 +1,5 @@
 //
-//  string_utils.c
+//  mea_string_utils.c
 //
 //  Created by Patrice DIETSCH on 08/07/2013.
 //

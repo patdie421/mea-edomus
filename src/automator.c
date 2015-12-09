@@ -219,20 +219,18 @@ char *inputs_rules="[ \
 # C1 is: current   if: (source == 'mea-edomus.home', schema == 'sensor.basic', device == 'PROD',  type == 'power', {T2}>0 ) onmatch: moveforward 'S2'
 # B1 is: &false    if: (source == 'mea-edomus.home', schema == 'sensor.basic', device == 'TEMP',  type == 'temp',  current > 0)   onmatch: continue
 # S1 is: 'toto'    if: (source == 'mea-edomus.home', schema == 'sensor.basic', device == 'TEMP',  type == 'temp',  current <= #0) onmatch: continue
-# S2 is: &true     if: ($timer('timer1')==&false) onmatch: continue (à faire)
-# S2 is: &false    if: ($timer('timer1')==&true) onmatch: continue (à faire)
-# S2 is: $timer('timer2') (à faire)
-# S2 is: $eval(!$timer('timer2')) (à faire)
+# S2 is: &true     if: ($timer('timer1')==&false) onmatch: continue (à faire pour les timer)
+# S2 is: &false    if: ($timer('timer1')==&true) onmatch: continue (à faire pour les timer)
 
 # des exemples de règles "compliqués"
 # T1_last is: {T1} if: (source == mea-edomus.home, schema == sensor.basic, device == "BUTTON2", current == &high)
 # T1 is: $now() if: (source == mea-edomus.home, schema == sensor.basic, device == "BUTTON2", current == &high)
-# DIFF is: $eval({T2} - {T2_last}) if: (source == mea-edomus.home, schema == sensor.basic, device == "BUTTON2", current == &high)
+# DIFF is: $calc({T2} - {T2_last}) if: (source == mea-edomus.home, schema == sensor.basic, device == "BUTTON2", current == &high)
 # P1 is: &high if: (source == mea-edomus.home, schema == sensor.basic, device == "BUTTON2", current == &high, {DIFF} > #1000)
 # P1 is: &low  if: (source == mea-edomus.home, schema == sensor.basic, device == "BUTTON2", current == &high, {DIFF} <= #1000)
 # exemple de compteur
 # C1 is: #0 if: $exist('C1') == &false // initialisation du compteur
-# C1 is: $eval({C1}+#1) (à faire)
+# C1 is: $calc({C1}+#1) (à faire)
 #
 
 # Pour les actions :
