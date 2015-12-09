@@ -729,7 +729,7 @@ void *_thread_interface_type_005(void *thread_data)
    pthread_cleanup_push( (void *)set_interface_type_005_isnt_running, (void *)i005 );
    i005->thread_is_running=1;
 
-   // à récupérer dans un fichier de config ou dans les parametres de l'interface
+   // à récupérer dans un fichier de config (dans etc de l'appli)
    char *client_id="563e5ce3cce37c07407522f2";
    char *client_secret="lE1CUF1k3TxxSceiPpmIGY8QXJWIeXJv0tjbTRproMy4";
 
