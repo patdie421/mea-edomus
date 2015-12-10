@@ -6,7 +6,7 @@
 //
 #define DEBUGFLAGON 1
 
-#define EVAL_MODULE_TEST
+//#define EVAL_MODULE_TEST
 
 #include <stdio.h>
 #include <stdlib.h>
