@@ -81,9 +81,15 @@ static int getFunctionId(char *str, int l)
 }
 
 
+union eval_token_ret_u
+{
+   double f;
+   int i; 
+};
+
 enum eval_token_e { NUMERIC_T, VARIABLE_T, FUNCTION_T };
 
-enum eval_token_e getEvalToken(char *str, char **newptr, double *v)
+enum eval_token_e getEvalToken(char *str, char **newptr, union eval_token_ret_u *v)
 {
    char *p = str;
    *newptr=p;
@@ -97,7 +103,7 @@ enum eval_token_e getEvalToken(char *str, char **newptr, double *v)
             double d=strtod(p, &n);
             if(p!=n)
             {
-               *v=d;
+               v->f=d;
                *newptr=n;
                return NUMERIC_T;
             }
@@ -122,7 +128,7 @@ enum eval_token_e getEvalToken(char *str, char **newptr, double *v)
 
                   if(_getVarId(name, getVarUserData, &d)<0)
                      return -1;
-                  *v=d;
+                  v->f=d;
                }
                p++;
                *newptr=p;
@@ -146,7 +152,7 @@ enum eval_token_e getEvalToken(char *str, char **newptr, double *v)
             int ret=getFunctionId(str, (int)(p-str));
             if(ret>=0)
             {
-               *v=(double)ret;
+               v->i=ret;
 
                *newptr=p;
                return FUNCTION_T;
@@ -162,6 +168,7 @@ enum eval_token_e getEvalToken(char *str, char **newptr, double *v)
 
 static int doEvalFunction(double *d, int fn, double d1)
 {
+   fprintf(stderr,"ICI\n");
    switch(fn-128)
    {
       case INT_F: // int()
@@ -345,10 +352,11 @@ static int _evalCalc(char *str, char **newptr, int *lvl, struct eval_stack_s *st
       }
       else
       {
+         union eval_token_ret_u v;
          int ret=getEvalToken(s, &p, &v);
          if(ret==NUMERIC_T)
          {
-            pushToEvalStack(1, (void *)&v, &stack, stack_size, stack_index);
+            pushToEvalStack(1, (void *)&(v.f), &stack, stack_size, stack_index);
          }
          else if(ret==VARIABLE_T)
          {
@@ -358,7 +366,7 @@ static int _evalCalc(char *str, char **newptr, int *lvl, struct eval_stack_s *st
             pushToEvalStack(2, (void *)&f, &stack, stack_size, stack_index);
 #else
             double d=0.0;
-            if(_getVarVal((int)v, getVarUserData, &d) < 0)
+            if(_getVarVal(v.i, getVarUserData, &d) < 0)
             {
                *newptr=p;
                *err=10;
@@ -400,7 +408,7 @@ static int _evalCalc(char *str, char **newptr, int *lvl, struct eval_stack_s *st
                p++;
                s=p;
 
-               int op=(int)v;
+               int op=v.i;
 
                if(getEvalOperatorPriorityCmp(op, operators[operators_index])<=0)
                {
@@ -529,24 +537,14 @@ int evalCalc(struct eval_stack_s *stack, int stack_ptr, double *r)
 {
    struct eval_stack_s exec_stack[20];
    int exec_stack_index=-1;
+   double d, d1, d2;
+
    for(int i=0;i<=stack_ptr;i++)
    {
-//      fprintf(stderr,"exec_index = %d\n", exec_stack_index); 
-//      fprintf(stderr,"stack[%d] = ", i);
-/*
       if(stack[i].type==1)
-         fprintf(stderr,"%f\n", stack[i].val.value); 
-      else
-         fprintf(stderr,"%c\n", stack[i].val.op); 
-*/
-      if(stack[i].type==1)
-      {
-//         fprintf(stderr,"push1 %f\n",stack[i].val.value);
          exec_stack[++exec_stack_index].val.value = stack[i].val.value;
-      }
       else
       {
-         double d, d1, d2;
          int op = stack[i].val.op;
          if(op<128)
          {
@@ -554,7 +552,6 @@ int evalCalc(struct eval_stack_s *stack, int stack_ptr, double *r)
             d1=exec_stack[exec_stack_index--].val.value;
             if(doEvalOperation(&d, d1, op, d2)<0)
                return -1;
-//            fprintf(stderr,"ICI1 %f %f %c %f\n",d, d1, op, d2);
          }
          else
          {
@@ -563,25 +560,20 @@ int evalCalc(struct eval_stack_s *stack, int stack_ptr, double *r)
                d1=exec_stack[exec_stack_index--].val.value;
                if(_getVarVal((int)d1, getVarUserData, &d)<0)
                   return -1;
-//               fprintf(stderr,"ICI2 %f\n",d);
             }
             else
             {
                d1=exec_stack[exec_stack_index--].val.value;
                if(doEvalFunction(&d, op, d1)<0)
                   return -1;
-//               fprintf(stderr,"ICI3 %f\n",d);
             }
          }
-//         fprintf(stderr,"push2 %f\n",d);
          exec_stack[++exec_stack_index].val.value=d;
       }
    }
 
    if(exec_stack_index!=0)
    {
-//      for(;exec_stack_index+1;--exec_stack_index)
-//         fprintf(stderr,"%f\n", exec_stack[exec_stack_index].val.value);
       *r=0.0;
       return -1;
    }
@@ -629,13 +621,62 @@ int evalCalc(char *str, char **p, double *r, int *err)
 }
 #endif
 
+
+#if DIRECTINTERP==0
+int calcn(char *str, double *r)
+{
+   char *p;
+   int err;
+   double d;
+
+   int stack_ptr=0;
+
+   struct eval_stack_s *stack=getEvalStack(str, &p, &err, &stack_ptr);
+   if(stack == NULL)
+      return -1;
+
+   int ret=evalCalc(stack, stack_ptr, &d);
+
+   *r=d;
+
+   free(stack);
+
+   return ret;
+}
+#else
+int calcn(char *str, double *r)
+{
+   char *p;
+   int err;
+   double d;
+
+   int ret=evalCalc(str, &p, &d, &err);
+
+   *r=d;
+
+   return ret;
+}
+#endif
+
 #ifdef EVAL_MODULE_TEST
+double millis()
+{
+   struct timeval te;
+   gettimeofday(&te, NULL);
+
+   double milliseconds = (double)te.tv_sec*1000.0 + (double)te.tv_usec/1000.0;
+
+   return milliseconds;
+}
+
+
 int myGetVarId(char *str, void *userdata, double *d)
 {
    *d=1234.0;
 
    return 0;
 }
+
 
 int myGetVarVal(int id, void *userdata, double *d)
 {
@@ -644,12 +685,13 @@ int myGetVarVal(int id, void *userdata, double *d)
    return 0;
 }
 
+
 int main(int argc, char *argv[])
 {
 //   char *expr = "int(#99) + #123.4 * (#567.8 + #10) * (#1 / (#2 + #3))";
 //   char *expr = "sin(#2 + #1 + {tata} * #12) - #123.4 * (#567.8 + #10) * (#1 / (#2 + #3))";
    char *expr = "(#1 + #2 * #3)";
-   char *expr1 = "(#2 + #1 + {tata} * #12) - #123.4 * (#567.8 + #10) * (#1 / (#2 + #3))";
+   char *expr1 = "int(#2 + #1 + {tata} * #12) - #123.4 * (#567.8 + #10) * (#1 / (#2 + #3))";
 //   char *expr2 = "(#2 + #1 + (#-9999) * #12) - #123.4 * (#567.8 + #10) * (#1 / (#2 + #3))";
    char *expr2 = "int(#2 + #1 + (#-9999) * #12) - #123.4 * (#567.8 + #10) * (#1 / (#2 + #3))";
    char *expr3 = "int(#123.12)";
@@ -660,7 +702,8 @@ int main(int argc, char *argv[])
    double d;
    
    setGetVarCallBacks(&myGetVarId, &myGetVarVal, NULL);
-  
+
+/*  
 #if DIRECTINTERP==0
    int stack_ptr=0;
    struct eval_stack_s *stack=getEvalStack(expr2, &p, &err, &stack_ptr);
@@ -712,5 +755,20 @@ int main(int argc, char *argv[])
    else 
       fprintf(stderr," #%f\n", d);
 #endif
+*/
+   double t0=millis();
+//   int stack_ptr=0;
+//   struct eval_stack_s *stack=getEvalStack(expr1, &p, &err, &stack_ptr);
+//   if(stack == NULL)
+//      return -1;
+
+   for(int i=0;i<100000;i++)
+   {
+//      int ret=evalCalc(stack, stack_ptr, &d);
+      int ret=calcn(expr1, &d);
+      if(ret<0)
+        return -1;
+   }
+   fprintf(stderr, "%5.2f ms\n",millis()-t0);
 }
 #endif
