@@ -6,7 +6,7 @@
 //
 #define DEBUGFLAGON 1
 
-//#define EVAL_MODULE_TEST
+#define EVAL_MODULE_TEST
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -262,9 +262,9 @@ static int pushToEvalStack(int type, void *value, struct eval_stack_s **stack, i
       case 2:
          s[*stack_index].val.op=*((int *)value);
          break;
-      case 3:
-         s[*stack_index].val.id=*((int *)value);
-         break;
+//      case 3:
+//         s[*stack_index].val.id=*((int *)value);
+//         break;
       default:
          return -1;
    }
