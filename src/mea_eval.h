@@ -26,3 +26,4 @@ int evalCalc(struct eval_stack_s *stack, int stack_ptr, double *r);
 #else
 int evalCalc(char *str, char **p, double *r, int *err);
 #endif
+int calcn(char *str, double *r);

@@ -420,8 +420,8 @@ int mea_strncat(char *dest, int max_test, char *source)
  *            pas modifié), 0 sinon
  */
 {
-   int l_dest = strlen(dest);
-   int l_source = strlen(source);
+   int l_dest = (int)strlen(dest);
+   int l_source = (int)strlen(source);
    if((l_dest+l_source)>max_test)
       return -1;
    else
