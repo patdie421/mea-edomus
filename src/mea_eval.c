@@ -423,7 +423,7 @@ static int _evalCalc(char *str, char **newptr, int *lvl, struct eval_stack_s *st
                   {
 #if DIRECTINTERP==0
                      pushToEvalStack(2, (void *)&(operators[operators_index]), &stack, stack_size, stack_index);
-                     operators[++operators_index]=op;
+//                     operators[operators_index]=op;
 #else
                      if(execOperator(operators[operators_index], stack, stack_size, stack_index) < 0)
                      {
@@ -431,11 +431,12 @@ static int _evalCalc(char *str, char **newptr, int *lvl, struct eval_stack_s *st
                         *err=11;
                         return -1;
                      }
-                     operators[operators_index]=op;
+//                     operators[operators_index]=op;
 #endif
+                     operators[operators_index]=op;
                   }
                   else
-                     operators[operators_index]=op;
+                     operators[++operators_index]=op;
                }
             }
          }
@@ -462,7 +463,7 @@ static int _evalCalc(char *str, char **newptr, int *lvl, struct eval_stack_s *st
             {
 #if DIRECTINTERP==0
                pushToEvalStack(2, (void *)&(operators[operators_index]), &stack, stack_size, stack_index);
-               operators[operators_index]=op;
+//               operators[operators_index]=op;
 #else
                if(execOperator(operators[operators_index], stack, stack_size, stack_index) < 0)
                {
@@ -470,8 +471,9 @@ static int _evalCalc(char *str, char **newptr, int *lvl, struct eval_stack_s *st
                   *err=11;
                   return -1;
                }
-               operators[operators_index]=op;
+//               operators[operators_index]=op;
 #endif
+               operators[operators_index]=op;
             }
             else
                operators[++operators_index]=op;
@@ -731,7 +733,7 @@ int main(int argc, char *argv[])
       fprintf(stderr,"#%f\n", d);
 */
    double r;
-   calcn(expr1, &r);
+   calcn("int(#1 * (#2 + #3) * #4)", &r);
    fprintf(stderr,"%f\n",r);
 }
 #endif
