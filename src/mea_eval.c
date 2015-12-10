@@ -262,9 +262,9 @@ static int pushToEvalStack(int type, void *value, struct eval_stack_s **stack, i
       case 2:
          s[*stack_index].val.op=*((int *)value);
          break;
-      case 3:
-         s[*stack_index].val.id=*((int *)value);
-         break;
+//      case 3:
+//         s[*stack_index].val.id=*((int *)value);
+//         break;
       default:
          return -1;
    }
@@ -357,8 +357,8 @@ static int _evalCalc(char *str, char **newptr, int *lvl, struct eval_stack_s *st
       else
       {
          union eval_token_u v;
-//         int ret=getEvalToken(s, &p, &v);
          int ret=getEvalToken(s, &p, &v);
+
          if(ret==NUMERIC_T)
          {
             pushToEvalStack(1, (void *)&v, &stack, stack_size, stack_index);
@@ -371,7 +371,6 @@ static int _evalCalc(char *str, char **newptr, int *lvl, struct eval_stack_s *st
             pushToEvalStack(2, (void *)&f, &stack, stack_size, stack_index);
 #else
             double d=0.0;
-//            if(_getVarVal((int)v, getVarUserData, &d) < 0)
             if(_getVarVal(v.v, getVarUserData, &d) < 0)
             {
                *newptr=p;
@@ -401,9 +400,10 @@ static int _evalCalc(char *str, char **newptr, int *lvl, struct eval_stack_s *st
                if(_evalCalc(s, &p, lvl, stack, stack_size, stack_index, err)<0)
                   return -1;
                *lvl=*lvl-1;
+
                s=p;
                getSpace(s,&p);
-               
+
                s=p;
                if(*s!=')')
                {
@@ -412,29 +412,30 @@ static int _evalCalc(char *str, char **newptr, int *lvl, struct eval_stack_s *st
                   return -1;
                }
                p++;
+
                s=p;
-
-//               int op=(int)v;
                int op=v.f;
-
-               if(getEvalOperatorPriorityCmp(op, operators[operators_index])<=0)
-               {
-#if DIRECTINTERP==0
-                  pushToEvalStack(2, (void *)&(operators[operators_index]), &stack, stack_size, stack_index);
-                  operators[operators_index]=op;
-#else
-                  if(execOperator(operators[operators_index], stack, stack_size, stack_index) < 0)
-                  {
-                     *newptr=p;
-                     *err=11;
-                     return -1;
-                  }
-                  operators[operators_index]=op;
-#endif
-               }
+               if(operators_index==-1)
+                  operators[++operators_index]=op;
                else
                {
-                  operators[++operators_index]=op;
+                  if(getEvalOperatorPriorityCmp(op, operators[operators_index])<=0)
+                  {
+#if DIRECTINTERP==0
+                     pushToEvalStack(2, (void *)&(operators[operators_index]), &stack, stack_size, stack_index);
+                     operators[++operators_index]=op;
+#else
+                     if(execOperator(operators[operators_index], stack, stack_size, stack_index) < 0)
+                     {
+                        *newptr=p;
+                        *err=11;
+                        return -1;
+                     }
+                     operators[operators_index]=op;
+#endif
+                  }
+                  else
+                     operators[operators_index]=op;
                }
             }
          }
@@ -448,24 +449,20 @@ static int _evalCalc(char *str, char **newptr, int *lvl, struct eval_stack_s *st
       
       s=p;
       getSpace(s, &p);
-      
+
       s=p;
-//      ret=getOperator(s, &p);
       int op=getOperator(s, &p);
-//      if(ret!=-1)
       if(op!=-1)
       {
          if(operators_index==-1)
-//            operators[++operators_index]=ret;
             operators[++operators_index]=op;
          else
          {
-//            if(getEvalOperatorPriorityCmp(ret, operators[operators_index])<=0)
             if(getEvalOperatorPriorityCmp(op, operators[operators_index])<=0)
             {
 #if DIRECTINTERP==0
                pushToEvalStack(2, (void *)&(operators[operators_index]), &stack, stack_size, stack_index);
-               operators[operators_index]=ret;
+               operators[operators_index]=op;
 #else
                if(execOperator(operators[operators_index], stack, stack_size, stack_index) < 0)
                {
@@ -473,17 +470,17 @@ static int _evalCalc(char *str, char **newptr, int *lvl, struct eval_stack_s *st
                   *err=11;
                   return -1;
                }
-//               operators[operators_index]=ret;
                operators[operators_index]=op;
 #endif
             }
             else
-//               operators[++operators_index]=ret;
                operators[++operators_index]=op;
          }
       }
       else if((*s == 0) || (*s == ')' && *lvl > 0))
+      {
          break;
+      }
       else
       {
          *newptr=p;
@@ -691,24 +688,16 @@ int myGetVarVal(int id, void *userdata, double *d)
 
 int main(int argc, char *argv[])
 {
-//   char *expr = "int(#99) + #123.4 * (#567.8 + #10) * (#1 / (#2 + #3))";
-//   char *expr = "sin(#2 + #1 + {tata} * #12) - #123.4 * (#567.8 + #10) * (#1 / (#2 + #3))";
-//   char *expr = "(#1 + #2 * #3)";
-   char *expr1 = "int((#2 + #1 + {tata} * #12) - #123.4 * (#567.8 + #10) * (#1 / (#2 + #3)))";
-//   char *expr1 = "int(#2.2)";
-   
-//   char *expr2 = "(#2 + #1 + (#-9999) * #12) - #123.4 * (#567.8 + #10) * (#1 / (#2 + #3))";
-   char *expr2 = "int(#2 + #1 + (#-9999) * #12) - #123.4 * (#567.8 + #10) * (#1 / (#2 + #3))";
-   char *expr3 = "int(#123.12)";
-   char *expr4 ="{tata}+{toto}";
+   char *expr1 = "int(#2 + #1 + {tata} * #12) - #123.4 * (#567.8 + #10) * (#1 / (#2 + #3))";
 
    char *p;
    int err;
    double d;
    
    setGetVarCallBacks(&myGetVarId, &myGetVarVal, NULL);
-  
-#if DIRECTINTERP==0
+
+/*
+   fprintf(stderr,"getEvalStack\n");  
    int stack_ptr=0;
    struct eval_stack_s *stack=getEvalStack(expr1, &p, &err, &stack_ptr);
    if(stack == NULL)
@@ -717,6 +706,7 @@ int main(int argc, char *argv[])
       return -1;
    }
    
+   fprintf(stderr,"Affichage\n");  
    for(int i=0; i<=stack_ptr; i++)
    {
       if(stack[i].type==1)
@@ -739,46 +729,9 @@ int main(int argc, char *argv[])
    }
    else 
       fprintf(stderr,"#%f\n", d);
-#else
-   fprintf(stderr,"\n\nEXPR1\n"); 
-   int ret=evalCalc(expr1, &p, &d, &err);
-   if(ret<0)
-   {
-      fprintf(stderr,"> Evalution error (%d) at \"%s\"\n", err, p);
-   }
-   else 
-      fprintf(stderr," #%f\n", d);
-
-   fprintf(stderr,"\n\nEXPR2\n"); 
-   ret=evalCalc(expr2, &p, &d, &err);
-   if(ret<0)
-   {
-      fprintf(stderr,"> Evalution error (%d) at \"%s\"\n", err, p);
-   }
-   else 
-      fprintf(stderr," #%f\n", d);
-
-   fprintf(stderr,"\n\nEXPR3\n"); 
-   ret=evalCalc(expr3, &p, &d, &err);
-   if(ret<0)
-   {
-      fprintf(stderr,"> Evalution error (%d) at \"%s\"\n", err, p);
-   }
-   else 
-      fprintf(stderr," #%f\n", d);
-
-   fprintf(stderr,"\n\nEXPR4\n"); 
-   ret=evalCalc(expr4, &p, &d, &err);
-   if(ret<0)
-   {
-      fprintf(stderr,"> Evalution error (%d) at \"%s\"\n", err, p);
-   }
-   else 
-      fprintf(stderr," #%f\n", d);
-   
+*/
    double r;
-   calcn("#1+#2*#3", &r);
-   fprintf(stderr,"\n%f\n", r);
-#endif
+   calcn(expr1, &r);
+   fprintf(stderr,"%f\n",r);
 }
 #endif

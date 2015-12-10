@@ -14,7 +14,7 @@ struct eval_stack_s {
    union {
       int op;
       double value;
-      int id;
+//      int id;
    } val;
 };
 
