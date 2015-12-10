@@ -946,6 +946,7 @@ int main(int argc, const char * argv[])
    process_add_indicator(automatorServer_monitoring_id, automator_output_exec_time_str, 0);
    process_add_indicator(automatorServer_monitoring_id, automator_xplin_str, 0);
    process_add_indicator(automatorServer_monitoring_id, automator_xplout_str, 0);
+   process_add_indicator(automatorServer_monitoring_id, automator_err_str, 0);
    if(process_start(automatorServer_monitoring_id, NULL, 0)<0)
    {
       VERBOSE(1) mea_log_printf("%s (%s) : can't start automator server\n",ERROR_STR,__func__);
