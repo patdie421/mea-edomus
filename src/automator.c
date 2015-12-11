@@ -10,7 +10,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#define __USE_XOPEN
 #include <time.h>
+#undef __USE_XOPEN
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -83,7 +85,7 @@ char *outputs_rules="[ \
 char *inputs_rules="[ \
    { \
       \"name\": \"V1\", \
-      \"value\" : \"$now()\", \
+      \"value\" : \"$now[]\", \
       \"onmatch\": \"moveforward 'V2'\" \
    }, \
    { \
@@ -212,25 +214,25 @@ char *inputs_rules="[ \
 # V2 is: #10       if: (source == 'mea-edomus.home', schema == 'sensor.basic', device == 'BUTTON3', current > #3, current < #5) onmatch: continue
 # E1 is: current   if: (source == 'mea-edomus.home', schema == 'sensor.basic', device == 'BUTTON1', type == 'input') onmatch: break
 # E2 is: last      if: (source == 'mea-edomus.home', schema == 'sensor.basic', device == 'BUTTON2') onmatch: continue
-# T2 is: $now()    if: (source == 'mea-edomus.home', schema == 'sensor.basic', device == 'BUTTON2') onmatch: continue
+# T2 is: $now[]    if: (source == 'mea-edomus.home', schema == 'sensor.basic', device == 'BUTTON2') onmatch: continue
 # P1 is: current   if: (source == 'mea-edomus.home', schema == 'sensor.basic', device == 'CONSO', type == 'power') onmatch: continue
 # P2 is: current   if: (source == 'mea-edomus.home', schema == 'sensor.basic', device == 'CONSO', type == 'power', current != #0) onmatch: continue
 # P3 is: current   if: (source == 'mea-edomus.home', schema == 'sensor.basic', device == 'PROD',  type == 'power', current != {V1}) onmatch: continue
 # C1 is: current   if: (source == 'mea-edomus.home', schema == 'sensor.basic', device == 'PROD',  type == 'power', {T2}>0 ) onmatch: moveforward 'S2'
 # B1 is: &false    if: (source == 'mea-edomus.home', schema == 'sensor.basic', device == 'TEMP',  type == 'temp',  current > 0)   onmatch: continue
 # S1 is: 'toto'    if: (source == 'mea-edomus.home', schema == 'sensor.basic', device == 'TEMP',  type == 'temp',  current <= #0) onmatch: continue
-# S2 is: &true     if: ($timer('timer1')==&false) onmatch: continue (à faire pour les timer)
-# S2 is: &false    if: ($timer('timer1')==&true) onmatch: continue (à faire pour les timer)
+# S2 is: &true     if: ($timer['timer1']==&false) onmatch: continue (à faire pour les timer)
+# S2 is: &false    if: ($timer['timer1']==&true) onmatch: continue (à faire pour les timer)
 
 # des exemples de règles "compliqués"
 # T1_last is: {T1} if: (source == mea-edomus.home, schema == sensor.basic, device == "BUTTON2", current == &high)
-# T1 is: $now() if: (source == mea-edomus.home, schema == sensor.basic, device == "BUTTON2", current == &high)
-# DIFF is: $calc({T2} - {T2_last}) if: (source == mea-edomus.home, schema == sensor.basic, device == "BUTTON2", current == &high)
+# T1 is: $now[] if: (source == mea-edomus.home, schema == sensor.basic, device == "BUTTON2", current == &high)
+# DIFF is: $calcn[{T2} - {T2_last}] if: (source == mea-edomus.home, schema == sensor.basic, device == "BUTTON2", current == &high)
 # P1 is: &high if: (source == mea-edomus.home, schema == sensor.basic, device == "BUTTON2", current == &high, {DIFF} > #1000)
 # P1 is: &low  if: (source == mea-edomus.home, schema == sensor.basic, device == "BUTTON2", current == &high, {DIFF} <= #1000)
 # exemple de compteur
-# C1 is: #0 if: $exist('C1') == &false // initialisation du compteur
-# C1 is: $calc({C1}+#1) (à faire)
+# C1 is: #0 if: $exist['C1'] == &false // initialisation du compteur
+# C1 is: $calcn[{C1}+#1] (à faire)
 #
 
 # Pour les actions :
@@ -238,7 +240,7 @@ char *inputs_rules="[ \
 # A1 do: xPLSend with: (schema='control.basic', device='toto', current={E1}) when: 'C1' rise
 # A2 do: xPLSend with: (schema='control.basic', device='toto', current={E1}) when: 'C1' fall
 # A3 do: xPLSend with: (schema='control.basic', device='tata', current={E1}) when: 'C1' change
-# A4 do: xPLSend with: (schema='control.basic', device='tata', current=$eval(!{E1})) when: 'C1' change
+# A4 do: xPLSend with: (schema='control.basic', device='tata', current=$calcb[!{E1}]) when: 'C1' change
 # A5 do: timerstart with: (name='timer1', value=10, unit='s', autorestart=&false) when: 'E1' rise (à faire)
 */
 
@@ -471,8 +473,8 @@ static int valuePrint(struct value_s *v)
 }
 
 
-char *functionsList[]={"now", "exist", "rise", "fall", "stay", "change", NULL };
-enum function_e { F_NOW=0, F_EXIST, F_RISE, F_FALL, F_STAY, F_CHANGE };
+char *functionsList[]={"now", "exist", "rise", "fall", "stay", "change", "date", "time", NULL };
+enum function_e { F_NOW=0, F_EXIST, F_RISE, F_FALL, F_STAY, F_CHANGE, F_DATE, F_TIME };
 
 static int getFunctionNum(char *str, char *params, int l_params)
 {
@@ -482,7 +484,7 @@ static int getFunctionNum(char *str, char *params, int l_params)
       int lf=strlen(functionsList[i]);
       if(strstr(str,functionsList[i])==str)
       {
-         if(str[lf]=='(' && str[ls-1]==')')
+         if(str[lf]=='[' && str[ls-1]==']')
          {
             int lp = ls-lf-2;
             if(lp>l_params)
@@ -528,26 +530,38 @@ static int getInputEdge(char *expr, int direction,  struct value_s *v, xPL_NameV
    return -1;
 }
 
+#define MAX_STR_SIZE 1024
 
 static int callFunction(char *str, struct value_s *v, xPL_NameValueListPtr ListNomsValeursPtr)
 {
    char *_f, *f;
    int retour=-1;
 
+   int str_l = strlen(str)+1;
+
+   if(str_l > MAX_STR_SIZE)
+   {
+      fprintf(stderr,"Overflow !!!\n");
+      return -1;
+   }
+
 #ifndef USEALLOCA
-   _f=(char *)malloc(strlen(str)+1);
+   _f=(char *)malloc(str_l);
 #else
-   _f=(char *)alloca(strlen(str)+1);
+   _f=(char *)alloca(str_l);
 #endif
 
    if(_f==NULL)
       return -1;
    strcpy(_f, str);
    f=mea_strtrim(_f);
-    
-   char params[256];
- 
-   int fn=getFunctionNum(f, params, sizeof(params));
+
+#ifndef USEALLOCA
+   char *params=(char *)alloca(str_l);
+#else
+   char params[MAX_STR_SIZE];
+#endif 
+   int fn=getFunctionNum(f, params, str_l);
    switch(fn)
    {
       case F_NOW:
@@ -590,6 +604,49 @@ static int callFunction(char *str, struct value_s *v, xPL_NameValueListPtr ListN
       case F_CHANGE:
          retour=getInputEdge(params, CHANGE, v, ListNomsValeursPtr);
          break;
+      case F_TIME: // $time['18:31:01']
+           {
+              int ret;
+              struct tm tm;
+              struct value_s r;
+
+              ret=evalStr(params, &r, ListNomsValeursPtr);
+              if(ret==0 && r.type==1 && r.val.strval[8]==0)
+              {
+                 // format heure reconnu : 18:31:01
+                 time_t now = time(NULL); // on prend l'heure courrante pour avoir le jour
+                 localtime_r(&now, &tm); // conversion en tm
+                 char *p=strptime(r.val.strval, "%H:%M:%S", &tm); // va juste remplacer les heures, minutes et secondes dans tm
+                 if(p!=NULL && *p==0)
+                 {
+                    v->type=0;
+                    v->val.floatval=(double)mktime(&tm);
+                    retour=0;
+                 }
+              }
+           }
+         break;
+      case F_DATE: // date pour comparaison : $date['2001-11-12 18:31:01'] 
+           {
+              int ret;
+              struct tm tm;
+              struct value_s r;
+
+              ret=evalStr(params, &r, ListNomsValeursPtr);
+              if(ret==0 && r.type==1 && r.val.strval[19])
+              {
+                 memset(&tm, 0, sizeof(struct tm));
+                 // format date reconnu : 2001-11-12 18:31:01
+                 char *p=strptime(r.val.strval, "%Y-%m-%d %H:%M:%S", &tm);
+                 if(p != NULL && *p==0)
+                 {
+                    v->type=0;
+                    v->val.floatval=(double)mktime(&tm);
+                    retour=0;
+                 }
+              }
+           }
+         break;
    }
 
 //callFunction_clean_exit:
@@ -600,7 +657,7 @@ static int callFunction(char *str, struct value_s *v, xPL_NameValueListPtr ListN
    return retour;
 }
 
-
+/*
 static int getSpace(char *str, char **newptr)
 {
    char *p = str;
@@ -931,7 +988,7 @@ int calc(char *str, char **p)
 
    return ret;
 }
-
+*/
 
 static int evalStr(char *str, struct value_s *v, xPL_NameValueListPtr ListNomsValeursPtr)
 {

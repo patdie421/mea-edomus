@@ -4,26 +4,28 @@
 //  Created by Patrice DIETSCH on 10/12/15.
 //
 //
-#define DIRECTINTERP 1
+#include <inttypes.h>
 
-typedef int (*getVarVal_f)(int id, void *userdata, double *d);
-typedef int (*getVarId_f)(char *str, void *userdata, double *d);
+#define ONFLYEVAL 0
+
+typedef int16_t (*getVarVal_f)(int16_t id, void *userdata, double *d);
+typedef int16_t (*getVarId_f)(char *str, void *userdata, int16_t *id);
 
 struct eval_stack_s {
    char type;
    union {
-      int op;
+      int16_t op;
       double value;
-//      int id;
+      int16_t id;
    } val;
 };
 
-int setGetVarCallBacks(getVarId_f fid, getVarVal_f fval, void *userdata);
+int16_t setGetVarCallBacks(getVarId_f fid, getVarVal_f fval, void *userdata);
 
-#if DIRECTINTERP==0
-struct eval_stack_s *getEvalStack(char *str, char **p, int *err, int *stack_ptr);
-int evalCalc(struct eval_stack_s *stack, int stack_ptr, double *r);
+#if ONFLYEVAL==0
+struct eval_stack_s *getEvalStack(char *str, char **p, int16_t *err, int32_t *stack_ptr);
+int16_t evalCalc(struct eval_stack_s *stack, int32_t stack_ptr, double *r);
 #else
-int evalCalc(char *str, char **p, double *r, int *err);
+int16_t evalCalc(char *str, char **p, double *r, int16_t *err);
 #endif
-int calcn(char *str, double *r);
+int16_t calcn(char *str, double *r);
