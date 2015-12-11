@@ -22,6 +22,12 @@ void mea_nanosleep(uint32_t ns)
    req.tv_sec=0;
    req.tv_nsec=ns;
 
+   if(req.tv_nsec>1000000000L) // 1.000.000.000 ns = 1 seconde
+   {
+      req.tv_sec++;
+      req.tv_nsec=req.tv_nsec - 1000000000L;
+   }
+
    while ( nanosleep(&req,&res) == -1 )
    {
       req.tv_sec  = res.tv_sec;
@@ -36,6 +42,13 @@ void mea_microsleep(uint32_t usecs)
 
    delay_time.tv_sec = 0;
    delay_time.tv_nsec = usecs * 1000;
+
+   if(delay_time.tv_nsec>1000000000L) // 1.000.000.000 ns = 1 seconde
+   {
+      delay_time.tv_sec++;
+      delay_time.tv_nsec=delay_time.tv_nsec - 1000000000L;
+   }
+
    while ( nanosleep(&delay_time,&remaining) == -1 )
    {
       delay_time.tv_sec  = remaining.tv_sec;
