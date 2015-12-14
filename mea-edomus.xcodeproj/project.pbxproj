@@ -93,6 +93,7 @@
 		4E98B61F1C12282E00985383 /* automatorServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E98B61D1C12282E00985383 /* automatorServer.c */; };
 		4E98B6241C15D04200985383 /* automator.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E98B6221C15D04200985383 /* automator.c */; };
 		4E98B6401C1A25E700985383 /* mea_eval.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E98B63E1C1A25E700985383 /* mea_eval.c */; };
+		4E98B6421C1B477100985383 /* timeServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E98B6411C1B477100985383 /* timeServer.c */; };
 		4EF3D8FC19B3C02200892F29 /* comio2.c in Sources */ = {isa = PBXBuildFile; fileRef = 4EF3D8FA19B3C02200892F29 /* comio2.c */; };
 		4EF3F6C31828400F00959B93 /* interfacesServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4EF3F6C21828400F00959B93 /* interfacesServer.c */; };
 		4EFBFCAE175E616E007BBFD1 /* guiServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4EFBFCAD175E616E007BBFD1 /* guiServer.c */; };
@@ -932,6 +933,8 @@
 		4E98B6231C15D04200985383 /* automator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = automator.h; path = src/automator.h; sourceTree = "<group>"; };
 		4E98B63E1C1A25E700985383 /* mea_eval.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mea_eval.c; path = src/mea_eval.c; sourceTree = "<group>"; };
 		4E98B63F1C1A25E700985383 /* mea_eval.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mea_eval.h; path = src/mea_eval.h; sourceTree = "<group>"; };
+		4E98B6411C1B477100985383 /* timeServer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = timeServer.c; path = src/timeServer.c; sourceTree = "<group>"; };
+		4E98B6441C1B47AA00985383 /* timeServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = timeServer.h; path = src/timeServer.h; sourceTree = "<group>"; };
 		4EA173041A48B1DD00A8BADB /* types-ctrl.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "types-ctrl.js"; sourceTree = "<group>"; };
 		4EA1CFBD1A1FAFD6008E82D8 /* get_sensors_actuators.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; name = get_sensors_actuators.php; path = gui/models/get_sensors_actuators.php; sourceTree = "<group>"; };
 		4EA1CFBE1A1FE570008E82D8 /* get_types_select.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; name = get_types_select.php; path = gui/models/get_types_select.php; sourceTree = "<group>"; };
@@ -4293,6 +4296,8 @@
 			isa = PBXGroup;
 			children = (
 				4E98B6221C15D04200985383 /* automator.c */,
+				4E98B6441C1B47AA00985383 /* timeServer.h */,
+				4E98B6411C1B477100985383 /* timeServer.c */,
 				4E98B6231C15D04200985383 /* automator.h */,
 				4E98B61D1C12282E00985383 /* automatorServer.c */,
 				4E98B63E1C1A25E700985383 /* mea_eval.c */,
@@ -5957,6 +5962,7 @@
 				4E83D2C91BF12A81009FF74F /* tokens_da.c in Sources */,
 				4E3F343C19F970150066A9CC /* consts.c in Sources */,
 				4E7A0B011AB766DE00ABF5ED /* main.c in Sources */,
+				4E98B6421C1B477100985383 /* timeServer.c in Sources */,
 				4E76CE98163F120C00A3EBA9 /* xPL-config.c in Sources */,
 				4E76CE9A163F120C00A3EBA9 /* xPL-io.c in Sources */,
 				4E76CE9B163F120C00A3EBA9 /* xPL-listeners.c in Sources */,

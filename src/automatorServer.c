@@ -300,7 +300,6 @@ pthread_t *automatorServer()
          perror("");
       }
       goto automatorServer_clean_exit;
-
    }
    pthread_detach(*automator_thread);
    
