@@ -812,6 +812,11 @@ int main(int argc, const char * argv[])
    //
    // initialisation du gestionnaire de process
    //
+
+   // démarrage du serveur de temps
+
+   start_timeServer();
+
    init_processes_manager(40);
 
    //

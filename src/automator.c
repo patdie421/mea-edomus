@@ -24,6 +24,7 @@
 
 #include "automator.h"
 #include "automatorServer.h"
+#include "timeServer.h"
 
 #include "globals.h"
 #include "consts.h"
@@ -206,7 +207,7 @@ char *inputs_rules="[ \
 #   'chaine'
 #   #numerique
 #   &boolean (&true, &false, &high, &low)
-#   $function()
+#   $function[]
 #
 # D1 is: <NOP>     if: (schema == 'hbeat.app') onmatch: break
 # V1 is: #1
@@ -231,7 +232,7 @@ char *inputs_rules="[ \
 # P1 is: &high if: (source == mea-edomus.home, schema == sensor.basic, device == "BUTTON2", current == &high, {DIFF} > #1000)
 # P1 is: &low  if: (source == mea-edomus.home, schema == sensor.basic, device == "BUTTON2", current == &high, {DIFF} <= #1000)
 # exemple de compteur
-# C1 is: #0 if: $exist['C1'] == &false // initialisation du compteur
+# C1 is: #0 if: ($exist['C1'] == &false) // initialisation du compteur
 # C1 is: $calcn[{C1}+#1] (à faire)
 #
 
@@ -276,6 +277,8 @@ static int automator_add_to_inputs_table(char *name, struct value_s *v);
 static int automator_print_inputs_table();
 
 static int evalStr(char *str, struct value_s *v, xPL_NameValueListPtr ListNomsValeursPtr);
+
+time_t automator_now = 0;
 
 static int getBoolean(char *s, char *b)
 {
@@ -491,7 +494,7 @@ static int getFunctionNum(char *str, char *params, int l_params)
                lp=l_params;
             strncpy(params, &(str[lf+1]), lp);
             params[lp]=0;
-            return 0;
+            return i;
          }
          else
             return -1;
@@ -567,7 +570,8 @@ static int callFunction(char *str, struct value_s *v, xPL_NameValueListPtr ListN
       case F_NOW:
          if(params[0]==0)
          {
-            time_t t=time(NULL);
+            // time_t t=mea_time(NULL);
+            time_t t=automator_now;
             v->type=0;
             v->val.floatval=(double)t;
             retour=0;
@@ -606,16 +610,25 @@ static int callFunction(char *str, struct value_s *v, xPL_NameValueListPtr ListN
          break;
       case F_TIME: // $time['18:31:01']
            {
+              // struct tm tm;
               int ret;
-              struct tm tm;
               struct value_s r;
-
+              time_t t;
               ret=evalStr(params, &r, ListNomsValeursPtr);
               if(ret==0 && r.type==1 && r.val.strval[8]==0)
               {
+                 if(mea_timeFromStr(r.val.strval, &t)==0)
+                 {
+                    v->type=0;
+                    v->val.floatval=(double)t;
+                    retour=0;
+                 }
+
+/*
                  // format heure reconnu : 18:31:01
-                 time_t now = time(NULL); // on prend l'heure courrante pour avoir le jour
-                 localtime_r(&now, &tm); // conversion en tm
+                 // time_t now = time(NULL); // on prend l'heure courrante pour avoir le jour
+                 time_t now = automator_now; // on prend l'heure courrante pour avoir le jour
+                 mea_localtime_r(&now, &tm); // conversion en tm
                  char *p=strptime(r.val.strval, "%H:%M:%S", &tm); // va juste remplacer les heures, minutes et secondes dans tm
                  if(p!=NULL && *p==0)
                  {
@@ -623,6 +636,7 @@ static int callFunction(char *str, struct value_s *v, xPL_NameValueListPtr ListN
                     v->val.floatval=(double)mktime(&tm);
                     retour=0;
                  }
+*/
               }
            }
          break;
@@ -642,6 +656,7 @@ static int callFunction(char *str, struct value_s *v, xPL_NameValueListPtr ListN
                  {
                     v->type=0;
                     v->val.floatval=(double)mktime(&tm);
+                    fprintf(stderr,"time = %f\n", v->val.floatval);
                     retour=0;
                  }
               }
@@ -741,6 +756,13 @@ static int evalStr(char *str, struct value_s *v, xPL_NameValueListPtr ListNomsVa
       {
          strncpy(v->val.strval, &(p[1]), 5);
          v->val.strval[5]=0;
+         v->type=1;
+      }
+      else if(strstr(p,"LABEL")==&(p[1]) && l==7)
+      {
+         strncpy(v->val.strval, &(p[1]), 7);
+         v->val.strval[7]=0;
+         v->type=1;
       }
       else
          return -1;
@@ -992,6 +1014,9 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
    char *schema_type = NULL, *schema_class = NULL, *vendor = NULL, *deviceID = NULL, *instanceID = NULL;
    char source[80]="";
    char schema[80]="";
+
+//   automator_now=time(NULL);
+   automator_now=mea_time(NULL);
    
    if(message)
    {
@@ -1032,6 +1057,13 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
          match=0;
          goto next_rule;
       }
+
+      if(res.type==1 && mea_strcmplower(res.val.strval,"<LABEL>")==0)
+      {
+         match=0;
+         goto next_rule;
+      }
+    
       DEBUG_SECTION2(DEBUGFLAG) { fprintf(stderr,"   RES = "); valuePrint(&res); fprintf(stderr," (%s)\n",  value->valuestring); }
       // évaluation des conditions
       cJSON *conditions=cJSON_GetObjectItem(e,"conditions");
@@ -1090,6 +1122,12 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
       if(match==1)
       {
          DEBUG_SECTION2(DEBUGFLAG) fprintf(stderr,"   MATCH !\n");
+/*
+         VERBOSE(5) {
+            if(message!=NULL && mea_strcmplower(value->valuestring, "<LABEL>")!=0)
+               mea_log_printf("%s (%s) : rule '%s' match\n", INFO_STR, __func__, name->valuestring);
+         }
+*/
          if(strcmp(name->valuestring, "<NOP>")!=0)
             automator_add_to_inputs_table(name->valuestring, &res);
          else
