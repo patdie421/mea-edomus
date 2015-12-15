@@ -226,23 +226,24 @@ char *inputs_rules="[ \
 # S2 is: &false    if: ($timer['timer1']==&true) onmatch: continue (à faire pour les timer)
 
 # des exemples de règles "compliqués"
-# T1_last is: {T1} if: (source == mea-edomus.home, schema == sensor.basic, device == "BUTTON2", current == &high)
-# T1 is: $now[] if: (source == mea-edomus.home, schema == sensor.basic, device == "BUTTON2", current == &high)
-# DIFF is: $calcn[{T2} - {T2_last}] if: (source == mea-edomus.home, schema == sensor.basic, device == "BUTTON2", current == &high)
-# P1 is: &high if: (source == mea-edomus.home, schema == sensor.basic, device == "BUTTON2", current == &high, {DIFF} > #1000)
-# P1 is: &low  if: (source == mea-edomus.home, schema == sensor.basic, device == "BUTTON2", current == &high, {DIFF} <= #1000)
+# T1_last is: {T1}   if: (source == mea-edomus.home, schema == sensor.basic, device == "BUTTON2", current == &high)
+# T1      is: $now[] if: (source == mea-edomus.home, schema == sensor.basic, device == "BUTTON2", current == &high)
+# DIFF    is: $calcn[{T2} - {T2_last}] if: (source == mea-edomus.home, schema == sensor.basic, device == "BUTTON2", current == &high)
+# P1      is: &high  if: (source == mea-edomus.home, schema == sensor.basic, device == "BUTTON2", current == &high, {DIFF} > #1000)
+# P1      is: &low   if: (source == mea-edomus.home, schema == sensor.basic, device == "BUTTON2", current == &high, {DIFF} <= #1000)
 # exemple de compteur
-# C1 is: #0 if: ($exist['C1'] == &false) // initialisation du compteur
-# C1 is: $calcn[{C1}+#1] (à faire)
+# C1      is: #0     if: ($exist['C1'] == &false) // initialisation du compteur
+# C1      is: $calcn[{C1}+#1] (à faire)
 #
 
 # Pour les actions :
 #
-# A1 do: xPLSend with: (schema='control.basic', device='toto', current={E1}) when: 'C1' rise
-# A2 do: xPLSend with: (schema='control.basic', device='toto', current={E1}) when: 'C1' fall
-# A3 do: xPLSend with: (schema='control.basic', device='tata', current={E1}) when: 'C1' change
-# A4 do: xPLSend with: (schema='control.basic', device='tata', current=$calcb[!{E1}]) when: 'C1' change
-# A5 do: timerstart with: (name='timer1', value=10, unit='s', autorestart=&false) when: 'E1' rise (à faire)
+# A1 do: xPLSend    with: (schema='control.basic', device='toto', current={E1}) when: 'C1' rise
+# A2 do: xPLSend    with: (schema='control.basic', device='toto', current={E1}) when: 'C1' fall
+# A3 do: xPLSend    with: (schema='control.basic', device='tata', current={E1}) when: 'C1' change
+# A4 do: xPLSend    with: (schema='control.basic', device='tata', current=$calcb[!{E1}]) when: 'C1' change
+# A5 do: timerStart with: (name='timer1', value=10, unit='s') when: 'E1' rise
+# A6 do: timerStop  with: (name='timer1') when: 'E1' fall
 */
 
 cJSON *_rules;
@@ -476,9 +477,34 @@ static int valuePrint(struct value_s *v)
 }
 
 
-char *functionsList[]={"now", "exist", "rise", "fall", "stay", "change", "date", "time", NULL };
-enum function_e { F_NOW=0, F_EXIST, F_RISE, F_FALL, F_STAY, F_CHANGE, F_DATE, F_TIME };
+char *functionsList[]={"now", "exist", "rise", "fall", "stay", "change", "date", "time", "sunrise", "sunset", "twilightstart", "twilightend", NULL };
+enum function_e { F_NOW=0, F_EXIST, F_RISE, F_FALL, F_STAY, F_CHANGE, F_DATE, F_TIME, F_SUNRISE, F_SUNSET, F_TWILIGHTSTART, F_TWILIGHTEND };
 
+struct function_def_s
+{
+   char *name;
+   enum function_e num;
+   uint16_t l;
+};
+
+
+struct function_def_s functionsList2[]={
+   { "change", F_CHANGE, 5 },
+   { "date", F_DATE, 4 },
+   { "exist", F_EXIST, 5 },
+   { "fall", F_FALL, 4 },
+   { "now", F_NOW, 3 },
+   { "rise", F_RISE, 4 },
+   { "stay", F_STAY, 4 },
+   { "sunrise", F_SUNRISE, 7 },
+   { "sunset", F_SUNSET, 6 },
+   { "time", F_TIME, 4 },
+   { "twilightstart", F_TWILIGHTSTART, 13 },
+   { "twilightend", F_TWILIGHTEND, 11 },
+   { NULL, 0, 0 }
+};
+
+/*
 static int getFunctionNum(char *str, char *params, int l_params)
 {
    int ls=strlen(str); 
@@ -495,6 +521,31 @@ static int getFunctionNum(char *str, char *params, int l_params)
             strncpy(params, &(str[lf+1]), lp);
             params[lp]=0;
             return i;
+         }
+         else
+            return -1;
+      }
+   }
+   return -1;
+}
+*/
+
+static int getFunctionNum(char *str, char *params, int l_params)
+{
+   int ls=strlen(str); 
+   for(int i=0; functionsList2[i].name; i++)
+   {
+      int lf=functionsList2[i].l;
+      if(strncmp(str,functionsList2[i].name, functionsList2[i].l)==0)
+      {
+         if(str[lf]=='[' && str[ls-1]==']')
+         {
+            int lp = ls-lf-2;
+            if(lp>l_params)
+               lp=l_params;
+            strncpy(params, &(str[lf+1]), lp);
+            params[lp]=0;
+            return functionsList2[i].num;
          }
          else
             return -1;
@@ -556,9 +607,10 @@ static int callFunction(char *str, struct value_s *v, xPL_NameValueListPtr ListN
 
    if(_f==NULL)
       return -1;
-   strcpy(_f, str);
-   f=mea_strtrim(_f);
-
+   mea_strcpytrim(_f, str);
+   f=_f;
+//   strcpy(_f, str);
+//   f=mea_strtrim(_f);
 #ifndef USEALLOCA
    char *params=(char *)alloca(str_l);
 #else
@@ -609,21 +661,20 @@ static int callFunction(char *str, struct value_s *v, xPL_NameValueListPtr ListN
          retour=getInputEdge(params, CHANGE, v, ListNomsValeursPtr);
          break;
       case F_TIME: // $time['18:31:01']
-           {
-              // struct tm tm;
-              int ret;
-              struct value_s r;
-              time_t t;
-              ret=evalStr(params, &r, ListNomsValeursPtr);
-              if(ret==0 && r.type==1 && r.val.strval[8]==0)
-              {
-                 if(mea_timeFromStr(r.val.strval, &t)==0)
-                 {
-                    v->type=0;
-                    v->val.floatval=(double)t;
-                    retour=0;
-                 }
-
+         {
+            // struct tm tm;
+            int ret;
+            struct value_s r;
+            time_t t;
+            ret=evalStr(params, &r, ListNomsValeursPtr);
+            if(ret==0 && r.type==1 && r.val.strval[8]==0)
+            {
+               if(mea_timeFromStr(r.val.strval, &t)==0)
+               {
+                  v->type=0;
+                  v->val.floatval=(double)t;
+                  retour=0;
+               }
 /*
                  // format heure reconnu : 18:31:01
                  // time_t now = time(NULL); // on prend l'heure courrante pour avoir le jour
@@ -637,30 +688,64 @@ static int callFunction(char *str, struct value_s *v, xPL_NameValueListPtr ListN
                     retour=0;
                  }
 */
-              }
-           }
+            }
+         }
          break;
       case F_DATE: // date pour comparaison : $date['2001-11-12 18:31:01'] 
-           {
-              int ret;
-              struct tm tm;
-              struct value_s r;
+         {
+            int ret;
+            struct tm tm;
+            struct value_s r;
 
-              ret=evalStr(params, &r, ListNomsValeursPtr);
-              if(ret==0 && r.type==1 && r.val.strval[19])
-              {
-                 memset(&tm, 0, sizeof(struct tm));
-                 // format date reconnu : 2001-11-12 18:31:01
-                 char *p=strptime(r.val.strval, "%Y-%m-%d %H:%M:%S", &tm);
-                 if(p != NULL && *p==0)
-                 {
-                    v->type=0;
-                    v->val.floatval=(double)mktime(&tm);
-                    fprintf(stderr,"time = %f\n", v->val.floatval);
-                    retour=0;
-                 }
-              }
-           }
+            ret=evalStr(params, &r, ListNomsValeursPtr);
+            if(ret==0 && r.type==1 && r.val.strval[19])
+            {
+               memset(&tm, 0, sizeof(struct tm));
+               // format date reconnu : 2001-11-12 18:31:01
+               char *p=strptime(r.val.strval, "%Y-%m-%d %H:%M:%S", &tm);
+               if(p != NULL && *p==0)
+               {
+                  v->type=0;
+                  v->val.floatval=(double)mktime(&tm);
+//                  fprintf(stderr,"time = %f\n", v->val.floatval);
+                  retour=0;
+               }
+            }
+         }
+         break;
+      case F_SUNSET:
+      case F_SUNRISE:
+      case F_TWILIGHTSTART:
+      case F_TWILIGHTEND:
+         {
+            int ret;
+            struct tm tm;
+            struct value_s r;
+
+            ret=evalStr(params, &r, ListNomsValeursPtr);
+            if(ret==0 && r.type==0)
+            {
+               time_t t=0;
+               switch(fn)
+               {
+                  case F_SUNSET:
+                     t=mea_sunset();
+                     break;
+                  case F_SUNRISE:
+                     t=mea_sunrise();
+                     break;
+                  case F_TWILIGHTSTART:
+                     t=mea_twilightstart();
+                     break;
+                  case F_TWILIGHTEND:
+                     t=mea_twilightend();
+                     break;
+               }
+               v->type=0;
+               v->val.floatval=(double)t+r.val.floatval;
+               retour=0;
+            }
+         }     
          break;
    }
 
@@ -678,9 +763,13 @@ static int evalStr(char *str, struct value_s *v, xPL_NameValueListPtr ListNomsVa
    char *p=NULL;
    char _str[sizeof(v->val.strval)];
 
-   strncpy(_str, str, sizeof(v->val.strval)-1);
-   _str[sizeof(v->val.strval)-1]=0;
-   p=mea_strtrim(_str);
+//   strncpy(_str, str, sizeof(v->val.strval)-1);
+//   _str[sizeof(v->val.strval)-1]=0;
+//   p=mea_strtrim(_str);
+
+    mea_strncpytrim(_str, str, sizeof(v->val.strval)-1);
+    _str[sizeof(v->val.strval)-1]=0;
+    p=_str;
 
    if(p[0]=='#') // une constante numérique
    {
@@ -735,10 +824,15 @@ static int evalStr(char *str, struct value_s *v, xPL_NameValueListPtr ListNomsVa
 
       if(l>(sizeof(name)+2))
          l=sizeof(name)+2;
-      strncpy(name, &(p[1]), l-2);
-      name[l-2]=0;
 
-      char *_p=mea_strtrim(name);
+       char *_p=NULL;
+//      strncpy(name, &(p[1]), l-2);
+//      name[l-2]=0;
+//      _p=mea_strtrim(name);
+       mea_strncpytrim(name, &(p[1]), l-2);
+       name[l-2]=0;
+       _p=name; 
+
       HASH_FIND_STR(inputs_table, _p, e);
      if(e)
         memcpy(v, &(e->v), sizeof(struct value_s));
@@ -1138,7 +1232,8 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
          if(onmatch) // post action
          {
             char action[41]="";
-            strncpy(action, onmatch->valuestring, sizeof(action)-1);
+//            strncpy(action, onmatch->valuestring, sizeof(action)-1);
+            mea_strncpylower(action, onmatch->valuestring, sizeof(action)-1);
             action[sizeof(action)-1]=0;
             // découpage de la chaine si nécessaire
             char *p=NULL;
@@ -1151,12 +1246,15 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
                   break;
                }
             }
-            if(mea_strcmplower(action, "break")==0 && !p)
+//            if(mea_strcmplower(action, "break")==0 && !p)
+            if(strcmp(action, "break")==0 && !p)
                break;
-            else if(mea_strcmplower(action, "continue")==0 && !p)
+//            else if(mea_strcmplower(action, "continue")==0 && !p)
+            else if(strcmp(action, "continue")==0 && !p)
             {
             }
-            else if(mea_strcmplower(action, "moveforward")==0 && p)
+//            else if(mea_strcmplower(action, "moveforward")==0 && p)
+            else if(strcmp(action, "moveforward")==0 && p)
             {
                struct value_s r;
                cJSON *_e = e->next;

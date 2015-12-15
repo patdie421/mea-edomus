@@ -39,5 +39,9 @@ int     mea_strcpy_escd(char *dest, char *source);
 int     mea_strcpy_escs(char *dest, char *source);
 int     mea_strlen_escaped(char *s);
 
+void    mea_strcpylower(char *d, char *s);
+void    mea_strncpylower(char *d, char *s, int n);
+void    mea_strcpytrim(char *d, char *s);
+void    mea_strncpytrim(char *d, char *s, int n);
 
 #endif

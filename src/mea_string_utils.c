@@ -13,6 +13,74 @@
 #include "mea_string_utils.h"
 
 
+void mea_strcpylower(char *d, char *s)
+{
+   while(*s)
+   {
+      *d=tolower(*s);
+      ++d;
+      ++s;
+   }
+   *d=0;
+}
+
+
+void mea_strncpylower(char *d, char *s, int n)
+{
+   if(n<0)
+      return;
+   while(*s && n)
+   {
+      *d=tolower(*s);
+      --n;
+      ++d;
+      ++s;
+   }
+   if(n)
+      *d=0;
+}
+
+
+void mea_strcpytrim(char *d, char *s)
+{
+   char *p=d;
+
+   while(*s && *s==' ') ++s;
+
+   while(*s)
+   {
+      *d=*s;
+      ++d;
+      if(*s!=' ')
+         p=d;
+      ++s;
+   }
+   *p=0;
+}
+
+
+void mea_strncpytrim(char *d, char *s, int n)
+{
+   if(n<0)
+      return;
+
+   char *p=d;
+   while(*s && *s==' ') ++s;
+
+   while(*s && n)
+   {
+      *d=*s;
+      --n;
+      ++d;
+      if(*s!=' ')
+         p=d;
+      ++s;
+   }
+   if(n)
+      *p=0;
+}
+
+
 char *mea_strltrim(char *s)
  /**
   * \brief     trim (suppression de blanc) à gauche d'une chaine.
@@ -606,7 +674,7 @@ int mea_strlen_escaped(char *s)
 }
 
 
-#ifdef MEA_STRING_UTILS_MODULE_R7
+#ifdef MEA_STRING_UTILS_MODULE_TEST
 int main(int argc, char *argv[])
 {
    char s1[80]="   ABCDEFG   ";
@@ -652,5 +720,13 @@ int main(int argc, char *argv[])
 
    free(str2);
    free(str2bis);
+
+   char s4[80];
+
+   mea_strcpytrim(s4, "A");
+   fprintf(stderr,"s4 = [%s]\n", s4);
+
+   mea_strncpytrim(s4, s2, 15);
+   fprintf(stderr,"s4 = [%s]\n", s4);
 }
 #endif
