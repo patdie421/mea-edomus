@@ -32,6 +32,7 @@
 		4E4F885E1A9E76A000479945 /* cJSON.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E4F885A1A9E76A000479945 /* cJSON.c */; };
 		4E4F885F1A9E76A000479945 /* philipshue.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E4F885C1A9E76A000479945 /* philipshue.c */; };
 		4E5E24C3173C34AE00B8CEFE /* mea_api.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E5E24C2173C34AE00B8CEFE /* mea_api.c */; };
+		4E5E49081C1F7FA200CBE3EE /* sunriset.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E5E49061C1F7FA200CBE3EE /* sunriset.c */; };
 		4E5FC65F172F0F91004266EB /* interface_type_001_counters.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E5FC65B172F0F91004266EB /* interface_type_001_counters.c */; };
 		4E5FC660172F0F91004266EB /* interface_type_001_sensors.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E5FC65D172F0F91004266EB /* interface_type_001_sensors.c */; };
 		4E5FC662172F103B004266EB /* interface_type_001_actuators.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E5FC661172F103B004266EB /* interface_type_001_actuators.c */; };
@@ -279,6 +280,8 @@
 		4E4F885D1A9E76A000479945 /* philipshue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = philipshue.h; path = src/philipshue.h; sourceTree = "<group>"; };
 		4E5E24C1173C34A100B8CEFE /* mea_api.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = mea_api.h; path = src/mea_api.h; sourceTree = "<group>"; };
 		4E5E24C2173C34AE00B8CEFE /* mea_api.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mea_api.c; path = src/mea_api.c; sourceTree = "<group>"; };
+		4E5E49061C1F7FA200CBE3EE /* sunriset.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = sunriset.c; path = src/sunriset.c; sourceTree = "<group>"; };
+		4E5E49071C1F7FA200CBE3EE /* sunriset.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sunriset.h; path = src/sunriset.h; sourceTree = "<group>"; };
 		4E5FC65A172F0F91004266EB /* interface_type_001_actuators.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = interface_type_001_actuators.h; path = src/interface_type_001_actuators.h; sourceTree = "<group>"; };
 		4E5FC65B172F0F91004266EB /* interface_type_001_counters.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = interface_type_001_counters.c; path = src/interface_type_001_counters.c; sourceTree = "<group>"; };
 		4E5FC65C172F0F91004266EB /* interface_type_001_counters.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = interface_type_001_counters.h; path = src/interface_type_001_counters.h; sourceTree = "<group>"; };
@@ -2134,6 +2137,8 @@
 		4E4D4E811601F2930008C14C /* Libs */ = {
 			isa = PBXGroup;
 			children = (
+				4E5E49061C1F7FA200CBE3EE /* sunriset.c */,
+				4E5E49071C1F7FA200CBE3EE /* sunriset.h */,
 				4E4D4E801601F2730008C14C /* Utils */,
 				4E83D2DB1BF515F7009FF74F /* netatmo.c */,
 				4E83D2DC1BF515F7009FF74F /* netatmo.h */,
@@ -5966,6 +5971,7 @@
 				4E76CE98163F120C00A3EBA9 /* xPL-config.c in Sources */,
 				4E76CE9A163F120C00A3EBA9 /* xPL-io.c in Sources */,
 				4E76CE9B163F120C00A3EBA9 /* xPL-listeners.c in Sources */,
+				4E5E49081C1F7FA200CBE3EE /* sunriset.c in Sources */,
 				4E83D2B91BF12A81009FF74F /* mea_sockets_utils.c in Sources */,
 				4E4F88561A98D2A500479945 /* interface_type_003.c in Sources */,
 				4E60BA7A19FEF40A00D56F21 /* notify.c in Sources */,

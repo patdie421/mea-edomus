@@ -40,6 +40,7 @@
 
 #include "processManager.h"
 
+#include "timeServer.h"
 #include "dbServer.h"
 #include "xPLServer.h"
 #include "pythonPluginServer.h"
