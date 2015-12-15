@@ -22,11 +22,12 @@ pthread_t *_timerServer_thread_id=NULL;
 pthread_rwlock_t _timeServer_rwlock = PTHREAD_RWLOCK_INITIALIZER;
 
 time_t mea_time_value = 0;
-time_t mea_sunrise = 0;
-time_t mea_sunset = 0;
+time_t mea_sunrise_value = 0;
+time_t mea_sunset_value = 0;
+time_t mea_twilightstart_value = 0;
+time_t mea_twilightend_value = 0;
 
 struct tm mea_tm;
-
 
 enum datetime_type_e { DATETIME_TIME, DATETIME_DATE };
 
@@ -45,6 +46,30 @@ struct mea_datetime_value_s *mea_datetime_values_cache = NULL;
 
 
 #define toMillis(s,u) (double)(x)*1000.0 + (double)(u)/1000.0
+
+time_t mea_sunrise()
+{
+   return mea_sunrise_value;
+}
+
+
+time_t mea_sunset()
+{
+   return mea_sunset_value;
+}
+
+
+time_t mea_twilightstart()
+{
+   return mea_twilightstart_value;
+}
+
+
+time_t mea_twilightend()
+{
+   return mea_twilightend_value;
+}
+
 
 time_t mea_time(time_t *v)
 {
@@ -151,13 +176,11 @@ int mea_timeFromStr(char *str, time_t *t)
 }
 
 
-int getSunRiseSet(double lon, double lat, time_t *_rise, time_t *_set)
+int getSunRiseSetOrTwilingStartEnd(double lon, double lat, time_t *_start, time_t *_end, int twilight)
 {
    int year,month,day;
-//   double lon, lat;
-   double rise, set;
+   double start, end;
    int  rs;
-//   char buf[80];
 
    // Les coordonnées de Paris en degrés décimaux
 //   lat = 48.8534100;
@@ -174,7 +197,10 @@ int getSunRiseSet(double lon, double lat, time_t *_rise, time_t *_set)
    month = tm_gmt.tm_mon+1;
    day   = tm_gmt.tm_mday;
 
-   rs   = sun_rise_set(year, month, day, lon, lat, &rise, &set);
+   if(twilight==0)
+      rs = sun_rise_set(year, month, day, lon, lat, &start, &end);
+   else
+      rs = civil_twilight(year, month, day, lon, lat, &start, &end);
 
    int rh=0,rm=0,sh=0,sm=0;
 
@@ -183,37 +209,37 @@ int getSunRiseSet(double lon, double lat, time_t *_rise, time_t *_set)
       case 0:
       {
          // conversion en heure/minute
-         rh=(int)rise;
-         rm=(int)((rise - (double)rh)*60);
+         rh=(int)start;
+         rm=(int)((start - (double)rh)*60);
 
          // conversion en time_t
          tm_gmt.tm_sec = 0;
          tm_gmt.tm_hour = rh;
          tm_gmt.tm_min = rm;
          t = timegm(&tm_gmt);
-         *_rise = t;
+         *_start = t;
  
          DEBUG_SECTION {
             struct tm tm_local;
             localtime_r(&t, &tm_local);
-            fprintf(stderr,"Sun rise : %02d:%02d\n", tm_local.tm_hour, tm_local.tm_min);
+            fprintf(stderr,"start(%d) : %02d:%02d\n", twilight, tm_local.tm_hour, tm_local.tm_min);
          }
 
          // conversion en heure/minute
-         sh=(int)set;
-         sm=(int)((set - (double)sh)*60);
+         sh=(int)end;
+         sm=(int)((end - (double)sh)*60);
 
          // conversion en time_t
          tm_gmt.tm_sec = 0;
          tm_gmt.tm_hour = sh;
          tm_gmt.tm_min = sm;
          t = timegm(&tm_gmt);
-         *_set = t;
+         *_end = t;
          
          DEBUG_SECTION {
             struct tm tm_local;
             localtime_r(&t, &tm_local);
-            fprintf(stderr,"Sun set :  %02d:%02d\n", tm_local.tm_hour, tm_local.tm_min);
+            fprintf(stderr,"end(%d) :  %02d:%02d\n", twilight, tm_local.tm_hour, tm_local.tm_min);
          }
       }
       break;
@@ -263,14 +289,20 @@ void *_timeServer_thread(void *data)
 
          update_datetime_values_cache(); // on remet a jour les heures pour la nouvelle journée
 
+         // calcul des heures de couché et levé du soleil et +/- pénombre
          // Les coordonnées de Paris en degrés décimaux (constante à remplacer ...)
          double lat = 48.8534100;
          double lon = 2.3488000;
-         time_t r=0, s=0;
-         if(getSunRiseSet(lon, lat, &r, &s)==0)
+         time_t s=0, e=0;
+         if(getSunRiseSetOrTwilingStartEnd(lon, lat, &s, &e,0)==0)
          {
-            mea_sunrise = r;
-            mea_sunset = s;
+            mea_sunrise_value = s;
+            mea_sunset_value = e;
+         }
+         if(getSunRiseSetOrTwilingStartEnd(lon, lat, &s, &e,1)==0)
+         {
+            mea_twilightstart_value = s;
+            mea_twilightend_value = e;
          }
       }
 
