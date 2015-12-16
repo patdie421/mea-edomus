@@ -24,7 +24,7 @@
 
 #include "automator.h"
 #include "automatorServer.h"
-#include "timeServer.h"
+#include "datetimeServer.h"
 
 #include "globals.h"
 #include "consts.h"
@@ -729,16 +729,16 @@ static int callFunction(char *str, struct value_s *v, xPL_NameValueListPtr ListN
                switch(fn)
                {
                   case F_SUNSET:
-                     t=mea_sunset();
+                     t=mea_datetime_sunset();
                      break;
                   case F_SUNRISE:
-                     t=mea_sunrise();
+                     t=mea_datetime_sunrise();
                      break;
                   case F_TWILIGHTSTART:
-                     t=mea_twilightstart();
+                     t=mea_datetime_twilightstart();
                      break;
                   case F_TWILIGHTEND:
-                     t=mea_twilightend();
+                     t=mea_datetime_twilightend();
                      break;
                }
                v->type=0;
@@ -1110,7 +1110,7 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
    char schema[80]="";
 
 //   automator_now=time(NULL);
-   automator_now=mea_time(NULL);
+   automator_now=mea_datetime_time(NULL);
    
    if(message)
    {

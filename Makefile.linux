@@ -18,6 +18,7 @@ LDFLAGS     = -lmysqlclient \
               -lxPL \
               -lsqlite3 \
               -lpython2.7 \
+              -lrt \
               -lcurl
 
 MYPATH=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))

@@ -34,6 +34,7 @@ struct automatorServer_start_stop_params_s
 
 typedef struct automator_msg_s
 {
+//   int type;
    xPL_MessagePtr msg;
 } automator_msg_t;
 
