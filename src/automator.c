@@ -719,7 +719,7 @@ static int callFunction(char *str, struct value_s *v, xPL_NameValueListPtr ListN
       case F_TWILIGHTEND:
          {
             int ret;
-            struct tm tm;
+//            struct tm tm;
             struct value_s r;
 
             ret=evalStr(params, &r, ListNomsValeursPtr);

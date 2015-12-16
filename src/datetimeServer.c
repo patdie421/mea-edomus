@@ -23,7 +23,7 @@
 pthread_t *_timerServer_thread_id=NULL;
 
 pthread_mutex_t timeServer_startTimer_lock = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t timerServer_startTimer_cond;
+pthread_cond_t timerServer_startTimer_cond = PTHREAD_COND_INITIALIZER;
 
 time_t mea_time_value = 0;
 time_t mea_sunrise_value = 0;
@@ -61,7 +61,8 @@ struct mea_datetime_timer_s
 };
 struct mea_datetime_timer_s *mea_datetime_timers_list = NULL;
 
- 
+void mea_getTime(struct timespec *t);
+
 inline void mea_getTime(struct timespec *t)
 {
 #ifdef __linux__
@@ -69,10 +70,10 @@ inline void mea_getTime(struct timespec *t)
 //   clock_gettime(CLOCK_MONOTONIC, t);
 //   clock_gettime(CLOCK_MONOTONIC_COARSE, t);
 #else
-   struct timespec _t;
+   struct timeval _t;
    gettimeofday(&_t, NULL);
-   t->tv_sec = _t->tv_sec;
-   t->tv_nsec = _t->tv_usec * 1000L;
+   t->tv_sec = _t.tv_sec;
+   t->tv_nsec = _t.tv_usec * 1000L;
 #endif
 }
 
@@ -168,56 +169,9 @@ struct tm *mea_localtime_r(const time_t *timep, struct tm *result)
 }
 
 
-static int mea_clean_datetime_values_cache()
-{
-   if(mea_datetime_values_cache)
-   {
-      struct mea_datetime_value_s  *current, *tmp;
-
-      HASH_ITER(hh, mea_datetime_values_cache, current, tmp)
-      {
-         if((mea_time_value - current->last_access) > 3600)
-         {
-            HASH_DEL(mea_datetime_values_cache, current);
-            free(current);
-         }
-      }
-   }
-
-   return 0;
-}
-
-
-static int update_datetime_values_cache()
-{
-   struct tm tm;
-   struct mea_datetime_value_s *e = NULL;
-
-   if(mea_datetime_values_cache)
-   {
-      struct mea_datetime_value_s  *current, *tmp;
-
-      memcpy(&tm, &mea_tm, sizeof(struct tm));
-
-      HASH_ITER(hh, mea_datetime_values_cache, current, tmp)
-      {
-         if(current->type == DATETIME_TIME)
-         {
-            strptime(e->dateTimeStr, "%H:%M:%S", &tm);
-            memcpy(&(e->tm), &tm, sizeof(struct tm));
-            e->time_value = mktime(&tm);
-         }
-      }
-   }
-
-   return 0;
-}
-
-
 int mea_timeFromStr(char *str, time_t *t)
 {
    struct tm tm;
-   int ret;
    struct mea_datetime_value_s *e = NULL;
 
    HASH_FIND_STR(mea_datetime_values_cache, str, e);
@@ -254,13 +208,59 @@ int mea_timeFromStr(char *str, time_t *t)
 }
 
 
+static int mea_clean_datetime_values_cache()
+{
+   if(mea_datetime_values_cache)
+   {
+      struct mea_datetime_value_s  *current, *tmp;
+
+      HASH_ITER(hh, mea_datetime_values_cache, current, tmp)
+      {
+         if((mea_time_value - current->last_access) > 3600)
+         {
+            HASH_DEL(mea_datetime_values_cache, current);
+            free(current);
+         }
+      }
+   }
+
+   return 0;
+}
+
+
+static int update_datetime_values_cache()
+{
+   struct tm tm;
+//   struct mea_datetime_value_s *e = NULL;
+
+   if(mea_datetime_values_cache)
+   {
+      struct mea_datetime_value_s  *current, *tmp;
+
+      memcpy(&tm, &mea_tm, sizeof(struct tm));
+
+      HASH_ITER(hh, mea_datetime_values_cache, current, tmp)
+      {
+         if(current->type == DATETIME_TIME)
+         {
+            strptime(current->dateTimeStr, "%H:%M:%S", &tm);
+            memcpy(&(current->tm), &tm, sizeof(struct tm));
+            current->time_value = mktime(&tm);
+         }
+      }
+   }
+
+   return 0;
+}
+
+
 static int getSunRiseSetOrTwilingStartEnd(double lon, double lat, time_t *_start, time_t *_end, int twilight)
 {
    int year,month,day;
    double start, end;
    int  rs;
 
-   struct timeval te;
+//   struct timeval te;
    struct tm tm_gmt;
 
    time_t t = mea_time_value;
@@ -485,6 +485,16 @@ int mea_datetime_startTimer2(char *name, long duration, enum datetime_timer_unit
 
 int mea_datetime_removeTimer(char *name)
 {
+   struct mea_datetime_timer_s *e;
+
+   HASH_FIND_STR(mea_datetime_timers_list, name, e);
+
+   if(e)
+      HASH_DEL(mea_datetime_timers_list, e);
+   else
+      return -1;
+
+   return 0;
 }
 
 
@@ -531,28 +541,24 @@ void *_timeServer_thread(void *data)
    fprintf(stderr,"TimeServer Started\n");
    while(1)
    {
-      fprintf(stderr,"ICI1\n");
       mea_getTime(&te);
-//sleep(10000);
+
       if(last_te_tv_sec != te.tv_sec) // toutes les secondes
       {
       }
 
       if((last_te_tv_sec != te.tv_sec) && (te.tv_sec % 60) == 0) // toutes les minutes
       {
-         fprintf(stderr,"ICI2\n");
          localtime_r(&(mea_time_value), &mea_tm); // conversion en tm
       }
 
       if((te.tv_sec % 3600) == 0) // toutes les heures;
       {
-         fprintf(stderr,"ICI3\n");
          mea_clean_datetime_values_cache(); // on fait le ménage dans le cache
       }
 
       if(mea_tm.tm_wday != current_day) // 1x par jour
       {
-         fprintf(stderr,"ICI4\n");
          current_day = mea_tm.tm_wday;
 
          update_datetime_values_cache(); // on remet à jour les heures pour la nouvelle journée
@@ -574,7 +580,6 @@ void *_timeServer_thread(void *data)
          }
       }
 
-      fprintf(stderr,"ICI5\n");
       last_te_tv_sec = te.tv_sec;
       chrono_ns = te.tv_nsec;
 
@@ -605,8 +610,6 @@ void *_timeServer_thread(void *data)
          req.tv_nsec-=ONESECONDNS;
       }
 
-      fprintf(stderr,"%d.%d\n", req.tv_sec, req.tv_nsec);
-
       pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&timeServer_startTimer_lock);
       pthread_mutex_lock(&timeServer_startTimer_lock);
 
@@ -615,7 +618,6 @@ void *_timeServer_thread(void *data)
       {
       }
 
-      fprintf(stderr,"ICI1\n");
       updateTimersStates();
 
       pthread_mutex_unlock(&timeServer_startTimer_lock);

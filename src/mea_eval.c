@@ -550,7 +550,7 @@ struct eval_stack_s *getEvalStack(char *str, char **p, int16_t *err, int32_t *st
    stack=realloc(stack, (stack_index+1)*(sizeof(struct eval_stack_s)));
    if(stack==NULL)
    {
-      free(stack);
+      free(tmp);
       return NULL;
    }
 
