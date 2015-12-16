@@ -171,7 +171,7 @@ void *_automator_thread(void *data)
          {
             if(ret==ETIMEDOUT)
             {
-               errcntr=0; // c'est pas vraiment un erreur on clear le compteur d'erreur
+               errcntr=0; // c'est pas vraiment une erreur on clear le compteur d'erreur
                timeout=1;
                ret=0;
             }
@@ -420,6 +420,3 @@ int restart_automatorServer(int my_id, void *data, char *errmsg, int l_errmsg)
    }
    return ret;
 }
-
-
-
