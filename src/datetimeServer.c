@@ -542,7 +542,6 @@ void *_timeServer_thread(void *data)
    mea_time_value=te.tv_sec;
    localtime_r(&(mea_time_value), &mea_tm); // conversion en tm
    
-   fprintf(stderr,"TimeServer Started\n");
    while(1)
    {
       mea_getTime(&te);

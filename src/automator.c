@@ -592,7 +592,6 @@ static int callFunction(char *str, struct value_s *v, xPL_NameValueListPtr ListN
       case F_NOW:
          if(params[0]==0)
          {
-            // time_t t=mea_time(NULL);
             time_t t=automator_now;
             v->type=0;
             v->val.floatval=(double)t;
@@ -1258,7 +1257,6 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
    char source[80]="";
    char schema[80]="";
 
-//   automator_now=time(NULL);
    automator_now=mea_datetime_time(NULL);
    
    if(message)
