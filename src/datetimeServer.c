@@ -531,7 +531,7 @@ void *_timeServer_thread(void *data)
    fprintf(stderr,"TimeServer Started\n");
    while(1)
    {
-      fprintf(stderr,"ICI1\n");
+//      fprintf(stderr,"ICI1\n");
       mea_getTime(&te);
 //sleep(10000);
       if(last_te_tv_sec != te.tv_sec) // toutes les secondes
@@ -540,19 +540,19 @@ void *_timeServer_thread(void *data)
 
       if((last_te_tv_sec != te.tv_sec) && (te.tv_sec % 60) == 0) // toutes les minutes
       {
-         fprintf(stderr,"ICI2\n");
+//         fprintf(stderr,"ICI2\n");
          localtime_r(&(mea_time_value), &mea_tm); // conversion en tm
       }
 
       if((te.tv_sec % 3600) == 0) // toutes les heures;
       {
-         fprintf(stderr,"ICI3\n");
+//         fprintf(stderr,"ICI3\n");
          mea_clean_datetime_values_cache(); // on fait le ménage dans le cache
       }
 
       if(mea_tm.tm_wday != current_day) // 1x par jour
       {
-         fprintf(stderr,"ICI4\n");
+//         fprintf(stderr,"ICI4\n");
          current_day = mea_tm.tm_wday;
 
          update_datetime_values_cache(); // on remet à jour les heures pour la nouvelle journée
@@ -574,7 +574,7 @@ void *_timeServer_thread(void *data)
          }
       }
 
-      fprintf(stderr,"ICI5\n");
+//      fprintf(stderr,"ICI5\n");
       last_te_tv_sec = te.tv_sec;
       chrono_ns = te.tv_nsec;
 
@@ -605,7 +605,7 @@ void *_timeServer_thread(void *data)
          req.tv_nsec-=ONESECONDNS;
       }
 
-      fprintf(stderr,"%d.%d\n", req.tv_sec, req.tv_nsec);
+//      fprintf(stderr,"%d.%d\n", req.tv_sec, req.tv_nsec);
 
       pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&timeServer_startTimer_lock);
       pthread_mutex_lock(&timeServer_startTimer_lock);
@@ -615,7 +615,7 @@ void *_timeServer_thread(void *data)
       {
       }
 
-      fprintf(stderr,"ICI1\n");
+//      fprintf(stderr,"ICI1\n");
       updateTimersStates();
 
       pthread_mutex_unlock(&timeServer_startTimer_lock);
