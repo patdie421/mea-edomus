@@ -222,8 +222,9 @@ char *inputs_rules="[ \
 # C1 is: current   if: (source == 'mea-edomus.home', schema == 'sensor.basic', device == 'PROD',  type == 'power', {T2}>0 ) onmatch: moveforward 'S2'
 # B1 is: &false    if: (source == 'mea-edomus.home', schema == 'sensor.basic', device == 'TEMP',  type == 'temp',  current > 0)   onmatch: continue
 # S1 is: 'toto'    if: (source == 'mea-edomus.home', schema == 'sensor.basic', device == 'TEMP',  type == 'temp',  current <= #0) onmatch: continue
-# S2 is: &true     if: ($timer['timer1']==&false) onmatch: continue (à faire pour les timer)
-# S2 is: &false    if: ($timer['timer1']==&true) onmatch: continue (à faire pour les timer)
+# S2 is: &true     if: ($timer['timer1']==&false) onmatch: continue
+# S2 is: &false    if: ($timer['timer1']==&true) onmatch: continue
+# S3 is: $timer['timer2']
 
 # des exemples de règles "compliqués"
 # T1_last is: {T1}   if: (source == mea-edomus.home, schema == sensor.basic, device == "BUTTON2", current == &high)
@@ -242,8 +243,8 @@ char *inputs_rules="[ \
 # A2 do: xPLSend    with: (schema='control.basic', device='toto', current={E1}) when: 'C1' fall
 # A3 do: xPLSend    with: (schema='control.basic', device='tata', current={E1}) when: 'C1' change
 # A4 do: xPLSend    with: (schema='control.basic', device='tata', current=$calcb[!{E1}]) when: 'C1' change
-# A5 do: timerStart with: (name='timer1', value=10, unit='s') when: 'E1' rise
-# A6 do: timerStop  with: (name='timer1') when: 'E1' fall
+# A5 do: timerCtrl  with: (command='start', name='timer1', value=#10, unit='s') when: 'E1' rise
+# A6 do: timerCtrl  with: (command='stop', name='timer1') when: 'E1' fall
 */
 
 cJSON *_rules;
@@ -276,6 +277,7 @@ struct inputs_table_s *inputs_table = NULL;
 int reset_inputs_table_change_flag();
 static int automator_add_to_inputs_table(char *name, struct value_s *v);
 static int automator_print_inputs_table();
+static int startupStatus = 1;
 
 static int evalStr(char *str, struct value_s *v, xPL_NameValueListPtr ListNomsValeursPtr);
 
@@ -477,8 +479,9 @@ static int valuePrint(struct value_s *v)
 }
 
 
-char *functionsList[]={"now", "exist", "rise", "fall", "stay", "change", "date", "time", "sunrise", "sunset", "twilightstart", "twilightend", NULL };
-enum function_e { F_NOW=0, F_EXIST, F_RISE, F_FALL, F_STAY, F_CHANGE, F_DATE, F_TIME, F_SUNRISE, F_SUNSET, F_TWILIGHTSTART, F_TWILIGHTEND };
+//char *functionsList[]={"now", "exist", "rise", "fall", "stay", "change", "date", "time", "sunrise", "sunset", "twilightstart", "twilightend", NULL };
+
+enum function_e { F_NOW=0, F_EXIST, F_RISE, F_FALL, F_STARTUP, F_STAY, F_CHANGE, F_DATE, F_TIME, F_TIMER, F_TIMERSTATUS, F_SUNRISE, F_SUNSET, F_TWILIGHTSTART, F_TWILIGHTEND };
 
 struct function_def_s
 {
@@ -495,40 +498,18 @@ struct function_def_s functionsList2[]={
    { "fall", F_FALL, 4 },
    { "now", F_NOW, 3 },
    { "rise", F_RISE, 4 },
+   { "startup", F_STARTUP, 7 },
    { "stay", F_STAY, 4 },
    { "sunrise", F_SUNRISE, 7 },
    { "sunset", F_SUNSET, 6 },
+   { "timerstatus", F_TIMERSTATUS, 11 },
+   { "timer", F_TIMER, 5 },
    { "time", F_TIME, 4 },
    { "twilightstart", F_TWILIGHTSTART, 13 },
    { "twilightend", F_TWILIGHTEND, 11 },
    { NULL, 0, 0 }
 };
 
-/*
-static int getFunctionNum(char *str, char *params, int l_params)
-{
-   int ls=strlen(str); 
-   for(int i=0; functionsList[i]; i++)
-   {
-      int lf=strlen(functionsList[i]);
-      if(strstr(str,functionsList[i])==str)
-      {
-         if(str[lf]=='[' && str[ls-1]==']')
-         {
-            int lp = ls-lf-2;
-            if(lp>l_params)
-               lp=l_params;
-            strncpy(params, &(str[lf+1]), lp);
-            params[lp]=0;
-            return i;
-         }
-         else
-            return -1;
-      }
-   }
-   return -1;
-}
-*/
 
 static int getFunctionNum(char *str, char *params, int l_params)
 {
@@ -588,44 +569,40 @@ static int getInputEdge(char *expr, int direction,  struct value_s *v, xPL_NameV
 
 static int callFunction(char *str, struct value_s *v, xPL_NameValueListPtr ListNomsValeursPtr)
 {
-   char *_f, *f;
+   
+   char *f = NULL;
    int retour=-1;
-
    int str_l = strlen(str)+1;
-
    if(str_l > MAX_STR_SIZE)
    {
       fprintf(stderr,"Overflow !!!\n");
       return -1;
    }
-
-#ifndef USEALLOCA
-   _f=(char *)malloc(str_l);
-#else
-   _f=(char *)alloca(str_l);
-#endif
-
-   if(_f==NULL)
+/*
+   f=(char *)alloca(str_l);
+   if(f==NULL)
       return -1;
-   mea_strcpytrim(_f, str);
-   f=_f;
-//   strcpy(_f, str);
-//   f=mea_strtrim(_f);
-#ifndef USEALLOCA
+   mea_strcpytrim(f, str);
+*/
    char *params=(char *)alloca(str_l);
-#else
-   char params[MAX_STR_SIZE];
-#endif 
+   f = str;
    int fn=getFunctionNum(f, params, str_l);
    switch(fn)
    {
       case F_NOW:
          if(params[0]==0)
          {
-            // time_t t=mea_time(NULL);
             time_t t=automator_now;
             v->type=0;
             v->val.floatval=(double)t;
+            retour=0;
+         }
+         break;
+      case F_STARTUP:
+         if(params[0]==0)
+         {
+            v->type=2;
+            v->val.booleanval=startupStatus;
             retour=0;
          }
          break;
@@ -660,6 +637,27 @@ static int callFunction(char *str, struct value_s *v, xPL_NameValueListPtr ListN
       case F_CHANGE:
          retour=getInputEdge(params, CHANGE, v, ListNomsValeursPtr);
          break;
+      case F_TIMER:
+         {
+            int ret;
+            struct value_s r;
+            ret=evalStr(params, &r, ListNomsValeursPtr);
+            if(ret==0 && r.type==1)
+            {
+               int timerstate = mea_datetime_getTimerState(r.val.strval);
+               v->type=2;
+               if(timerstate == TIMER_FALLED)
+               {
+                  v->val.booleanval=1;
+               }
+               else
+               {
+                  v->val.booleanval=0;
+               } 
+               retour=0;
+            }
+         }
+         break;
       case F_TIME: // $time['18:31:01']
          {
             // struct tm tm;
@@ -675,19 +673,6 @@ static int callFunction(char *str, struct value_s *v, xPL_NameValueListPtr ListN
                   v->val.floatval=(double)t;
                   retour=0;
                }
-/*
-                 // format heure reconnu : 18:31:01
-                 // time_t now = time(NULL); // on prend l'heure courrante pour avoir le jour
-                 time_t now = automator_now; // on prend l'heure courrante pour avoir le jour
-                 mea_localtime_r(&now, &tm); // conversion en tm
-                 char *p=strptime(r.val.strval, "%H:%M:%S", &tm); // va juste remplacer les heures, minutes et secondes dans tm
-                 if(p!=NULL && *p==0)
-                 {
-                    v->type=0;
-                    v->val.floatval=(double)mktime(&tm);
-                    retour=0;
-                 }
-*/
             }
          }
          break;
@@ -707,7 +692,6 @@ static int callFunction(char *str, struct value_s *v, xPL_NameValueListPtr ListN
                {
                   v->type=0;
                   v->val.floatval=(double)mktime(&tm);
-//                  fprintf(stderr,"time = %f\n", v->val.floatval);
                   retour=0;
                }
             }
@@ -719,7 +703,6 @@ static int callFunction(char *str, struct value_s *v, xPL_NameValueListPtr ListN
       case F_TWILIGHTEND:
          {
             int ret;
-//            struct tm tm;
             struct value_s r;
 
             ret=evalStr(params, &r, ListNomsValeursPtr);
@@ -749,27 +732,16 @@ static int callFunction(char *str, struct value_s *v, xPL_NameValueListPtr ListN
          break;
    }
 
-//callFunction_clean_exit:
-#ifndef USEALLOCA
-   if(_f)
-     free(_f);
-#endif
    return retour;
 }
 
 
 static int evalStr(char *str, struct value_s *v, xPL_NameValueListPtr ListNomsValeursPtr)
 {
-   char *p=NULL;
-   char _str[sizeof(v->val.strval)];
+   char p[sizeof(v->val.strval)];
 
-//   strncpy(_str, str, sizeof(v->val.strval)-1);
-//   _str[sizeof(v->val.strval)-1]=0;
-//   p=mea_strtrim(_str);
-
-    mea_strncpytrim(_str, str, sizeof(v->val.strval)-1);
-    _str[sizeof(v->val.strval)-1]=0;
-    p=_str;
+    mea_strncpytrim(p, str, sizeof(v->val.strval)-1);
+    p[sizeof(v->val.strval)-1]=0;
 
    if(p[0]=='#') // une constante numérique
    {
@@ -826,9 +798,6 @@ static int evalStr(char *str, struct value_s *v, xPL_NameValueListPtr ListNomsVa
          l=sizeof(name)+2;
 
        char *_p=NULL;
-//      strncpy(name, &(p[1]), l-2);
-//      name[l-2]=0;
-//      _p=mea_strtrim(name);
        mea_strncpytrim(name, &(p[1]), l-2);
        name[l-2]=0;
        _p=name; 
@@ -874,7 +843,176 @@ static int evalStr(char *str, struct value_s *v, xPL_NameValueListPtr ListNomsVa
 }
 
 
+static int automator_timerCtrl(cJSON *parameters)
+{
+   // timerCtrl  with: (command='start', name='timer1', value=10, unit='s')
+   if(parameters==NULL || parameters->child==NULL)
+      return -1;
+
+   cJSON *command = cJSON_GetObjectItem(parameters, "command");
+   cJSON *name = cJSON_GetObjectItem(parameters, "name");
+
+   if(command == NULL || name == NULL)
+      return -1;
+
+   struct value_s c, n;
+   if(command->type != cJSON_String || evalStr(command->valuestring, &c, NULL)<0 || c.type != 1)
+      return -1;
+   if(name->type != cJSON_String || evalStr(name->valuestring, &n, NULL)<0 || n.type != 1)
+      return -1;
+
+   char timername[sizeof(n.val.strval)];
+   char timercommand[sizeof(c.val.strval)];
+
+   mea_strcpytrimlower(timername, n.val.strval);
+   mea_strcpytrimlower(timercommand, c.val.strval);
+
+   if(command->type == cJSON_String && strcmp(timercommand,"start")==0)
+   {
+      cJSON *value = cJSON_GetObjectItem(parameters, "value");
+      cJSON *unit = cJSON_GetObjectItem(parameters, "unit");
+
+      if(value == NULL || unit == NULL)
+         return -1;
+
+      struct value_s v, u;
+      if(evalStr(value->valuestring, &v, NULL)<0 || v.type != 0 || v.val.floatval < 1.0)
+         return -1;
+      if(evalStr(unit->valuestring, &u, NULL)<0 || u.type != 1)
+         return -1;
+
+      char timerunit[sizeof(u.val.strval)];
+
+      mea_strcpytrimlower(timerunit, u.val.strval);
+
+      enum datetime_timer_unit_e timerunitval = -1;
+      if(mea_strcmplower(timerunit, "sec")==0)
+         timerunitval = TIMER_SEC;
+      else if(mea_strcmplower(timerunit, "min")==0)
+         timerunitval = TIMER_MIN;
+      else if(mea_strcmplower(timerunit, "msec")==0)
+         timerunitval = TIMER_MSEC;
+      else if(mea_strcmplower(timerunit, "csec")==0)
+         timerunitval = TIMER_CSEC;
+      else
+         return -1;
+
+     mea_log_printf("%s (%s) : start timer\n", INFO_STR, __func__);
+     return mea_datetime_startTimer2(timername, (int)v.val.floatval, timerunitval, automatorServer_timer_wakeup, NULL); 
+   }
+   else if(command->type == cJSON_String &&  strcmp(timercommand,"stop")==0)
+   {
+      return mea_datetime_stopTimer(timername);
+   }
+
+   fprintf(stderr,"unknown command : %s\n", command->valuestring);
+
+   return 0;
+}
+
+
 static int automator_sendxpl(cJSON *parameters)
+{
+   if(parameters==NULL || parameters->child==NULL)
+      return -1;
+
+   xPL_ServicePtr servicePtr = mea_getXPLServicePtr();
+   if(!servicePtr)
+      return -1;
+
+   xPL_MessagePtr xplMessage = xPL_createBroadcastMessage(servicePtr, xPL_MESSAGE_COMMAND);
+   if(!xplMessage)
+      return -1;
+
+   cJSON *e=parameters->child;
+
+   int retour=0;
+   char schema[21]="control.basic";
+   char target[41]="";
+   int msgtype=xPL_MESSAGE_COMMAND;
+   while(e)
+   {
+      struct value_s v;
+    
+      if(evalStr(e->valuestring, &v, NULL)==0)
+      {
+         // type de message
+         if(strcmp(e->string, "msgtype")==0)
+         {
+            if(v.type==1)
+            {
+               if(strcmp(v.val.strval, "trigger")==0)
+                  msgtype=xPL_MESSAGE_TRIGGER;
+               else if(strcmp(v.val.strval, "status")==0)
+                  msgtype=xPL_MESSAGE_STATUS;
+               else if(strcmp(v.val.strval, "command")==0)
+                  msgtype=xPL_MESSAGE_COMMAND;
+               else {
+                  retour=-1;
+                  break;
+               }
+            }
+            else {
+               retour=-1;
+               break;
+            }
+         }
+         else if(strcmp(e->string, "schema")==0) {
+         
+            strncpy(schema, v.val.strval, sizeof(schema)-1);
+            schema[sizeof(schema)-1]=0;
+         }
+         else if(strcmp(e->string,"source")==0) {
+            retour=-1;
+            break;
+         }
+         else if(strcmp(e->string,"target")==0) {
+            strncpy(target, v.val.strval, sizeof(target)-1);
+            target[sizeof(target)-1]=0;
+         }
+         else
+         {
+            char s[sizeof(v.val.strval)];
+            valueToStr(&v, s, sizeof(v.val.strval), INT | HIGHLOW);
+            xPL_setMessageNamedValue(xplMessage, e->string, s);
+         }
+      }
+      else {
+         retour=-1;
+         break;
+      }
+      e=e->next;
+   }
+   if(retour==-1) { 
+      xPL_releaseMessage(xplMessage);
+      return -1;
+   }
+
+   // changement du type de message
+   xplMessage->messageType = msgtype;
+
+   // mise en place du schema
+   char class[21]; char type[21];
+   sscanf(schema,"%[^.].%s\n", class, type);
+   xPL_setSchema(xplMessage, class, type);
+
+   // changement du target si nécessaire
+   if(target[0]!=0) {
+   }
+
+   // emission du message
+   automator_xplout_indicator++;
+   mea_sendXPLMessage(xplMessage);
+
+   DEBUG_SECTION2(DEBUGFLAG) displayXPLMsg(xplMessage);
+
+   xPL_releaseMessage(xplMessage);
+ 
+   return 0;
+}
+
+
+static int automator_sendxpl_org(cJSON *parameters)
 {
    if(parameters==NULL || parameters->child==NULL)
       return -1;
@@ -979,7 +1117,7 @@ int automator_play_output_rules(cJSON *rules)
 {
    if(rules==NULL)
    {
-      fprintf(stderr,"NO OUTPUT RULE\n");
+      DEBUG_SECTION2(DEBUGFLAG) fprintf(stderr,"NO OUTPUT RULE\n");
       return -1;
    }
 
@@ -1005,8 +1143,11 @@ int automator_play_output_rules(cJSON *rules)
          goto next_rule;
       }
       
+//      struct inputs_table_s  *current, *tmp; HASH_ITER(hh, inputs_table, current, tmp) fprintf(stderr,"> [%s]\n", current->name); 
+
       struct inputs_table_s *i = NULL;
       HASH_FIND_STR(inputs_table, v.val.strval, i);
+ 
       if(i==NULL)
       {
          DEBUG_SECTION2(DEBUGFLAG) fprintf(stderr,"Input rule (%s) no data found\n", v.val.strval);
@@ -1029,6 +1170,11 @@ int automator_play_output_rules(cJSON *rules)
          if(i->state==CHANGE || i->state==RISE || i->state==FALL)
             actionFlag=1; 
       }
+      else if(strcmp(condition->child->valuestring, "new")==0)
+      {
+         if(i->state==NEW)
+            actionFlag=1; 
+      }
       else
       {
          DEBUG_SECTION2(DEBUGFLAG) fprintf(stderr,"condition error\n");
@@ -1037,8 +1183,10 @@ int automator_play_output_rules(cJSON *rules)
 
       if(actionFlag==1)
       {
-         if(strcmp(action->valuestring, "xPLSend")==0)
+         if(mea_strcmplower(action->valuestring, "xPLSend")==0)
             automator_sendxpl(parameters);
+         else if(mea_strcmplower(action->valuestring, "timerCtrl")==0)
+            automator_timerCtrl(parameters); 
       } 
 
 next_rule:
@@ -1109,7 +1257,6 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
    char source[80]="";
    char schema[80]="";
 
-//   automator_now=time(NULL);
    automator_now=mea_datetime_time(NULL);
    
    if(message)
@@ -1285,6 +1432,7 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
       }
       else
       {
+
          DEBUG_SECTION2(DEBUGFLAG) fprintf(stderr,"   NOT MATCH !\n");
       }
       e=e->next;
@@ -1320,6 +1468,8 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
          automator_print_inputs_table();
       } 
    }
+
+   startupStatus = 0;
 
    return 0;
 }

@@ -15,6 +15,8 @@ time_t mea_datetime_twilightend();
 
 int mea_datetime_getTimerState(char *name);
 int mea_datetime_startTimer(char *name, long duration, enum datetime_timer_unit_e unit);
+int mea_datetime_startTimer2(char *name, long duration, enum datetime_timer_unit_e unit, datetime_timer_callback_f f, void *userdata);
+      
 int mea_datetime_stopTimer(char *name);
 
 void timespecAdd(struct timespec *t, struct timespec *t1, struct timespec *t2);

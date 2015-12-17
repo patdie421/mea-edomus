@@ -11,6 +11,7 @@
 #include <pthread.h>
 
 #define DEBUGFLAG 1
+
 #include "mea_verbose.h"
 #include "mea_string_utils.h"
 #include "uthash.h"
@@ -461,10 +462,9 @@ startTimer_clean_exit:
 
 int mea_datetime_getTimerState(char *name)
 {
-   struct mea_datetime_timer_s *e;
+   struct mea_datetime_timer_s *e = NULL;
 
    HASH_FIND_STR(mea_datetime_timers_list, name, e);
-
    if(e)
       return e->state;
    return -1;
@@ -487,8 +487,8 @@ int mea_datetime_removeTimer(char *name)
 {
    struct mea_datetime_timer_s *e;
 
-   HASH_FIND_STR(mea_datetime_timers_list, name, e);
 
+   HASH_FIND_STR(mea_datetime_timers_list, name, e);
    if(e)
       HASH_DEL(mea_datetime_timers_list, e);
    else
@@ -538,7 +538,10 @@ void *_timeServer_thread(void *data)
 
    struct mea_datetime_timer_s *nextTimer = NULL;
 
-   fprintf(stderr,"TimeServer Started\n");
+   mea_getTime(&te);
+   mea_time_value=te.tv_sec;
+   localtime_r(&(mea_time_value), &mea_tm); // conversion en tm
+   
    while(1)
    {
       mea_getTime(&te);
@@ -547,20 +550,30 @@ void *_timeServer_thread(void *data)
 
       if(last_te_tv_sec != te.tv_sec) // toutes les secondes
       {
+         mea_time_value=te.tv_sec;
       }
 
       if((last_te_tv_sec != te.tv_sec) && (te.tv_sec % 60) == 0) // toutes les minutes
       {
+         DEBUG_SECTION {
+            mea_log_printf("Traitement minute\n");
+         }
          localtime_r(&(mea_time_value), &mea_tm); // conversion en tm
       }
 
       if((te.tv_sec % 3600) == 0) // toutes les heures;
       {
+         DEBUG_SECTION {
+            mea_log_printf("Traitement heure\n");
+         }
          mea_clean_datetime_values_cache(); // on fait le ménage dans le cache
       }
 
       if(mea_tm.tm_wday != current_day) // 1x par jour
       {
+         DEBUG_SECTION {
+            mea_log_printf("Traitement jour\n");
+         }
          current_day = mea_tm.tm_wday;
 
          update_datetime_values_cache(); // on remet à jour les heures pour la nouvelle journée
@@ -597,10 +610,10 @@ void *_timeServer_thread(void *data)
 
       // un timer arrive-t-il a échéance avant le temps de sommeil calculé ?
       nextTimer=findNextTimerToFall();
-      if(nextTimer) // oui, on ajuste le temps de sommeil si nécessaire
+      if(nextTimer)
       {
          timespecDiff(&t, &(nextTimer->end), &te);
-         if(t.tv_sec == 0 && t.tv_nsec < sleep_time_ns)
+         if(t.tv_sec == 0 && t.tv_nsec < sleep_time_ns) // oui, on ajuste le temps de sommeil en concéquence
             sleep_time_ns = t.tv_nsec;
       }
 
