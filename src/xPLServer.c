@@ -281,20 +281,7 @@ uint16_t mea_sendXPLMessage(xPL_MessagePtr xPLMsg)
 
       // duplication du message xPL
       newXPLMsg = xPLCpyMsg(xPLMsg);
-/*
-      newXPLMsg = xPL_createBroadcastMessage(xPLService, xPL_getMessageType(xPLMsg));
 
-      xPL_setSchema(newXPLMsg, xPL_getSchemaClass(xPLMsg), xPL_getSchemaType(xPLMsg));
-      xPL_setTarget(newXPLMsg, xPL_getTargetVendor(xPLMsg), xPL_getTargetDeviceID(xPLMsg), xPL_getTargetInstanceID(xPLMsg));
-      xPL_NameValueListPtr body = xPL_getMessageBody(xPLMsg);
-
-      int n = xPL_getNamedValueCount(body);
-      for (int i=0; i<n; i++)
-      {
-         xPL_NameValuePairPtr keyValuePtr = xPL_getNamedValuePairAt(body, i);
-         xPL_setMessageNamedValue(newXPLMsg, keyValuePtr->itemName, keyValuePtr->itemValue);
-      }
-*/
       // ajout de la copie du message dans la file
       pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(xplRespQueue_sync_lock) );
       pthread_mutex_lock(&xplRespQueue_sync_lock);
@@ -463,7 +450,11 @@ void _cmndXPLMessageHandler(xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
    // on envoie tous les messages à l'automate (à lui de filtrer ...)
    xPL_MessagePtr msg=xPLCpyMsg(theMessage);
    if(msg)
-      automatorServer_add_msg(msg);
+   {
+      if(automatorServer_add_msg(msg)==ERROR)
+      {
+      }
+   }
 
    // pour les autres on filtre un peu avant de transmettre pour traitement
 

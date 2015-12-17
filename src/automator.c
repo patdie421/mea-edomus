@@ -43,154 +43,6 @@
 #define DEBUG
 #define USEALLOCA
 
-// RULES :
-// xpl-trig: source = mea-edomus.home, destination = *, schema = sensor.basic, body = [device = conso, type = power, current = 274.591704]
-// xpl-trig: source = mea-edomus.home, destination = *, schema = sensor.basic, body = [device = epgstat01, current = 1]
-/*
-char *outputs_rules="[ \
-   { \
-      \"name\": \"O1\", \
-      \"action\" : \"xPLSend\", \
-      \"parameters\" : [ \
-         { \"msgtype\"  : \"'trigger'\" }, \
-         { \"schema\"  : \"'sensor.basic'\" }, \
-         { \"device\"  : \"'conso01'\" }, \
-         { \"current\" : \"&high\" } \
-      ], \
-      \"condition\" : { \"'V1'\" : \"rise\"} \
-   }, \
-   { \
-      \"name\": \"O2\", \
-      \"action\" : \"xPLSend\", \
-      \"parameters\" : [ \
-         { \"schema\"  : \"'control.basic'\" }, \
-         { \"device\"  : \"'toto'\" }, \
-         { \"current\" : \"{E3}\" } \
-      ], \
-      \"condition\" : { \"'E3'\" : \"fall\"} \
-   }, \
-   { \
-      \"name\": \"O3\", \
-      \"action\" : \"xPLSend\", \
-      \"parameters\" : [ \
-         { \"schema\"  : \"'control.basic'\" }, \
-         { \"target\"  : \"'mea-edomus.test'\" }, \
-         { \"device\"  : \"'tata'\" }, \
-         { \"current\" : \"{E3}\" } \
-      ], \
-      \"condition\" : { \"'E3'\" : \"change\"} \
-   } \
-]";
-
-
-char *inputs_rules="[ \
-   { \
-      \"name\": \"V1\", \
-      \"value\" : \"$now[]\", \
-      \"onmatch\": \"moveforward 'V2'\" \
-   }, \
-   { \
-      \"name\": \"<NOP>\", \
-      \"value\" : \"#0\", \
-      \"conditions\" : [ \
-         { \"value1\" : \"schema\", \"op\" : \"==\", \"value2\" : \"'hbeat.app'\" } \
-      ], \
-      \"onmatch\": \"break\" \
-   }, \
-   { \
-      \"name\": \"<NOP>\", \
-      \"value\" : \"#0\", \
-      \"conditions\" : [ \
-         { \"value1\" : \"schema\", \"op\" : \"==\", \"value2\" : \"'watchdog.basic'\" } \
-      ], \
-      \"onmatch\": \"break\" \
-   }, \
-   { \
-      \"name\": \"STOPEVAL\", \
-      \"value\" : \"current\", \
-      \"conditions\" : [ \
-         { \"value1\" : \"source\", \"op\" : \"==\", \"value2\" : \"'mea-edomus.home'\" }, \
-         { \"value1\" : \"schema\", \"op\" : \"==\", \"value2\" : \"'sensor.basic'\"}, \
-         { \"value1\" : \"device\", \"op\" : \"==\", \"value2\" : \"'stopeval01'\"} \
-      ], \
-      \"onmatch\": \"continue\" \
-   }, \
-   { \
-      \"name\": \"BREAK\", \
-      \"value\" : \"#0\", \
-      \"conditions\" : [ \
-         { \"value1\" : \"{STOPEVAL}\", \"op\" : \"==\", \"value2\" : \"&true\" } \
-      ], \
-      \"onmatch\": \"break\" \
-   }, \
-   { \
-      \"name\": \"T1\", \
-      \"value\" : \"#0\", \
-      \"conditions\" : [ \
-         { \"value1\" : \"$exist('T1')\", \"op\" : \"==\", \"value\" : \"&false\" } \
-      ], \
-      \"onmatch\": \"continue\" \
-   }, \
-   { \
-      \"name\": \"V2\", \
-      \"value\" : \"{E1}\", \
-      \"onmatch\": \"continue\" \
-   }, \
-   { \
-      \"name\": \"E1\", \
-      \"value\" : \"current\", \
-      \"conditions\" : [ \
-         { \"value1\" : \"device\", \"op\" : \"==\", \"value2\" : \"'BUTTON1'\"}, \
-         { \"value1\" : \"source\", \"op\" : \"==\", \"value2\" : \"'mea-edomus.home'\" }, \
-         { \"value1\" : \"schema\", \"op\" : \"==\", \"value2\" : \"'sensor.basic'\"}, \
-         { \"value1\" : \"type\",   \"op\" : \"==\", \"value2\" : \"'input'\"} \
-      ], \
-      \"onmatch\": \"break\" \
-   }, \
-   { \
-      \"name\": \"E2\", \
-      \"value\" : \"current\", \
-      \"conditions\" : [ \
-         { \"value1\" : \"device\", \"op\" : \"==\", \"value2\" : \"'BUTTON2'\"}, \
-         { \"value1\" : \"source\", \"op\" : \"==\", \"value2\" : \"'mea-edomus.home'\" }, \
-         { \"value1\" : \"schema\", \"op\" : \"==\", \"value2\" : \"'sensor.basic'\"}, \
-         { \"value1\" : \"type\",   \"op\" : \"==\", \"value2\" : \"'input'\"} \
-      ], \
-      \"onmatch\": \"break\" \
-   }, \
-   { \
-      \"name\": \"E3\", \
-      \"value\" : \"current\", \
-      \"conditions\" : [ \
-         { \"value1\" : \"device\", \"op\" : \"==\", \"value2\" : \"'conso'\"}, \
-         { \"value1\" : \"source\", \"op\" : \"==\", \"value2\" : \"'mea-edomus.home'\" }, \
-         { \"value1\" : \"schema\", \"op\" : \"==\", \"value2\" : \"'sensor.basic'\"}, \
-         { \"value1\" : \"type\",   \"op\" : \"==\", \"value2\" : \"'power'\"} \
-      ], \
-      \"onmatch\": \"break\" \
-   }, \
-   { \
-      \"name\": \"TEMP1\", \
-      \"value\" : \"current\", \
-      \"conditions\" : [ \
-         { \"value1\" : \"device\", \"op\" : \"==\", \"value2\" : \"'temp01'\"}, \
-         { \"value1\" : \"source\", \"op\" : \"==\", \"value2\" : \"'mea-edomus.home'\" }, \
-         { \"value1\" : \"schema\", \"op\" : \"==\", \"value2\" : \"'sensor.basic'\"} \
-      ], \
-      \"onmatch\": \"break\" \
-   }, \
-   { \
-      \"name\": \"E4\", \
-      \"value\" : \"current\", \
-      \"conditions\" : [ \
-         { \"value1\" : \"device\", \"op\" : \"==\", \"value2\" : \"'epgstat01'\"}, \
-         { \"value1\" : \"source\", \"op\" : \"==\", \"value2\" : \"'mea-edomus.home'\" }, \
-         { \"value1\" : \"schema\", \"op\" : \"==\", \"value2\" : \"'sensor.basic'\"} \
-      ], \
-      \"onmatch\": \"break\" \
-   } \
-]";
-*/
 /*
 # les règles sont évaluées dans l'ordre. Par defaut toutes les règles sont évaluées l'une après l'autre
 # ce comportement par défaut est modifiée par "onmatch:" (break, continue, moveforward, ...)
@@ -353,7 +205,7 @@ static int setValueFromStr(struct value_s *v, char *str)
 }
 
 
-static int setValueFromTrimedStr(struct value_s *v, char *str)
+static int setValueFromStrTrim(struct value_s *v, char *str)
 {
    return _setValueFromStr(v, str, 1);
 }
@@ -1186,7 +1038,7 @@ int automator_play_output_rules(cJSON *rules)
          if(mea_strcmplower(action->valuestring, "xPLSend")==0)
             automator_sendxpl(parameters);
          else if(mea_strcmplower(action->valuestring, "timerCtrl")==0)
-            automator_timerCtrl(parameters); 
+            automator_timerCtrl(parameters);
       } 
 
 next_rule:
@@ -1363,12 +1215,7 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
       if(match==1)
       {
          DEBUG_SECTION2(DEBUGFLAG) fprintf(stderr,"   MATCH !\n");
-/*
-         VERBOSE(5) {
-            if(message!=NULL && mea_strcmplower(value->valuestring, "<LABEL>")!=0)
-               mea_log_printf("%s (%s) : rule '%s' match\n", INFO_STR, __func__, name->valuestring);
-         }
-*/
+
          if(strcmp(name->valuestring, "<NOP>")!=0)
             automator_add_to_inputs_table(name->valuestring, &res);
          else
@@ -1379,7 +1226,6 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
          if(onmatch) // post action
          {
             char action[41]="";
-//            strncpy(action, onmatch->valuestring, sizeof(action)-1);
             mea_strncpylower(action, onmatch->valuestring, sizeof(action)-1);
             action[sizeof(action)-1]=0;
             // découpage de la chaine si nécessaire
@@ -1393,14 +1239,11 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
                   break;
                }
             }
-//            if(mea_strcmplower(action, "break")==0 && !p)
             if(strcmp(action, "break")==0 && !p)
                break;
-//            else if(mea_strcmplower(action, "continue")==0 && !p)
             else if(strcmp(action, "continue")==0 && !p)
             {
             }
-//            else if(mea_strcmplower(action, "moveforward")==0 && p)
             else if(strcmp(action, "moveforward")==0 && p)
             {
                struct value_s r;

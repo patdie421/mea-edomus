@@ -717,7 +717,7 @@ int16_t calcn(char *str, double *r)
 #endif
 
 
-#ifdef EVAL_MODULE_TEST
+#ifdef MEA_EVAL_MODULE_TEST
 double millis()
 {
    struct timeval te;

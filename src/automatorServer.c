@@ -104,7 +104,7 @@ automatorServer_add_msg_clean_exit:
    {
       if(e->msg)
       {
-         free(e->msg);
+         xPL_releaseMessage(e->msg);
          e->msg=NULL;
       }
       free(e);
@@ -176,8 +176,6 @@ void *_automator_thread(void *data)
    int err_indicator = 0;
    int16_t timeout;
   
-//   mea_datetime_startTimer2("test", 10, TIMER_SEC, automatorServer_timer_wakeup, NULL);
-
    while(1)
    {
       ret=0;
@@ -198,10 +196,7 @@ void *_automator_thread(void *data)
          struct timeval tv;
          struct timespec ts;
          gettimeofday(&tv, NULL);
-/*
-         ts.tv_sec = tv.tv_sec + 10; // timeout de 10 secondes
-         ts.tv_nsec = tv.tv_nsec;
-*/
+
 //         long ns_timeout=1000 * 1000 * 100; // 100 ms en nanoseconde
          long ns_timeout=1000 * 1000 * 999; // 1s
          ts.tv_sec = tv.tv_sec;
@@ -237,7 +232,7 @@ void *_automator_thread(void *data)
                   perror("");
                }
 
-               if(errcntr > 10) // 10 erreur d'affilé, on va pas s'en sortir => on s'arrête proprement
+               if(errcntr > 10) // 10 erreurs d'affilé, on va pas s'en sortir => on s'arrête proprement
                {         
                   process_async_stop(_automatorServer_monitoring_id);
                   for(;;) sleep(1);
@@ -287,7 +282,6 @@ void *_automator_thread(void *data)
          automator_reset_inputs_change_flags();
          automator_xplin_indicator++;
 
-         // faire ici ce qu'il y a à faire
          if(e)
          {
             if(e->type == 1 && e->msg)
@@ -378,8 +372,14 @@ automatorServer_clean_exit:
 void automator_msg_queue_free_queue_elem(void *d)
 {
    automator_msg_t *e=(automator_msg_t *)d;
-   xPL_releaseMessage(e->msg);
-   free(e->msg);
+   if(e)
+   {
+      if(e->msg)
+      {
+         xPL_releaseMessage(e->msg);
+      }
+      free(e);
+   }
 } 
 
 
