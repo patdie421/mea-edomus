@@ -543,6 +543,8 @@ void *_timeServer_thread(void *data)
    {
       mea_getTime(&te);
 
+      updateTimersStates();
+
       if(last_te_tv_sec != te.tv_sec) // toutes les secondes
       {
       }
@@ -617,8 +619,6 @@ void *_timeServer_thread(void *data)
       if(ret != 0)
       {
       }
-
-      updateTimersStates();
 
       pthread_mutex_unlock(&timeServer_startTimer_lock);
       pthread_cleanup_pop(0);
