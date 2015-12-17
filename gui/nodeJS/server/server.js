@@ -299,6 +299,12 @@ io.sockets.on('connection', function(socket) {
 function sendMessage(key, message) {
    // emission du message 'key' à tous les clients "authentifies"
    for (var i in clients) {
-      clients[i].socket.emit(key, message.toString());
+      try {
+         clients[i].socket.emit(key, message.toString());
+      }
+      catch(err)
+      {
+         console.log(err.stack);
+      }
    }
 }

@@ -29,6 +29,7 @@
 
 #include "automator.h"
 #include "automatorServer.h"
+#include "datetimeServer.h"
 
 char *automator_server_name_str="AUTOMATORSERVER";
 char *automator_input_exec_time_str="INEXECTIME";
@@ -79,6 +80,7 @@ mea_error_t automatorServer_add_msg(xPL_MessagePtr msg)
    if(!e)
       return ERROR;
 
+   e->type=1;
    e->msg=msg;
  
    pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&automator_msg_queue_lock);
@@ -112,6 +114,46 @@ automatorServer_add_msg_clean_exit:
 }
 
 
+int automatorServer_timer_wakeup(char *name, void *userdata)
+{
+   int retour=0;
+
+//   fprintf(stderr,"Timer wakeup %s\n", name);
+
+   automator_msg_t *e=NULL;
+   e=(automator_msg_t *)malloc(sizeof(automator_msg_t));
+   if(!e)
+      return -1;
+
+   e->type=2;
+   e->msg=NULL;
+
+   pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&automator_msg_queue_lock);
+   pthread_mutex_lock(&automator_msg_queue_lock);
+   if(automator_msg_queue)
+   {
+      mea_queue_in_elem(automator_msg_queue, e);
+      if(automator_msg_queue->nb_elem>=1)
+         pthread_cond_broadcast(&automator_msg_queue_cond);
+   }
+   else
+      retour=-1;
+   pthread_mutex_unlock(&automator_msg_queue_lock);
+   pthread_cleanup_pop(0);
+
+   if(retour==0)
+      return 0;
+
+automatorServer_add_msg_clean_exit:
+   if(e)
+   {
+      free(e);
+      e=NULL;
+   }
+   return -1;
+}
+
+
 void *_automator_thread(void *data)
 {
    int ret;
@@ -133,7 +175,9 @@ void *_automator_thread(void *data)
    int16_t errcntr = 0;
    int err_indicator = 0;
    int16_t timeout;
-   
+  
+//   mea_datetime_startTimer2("test", 10, TIMER_SEC, automatorServer_timer_wakeup, NULL);
+
    while(1)
    {
       ret=0;
@@ -158,7 +202,8 @@ void *_automator_thread(void *data)
          ts.tv_sec = tv.tv_sec + 10; // timeout de 10 secondes
          ts.tv_nsec = tv.tv_nsec;
 */
-         long ns_timeout=1000 * 1000 * 50; // 50 ms en nanoseconde
+//         long ns_timeout=1000 * 1000 * 100; // 100 ms en nanoseconde
+         long ns_timeout=1000 * 1000 * 999; // 1s
          ts.tv_sec = tv.tv_sec;
          ts.tv_nsec = (tv.tv_usec * 1000) + ns_timeout;
          if(ts.tv_nsec>1000000000L) // 1.000.000.000 ns = 1 seconde
@@ -228,7 +273,14 @@ void *_automator_thread(void *data)
      
       if(!ret) // on a sortie un élément de la queue
       {
-         DEBUG_SECTION2(DEBUGFLAG) displayXPLMsg(e->msg);
+         if(e->type==1)
+         {
+            DEBUG_SECTION2(DEBUGFLAG) displayXPLMsg(e->msg);
+         }
+         else if(e->type == 2)
+         {
+            mea_log_printf("%s (%s) : timer wakeup signal\n", INFO_STR, __func__);
+         }
 
          automator_match_inputs_rules(_inputs_rules, e->msg);
          automator_play_output_rules(_outputs_rules);
@@ -238,7 +290,7 @@ void *_automator_thread(void *data)
          // faire ici ce qu'il y a à faire
          if(e)
          {
-            if(e->msg)
+            if(e->type == 1 && e->msg)
             {
                // liberer le message
                

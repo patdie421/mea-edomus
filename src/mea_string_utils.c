@@ -59,6 +59,24 @@ void mea_strcpytrim(char *d, char *s)
 }
 
 
+void mea_strcpytrimlower(char *d, char *s)
+{
+   char *p=d;
+
+   while(*s && *s==' ') ++s;
+
+   while(*s)
+   {
+      *d=tolower(*s);
+      ++d;
+      if(*s!=' ')
+         p=d;
+      ++s;
+   }
+   *p=0;
+}
+
+
 void mea_strncpytrim(char *d, char *s, int n)
 {
    if(n<0)
@@ -70,6 +88,28 @@ void mea_strncpytrim(char *d, char *s, int n)
    while(*s && n)
    {
       *d=*s;
+      --n;
+      ++d;
+      if(*s!=' ')
+         p=d;
+      ++s;
+   }
+   if(n)
+      *p=0;
+}
+
+
+void mea_strncpytrimlower(char *d, char *s, int n)
+{
+   if(n<0)
+      return;
+
+   char *p=d;
+   while(*s && *s==' ') ++s;
+
+   while(*s && n)
+   {
+      *d=tolower(*s);
       --n;
       ++d;
       if(*s!=' ')

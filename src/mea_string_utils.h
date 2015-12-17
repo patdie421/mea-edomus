@@ -43,5 +43,7 @@ void    mea_strcpylower(char *d, char *s);
 void    mea_strncpylower(char *d, char *s, int n);
 void    mea_strcpytrim(char *d, char *s);
 void    mea_strncpytrim(char *d, char *s, int n);
+void    mea_strcpytrimlower(char *d, char *s);
+void    mea_strncpytrimlower(char *d, char *s, int n);
 
 #endif

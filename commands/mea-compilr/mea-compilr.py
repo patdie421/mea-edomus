@@ -110,16 +110,16 @@ def rulesToJSON(file, verboseFlag, debugFlag, numFile):
             print "line "+str(numLine)+" : malformed rule, check syntax"
             return False
 
-         rule['parameters']=[]
+         rule['parameters']={}
          _parameters=s[4]
          if _parameters[:1]=='(' and _parameters[-1:]==')':
             _parametersList=_parameters[1:-1].split(",")
             for i in _parametersList:
                i=i.strip()
                c=re.split('(=)',i)
-               rule['parameters'].append({ c[0].strip() : c[2].strip() })
+               rule['parameters'][c[0].strip()]=c[2].strip()
 
-         condition=re.split('(rise|fall|change)',s[6])
+         condition=re.split('(rise|fall|change|new)',s[6])
          if len(condition) != 3:
             print "line "+str(numLine)+" : malformed rule, check syntax"
             return False
