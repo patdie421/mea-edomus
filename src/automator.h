@@ -4,6 +4,8 @@
 #include "cJSON.h"
 #include "xPL.h"
 
+#define VALUE_MAX_STR_SIZE 41
+
 extern char *inputs_rules;
 extern char *outputs_rules;
 

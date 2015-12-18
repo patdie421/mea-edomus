@@ -21,6 +21,7 @@
 #include <inttypes.h>
 
 #include "mea_string_utils.h"
+#include "automator.h"
 #include "mea_eval.h"
 #include "uthash.h"
 
@@ -32,10 +33,11 @@ static getVarId_f _getVarId = NULL;
 static inline int  mea_eval_operatorPriorityCmpN(int op1, int op2);
 static inline int  mea_eval_getOperatorN(char *str, char **newptr);
 static inline void mea_eval_getSpace(char *p, char **newptr);
-static inline int  mea_eval_getFunctionId(char *str, int l);
+static inline int16_t  mea_eval_getFunctionId(char *str, int16_t l);
 
 
 enum mea_eval_function_id_e { INT_F=0 };
+
 
 struct mea_eval_function_def_s
 {
@@ -45,18 +47,18 @@ struct mea_eval_function_def_s
 };
 
 
+struct mea_eval_function_def_s functionsList[]={
+   { "int", INT_F, 3 },
+   { NULL, 0, 0 }
+};
+
+
 enum mea_eval_token_type_id_e { NUMERIC_T, VARIABLE_T, FUNCTION_T };
 
 union mea_eval_token_data_u {
    double floatval;
-   int var_id;
-   int fn_id;
-};
-
-
-struct mea_eval_function_def_s functionsList[]={
-   { "int", INT_F, 3 },
-   { NULL, 0, 0 }
+   int16_t var_id;
+   int16_t fn_id;
 };
 
 
@@ -85,14 +87,13 @@ static int mea_eval_getOperatorN(char *str, char **newptr)
 }
 
 
-static int mea_eval_getFunctionId(char *str, int l)
+static int16_t mea_eval_getFunctionId(char *str, int16_t l)
 {
-   char name[41];
    int functionId = -1;
-   
-   if(l>(sizeof(name)-1))
-      l=sizeof(name)-1;
-  
+   if(l>1024)
+      return -1;
+   char *name = alloca(l+1);
+
    strncpy(name, str, l);
    name[l]=0;
 
@@ -157,7 +158,7 @@ static enum mea_eval_token_type_id_e mea_eval_getToken(char *str, char **newptr,
                ++p;
             if(*p=='}')
             {
-               char name[41];
+               char name[VALUE_MAX_STR_SIZE];
                strncpy(name, str+1, (int)(p-str)-1);
                name[(int)(p-str-1)]=0; 
 
@@ -187,7 +188,7 @@ static enum mea_eval_token_type_id_e mea_eval_getToken(char *str, char **newptr,
             ++p;
             while(*p && isalpha(*p))
                ++p;
-            int ret=mea_eval_getFunctionId(str, (int)(p-str));
+            int16_t ret=mea_eval_getFunctionId(str, (int16_t)(p-str));
             if(ret>=0)
             {
                v->fn_id=ret;
@@ -617,7 +618,7 @@ static int16_t mea_eval_calcn(struct mea_eval_stack_s *stack, int32_t stack_ptr,
          {
             if(op==255)
             {
-               int var_id=exec_stack[exec_stack_index--].val.id;
+               int16_t var_id=exec_stack[exec_stack_index--].val.id;
                if(_getVarVal(var_id, mea_eval_userdata, &d)<0)
                   return -1;
             }

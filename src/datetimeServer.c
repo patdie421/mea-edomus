@@ -467,6 +467,7 @@ int mea_datetime_getTimerState(char *name)
    HASH_FIND_STR(mea_datetime_timers_list, name, e);
    if(e)
       return e->state;
+
    return -1;
 }
 
