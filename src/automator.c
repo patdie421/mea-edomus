@@ -346,7 +346,7 @@ static int valuePrint(struct value_s *v)
 
 //char *functionsList[]={"now", "exist", "rise", "fall", "stay", "change", "date", "time", "sunrise", "sunset", "twilightstart", "twilightend", NULL };
 
-enum function_e { F_NOW=0, F_CALCN, F_EXIST, F_RISE, F_FALL, F_STARTUP, F_STAY, F_CHANGE, F_DATE, F_TIME, F_TIMER, F_TIMERSTATUS, F_SUNRISE, F_SUNSET, F_TWILIGHTSTART, F_TWILIGHTEND };
+enum function_e { F_NOW=0, F_CALCN, F_EXIST, F_RISE, F_FALL, F_STARTUP, F_STAY, F_CHANGE, F_DATE, F_TIME, F_TIMER, F_TIMERSTATUS, F_SUNRISE, F_SUNSET, F_TWILIGHTSTART, F_TWILIGHTEND, F_XPLACTIVATION };
 
 struct function_def_s
 {
@@ -373,6 +373,7 @@ struct function_def_s functionsList2[]={
    { "time", F_TIME, 4 },
    { "twilightstart", F_TWILIGHTSTART, 13 },
    { "twilightend", F_TWILIGHTEND, 11 },
+   { "xplactivation", F_XPLACTIVATION, 13 },
    { NULL, 0, 0 }
 };
 
@@ -546,6 +547,17 @@ static int callFunction(char *str, struct value_s *v, xPL_NameValueListPtr ListN
          {
             v->type=2;
             v->val.booleanval=startupStatus;
+            retour=0;
+         }
+         break;
+      case F_XPLACTIVATION:
+         if(params[0]==0)
+         {
+            v->type=2;
+            if(ListNomsValeursPtr == NULL)
+               v->val.booleanval=0;
+            else
+               v->val.booleanval=1;
             retour=0;
          }
          break;
