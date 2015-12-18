@@ -39,6 +39,7 @@
 #include "processManager.h"
 #include "cJSON.h"
 #include "uthash.h"
+#include "mea_eval.h"
 
 #define DEBUG
 #define USEALLOCA
@@ -105,6 +106,8 @@ cJSON *_outputs_rules;
 
 enum input_state_e { NEW, RISE, FALL, STAY, CHANGE, TYPECHANGE, UNKNOWN };
 
+uint32_t next_input_id = 0;
+
 struct value_s {
    char type;
    union {
@@ -119,11 +122,21 @@ struct inputs_table_s
    char name[21];
    enum input_state_e state;
    struct value_s v;
+   uint32_t id;
+   UT_hash_handle hh;
+};
+
+struct inputs_id_name_assoc_s
+{
+   uint32_t id;
+   struct inputs_table_s *elem;
 
    UT_hash_handle hh;
 };
 
-struct inputs_table_s *inputs_table = NULL;
+
+struct inputs_table_s *inputs_table;
+struct inputs_id_name_assoc_s *inputs_id_name_assoc = NULL;
 
 
 int reset_inputs_table_change_flag();
@@ -333,7 +346,7 @@ static int valuePrint(struct value_s *v)
 
 //char *functionsList[]={"now", "exist", "rise", "fall", "stay", "change", "date", "time", "sunrise", "sunset", "twilightstart", "twilightend", NULL };
 
-enum function_e { F_NOW=0, F_EXIST, F_RISE, F_FALL, F_STARTUP, F_STAY, F_CHANGE, F_DATE, F_TIME, F_TIMER, F_TIMERSTATUS, F_SUNRISE, F_SUNSET, F_TWILIGHTSTART, F_TWILIGHTEND };
+enum function_e { F_NOW=0, F_CALC, F_EXIST, F_RISE, F_FALL, F_STARTUP, F_STAY, F_CHANGE, F_DATE, F_TIME, F_TIMER, F_TIMERSTATUS, F_SUNRISE, F_SUNSET, F_TWILIGHTSTART, F_TWILIGHTEND };
 
 struct function_def_s
 {
@@ -344,6 +357,7 @@ struct function_def_s
 
 
 struct function_def_s functionsList2[]={
+   { "calc", F_CALC, 4 },
    { "change", F_CHANGE, 5 },
    { "date", F_DATE, 4 },
    { "exist", F_EXIST, 5 },
@@ -417,6 +431,83 @@ static int getInputEdge(char *expr, int direction,  struct value_s *v, xPL_NameV
    return -1;
 }
 
+
+int getInputId(char *name, uint32_t *id)
+{
+   struct inputs_table_s *e = NULL;
+   HASH_FIND_STR(inputs_table, name, e);
+   if(e)
+   {
+     if(e->id==-1)
+     {
+        e->id=++next_input_id;
+
+        struct inputs_id_name_assoc_s *a;
+        a=(struct inputs_id_name_assoc_s *)malloc(sizeof(struct inputs_id_name_assoc_s));
+        if(a==NULL)
+           return -1;
+        a->id=e->id;
+        a->elem = e;
+        HASH_ADD_INT(inputs_id_name_assoc, id, a);
+     }
+     *id=e->id;
+     return 0;
+   }
+   return -1;
+}
+
+
+int getInputFloatValueById(uint32_t id, double *d)
+{
+   struct inputs_id_name_assoc_s *a;
+
+   HASH_FIND_INT(inputs_id_name_assoc, &id, a);
+   if(a == NULL)
+      return -1;
+   else
+   {
+      if(a->elem->v.type == 0)
+         *d = a->elem->v.val.floatval;
+      else
+         return -1;
+   }
+   return 0;
+}
+
+
+void idNameAssocsClean()
+{
+   struct inputs_id_name_assoc_s *current, *tmp;
+
+   HASH_ITER(hh, inputs_id_name_assoc, current, tmp)
+   {
+      HASH_DEL(inputs_id_name_assoc, current);
+      free(current);
+      current=NULL;
+   }
+   inputs_id_name_assoc=NULL;
+}
+
+
+int16_t myGetVarId(char *str, void *userdata, int16_t *id)
+{
+   uint32_t _id = 0;
+   int16_t retour = 0;
+
+   retour=(int16_t)getInputId(str, &_id);
+
+   *id=(int16_t)_id; 
+
+   return retour;
+}
+
+
+int16_t myGetVarVal(int16_t id, void *userdata, double *d)
+{
+   return getInputFloatValueById((uint32_t)id, d);
+}
+
+
 #define MAX_STR_SIZE 1024
 
 static int callFunction(char *str, struct value_s *v, xPL_NameValueListPtr ListNomsValeursPtr)
@@ -456,6 +547,28 @@ static int callFunction(char *str, struct value_s *v, xPL_NameValueListPtr ListN
             v->type=2;
             v->val.booleanval=startupStatus;
             retour=0;
+         }
+         break;
+      case F_CALC:
+         {
+            int l_params=strlen(params)-1;
+            double d;
+
+            fprintf(stderr,"ICI1 : %s\n", params);
+            if(l_params > 1 && params[0]=='\'' && params[l_params]=='\'')
+            {
+               char *p=&(params[1]);
+               params[l_params]=0; 
+
+               fprintf(stderr,"ICI2 : %s\n", p);
+               if(mea_eval_calc_numeric_by_cache(p, &d)==0)
+               {
+                  fprintf(stderr,"eval => %f\n", d);
+                  v->type=0;
+                  v->val.floatval=(double)d;
+                  retour = 0;
+               }
+            }
          }
          break;
       case F_EXIST:
@@ -1367,6 +1480,7 @@ static int automator_add_to_inputs_table(char *_name, struct value_s *v)
       strncpy(s->name, _name, sizeof(s->name));
       s->name[sizeof(s->name)-1]=0;
       s->state=NEW;
+      s->id=-1;
       memcpy(&(s->v), v, sizeof(struct value_s));
 
       HASH_ADD_STR(inputs_table, name, s);
@@ -1459,6 +1573,10 @@ cJSON *automator_load_rules_from_file(char *file)
 
 int automator_init(char *rulesfile)
 {
+   idNameAssocsClean();
+   mea_eval_clean_stack_cache();
+   mea_eval_setGetVarCallBacks(&myGetVarId, &myGetVarVal, NULL);
+
    if(inputs_table)
    {
       struct inputs_table_s  *current, *tmp;
