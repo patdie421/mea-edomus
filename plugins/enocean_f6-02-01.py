@@ -38,6 +38,32 @@ debug=0
 # 19 0x00   0 Optionnal7 Security level
 # 20 0x38  56 CRC8D
 
+def broadcastXplDirectControlBasic(internal, channel, b1, b2, device):
+   fn_name=sys._getframe().f_code.co_name
+   xplMsg=0
+   xplcurrent=0
+   xplsource=""
+   if(internal!=0):
+      xplsource="mea-internal.00000000" # destination interne (internal) sans attendre de reponse (00000000)
+   else:
+      xplsource="me"
+   xplMsg=mea_utils.xplMsgNew(xplsource, "*", "xpl-cmnd", "control", "basic")
+   mea_utils.xplMsgAddValue(xplMsg,"type","output")
+   mea_utils.xplMsgAddValue(xplMsg, "device", device)
+
+   if  ((b1 == 0 or b2 == 0) and channel == "A"): # AI
+      xplcurrent="high"
+   elif((b1 == 1 or b2 == 1) and channel == "A"): # AO
+      xplcurrent="low"
+   elif((b1 == 2 or b2 == 2) and channel == "B"): # BI
+      xplcurrent="high"
+   elif((b1 == 3 or b2 == 3) and channel == "B"): # BO
+      xplcurrent="low"
+   if(xplcurrent != 0):
+      mea_utils.xplMsgAddValue(xplMsg,"current",xplcurrent)
+      mea.xplSendMsg(xplMsg)
+
+
 
 def mea_xplCmndMsg(data):
    fn_name=sys._getframe().f_code.co_name
@@ -76,11 +102,13 @@ def mea_xplCmndMsg(data):
    return True
 
 
+
 def mea_enoceanData(data):
    fn_name=sys._getframe().f_code.co_name
 
    try:
       id_sensor=data["device_id"]
+      verbose(1, "DEBUG (", fn_name, ") - id_sensor=", id_sensor)
       packet=data["data"]
       l_packet=data["l_data"]
       parameters=data["device_parameters"]
@@ -90,6 +118,13 @@ def mea_enoceanData(data):
 
    mem=mea.getMemory(id_sensor)
    paramsDict=mea_utils.parseKeyValueDatasToDictionary(parameters, ",", ":")
+
+   device1=0
+   device2=0
+   try:
+      device=paramsDict["xpldevice"];
+   except:
+      device=-1;
 
    if packet[4]==1: # ENOCEAN_RADIO_ERP1
       if packet[6]==0xF6:
@@ -104,17 +139,20 @@ def mea_enoceanData(data):
                if packet[7] & 0b00000001:
                   button2Num=(packet[7] & 0b00001110) >> 1
                current=""
-               if paramsDict["channel"]=="A" and action == 1:
-                  if (button1Num == 0 or button2Num == 0):
-                     current="high"
-                  if (button1Num == 1 or button2Num == 1):
-                     current="low"
-                  
-               if paramsDict["channel"]=="B" and action == 1:
-                  if (button1Num == 2 or button2Num == 2):
-                     current="high"
-                  if (button1Num == 3 or button2Num == 3):
-                     current="low"
+               try:
+                  if paramsDict["channel"]=="A" and action == 1:
+                     if (button1Num == 0 or button2Num == 0):
+                        current="high"
+                     elif (button1Num == 1 or button2Num == 1):
+                        current="low"
+
+                  if paramsDict["channel"]=="B" and action == 1:
+                     if (button1Num == 2 or button2Num == 2):
+                        current="high"
+                     elif (button1Num == 3 or button2Num == 3):
+                        current="low"
+               except:
+                  return False
 
                if current != "":
                   try:
@@ -125,24 +163,12 @@ def mea_enoceanData(data):
 
                   mem["button1"]=button1Num
                   mem["button2"]=button2Num
-                  
+
                   xplMsg=mea_utils.xplMsgNew("me", "*", "xpl-trig", "sensor", "basic")
                   mea_utils.xplMsgAddValue(xplMsg,"device", data["device_name"].lower())
                   mea_utils.xplMsgAddValue(xplMsg,"current", mem["current"])
+                  mea_utils.xplMsgAddValue(xplMsg,"type", "input")
                   mea_utils.xplMsgAddValue(xplMsg,"last",mem["last"])
-                  verbose(2,xplMsg)
                   mea.xplSendMsg(xplMsg)
                   return True
-                  
-            else: # bouton relache
-               if mem["button1"] != -1:
-                  verbose(2,"Relachement de : ", mem["button1"];
-               if mem["button2"] != -1:
-                  verbose(2, "Relachement de : " mem["button2"];
-               mem["button1"]=-1
-               mem["button2"]=-1
-               verbose(2,"Nb boutons appuyes = ", (packet[7] & 0b11100000) >> 5);
-               verbose(2,"Energy bow = ", (packet[7] & 0b00010000) >> 4);
-               return True
-   
-   return 0
+   return False
