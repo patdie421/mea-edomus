@@ -68,11 +68,12 @@ struct type005_sensor_actuator_queue_elem_s
 };
 
 
-char *valid_netatmo_sa_params[]={"S:DEVICE_ID","S:MODULE_ID", "S:SENSOR", "S:ACTUATOR", NULL};
-#define PARAMS_DEVICE_ID 0
-#define PARAMS_MODULE_ID 1
-#define PARAMS_SENSOR    2
-#define PARAMS_ACTUATOR  3
+char *valid_netatmo_sa_params[]={"S:DEVICE_ID","S:MODULE_ID", "DEVICE_TYPE", "S:SENSOR", "S:ACTUATOR", NULL};
+#define PARAMS_DEVICE_ID   0
+#define PARAMS_MODULE_ID   1
+#define PARAMS_SENSOR      2
+#define PARAMS_ACTUATOR    3
+#define PARAMS_DEVICE_TYPE 4
 
 enum netatmo_sensor_e { TEMP, RELAY_CMD, BATTERY, SETPOINT, MODE };
 

@@ -130,6 +130,7 @@ int automatorServer_timer_wakeup(char *name, void *userdata)
 
    pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&automator_msg_queue_lock);
    pthread_mutex_lock(&automator_msg_queue_lock);
+   fprintf(stderr,"timer %s FALLED\n", name);
    if(automator_msg_queue)
    {
       mea_queue_in_elem(automator_msg_queue, e);
@@ -197,8 +198,8 @@ void *_automator_thread(void *data)
          struct timespec ts;
          gettimeofday(&tv, NULL);
 
-//         long ns_timeout=1000 * 1000 * 100; // 100 ms en nanoseconde
-         long ns_timeout=1000 * 1000 * 999; // 1s
+         long ns_timeout=1000 * 1000 * 250; // 250 ms en nanoseconde
+//         long ns_timeout=1000 * 1000 * 999; // 1s
          ts.tv_sec = tv.tv_sec;
          ts.tv_nsec = (tv.tv_usec * 1000) + ns_timeout;
          if(ts.tv_nsec>1000000000L) // 1.000.000.000 ns = 1 seconde
@@ -280,14 +281,14 @@ void *_automator_thread(void *data)
          automator_match_inputs_rules(_inputs_rules, e->msg);
          automator_play_output_rules(_outputs_rules);
          automator_reset_inputs_change_flags();
-         automator_xplin_indicator++;
 
          if(e)
          {
-            if(e->type == 1 && e->msg)
+            if(e->type == 1 && e->msg) // l'élément sorti était un message xpl (pas un timer)
             {
+               automator_xplin_indicator++;
+
                // liberer le message
-               
                xPL_releaseMessage(e->msg);
                e->msg=NULL;
             }

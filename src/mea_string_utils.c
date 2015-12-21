@@ -374,7 +374,7 @@ int16_t mea_strcmplower(char *str1, char *str2)
  */
 {
    if(!str1 || !str2)
-      return 0;
+      return -1;
    
    int i=0;
    for(;str1[i] && str2[i];i++) {
