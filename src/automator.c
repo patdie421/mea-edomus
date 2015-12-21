@@ -151,13 +151,15 @@ time_t automator_now = 0;
 static int getBoolean(char *s, char *b)
 {
    *b=-1;
-   if(strcmp(s, "true")==0 ||
+   if(strcmp(s, "1")==0    ||
+      strcmp(s, "true")==0 ||
       strcmp(s, "high")==0)
    {
       *b=1;
       return 0;
    }
-   else if(strcmp(s, "false")==0 ||
+   else if(strcmp(s, "0")==0 ||
+           strcmp(s, "false")==0 ||
            strcmp(s, "low")==0)
    {
       *b=0;
@@ -716,8 +718,15 @@ static int evalStr(char *str, struct value_s *v, xPL_NameValueListPtr ListNomsVa
 {
    char p[sizeof(v->val.strval)];
 
-    mea_strncpytrim(p, str, sizeof(v->val.strval)-1);
-    p[sizeof(v->val.strval)-1]=0;
+   if((p[1]=='0' || p[1]=='1') && p[0]=='&' && p[2]=='0') // pour gagner du temps ... test simple et rapide
+   {
+      v->type=2;
+      v->val.booleanval=p[1]-'0';
+      return 0;
+   }
+   
+   mea_strncpytrim(p, str, sizeof(v->val.strval)-1);
+   p[sizeof(v->val.strval)-1]=0;
 
    if(p[0]==0)
       return 1;
