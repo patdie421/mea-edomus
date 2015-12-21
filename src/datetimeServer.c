@@ -385,6 +385,55 @@ static struct mea_datetime_timer_s * findNextTimerToFall()
 }
 
 
+static int _startAlarm(char *name, time_t date, datetime_timer_callback_f f, void *userdata)
+{
+   struct timespec now;
+   struct mea_datetime_timer_s *e;
+   int retour = 0;
+
+   pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&timeServer_startTimer_lock);
+   pthread_mutex_lock(&timeServer_startTimer_lock);
+
+   HASH_FIND_STR(mea_datetime_timers_list, name, e);
+   if(!e)
+   {
+      e = (struct mea_datetime_timer_s *)malloc(sizeof(struct mea_datetime_timer_s));
+      if(!e)
+      {
+         retour = -1;
+         goto startAlarm_clean_exit;   
+      }
+
+      mea_strncpylower(e->name, name, sizeof(e->name)-1);
+      e->name[sizeof(e->name)-1]=0;
+      e->duration = 0;
+      e->unit = TIMER_DATE;
+      e->state = 0;
+      e->callback = f;
+      e->userdata = userdata;
+
+      HASH_ADD_STR(mea_datetime_timers_list, name, e);
+   }
+
+   mea_getTime(&now);
+   e->start.tv_sec = now.tv_sec;
+   e->start.tv_nsec = now.tv_nsec;
+
+   e->end.tv_sec = date;
+   e->end.tv_nsec = 0;
+
+   e->state = TIMER_RUNNING; 
+
+   pthread_cond_broadcast(&timerServer_startTimer_cond); // réveil du thread
+
+startAlarm_clean_exit:
+   pthread_mutex_unlock(&timeServer_startTimer_lock);
+   pthread_cleanup_pop(0);
+
+   return retour;
+}
+
+
 static int _startTimer(char *name, long duration, enum datetime_timer_unit_e unit, datetime_timer_callback_f f, void *userdata)
 {
    struct mea_datetime_timer_s *e;
@@ -469,6 +518,18 @@ int mea_datetime_getTimerState(char *name)
       return e->state;
 
    return -1;
+}
+
+
+int mea_datetime_startAlarm(char *name, time_t date)
+{
+   return _startAlarm(name, date, NULL, NULL);
+}
+
+
+int mea_datetime_startAlarm2(char *name, time_t date, datetime_timer_callback_f f, void *userdata)
+{
+   return _startAlarm(name, date, f, userdata);
 }
 
 
