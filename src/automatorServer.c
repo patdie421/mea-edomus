@@ -198,8 +198,8 @@ void *_automator_thread(void *data)
          struct timespec ts;
          gettimeofday(&tv, NULL);
 
-//         long ns_timeout=1000 * 1000 * 100; // 100 ms en nanoseconde
-         long ns_timeout=1000 * 1000 * 999; // 1s
+         long ns_timeout=1000 * 1000 * 250; // 250 ms en nanoseconde
+//         long ns_timeout=1000 * 1000 * 999; // 1s
          ts.tv_sec = tv.tv_sec;
          ts.tv_nsec = (tv.tv_usec * 1000) + ns_timeout;
          if(ts.tv_nsec>1000000000L) // 1.000.000.000 ns = 1 seconde
