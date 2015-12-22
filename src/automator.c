@@ -260,9 +260,9 @@ static int valueToStr(struct value_s *v, char *str, int l_str, enum conversion_e
 }
 
 
-char *comparators[] = {"==","!=",">","<",">=","<=",NULL};
 enum comparator_e { O_EQ=0, O_NE, O_GR, O_LO, O_GE, O_LE };
-
+/*
+char *comparators[] = {"==","!=",">","<",">=","<=",NULL};
 static int getComparator(char *str)
 {
    int comparatorNum=-1;
@@ -275,6 +275,32 @@ static int getComparator(char *str)
       }
    }
    return comparatorNum;
+}
+*/
+static int getComparator(char *str)
+{
+   if(str[1]=='=' && str[2]==0)
+   {
+      switch(str[0])
+      {
+         case '=' : return O_EQ;
+         case '!' : return O_NE;
+         case '>' : return O_GE;
+         case '<' : return O_LE;
+         default: return -1;
+      }
+   }
+   else if(str[1]==0)
+   {
+      switch(str[0])
+      {
+         case '>' : return O_GR;
+         case '<' : return O_LO;
+         default: return -1;
+      }
+   }
+   else
+      return -1;
 }
 
  
@@ -346,9 +372,27 @@ static int valuePrint(struct value_s *v)
 }
 
 
-//char *functionsList[]={"now", "exist", "rise", "fall", "stay", "change", "date", "time", "sunrise", "sunset", "twilightstart", "twilightend", NULL };
-
-enum function_e { F_NOW=0, F_CALCN, F_EXIST, F_RISE, F_FALL, F_STARTUP, F_STAY, F_CHANGE, F_DATE, F_TIME, F_TIMER, F_TIMERSTATUS, F_SUNRISE, F_SUNSET, F_TWILIGHTSTART, F_TWILIGHTEND, F_XPLMSGDATA, F_TOHLSTR, F_TOTFSTR, _FN_LIST_END };
+enum function_e {
+   F_NOW=0,
+   F_CALCN,
+   F_EXIST,
+   F_RISE,
+   F_FALL,
+   F_STARTUP,
+   F_STAY,
+   F_CHANGE,
+   F_DATE,
+   F_TIME,
+   F_TIMER,
+   F_TIMERSTATUS,
+   F_SUNRISE,
+   F_SUNSET, 
+   F_TWILIGHTSTART,
+   F_TWILIGHTEND,
+   F_XPLMSGDATA,
+   F_TOHLSTR,
+   F_TOTFSTR,
+   _FN_LIST_END };
 
 struct function_def_s
 {
@@ -356,7 +400,6 @@ struct function_def_s
    enum function_e num;
    uint16_t l;
 };
-
 
 int16_t functions_index[_FN_LIST_END];
 
@@ -452,9 +495,8 @@ enum function_e getFunctionNum(char *str, char *params, int l_params)
 
    return -1;
 }
-
-
-static int getFunctionNum2(char *str, char *params, int l_params)
+/*
+static int getFunctionNum(char *str, char *params, int l_params)
 {
    int ls=strlen(str); 
    for(int i=0; functionsList2[i].name; i++)
@@ -477,6 +519,7 @@ static int getFunctionNum2(char *str, char *params, int l_params)
    }
    return -1;
 }
+*/
 
 
 static int getInputEdge(char *expr, int direction,  struct value_s *v, xPL_NameValueListPtr ListNomsValeursPtr)
@@ -763,9 +806,8 @@ static int callFunction(char *str, struct value_s *v, xPL_NameValueListPtr ListN
          {
             int ret;
             struct value_s r;
-//            time_t t;
             ret=evalStr(params, &r, ListNomsValeursPtr);
-            if(ret==0 && r.ty pe==2)
+            if(ret==0 && r.type==2)
             {
                v->type=1;
                switch(fn)
@@ -795,9 +837,10 @@ static int callFunction(char *str, struct value_s *v, xPL_NameValueListPtr ListN
          {
             int ret;
             struct value_s r;
-
+            r.type=0;
+            r.val.floatval=0.0;
             ret=evalStr(params, &r, ListNomsValeursPtr);
-            if( (ret==0 && r.type==0) || ret==1)
+            if( (ret==0 && r.type==0) || ret==1) // ret == 1 : chaine vide
             {
                time_t t=0;
                switch(fn)
@@ -843,116 +886,114 @@ static int evalStr(char *str, struct value_s *v, xPL_NameValueListPtr ListNomsVa
    mea_strncpytrim(p, str, sizeof(v->val.strval)-1);
    p[sizeof(v->val.strval)-1]=0;
 
-   mea_strncpytrim(p, str, sizeof(v->val.strval)-1);
-   p[sizeof(v->val.strval)-1]=0;
-
-   if(p[0]==0)
-      return 1;
-
-   if(p[0]=='#') // une constante numérique
+   switch(*p)
    {
-      double f=0;
-      if(getNumber(&p[1], &f)==0)
-      {
-         v->type=0;
-         v->val.floatval=f;
-      }
-      else
-         return -1;
-   }
-   else if(p[0]=='\'') // une constante chaine de caractères
-   {
-      int l=strlen(p);
-      if(p[l-1]!='\'')
-         return -1;
-
-      l=l-2;
-      if(l>sizeof(v->val.strval)-1)
-         l=sizeof(v->val.strval)-1;
-      strncpy(v->val.strval, &(p[1]), l);
-      v->val.strval[l]=0; // pour supprimer le "'" en fin de chaine
-      v->type=1;
-      return 0;
-   }
-   else if(p[0]=='&') // une constante booleen
-   {
-      char b=0;
-      if(getBoolean(&p[1], &b)==0)
-      {
-         v->type=2;
-         v->val.booleanval=b;
-      }
-      else
-         return -1;
-      return 0;
-   }
-   else if(p[0]=='$') // une "fonction"
-   {
-      int ret=callFunction(&(p[1]), v, ListNomsValeursPtr);
-      return ret;
-   }
-   else if(p[0]=='{') // la valeur d'une entrée
-   {
-      int l=strlen(p);
-      if(p[l-1]!='}')
-         return -1;
-
-      char name[VALUE_MAX_STR_SIZE];
-      struct inputs_table_s *e = NULL;
-
-      if(l>(sizeof(name)+2))
-         l=sizeof(name)+2;
-
-       char *_p=NULL;
-       mea_strncpytrim(name, &(p[1]), l-2);
-       name[l-2]=0;
-       _p=name; 
-
-      HASH_FIND_STR(inputs_table, _p, e);
-     if(e)
-     {
-        v->type=e->v.type;
-        if(e->v.type == 0)
-           v->val.floatval = e->v.val.floatval;
-        if(e->v.type == 1)
-           strcpy(v->val.strval, e->v.val.strval);
-        if(e->v.type == 2)
-           v->val.booleanval = e->v.val.booleanval;
-        //memcpy(v, &(e->v), sizeof(struct value_s));
-     }
-     else
-        return 1;
-     return 0;
-   }
-   else if(p[0]=='<') // un mot réservé
-   {
-      int l=strlen(p);
-      if(p[l-1]!='>')
-          return -1; 
-
-      if(l==5 && strncmp(&(p[1]),"NOP",3)==0)
-      {
-         strcpy(v->val.strval, p);
-         v->type=1;
-      }
-      else if(l==7 && strncmp(&(p[1]),"LABEL",5)==0)
-      {
-         strcpy(v->val.strval, p);
-         v->type=1;
-      }
-      else
-         return -1;
-   }
-   else // à défaut on cherche dans le message xpl
-   {
-      if(ListNomsValeursPtr==NULL)
+      case 0:
          return 1;
-      char *_value=xPL_getNamedValue(ListNomsValeursPtr, p);
-      if(_value!=NULL)
-         setValueFromStr(v, _value);
-      else
-         return 1;
-      return 0;
+      case '#':
+         {
+            double f=0;
+            if(getNumber(&p[1], &f)==0)
+            {
+               v->type=0;
+               v->val.floatval=f;
+            }
+            else
+               return -1;
+         }
+         break;
+      case '\'':
+         {
+            int l=strlen(p);
+            if(p[l-1]!='\'')
+               return -1;
+            l=l-2;
+            if(l>sizeof(v->val.strval)-1)
+               l=sizeof(v->val.strval)-1;
+            strncpy(v->val.strval, &(p[1]), l);
+            v->val.strval[l]=0; // pour supprimer le "'" en fin de chaine
+            v->type=1;
+         }
+         break;
+      case '&':
+         {
+            char b=0;
+            if(getBoolean(&p[1], &b)==0)
+            {
+               v->type=2;
+               v->val.booleanval=b;
+            }
+            else
+               return -1;
+        }
+        break;
+     case '$':
+        {
+           int ret=callFunction(&(p[1]), v, ListNomsValeursPtr);
+           return ret;
+        }
+        break;
+     case '{':
+        {
+           int l=strlen(p);
+           if(p[l-1]!='}')
+              return -1;
+           char name[VALUE_MAX_STR_SIZE];
+           struct inputs_table_s *e = NULL;
+
+           if(l>(sizeof(name)+2))
+              l=sizeof(name)+2;
+
+           char *_p=NULL;
+           mea_strncpytrim(name, &(p[1]), l-2);
+           name[l-2]=0;
+           _p=name; 
+
+           HASH_FIND_STR(inputs_table, _p, e);
+           if(e)
+           {
+              v->type=e->v.type;
+              switch(e->v.type)
+              {
+                 case 0: v->val.floatval = e->v.val.floatval; break;
+                 case 1: strcpy(v->val.strval, e->v.val.strval); break;
+                 case 2: v->val.booleanval = e->v.val.booleanval; break;
+              }
+          }
+          else
+             return 1;
+        }
+        break;
+     case '<':
+        {
+           int l=strlen(p);
+           if(p[l-1]!='>')
+              return -1; 
+
+           if(l==5 && strncmp(&(p[1]),"NOP",3)==0)
+           {
+              strcpy(v->val.strval, p);
+              v->type=1;
+           }
+           else if(l==7 && strncmp(&(p[1]),"LABEL",5)==0)
+           {
+              strcpy(v->val.strval, p);
+              v->type=1;
+           }
+           else
+              return -1;
+        }
+        break;
+    default:
+       {
+          if(ListNomsValeursPtr==NULL)
+             return 1;
+          char *_value=xPL_getNamedValue(ListNomsValeursPtr, p);
+          if(_value!=NULL)
+             setValueFromStr(v, _value);
+          else
+            return 1;
+      }
    }
    return 0;
 }
@@ -981,7 +1022,6 @@ static int automator_timerCtrl(cJSON *parameters)
    char timername[sizeof(n.val.strval)];
    char timercommand[sizeof(c.val.strval)];
 
-   mea_strcpytrimlower(timername, n.val.strval);
    mea_strcpytrimlower(timercommand, c.val.strval);
 
    if(command->type == cJSON_String && strcmp(timercommand,"start")==0)
@@ -995,8 +1035,8 @@ static int automator_timerCtrl(cJSON *parameters)
          if(mode->type != cJSON_String || evalStr(mode->valuestring, &m, NULL)<0 || m.type != 1 )
             return -1;
 
-         char modename[sizeof(m.val.strval)];
-         mea_strcpytrimlower(modename, m.val.strval);
+//         char modename[sizeof(m.val.strval)];
+//         mea_strcpytrimlower(modename, m.val.strval);
 
          if(mea_strcmplower(m.val.strval, "alarm")==0)
             _mode=1;
@@ -1021,6 +1061,8 @@ static int automator_timerCtrl(cJSON *parameters)
       struct value_s v, u;
       if(evalStr(value->valuestring, &v, NULL)<0 || v.val.floatval < 1.0 || v.type != 0 )
          return -1;
+
+      mea_strcpytrimlower(timername, n.val.strval);
       if(_mode==0)
       {
          if(evalStr(unit->valuestring, &u, NULL)<0 || u.type != 1)
@@ -1364,7 +1406,7 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
 {
    if(rules==NULL)
    {
-      fprintf(stderr,"NO INPUT RULE\n");
+      DEBUG_SECTION2(DEBUGFLAG) fprintf(stderr,"NO INPUT RULE\n");
       return -1;
    }
 
@@ -1433,7 +1475,8 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
          continue;
       }
 
-      if(res.type==1 && mea_strcmplower(res.val.strval,"<LABEL>")==0)
+//      if(res.type==1 && mea_strcmplower(res.val.strval,"<LABEL>")==0)
+      if(res.type==1 && strcmp(res.val.strval,"<LABEL>")==0)
       {
          match=0;
          goto next_rule;
@@ -1533,6 +1576,7 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
 
          if(onmatch) // post action
          {
+/*
             char action[VALUE_MAX_STR_SIZE]="";
             mea_strncpylower(action, onmatch->valuestring, sizeof(action)-1);
             action[sizeof(action)-1]=0;
@@ -1540,7 +1584,6 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
             char *p=NULL;
             for(int i=0;action[i];i++)
             {
-//               if(isspace(action[i]))
                if(action[i]==' ')
                {
                   p=&(action[i+1]);
@@ -1548,21 +1591,36 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
                   break;
                }
             }
-            if(strcmp(action, "break")==0 && !p)
+*/
+            char action[VALUE_MAX_STR_SIZE]="";
+            char action_l=sizeof(action)-1;
+            char *p_action  = action;
+            char *p_onmatch = onmatch->valuestring;
+            while(*p_onmatch && *p_onmatch!=' ' && action_l)
+            {
+               *p_action=tolower(*p_onmatch);
+               ++p_action;
+               ++p_onmatch;
+               --action_l;
+            }
+            *p_action=0;
+ 
+            if(strcmp(action, "break")==0 && !(*p_onmatch))
                break;
-            else if(strcmp(action, "continue")==0 && !p)
+            else if(strcmp(action, "continue")==0 && !(*p_onmatch))
             {
             }
-            else if(strcmp(action, "moveforward")==0 && p)
+            else if(strcmp(action, "moveforward")==0 && *p_onmatch)
             {
                struct value_s r;
                cJSON *_e = e->next;
                int flag=0;
-               if(evalStr(p, &r, NULL)==0 && r.type==1)
+               if(evalStr(p_onmatch, &r, NULL)==0 && r.type==1)
                {
                   while(_e)
                   {
-                     if(cJSON_GetObjectItem(_e,"name") && mea_strcmplower(cJSON_GetObjectItem(_e,"name")->valuestring,r.val.strval)==0)
+//                     if(cJSON_GetObjectItem(_e,"name") && mea_strcmplower(cJSON_GetObjectItem(_e,"name")->valuestring,r.val.strval)==0)
+                     if(cJSON_GetObjectItem(_e,"name") && strcmp(cJSON_GetObjectItem(_e,"name")->valuestring,r.val.strval)==0)
                      {
                         e=_e; // règle en avant trouvée, on y va
                         flag=1;
@@ -1620,6 +1678,7 @@ next_loop:{}
          mea_log_printf("%s (%s) : inputs rules processing time=%ld us\n", DEBUG_STR, __func__, exectime);
          automator_print_inputs_table();
       } 
+      //automator_print_inputs_table();
    }
 
    startupStatus = 0;
@@ -1828,4 +1887,3 @@ int automator_clean()
 
    return 0;
 }
-

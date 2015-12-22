@@ -18,13 +18,7 @@ BASEPATH="$1"
 
 if [ $# -eq 2 ]
 then
-   if [ -f ./etc/init.d/xplhub ]
-   then
-      INTERFACE="$2"
-   else
-      echo "ERROR : no xplhub in package. Try without INTERFACE !"
-      exit 1
-   fi
+   INTERFACE="$2"
 fi
 
 if [ "$INTERFACE" == "" ]
@@ -37,7 +31,7 @@ then
    fi
 fi
 
-if [ "$BASEPATH" == "/usr" ] || [ "$BASEPATH" == "/" || [ "$BASEPATH" == "/etc" ]
+if [ "$BASEPATH" == "/usr" ] || [ "$BASEPATH" == "/" ] || [ "$BASEPATH" == "/etc" ]
 then
    echo "ERROR : can't actualy install in $BASEPATH. Choose an other directory, or install manualy !"
    exit 0
@@ -86,33 +80,6 @@ cd "$BASEPATH"
 
 sudo tar --owner="$MEAUSER" --group="$MEAGROUP" -xpf "$CURRENTPATH"/mea-edomus.tar
 
-# recherche un PHP-CGI dans le PATH si non fourni
-OPTION=""
-if [ ! -f ./bin/php-cgi ]
-then
-   PHPCGI=`which php-cgi`
-   PHPCGI=`dirname $PHPCIG`
-   if [ ! -z $PHPCGI ]
-   then
-      OPTION="--phpcgipath=\"$PHPCGI\""
-      sudo ./bin/mea-edomus --autoinit --basepath="$BASEPATH" $OPTION
-   else
-      echo "No php-cgi provided or found."
-      echo "install one if you need the mea-edomus gui and excute $0 --basepath=\""$BASEPATH"\" --update --phpcgipath=\"<PATH_TO_CGI_BIN>\""
-   fi
-fi
-
-# un node.js est fourni dans le package
-OPTION=""
-if [ -f ./bin/node ]
-then
-   OPTION="--nodejspath=\"$BASEPATH/bin/node\""
-   sudo ./bin/mea-edomus --autoinit --basepath="$BASEPATH" $OPTION
-else
-   echo "No nodejs provided or found."
-   echo "install one if you need the mea-edomus gui and excute $0 --basepath=\""$BASEPATH"\" --update --nodejspath=\"<PATH_TO_NODEJS>\""
-fi
-
 sudo ./bin/mea-edomus --autoinit --basepath="$BASEPATH" $OPTIONS
 
 sudo chown -R "$MEAUSER":"$MEAGROUP" "$BASEPATH"/lib/mea-gui
@@ -128,6 +95,31 @@ sudo chmod -R 775 "$BASEPATH"/var/sessions
 sudo chown -R "$MEAUSER":"$MEAGROUP" "$BASEPATH"/etc
 sudo chmod -R 775 "$BASEPATH"/etc
 
+
+# recherche un PHP-CGI dans le PATH si non fourni
+if [ ! -f ./bin/php-cgi ]
+then
+   PHPCGI=`which php-cgi`
+   PHPCGI=`dirname $PHPCIG`
+   if [ ! -z $PHPCGI ]
+   then
+      sudo ./bin/mea-edomus --update --basepath="$BASEPATH" --phpcgipath="$PHPCGI"
+   else
+      echo "No php-cgi provided or found."
+      echo "install one if you need the mea-edomus gui and excute $0 --basepath=\""$BASEPATH"\" --update --phpcgipath=\"<PATH_TO_CGI_BIN>\""
+   fi
+fi
+
+# un node.js est fourni dans le package
+if [ -f ./bin/node ]
+then
+   sudo ./bin/mea-edomus --update --basepath="$BASEPATH" --nodejspath="$BASEPATH/bin/node"
+else
+   echo "No nodejs provided or found."
+   echo "install one if you need the mea-edomus gui and excute $0 --basepath=\""$BASEPATH"\" --update --nodejspath=\"<PATH_TO_NODEJS>\""
+fi
+
+
 # pour l'instant on install pas de service Mac OS X
 if [ "$ARCH" == "Darwin" ]
 then
@@ -141,19 +133,19 @@ BASEPATH4SED=`echo "$BASEPATH" | sed -e 's/\\//\\\\\\//g'`
 # echo $BASEPATH | sed -e 's/\//\\\//g' donne le résultat attendu
 # mais pour utilisation avec les `` il faut remplacer en plus les \ par des \\
 
+# déclaration du service xPLHub
+if [ "$INTERFACE" != "" ] && [ -f ./etc/init.d/xPLHub ]
+then
+   sudo sed -e 's/<BASEPATH>/'"$BASEPATH4SED"'/g' -e 's/<USER>/'"$MEAUSER"'/g' -e 's/<INTERFACE>/'"$INTERFACE"'/g' ./etc/init.d/xPLHub > /etc/init.d/xPLHub
+   chmod +x /etc/init.d/xPLHub
+   sudo update-rc.d xPLHub defaults
+   sudo service xPLHub restart
+fi
+
 # déclaration du service mea-edomus
 sudo sed -e 's/<BASEPATH>/'"$BASEPATH4SED"'/g' -e 's/<USER>/'"$MEAUSER"'/g' ./etc/init.d/mea-edomus > /etc/init.d/mea-edomus
 chmod +x /etc/init.d/mea-edomus
 sudo update-rc.d mea-edomus defaults
 sudo service mea-edomus restart
-
-# déclaration du service xplhub
-if [ "$INTERFACE" != "" ] && [ -f ./etc/init.d/xplhub ]
-then
-   sudo sed -e 's/<BASEPATH>/'"$BASEPATH4SED"'/g' -e 's/<USER>/'"$MEAUSER"'/g' -e 's/<INTERFACE>/'"$INTERFACE"'/g' ./etc/init.d/xplhub > /etc/init.d/xplhub
-   chmod +x /etc/init.d/xplhub
-   sudo update-rc.d xplhub defaults
-   sudo service xplhub restart
-fi
 
 cd "$CURRENTPATH"

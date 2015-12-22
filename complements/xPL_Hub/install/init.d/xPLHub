@@ -13,9 +13,9 @@ PATH=/sbin:/bin:/usr/sbin:/usr/bin
 
 . /lib/lsb/init-functions
 
-MEAEDOMUS_BASEPATH="/data/mea-edomus"
+MEAEDOMUS_BASEPATH="<BASEPATH>"
 
-DAEMON="$MEAEDOMUS_BASEPATH/bin/xPL_Hub"
+DAEMON="$MEAEDOMUS_BASEPATH/bin/xPL_Hub_static"
 #XPLHUB_OPT="wlan0"
 XPLHUB_OPT="<INTERFACE>"
 

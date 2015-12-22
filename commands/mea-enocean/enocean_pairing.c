@@ -137,7 +137,7 @@ int main(int argc, char *argv[])
       dev = argv[1];
    }
  
-   ed = enocean_new_ed();
+   enocean_ed_t *ed = enocean_new_ed();
    enocean_fd = enocean_init(ed, dev);
    if(enocean_fd<0)
    {

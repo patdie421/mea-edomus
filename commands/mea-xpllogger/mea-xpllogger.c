@@ -75,7 +75,7 @@ int16_t displayXPLMsg(xPL_MessagePtr theMessage)
    snprintf(xpl_schema,sizeof(xpl_schema),"%s.%s", xPL_getSchemaClass(theMessage), xPL_getSchemaType(theMessage));
 
   
-   fprintf(stdout, "[%10ld][%06ld] %s: source = %s, destination = %s, schema = %s, body = [",now, now-last, msgTypeStrPtr, xpl_source, xpl_destination
+   fprintf(stdout, "[%10u][%06u] %s: source = %s, destination = %s, schema = %s, body = [",now, now-last, msgTypeStrPtr, xpl_source, xpl_destination
    , xpl_schema);
 
    xPL_NameValueListPtr xpl_body = xPL_getMessageBody(theMessage);

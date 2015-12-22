@@ -1,4 +1,5 @@
 /**
+   OPTION=--nodejspath=\"$BASEPATH/bin/node\"
  * \file      init.c
  * \author    patdie421
  * \version   0.1
@@ -911,7 +912,7 @@ int16_t autoInit(char **params_list, char **keys)
    char db_version[10];
    sprintf(db_version,"%d",CURRENT_PARAMS_DB_VERSION);
    
-   _construct_string(params_list, PARAMSDBVERSION, db_version);
+   _construct_string(params_list, PARAMSDBVERSION,   db_version);
    
    _construct_string(params_list, VENDOR_ID,         "mea");
    _construct_string(params_list, DEVICE_ID,         "edomus");
@@ -1127,10 +1128,13 @@ int16_t initMeaEdomus(int16_t mode, char **params_list, char **keys)
     char params_db_version[10];
     
     if(!params_list[MEA_PATH])
-        params_list[MEA_PATH]="/usr/local/mea-edomus";
-    
+    {
+//        params_list[MEA_PATH]="/usr/local/mea-edomus";
+        mea_string_free_alloc_and_copy(&params_list[MEA_PATH], "/usr/local/mea-edomus");
+    } 
     snprintf(params_db_version,sizeof(params_db_version)-1,"%d",CURRENT_PARAMS_DB_VERSION);
-    params_list[PARAMSDBVERSION]=params_db_version;
+//    params_list[PARAMSDBVERSION]=params_db_version;
+    mea_string_free_alloc_and_copy(&params_list[PARAMSDBVERSION], params_db_version);
     
     if(mode==1) // automatique
     {

@@ -161,6 +161,8 @@ xPL_MessagePtr xPLCpyMsg(xPL_MessagePtr msg)
    xPL_MessagePtr newMsg;
 
    newMsg = mea_createReceivedMessage(xPL_getMessageType(msg));
+   if(newMsg == NULL)
+      return NULL;
 
    xPL_setSourceVendor(newMsg, xPL_getSourceVendor(msg));
    xPL_setSourceDeviceID(newMsg, xPL_getSourceDeviceID(msg));

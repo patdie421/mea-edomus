@@ -58,6 +58,12 @@ then
    cp $SOURCE/complements/xplhub/install/init.d/xplhub $SOURCE/package/tmp/etc/init.d
 fi
 
+if [ -f $SOURCE/complements/xPL_Hub/src/xPLLib/examples/xPL_Hub_static ]
+then
+   cp $SOURCE/complements/xPL_Hub/src/xPLLib/examples/xPL_Hub_static $SOURCE/package/tmp/bin
+   cp $SOURCE/complements/xPL_Hub/install/init.d/xPLHub $SOURCE/package/tmp/etc/init.d
+fi
+
 strip $SOURCE/package/tmp/bin/*
 
 cd $SOURCE/package/tmp

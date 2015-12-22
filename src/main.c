@@ -337,7 +337,7 @@ void clean_all_and_exit()
    release_strings_da();
    release_tokens();
 
-   VERBOSE(9) mea_log_printf("%s (%s) : mea-edomus down ...\n", INFO_STR, __func__);
+//   VERBOSE(9) mea_log_printf("%s (%s) : mea-edomus down ...\n", INFO_STR, __func__);
 
    exit(0);
 }
@@ -676,7 +676,6 @@ int main(int argc, const char * argv[])
    
    if(_u)
    {
-      // à faire
       updateMeaEdomus(params_list, params_names);
       clean_all_and_exit();
    }

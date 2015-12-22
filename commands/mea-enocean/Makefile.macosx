@@ -5,7 +5,7 @@ SOURCES=$(shell echo *.c)
 OBJECTS=$(SOURCES:.c=.o)
 
 MEAINCLUDESDIR=../../src
-MEALIB=../../lib/mealib/macosx/meaplib.a
+MEALIB=../../lib/mealib/macosx/mealib.a
 
 DEBUGFLAGS = -g \
              -D__DEBUG_ON__
