@@ -130,7 +130,7 @@ int automatorServer_timer_wakeup(char *name, void *userdata)
 
    pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&automator_msg_queue_lock);
    pthread_mutex_lock(&automator_msg_queue_lock);
-   fprintf(stderr,"timer %s FALLED\n", name);
+//   fprintf(stderr,"timer %s FALLED\n", name);
    if(automator_msg_queue)
    {
       mea_queue_in_elem(automator_msg_queue, e);
@@ -275,7 +275,7 @@ void *_automator_thread(void *data)
          }
          else if(e->type == 2)
          {
-            mea_log_printf("%s (%s) : timer wakeup signal\n", INFO_STR, __func__);
+             DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s (%s) : timer wakeup signal\n", INFO_STR, __func__);
          }
 
          automator_match_inputs_rules(_inputs_rules, e->msg);
