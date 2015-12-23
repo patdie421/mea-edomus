@@ -15,7 +15,19 @@ def isname(str):
    return True
 
 
-def rulesToJSON(file, verboseFlag, debugFlag, numFile):
+def optimize_boolean(b,o):
+   if o!=True:
+      return b
+   _b=b.lower()
+   if _b in ["&true", "&high"]:
+      return "&1"
+   elif _b in ["&false", "&high"]:
+      return "&0"
+   else:
+      return b;
+
+
+def rulesToJSON(file, verboseFlag, debugFlag, numFile, optimize):
    inputs_rules=[]
    outputs_rules=[]
    files=[]
@@ -29,6 +41,7 @@ def rulesToJSON(file, verboseFlag, debugFlag, numFile):
       return False
 
    numLine=0
+   numRule=1
    for line in f:
       rule={}
       conditions={}
@@ -67,9 +80,10 @@ def rulesToJSON(file, verboseFlag, debugFlag, numFile):
             return False
 
          if toInput==True:
-            rule={ "name" : s[0] , "value"  : s[2] }
+            rule={ "name" : s[0] , "value"  : optimize_boolean(s[2], optimize) }
          elif toOutput==True:
             rule={ "name" : s[0] , "action" : s[2] }
+
 
          if debugFlag==True:
             rule["file"]=numFile
@@ -90,7 +104,7 @@ def rulesToJSON(file, verboseFlag, debugFlag, numFile):
                   for i in conditionsList:
                      i=i.strip()
                      c=re.split('(==|!=|<=|>=|<|>)',i)
-                     rule['conditions'].append({ 'value1' : c[0].strip(), 'op' : c[1].strip(), 'value2' : c[2].strip() })
+                     rule['conditions'].append({ 'value1' : optimize_boolean(c[0].strip(), optimize), 'op' : c[1].strip(), 'value2' : optimize_boolean(c[2].strip(),optimize) })
                else:
                   print "line "+str(numLine)+": conditions error"
                   return False
@@ -126,10 +140,24 @@ def rulesToJSON(file, verboseFlag, debugFlag, numFile):
             return False
          for i in range(0, len(condition)-1):
             condition[i]=condition[i].strip()
-         rule['condition']={ condition[0] : condition[1] }
+#         rule['condition']={ condition[0] : condition[1] }
+         cond = condition[1].lower()
+         cond_id = -1
+         if cond=='rise':
+            cond_id=1
+         elif cond=='fall':
+            cond_id=2
+         elif cond=='change':
+            cond_id=3
+         elif cond=='new':
+            cond_id=4
+         if cond_id!=-1:
+            rule['condition']={ condition[0] : cond_id }
 
       if n==nb_elems:
          if toInput == True:
+            rule["num"]=numRule
+            numRule=numRule+1
             inputs_rules.append(rule)
          if toOutput == True:
             outputs_rules.append(rule)
@@ -155,6 +183,7 @@ def main():
    parser.add_option("-i", "--indent", action="store_true", dest="indent", help="JSON indented output")
    parser.add_option("-v", "--verbose", action="store_true", dest="verbose", help="verbose")
    parser.add_option("-d", "--debug", action="store_true", dest="debug", help="debug")
+   parser.add_option("-O", "--optimize", action="store_true", dest="optimize", help="optimize result code")
 
    (options, args) = parser.parse_args()
    if len(args) < 1:
@@ -170,7 +199,7 @@ def main():
    for i in args:
       if options.verbose == True:
          print "Processing file : "+i
-      ret=rulesToJSON(i, options.verbose, options.debug, fileNum)
+      ret=rulesToJSON(i, options.verbose, options.debug, fileNum, options.optimize)
       if ret!=False:
          try:
             rules["inputs"]=rules["inputs"]+ret["inputs"]
