@@ -4,6 +4,8 @@
 //  Created by Patrice DIETSCH on 17/10/12.
 //
 //
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -87,15 +89,13 @@ void set_xPLServer_isnt_running(void *data)
 
 void clean_xPLServer(void *data)
 {
+   xPL_ServicePtr tmp = xPLService;
+   xPLService = NULL;
+ 
    xPL_removeMessageListener(_cmndXPLMessageHandler);
 
-//   xPL_removeServiceListener(xPLService, _cmndXPLMessageHandler);
-//   xPL_removeServiceListener(xPLService, _cmndXPLMessageHandler);
-#ifdef XPL_WD
-//   xPL_removeServiceListener(xPLService, _cmndXPLMessageHandler);
-#endif
-   xPL_setServiceEnabled(xPLService, FALSE);
-   xPL_releaseService(xPLService);
+   xPL_setServiceEnabled(tmp, FALSE);
+   xPL_releaseService(tmp);
 
 #ifdef XPL_WD
    if(xplWDMsg)
@@ -421,7 +421,6 @@ int16_t displayXPLMsg(xPL_MessagePtr theMessage)
 }
 
 
-//void _cmndXPLMessageHandler(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
 void _cmndXPLMessageHandler(xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
 {
 #ifdef XPL_WD
@@ -465,6 +464,7 @@ void _cmndXPLMessageHandler(xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
       return;
 
    process_update_indicator(_xplServer_monitoring_id, xpl_server_xplin_str, ++xplin_indicator);
+   displayXPLMsg(theMessage);
    dispatchXPLMessageToInterfaces(xPLService, theMessage);
 }
 
@@ -544,21 +544,12 @@ void *xPLServer_thread(void *data)
    xPL_setHeartbeatInterval(xPLService, 5000); // en milliseconde
 
    xPL_addMessageListener(_cmndXPLMessageHandler, NULL);
-/*   
-   xPL_addServiceListener(xPLService, _cmndXPLMessageHandler, xPL_MESSAGE_COMMAND, "control", "basic", (xPL_ObjectPtr)data) ;
-   xPL_addServiceListener(xPLService, _cmndXPLMessageHandler, xPL_MESSAGE_COMMAND, "sensor", "request", (xPL_ObjectPtr)data) ;
-   xPL_addServiceListener(xPLService, _cmndXPLMessageHandler, xPL_MESSAGE_COMMAND, "sendmsg", "basic", (xPL_ObjectPtr)data) ;
-*/   
+
 #ifdef XPL_WD
    mea_timer_t xPLWDSendMsgTimer;
    mea_init_timer(&xPLnoMsgReceivedTimer, 30, 1);
    mea_init_timer(&xPLWDSendMsgTimer, 10, 1);
 
-/*   
-   char xpl_instanceWDID[17];
-   snprintf(xpl_instanceWDID,sizeof(xpl_instanceWDID)-1,"%s%s",xpl_instanceID,"wd");
-   xplWDMsg=mea_createSendableMessage(xPL_MESSAGE_TRIGGER, xpl_vendorID, xpl_deviceID, xpl_instanceWDID);
-*/
    xplWDMsg=mea_createSendableMessage(xPL_MESSAGE_TRIGGER, xpl_vendorID, xpl_deviceID, xpl_instanceID);
    xPL_setBroadcastMessage(xplWDMsg, FALSE);
    xPL_setSchema(xplWDMsg, "watchdog", "basic");
@@ -566,7 +557,6 @@ void *xPLServer_thread(void *data)
    xPL_setMessageNamedValue(xplWDMsg, "interval", "10");
    mea_start_timer(&xPLnoMsgReceivedTimer);
    mea_start_timer(&xPLWDSendMsgTimer);
-//   xPL_addServiceListener(xPLService, _cmndXPLMessageHandler, xPL_MESSAGE_TRIGGER, "watchdog", "basic", (xPL_ObjectPtr)data);
 #endif
 
    xPL_setServiceEnabled(xPLService, TRUE);
@@ -712,6 +702,7 @@ int stop_xPLServer(int my_id, void *data,  char *errmsg, int l_errmsg)
    }   
 
    xPL_shutdown();
+   fprintf(stderr, "xPL_shutdown\n");
 
    if(ret==0)
    {

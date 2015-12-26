@@ -6,7 +6,6 @@
 //
 
 #define DEBUGFLAG 0
-#define DEBUG
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -93,12 +92,12 @@
 
 # Pour les actions :
 #
-# A1 do: xPLSend    with: (schema='control.basic', device='toto', current={E1}) when: 'C1' rise
-# A2 do: xPLSend    with: (schema='control.basic', device='toto', current={E1}) when: 'C1' fall
-# A3 do: xPLSend    with: (schema='control.basic', device='tata', current={E1}) when: 'C1' change
-# A4 do: xPLSend    with: (schema='control.basic', device='tata', current=$calcb[!{E1}]) when: 'C1' change
-# A5 do: timerCtrl  with: (command='start', name='timer1', value=#10, unit='s') when: 'E1' rise
-# A6 do: timerCtrl  with: (command='stop', name='timer1') when: 'E1' fall
+# A1 do: xPLSend    with: (schema='control.basic', device='toto', current={E1}) when: C1 rise
+# A2 do: xPLSend    with: (schema='control.basic', device='toto', current={E1}) when: C1 fall
+# A3 do: xPLSend    with: (schema='control.basic', device='tata', current={E1}) when: C1 change
+# A4 do: xPLSend    with: (schema='control.basic', device='tata', current=$calcb[!{E1}]) when: C1 change
+# A5 do: timerCtrl  with: (command='start', name='timer1', value=#10, unit='s') when: E1 rise
+# A6 do: timerCtrl  with: (command='stop', name='timer1') when: E1 fall
 */
 
 cJSON *_rules;
@@ -154,15 +153,19 @@ static int getBoolean(char *s, char *b)
 {
    *b=-1;
    if((s[0]=='1' && s[1]==0) ||
-      strcmp(s, "true")==0   ||
-      strcmp(s, "high")==0)
+//      strcmp(s, "true")==0   ||
+//      strcmp(s, "high")==0)
+      strcmp(s, c_true_str)==0   ||
+      strcmp(s, c_high_str)==0)
    {
       *b=1;
       return 0;
    }
    else if((s[0]=='0' && s[1]==0) ||
-           strcmp(s, "false")==0  ||
-           strcmp(s, "low")==0)
+//           strcmp(s, "false")==0  ||
+//           strcmp(s, "low")==0)
+           strcmp(s, c_false_str)==0  ||
+           strcmp(s, c_true_str)==0)
    {
       *b=0;
       return 0;
@@ -246,14 +249,17 @@ static int valueToStr(struct value_s *v, char *str, int l_str, enum conversion_e
    {
       if(flag & HIGHLOW)
          if(v->val.booleanval==0)
-            strcpy(str, "low");
+//            strcpy(str, "low");
+            strcpy(str, c_low_str);
          else
-            strcpy(str, "high");
+//            strcpy(str, "high");
+            strcpy(str, c_high_str);
       else if(flag & TRUEFALSE)
          if(v->val.booleanval==0)
-            strcpy(str, "false");
+//            strcpy(str, "false");
+            strcpy(str, c_false_str);
          else
-            strcpy(str, "true");
+            strcpy(str, c_true_str);
       else
          snprintf(str,l_str,"%d",v->val.booleanval);
    }
@@ -361,6 +367,7 @@ static int valueCmp(struct value_s *v1, int comparator, struct value_s *v2)
 }
 
 
+#ifdef DEBUG
 static int valuePrint(struct value_s *v)
 {
    if(v->type==0)
@@ -372,7 +379,7 @@ static int valuePrint(struct value_s *v)
 
    return 0;
 }
-
+#endif
 
 enum function_e {
    F_NOW=0,
@@ -652,7 +659,7 @@ static int callFunction(char *str, struct value_s *v, xPL_NameValueListPtr ListN
    int str_l = strlen(str)+1;
    if(str_l > MAX_STR_FUNCTION_SIZE)
    {
-      fprintf(stderr,"Overflow !!!\n");
+      VERBOSE(2) mea_log_printf("%s (%s) : string length overflow - %s\n", ERROR_STR, __func__, str);
       return -1;
    }
 /*
@@ -816,15 +823,19 @@ static int callFunction(char *str, struct value_s *v, xPL_NameValueListPtr ListN
                {
                   case F_TOHLSTR:
                      if(r.val.booleanval==0)
-                        strcpy(v->val.strval, "low");
+                        // strcpy(v->val.strval, "low");
+                        strcpy(v->val.strval, c_low_str);
                      else 
-                        strcpy(v->val.strval, "high");
+                        // strcpy(v->val.strval, "high");
+                        strcpy(v->val.strval, c_high_str);
                      break;
                   case F_TOTFSTR:
                      if(r.val.booleanval==0)
-                        strcpy(v->val.strval, "false");
+                        // strcpy(v->val.strval, "false");
+                        strcpy(v->val.strval, c_false_str);
                      else 
-                        strcpy(v->val.strval, "true");
+                        // strcpy(v->val.strval, "true");
+                        strcpy(v->val.strval, c_true_str);
                      break;
                }
                retour = 0;
@@ -1100,10 +1111,9 @@ static int automator_timerCtrl(cJSON *parameters)
       int ret=mea_datetime_stopTimer(timername);
       return ret;
    }
+   VERBOSE(5)  mea_log_printf("%s (%s) : unknown command - %s\n", ERROR_STR, __func__, command->valuestring);
 
-   VERBOSE(5) fprintf(stderr,"unknown command : %s\n", command->valuestring);
-
-   return 0;
+   return -1;
 }
 
 
@@ -1147,7 +1157,10 @@ static int automator_sendxpl(cJSON *parameters)
 
    xPL_ServicePtr servicePtr = mea_getXPLServicePtr();
    if(!servicePtr)
+   {
+      fprintf(stderr,"pas de service xpl ...\n");
       return -1;
+   }
 
    xPL_MessagePtr xplMessage = xPL_createBroadcastMessage(servicePtr, xPL_MESSAGE_COMMAND);
    if(!xplMessage)
@@ -1245,7 +1258,7 @@ int automator_play_output_rules(cJSON *rules)
 {
    if(rules==NULL)
    {
-      DEBUG_SECTION2(DEBUGFLAG) fprintf(stderr,"NO OUTPUT RULE\n");
+      DEBUG_SECTION2(DEBUGFLAG)  mea_log_printf("%s (%s) : NO OUTPUT RULE\n", DEBUG_STR, __func__);
       return -1;
    }
 
@@ -1263,7 +1276,7 @@ int automator_play_output_rules(cJSON *rules)
       int actionFlag=0; 
       if(i==NULL)
       {
-         DEBUG_SECTION2(DEBUGFLAG) fprintf(stderr,"Input rule (%s) no data found\n", cond->child->string);
+         DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s (%s) : Input rule (%s) no data found\n", DEBUG_STR, __func__, cond->child->string);
          goto next_rule;
       }
 
@@ -1425,7 +1438,7 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
 {
    if(rules==NULL)
    {
-      DEBUG_SECTION2(DEBUGFLAG) fprintf(stderr,"NO INPUT RULE\n");
+      DEBUG_SECTION2(DEBUGFLAG)  mea_log_printf("%s (%s) : NO INPUT RULE\n", DEBUG_STR, __func__);
       return -1;
    }
 
@@ -1467,7 +1480,7 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
       
       if(!name || !value)
       {
-         automator_rule_debug_info_print(e, "Incomplete rule, no name or value (rule removed)");
+         automator_rule_debug_info_print(e, "incomplete rule, no name or value (rule removed)");
 
          // pas de nom ou pas de valeur, pas la peine de relire à chaque fois, on supprime la règle.
          cJSON *c = e;
@@ -1477,13 +1490,12 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
 
          continue;
       }
-
-      DEBUG_SECTION2(DEBUGFLAG) fprintf(stderr,"\nRULE : %s\n", name->valuestring);
+      DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s (%s) : RULE - %s\n", DEBUG_STR, __func__, name->valuestring);
       int ret=evalStr(value->valuestring, &res, ListNomsValeursPtr);
       if(ret<0)
       {
-         DEBUG_SECTION2(DEBUGFLAG) fprintf(stderr,"   [%s] incorrect value\n", value->valuestring);
-         automator_rule_debug_info_print(e, "Incorrect rule value (rule removed)");
+         DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s (%s) :    [%s] incorrect value\n",  DEBUG_STR, __func__, value->valuestring);
+         automator_rule_debug_info_print(e, "incorrect rule value (rule removed)");
 
          cJSON *c;
          c=e;
@@ -1500,14 +1512,12 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
          match=0;
          goto next_rule;
       }
-    
-      DEBUG_SECTION2(DEBUGFLAG) { fprintf(stderr,"   RES = "); valuePrint(&res); fprintf(stderr," (%s)\n",  value->valuestring); }
 
       // évaluation des conditions
       cJSON *conditions=cJSON_GetObjectItem(e,"conditions");
       if(conditions!=NULL)
       {
-         DEBUG_SECTION2(DEBUGFLAG) fprintf(stderr,"   CONDITIONS : \n");
+         DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s (%s) :    CONDITIONS : \n",  DEBUG_STR, __func__);
          cJSON *c=conditions->child;
          while(c)
          {
@@ -1517,7 +1527,7 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
             cJSON *value2 = cJSON_GetObjectItem(c, "value2");
             if(!value1 || !op || !value2)
             {
-               automator_rule_debug_info_print(e, "Incorrect condition, check JSON (rule removed)");
+               automator_rule_debug_info_print(e, "incorrect condition, check JSON (rule removed)");
 
                cJSON *c = e;
                e=e->next;
@@ -1531,7 +1541,7 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
             operator=getComparator(op->valuestring);
             if(operator<0)
             {
-               automator_rule_debug_info_print(e, "Incorrect condition, unknown operator (rule removed)");
+               automator_rule_debug_info_print(e, "incorrect condition, unknown operator (rule removed)");
 
                cJSON *c = e;
                e=e->next;
@@ -1543,7 +1553,7 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
 
             if(automator_getValue(value1, &val1, source, schema, ListNomsValeursPtr)<0)
             {
-               automator_rule_debug_info_print(e, "Incorrect value1, in condition (rule removed)");
+               automator_rule_debug_info_print(e, "incorrect value1, in condition (rule removed)");
 
                cJSON *c = e;
                e=e->next;
@@ -1555,7 +1565,7 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
             
             if(automator_getValue(value2, &val2, source, schema, ListNomsValeursPtr)<0)
             {
-               automator_rule_debug_info_print(e, "Incorrect value2, in condition (rule removed)");
+               automator_rule_debug_info_print(e, "incorrect value2, in condition (rule removed)");
 
                cJSON *c = e;
                e=e->next;
@@ -1578,13 +1588,13 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
       }
       else
       {
-         DEBUG_SECTION2(DEBUGFLAG) fprintf(stderr,"   NO CONDITION\n");
+         DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s (%s) :    NO CONDITION\n",  DEBUG_STR, __func__);
       }
 
    next_rule:
       if(match==1)
       {
-         DEBUG_SECTION2(DEBUGFLAG) fprintf(stderr,"   MATCH !\n");
+         DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s (%s) :    MATCH !\n", DEBUG_STR, __func__);
 
          if(strcmp(res.val.strval, "<NOP>")!=0)
          {
@@ -1592,7 +1602,7 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
          }
          else
          {
-            DEBUG_SECTION2(DEBUGFLAG) fprintf(stderr, "   Result discarded\n");
+            DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s (%s) :    Result discarded\n", DEBUG_STR, __func__);
          }
 
          if(onmatch) // post action
@@ -1617,6 +1627,7 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
             char action_l=sizeof(action)-1;
             char *p_action  = action;
             char *p_onmatch = onmatch->valuestring;
+            // découpage de la chaine
             while(*p_onmatch && *p_onmatch!=' ' && action_l)
             {
                *p_action=tolower(*p_onmatch);
@@ -1638,10 +1649,15 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
                int flag=0;
                struct moveforward_dest_s *md = NULL;
 
-               if(evalStr(p_onmatch, &r, NULL)==0 && r.type==1)
+               // supprime les blancs en début de p_onmatch
+               while(*p_onmatch && *p_onmatch==' ') ++p_onmatch;
+
+//               if(evalStr(p_onmatch, &r, NULL)==0 && r.type==1)
+               if(*p_onmatch)
                {
                   int16_t notCacheMoveForwardFlag = 0;
-                  HASH_FIND_STR(moveforward_dests, r.val.strval, md);
+                  // HASH_FIND_STR(moveforward_dests, r.val.strval, md);
+                  HASH_FIND_STR(moveforward_dests, p_onmatch, md);
                   if(md) // on va vérifier qu'on fait bien un saut en avant
                   {
                      cJSON *numc = cJSON_GetObjectItem(e, "num");
@@ -1658,14 +1674,16 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
                      while(_e)
                      {
 //                        if(cJSON_GetObjectItem(_e,"name") && mea_strcmplower(cJSON_GetObjectItem(_e,"name")->valuestring,r.val.strval)==0)
-                        if(cJSON_GetObjectItem(_e,"name") && strcmp(cJSON_GetObjectItem(_e,"name")->valuestring,r.val.strval)==0)
+                        // if(cJSON_GetObjectItem(_e,"name") && strcmp(cJSON_GetObjectItem(_e,"name")->valuestring,r.val.strval)==0)
+                        if(cJSON_GetObjectItem(_e,"name") && strcmp(cJSON_GetObjectItem(_e,"name")->valuestring, p_onmatch)==0)
                         {
                            if(notCacheMoveForwardFlag == 0)
                            {
                               md = (struct moveforward_dest_s *)malloc(sizeof(struct moveforward_dest_s));
                               if(md)
                               {
-                                 strcpy(md->rule, r.val.strval);
+                                 // strcpy(md->rule, r.val.strval);
+                                 strcpy(md->rule, p_onmatch);
                                  md->e=_e;
                                  HASH_ADD_STR(moveforward_dests, rule, md);
                               } 
@@ -1697,7 +1715,7 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
       }
       else
       {
-         DEBUG_SECTION2(DEBUGFLAG) fprintf(stderr,"   NOT MATCH !\n");
+         DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s (%s) :    NOT MATCH !\n", DEBUG_STR, __func__);
       }
       e=e->next;
 next_loop:{}

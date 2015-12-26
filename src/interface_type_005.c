@@ -360,13 +360,26 @@ int16_t interface_type_005_xPL_callback(xPL_ServicePtr theService, xPL_MessagePt
    schema_class       = xPL_getSchemaClass(theMessage);
    schema_type        = xPL_getSchemaType(theMessage);
    ListNomsValeursPtr = xPL_getMessageBody(theMessage);
-   device             = xPL_getNamedValue(ListNomsValeursPtr, get_token_string_by_id(XPL_DEVICE_ID));
-   type               = xPL_getNamedValue(ListNomsValeursPtr, get_token_string_by_id(XPL_TYPE_ID));
-   
+
+   if(ListNomsValeursPtr == NULL)
+   {
+      VERBOSE(5) mea_log_printf("%s (%s) : incorrect xPL message\n", INFO_STR, __func__);
+      return -1;
+   }
+
+   device = xPL_getNamedValue(ListNomsValeursPtr, get_token_string_by_id(XPL_DEVICE_ID));
    mea_strtolower(device);
    if(!device)
    {
       VERBOSE(5) mea_log_printf("%s (%s) : xPL message no device\n", INFO_STR, __func__);
+      return -1;
+   }
+
+//   type = xPL_getNamedValue(ListNomsValeursPtr, get_token_string_by_id(XPL_TYPE_ID));
+   type = xPL_getNamedValue(ListNomsValeursPtr, "type");
+   if(!type)
+   {
+      VERBOSE(5) mea_log_printf("%s (%s) : xPL message no type\n", INFO_STR, __func__);
       return -1;
    }
 

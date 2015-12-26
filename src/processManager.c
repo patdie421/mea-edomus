@@ -828,7 +828,7 @@ int16_t _process_register(char *name)
                }
             }
             managed_processes.processes_table[i]->heartbeat_interval=20; // 20 secondes par defaut
-            managed_processes.processes_table[i]->heartbeat_counter=0; // nombre d'abscence de heartbeat entre de recovery.
+            managed_processes.processes_table[i]->heartbeat_counter=0; // nombre d'abscence de heartbeat entre deux recovery.
             managed_processes.processes_table[i]->type=AUTOSTART;
             managed_processes.processes_table[i]->status=STOPPED; // arrêté par défaut
             managed_processes.processes_table[i]->async_stop=0;
@@ -944,7 +944,6 @@ int clean_managed_processes()
 int init_processes_manager(int max_nb_processes)
 {
    managed_processes.processes_table=(struct managed_processes_process_s **)malloc(max_nb_processes * sizeof(struct managed_processes_process_s *));
-//   managed_processes.processes_table=(struct managed_processes_process_s **)calloc(max_nb_processes, sizeof(struct managed_processes_process_s *));
    if(!managed_processes.processes_table)
    {
       return -1;
@@ -1030,8 +1029,6 @@ int process_add_indicator(int id, char *name, long initial_value)
 
 int process_del_indicator(int id, char *name)
 {
-//   int ret=-1;
-   
    process_heartbeat(id);// à compléter
 
    pthread_cleanup_push( (void *)pthread_rwlock_unlock, (void *)&managed_processes.rwlock );
@@ -1050,7 +1047,6 @@ int process_del_indicator(int id, char *name)
             if(strcmp(name, e->name) == 0)
             {
                mea_queue_remove_current(managed_processes.processes_table[id]->indicators_list);
-//               ret=0;
                goto process_del_indicator_clean_exit;
             }
             else
@@ -1292,8 +1288,6 @@ int _managed_processes_processes_check_heartbeats(int doRecovery)
                   ret=f(i, d, NULL, 0);
                managed_processes.processes_table[i]->status=0;
             }
-            //process_stop(i, NULL, 0);
-
          }
          else if((((now - managed_processes.processes_table[i]->last_heartbeat) < managed_processes.processes_table[i]->heartbeat_interval) && (managed_processes.processes_table[i]->forced_watchdog_recovery_flag == 0))
                || ( managed_processes.processes_table[i]->type == TASK)

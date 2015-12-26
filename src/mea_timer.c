@@ -69,12 +69,11 @@ int16_t mea_init_timer(mea_timer_t *aTimer, uint32_t aDelay, uint16_t restartSta
 {
    if(aTimer)
    {
-     aTimer->stat=0;
-	   aTimer->start_time=0;
-	   aTimer->delay=aDelay;
-	   aTimer->autorestart=restartStatus;
-	  
-	   return 0;
+      aTimer->stat=0;
+      aTimer->start_time=0;
+      aTimer->delay=aDelay;
+      aTimer->autorestart=restartStatus;
+      return 0;
    }
    else
       return -1;
@@ -120,7 +119,7 @@ int16_t mea_test_timer(mea_timer_t *aTimer)
 	  
       time(&now);
 	    
-      diff_time=difftime(now,aTimer->start_time);
+      diff_time=difftime(now, aTimer->start_time);
       if(diff_time > (double)(aTimer->delay))
       {
          if(aTimer->autorestart==1)
@@ -139,4 +138,4 @@ int16_t mea_test_timer(mea_timer_t *aTimer)
    }
    else
       return -1;
-}	  
+}

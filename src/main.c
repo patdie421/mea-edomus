@@ -22,6 +22,8 @@
 #include <libgen.h>
 #include <sys/wait.h>
 #include <sqlite3.h>
+#include <execinfo.h>
+#include <sys/resource.h>
 
 #include "globals.h"
 #include "macros.h"
@@ -343,6 +345,35 @@ void clean_all_and_exit()
 }
 
 
+static void error_handler(int signal_number)
+{
+   void *array[10];
+   char **messages;
+
+   size_t size;
+
+   size = backtrace(array, 50);
+
+   // print out all the frames to stderr
+   fprintf(stderr, "Error: signal %d:\n", signal_number);
+
+   backtrace_symbols_fd(array, size, fileno(stderr));
+
+   messages = backtrace_symbols(array, size);
+
+   for (int i=1; i < size && messages != NULL; ++i)
+      fprintf(stderr, "[backtrace]: (%d) %s\n", i, messages[i]);
+   free(messages);
+
+   // pour générer un coredump voir
+   // http://www.alexonlinux.com/how-to-handle-sigsegv-but-also-generate-core-dump
+   signal(signal_number, SIG_DFL);
+   kill(getpid(), signal_number);
+
+   exit(1);
+}
+
+
 static void _signal_STOP(int signal_number)
 /**
  * \brief     Traitement des signaux d'arrêt (SIGINT, SIGQUIT, SIGTERM)
@@ -379,8 +410,14 @@ int main(int argc, const char * argv[])
 {
    int ret; // sqlite function need int
   
-//   mtrace();
- 
+   // activation du core dump
+   struct rlimit core_limit = { RLIM_INFINITY, RLIM_INFINITY };
+   assert( setrlimit( RLIMIT_CORE, &core_limit ) == 0 );
+   // pour changer l'endroit ou sont les cores dump et donner un nom plus explicite
+   // echo '/tmp/core_%e.%p' | sudo tee /proc/sys/kernel/core_pattern
+
+//   signal(SIGSEGV, error_handler);
+
    // toutes les options possibles
    static struct option long_options[] = {
       {"init",              no_argument,       0,  'i'                  },
@@ -755,7 +792,7 @@ int main(int argc, const char * argv[])
    
    
    //
-   // strout et stderr vers fichier log
+   // stdout et stderr vers fichier log
    //
    char log_file[255];
    int16_t n;

@@ -260,18 +260,12 @@ char *get_token_string_by_id(enum token_id_e id)
    {
       int16_t middle=(end + start) / 2;
       if(middle<0)
-      {
-//         DEBUG_SECTION mea_log_printf("%s (%s) : (%d => NULL)\n", DEBUG_STR, __func__, id);
          return NULL;
-      }
 
       _cmpres=(int)(tokens_list[tokens_index->index_by_id[middle]].id) - (int)id;
 
       if(_cmpres==0)
-      {
-//         DEBUG_SECTION mea_log_printf("%s (%s) : (%d => %s)\n", DEBUG_STR, __func__, id, tokens_list[tokens_index->index_by_id[middle]].str);
          return (char *)tokens_list[tokens_index->index_by_id[middle]].str;
-      }
       if(_cmpres<0)
          start=middle+1;
       if(_cmpres>0)
@@ -312,18 +306,11 @@ enum token_id_e get_token_id_by_string(char *str)
       int16_t middle = (end + start) / 2;
       
       if(middle<0)
-      {
-//         DEBUG_SECTION mea_log_printf("%s (%s) : (%s => -1)\n", DEBUG_STR, __func__, str);
          return -1;
-      }
       
       _cmpres=mea_strcmplower2((char *)tokens_list[tokens_index->index_by_string[middle]].str, str);
       if(_cmpres==0)
-      {
          return tokens_list[tokens_index->index_by_string[middle]].id;
-//         DEBUG_SECTION mea_log_printf("%s (%s) : (%s => %d)\n", DEBUG_STR, __func__, str, tokens_list[tokens_index->index_by_string[middle]].id);
-
-      }
       if(_cmpres<0)
          start=middle+1;
       if(_cmpres>0)
@@ -473,12 +460,9 @@ char *get_token_string_by_id(enum token_id_e id)
    
    if(s)
    {
-//      DEBUG_SECTION mea_log_printf("%s (%s) : (%d => %s)\n", DEBUG_STR, __func__, id, s->token->str);
       return (char *)(s->token->str);
    }
 
-//   DEBUG_SECTION mea_log_printf("%s (%s) : (%d => -1)\n", DEBUG_STR, __func__, id);
-   
    return NULL;
 }
 
@@ -513,12 +497,7 @@ enum token_id_e get_token_id_by_string(char *str)
    HASH_FIND(hh_token_by_string, tokens_hash_by_string, _token_string_buf, strlen(_token_string_buf), s);
 
    if(s)
-   {
-//      DEBUG_SECTION mea_log_printf("%s (%s) : (%s => %d)\n", DEBUG_STR, __func__, str, s->token->id);
       return s->token->id;
-   }
-
-//   DEBUG_SECTION mea_log_printf("%s (%s) : (%s => -1)\n", DEBUG_STR, __func__, str);
 
    return _UNKNOWN;
 }
