@@ -4,6 +4,7 @@ INITDONE is: <NOP> if: ({INITFAIT} == &true) onmatch: moveforward 'APRESINIT'
    CPTR1 is: #0
    SURCONSO is: &false
    BUTTON003 is: &false
+   BUTTON005 is: &false
    ** fin initialisation
    INITFAIT is: &true
 APRESINIT is: <LABEL>
@@ -40,6 +41,9 @@ PILE3 is: current if: (device == 'batterie01') onmatch: break
 HUMI01 is: current if: (device == 'xhumi01')   onmatch: break
 HUMI02 is: current if: (device == 'xhumi02')   onmatch: break
 
+THERMM is: &false if: (device == 'mode01', current!=#3) onmatch: break
+THERMM is: &true  if: (device == 'mode01', current==#3) onmatch: break
+
 ** collecte consommation/production
 PRODE  is: current if: (device == 'PROD',  type == 'energy')
 PRODP  is: current if: (device == 'PROD',  type == 'power')
@@ -48,6 +52,8 @@ CONSOP is: current if: (device == 'CONSO', type == 'power')
 
 VAETVIENT1 is: current if: (device == 'BUTTON004')
 VAETVIENT1 is: current if: (device == 'BUTTON005')
+BUTTON005  is: current if: (device == 'BUTTON005')
+
 
 **
 ** traitements
@@ -106,3 +112,6 @@ I3 do: setInput with: ( name = 'BUTTON003', value = &false, updatestate = &0) wh
 T41 do: timerCtrl with: ( command = 'start', name = 'timer41', unit = 'sec', value=#5 ) when: LAMPE4S rise
 T41 do: timerCtrl with: ( command = 'stop', name = 'timer41') when: LAMPE4S fall
 O41 do: xPLSend with:   ( device = 'LAMPE4', schema = 'control.basic', current = 'pulse', data1 = #13, type='output' ) when: TIMER41 rise
+
+** test envoi de SMS
+O4 do: xPLSend with: (device = 'sendsms', schema = 'sendmsg.basic', to='0661665082', body='thermostat passe en manuel' ) when: THERMM rise

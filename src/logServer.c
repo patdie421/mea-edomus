@@ -18,9 +18,6 @@
 #include "logServer.h"
 
 #include "globals.h"
-//#include "mea_queue.h"
-//#include "debug.h"
-//#include "error.h"
 #include "mea_verbose.h"
 #include "processManager.h"
 #include "mea_timer.h"
@@ -51,9 +48,9 @@ struct logServer_thread_data_s
 
 
 // Variable globale privée
-pthread_t *_logServer_thread=NULL;
 volatile sig_atomic_t
            _logServer_thread_is_running=0;
+pthread_t *_logServer_thread=NULL;
 int        _logServer_monitoring_id=-1;
 struct logServer_thread_data_s
            _logServer_thread_data;
@@ -90,8 +87,8 @@ int send_line(char *hostname, int port_socketdata, char *line)
 /**
  * \brief     Envoie une ligne à la console web.
  * \details   Formate un message "console" à destination du serveur nodejs. Si la socket est fermée, la fonction
- *            va essayer d'établir la connexion. La socket est mémorisé par la fonction (variable static).
- *            Attention, en cas d'erreur le message est perdu (sauf si traité par l'éméteur.
+ *            va essayer d'établir la connexion. La socket est mémorisée par la fonction (variable static).
+ *            Attention, en cas d'erreur le message est perdu (sauf si traité par l'éméteur).
  * \param     hostname  nom ou adresse ip du serveur nodejs
  * \param     port_socketdata pour de reception du serveur nodejs
  * \param     line ligne à afficher dans la console
@@ -110,9 +107,10 @@ int send_line(char *hostname, int port_socketdata, char *line)
    }
  
    char message[1024];
-   int l_data=strlen(line)+4;
+   int l_data=strlen(line)+4; // 4 pour strlen de "LOG:"
 
    sprintf(message,"$$$xxLOG:%s###", line);
+   // on remplace les xx par la longueur
    message[3]=(char)(l_data%128);
    message[4]=(char)(l_data/128);
    int ret = mea_socket_send(&nodejs_socket, message, l_data+12);
@@ -138,11 +136,11 @@ int read_string(char *line, int line_l, FILE *fp)
  *            dans le fichier.
  * \details   cette fonction va lire caractère par caractère le flot de données d'un fichier ouvert jusqu'à
  *            trouver un caractère "LF" (asc=10). La chaine trouvée est copiée dans "line" si la taille le
- *            permet. Si la taille de "line" ne le permet pas, line et retournée avec les données qui ont pu
+ *            permet. Si la taille de "line" ne le permet pas, line est retournée avec les données qui ont pu
  *            être lu et la fonction retourne -1. La fin de chaine est toujours 0 même si la limite
  *            de taille de "line" est atteinte. Si aucune donnée n'est disponible pendant 1s la fonction retourne
  *            -3 mais "line" contient les données qui ont pu être lues.
- * \param     line   chaine alloué par l'appelant qui contiendra la chaine lu.
+ * \param     line   chaine allouée par l'appelant qui contiendra la chaine lue.
  * \param     line_l taille en octet de line (fourni par l'appelant).
  * \param     fp     descripteur du fichier à lire
  * \return    -3 timeout de lecture (pas de caractère dispo depuis environ 1 seconde, -2 erreur de lecture,
@@ -254,8 +252,8 @@ long seek_to_next_line(FILE *fp, long *pos)
 long seek_to_previous_line(FILE *fp, long *pos)
 /**
  * \brief     Positionne le pointeur de lecture au début de la dernière ligne d'un fichier.
- * \details   lecture d'un fichier à partir de la fin pour trouvé le debut de la dernière ligne.
- *            Une fin de ligne est identifiés par un LF (0x0A) ou LFCR (0x0A suivi de 0x0D).
+ * \details   lecture d'un fichier à partir de la fin pour trouver le debut de la dernière ligne.
+ *            Une fin de ligne est identifiée par un LF (0x0A) ou LFCR (0x0A suivi de 0x0D).
  * \param     fp   descripteur ouvert du fichier.
  * \param     pos  valeur du pointeur de fichier.
  * \return    -1 pas de ligne trouvée dans le fichier (pos=-1).
@@ -269,7 +267,7 @@ long seek_to_previous_line(FILE *fp, long *pos)
    long end;
    char previous_caracter=0;
 
-   if(fseek(fp,0,SEEK_END)) // On va a la fin du fichier
+   if(fseek(fp,0,SEEK_END)) // On va à la fin du fichier
    {
       if(ferror(fp))
       {
@@ -336,7 +334,7 @@ long seek_to_previous_line(FILE *fp, long *pos)
    }
    while(p!=0);
    
-   fseek(fp,*pos,SEEK_SET);
+   fseek(fp, *pos, SEEK_SET);
    return 0;
 }
 
@@ -344,12 +342,12 @@ long seek_to_previous_line(FILE *fp, long *pos)
 int read_line(FILE *fp, char *line, int line_l, long *pos)
 /**
  * \brief     Lit à partir de "*pos" ou en fin de fichier si "*pos" == -1.
- * \details   lecture d'un fichier à partir de la fin pour trouvé le debut de la dernière ligne.
- *            Une fin de ligne est identifiés par un LF (0x0A) ou LFCR (0x0A suivi de 0x0D).
+ * \details   lecture d'un fichier à partir de la fin pour trouver le début de la dernière ligne.
+ *            Une fin de ligne est identifiée par un LF (0x0A) ou LFCR (0x0A suivi de 0x0D).
  * \param     fp      descripteur ouvert du fichier.
- * \param     line    chaine alloué par l'appelant qui contiendra la chaine lu.
+ * \param     line    chaine allouée par l'appelant qui contiendra la chaine lu.
  * \param     line_l  taille en octet de line (fourni par l'appelant).
- * \param     pos     en entrée : pointeur de lecture (ou -1), en sortie debut de la ligne suivante.
+ * \param     pos     en entrée : pointeur de lecture (ou -1), en sortie début de la ligne suivante.
  * \return    -1 : erreur de lecture,
  *             0 : ligne lue et potentiellement une autre ligne à lire,
  *             1 : pointeur déjà sur la fin de fichier (rien à lire de suite),

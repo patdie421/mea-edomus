@@ -26,6 +26,7 @@ int  _socketio_port=0;
 int  _socketdata_port=0;
 int  _nodejsServer_monitoring_id=-1;
 
+
 int nodejsServer_ping()
 {
    // heartbeat du nodejs ...
@@ -92,7 +93,12 @@ int stop_nodejsServer(int my_id, void *data, char *errmsg, int l_errmsg)
    if(_pid_nodejs>0)
    {
       kill(_pid_nodejs, SIGKILL);
+      sleep(1);
       wait(&status);
+
+      fprintf(stderr,"WIFEXITED   = %d\n", WIFEXITED(status));
+      fprintf(stderr,"WEXITSTATUS = %d\n", WEXITSTATUS(status));
+      fprintf(stderr,"WIFSIGNALED = %d\n", WIFSIGNALED(status));
       _pid_nodejs=-1;
    }
    

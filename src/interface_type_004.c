@@ -109,7 +109,9 @@ int16_t sendAllxPLTrigger(interface_type_004_t *i004)
       return -1;
    
    xPL_ServicePtr servicePtr = mea_getXPLServicePtr();
-   
+   if(servicePtr == NULL)
+      return -1;
+ 
    cJSON *currentLight=current->child;
    while(currentLight)
    {
@@ -155,7 +157,9 @@ int16_t whatChange(interface_type_004_t *i004)
       return -1;
    
    xPL_ServicePtr servicePtr = mea_getXPLServicePtr();
-   
+   if(servicePtr == NULL)
+      return -1;
+ 
    cJSON *currentLight=current->child;
    cJSON *lastLight = NULL;
    while(currentLight)

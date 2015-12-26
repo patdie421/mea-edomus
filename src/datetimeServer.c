@@ -232,7 +232,6 @@ static int mea_clean_datetime_values_cache()
 static int update_datetime_values_cache()
 {
    struct tm tm;
-//   struct mea_datetime_value_s *e = NULL;
 
    if(mea_datetime_values_cache)
    {
@@ -261,7 +260,6 @@ static int getSunRiseSetOrTwilingStartEnd(double lon, double lat, time_t *_start
    double start, end;
    int  rs;
 
-//   struct timeval te;
    struct tm tm_gmt;
 
    time_t t = mea_time_value;

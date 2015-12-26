@@ -3,10 +3,22 @@
 // process.argv.forEach(function (val, index, array) {
 //  console.log(index + ': ' + val);
 //});
-// passer les ports et sessions_path
 //
 
 // voir ici : http://stackoverflow.com/questions/6502031/authenticate-user-for-socket-io-nodejs pour récupérer l'id session PHP dans les cookies
+
+
+process.on('uncaughtException', function (error) {
+//   console.log(error.stack);
+   if(error.code == 'EADDRINUSE')
+   {
+      console.log(getDateTime()+" ERROR port already in use");
+      process.exit(0);
+   }
+   console.log(getDateTime()+" INFO  uncaughtException, check :");
+   console.log(error);
+});
+
 
 function getDateTime()
 {
@@ -229,7 +241,9 @@ server.on('listening', function () {
 var clients = [];
 var phpsessids = [];
 
-var io = require('socket.io').listen(SOKET_IO_PORT);
+var socketio=require('socket.io');
+var io = socketio.listen(SOKET_IO_PORT);
+
 var fs = require('fs');
 
 // déclaration d'une fonction qui sera activée lors de la connexion. On traite ici l'authorisation ou non
@@ -300,11 +314,17 @@ function sendMessage(key, message) {
    // emission du message 'key' à tous les clients "authentifies"
    for (var i in clients) {
       try {
-         clients[i].socket.emit(key, message.toString());
+         // clients[i].socket.emit(key, message.toString());
+         clients[i].socket.emit(key, ""+message);
       }
       catch(err)
       {
-         console.log(err.stack);
+         // console.log(err.stack);
+         console.log("Erreur d'emmission vers le client impossible");
+         // on supprime le client
+         delete phpsessids[client[i].socket.phpsessid];
+         clients[i].socket.destroy();
+         delete clients[i];
       }
    }
 }

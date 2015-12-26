@@ -125,7 +125,7 @@ static int mea_eval_callFunction(double *d, int fn, double d1)
 
 /*
 Un token pour une formule "numérique" est soit :
-- un nombre réel : NUMERIC_T
+- un nombre réel : NUMERIC_T (#x)
 - une variable ({nomVar}) : VARIABLE_T => le numero de la variable doit être retournée par _getVarId(nomVar, ...)
 - une fonction (fn(x)) : FUNCTION_T
 */
@@ -299,14 +299,14 @@ static int mea_eval_calcOperationN(int op, struct mea_eval_stack_s *stack, int *
 {
    double d, d1, d2;
 
-   if(op<128)
+   if(op<128) // c'est un opérateur
    {
       d2=stack[(*stack_index)--].val.value;
       d1=stack[(*stack_index)--].val.value;
       if(mea_eval_doOperationN(&d, d1, op, d2)<0)
          return -1;
    }
-   else
+   else // c'est une fonction ou une variable
    {
       if(op==255) // c'est une variable
       {
@@ -572,7 +572,7 @@ struct mea_eval_stack_s *mea_eval_buildStack_alloc(char *str, char **p, int16_t 
    return stack;
 }
 
-
+#ifdef DEBUG
 static void displayStack(struct mea_eval_stack_s *stack, int32_t stack_ptr)
 {
    for(int i=0; i<=stack_ptr; ++i)
@@ -592,7 +592,7 @@ static void displayStack(struct mea_eval_stack_s *stack, int32_t stack_ptr)
          fprintf(stderr,"id = %d\n", stack[i].val.id);
    }
 }
-
+#endif
 
 static int16_t mea_eval_calcn(struct mea_eval_stack_s *stack, int32_t stack_ptr, double *r)
 {
@@ -831,7 +831,7 @@ int mea_eval_calc_numeric_by_cache(char *expr, double *d)
       stack=mea_eval_buildStack_alloc(expr, &p, &err, &stack_ptr);
       if(stack == NULL && err == -1)
       {
-         fprintf(stderr,"> get stack error (%d) at \"%s\"\n", err, p);
+         fprintf(stderr,"get stack error (%d) at \"%s\"\n", err, p);
          return -1;
       }
 
@@ -890,33 +890,14 @@ int main(int argc, char *argv[])
    double t0=millis();
 
 #if ONFLYEVAL==0
-   int stack_ptr=0;
-   struct mea_eval_stack_s *stack=NULL;
+//   int stack_ptr=0;
+//   struct mea_eval_stack_s *stack=NULL;
 
    for(int i=0;i<400000;++i)
       mea_eval_calc_numeric_by_cache(expr, &d);
 
    mea_eval_clean_stack_cache();
-/*
-   struct mea_eval_stack_s *stack=mea_eval_buildStack_alloc(expr, &p, &err, &stack_ptr);
-   if(stack == NULL)
-   {
-      fprintf(stderr,"> get stack error (%d) at \"%s\"\n", err, p);
-      return -1;
-   }
 
-   // displayStack(stack, stack_ptr);
-   for(int i=0;i<400000;++i)
-   {
-      int ret=mea_eval_calcn(stack, stack_ptr, &d);
-      if(ret<0)
-      {
-         fprintf(stderr,"> evalution error\n");
-         return -1;
-      }
-   }
-   free(stack);
-*/
 #else
    for(int i=0;i<400000;++i)
    {
@@ -925,10 +906,6 @@ int main(int argc, char *argv[])
 #endif
    fprintf(stderr, "execution time : %5.2f ms\n",millis()-t0);
    fprintf(stderr,"#%f\n", d);
-
-//   double r;
-//   calcn("int(#1.1 * (#2 + #3) * #4 + {tata})", &r);
-//   fprintf(stderr,"%f\n",r);
 }
 #endif
 

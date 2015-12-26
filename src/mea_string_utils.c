@@ -541,7 +541,7 @@ int mea_strncat(char *dest, int max_test, char *source)
 
 
 /**
- * \brief     supprime tous les caractères "blancs" (espace, tabulation, ...)
+ * \brief     supprime tous les caractères "blancs" (espace)
  *            d'une chaine
  *
  * \param     str        pointeur sur la chaine à traiter.
@@ -586,7 +586,7 @@ char *mea_string_alloc_and_copy(char *str)
 char *mea_string_free_alloc_and_copy(char **org_str, char *str)
 /**
  * \brief     libère une zone mémoire et réaloue une nouvelle zone pour y
- *            compier str.
+ *            copier str.
  *
  * \param     org_str   pointeur sur le pointeur de la chaine à libérer et
  *                      réalouer.
