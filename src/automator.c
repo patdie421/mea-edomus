@@ -1003,7 +1003,7 @@ static int evalStr(char *str, struct value_s *v, xPL_NameValueListPtr ListNomsVa
 
 static int automator_timerCtrl(cJSON *parameters)
 {
-   double now;
+//   double now;
    if(parameters==NULL || parameters->child==NULL)
       return -1;
 
