@@ -165,7 +165,7 @@ static int getBoolean(char *s, char *b)
 //           strcmp(s, "false")==0  ||
 //           strcmp(s, "low")==0)
            strcmp(s, c_false_str)==0  ||
-           strcmp(s, c_true_str)==0)
+           strcmp(s, c_low_str)==0)
    {
       *b=0;
       return 0;
@@ -1270,7 +1270,6 @@ int automator_play_output_rules(cJSON *rules)
       cJSON *cond  = cJSON_GetObjectItem(e,"condition");
 
 //      struct inputs_table_s  *current, *tmp; HASH_ITER(hh, inputs_table, current, tmp) fprintf(stderr,"> [%s]\n", current->name); 
-
       struct inputs_table_s *i = NULL;
       HASH_FIND_STR(inputs_table, cond->child->string, i);
       int actionFlag=0; 
@@ -1594,7 +1593,7 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
    next_rule:
       if(match==1)
       {
-         DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s (%s) :    MATCH !\n", DEBUG_STR, __func__);
+         //DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s (%s) :    MATCH !\n", DEBUG_STR, __func__);
 
          if(strcmp(res.val.strval, "<NOP>")!=0)
          {
@@ -1846,7 +1845,7 @@ static inline struct inputs_table_s *automator_add_to_inputs_table(char *_name, 
 
 static inline struct inputs_table_s *automator_add_to_inputs_table_noupdate(char *_name, struct value_s *v)
 {
-   return _automator_add_to_inputs_table(_name, v, 1);
+   return _automator_add_to_inputs_table(_name, v, 0);
 }
 
 
