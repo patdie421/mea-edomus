@@ -15,8 +15,9 @@ PATH=/sbin:/bin:/usr/sbin:/usr/bin
 
 MEAEDOMUS_BASEPATH="<BASEPATH>"
 
-DAEMON="$MEAEDOMUS_BASEPATH/bin/xPL_Hub_static"
-#XPLHUB_OPT="wlan0"
+#DAEMON="$MEAEDOMUS_BASEPATH/bin/xPL_Hub_static"
+DAEMON="$MEAEDOMUS_BASEPATH/bin/xPL_Hub"
+
 XPLHUB_OPT="<INTERFACE>"
 
 test -x $DAEMON || exit 5
