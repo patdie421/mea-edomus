@@ -106,9 +106,9 @@ int send_line(char *hostname, int port_socketdata, char *line)
       }
    }
  
-   char message[1024];
+//   char message[1024];
    int l_data=strlen(line)+4; // 4 pour strlen de "LOG:"
-
+   char *message=(char *)alloca(l_data+12);
    sprintf(message,"$$$xxLOG:%s###", line);
    // on remplace les xx par la longueur
    message[3]=(char)(l_data%128);
@@ -430,12 +430,12 @@ void *logServer_thread(void *data)
    mea_init_timer(&log_timer, 5, 1); // heartbeat toutes les 5 secondes
    mea_start_timer(&log_timer);
 
+    char line[4096];
    do
    {
       if(_livelog_enable==1)
       {
-         char line[1024];
-            
+         line[0]=0; 
          if(!fp)
          {
             fp = fopen(log_file, "r");
@@ -453,7 +453,7 @@ void *logServer_thread(void *data)
             
          if(fp)
          {
-            int ret=read_line(fp, line, sizeof(line), &pos);
+            int ret=read_line(fp, line, sizeof(line)-1, &pos);
             if(ret==0)
             {
                if(line[0]) // ligne non vide

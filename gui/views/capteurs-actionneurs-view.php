@@ -165,14 +165,16 @@ jQuery(document).ready(function(){
                <th data-options="field:'id',width:10,hidden:true"><?php mea_toLocalC('id'); ?></th>
                <th data-options="field:'id_sensor_actuator',width:10,hidden:true"><?php mea_toLocalC('id_sensor_actuator'); ?></th>
 
-               <th data-options="field:'name',width:100,sortable:true,align:'left'"><?php mea_toLocalC('name'); ?></th>
-               <th data-options="field:'tname',width:100,align:'left'"><?php mea_toLocalC('type'); ?></th>
+               <th data-options="field:'name',width:100,fixed:true,sortable:true,align:'left'"><?php mea_toLocalC('name'); ?></th>
+               <th data-options="field:'tname',width:80,fixed:true,align:'left'"><?php mea_toLocalC('type'); ?></th>
+               <th data-options="field:'iname',width:100,fixed:true,align:'left'"><?php mea_toLocalC('interface'); ?></th>
                <th data-options="field:'description',width:200,align:'left'"><?php mea_toLocalC('description'); ?></th>
-               <th data-options="field:'iname',width:100,align:'left'"><?php mea_toLocalC('interface'); ?></th>
+<!--
                <th data-options="field:'parameters',width:200,align:'left'"><?php mea_toLocalC('parameters'); ?></th>
-               <th data-options="field:'lname',width:80,align:'left'"><?php mea_toLocalC('location'); ?></th>
-               <th data-options="field:'state',width:50,align:'left',formatter:ctrlr_sa.toCheckmark"><?php mea_toLocalC('state'); ?></th>
-               <th data-options="field:'todbflag',width:50,align:'left',formatter:ctrlr_sa.toCheckmark"><?php mea_toLocalC('recorded'); ?></th>
+-->
+               <th data-options="field:'lname',width:80,fixed:true,align:'left'"><?php mea_toLocalC('location'); ?></th>
+               <th data-options="field:'state',width:50,fixed:true,align:'left',formatter:ctrlr_sa.toCheckmark"><?php mea_toLocalC('state'); ?></th>
+               <th data-options="field:'todbflag',width:50,fixed:true,align:'left',formatter:ctrlr_sa.toCheckmark"><?php mea_toLocalC('recorded'); ?></th>
     
                <th data-options="field:'id_type',hidden:true,align:'left'"><?php mea_toLocalC('id_type'); ?></th>
                <th data-options="field:'id_interface',hidden:true,align:'left'"><?php mea_toLocalC('id_interface'); ?></th>

@@ -88,6 +88,8 @@ function liveComUnavailable(destview)
    viewsController.addView(translationController.toLocalC('application'),'page3.php','page3_tab');
    viewsController.addView(translationController.toLocalC('users'),'page3.php','page3_tab');
 
+   viewsController.addView(translationController.toLocalC('rules editor'),'page4.php','page4_tab');
+
    if(destview=="" || typeof(viewController.views[destview])=="undefined")
       destview=translationController.toLocalC('sensors/actuators');
    
@@ -110,6 +112,8 @@ function liveComAvailable(s,destview)
    viewsController.addView(translationController.toLocalC('application'),'page3.php','page3_tab');
    viewsController.addView(translationController.toLocalC('users'),'page3.php','page3_tab');
 
+   viewsController.addView(translationController.toLocalC('rules editor'),'page4.php','page4_tab');
+
    if(destview=="" || typeof(viewsController.views[destview])=="undefined")
       destview=translationController.toLocalC('indicators');
 
@@ -118,8 +122,25 @@ function liveComAvailable(s,destview)
 }
 
 
+function resizeDiv()
+{
+   vpw = $(window).width();
+   vph = $(window).height();
+   vph = vph - 130;
+   if(vph < 670)
+      vph=670;
+   $('#mea-layout').layout('resize', { width:'100%', height:vph });
+}
+
+
 jQuery(document).ready(function() {
    $.ajaxSetup({ cache: false });
+
+   resizeDiv();
+   $(window).resize(function() {
+      resizeDiv();
+   });
+
    //
    // récupération des variables depuis PHP
    //
@@ -179,14 +200,17 @@ a.meamenu:hover {
 }
 </style>
 
-<body>
-   <div style="min-width:750px;">
+<body style="margin:0">
+   <div style="min-width:950px;">
       <div id='logo'  style="float:left; width:250px; height:50px; text-align:left;">LOGO</div>
       <div id='pub' style="width:250px; float:right; height:50px; text-align:right;">INFORMATION</div>
       <div id='titre-page' style="height:50px; text-align:center;">CENTER</div>
    </div>
-   <div style="min-width:950px;min-height:600px;margin:10px;">
+   <div id='meamain' style="min-width:950px;min-height:650px;margin:10px;">
+<!--
       <div id='mea-layout' class="easyui-layout" fit=true>
+-->
+      <div id='mea-layout' class="easyui-layout">
 
          <div region="west" split="true" collapsible="false" title="" style="width:200px;">
             <div id="aa" class="easyui-accordion" data-options="animate:false,border:false" style="width:100%;">
@@ -203,6 +227,10 @@ a.meamenu:hover {
                   <div><a href="#" class="meamenu" onclick="javascript:viewsController.displayView(translationController.toLocalC('locations'),'page2.php','page2_tab')"><?php mea_toLocalC('locations'); ?></a></div>
                </div>
 
+               <div title="<?php mea_toLocalC('automator'); ?>" style="overflow:auto;padding:10px;">
+                  <div><a href="#" class="meamenu" onclick="javascript:viewsController.displayView(translationController.toLocalC('rules editor'),'page4.php','page4_tab')"><?php mea_toLocalC('rules editor'); ?></a></div>
+               </div>
+
                <div title="<?php mea_toLocalC('preferences'); ?>" style="overflow:auto;padding:10px;">
                   <div><a href="#" class="meamenu" onclick="javascript:viewsController.displayView(translationController.toLocalC('application'),'page3.php','page3_tab')"><?php mea_toLocalC('application'); ?></a></div>
                   <div><a href="#" class="meamenu" onclick="javascript:viewsController.displayView(translationController.toLocalC('users'),'page3.php','page3_tab')"><?php mea_toLocalC('users'); ?></a></div>
@@ -215,7 +243,7 @@ a.meamenu:hover {
          </div>
 
          <div id="content" region="center" title=""></div>
-         <div id="livelog" region="south" split="true" collapsible="true" title="<?php mea_toLocalC('live log'); ?>" style="height:150px;">
+         <div id="livelog" region="south" split="true" collapsible="true" title="<?php mea_toLocalC('live log'); ?>" style="height:150px;padding-right:2px;padding-bottom:2px">
             <div id="console" class="console" style="background:lightgray;width:100%;height:100%"></div>
          </div>
       </div>

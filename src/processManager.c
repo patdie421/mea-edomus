@@ -1189,7 +1189,7 @@ int managed_processes_send_stats_now(char *hostname, int port)
 {
    int ret=-1;
 
-   char json[2048];
+   char json[4096];
    int sock;
    
    if(hostname)
@@ -1197,7 +1197,11 @@ int managed_processes_send_stats_now(char *hostname, int port)
       pthread_cleanup_push( (void *)pthread_rwlock_unlock, (void *)&managed_processes.rwlock );
       pthread_rwlock_wrlock(&managed_processes.rwlock);
 
-      managed_processes_processes_to_json(json, sizeof(json)-1);
+      if(managed_processes_processes_to_json(json, sizeof(json)-1)<-1)
+      {
+         ret=-1;
+         goto managed_processes_send_stats_now_clean_exit; 
+      }
    
       if(mea_socket_connect(&sock, hostname, port)<0)
       {
@@ -1205,8 +1209,10 @@ int managed_processes_send_stats_now(char *hostname, int port)
       }
       else
       {
-         char message[2048];
-         int l_data=strlen(json)+4;
+         int l_data=strlen(json)+4; // 4 pour MON: 
+         char *message = (char *)alloca(l_data+12);
+//         char message[2048];
+         fprintf(stderr,"l_data = %d (%d, %d)\n",l_data, (char)(l_data%128), (char)(l_data/128));
          sprintf(message,"$$$%c%cMON:%s###", (char)(l_data%128), (char)(l_data/128), json);
    
          ret = mea_socket_send(&sock, message, l_data+12);
@@ -1216,6 +1222,8 @@ int managed_processes_send_stats_now(char *hostname, int port)
       pthread_rwlock_unlock(&managed_processes.rwlock);
       pthread_cleanup_pop(0); 
    }
+
+managed_processes_send_stats_now_clean_exit:
    return ret;
 }
 
@@ -1231,7 +1239,7 @@ int _managed_processes_send_stats(char *hostname, int port)
 
       if(!mea_test_timer(&managed_processes.timer))
       {
-         char json[2048];
+         char json[4096];
          int sock;
       
          managed_processes_processes_to_json(json, sizeof(json)-1);
@@ -1243,11 +1251,12 @@ int _managed_processes_send_stats(char *hostname, int port)
          else
          {
             int l_data=strlen(json)+4;
-         
-            char *message=(char *)malloc(l_data+12);
+            fprintf(stderr,"l_data = %d (%d, %d)\n",l_data, (char)(l_data%128), (char)(l_data/128));
+            char *message = (char *)alloca(l_data+12);
+//            char *message =( char *)malloc(l_data+12);
             sprintf(message,"$$$%c%cMON:%s###", (char)(l_data%128), (char)(l_data/128), json);
             ret = mea_socket_send(&sock, message, l_data+12);
-            free(message);
+//            free(message);
       
             close(sock);
          }
