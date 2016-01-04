@@ -1,37 +1,7 @@
-diff -ru xPLLib-org/xPL-io.c xPLLib/xPL-io.c
---- xPLLib-org/xPL-io.c	2006-10-19 15:11:10.000000000 +0200
-+++ xPLLib/xPL-io.c	2015-03-12 18:18:37.000000000 +0100
-@@ -56,7 +56,7 @@
- 
- /* The xPL FD */
- int xPLFD = -1;
--pid_t xPLPID;
-+pid_t xPLPID = -1; // PD
- 
- /* Connection Info */
- static xPL_ConnectType xPLconnectType = xcViaHub;  /* Default is via hub */
-@@ -625,6 +625,7 @@
-   close(xPLFD);  xPLFD = -1;
- 
-   /** Other Stuff here **/
-+  xPL_removeMessageListener(xPL_handleServiceMessage); // PD
- 
-   /* And we are done */
-   return TRUE;
-diff -ru xPLLib-org/xPL.h xPLLib/xPL.h
---- xPLLib-org/xPL.h	2006-10-19 15:11:10.000000000 +0200
-+++ xPLLib/xPL.h	2015-03-12 18:09:55.000000000 +0100
-@@ -1,6 +1,9 @@
- /* xPL.h - xPL Public API */
- /* Copyright 2004 (c), Gerald R Duprey Jr */
- 
-+#ifndef xPL_H
-+#define xPL_H
-+
- #include <errno.h>
- #include <unistd.h>
- #include <stdlib.h>
-@@ -207,14 +210,14 @@
+diff -Naur xPLLib.org/xPL.h xPLLib/xPL.h
+--- xPLLib.org/xPL.h	2013-06-22 23:16:08.000000000 +0200
++++ xPLLib/xPL.h	2015-11-27 13:42:52.000000000 +0100
+@@ -210,14 +210,14 @@
  
  extern void xPL_setHeartbeatInterval(xPL_ServicePtr, int);
  extern int xPL_getHeartbeatInterval(xPL_ServicePtr);
@@ -48,8 +18,23 @@ diff -ru xPLLib-org/xPL.h xPLLib/xPL.h
  extern xPL_ServicePtr xPL_createConfigurableService(String, String, String);
  
  extern Bool xPL_isConfigurableService(xPL_ServicePtr);
-@@ -415,3 +418,4 @@
- extern void xPL_stopHub();
- extern Bool xPL_isHubRunning();
+diff -Naur xPLLib.org/xPL-io.c xPLLib/xPL-io.c
+--- xPLLib.org/xPL-io.c	2006-10-19 15:11:10.000000000 +0200
++++ xPLLib/xPL-io.c	2015-11-27 13:42:15.000000000 +0100
+@@ -56,7 +56,7 @@
  
-+#endif
+ /* The xPL FD */
+ int xPLFD = -1;
+-pid_t xPLPID;
++pid_t xPLPID = -1; /* PD */
+ 
+ /* Connection Info */
+ static xPL_ConnectType xPLconnectType = xcViaHub;  /* Default is via hub */
+@@ -625,6 +625,7 @@
+   close(xPLFD);  xPLFD = -1;
+ 
+   /** Other Stuff here **/
++  xPL_removeMessageListener(xPL_handleServiceMessage); /* PD */
+ 
+   /* And we are done */
+   return TRUE;
