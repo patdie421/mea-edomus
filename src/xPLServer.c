@@ -12,6 +12,7 @@
 #include <time.h>
 #include <sys/time.h>
 #include <signal.h>
+#include <setjmp.h>
 #include <errno.h>
 #include <string.h>
 #include <pthread.h>
@@ -52,6 +53,7 @@ char *xpl_vendorID=NULL;
 char *xpl_deviceID=NULL;
 char *xpl_instanceID=NULL;
 
+jmp_buf xPLServer_JumpBuffer;
 
 // gestion du thread et des indicateurs
 pthread_t *_xPLServer_thread_id;
@@ -563,6 +565,9 @@ void *xPLServer_thread(void *data)
 
    do
    {
+      if(setjmp(xPLServer_JumpBuffer) != 0)
+         break;
+
       pthread_testcancel();
       process_heartbeat(_xplServer_monitoring_id); // heartbeat après chaque boucle
       

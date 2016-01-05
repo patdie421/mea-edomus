@@ -24,23 +24,27 @@ endif;
 }
 </style>
 
-<script src="lib/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+<script src="lib/ace/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
 
 <script>
-jQuery(document).ready(function(){
-
+jQuery(document).ready(function() {
    var editor = ace.edit("editor"); 
    editor.setTheme("ace/theme/xcode"); 
-//    editor.session.setMode("ace/mode/javascript"); 
+   editor.session.setMode("ace/mode/mearules"); 
    editor.session.setTabSize(3);
    editor.session.setUseSoftTabs(true);
+
+   $(document).on( "CenterResize", function( event, arg1, arg2 ) {
+      // il faut attendre quelques ms avec de lancer le resize le temps que la taille du centre soit correctement mis en place ...
+      setTimeout( function() { editor.resize(); }, 125);
+   });   
 
    $.get("inputs.srules", function(response) {
       editor.setValue(response);
    });
-
 });
 </script>
 
 <pre id="editor">
 </pre> 
+<div>

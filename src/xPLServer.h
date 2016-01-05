@@ -21,6 +21,8 @@ extern char *xpl_server_name_str;
 extern char *xpl_server_xplin_str;
 extern char *xpl_server_xplout_str;
 
+extern pthread_t *_xPLServer_thread_id;
+extern jmp_buf xPLServer_JumpBuffer;
    
 typedef struct xplRespQueue_elem_s
 {

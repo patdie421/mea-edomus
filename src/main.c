@@ -69,6 +69,8 @@ mea_queue_t *interfaces=NULL;                  /*!< liste (file) des interfaces.
 sqlite3 *sqlite3_param_db=NULL;            /*!< descripteur pour la base sqlite de paramétrage. */
 pthread_t *monitoringServer_thread=NULL;   /*!< Adresse du thread de surveillance interne. Variable globale car doit être accessible par les gestionnaires de signaux.*/
 
+long sigsegv_indicator = 0;
+
 uint16_t params_db_version=0;
 char *params_names[MAX_LIST_SIZE];          /*!< liste des noms (chaines) de paramètres dans la base sqlite3 de paramétrage.*/
 char *params_list[MAX_LIST_SIZE];          /*!< liste des valeurs de paramètres.*/
@@ -347,6 +349,7 @@ void clean_all_and_exit()
 
 static void error_handler(int signal_number)
 {
+/*
    void *array[10];
    char **messages;
 
@@ -364,13 +367,24 @@ static void error_handler(int signal_number)
    for (int i=1; i < size && messages != NULL; ++i)
       fprintf(stderr, "[backtrace]: (%d) %s\n", i, messages[i]);
    free(messages);
+*/
+//extern pthread_t *_xPLServer_thread_id;
+//extern jmp_buf xPLServer_JumpBuffer;
 
-   // pour générer un coredump voir
-   // http://www.alexonlinux.com/how-to-handle-sigsegv-but-also-generate-core-dump
-   signal(signal_number, SIG_DFL);
-   kill(getpid(), signal_number);
+   ++sigsegv_indicator;
 
-   exit(1);
+   fprintf(stderr, "Error: signal %d:\n", signal_number);
+   if((_xPLServer_thread_id!=NULL) && pthread_equal(*_xPLServer_thread_id, pthread_self())!=0)
+   {
+      fprintf(stderr, "Error: in xPLServer, try to recover\n");
+      longjmp(xPLServer_JumpBuffer, 1);
+   }
+   else
+   {
+      fprintf(stderr, "Error: aborting\n");
+      abort();
+      exit(1);
+   }
 }
 
 
@@ -416,7 +430,7 @@ int main(int argc, const char * argv[])
    // pour changer l'endroit ou sont les cores dump et donner un nom plus explicite
    // echo '/tmp/core_%e.%p' | sudo tee /proc/sys/kernel/core_pattern
 
-//   signal(SIGSEGV, error_handler);
+   signal(SIGSEGV, error_handler);
 
    // toutes les options possibles
    static struct option long_options[] = {
@@ -863,6 +877,7 @@ int main(int argc, const char * argv[])
    process_set_type(main_monitoring_id, NOTMANAGED);
    process_set_status(main_monitoring_id, RUNNING);
    process_add_indicator(main_monitoring_id, "UPTIME", 0);
+   process_add_indicator(main_monitoring_id, "SIGSEGV", 0);
 
    //
    // nodejsServer (1er lancé, il est utilisé par les autres serveurs pour les notifications ou les log)
@@ -1042,6 +1057,7 @@ int main(int argc, const char * argv[])
       // indicateur de fonctionnement de mea-edomus
       uptime = (long)(time(NULL)-start_time);
       process_update_indicator(main_monitoring_id, "UPTIME", uptime);
+      process_update_indicator(main_monitoring_id, "SIGSEGV", sigsegv_indicator);
 
       managed_processes_loop(); // watchdog et indicateurs
       

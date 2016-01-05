@@ -2094,7 +2094,7 @@ var TextInput = function(parentNode, host) {
     var onSelect = function(e) {
         if (copied) {
             copied = false;
-        } else if (isAllSelected(text)) {
+        } else if (text.value && isAllSelected(text)) {
             host.selectAll();
             resetSelection();
         } else if (inputHandler) {

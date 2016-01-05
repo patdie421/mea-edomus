@@ -175,6 +175,10 @@ jQuery(document).ready(function() {
          function(s){liveComAvailable(s,destview);},
          function() {liveComUnavailable(destview);}
    );
+
+   $('#mea-layout').layout('panel','center').panel({
+      onResize: function() { $(document).trigger( "CenterResize", [ "", "" ] ); }
+   });
 });
 </script>
 
