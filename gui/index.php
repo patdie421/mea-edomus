@@ -204,7 +204,7 @@ a.meamenu:hover {
 }
 </style>
 
-<body style="margin:0">
+<body style="margin:0;padding:0">
    <div style="min-width:950px;">
       <div id='logo'  style="float:left; width:250px; height:50px; text-align:left;">LOGO</div>
       <div id='pub' style="width:250px; float:right; height:50px; text-align:right;">INFORMATION</div>
