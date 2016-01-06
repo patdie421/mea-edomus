@@ -129,6 +129,7 @@ void usage(char *cmd)
       "  --guipath, -G       (défaut : basepath/lib/mea-gui)",
       "  --logpath, -L       (défaut : basepath/var/log ou /var/log si basepath=/usr)",
       "  --pluginspath, -A   (défaut : basepath/lib/mea-plugins)",
+      "  --rulesfilespath, -R(défaut : basepath/lib/rules)",
       "  --rulesfile, -r     (défaut : basepath/lib/rules/automator.rules)",
       "  --bufferdb, -B      (défaut : basepath/var/db/queries.db ou",
       "                                /var/db/mea-queries.db si basepath=/usr)",
@@ -211,6 +212,7 @@ void init_param_names(char *param_names[])
    param_names[PARAMSDBVERSION]      = "PARAMSDBVERSION";
    param_names[INTERFACE]            = "INTERFACE";
    param_names[RULES_FILE]           = "RULESFILE";
+   param_names[RULES_FILES_PATH]     = "RULESFILESPATH";
 }
 
 
@@ -458,6 +460,7 @@ int main(int argc, const char * argv[])
       {"instanceid",        required_argument, 0,  INSTANCE_ID          }, // 'S'
       {"verboselevel",      required_argument, 0,  VERBOSELEVEL         }, // 'v'
       {"rulesfile",         required_argument, 0,  RULES_FILE           }, // 'r'
+      {"rulesfilespath",    required_argument, 0,  RULES_FILES_PATH     }, // 'R'
       {"nodejspath",        required_argument, 0,  NODEJS_PATH          }, // 'j'
       {"nodejssocketioport",required_argument, 0,  NODEJSIOSOCKET_PORT  }, // 'J'
       {"nodejsdataport",    required_argument, 0,  NODEJSDATA_PORT      }, // 'k'
@@ -660,6 +663,10 @@ int main(int argc, const char * argv[])
 
          case 'r':
             c=RULES_FILE;
+            break;
+
+         case 'R':
+            c=RULES_FILES_PATH;
             break;
       }
 

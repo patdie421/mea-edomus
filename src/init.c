@@ -932,6 +932,7 @@ int16_t autoInit(char **params_list, char **keys)
    _construct_path(params_list,   GUI_PATH,          params_list[MEA_PATH], "lib/mea-gui");
    _construct_path(params_list,   PLUGINS_PATH,      params_list[MEA_PATH], "lib/mea-plugins");
    _construct_path(params_list,   RULES_FILE,        params_list[MEA_PATH], "lib/mea-rules/automator.rules");
+   _construct_path(params_list,   RULES_FILES_PATH,  params_list[MEA_PATH], "lib/mea-rules");
    _construct_path(params_list,   LOG_PATH,          p_str,                 "var/log");
    _construct_path(params_list,   SQLITE3_DB_BUFF_PATH, p_str, "var/db/queries.db");
 
@@ -1043,7 +1044,8 @@ int16_t interactiveInit(char **params_list, char **keys)
    
    _read_path(params_list,   GUI_PATH,         params_list[MEA_PATH], "lib/mea-gui",     "PATH to gui directory");
    _read_path(params_list,   PLUGINS_PATH,     params_list[MEA_PATH], "lib/mea-plugins", "PATH to plugins directory");
-   _read_path(params_list,   RULES_FILE,       params_list[MEA_PATH], "lib/mea-rules/automator.rules", "automator rules file");
+   _read_path(params_list,   RULES_FILE,       params_list[MEA_PATH], "lib/mea-rules/automator.rules", "automator executable rules file");
+   _read_path(params_list,   RULES_FILES_PATH, params_list[MEA_PATH], "lib/mea-rules", "automator rules sources files");
    _read_path(params_list,   PHPCGI_PATH,      params_list[MEA_PATH], "bin",             "PATH to 'php-cgi' directory");
    _read_path(params_list,   PHPINI_PATH,      p_str,                 "etc",             "PATH to 'php.ini' directory");
    _read_path(params_list,   PHPSESSIONS_PATH, p_str,                 sessions_str,      "PATH to php sessions directory");
