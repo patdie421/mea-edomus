@@ -19,14 +19,15 @@ jQuery(document).ready(function(){
    if(destview=="")
       destview=translationController.toLocalC('ruleseditor');
 
-   page1_ctrlr = new TabsPageController("page4_tab");
-   page1_ctrlr.linkToTranslationController(translationController);
-   page1_ctrlr.linkToCredentialController(credentialController); // pour la gestion des habilitations
+   page4_ctrlr = new TabsPageController("page4_tab");
+   page4_ctrlr.linkToTranslationController(translationController);
+   page4_ctrlr.linkToCredentialController(credentialController); // pour la gestion des habilitations
    
-   page1_ctrlr.start(destview);
+   page4_ctrlr.start(destview);
 });
 </script>
 
 <div id="page4_tab" class="easyui-tabs" border=false fit=true>
-    <div title="<?php mea_toLocalC('rules editor'); ?>" href="views/ruleseditor-view.php" style="padding:20px;"></div>
+    <div title="<?php mea_toLocalC('rules editor'); ?>" href="views/ruleseditor-view.php"></div>
+    <div title="<?php mea_toLocalC('rules manager'); ?>" href="views/rulesmanager-view.php"></div>
 </div>

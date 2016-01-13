@@ -89,6 +89,7 @@ function liveComUnavailable(destview)
    viewsController.addView(translationController.toLocalC('users'),'page3.php','page3_tab');
 
    viewsController.addView(translationController.toLocalC('rules editor'),'page4.php','page4_tab');
+   viewsController.addView(translationController.toLocalC('rules manager'),'page4.php','page4_tab');
 
    if(destview=="" || typeof(viewController.views[destview])=="undefined")
       destview=translationController.toLocalC('sensors/actuators');
@@ -113,6 +114,7 @@ function liveComAvailable(s,destview)
    viewsController.addView(translationController.toLocalC('users'),'page3.php','page3_tab');
 
    viewsController.addView(translationController.toLocalC('rules editor'),'page4.php','page4_tab');
+   viewsController.addView(translationController.toLocalC('rules manager'),'page4.php','page4_tab');
 
    if(destview=="" || typeof(viewsController.views[destview])=="undefined")
       destview=translationController.toLocalC('indicators');
@@ -233,6 +235,7 @@ a.meamenu:hover {
 
                <div title="<?php mea_toLocalC('automator'); ?>" style="overflow:auto;padding:10px;">
                   <div><a href="#" class="meamenu" onclick="javascript:viewsController.displayView(translationController.toLocalC('rules editor'),'page4.php','page4_tab')"><?php mea_toLocalC('rules editor'); ?></a></div>
+                  <div><a href="#" class="meamenu" onclick="javascript:viewsController.displayView(translationController.toLocalC('rules manager'),'page4.php','page4_tab')"><?php mea_toLocalC('rules manager'); ?></a></div>
                </div>
 
                <div title="<?php mea_toLocalC('preferences'); ?>" style="overflow:auto;padding:10px;">

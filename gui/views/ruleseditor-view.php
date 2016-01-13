@@ -38,7 +38,7 @@ $.extend($.fn.validatebox.defaults.rules, {
 
 function _openfile(e, files, _myeditor, _type, _dialogid, _selectid, _filename, _submitid)
 {
-   __openfile = function(e, files, _myeditor, _type, _dialogid, _selectid, _filename, _submitid)
+   __openfile = function(e, name, files, _myeditor, _type, _dialogid, _selectid, _submitid)
    {
       choosefile_closedlg(_dialogid, _selectid, _submitid);
 
@@ -58,8 +58,8 @@ function _openfile(e, files, _myeditor, _type, _dialogid, _selectid, _filename, 
    if(name==="")
       return -1;
 
-   name=name+"."+_type;
-   if($.inArray(name, files) == -1)
+   filename=name+"."+_type;
+   if($.inArray(filename, files) == -1)
    {
       $.messager.confirm('Confirm','file does not exist, new file ?',function(r) {
          if (r) {
@@ -70,13 +70,13 @@ function _openfile(e, files, _myeditor, _type, _dialogid, _selectid, _filename, 
       });
    }
    else
-      __openfile(e, files, _myeditor, _type, _dialogid, _selectid, _filename, _submitid);
+      __openfile(e, name, files, _myeditor, _type, _dialogid, _selectid, _filename, _submitid);
 }
 
 
 function _savefileas(e, files, _myeditor, _type, _dialogid, _selectid, _filename, _submitid)
 {
-   __savefileas = function(e, files, _myeditor, _type, _dialogid, _selectid, _filename, _submitid)
+   __savefileas = function(e, name, files, _myeditor, _type, _dialogid, _selectid, _filename, _submitid)
    {
       file=myeditor.getValue();
       choosefile_closedlg(_dialogid, _selectid, _submitid);
@@ -92,23 +92,23 @@ function _savefileas(e, files, _myeditor, _type, _dialogid, _selectid, _filename
    name=$("#"+_filename).val();
    if(name==="")
       return -1;
-   name=name+"."+_type;
+   filename=name+"."+_type;
 
-   if($.inArray(name, files) != -1)
+   if($.inArray(filename, files) != -1)
    {
       $.messager.confirm('Confirm','file exist, replace it ?',function(r) {
          if (r)
-            __savefileas(e, files, _myeditor, _type, _dialogid, _selectid, _filename, _submitid);
+            __savefileas(e, name, files, _myeditor, _type, _dialogid, _selectid, _filename, _submitid);
       });
    }
    else
-      __savefileas(e, files, _myeditor, _type, _dialogid, _selectid, _filename, _submitid);
+      __savefileas(e, name, files, _myeditor, _type, _dialogid, _selectid, _filename, _submitid);
 }
 
 
 function _deletefile(e, files, _myeditor, _type, _dialogid, _selectid, _filename, _submitid)
 {
-   __delete = function(e, files, _myeditor, _type, _dialogid, _selectid, _filename, _submitid)
+   __delete = function(e, name, files, _myeditor, _type, _dialogid, _selectid, _filename, _submitid)
    {
       choosefile_closedlg(_dialogid, _selectid, _submitid);
       $.post("models/del_file.php", { type: _type, name: name }, function(response) {
@@ -124,7 +124,7 @@ function _deletefile(e, files, _myeditor, _type, _dialogid, _selectid, _filename
 
    $.messager.confirm('Confirm','delete '+name+' ?',function(r) {
       if (r)
-         __delete(e, files, _myeditor, _type, _dialogid, _selectid, _filename, _submitid);
+         __delete(e, name, files, _myeditor, _type, _dialogid, _selectid, _filename, _submitid);
    });
 }
 
@@ -252,7 +252,7 @@ jQuery(document).ready(function() {
 
 <div id="myeditorzone" style="width:auto;height:100%;">
    <div id="myeditormenu" style="height:28px; width:100%;padding-top:6px;border-bottom:1px solid #95B8E7;display:none">
-      <a href="#" class="easyui-menubutton" data-options="menu:'#mm1'">File</a>
+      <a href="#" class="easyui-menubutton" data-options="menu:'#mm1'">Rules</a>
    </div>
    <div id="myeditor" style="width:100%;height:0px;display:none"></div>
 </div>
