@@ -17,13 +17,16 @@ jQuery(document).ready(function(){
    }
 ?>
    if(destview=="")
-      destview=translationController.toLocalC('ruleseditor');
+      destview=translationController.toLocalC('rules editor');
 
    page4_ctrlr = new TabsPageController("page4_tab");
    page4_ctrlr.linkToTranslationController(translationController);
    page4_ctrlr.linkToCredentialController(credentialController); // pour la gestion des habilitations
-   
-   page4_ctrlr.start(destview);
+
+    setTimeout( function() {
+       page4_ctrlr.start(destview);
+    },
+    25);
 });
 </script>
 

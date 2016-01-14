@@ -56,6 +56,8 @@ function formValidation_in() {
 
    // vérification unicité (nom de l'interface)
    return ctrlr_in.nameExist(name,id);
+
+   $("#todisplay").css("display","block");
 }
 <?php
 endif;
@@ -110,7 +112,7 @@ endif; ?>
 }
 </style>
 
-<div style="width:100%;height:100%">
+<div style="width:100%;height:100%;">
    <div style="width:100%;height:100%;margin: 0 auto;">
       <table id="table_in"
              title=""
@@ -128,34 +130,34 @@ endif; ?>
             <tr>
                <th data-options="field:'id',width:10,hidden:true"><?php mea_toLocalC('id'); ?></th>
                <th data-options="field:'id_interface',width:10,hidden:true"><?php mea_toLocalC('sensor/actuator id'); ?></th>
-               <th data-options="field:'name',width:100,sortable:true,align:'left'"><?php mea_toLocalC('name'); ?></th>
-               <th data-options="field:'tname',width:100,align:'left'"><?php mea_toLocalC('type'); ?></th>
-               <th data-options="field:'dev',width:100,align:'left'"><?php mea_toLocalC('device'); ?></th>
+               <th data-options="field:'name',width:100,fixed:true,sortable:true,align:'left'"><?php mea_toLocalC('name'); ?></th>
+               <th data-options="field:'tname',width:75,fixed:true,align:'left'"><?php mea_toLocalC('type'); ?></th>
+               <th data-options="field:'dev',width:270, fixed:true,align:'left'"><?php mea_toLocalC('device'); ?></th>
                <th data-options="field:'description',width:200,align:'left'"><?php mea_toLocalC('description'); ?></th>
+<!--
                <th data-options="field:'parameters',width:200,align:'left'"><?php mea_toLocalC('parameters'); ?></th>
-               <th data-options="field:'state',width:50,align:'left',formatter:ctrlr_in.toCheckmark"><?php mea_toLocalC('state'); ?></th>
+-->
+               <th data-options="field:'state',width:50,fixed:true,align:'left',formatter:ctrlr_in.toCheckmark"><?php mea_toLocalC('state'); ?></th>
                <th data-options="field:'id_type',hidden:true,align:'left'"><?php mea_toLocalC('type id'); ?></th>
             </tr>
          </thead>
       </table>
    </div>
+
+   <div id="toolbar_in">
+   <?php
+      if($isadmin == 0) : ?>
+         <a href="#" class="easyui-linkbutton" id="b_add_in" iconCls="icon-add" plain="true" onclick="ctrlr_in.add();"><?php mea_toLocalC('add'); ?></a>
+         <a href="#" class="easyui-linkbutton" id="b_edit_in" iconCls="icon-edit" plain="true" onclick="ctrlr_in.edit();"><?php mea_toLocalC('edit/view'); ?></a>
+         <a href="#" class="easyui-linkbutton" id="b_del_in" iconCls="icon-remove" plain="true" onclick="ctrlr_in.del();"><?php mea_toLocalC('delete'); ?></a>
+   <?php
+      else : ?>
+         <a href="#" class="easyui-linkbutton" id="b_edit_in" iconCls="icon-edit" plain="true" onclick="ctrlr_in.view();"><?php mea_toLocalC('view'); ?></a><?php
+      endif; ?>
+   </div>
 </div>
 
-
-<div id="toolbar_in">
-<?php
-   if($isadmin == 0) : ?>
-   <a href="#" class="easyui-linkbutton" id="b_add_in" iconCls="icon-add" plain="true" onclick="ctrlr_in.add();"><?php mea_toLocalC('add'); ?></a>
-   <a href="#" class="easyui-linkbutton" id="b_edit_in" iconCls="icon-edit" plain="true" onclick="ctrlr_in.edit();"><?php mea_toLocalC('edit/view'); ?></a>
-   <a href="#" class="easyui-linkbutton" id="b_del_in" iconCls="icon-remove" plain="true" onclick="ctrlr_in.del();"><?php mea_toLocalC('delete'); ?></a>
-<?php
-   else : ?>
-   <a href="#" class="easyui-linkbutton" id="b_edit_in" iconCls="icon-edit" plain="true" onclick="ctrlr_in.view();"><?php mea_toLocalC('view'); ?></a><?php
-   endif; ?>
-</div>
-
-
-<div id="dlg_in" class="easyui-dialog" style="width:500px;height:450px;padding:10px 20px" modal="true" closed="true" buttons="#dlg_buttons_in" data-options="onOpen: updateComboBoxsData_in">
+<div id="dlg_in" class="easyui-dialog" style="width:500px;height:450px;padding:10px 20px;display=none" modal="true" closed="true" buttons="#dlg_buttons_in" data-options="onOpen: updateComboBoxsData_in">
     <div class="ftitle"><?php mea_toLocalC_2d('interfaces'); ?></div>
     <form id="fm_in" method="post" novalidate>
         <div class="fitem">
@@ -173,7 +175,7 @@ endif; ?>
         </div>
         <div class="fitem">
             <label><?php mea_toLocalC_2d('device'); ?></label>
-            <input name="dev" class="easyui-textbox editable_in" data-options="required:true,missingMessage:translationController.toLocalC('device is mandatory')" style="width:120px;">
+            <input name="dev" class="easyui-textbox editable_in" data-options="required:true,missingMessage:translationController.toLocalC('device is mandatory')" style="width:270px;">
         </div>
         <div class="fitem" style="">
             <label><?php mea_toLocalC_2d('parameters'); ?></label>
@@ -203,4 +205,3 @@ endif; ?>
 <?php
    endif; ?>
 </div>
-

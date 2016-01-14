@@ -37,8 +37,10 @@ jQuery(document).ready(function(){
    page2_ctrlr.linkToTranslationController(translationController);
    page2_ctrlr.linkToCredentialController(credentialController); // pour la gestion des habilitations
 
-   page2_ctrlr.start(destview);
-
+    setTimeout( function() {
+       page2_ctrlr.start(destview);
+    },
+    25);
 });
 </script>
 

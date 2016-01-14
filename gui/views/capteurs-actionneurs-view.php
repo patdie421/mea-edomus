@@ -166,7 +166,7 @@ jQuery(document).ready(function(){
                <th data-options="field:'id_sensor_actuator',width:10,hidden:true"><?php mea_toLocalC('id_sensor_actuator'); ?></th>
 
                <th data-options="field:'name',width:100,fixed:true,sortable:true,align:'left'"><?php mea_toLocalC('name'); ?></th>
-               <th data-options="field:'tname',width:80,fixed:true,align:'left'"><?php mea_toLocalC('type'); ?></th>
+               <th data-options="field:'tname',width:75,fixed:true,align:'left'"><?php mea_toLocalC('type'); ?></th>
                <th data-options="field:'iname',width:100,fixed:true,align:'left'"><?php mea_toLocalC('interface'); ?></th>
                <th data-options="field:'description',width:200,align:'left'"><?php mea_toLocalC('description'); ?></th>
 <!--
@@ -214,7 +214,7 @@ jQuery(document).ready(function(){
         </div>
         <div class="fitem">
             <label><?php mea_toLocalC_2d('description'); ?></label>
-            <input name="description" class="easyui-textbox editable_sa" data-options="multiline:true" style="width:270px;height:50px">
+            <input name="description" class="easyui-textbox editable_sa" data-options="multiline:true" style="width:270px;height:50px;">
         </div>
         <div class="fitem">
             <label><?php mea_toLocalC_2d('interface'); ?></label>

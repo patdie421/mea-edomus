@@ -28,8 +28,11 @@ jQuery(document).ready(function(){
    page3_ctrlr = new TabsPageController("page3_tab");
    page3_ctrlr.linkToTranslationController(translationController);
    page3_ctrlr.linkToCredentialController(credentialController); // pour la gestion des habilitations
-   
-   page3_ctrlr.start(destview);
+
+    setTimeout( function() {
+       page3_ctrlr.start(destview);
+    },
+    25);
 });
 </script>
 
