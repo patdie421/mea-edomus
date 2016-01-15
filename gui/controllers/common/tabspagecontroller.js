@@ -20,12 +20,17 @@ TabsPageController.prototype.start=function(tabName)
             $.messager.alert(_tabsPageController._toLocalC('error')+_tabsPageController._localDoubleDot(),_tabsPageController._toLocalC('you are not logged in'),function(){ window.location = "login.php?view="+tabName;});
             return false;
          }
+         var evnt = "activatetab_"+tabName;
+         evnt=evnt.replace(/[^a-zA-Z0-9]/g,'_');
+//         evnt=evnt.replace(/ /g,'');
+         console.log(evnt);
+         $(document).trigger( evnt, [ tabName, "" ] );
          return true;
       },
       selected: tabName
    });   
 };
-   
+ 
 TabsPageController.prototype.selectTab=function(tabName) {
    $('#'+this.tabs_id).tabs('select', tabName);
 };

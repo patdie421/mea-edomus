@@ -1,4 +1,34 @@
 {
+   "ok" :
+      "ok",
+   "cancel" :
+      "annuler",
+   "load" :
+      "charger",
+   "new" :
+      "nouveau",
+   "save" :
+      "enregistrer",
+   "save as" :
+      "enregistrer sous",
+   "delete" :
+      "supprimer",
+   "error" :
+      "erreur",
+   "available" :
+      "disponibles",
+   "selected" :
+      "selectionnées",
+   "apply" :
+      "appliquer",
+   "build" :
+      "compiler",
+
+   "server message" :
+      "message du serveur",
+   "can't save file" :
+      "impossible d'enregister le fichier",
+ 
    "input" :
       "entrée",
    "output" :
@@ -9,10 +39,32 @@
       "autre",
    "internals types" :
       "types internes",
-   "user defined types" :
+   "users defined types" :
       "types utilisateurs",
-   "error" :
-      "erreur",
+
    "one or more mandatory fields are empty" :
-      "un ou plusieurs champs obligatoires ne sont pas correctement renseignés"
+      "un ou plusieurs champs obligatoires ne sont pas correctement renseignés",
+
+   "rules manager" :
+      "gestion des règles",
+   "rules editor" :
+      "edition des règles",
+   "rules set" :
+      "jeu de règles",
+   "choose rules set ..." :
+      "choisissez un jeu de règles ...",
+   "choose rules to build" :
+      "choisisser les règles à compiler",
+   "file does not exist, new file ?" :
+      "le fichier n'existe pas, voulez-vous en créer un nouveau ?",
+   "file exist, overhide it ?" :
+      "le fichier existe déjà, voulez-vous le remplacer ?",
+   "rule(s) not found" :
+      "règle(s) not trouvée(s)",
+   "choose builded rules to apply" :
+      "choisissez les règles compilées à appliquer",
+   "available builded rules" :
+      "règles compilées disponibles",
+   "choose builded rules file name ..." :
+      "choisissez un nom pour les règles compilées ..."
 }

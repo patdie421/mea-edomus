@@ -242,6 +242,13 @@ jQuery(document).ready(function() {
       25);
    });
 
+   var evnt = "activatetab_" + translationController.toLocalC('rules editor');
+   evnt=evnt.replace(/[^a-zA-Z0-9]/g,'_');
+   $(document).off(evnt);
+   $(document).on(evnt, function( event, tab, arg2 ) {
+      $("#myeditor").height($("#myeditorzone").height()-35);
+   });
+
    $("#myeditor").height($("#myeditorzone").height()-35);
    myeditor.setValue("", -1);
    myeditor.resize();

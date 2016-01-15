@@ -13,11 +13,12 @@ function FileChooserController()
    this.id = "dlg_"+Math.floor((Math.random() * 10000) + 1);
 }
 
+extendClass(FileChooserController, CommonController);
 
 FileChooserController.prototype = {
    open: function(_title, _title2, _buttonOKText, _buttonCancelText, _type, _checkflag, _mustexist, _checkmsg, _do)
    {
-      _this = this;
+      var _this = this;
       id=_this.id;
       __do = function(files) 
       {
@@ -83,7 +84,6 @@ FileChooserController.prototype = {
                {
                   text: _buttonOKText,
                   iconCls:'icon-ok',
-                  width:75,
                   handler:function() {
                      if(!$('#'+id+'_fm').form('validate'))
                         return -1;
@@ -92,7 +92,6 @@ FileChooserController.prototype = {
                }, {
                   text: _buttonCancelText,
                   iconCls:'icon-cancel',
-                  width:75,
                   handler:function() {
                      _this.close();
                   }

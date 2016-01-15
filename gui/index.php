@@ -52,6 +52,7 @@ if(!isset($_SESSION['logged_in']))
 <script type="text/javascript" src="controllers/common/livelogcontroller.js"></script>
 <script type="text/javascript" src="controllers/common/viewscontroller.js"></script>
 <script type="text/javascript" src="controllers/common/tabspagecontroller.js"></script>
+<script type="text/javascript" src="controllers/common/filechoosercontroller.js"></script>
 
 <!-- surcharge des méthodes du controleur de traduction spécifiques à une langue donnée -->
 <?php
@@ -179,7 +180,7 @@ jQuery(document).ready(function() {
    );
 
    $('#mea-layout').layout('panel','center').panel({
-      onResize: function() { $(document).trigger( "CenterResize", [ "", "" ] ); }
+      onResize: function() { $(document).trigger( "CenterResize", [ "", "" ] ); $(document).trigger( "activatetab", [ "", "" ] ); }
    });
 });
 </script>

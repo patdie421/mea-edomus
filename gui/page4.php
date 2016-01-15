@@ -31,6 +31,6 @@ jQuery(document).ready(function(){
 </script>
 
 <div id="page4_tab" class="easyui-tabs" border=false fit=true>
-    <div title="<?php mea_toLocalC('rules editor'); ?>" href="views/ruleseditor-view.php"></div>
-    <div title="<?php mea_toLocalC('rules manager'); ?>" href="views/rulesmanager-view.php"></div>
+    <div id="<?php mea_toLocalC('rules editor'); ?>" title="<?php mea_toLocalC('rules editor'); ?>" href="views/ruleseditor-view.php"></div>
+    <div id="<?php mea_toLocalC('rules manager'); ?>" title="<?php mea_toLocalC('rules manager'); ?>" href="views/rulesmanager-view.php"></div>
 </div>
