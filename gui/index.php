@@ -10,6 +10,7 @@ session_start();
 ?>
 
 <!DOCTYPE html>
+
 <?php
 // contrôle et redirections
 if(!isset($_SESSION['logged_in']))
@@ -28,12 +29,13 @@ if(!isset($_SESSION['logged_in']))
    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=0.99">
    <meta name="description" content="domotique DIY !">
-   
    <link rel="stylesheet" type="text/css" href="lib/jquery-easyui-1.4.1/themes/default/easyui.css">
    <link rel="stylesheet" type="text/css" href="lib/jquery-easyui-1.4.1/themes/icon.css">
    <link rel="stylesheet" type="text/css" href="lib/jquery-easyui-1.4.1/themes/color.css">
    <link rel="stylesheet" type="text/css" href="lib/mea-edomus.css">
    
+   <script src="lib/ace/src-noconflict/ace.js" type="text/javascript"></script>
+
    <script type="text/javascript" src="lib/jquery-easyui-1.4.1/jquery.min.js"></script>
    <script type="text/javascript" src="lib/jquery-easyui-1.4.1/jquery.easyui.min.js"></script>
    <script type="text/javascript" src="lib/jquery-easyui-datagridview/datagrid-groupview.js"></script>
@@ -91,6 +93,7 @@ function liveComUnavailable(destview)
 
    viewsController.addView(translationController.toLocalC('rules editor'),'page4.php','page4_tab');
    viewsController.addView(translationController.toLocalC('rules manager'),'page4.php','page4_tab');
+   viewsController.addView(translationController.toLocalC('test'),'page4.php','page4_tab');
 
    if(destview=="" || typeof(viewController.views[destview])=="undefined")
       destview=translationController.toLocalC('sensors/actuators');
@@ -116,6 +119,7 @@ function liveComAvailable(s,destview)
 
    viewsController.addView(translationController.toLocalC('rules editor'),'page4.php','page4_tab');
    viewsController.addView(translationController.toLocalC('rules manager'),'page4.php','page4_tab');
+   viewsController.addView(translationController.toLocalC('test'),'page4.php','page4_tab');
 
    if(destview=="" || typeof(viewsController.views[destview])=="undefined")
       destview=translationController.toLocalC('indicators');
@@ -235,8 +239,9 @@ a.meamenu:hover {
                </div>
 
                <div title="<?php mea_toLocalC('automator'); ?>" style="overflow:auto;padding:10px;">
-                  <div><a href="#" class="meamenu" onclick="javascript:viewsController.displayView(translationController.toLocalC('rules editor'),'page4.php','page4_tab')"><?php mea_toLocalC('rules editor'); ?></a></div>
                   <div><a href="#" class="meamenu" onclick="javascript:viewsController.displayView(translationController.toLocalC('rules manager'),'page4.php','page4_tab')"><?php mea_toLocalC('rules manager'); ?></a></div>
+                  <div><a href="#" class="meamenu" onclick="javascript:viewsController.displayView(translationController.toLocalC('rules editor'),'page4.php','page4_tab')"><?php mea_toLocalC('rules editor'); ?></a></div>
+                  <div><a href="#" class="meamenu" onclick="javascript:viewsController.displayView(translationController.toLocalC('test'),'page4.php','page4_tab')"><?php mea_toLocalC('test'); ?></a></div>
                </div>
 
                <div title="<?php mea_toLocalC('preferences'); ?>" style="overflow:auto;padding:10px;">

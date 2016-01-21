@@ -3527,8 +3527,9 @@ var optionsProvider = {
 };
 
 function warn(message) {
-    if (typeof console != "undefined" && console.warn)
-        console.warn.apply(console, arguments);
+    if (typeof console != "undefined" && console.warn) {
+//        console.warn.apply(console, arguments);
+    }
 }
 
 function reportError(msg, data) {

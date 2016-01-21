@@ -10,6 +10,7 @@
 
 #include <inttypes.h>
 #include <sqlite3.h>
+#include <setjmp.h>
 
 #include "xPL.h"
 

@@ -95,7 +95,7 @@ jQuery(document).ready(function(){
       <div style="display:inline-block;margin-top:75px">
          <div class="easyui-panel" title="<?php mea_toLocalC('Login to system'); ?>" style="width:400px;padding:30px 70px 20px 70px;margin:0 auto">
             <div style="margin-bottom:10px">
-               <input id="userid" class="easyui-textbox" style="width:100%;height:40px;padding:12px" data-options="prompt:'<?php mea_toLocalC('user id'); ?>',iconCls:'icon-man',iconWidth:38">
+               <input id="userid" class="easyui-textbox" autocapitalize="off" autocorrect="off" style="width:100%;height:40px;padding:12px;" data-options="prompt:'<?php mea_toLocalC('user id'); ?>',iconCls:'icon-man',iconWidth:38">
             </div>
             <div style="margin-bottom:20px">
                <input id="passwd" class="easyui-textbox" type="password" style="width:100%;height:40px;padding:12px" data-options="prompt:'<?php mea_toLocalC('password'); ?>',iconCls:'icon-lock',iconWidth:38">

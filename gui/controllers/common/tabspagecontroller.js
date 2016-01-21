@@ -22,13 +22,13 @@ TabsPageController.prototype.start=function(tabName)
          }
          var evnt = "activatetab_"+tabName;
          evnt=evnt.replace(/[^a-zA-Z0-9]/g,'_');
-//         evnt=evnt.replace(/ /g,'');
          console.log(evnt);
          $(document).trigger( evnt, [ tabName, "" ] );
          return true;
       },
       selected: tabName
    });   
+   $('#'+this.tabs_id).tabs('select', tabName);
 };
  
 TabsPageController.prototype.selectTab=function(tabName) {

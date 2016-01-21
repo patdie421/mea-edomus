@@ -1,4 +1,8 @@
 {
+   "yes":
+      "oui",
+   "no":
+      "non",
    "ok" :
       "ok",
    "cancel" :
@@ -23,7 +27,10 @@
       "appliquer",
    "build" :
       "compiler",
-
+   "deleting" :
+      "suppression de",
+   "communication error" :
+      "erreur de communication",
    "server message" :
       "message du serveur",
    "can't save file" :
@@ -45,10 +52,15 @@
    "one or more mandatory fields are empty" :
       "un ou plusieurs champs obligatoires ne sont pas correctement renseignés",
 
+   "automator" :
+      "automate",
    "rules manager" :
       "gestion des règles",
    "rules editor" :
       "edition des règles",
+
+   "rules" :
+      "règles",
    "rules set" :
       "jeu de règles",
    "choose rules set ..." :
@@ -66,5 +78,23 @@
    "available builded rules" :
       "règles compilées disponibles",
    "choose builded rules file name ..." :
-      "choisissez un nom pour les règles compilées ..."
+      "choisissez un nom pour les règles compilées ...",
+   "builded rules" :
+      "règles compilées",
+   "rules succesfull applied" : 
+      "les règles ont été correctement appliquées",
+   "restart automator to commit" :
+      "redémarrer l'automate pour qu'elles soient prises en compte",
+   "can't apply rules" :
+      "les règle n'ont pas pu être appliquées",
+   "can't delete rules" :
+      "impossible de supprimer les règles",
+   "are you sure you want to delete" :
+      "confirmez-vous la suppression de",
+   "choose rules set to delete ..." :
+      "choisissez le jeu de règles à supprimer ...",
+   "choose rules to delete ..." :
+      "choisissez les règles à supprimer ...",
+   "choose rules to apply ..." :
+      "choisissez les règles à appliquer ..."
 }

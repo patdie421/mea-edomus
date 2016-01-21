@@ -675,7 +675,8 @@ int start_guiServer(int my_id, void *data, char *errmsg, int l_errmsg)
       
       strncpy(_php_sessions_path, httpServerData->params_list[PHPSESSIONS_PATH], sizeof(_php_sessions_path)-1);
       
-      if(create_configs_php(httpServerData->params_list[GUI_PATH],
+      if(create_configs_php(httpServerData->params_list[MEA_PATH],
+                            httpServerData->params_list[GUI_PATH],
                             httpServerData->params_list[SQLITE3_DB_PARAM_PATH],
                             httpServerData->params_list[LOG_PATH],
                             httpServerData->params_list[PHPSESSIONS_PATH],

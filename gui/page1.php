@@ -18,6 +18,8 @@ jQuery(document).ready(function(){
 ?>
    if(destview=="")
       destview=translationController.toLocalC('indicators');
+   else
+      destview=destview.mea_hexDecode();
 
    s=liveComController.getSocketio();
    if(s!=null) {
@@ -31,11 +33,7 @@ jQuery(document).ready(function(){
    page1_ctrlr = new TabsPageController("page1_tab");
    page1_ctrlr.linkToTranslationController(translationController);
    page1_ctrlr.linkToCredentialController(credentialController); // pour la gestion des habilitations
-   
-    setTimeout( function() {
-       page1_ctrlr.start(destview);
-    },
-    25);
+   page1_ctrlr.start(destview);
 });
 </script>
 

@@ -18,6 +18,8 @@ jQuery(document).ready(function(){
 ?>
    if(destview=="")
       destview=translationController.toLocalC('application');
+   else
+      destview=destview.mea_hexDecode();
    
    // un peu de ménage pour éviter les doublons ...
    $("#dlg_us").parent().remove();
@@ -29,10 +31,7 @@ jQuery(document).ready(function(){
    page3_ctrlr.linkToTranslationController(translationController);
    page3_ctrlr.linkToCredentialController(credentialController); // pour la gestion des habilitations
 
-    setTimeout( function() {
-       page3_ctrlr.start(destview);
-    },
-    25);
+   page3_ctrlr.start(destview);
 });
 </script>
 

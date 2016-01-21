@@ -388,7 +388,7 @@ int16_t create_php_ini(char *phpini_path)
 }
 
 
-int16_t create_configs_php(char *gui_home, char *params_db_fullname, char *php_log_fullname, char *php_sessions_fullname, int iosocket_port)
+int16_t create_configs_php(char *base_path, char *gui_home, char *params_db_fullname, char *php_log_fullname, char *php_sessions_fullname, int iosocket_port)
  /**
   * \brief     Création d'un fichier configs.php cohérent avec l'installation de l'interface graphique et les chemins de fichiers à utiliser.
   * \details   Actuellement positionne fichier de log de php et chemin de la base sqlite3 de parametrage.
@@ -417,6 +417,7 @@ int16_t create_configs_php(char *gui_home, char *params_db_fullname, char *php_l
       fprintf(fd, "ini_set('session.save_path', \"%s\");\n", php_sessions_fullname);
 
       fprintf(fd, "$TITRE_APPLICATION='Mea eDomus Admin';\n");
+      fprintf(fd, "$BASEPATH='%s';\n",base_path);
       fprintf(fd, "$PARAMS_DB_PATH='sqlite:%s';\n",params_db_fullname);
       fprintf(fd, "$QUERYDB_SQL='sql/querydb.sql';\n");
       fprintf(fd, "$IOSOCKET_PORT=%d;\n",iosocket_port);

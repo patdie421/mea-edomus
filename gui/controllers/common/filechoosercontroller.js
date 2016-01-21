@@ -8,10 +8,12 @@ $.extend($.fn.validatebox.defaults.rules, {
 });
 
 
-function FileChooserController()
+function FileChooserController(attachement)
 {
+   this.attachement = attachement; 
    this.id = "dlg_"+Math.floor((Math.random() * 10000) + 1);
 }
+
 
 extendClass(FileChooserController, CommonController);
 
@@ -56,6 +58,8 @@ FileChooserController.prototype = {
       $.get("models/get_files_list.php", { type: _type }, function(response) {
          if(response.iserror === false)
          {
+            $('#'+id).empty();
+            $('#'+id).remove();
             html="<div id='"+id+"' style=\"padding:10px 20px\"> \
                <div id='"+id+"_title' class='ftitle'></div> \
                <form id='"+id+"_fm' method='post' data-options=\"novalidate:false\"> \
@@ -95,7 +99,8 @@ FileChooserController.prototype = {
                   handler:function() {
                      _this.close();
                   }
-               }]
+               }],
+               onClose: function() { _this.clean(); },
             });
             $('#'+id+'_selectfiles').empty();
             for(var i in response.values)
@@ -124,8 +129,13 @@ FileChooserController.prototype = {
       });
    },
 
+   clean: function() {
+      console.log("clean");
+      $('#'+id).empty();
+      $('#'+id).remove();
+   },
+
    close: function() {
       $('#'+id).dialog("close");
-      $('#'+id).remove();
    }
 };
