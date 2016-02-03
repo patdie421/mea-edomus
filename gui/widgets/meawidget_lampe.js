@@ -23,8 +23,6 @@ function MeaWidget_lampe(name, group, type)
    this.params["labels"][this.valueUnit] = this.valueUnit;
 
    this.params["actions"] = {};
-   this.params["actions"]["on"] = "xplsend";
-   this.params["actions"]["off"] = "xplsend";
 
    this.params["links"] = {};
 

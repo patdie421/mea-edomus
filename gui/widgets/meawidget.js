@@ -14,6 +14,9 @@ MeaWidget.prototype = {
    init: function(id) {
    },
 
+   disabled: function(id) {
+   },
+
    getHtmlIcon: function() {
       return false;
    },
@@ -59,9 +62,14 @@ MeaWidget.prototype = {
          return notfound;
    },
 
-   doAction: function(actions, data) {
+   doAction: function(action, data) {
+      console.log(action+" "+JSON.stringify(data));
       var _this = this;
-      var _actions = JSON.parse(this.params["actions"][actions]);
+      var _actions = _this.getValue(data, action, false);
+
+      if(_actions == false)
+         return false;
+      _actions = JSON.parse(_actions);
 
       $.each(_actions, function(i, val) {
          switch(i)
@@ -79,9 +87,11 @@ MeaWidget.prototype = {
 
                });
                console.log("XPLSEND: "+JSON.stringify(xplmsgdata));
+               return true;
                break;
          }
       });
+      return false;
    },
 
    toWidgetsJarAs: function(ident, group, type) {

@@ -45,7 +45,7 @@ $.fn.datagrid.defaults.editors.empty = {
 
 var saved = {};
 
-function MapEditorController(container, map, propertiesPanel, mapContextMenu, widgetContextMenu)
+function MapEditorController(container, map, propertiesPanel, actionPanel, mapContextMenu, widgetContextMenu)
 {
    MapEditorController.superConstructor.call(this);
 
@@ -53,6 +53,7 @@ function MapEditorController(container, map, propertiesPanel, mapContextMenu, wi
    this.map =               $('#'+map);
    this.toolsPanel =        false;
    this.toolsPanelState =   'closed';
+   this.actionPanel =       $('#'+actionPanel);
    this.propertiesPanel =   $('#'+propertiesPanel);
    this.propertiesPanelState = 'closed';
    this.mapContextMenu =    $('#'+mapContextMenu);
@@ -104,22 +105,21 @@ function MapEditorController(container, map, propertiesPanel, mapContextMenu, wi
 
          $('body').unbind('mousemove',  _this.getmousepos_handler);
 
+         var data   = $(this).prop('mea-widgetdata');
+         var id     = data[0].value;
          var offset = _this.map.offset();
          var l      = _this.repair(d.left - offset.left);
          var t      = _this.repair(d.top - offset.top);
-         var data   = $(this).prop('mea-widgetdata');
 
-         var p      = $(this).clone();
+         data[2].value = l;
+         data[3].value = t;
+         data[4].value = ++_this.current_zindex;
 
-         p.css({top: t, left: l}).draggable(_this.draggable_options);
-         p.css("z-index", ++_this.current_zindex);
-         p.prop('mea-widgetdata', data);
-         p.bind('contextmenu', _this.open_widget_menu);
-         p.prop('_me', _this);
-         _this.map.append(p);
-         p.show();
+         _this.createFromWidgetdata(data, true).draggable('enable');
+
          $(this).remove();
-         _this._updateProperties(p.attr('id'));
+
+         _this._updateProperties(id);
       },
 
       proxy: function(source) {
@@ -133,6 +133,9 @@ function MapEditorController(container, map, propertiesPanel, mapContextMenu, wi
       },
 
       onDrag: function(e) {
+         var d = e.data;
+         var id=$(e.data.target).attr('mea_widget');
+         _this.constrain(e, $("#"+id+"_drag"), $("#"+id+"_model"));
       }
    };
 
@@ -177,8 +180,99 @@ function MapEditorController(container, map, propertiesPanel, mapContextMenu, wi
             return 'background-color:pink;color:blue;font-weight:bold;';
       },
       onBeforeSelect:function(index, row) {
+         var __this = this;
          if(row.group=="actions")
+         {
+            var rows = $(__this).propertygrid('getRows');
+            var actions = {};
+            var xplAction = {};
+            try {
+                 actions = JSON.parse(row.value);
+                 xplAction = actions['xplsend']; 
+            } catch(e) {
+               xplAction = {};
+            }
+            
+            _this.actionPanel.find('[name="widgetid_me"]').val(rows[0].value);
+            _this.actionPanel.find('[name="action_me"]').val(row.name);
+            var namesvalues_sel = _this.actionPanel.find('[name="namesvalues"]');
+            var names_sel  = $("#"+_this.actionPanel.attr('id')+"_names");
+            var values_sel = $("#"+_this.actionPanel.attr('id')+"_values");
+
+            console.log(names_sel);
+            console.log(values_sel);
+
+            namesvalues_sel.empty();
+
+            var data_names = [
+               {
+               label: 'current',
+               value: 'current'
+               },{
+               label: 'type',
+               value: 'type'
+               },{
+               label: 'target',
+               value: 'target'
+               },{
+               label: 'schema',
+               value: 'schema'
+               }
+            ];
+            var data_values = [
+               {
+               label: 'high',
+               value: 'high'
+               },{
+               label: 'low',
+               value: 'low'
+               }
+            ];
+            $.each(rows, function (i,val) {
+               if(val.group=="variables")
+               {
+                  data_values.push({ label: "["+val.name+"]", value: "["+val.name+"]"});
+               }
+            });
+
+            $.each(xplAction, function(i,val) {
+               namesvalues_sel.append($('<option>', {
+                  value: JSON.stringify({ name: i, value: val }),
+                  text: i+" = "+val 
+               }));
+
+               var found=false;
+               $.each(data_names, function(_i, _val) {
+                  if(_val['label'] == i) {
+                     found=true;
+                     return false;
+                  }
+               });
+               if(found===false)
+                  data_names.push({label: i, value: i});
+
+               found=false;
+               $.each(data_values, function(_i, _val) {
+                  if(_val['value'] == val) {
+                     found=true;
+                     return false;
+                  }
+               });
+               if(found===false)
+                  data_values.push({label: val, value: val});
+            });
+
+            console.log("ICI3");
+            console.log(JSON.stringify(data_names));
+            console.log(JSON.stringify(data_values));
+
+            names_sel.combobox({data: data_names});
+            values_sel.combobox({data: data_values});
+
+            _this.actionPanel.window('open');
+
             return false;
+         }
       },
       onSelect:function(index, row) {
          var __this = this;
@@ -210,7 +304,8 @@ function MapEditorController(container, map, propertiesPanel, mapContextMenu, wi
          $(__this).propertygrid('unselectAll');
 
          var rows = $(__this).propertygrid('getRows');
-         meaWidgetsJar[rows[1].value].init(rows[0].value); 
+         meaWidgetsJar[rows[1].value].init(rows[0].value);
+         meaWidgetsJar[rows[1].value].disabled(rows[0].value, true); 
       }
    });
 
@@ -266,22 +361,21 @@ function MapEditorController(container, map, propertiesPanel, mapContextMenu, wi
       onDrop:function(e,source) {
          _this.objid++;
          var type=$(source).attr("id");
-
-         var offset = _this.map.offset();
-         var newid = "widget_"+type+"_"+_this.objid;
-
-         var p = $("#"+type+"_model").clone().attr('id', newid);
-
-         $(this).append(p);
-
          var l=_this.repair($("#"+type+"_drag").offset().left);
          var t=_this.repair($("#"+type+"_drag").offset().top);
          var zi=++_this.current_zindex;
+         var newid = "Widget_"+type+"_"+_this.objid;
+         var offset = _this.map.offset();
+         var p = $("#"+type+"_model").clone().attr('id', newid);
+
+         $(this).append(p);
 
          p.css({top: t - offset.top, left: l - offset.left}).draggable(_this.draggable_options);
          p.css("z-index", zi);
          p.bind('contextmenu', _this.open_widget_menu);
 
+        mea_widgetdata = _this.newWidgetData(newid, type, l - offset.left, t - offset.top, zi, p);
+/*
          var mea_widgetdata = [
             {"name":"id",     "value":newid,            "group":"Indentification", "editor":"empty" },
             {"name":"type",   "value":type,             "group":"Indentification", "editor":"empty" },
@@ -328,11 +422,13 @@ function MapEditorController(container, map, propertiesPanel, mapContextMenu, wi
             });
          }
          catch(e) {};
-
-         $("#"+newid).prop('mea-widgetdata', mea_widgetdata); 
+*/
+//         $("#"+newid).prop('mea-widgetdata', mea_widgetdata); 
+         p.prop('mea-widgetdata', mea_widgetdata); 
          _this._updateProperties(newid);
 
          meaWidgetsJar[type].init(newid); 
+         meaWidgetsJar[type].disabled(newid, true); 
 
          $(this).removeClass('over');
       }
@@ -340,6 +436,61 @@ function MapEditorController(container, map, propertiesPanel, mapContextMenu, wi
 }
 
 extendClass(MapEditorController, CommonController);
+
+
+MapEditorController.prototype.newWidgetData = function(newid, type, x, y, zi, p)
+{
+   var mea_widgetdata = [
+      {"name":"id",     "value":newid, "group":"Indentification", "editor":"empty" },
+      {"name":"type",   "value":type,  "group":"Indentification", "editor":"empty" },
+      {"name":"x",      "value":x,     "group":"Position", "editor":"empty" },
+      {"name":"y",      "value":y,     "group":"Position", "editor":"empty" },
+      {"name":"zindex", "value":zi,    "group":"Position", "editor":"empty" }
+   ];
+
+   try {
+      $.each(p.data().widgetparams.labels, function(i,val) {
+         mea_widgetdata.push({"name":i, "value":"", "group":"labels", "editor":"text", "type":"string"});
+/*
+          try {
+             p.find('[mea_widgetlabelname="'+i+'"]').text(val);
+          }
+          catch(e) {}
+*/
+     });
+   }
+   catch(e) {};
+ 
+   try {
+      $.each(p.data().widgetparams.values, function(i,val) {
+         mea_widgetdata.push({"name":i, "value":"", "group":"values", "editor":"text", "type":val});
+      });
+   }
+   catch(e) {};
+ 
+   try {
+      $.each(p.data().widgetparams.actions, function(i,val) {
+         mea_widgetdata.push({"name":i, "value":val, "group":"actions", "editor":"text", "type":""});
+      });
+   }
+   catch(e) {};
+ 
+   try {
+      $.each(p.data().widgetparams.link, function(i,val) {
+         mea_widgetdata.push({"name":i, "value":val, "group":"links", "editor":"text", "type":""});
+      });
+   }
+   catch(e) {};
+ 
+   try {
+      $.each(p.data().widgetparams.variables, function(i,val) {
+         mea_widgetdata.push({"name":i, "value":val, "group":"variables", "editor":"empty", "type":""});
+      });
+   }
+   catch(e) {};
+
+   return mea_widgetdata;
+}
 
 
 MapEditorController.prototype.start = function()
@@ -394,6 +545,81 @@ MapEditorController.prototype._cleanexit = function()
 }
 
 
+MapEditorController.prototype.saveTo = function(s)
+{
+   var _this = this;
+
+   $('div[id^="Widget_"]').each(function(){
+      console.log("ICI2");
+      console.log($(this).attr('id'));
+      console.log("LA2");
+      var data = JSON.parse(JSON.stringify($(this).prop('mea-widgetdata')));
+      s[data[0].value]=data; 
+   });
+}
+
+
+MapEditorController.prototype.createFromWidgetdata = function(obj, d)
+{
+   var _this = this;
+
+   var id   = obj[0].value;
+   var type = obj[1].value;
+   var x    = obj[2].value;
+   var y    = obj[3].value;
+   var zi   = obj[4].value;
+
+   var offset = _this.map.offset();
+
+   var p = $("#"+type+"_model").clone().attr('id', id);
+
+   _this.map.append(p);
+
+   p.css({top: y, left: x});
+   p.css("z-index", zi);
+   p.prop('_me', _this);
+   p.bind('contextmenu', _this.open_widget_menu);
+   p.draggable(_this.draggable_options);
+   p.draggable('disable');
+   p.prop('mea-widgetdata', obj);
+
+   meaWidgetsJar[type].init(id);
+   meaWidgetsJar[type].disabled(id, d);
+
+   return p;
+}
+
+
+MapEditorController.prototype.loadFrom = function(s)
+{
+   var _this = this;
+
+   $('div[id^="Widget_"]').each(function(){
+      $(this).empty();
+      $(this).remove();
+   });
+
+   _this.objid=0;
+   _this.current_zindex=0;
+   $.each(s, function(i, obj) {
+      var id   = obj[0].value;
+      var zi   = obj[4].value;
+
+      _this.createFromWidgetdata(obj, false);
+
+      var _objid = id.match(/\d+$/);
+      if(_objid)
+         _objid=parseInt(_objid[0]);
+      else
+         _objid=0;
+      if(_objid > _this.objid)
+         _this.objid = _objid;
+      if(zi > _this.current_zindex)
+         _this.current_zindex=zi;
+   });
+}
+
+
 MapEditorController.prototype._context_menu = function(action)
 {
    var _this = this;
@@ -401,64 +627,29 @@ MapEditorController.prototype._context_menu = function(action)
    switch(action)
    {
       case 'load':
-
-         $('div[id^="widget_"]').each(function(){
-            $(this).empty();
-            $(this).remove();
-         });
-
-         _this.objid=0;
-         _this.current_zindex=0;
-         $.each(saved, function(i, obj) {
-
-            var id   = obj[0].value;
-            var type = obj[1].value;
-            var x    = obj[2].value;
-            var y    = obj[3].value;
-            var zi   = obj[4].value;
-
-            var offset = _this.map.offset();
-
-            var p = $("#"+type+"_model").clone().attr('id', id);
-
-            _this.map.append(p);
-
-            p.css({top: y, left: x}); //.draggable(options);
-            p.css("z-index", zi);
-            p.bind('contextmenu', _this.open_widget_menu);
-            p.draggable(_this.draggable_options);
-            p.draggable('disable');
-            p.prop('mea-widgetdata', obj);
-
-            meaWidgetsJar[type].init(id);
-
-            var _objid = id.match(/\d+$/);
-            if(_objid)
-               _objid=parseInt(_objid[0]);
-            else
-               _objid=0;
-             if(_objid > _this.objid)
-                _this.objid = _objid;
-             if(zi > _this.current_zindex)
-                _this.current_zindex=zi;
-         });
+         _this.loadFrom(saved);
          break;
 
       case 'save':
          saved = {};
-         $('div[id^="widget_"]').each(function(){
-            var data = JSON.parse(JSON.stringify($(this).prop('mea-widgetdata')));
-            saved[data[0].value]=data; 
-         });
+         _this.saveTo(saved);
          break;
 
       case 'disable':
-         $('div[id^="widget_"]').each(function(){
-            $(this).draggable('disable');
-         });
+         var _tmp = {};
+         _this.toolsPanel.window('close');
+         _this.propertiesPanel.window('close');
+         _this.saveTo(_tmp);
+         _this.loadFrom(_tmp);
+         tmp = null;
          break;
+
       case 'enable':
-         $('div[id^="widget_"]').each(function(){
+         _this.toolsPanel.window('open');
+         $('div[id^="Widget_"]').each(function(){
+            var data = $(this).prop('mea-widgetdata');
+            meaWidgetsJar[data[1].value].init(data[0].value, true);
+            meaWidgetsJar[data[1].value].disabled(data[0].value, true);
             $(this).draggable('enable');
          });
          return false;
@@ -662,8 +853,6 @@ MapEditorController.prototype.addWidget = function(type)
 {
    var _this = this;
 
-   console.log("type=",type);
-
    $("#"+type).draggable({
       proxy: function(source) {
          var p = $("#"+type+"_model").clone().attr('id', type+'_drag');
@@ -695,71 +884,100 @@ MapEditorController.prototype.addWidget = function(type)
 }
 
 
-var i=0;
-function simu()
+MapEditorController.prototype._xplEditorCancel = function()
 {
-   ++i;
-   setTimeout(simu, 5000);
+   var _this = this;
 
-   $.each($("#testzone").find('label[name="A1"]'), function() {
-     var _formater = $(this).attr('mea_valueformater');
-     if(_formater)
-        $(this).text(meaFormaters[_formater](i));
-     else
-        $(this).text(i);
-   });
-
-   $.each($("#testzone").find('input[name="A1"]'), function() {
-     var _formater = $(this).attr('mea_valueformater');
-     if(_formater)
-        $(this).val(meaFormaters[_formater](i));
-     else
-        $(this).val(i);
-   });
-
-   $.each($("#testzone").find('div[name="A1"]'), function() {
-     var _formater = $(this).attr('mea_valueformater');
-     if(_formater)
-     {
-        meaFormaters[_formater](i, $(this));
-     }
-     else
-        $(this).html(i);
-   });
-
-   $("#testzone").find('label[name="A2"]').text(i*2);
-   $("#testzone").find('input[name="A2"]').val(i*2);
-   $.each($("#testzone").find('div[name="A2"]'), function() {
-     var _formater = $(this).attr('mea_valueformater');
-     if(_formater)
-     {
-        meaFormaters[_formater](i*2, $(this));
-     }
-     else
-        $(this).html(i);
-   });
-
+   _this.actionPanel.window(close);
 }
 
 
-jQuery(document).ready(function() {
-   ctrlr_mapEditor = new MapEditorController(
-      "me_panel",
-      "testzone",
-      "wn_properties",
-      "cm_context",
-      "cm_widget");
-   ctrlr_mapEditor.linkToTranslationController(translationController); 
-   ctrlr_mapEditor.linkToCredentialController(credentialController); 
+MapEditorController.prototype._xplEditorOk = function()
+{
+   var _this = this;
+   var data = {};
 
-   ctrlr_mapEditor.start();
+   var id = _this.actionPanel.attr('id');
+   var namesvalues_sel = _this.actionPanel.find('[name="namesvalues"] > option');
+   namesvalues_sel.each(function() {
+      var namevalue = JSON.parse($(this).val());
+      data[namevalue.name]=namevalue.value;
+   });
 
-   var list = [
-      "../widgets/meawidget_lampe.js",
-      "../widgets/meawidget_slider.js",
-      "../widgets/meawidget_button.js"
-   ];
-   i=list.length-1;
+   var widgetid = _this.actionPanel.find('[name="widgetid_me"]').val();
+   console.log("ICI4: "+widgetid);
+   var widgetdata = $("#"+widgetid).prop('mea-widgetdata');
+
+   action = _this.actionPanel.find('[name="action_me"]').val();
+
+   $.each(widgetdata, function(i, val) {
+      if(val.name === action)
+      {
+         val.value = JSON.stringify({ "xplsend" : data });
+         return false;
+      }
+   });
+
+   _this._updateProperties(widgetid);
+   _this.actionPanel.window(close);
+}
+
+
+MapEditorController.prototype._xplEditorDown = function()
+{
+   var _this = this;
+   var id = _this.actionPanel.attr('id');
+
+   var name = $("#"+id+"_names").combobox('getText');
+   if(name)
+      name=name.trim();
+   var value = $("#"+id+"_values").combobox('getText');
+   if(value)
+      value=value.trim();
+
+   if(name && name.length && value && value.length)
+   {
+      var namesvalues_sel = _this.actionPanel.find('[name="namesvalues"] > option');
+      var found = false;
+      namesvalues_sel.each(function() {
+         var namevalue = JSON.parse($(this).val());
+         if(namevalue.name == name) {
+            $(this).val(JSON.stringify({ name: name, value: value }));
+            $(this).text(name+" = "+value);
+            found = true;
+            return false;
+         }
+      });
+      if(found === false)
+      {
+         _this.actionPanel.find('[name="namesvalues"]').append($('<option>', {
+            value: JSON.stringify({ name: name, value: value }),
+            text: name+" = "+value
+         }));
+      }
+   } 
+}
+
+
+MapEditorController.prototype._xplEditorUp = function()
+{
+   var _this = this;
+   var sel = _this.actionPanel.find('[name="namesvalues"] option:selected');
+   var id = _this.actionPanel.attr('id');
+   if(sel)
+   {
+      var namevalue = JSON.parse(sel.val());
+      $("#"+id+"_names").combobox('setValue',namevalue.name);
+      $("#"+id+"_values").combobox('setValue',namevalue.value);
+   }
+   sel.remove();
+}
+
+
+MapEditorController.prototype.loadWidgets = function(list)
+{
+   var _this = this;
+
    function load_widgets(list, i)
    {
       $.getScript(list[i], function(data, textStatus, jqxhr) {
@@ -784,10 +1002,92 @@ jQuery(document).ready(function() {
             load_widgets(list, i);
       });
    }
+
+   var i=list.length-1;
+
    load_widgets(list, i);
+}
+
+
+var i=0;
+function simu()
+{
+   ++i;
+   setTimeout(simu, 5000);
+
+   $.each($("#map_me").find('label[name="A1"]'), function() {
+     var _formater = $(this).attr('mea_valueformater');
+     if(_formater)
+        $(this).text(meaFormaters[_formater](i));
+     else
+        $(this).text(i);
+   });
+
+   $.each($("#map_me").find('input[name="A1"]'), function() {
+     var _formater = $(this).attr('mea_valueformater');
+     if(_formater)
+        $(this).val(meaFormaters[_formater](i));
+     else
+        $(this).val(i);
+   });
+
+   $.each($("#map_me").find('div[name="A1"]'), function() {
+     var _formater = $(this).attr('mea_valueformater');
+     if(_formater)
+     {
+        meaFormaters[_formater](i, $(this));
+     }
+     else
+        $(this).html(i);
+   });
+
+   $("#map_me").find('label[name="A2"]').text(i*2);
+   $("#map_me").find('input[name="A2"]').val(i*2);
+   $.each($("#map_me").find('div[name="A2"]'), function() {
+     var _formater = $(this).attr('mea_valueformater');
+     if(_formater)
+     {
+        meaFormaters[_formater](i*2, $(this));
+     }
+     else
+        $(this).html(i);
+   });
+
+}
+
+
+jQuery(document).ready(function() {
+   var list = [
+      "../widgets/meawidget_lampe.js",
+      "../widgets/meawidget_slider.js",
+      "../widgets/meawidget_button.js"
+   ];
+
+   ctrlr_mapEditor = new MapEditorController(
+      "panel_me",
+      "map_me",
+      "properties_win_me",
+      "actions_win_me",
+      "map_cm_me",
+      "widget_cm_me");
+   ctrlr_mapEditor.linkToTranslationController(translationController); 
+   ctrlr_mapEditor.linkToCredentialController(credentialController); 
+
+   var xplEditorUp     = ctrlr_mapEditor._xplEditorUp.bind(ctrlr_mapEditor);
+   var xplEditorDown   = ctrlr_mapEditor._xplEditorDown.bind(ctrlr_mapEditor);
+   var xplEditorOk     = ctrlr_mapEditor._xplEditorOk.bind(ctrlr_mapEditor);
+   var xplEditorCancel = ctrlr_mapEditor._xplEditorCancel.bind(ctrlr_mapEditor);
+
+   ctrlr_mapEditor.loadWidgets(list);
+
+   ctrlr_mapEditor.start();
 
    setTimeout(simu, 5000);
 
+   $("#button_up_me").on('click', xplEditorUp);
+   $("#button_down_me").on('click', xplEditorDown);
+   $("#button_ok_me").on('click', xplEditorOk);
+   $("#button_cancel_me").on('click', xplEditorCancel);
 /*
    $(document).mouseleave(function(e){console.log('out')});
    $(document).mouseenter(function(e){console.log('in')});
@@ -797,28 +1097,28 @@ jQuery(document).ready(function() {
 
 </script>
 
-<div id="me_panel" class="easyui-panel" style="position:absolute;width:100%;height:100%;overflow:scroll" data-options="border:false">
-   <div id="testzone" style="width:1920px;height:1080px;position:relative;overflow:hidden;">
+<div id="panel_me" class="easyui-panel" style="position:absolute;width:100%;height:100%;overflow:scroll" data-options="border:false">
+   <div id="map_me" style="width:1920px;height:1080px;position:relative;overflow:hidden;">
    </div>
+   <div id="widgets_container" style="display:none"></div>
+
 </div>
 
-<div id="cm_context" class="easyui-menu" style="width:120px;display:hidden;">
+<div id="map_cm_me" class="easyui-menu" style="width:120px;display:hidden;">
    <div onclick="javascript:ctrlr_mapEditor._context_menu('enable')">enable</div>
    <div onclick="javascript:ctrlr_mapEditor._context_menu('disable')">disable</div>
    <div onclick="javascript:ctrlr_mapEditor._context_menu('save')">save</div>
    <div onclick="javascript:ctrlr_mapEditor._context_menu('load')">load</div>
 </div>
 
-<div id="cm_widget" class="easyui-menu" style="width:120px;display:hidden">
+<div id="widget_cm_me" class="easyui-menu" style="width:120px;display:hidden">
    <div onclick="javascript:ctrlr_mapEditor._widget_menu('properties')">properties</div>
    <div onclick="javascript:ctrlr_mapEditor._widget_menu('delete')">delete</div>
 </div>
 
-<div id="widgets_container" style="display:none"></div>
-
 <div id="all_windows" style="display:none"></div>
 
-<div id="window_me" class="easyui-window" style="position:relative;width:500px;height:350px;overflow:hidden" data-options="title:'xPL send parameters',modal:true,footer:'#ft'">
+<div id="actions_win_me" class="easyui-window" style="position:relative;width:500px;height:350px;overflow:hidden" data-options="title:'xPL send parameters',modal:true,closed:true,footer:'#ft_action_win_me'">
    <table cellpadding="5" style="width:100%">
       <tr>
          <td align="center">Name</td>
@@ -827,17 +1127,11 @@ jQuery(document).ready(function() {
       </tr>
       <tr>
          <td align="center">
-            <select class="easyui-combobox" name="state" style="width:200px;">
-               <option value="current">current</option>
-               <option value="current">type</option>
-               <option value="source">target</option>
-               <option value="schema">schema</option>
-            </select>
+            <input id="actions_win_me_names" name="names" class="easyui-combobox" style="width:200px;" data-options="valueField: 'label', textField: 'value'" />
          </td>
          <td>=</td>
          <td align="center">
-            <select class="easyui-combobox" name="state" style="width:200px;">
-            </select>
+            <input id="actions_win_me_values" name="values" class="easyui-combobox" style="width:200px;" data-options="valueField: 'label', textField: 'value'" />
          </td>
       </tr>
       <tr>
@@ -848,17 +1142,15 @@ jQuery(document).ready(function() {
       </td>
       <tr>
          <td align="center" colspan="3">
-            <select name="xpl_me" id="xpl_me" size="10" style="text-align:center;width:80%;font-family:verdana,helvetica,arial,sans-serif;font-size:12px;">
-               <option value='"current" = "high"'>"current" = "high"</option>
-               <option value='"current" = "high"'>"current" = "low"</option>
+            <select id="actions_win_me_namesvalues" name="namesvalues" id="xpl_me" size="10" style="text-align:center;width:80%;font-family:verdana,helvetica,arial,sans-serif;font-size:12px;">
             </select>
          </td>
       </tr>
    </table>
-
+   <input id="actions_win_me_widget" name="widgetid_me" type="hidden">
+   <input id="actions_win_me_action" name="action_me" type="hidden">
 </div>
-
-<div id="ft" style="text-align:right;padding:5px">
+<div id="ft_action_win_me" style="text-align:right;padding:5px">
       <a id="button_ok_me"      href="javascript:void(0)" class="easyui-linkbutton" style="width=50px;" data-options="iconCls:'icon-ok'"><?php mea_toLocalC('ok'); ?></a>
       <a id="button_cancel_me", href="javascript:void(0)" class="easyui-linkbutton" style="width=50px;" data-options="iconCls:'icon-cancel'"><?php mea_toLocalC('cancel'); ?></a>
 </div>

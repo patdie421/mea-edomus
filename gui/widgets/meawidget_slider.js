@@ -9,57 +9,39 @@ function MeaWidget_slider(name, group, type)
    this.toWidgetsJarAs(name, group, type);
 
    this.sliderName1 = "slider1";
-   this.sliderName1 = "slider2";
+   this.sliderName2 = "slider2";
    this.params = {};
 
    this.params["variables"] = {}
-   this.params["variables"]["v1"]=0.0;
-   this.params["variables"]["v2"]=0.0;
+   this.params["variables"][this.sliderName1+"_value"]=0.0;
+   this.params["variables"][this.sliderName2+"_value"]=0.0;
 
    this.params["values"] = {};
 
    this.params["labels"] = {};
 
    this.params["actions"] = {};
-   this.params["actions"]["slider1"] = '{"xplsend":{"current":"[v1]"}}';
-   this.params["actions"]["slider2"] = '{"xplsend":{"current":"[v2]"}}';
+   this.params["actions"][this.sliderName1] = '';
+   this.params["actions"][this.sliderName2] = '';
 
    this.params["links"] = {};
-
 }
 
-/*
-function _setVal(data, n, v)
+
+MeaWidget_slider.prototype.disabled = function(id, d)
 {
-   $.each(data, function(i, val)
-   {
-      if(val.name == n)
-      {
-         val.value = v;
-         return false;
-      }
+   var _this = this;
+   var widget = $("#"+id);
+   var data = widget.prop('mea-widgetdata');
+
+   widget.find('div[mea_widgetslidername="'+_this.sliderName1+'"]').slider({
+      disabled: d
+   });
+   widget.find('div[mea_widgetslidername="'+_this.sliderName2+'"]').slider({
+      disabled: d
    });
 }
 
-
-function _getVal(data, n)
-{
-   var found = false;
-
-   $.each(data, function(i, val)
-   {
-      if(val.name == n)
-      {
-         found = val.value;
-         return false;
-      }
-   });
-   if(found !== false)
-      return found;
-   else
-      return "";
-}
-*/
 
 MeaWidget_slider.prototype.init = function(id)
 {
@@ -68,33 +50,34 @@ MeaWidget_slider.prototype.init = function(id)
    var data = widget.prop('mea-widgetdata');
 
    widget.find('div[mea_widgetslidername="'+_this.sliderName1+'"]').slider({
+      disabled: true,
       mode: "h",
       width: 100,
       showTip: true,
       min:0,
       max:100,
       step:5,
-      value:_this.getValue(data,"v1", 0),
+      value:_this.getValue(data,_this.sliderName1+"_value", 0),
       onComplete: function(value) {
-         _this.setValue(data, 'v1', value);
-         _this.doAction("slider1", data);
+         _this.setValue(data, _this.sliderName1+"_value", value);
+         _this.doAction(_this.sliderName1, data);
       },
       tipFormatter: function(value) {
          return value+"%";
       }
    });
    widget.find('div[mea_widgetslidername="'+_this.sliderName2+'"]').slider({
+      disabled: true,
       mode: "h",
       width: 100,
       showTip: true,
       min:0,
       max:100,
       step:5,
-      value:_this.getValue(data,"v2", 0),
+      value:_this.getValue(data,_this.sliderName2+"_value", 0),
       onComplete: function(value) {
-         _this.setValue(data,'v2', value);
-         _this.doAction("slider2", data);
-         //  console.log(id+" v2: "+ _this.getValue(data,'v2'));
+         _this.setValue(data,_this.sliderName2+"_value", value);
+         _this.doAction(_this.sliderName2, data);
       },
       tipFormatter: function(value) {
          return value+"%";
@@ -132,7 +115,6 @@ MeaWidget_slider.prototype.getHtml = function()
 {
 var _this = this; var html =
 " \
-\
 <div id = '"+_this.type+"_model' \
    mea_widget = '"+_this.type+"\' \
    class = 'mea-widget' data-widgetparams='"+JSON.stringify(_this.params)+"' \
@@ -145,7 +127,7 @@ var _this = this; var html =
       <div mea_widgetslidername='"+_this.sliderName2+"'></div> \
    </div> \
 </div> \
-\
 ";
+
 return html;
 }
