@@ -25,7 +25,11 @@ endif;
    filter:alpha(opacity=50);
 }
 .over{
-   background:#FBEC88;
+//   background:#FBEC88;
+   background:#FFFFCE;
+}
+.notover{
+   background:#FFFFFF;
 }
 </style>
 
@@ -66,6 +70,8 @@ function MapEditorController(container, map, propertiesPanel, actionPanel, mapCo
 
    this.objid = 10;
    this.timeout = false;
+
+   this.mapState = 'edit';
 
    var _this = this;
 
@@ -199,9 +205,6 @@ function MapEditorController(container, map, propertiesPanel, actionPanel, mapCo
             var names_sel  = $("#"+_this.actionPanel.attr('id')+"_names");
             var values_sel = $("#"+_this.actionPanel.attr('id')+"_values");
 
-            console.log(names_sel);
-            console.log(values_sel);
-
             namesvalues_sel.empty();
 
             var data_names = [
@@ -261,10 +264,6 @@ function MapEditorController(container, map, propertiesPanel, actionPanel, mapCo
                if(found===false)
                   data_values.push({label: val, value: val});
             });
-
-            console.log("ICI3");
-            console.log(JSON.stringify(data_names));
-            console.log(JSON.stringify(data_values));
 
             names_sel.combobox({data: data_names});
             values_sel.combobox({data: data_values});
@@ -350,12 +349,14 @@ function MapEditorController(container, map, propertiesPanel, actionPanel, mapCo
          $(source).draggable('options').cursor='auto';
          $(source).draggable('proxy').css('border','2px solid red');
          $(this).addClass('over');
+         $(this).removeClass('notover');
       },
 
       onDragLeave:function(e,source){
          $(source).draggable('options').cursor='not-allowed';
          $(source).draggable('proxy').css('border','2px solid #ccc');
          $(this).removeClass('over');
+         $(this).addClass('notover');
       },
 
       onDrop:function(e,source) {
@@ -370,60 +371,12 @@ function MapEditorController(container, map, propertiesPanel, actionPanel, mapCo
 
          $(this).append(p);
 
-         p.css({top: t - offset.top, left: l - offset.left}).draggable(_this.draggable_options);
+         p.css({top: t - offset.top, left: l - offset.left});
          p.css("z-index", zi);
+         p.draggable(_this.draggable_options);
          p.bind('contextmenu', _this.open_widget_menu);
 
-        mea_widgetdata = _this.newWidgetData(newid, type, l - offset.left, t - offset.top, zi, p);
-/*
-         var mea_widgetdata = [
-            {"name":"id",     "value":newid,            "group":"Indentification", "editor":"empty" },
-            {"name":"type",   "value":type,             "group":"Indentification", "editor":"empty" },
-            {"name":"x",      "value":t - offset.top,   "group":"Position", "editor":"empty" },
-            {"name":"y",      "value":l - offset.left,  "group":"Position", "editor":"empty" },
-            {"name":"zindex", "value":zi,               "group":"Position", "editor":"empty" }
-         ];
-
-         try {
-            $.each(p.data().widgetparams.labels, function(i,val) {
-               mea_widgetdata.push({"name":i, "value":"", "group":"labels", "editor":"text", "type":"string"});
-               try {
-                  p.find('[mea_widgetlabelname="'+i+'"]').text(val);
-               }
-               catch(e) {}
-            });
-         }
-         catch(e) {};
- 
-         try {
-            $.each(p.data().widgetparams.values, function(i,val) {
-               mea_widgetdata.push({"name":i, "value":"", "group":"values", "editor":"text", "type":val});
-            });
-         }
-         catch(e) {};
- 
-         try {
-            $.each(p.data().widgetparams.actions, function(i,val) {
-               mea_widgetdata.push({"name":i, "value":val, "group":"actions", "editor":"text", "type":""});
-            });
-         }
-         catch(e) {};
- 
-         try {
-            $.each(p.data().widgetparams.link, function(i,val) {
-               mea_widgetdata.push({"name":i, "value":val, "group":"links", "editor":"text", "type":""});
-            });
-         }
-         catch(e) {};
- 
-         try {
-            $.each(p.data().widgetparams.variables, function(i,val) {
-               mea_widgetdata.push({"name":i, "value":val, "group":"variables", "editor":"empty", "type":""});
-            });
-         }
-         catch(e) {};
-*/
-//         $("#"+newid).prop('mea-widgetdata', mea_widgetdata); 
+         mea_widgetdata = _this.newWidgetData(newid, type, l - offset.left, t - offset.top, zi, p);
          p.prop('mea-widgetdata', mea_widgetdata); 
          _this._updateProperties(newid);
 
@@ -431,6 +384,7 @@ function MapEditorController(container, map, propertiesPanel, actionPanel, mapCo
          meaWidgetsJar[type].disabled(newid, true); 
 
          $(this).removeClass('over');
+         $(this).addClass('notover');
       }
    });
 }
@@ -549,12 +503,17 @@ MapEditorController.prototype.saveTo = function(s)
 {
    var _this = this;
 
+   s['width']=_this.map.width();
+   s['height']=_this.map.height();
+
+   s['background-color']=false;
+   s['background-image']=false;
+
+   s['widgets']={};
+
    $('div[id^="Widget_"]').each(function(){
-      console.log("ICI2");
-      console.log($(this).attr('id'));
-      console.log("LA2");
       var data = JSON.parse(JSON.stringify($(this).prop('mea-widgetdata')));
-      s[data[0].value]=data; 
+      s['widgets'][data[0].value]=data; 
    });
 }
 
@@ -599,9 +558,12 @@ MapEditorController.prototype.loadFrom = function(s)
       $(this).remove();
    });
 
+   _this.map.width(s['width']);
+   _this.map.height(s['height']);
+
    _this.objid=0;
    _this.current_zindex=0;
-   $.each(s, function(i, obj) {
+   $.each(s['widgets'], function(i, obj) {
       var id   = obj[0].value;
       var zi   = obj[4].value;
 
@@ -635,24 +597,32 @@ MapEditorController.prototype._context_menu = function(action)
          _this.saveTo(saved);
          break;
 
-      case 'disable':
-         var _tmp = {};
-         _this.toolsPanel.window('close');
-         _this.propertiesPanel.window('close');
-         _this.saveTo(_tmp);
-         _this.loadFrom(_tmp);
-         tmp = null;
+      case 'toggle':
+         var item = "";
+         if(_this.mapState == 'edit') {
+            _this.mapState = 'view';
+            item = _this.mapContextMenu.menu('findItem', 'map view');
+            _this.mapContextMenu.menu('setText', { target: item.target, text: 'map edit'});
+            var _tmp = {};
+            _this.toolsPanel.window('close');
+            _this.propertiesPanel.window('close');
+            _this.saveTo(_tmp);
+            _this.loadFrom(_tmp);
+            tmp = null;
+         }
+         else {
+            _this.mapState = 'edit';
+            item = _this.mapContextMenu.menu('findItem','map edit');
+            _this.mapContextMenu.menu('setText', { target:item.target, text: 'map view'});
+            _this.toolsPanel.window('open');
+            $('div[id^="Widget_"]').each(function(){
+               var data = $(this).prop('mea-widgetdata');
+               meaWidgetsJar[data[1].value].init(data[0].value, true);
+               meaWidgetsJar[data[1].value].disabled(data[0].value, true);
+               $(this).draggable('enable');
+            });
+         }
          break;
-
-      case 'enable':
-         _this.toolsPanel.window('open');
-         $('div[id^="Widget_"]').each(function(){
-            var data = $(this).prop('mea-widgetdata');
-            meaWidgetsJar[data[1].value].init(data[0].value, true);
-            meaWidgetsJar[data[1].value].disabled(data[0].value, true);
-            $(this).draggable('enable');
-         });
-         return false;
    }
 }
 
@@ -764,11 +734,22 @@ MapEditorController.prototype._constrain = function(e, drag, model)
 
    var d = e.data;
    var offset = _this.container.offset();
+   var offset_map = _this.map.offset();
 
    var l_min = offset.left;
-   var l_max = _this.container.outerWidth()+offset.left;
    var t_min = offset.top;
-   var t_max = _this.container.outerHeight()+offset.top;
+
+   var l_max = 0;
+   if(_this.container.outerWidth() <= _this.map.outerWidth())
+      l_max = _this.container.outerWidth()+offset.left;
+   else
+      l_max = _this.map.outerWidth()+offset.left;
+
+   var t_max = 0;
+   if(_this.container.outerHeight() <= _this.map.outerHeight())
+      t_max = _this.container.outerHeight()+offset.top;
+   else
+      t_max = _this.map.outerHeight()+offset.top;
 
    clearTimeout(_this.timeout);
 
@@ -864,12 +845,13 @@ MapEditorController.prototype.addWidget = function(type)
       cursor:'auto',
 
       onDrag: function(e) {
-         var id=$(e.data.target).attr('id');
-         _this.constrain(e, $("#"+id+"_drag"), $("#"+id+"_model"));
+//         var id=$(e.data.target).attr('id');
+//         _this.constrain(e, $("#"+id+"_drag"), $("#"+id+"_model"));
       },
 
       onStopDrag: function(e) {
          var __this = this; 
+
          $(__this).draggable('options').cursor='auto';
          $('body').unbind('mousemove',  _this.getmousepos_handler);
       },
@@ -888,7 +870,7 @@ MapEditorController.prototype._xplEditorCancel = function()
 {
    var _this = this;
 
-   _this.actionPanel.window(close);
+   _this.actionPanel.window('close');
 }
 
 
@@ -905,7 +887,6 @@ MapEditorController.prototype._xplEditorOk = function()
    });
 
    var widgetid = _this.actionPanel.find('[name="widgetid_me"]').val();
-   console.log("ICI4: "+widgetid);
    var widgetdata = $("#"+widgetid).prop('mea-widgetdata');
 
    action = _this.actionPanel.find('[name="action_me"]').val();
@@ -1056,6 +1037,45 @@ function simu()
 }
 
 
+function newMap(newWinId, mapId) {
+   var newWin = $("#"+newWinId);
+   var map =  $("#"+mapId);
+
+   $('div[id^="Widget_"]').each(function(){
+      $(this).empty();
+      $(this).remove();
+   });
+
+   newWin.window('open');
+
+   $("#select_"+newWinId).combobox({
+      onChange: function(n,o) {
+         if(n=='custom') {
+            $("#input_width_"+newWinId).textbox({disabled: false});
+            $("#input_height_"+newWinId).textbox({disabled: false});
+         }
+         else {
+            n=JSON.parse(n);
+            $("#input_width_"+newWinId).textbox({disabled: true, value: n.width});
+            $("#input_height_"+newWinId).textbox({disabled: true, value: n.height});
+         }
+      },
+      value: 'custom'
+   });
+
+   $("#button_cancel_ft_"+newWinId).off('click').on('click', function() { newWin.window('close'); });
+   $("#button_ok_ft_"+newWinId).off('click').on('click', function() {
+      var w = parseInt($("#input_width_"+newWinId).textbox("getText"));
+      var h = parseInt($("#input_height_"+newWinId).textbox("getText"));
+
+     map.width(w);
+     map.height(h);
+
+     newWin.window('close');
+   });
+}
+
+
 jQuery(document).ready(function() {
    var list = [
       "../widgets/meawidget_lampe.js",
@@ -1084,10 +1104,10 @@ jQuery(document).ready(function() {
 
    setTimeout(simu, 5000);
 
-   $("#button_up_me").on('click', xplEditorUp);
-   $("#button_down_me").on('click', xplEditorDown);
-   $("#button_ok_me").on('click', xplEditorOk);
-   $("#button_cancel_me").on('click', xplEditorCancel);
+   $("#button_up_actions_win_me").on('click', xplEditorUp);
+   $("#button_down_actions_win_me").on('click', xplEditorDown);
+   $("#button_ok_ft_action_win_me").on('click', xplEditorOk);
+   $("#button_cancel_ft_action_win_me").on('click', xplEditorCancel);
 /*
    $(document).mouseleave(function(e){console.log('out')});
    $(document).mouseenter(function(e){console.log('in')});
@@ -1097,18 +1117,23 @@ jQuery(document).ready(function() {
 
 </script>
 
-<div id="panel_me" class="easyui-panel" style="position:absolute;width:100%;height:100%;overflow:scroll" data-options="border:false">
-   <div id="map_me" style="width:1920px;height:1080px;position:relative;overflow:hidden;">
+<div id="panel_me" class="easyui-panel" style="position:absolute;width:100%;height:100%;overflow:scroll;background:#EEEEEE" data-options="border:false">
+   <div id="map_me" class="notover" style="width:1920px;height:1080px;position:relative;overflow:hidden;border:1px solid #555555">
    </div>
    <div id="widgets_container" style="display:none"></div>
-
 </div>
 
-<div id="map_cm_me" class="easyui-menu" style="width:120px;display:hidden;">
-   <div onclick="javascript:ctrlr_mapEditor._context_menu('enable')">enable</div>
-   <div onclick="javascript:ctrlr_mapEditor._context_menu('disable')">disable</div>
-   <div onclick="javascript:ctrlr_mapEditor._context_menu('save')">save</div>
+<div id="map_cm_me" class="easyui-menu" style="width:180px;display:hidden;">
+<!--   <div onclick="javascript:ctrlr_mapEditor._context_menu('new')">new</div> -->
+   <div onclick="javascript:newMap('new_win_me', 'map_me')">new</div>
    <div onclick="javascript:ctrlr_mapEditor._context_menu('load')">load</div>
+   <div onclick="javascript:ctrlr_mapEditor._context_menu('save')">save</div>
+   <div onclick="javascript:ctrlr_mapEditor._context_menu('saveas')">save as</div>
+   <div class="menu-sep"></div>
+   <div onclick="javascript:ctrlr_mapEditor._context_menu('backgroundc')">background color</div>
+   <div onclick="javascript:ctrlr_mapEditor._context_menu('backgroundi')">background image</div>
+   <div class="menu-sep"></div>
+   <div name="toggle" onclick="javascript:ctrlr_mapEditor._context_menu('toggle')">map view</div>
 </div>
 
 <div id="widget_cm_me" class="easyui-menu" style="width:120px;display:hidden">
@@ -1117,6 +1142,50 @@ jQuery(document).ready(function() {
 </div>
 
 <div id="all_windows" style="display:none"></div>
+
+
+<div id="new_win_me" class="easyui-window" style="position:relative;width:300px;height:180px;overflow:hidden" data-options="title:'map size',modal:true,closed:true,footer:'#ft_new_win_me'">
+   <table cellpadding="2" style="width:100%">
+      <col width="45%">
+      <col width="10%">
+      <col width="45%">
+
+      <tr height="5">
+      </tr>
+
+      <tr>
+         <td align="center" colspan="3">
+            <select id="select_new_win_me" class="easyui-combobox" style="width:160px;" data-options="editable:false">
+               <option value='custom'>custom</option>
+               <option value='{"width":"1024", "height":"768"}'>1024 x 768</option>
+               <option value='{"width":"1280", "height":"720"}'>1280 x 720 (720 p/i)</option>
+               <option value='{"width":"1920", "height":"1080"}'>1920 x 1080 (1080 p/i)</option>
+            </select>
+         </td> 
+      </tr>
+
+      <tr height="5">
+      </tr>
+
+      <tr>
+         <td align="center">width</td>
+         <td></td>
+         <td align="center">height</td>
+      </tr>
+
+      <tr>
+         <td align="center"><input id="input_width_new_win_me" class="easyui-textbox" style="width:100%;height:24px"></td>
+         <td align="center">x</td>
+         <td align="center"><input id="input_height_new_win_me" class="easyui-textbox" style="width:100%;height:24px"></td>
+      </tr>
+
+   </table>
+</div>
+<div id="ft_new_win_me" style="text-align:right;padding:5px;style:hidden">
+      <a id="button_ok_ft_new_win_me"      href="javascript:void(0)" class="easyui-linkbutton" style="width=50px;" data-options="iconCls:'icon-ok'"><?php mea_toLocalC('ok'); ?></a>
+      <a id="button_cancel_ft_new_win_me", href="javascript:void(0)" class="easyui-linkbutton" style="width=50px;" data-options="iconCls:'icon-cancel'"><?php mea_toLocalC('cancel'); ?></a>
+</div>
+
 
 <div id="actions_win_me" class="easyui-window" style="position:relative;width:500px;height:350px;overflow:hidden" data-options="title:'xPL send parameters',modal:true,closed:true,footer:'#ft_action_win_me'">
    <table cellpadding="5" style="width:100%">
@@ -1136,8 +1205,8 @@ jQuery(document).ready(function() {
       </tr>
       <tr>
          <td align="center" colspan="3">
-            <a id="button_up_me"    href="javascript:void(0)" class="easyui-linkbutton" style="width=50px;" data-options="iconCls:'icon-meauparrow'"></a>
-            <a id="button_down_me", href="javascript:void(0)" class="easyui-linkbutton" style="width=50px;" data-options="iconCls:'icon-meadownarrow'"></a>
+            <a id="button_up_actions_win_me"    href="javascript:void(0)" class="easyui-linkbutton" style="width=50px;" data-options="iconCls:'icon-meauparrow'"></a>
+            <a id="button_down_actions_win_me", href="javascript:void(0)" class="easyui-linkbutton" style="width=50px;" data-options="iconCls:'icon-meadownarrow'"></a>
          </td>
       </td>
       <tr>
@@ -1150,7 +1219,7 @@ jQuery(document).ready(function() {
    <input id="actions_win_me_widget" name="widgetid_me" type="hidden">
    <input id="actions_win_me_action" name="action_me" type="hidden">
 </div>
-<div id="ft_action_win_me" style="text-align:right;padding:5px">
-      <a id="button_ok_me"      href="javascript:void(0)" class="easyui-linkbutton" style="width=50px;" data-options="iconCls:'icon-ok'"><?php mea_toLocalC('ok'); ?></a>
-      <a id="button_cancel_me", href="javascript:void(0)" class="easyui-linkbutton" style="width=50px;" data-options="iconCls:'icon-cancel'"><?php mea_toLocalC('cancel'); ?></a>
+<div id="ft_action_win_me" style="text-align:right;padding:5px;display:hidden">
+      <a id="button_ok_ft_action_win_me"      href="javascript:void(0)" class="easyui-linkbutton" style="width=50px;" data-options="iconCls:'icon-ok'"><?php mea_toLocalC('ok'); ?></a>
+      <a id="button_cancel_ft_action_win_me", href="javascript:void(0)" class="easyui-linkbutton" style="width=50px;" data-options="iconCls:'icon-cancel'"><?php mea_toLocalC('cancel'); ?></a>
 </div>
