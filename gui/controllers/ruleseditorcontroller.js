@@ -68,7 +68,7 @@ RulesEditorController.prototype.open = function(name, type, checkflag)
       }
       else
       {
-         $.messager.alert(_this._toLocalC('error'), _this._toLocalC("Can't load file")+ " (" + _this._toLocal('server message')+_this._localDoubleDot()+response.errMsg+")", 'error');
+         $.messager.alert(_this._toLocalC('error'), _this._toLocalC("can't load file")+ " (" + _this._toLocal('server message')+_this._localDoubleDot()+response.errMsg+")", 'error');
       }
    }).done(function() {
    }).fail(function(jqXHR, textStatus, errorThrown) {
@@ -93,7 +93,7 @@ RulesEditorController.prototype.saveas = function(name, type, checkflag)
          _this.current_file=name;
       else
       {
-         $.messager.alert(_this._toLocalC('error'), _this._toLocalC("Can't save file")+ " (" + _this._toLocal('server message')+_this._localDoubleDot()+response.errMsg+")", 'error');
+         $.messager.alert(_this._toLocalC('error'), _this._toLocalC("can't save file")+ " (" + _this._toLocal('server message')+_this._localDoubleDot()+response.errMsg+")", 'error');
       }
    }).done(function() {
    }).fail(function(jqXHR, textStatus, errorThrown) {
@@ -132,7 +132,7 @@ RulesEditorController.prototype.delete = function(name, type, checkflag)
 
    $.messager.defaults.ok = _this._toLocalC('Yes');
    $.messager.defaults.cancel = _this._toLocalC('No');
-   $.messager.confirm(_this._toLocalC('deleting')+' rules source file ...',_this._toLocalC('are you sure you want to delete')+' "'+name+'"'+_this._localDoubleDot(), function(r)
+   $.messager.confirm(_this._toLocalC('deleting')+' '+_this._toLocal('rules source file ...'),_this._toLocalC('are you sure you want to delete')+' "'+name+'"'+_this._localDoubleDot(), function(r)
    {
       if(r)
          _delete_rules(name);

@@ -9,6 +9,8 @@
       "annuler",
    "load" :
       "charger",
+   "open" :
+      "ouvrir",
    "new" :
       "nouveau",
    "save" :
@@ -35,7 +37,8 @@
       "message du serveur",
    "can't save file" :
       "impossible d'enregister le fichier",
- 
+   "can't load file" :
+      "impossible de charger le fichier",
    "input" :
       "entrée",
    "output" :
@@ -52,15 +55,16 @@
    "one or more mandatory fields are empty" :
       "un ou plusieurs champs obligatoires ne sont pas correctement renseignés",
 
+
    "automator" :
       "automate",
    "rules manager" :
       "gestion des règles",
    "rules editor" :
       "edition des règles",
-
    "rules" :
       "règles",
+
    "rules set" :
       "jeu de règles",
    "choose rules set ..." :
@@ -96,5 +100,12 @@
    "choose rules to delete ..." :
       "choisissez les règles à supprimer ...",
    "choose rules to apply ..." :
-      "choisissez les règles à appliquer ..."
+      "choisissez les règles à appliquer ...",
+
+   "choose rules sources ..." :
+      "chosissier un fichier \"source\" de règles ...",
+   "rules source file ..." :
+      "fichier \"source\" de règles ...",
+   "can't delete rules source file" :
+      "impossible de supprimer le fichier \"source\" de règle"
 }

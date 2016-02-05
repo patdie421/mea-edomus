@@ -14,6 +14,7 @@ extendClass(TabsPageController, CommonController);
 TabsPageController.prototype.start=function(tabName)
 {
    var _tabsPageController = this;
+
    $('#'+_tabsPageController.tabs_id).tabs ({
       onSelect:function(tabName) {
          if(_tabsPageController._isLoggedIn()==false) {
@@ -22,16 +23,24 @@ TabsPageController.prototype.start=function(tabName)
          }
          var evnt = "activatetab_"+tabName;
          evnt=evnt.replace(/[^a-zA-Z0-9]/g,'_');
-         console.log(evnt);
+         $(document).trigger( evnt, [ tabName, "" ] );
+
+         return true;
+      },
+      onUnselect:function(tabName) {
+         var evnt = "unactivatetab_"+tabName;
+         evnt=evnt.replace(/[^a-zA-Z0-9]/g,'_');
          $(document).trigger( evnt, [ tabName, "" ] );
          return true;
       },
       selected: tabName
-   });   
-   $('#'+this.tabs_id).tabs('select', tabName);
+   });
+   $('#'+_tabsPageController.tabs_id).tabs('select', tabName);
 };
  
 TabsPageController.prototype.selectTab=function(tabName) {
-   $('#'+this.tabs_id).tabs('select', tabName);
+   var _tabsPageController = this;
+
+   $('#'+_tabsPageController.tabs_id).tabs('select', tabName);
 };
 

@@ -28,6 +28,7 @@ session_start();
 
 <script type="text/javascript" src="models/common/models-utils.js"></script>
 
+<script type="text/javascript" src="controllers/common/meaobject.js"></script>
 <script type="text/javascript" src="controllers/common/commoncontroller.js"></script>
 <script type="text/javascript" src="controllers/common/translationcontroller.js"></script>
 <script type="text/javascript" src="controllers/common/credentialcontroller.js"></script>

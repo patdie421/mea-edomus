@@ -25,12 +25,61 @@ endif;
    filter:alpha(opacity=50);
 }
 .over{
-//   background:#FBEC88;
    background:#FFFFCE;
 }
 .notover{
    background:#FFFFFF;
 }
+
+
+.widgetIcon{
+   float:left;
+   width:50px;
+   height:50px;
+   margin:2px;
+   border:1px solid red;
+   overflow:hidden;
+}
+
+.scrolling::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3); 
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+}
+ 
+/* Handle */
+.scrolling::-webkit-scrollbar:vertical {
+    width: 8px;
+}
+
+.scrolling::-webkit-scrollbar:horizontal {
+    height: 8px;
+}
+
+/*
+.scrolling::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3); 
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+}
+ 
+.scrolling::-webkit-scrollbar-thumb {
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5); 
+}
+.scrolling::-webkit-scrollbar-thumb:window-inactive {
+	background: rgba(255,0,0,0.4); 
+}
+
+.scrolling::-webkit-scrollbar:vertical {
+    width: 8px;
+}
+
+.scrolling::-webkit-scrollbar:horizontal {
+    height: 8px;
+}
+*/
 </style>
 
 
@@ -47,9 +96,8 @@ $.fn.datagrid.defaults.editors.empty = {
    }
 };
 
-var saved = {};
 
-function MapEditorController(container, map, propertiesPanel, actionPanel, mapContextMenu, widgetContextMenu)
+function MapEditorController(container, map, propertiesPanel, actionPanel, newPanel, mapContextMenu, widgetContextMenu)
 {
    MapEditorController.superConstructor.call(this);
 
@@ -60,14 +108,19 @@ function MapEditorController(container, map, propertiesPanel, actionPanel, mapCo
    this.actionPanel =       $('#'+actionPanel);
    this.propertiesPanel =   $('#'+propertiesPanel);
    this.propertiesPanelState = 'closed';
+   this.newPanel =          $('#'+newPanel);
    this.mapContextMenu =    $('#'+mapContextMenu);
    this.widgetContextMenu = $('#'+widgetContextMenu);
+
+   this.current_file=false;
+   this.ctrlr_filechooser = new FileChooserUploaderController("#"+container);
+   this.saved = {};
 
    this.current_zindex=this.max_zIndex(map);
 
    this.mea_mouse_x = -1;
    this.mea_mouse_y = -1;
-
+   this.dragDropEntered = false;
    this.objid = 10;
    this.timeout = false;
 
@@ -308,14 +361,19 @@ function MapEditorController(container, map, propertiesPanel, actionPanel, mapCo
       }
    });
 
-
-
-   var widgetsPanelWindow = "<div id='widgetsPanelWindow' class='easyui-window' title='Widgets' style='width:150px;height:500px'> \
-         <div style='width:auto;height:100%;position:relative;overflow:auto'> \
-            <table id='tbl_panel'></table> \
+   var widgetsPanelWindow = 
+      "<div id='widgetsPanelWindow' class='easyui-window' title='Widgets' style='width:210px;height:500px'> \
+         <div id='paneltools' style='width:100%;height:100%;position:relative;overflow:auto'> \
+            <div id='paneltools_accordion' class='easyui-accordion' style='width:100%;height:100%;'> \
+            </div> \
          </div> \
       </div>";
    $('body').append(widgetsPanelWindow);
+   $('#paneltools_accordion').accordion({
+      fit: true,
+      animate:false,
+      border:false
+   });
    _this.toolsPanel = $("#widgetsPanelWindow");
    _this.toolsPanel.window({
       top:100,
@@ -350,6 +408,7 @@ function MapEditorController(container, map, propertiesPanel, actionPanel, mapCo
          $(source).draggable('proxy').css('border','2px solid red');
          $(this).addClass('over');
          $(this).removeClass('notover');
+         _this.dragDropEntered = true;
       },
 
       onDragLeave:function(e,source){
@@ -392,6 +451,11 @@ function MapEditorController(container, map, propertiesPanel, actionPanel, mapCo
 extendClass(MapEditorController, CommonController);
 
 
+function divInDiv(div1, div2)
+{
+   
+}
+
 MapEditorController.prototype.newWidgetData = function(newid, type, x, y, zi, p)
 {
    var mea_widgetdata = [
@@ -405,12 +469,6 @@ MapEditorController.prototype.newWidgetData = function(newid, type, x, y, zi, p)
    try {
       $.each(p.data().widgetparams.labels, function(i,val) {
          mea_widgetdata.push({"name":i, "value":"", "group":"labels", "editor":"text", "type":"string"});
-/*
-          try {
-             p.find('[mea_widgetlabelname="'+i+'"]').text(val);
-          }
-          catch(e) {}
-*/
      });
    }
    catch(e) {};
@@ -494,6 +552,8 @@ MapEditorController.prototype._cleanexit = function()
    _this.toolsPanel.window('destroy');
    _this.propertiesPanel.window('close');
    _this.propertiesPanel.window('destroy');
+   _this.newPanel.window('close');
+   _this.newPanel.window('destroy');
 
    return true;
 }
@@ -537,7 +597,10 @@ MapEditorController.prototype.createFromWidgetdata = function(obj, d)
    p.css({top: y, left: x});
    p.css("z-index", zi);
    p.prop('_me', _this);
-   p.bind('contextmenu', _this.open_widget_menu);
+
+   if(d === true)
+      p.bind('contextmenu', _this.open_widget_menu);
+
    p.draggable(_this.draggable_options);
    p.draggable('disable');
    p.prop('mea-widgetdata', obj);
@@ -582,26 +645,226 @@ MapEditorController.prototype.loadFrom = function(s)
 }
 
 
-MapEditorController.prototype._context_menu = function(action)
+MapEditorController.prototype.load_map = function(name, type, checkflag)
+{
+   var _this = this;
+   saved = false;
+   var __load_map = function(name, type, checkflag)
+   {
+      _this.current_file=name;
+      if(checkflag === true)
+         return;
+
+      $.get("models/get_file.php", { type: type, name: name }, function(response) {
+         if(response.iserror===false)
+         {
+            try {
+               var item = _this.mapContextMenu.menu('getItem', $('#'+_this.mapContextMenu.attr('id')+'_mode')[0]);
+               _this.mapState = 'view';
+               _this.mapContextMenu.menu('setText', { target: item.target, text: 'map edit'});
+
+               _this.loadFrom(JSON.parse(response.file));
+
+            }
+            catch(e) {};
+         }
+         else
+         {
+            console.log(JSON.stringify(response));
+         }
+      }).done(function() {
+      }).fail(function(jqXHR, textStatus, errorThrown) {
+         $.messager.show({
+            title:_this._toLocalC('error')+_this._localDoubleDot(),
+            msg: _this._toLocalC("communication error")+' ('+textStatus+')'
+         });
+      });
+   }
+
+   return __load_map(name, type, checkflag);
+};
+
+
+MapEditorController.prototype.save_map = function(name, type, checkflag)
+{
+   var _this = this;
+
+   $.post("models/put_file.php", { type: type, name: name, file: JSON.stringify(_this.saved) }, function(response) {
+   if(response.iserror===false)
+      _this.current_file=name;
+   else
+      $.messager.alert(_this._toLocalC('error'), _this._toLocalC("Can't save file")+ " (" + _this._toLocal('server message')+_this._localDoubleDot()+response.errMsg+")", 'error');
+   });
+}
+
+
+MapEditorController.prototype.delete_map = function(name, type, checkflag)
+{
+   this._delete_map(name, type);
+}
+
+
+MapEditorController.prototype._delete_map = function(name, type)
+{
+   var _this = this;
+
+   var _delete_rules = function() {
+      $.post("models/del_file.php", { name: name, type: type }, function(response) {
+
+         if(response.iserror === false)
+         {
+         }
+         else
+         {
+            $.messager.alert(_this._toLocalC('error'),
+                             _this._toLocalC("can't delete map")+_this._localDoubleDot()+response.errMsg,
+                             'error');
+         }
+      }).done(function() {
+      }).fail(function(jqXHR, textStatus, errorThrown) {
+         $.messager.show({
+            title:_this._toLocalC('error')+_this._localDoubleDot(),
+            msg: _this._toLocalC("communication error")+' ('+textStatus+')'
+         });
+      });
+   }
+
+    $.messager.defaults.ok = _this._toLocalC('Yes');
+    $.messager.defaults.cancel = _this._toLocalC('No');
+    $.messager.confirm(_this._toLocalC('deleting')+' map ...',_this._toLocalC('are you sure you want to delete')+' "'+name+'"'+_this._localDoubleDot(), function(r)
+    {
+       if(r)
+          _delete_rules(name);
+    });
+}
+
+
+function isNormalInteger(str) {
+    return /^\+?(0|[1-9]\d*)$/.test(str);
+}
+
+
+MapEditorController.prototype.newMap = function() {
+   var _this = this;
+
+   var newWin = _this.newPanel;
+   var newWinId = newWin.attr('id');
+   var map =  _this.map;
+
+   $("#input_width_"+newWinId).textbox({disabled: false});
+   $("#input_height_"+newWinId).textbox({disabled: false});
+
+   newWin.window('open');
+
+   $("#select_"+newWinId).combobox({
+      onChange: function(n,o) {
+         if(n=='custom') {
+            $("#input_width_"+newWinId).textbox({disabled: false});
+            $("#input_height_"+newWinId).textbox({disabled: false});
+         }
+         else {
+            n=JSON.parse(n);
+            $("#input_width_"+newWinId).textbox({disabled: true, value: n.width});
+            $("#input_height_"+newWinId).textbox({disabled: true, value: n.height});
+         }
+      },
+      value: 'custom'
+   });
+
+   $("#button_cancel_ft_"+newWinId).off('click').on('click', function() { newWin.window('close'); });
+   $("#button_ok_ft_"+newWinId).off('click').on('click', function() {
+
+      var w = $("#input_width_"+newWinId).textbox("getText");
+      var h = $("#input_height_"+newWinId).textbox("getText");
+
+      console.log(w+" x "+h);
+
+      if(!isNormalInteger(w) || !isNormalInteger(h))
+         return;
+      var w = parseInt(w);
+      var h = parseInt(h);
+     if(!w || !h)
+        return;
+
+     //min cga : 320x200
+     if(w<320)
+        w=320;
+     if(h<200)
+        h=200;
+
+     //max 8k : 7680×4320
+     if(w>7680)
+        w=7680;
+     if(h>4320)
+        h=4320;
+
+     _this.current_file=false;
+
+     $('div[id^="Widget_"]').each(function(){
+        $(this).empty();
+        $(this).remove();
+     });
+
+     map.width(w);
+     map.height(h);
+
+     var item = _this.mapContextMenu.menu('getItem', $('#'+_this.mapContextMenu.attr('id')+'_mode')[0]);
+     _this.mapState = 'edit';
+     _this.mapContextMenu.menu('setText', { target:item.target, text: 'map view'});
+     _this.toolsPanel.window('open');
+
+     newWin.window('close');
+   });
+}
+
+
+MapEditorController.prototype._context_menu = function(action, w)
 {
    var _this = this;
 
    switch(action)
    {
+      case 'new':
+         _this.newMap(w);
+         break;
+
       case 'load':
-         _this.loadFrom(saved);
+         var __load_map = _this.load_map.bind(_this);
+         _this.ctrlr_filechooser.open(_this._toLocalC("choose map ..."), _this._toLocalC("load")+_this._localDoubleDot(), _this._toLocalC("load"), _this._toLocalC("cancel"), "map", true, true, _this._toLocalC("file does not exist, new file ?"), __load_map);
          break;
 
       case 'save':
-         saved = {};
-         _this.saveTo(saved);
+         _this.saved = {};
+         _this.saveTo(_this.saved);
+         if(_this.current_file!=false)
+            _this.save_map(_this.current_file, "map", false);
+         else
+         {
+            var __save_map = _this.save_map.bind(_this);
+            _this.ctrlr_filechooser.open(_this._toLocalC("choose map name ..."), _this._toLocalC("save as")+_this._localDoubleDot(), _this._toLocalC("save"), _this._toLocalC("cancel"), "map", true, false, _this._toLocalC("file exist, overhide it ?"), __save_map);
+         }
          break;
 
+      case 'saveas':
+         _this.saveTo(_this.saved);
+         var __save_map = _this.save_map.bind(_this);
+         _this.ctrlr_filechooser.open(_this._toLocalC("choose map name ..."), _this._toLocalC("save as"), _this._toLocalC("save as"), _this._toLocalC("cancel"), "map", true, false, _this._toLocalC("file exist, overhide it ?"), __save_map);
+         break;
+
+      case 'delete':
+         var __delete_map = _this.delete_map.bind(_this);
+         _this.ctrlr_filechooser.open(_this._toLocalC("choose map to delete ..."), _this._toLocalC("delete"), _this._toLocalC("delete"), _this._toLocalC("cancel"), "map", false, false, "", __delete_map);
+         break;
+
+
       case 'toggle':
-         var item = "";
+         var id=_this.mapContextMenu.attr('id');
+//         var itemEl = $('#'+id+'_mode')[0];  // the menu item element
+         var item = _this.mapContextMenu.menu('getItem', $('#'+id+'_mode')[0]);
+
          if(_this.mapState == 'edit') {
             _this.mapState = 'view';
-            item = _this.mapContextMenu.menu('findItem', 'map view');
+//            item = _this.mapContextMenu.menu('findItem', 'map view');
             _this.mapContextMenu.menu('setText', { target: item.target, text: 'map edit'});
             var _tmp = {};
             _this.toolsPanel.window('close');
@@ -612,7 +875,7 @@ MapEditorController.prototype._context_menu = function(action)
          }
          else {
             _this.mapState = 'edit';
-            item = _this.mapContextMenu.menu('findItem','map edit');
+//            item = _this.mapContextMenu.menu('findItem','map edit');
             _this.mapContextMenu.menu('setText', { target:item.target, text: 'map view'});
             _this.toolsPanel.window('open');
             $('div[id^="Widget_"]').each(function(){
@@ -845,8 +1108,10 @@ MapEditorController.prototype.addWidget = function(type)
       cursor:'auto',
 
       onDrag: function(e) {
-//         var id=$(e.data.target).attr('id');
-//         _this.constrain(e, $("#"+id+"_drag"), $("#"+id+"_model"));
+         if(_this.dragDropEntered === true) {
+            var id=$(e.data.target).attr('id');
+            _this.constrain(e, $("#"+id+"_drag"), $("#"+id+"_model"));
+         }
       },
 
       onStopDrag: function(e) {
@@ -861,6 +1126,7 @@ MapEditorController.prototype.addWidget = function(type)
          $(__this).draggable('options').cursor='not-allowed';
          $(__this).draggable('proxy').addClass('dp');
          $('body').mousemove(_this.getmousepos_handler);
+         _this.dragDropEntered = false;
       }
    });
 }
@@ -970,14 +1236,38 @@ MapEditorController.prototype.loadWidgets = function(list)
          if(i<0)
          {
             $.each(meaWidgetsJar, function(i,obj) {
-               $('#tbl_panel').append('<tr><td>'+obj.getHtmlIcon()+'</td><tr>');
+               var p = $('#paneltools_accordion').accordion('getPanel', obj.getGroup());
+               if(!p) {
+                  $('#paneltools_accordion').accordion('add', {
+	             title: obj.getGroup(),
+	             content: "<div id='grp_"+obj.getGroup()+"'></div>",
+	             selected: false
+                  });
+                  p = $('#paneltools_accordion').accordion('getPanel', obj.getGroup());
+               }
+               p.append("<div id='_tip_"+obj.getType()+"'class='widgetIcon'>"+obj.getHtmlIcon()+"</div>");
                $('#widgets_container').append(obj.getHtml());
+
+               if(obj.getTip()!==false) {
+                  $('#_tip_'+obj.getType()).tooltip({position: 'right',
+                     content: '<span style="color:#fff">'+obj.getTip()+'</span>',
+                     onShow: function(){
+                        $(this).tooltip('tip').css({
+                           backgroundColor: '#666',
+                           borderColor: '#666'
+                        });
+                     }
+                  });
+               }
+
                ctrlr_mapEditor.addWidget(obj.getType());
 
                $.each(obj.getFormaters(), function(i,val) {
                   meaFormaters[i]=val;
                });
             });
+            p=$('#paneltools_accordion').accordion('select',0);
+            
          }
          else
             load_widgets(list, i);
@@ -1033,46 +1323,6 @@ function simu()
      else
         $(this).html(i);
    });
-
-}
-
-
-function newMap(newWinId, mapId) {
-   var newWin = $("#"+newWinId);
-   var map =  $("#"+mapId);
-
-   $('div[id^="Widget_"]').each(function(){
-      $(this).empty();
-      $(this).remove();
-   });
-
-   newWin.window('open');
-
-   $("#select_"+newWinId).combobox({
-      onChange: function(n,o) {
-         if(n=='custom') {
-            $("#input_width_"+newWinId).textbox({disabled: false});
-            $("#input_height_"+newWinId).textbox({disabled: false});
-         }
-         else {
-            n=JSON.parse(n);
-            $("#input_width_"+newWinId).textbox({disabled: true, value: n.width});
-            $("#input_height_"+newWinId).textbox({disabled: true, value: n.height});
-         }
-      },
-      value: 'custom'
-   });
-
-   $("#button_cancel_ft_"+newWinId).off('click').on('click', function() { newWin.window('close'); });
-   $("#button_ok_ft_"+newWinId).off('click').on('click', function() {
-      var w = parseInt($("#input_width_"+newWinId).textbox("getText"));
-      var h = parseInt($("#input_height_"+newWinId).textbox("getText"));
-
-     map.width(w);
-     map.height(h);
-
-     newWin.window('close');
-   });
 }
 
 
@@ -1088,6 +1338,7 @@ jQuery(document).ready(function() {
       "map_me",
       "properties_win_me",
       "actions_win_me",
+      "new_win_me",
       "map_cm_me",
       "widget_cm_me");
    ctrlr_mapEditor.linkToTranslationController(translationController); 
@@ -1104,10 +1355,12 @@ jQuery(document).ready(function() {
 
    setTimeout(simu, 5000);
 
+/*
    $("#button_up_actions_win_me").on('click', xplEditorUp);
    $("#button_down_actions_win_me").on('click', xplEditorDown);
    $("#button_ok_ft_action_win_me").on('click', xplEditorOk);
    $("#button_cancel_ft_action_win_me").on('click', xplEditorCancel);
+*/
 /*
    $(document).mouseleave(function(e){console.log('out')});
    $(document).mouseenter(function(e){console.log('in')});
@@ -1117,28 +1370,36 @@ jQuery(document).ready(function() {
 
 </script>
 
-<div id="panel_me" class="easyui-panel" style="position:absolute;width:100%;height:100%;overflow:scroll;background:#EEEEEE" data-options="border:false">
-   <div id="map_me" class="notover" style="width:1920px;height:1080px;position:relative;overflow:hidden;border:1px solid #555555">
-   </div>
+<!-- <div id="panel_me" class="easyui-panel" style="position:absolute;width:100%;height:100%;overflow:scroll;background:#EEEEEE" data-options="border:false"> -->
+<div class="easyui-panel" style="position:absolute;width:100%;height:100%;overflow:hidden" data-options="border:false">
+   <div id="panel_me" class="scrolling" style="position:absolute;width:100%;height:100%;overflow:scroll;background:#EEEEEE">
+<!--   <div id="map_me" class="notover" style="width:1920px;height:1080px;position:relative;overflow:hidden;border:1px solid #555555;background-image:url(fond.jpg)"> -->
+      <div id="map_me" style="width:1920px;height:1080px;position:relative;overflow:auto;border:1px solid #555555;background-image:url('/views/fond1.jpg');background-size: cover">
+      </div>
    <div id="widgets_container" style="display:none"></div>
+</div>
 </div>
 
 <div id="map_cm_me" class="easyui-menu" style="width:180px;display:hidden;">
-<!--   <div onclick="javascript:ctrlr_mapEditor._context_menu('new')">new</div> -->
-   <div onclick="javascript:newMap('new_win_me', 'map_me')">new</div>
+   <div onclick="javascript:ctrlr_mapEditor._context_menu('new', 'new_win_me')">new</div>
+<!--   <div onclick="javascript:newMap('new_win_me', 'map_me')">new</div> -->
    <div onclick="javascript:ctrlr_mapEditor._context_menu('load')">load</div>
    <div onclick="javascript:ctrlr_mapEditor._context_menu('save')">save</div>
    <div onclick="javascript:ctrlr_mapEditor._context_menu('saveas')">save as</div>
    <div class="menu-sep"></div>
+   <div onclick="javascript:ctrlr_mapEditor._context_menu('delete')">delete</div>
+   <div class="menu-sep"></div>
    <div onclick="javascript:ctrlr_mapEditor._context_menu('backgroundc')">background color</div>
    <div onclick="javascript:ctrlr_mapEditor._context_menu('backgroundi')">background image</div>
    <div class="menu-sep"></div>
-   <div name="toggle" onclick="javascript:ctrlr_mapEditor._context_menu('toggle')">map view</div>
+   <div id="map_cm_me_mode" name="toggle" onclick="javascript:ctrlr_mapEditor._context_menu('toggle')">map view</div>
 </div>
 
 <div id="widget_cm_me" class="easyui-menu" style="width:120px;display:hidden">
    <div onclick="javascript:ctrlr_mapEditor._widget_menu('properties')">properties</div>
-   <div onclick="javascript:ctrlr_mapEditor._widget_menu('delete')">delete</div>
+   <div class="menu-sep"></div>
+   <div onclick="javascript:ctrlr_mapEditor._widget_menu('duplicate')">duplicate</div>
+   <div onclick="javascript:ctrlr_mapEditor._widget_menu('delete')">remove</div>
 </div>
 
 <div id="all_windows" style="display:none"></div>
@@ -1223,3 +1484,4 @@ jQuery(document).ready(function() {
       <a id="button_ok_ft_action_win_me"      href="javascript:void(0)" class="easyui-linkbutton" style="width=50px;" data-options="iconCls:'icon-ok'"><?php mea_toLocalC('ok'); ?></a>
       <a id="button_cancel_ft_action_win_me", href="javascript:void(0)" class="easyui-linkbutton" style="width=50px;" data-options="iconCls:'icon-cancel'"><?php mea_toLocalC('cancel'); ?></a>
 </div>
+

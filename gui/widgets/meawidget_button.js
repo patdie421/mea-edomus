@@ -71,7 +71,7 @@ MeaWidget_button.prototype.getHtmlIcon = function()
 {
    var _this = this;
 
-   var html="<div id='"+_this.type+"' class='drag' style='width: 64px; height: 64px; border:1px solid red; background-color: lightred;'></div>";
+   var html="<div id='"+_this.type+"' class='drag' style='width: 50px; height: 50px; background-color: lightred;'></div>";
 
    return html;
 }

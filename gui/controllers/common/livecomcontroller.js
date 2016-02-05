@@ -22,14 +22,16 @@ LiveComController.prototype = {
       this._connect(this, null, null);
    },
    
-   _connect: function(_liveCom,fn_ok,fn_ko) {
+   _connect: function(_liveCom, fn_ok, fn_ko) {
        var socketioJsUrl=window.location.protocol + '//' + window.location.hostname + ':'+_liveCom._socketio_port+'/socket.io/socket.io.js';
+      console.log(socketioJsUrl);
       $.ajax({
          url: socketioJsUrl,
          dataType: "script",
          timeout: 5000,
          success: function(data, textStatus, jqXHR) // _socket_available
                   {
+                     console.log("ICI:"+JSON.stringify(data));
                      var socketioAddr=window.location.protocol + '//' + window.location.hostname + ':'+_liveCom._socketio_port;
                      _liveCom.socketio = io.connect(socketioAddr);
                      if(null !== _liveCom.socketio)

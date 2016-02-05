@@ -46,6 +46,7 @@ if(!isset($_SESSION['logged_in']))
 <!-- Chargement des modules et objets communs -->
 <script type="text/javascript" src="models/common/models-utils.js"></script>
 
+<script type="text/javascript" src="controllers/common/meaobject.js"></script>
 <script type="text/javascript" src="controllers/common/commoncontroller.js"></script>
 <script type="text/javascript" src="controllers/common/gridcontroller.js"></script>
 <script type="text/javascript" src="controllers/common/translationcontroller.js"></script>
@@ -55,6 +56,9 @@ if(!isset($_SESSION['logged_in']))
 <script type="text/javascript" src="controllers/common/viewscontroller.js"></script>
 <script type="text/javascript" src="controllers/common/tabspagecontroller.js"></script>
 <script type="text/javascript" src="controllers/common/filechoosercontroller.js"></script>
+<script type="text/javascript" src="controllers/common/filechooseruploadercontroller.js"></script>
+
+<script type="text/javascript" src="widgets/meawidget.js"></script>
 
 <!-- surcharge des méthodes du controleur de traduction spécifiques à une langue donnée -->
 <?php
@@ -184,7 +188,12 @@ jQuery(document).ready(function() {
    );
 
    $('#mea-layout').layout('panel','center').panel({
-      onResize: function() { $(document).trigger( "CenterResize", [ "", "" ] ); $(document).trigger( "activatetab", [ "", "" ] ); }
+      onResize: function() {
+         $(document).trigger( "CenterResize", [ "", "" ] );
+      },
+      onBeforeLoad: function() {
+         $(document).trigger( "MeaCleanView", [ "", "" ] );
+      }
    });
 });
 </script>
@@ -256,8 +265,8 @@ a.meamenu:hover {
          </div>
 
          <div id="content" region="center" title=""></div>
-         <div id="livelog" region="south" split="true" collapsible="true" title="<?php mea_toLocalC('live log'); ?>" style="height:150px;padding-right:2px;padding-bottom:2px">
-            <div id="console" class="console" style="background:lightgray;width:100%;height:100%"></div>
+         <div id="livelog" region="south" split="true" collapsible="true" title="<?php mea_toLocalC('live log'); ?>" style="height:150px;position:relative;overflow:hidden">
+            <div id="console" class="console" style="background:lightgray;width:auto;height:100%"></div>
          </div>
       </div>
    </div>

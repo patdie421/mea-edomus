@@ -7,6 +7,7 @@ meaFormaters["float"]   = function(x) { return x.toFixed(2) ; };
 
 function MeaWidget()
 {
+   this.type="undefined";
 }
 
 
@@ -18,6 +19,13 @@ MeaWidget.prototype = {
    },
 
    getHtmlIcon: function() {
+      var _this = this;
+      var html="<div id='"+_this.type+"' class='drag' style='width: 50px; height: 50px; border:1px solid red; background-color: #FFFFFF;'></div>";
+
+      return html;
+   },
+
+   getTip: function() {
       return false;
    },
 

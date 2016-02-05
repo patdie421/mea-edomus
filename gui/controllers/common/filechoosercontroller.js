@@ -10,14 +10,60 @@ $.extend($.fn.validatebox.defaults.rules, {
 
 function FileChooserController(attachement)
 {
+   FileChooserController.superConstructor.call(this);
+
    this.attachement = attachement; 
    this.id = "dlg_"+Math.floor((Math.random() * 10000) + 1);
 }
 
 
-extendClass(FileChooserController, CommonController);
+extendClass(FileChooserController, MeaObject);
 
 FileChooserController.prototype = {
+   _getHtml: function()
+   {
+      html="<div id='"+id+"' style=\"padding:10px 20px\"> \
+               <div id='"+id+"_title' class='ftitle'></div> \
+                  <form id='"+id+"_fm' method='post' data-options=\"novalidate:false\"> \
+                     <div class='fitem'> \
+                        <select name='"+id+"_selectfiles' id='"+id+"_selectfiles' size='15' style=\"width:100%;font-family:verdana,helvetica,arial,sans-serif;font-size:12px;\"></select> \
+                     </div> \
+                     <div class='fitem' style=\"padding-top:10px;\"> \
+                        <input id='"+id+"_filename' style=\"width:100%;\"> \
+                     </div> \
+                  </form> \
+            </div>";
+
+      return html;
+   },
+
+   _loadDialog: function(id, _type, response)
+   {
+      var _this = this;
+
+      $('#'+id+'_selectfiles').empty();
+      for(var i in response.values)
+         $('#'+id+'_selectfiles').append(new Option(response.values[i].slice(0, -(_type.length+1)), i));
+
+      $('#'+id+'_selectfiles').off('dblclick');
+      $('#'+id+'_selectfiles').on('dblclick', function(e) {
+         e.preventDefault();
+         if(this.value !== false)
+         {
+            $('#'+id+"_filename").textbox('setValue', response.values[this.value].slice(0, -(_type.length+1)));
+               __do(response.values);
+         }
+      });
+
+      $('#'+id+'_selectfiles').off('change');
+      $('#'+id+'_selectfiles').on('change', function() {
+         if(this.value !== false)
+            $('#'+id+"_filename").textbox('setValue', response.values[this.value].slice(0, -(_type.length+1)));
+         else
+            $('#'+id+"_filename").textbox('setValue', "");
+      });
+   },
+
    open: function(_title, _title2, _buttonOKText, _buttonCancelText, _type, _checkflag, _mustexist, _checkmsg, _do)
    {
       var _this = this;
@@ -60,17 +106,7 @@ FileChooserController.prototype = {
          {
             $('#'+id).empty();
             $('#'+id).remove();
-            html="<div id='"+id+"' style=\"padding:10px 20px\"> \
-               <div id='"+id+"_title' class='ftitle'></div> \
-               <form id='"+id+"_fm' method='post' data-options=\"novalidate:false\"> \
-                  <div class='fitem'> \
-                     <select name='"+id+"_selectfiles' id='"+id+"_selectfiles' size='15' style=\"width:100%;font-family:verdana,helvetica,arial,sans-serif;font-size:12px;\"></select> \
-                  </div> \
-		  <div class='fitem' style=\"padding-top:10px;\"> \
-                     <input id='"+id+"_filename' style=\"width:100%;\"> \
-                  </div> \
-               </form> \
-            </div>";
+            html=_this._getHtml();
 
             $('body').append(html);
             $('#'+id+'_title').text(_title2);
@@ -102,6 +138,9 @@ FileChooserController.prototype = {
                }],
                onClose: function() { _this.clean(); },
             });
+
+            _this._loadDialog(id, _type, response);
+/*
             $('#'+id+'_selectfiles').empty();
             for(var i in response.values)
                $('#'+id+'_selectfiles').append(new Option(response.values[i].slice(0, -(_type.length+1)), i));
@@ -123,14 +162,13 @@ FileChooserController.prototype = {
                else
                   $('#'+id+"_filename").textbox('setValue', "");
             });
-
+*/
             $('#'+id).dialog("open");
          }
       });
    },
 
    clean: function() {
-      console.log("clean");
       $('#'+id).empty();
       $('#'+id).remove();
    },
