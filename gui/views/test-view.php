@@ -30,8 +30,36 @@ endif;
 .notover{
    background:#FFFFFF;
 }
-
-
+::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3); 
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+}
+::-webkit-scrollbar:vertical {
+    width: 8px;
+}
+::-webkit-scrollbar:horizontal {
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3); 
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb {
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5); 
+}
+::-webkit-scrollbar-thumb:window-inactive {
+	background: rgba(255,0,0,0.4); 
+}
+::-webkit-scrollbar:vertical {
+    width: 8px;
+}
+::-webkit-scrollbar:horizontal {
+    height: 8px;
+}
 .widgetIcon{
    float:left;
    width:50px;
@@ -40,46 +68,6 @@ endif;
    border:1px solid red;
    overflow:hidden;
 }
-
-.scrolling::-webkit-scrollbar-track {
-    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3); 
-    -webkit-border-radius: 10px;
-    border-radius: 10px;
-}
- 
-/* Handle */
-.scrolling::-webkit-scrollbar:vertical {
-    width: 8px;
-}
-
-.scrolling::-webkit-scrollbar:horizontal {
-    height: 8px;
-}
-
-/*
-.scrolling::-webkit-scrollbar-track {
-    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3); 
-    -webkit-border-radius: 10px;
-    border-radius: 10px;
-}
- 
-.scrolling::-webkit-scrollbar-thumb {
-    -webkit-border-radius: 10px;
-    border-radius: 10px;
-    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5); 
-}
-.scrolling::-webkit-scrollbar-thumb:window-inactive {
-	background: rgba(255,0,0,0.4); 
-}
-
-.scrolling::-webkit-scrollbar:vertical {
-    width: 8px;
-}
-
-.scrolling::-webkit-scrollbar:horizontal {
-    height: 8px;
-}
-*/
 </style>
 
 
@@ -113,17 +101,24 @@ function MapEditorController(container, map, propertiesPanel, actionPanel, newPa
    this.widgetContextMenu = $('#'+widgetContextMenu);
 
    this.current_file=false;
-   this.ctrlr_filechooser = new FileChooserUploaderController("#"+container);
+   this.ctrlr_filechooser = new FileChooserController("#"+container);
+   this.ctrlr_fileuploaderchooser = new FileChooserUploaderController("#"+container);
    this.saved = {};
 
-   this.current_zindex=this.max_zIndex(map);
 
+   this.imagepath = '/views';
+   this.bgimage = false;
+   this.bgcolor = false;
+
+   this.grid = 10;
+
+   this.current_zindex=this.max_zIndex(map);
    this.mea_mouse_x = -1;
    this.mea_mouse_y = -1;
    this.dragDropEntered = false;
    this.objid = 10;
    this.timeout = false;
-
+   
    this.mapState = 'edit';
 
    var _this = this;
@@ -167,8 +162,10 @@ function MapEditorController(container, map, propertiesPanel, actionPanel, newPa
          var data   = $(this).prop('mea-widgetdata');
          var id     = data[0].value;
          var offset = _this.map.offset();
-         var l      = _this.repair(d.left - offset.left);
-         var t      = _this.repair(d.top - offset.top);
+//         var l      = _this.repair(d.left - offset.left);
+//         var t      = _this.repair(d.top - offset.top);
+         var l      = d.left - offset.left - 1;
+         var t      = d.top - offset.top - 1;
 
          data[2].value = l;
          data[3].value = t;
@@ -356,25 +353,30 @@ function MapEditorController(container, map, propertiesPanel, actionPanel, newPa
          $(__this).propertygrid('unselectAll');
 
          var rows = $(__this).propertygrid('getRows');
+         console.log(JSON.stringify(row));
+         meaWidgetsJar[rows[1].value].update(row);
          meaWidgetsJar[rows[1].value].init(rows[0].value);
          meaWidgetsJar[rows[1].value].disabled(rows[0].value, true); 
       }
    });
 
+/*
    var widgetsPanelWindow = 
       "<div id='widgetsPanelWindow' class='easyui-window' title='Widgets' style='width:210px;height:500px'> \
-         <div id='paneltools' style='width:100%;height:100%;position:relative;overflow:auto'> \
-            <div id='paneltools_accordion' class='easyui-accordion' style='width:100%;height:100%;'> \
+         <div id='widgetsPanelWindow_panel' style='width:100%;height:100%;position:relative;overflow:auto'> \
+            <div id='widgetsPanelWindow_accordion' class='easyui-accordion' style='width:100%;height:100%;'> \
             </div> \
          </div> \
       </div>";
-   $('body').append(widgetsPanelWindow);
-   $('#paneltools_accordion').accordion({
+*/
+   var widgetsPanelId = "widgetsPanel_win_me";
+//   $('body').append(widgetsPanelWindow);
+   $('#accordion_'+widgetsPanelId).accordion({
       fit: true,
       animate:false,
       border:false
    });
-   _this.toolsPanel = $("#widgetsPanelWindow");
+   _this.toolsPanel = $("#"+widgetsPanelId);
    _this.toolsPanel.window({
       top:100,
       left:100,
@@ -405,7 +407,7 @@ function MapEditorController(container, map, propertiesPanel, actionPanel, newPa
       accept:'.drag',
       onDragEnter:function(e,source){
          $(source).draggable('options').cursor='auto';
-         $(source).draggable('proxy').css('border','2px solid red');
+//         $(source).draggable('proxy').css('border','2px solid red');
          $(this).addClass('over');
          $(this).removeClass('notover');
          _this.dragDropEntered = true;
@@ -421,8 +423,10 @@ function MapEditorController(container, map, propertiesPanel, actionPanel, newPa
       onDrop:function(e,source) {
          _this.objid++;
          var type=$(source).attr("id");
-         var l=_this.repair($("#"+type+"_drag").offset().left);
-         var t=_this.repair($("#"+type+"_drag").offset().top);
+         //var l=_this.repair($("#"+type+"_drag").offset().left);
+         //var t=_this.repair($("#"+type+"_drag").offset().top);
+         var l=$("#"+type+"_drag").offset().left-1;
+         var t=$("#"+type+"_drag").offset().top-1;
          var zi=++_this.current_zindex;
          var newid = "Widget_"+type+"_"+_this.objid;
          var offset = _this.map.offset();
@@ -468,7 +472,7 @@ MapEditorController.prototype.newWidgetData = function(newid, type, x, y, zi, p)
 
    try {
       $.each(p.data().widgetparams.labels, function(i,val) {
-         mea_widgetdata.push({"name":i, "value":"", "group":"labels", "editor":"text", "type":"string"});
+         mea_widgetdata.push({"name":i, "value":val, "group":"labels", "editor":"text", "type":"string"});
      });
    }
    catch(e) {};
@@ -567,7 +571,8 @@ MapEditorController.prototype.saveTo = function(s)
    s['height']=_this.map.height();
 
    s['background-color']=false;
-   s['background-image']=false;
+   s['bgimage']=_this.bgimage;
+   s['grid']=_this.grid;
 
    s['widgets']={};
 
@@ -616,6 +621,9 @@ MapEditorController.prototype.loadFrom = function(s)
 {
    var _this = this;
 
+   _this.propertiesPanel.window('close');
+   _this.toolsPanel.window('close');
+
    $('div[id^="Widget_"]').each(function(){
       $(this).empty();
       $(this).remove();
@@ -623,6 +631,26 @@ MapEditorController.prototype.loadFrom = function(s)
 
    _this.map.width(s['width']);
    _this.map.height(s['height']);
+   _this.bgimage=s['bgimage'];
+    if(s['grid'])
+      _this.grid=s['grid'];
+
+   if(_this.bgcolor)
+      _this.bgcolor=s['bgcolor'];
+   else
+      _this.bgcolor="#FFFFFF";
+   _this.map.css("background-color", _this.bgcolor);
+
+   if(_this.bgimage)
+   {
+      _this.map.css("background", "url('"+_this.imagepath+"/"+_this.bgimage+"') no-repeat");
+      _this.map.css("background-size", "cover");
+   }
+   else
+   {
+      _this.map.css("background", '');
+      _this.map.css("background-size", '');
+   }
 
    _this.objid=0;
    _this.current_zindex=0;
@@ -661,7 +689,7 @@ MapEditorController.prototype.load_map = function(name, type, checkflag)
             try {
                var item = _this.mapContextMenu.menu('getItem', $('#'+_this.mapContextMenu.attr('id')+'_mode')[0]);
                _this.mapState = 'view';
-               _this.mapContextMenu.menu('setText', { target: item.target, text: 'map edit'});
+               _this.mapContextMenu.menu('setText', { target: item.target, text: 'to edition mode'});
 
                _this.loadFrom(JSON.parse(response.file));
 
@@ -799,6 +827,11 @@ MapEditorController.prototype.newMap = function() {
         h=4320;
 
      _this.current_file=false;
+     _this.bgimage=false;
+
+     map.css("background",'');
+     map.css("background-size",'');
+     map.css("background-color",'#FFFFFF');
 
      $('div[id^="Widget_"]').each(function(){
         $(this).empty();
@@ -810,11 +843,21 @@ MapEditorController.prototype.newMap = function() {
 
      var item = _this.mapContextMenu.menu('getItem', $('#'+_this.mapContextMenu.attr('id')+'_mode')[0]);
      _this.mapState = 'edit';
-     _this.mapContextMenu.menu('setText', { target:item.target, text: 'map view'});
+     _this.mapContextMenu.menu('setText', { target:item.target, text: 'to view mode'});
      _this.toolsPanel.window('open');
 
      newWin.window('close');
    });
+}
+
+
+MapEditorController.prototype.load_image = function(name, type, checkflag)
+{
+   var _this = this;
+
+   _this.bgimage=name;
+   _this.map.css("background", "url('"+_this.imagepath+"/"+name+"') no-repeat");
+   _this.map.css("background-size", "cover");
 }
 
 
@@ -824,8 +867,33 @@ MapEditorController.prototype._context_menu = function(action, w)
 
    switch(action)
    {
+      case 'gridnone':
+         _this.grid = 1;
+         break;
+
+      case 'grid5x5':
+         _this.grid = 5;
+         break;
+
+      case 'grid10x10':
+         _this.grid = 10;
+         break;
+
+      case 'grid20x20':
+         _this.grid = 20;
+         break;
+
+      case 'grid50x50':
+         _this.grid = 50;
+         break;
+
       case 'new':
          _this.newMap(w);
+         break;
+
+      case 'backgroundi':
+         var __load_image = _this.load_image.bind(_this);
+         _this.ctrlr_fileuploaderchooser.open(_this._toLocalC("choose image ..."), _this._toLocalC("background image")+_this._localDoubleDot(), _this._toLocalC("set"), _this._toLocalC("cancel"), "img", false, true, null, __load_image);
          break;
 
       case 'load':
@@ -865,7 +933,7 @@ MapEditorController.prototype._context_menu = function(action, w)
          if(_this.mapState == 'edit') {
             _this.mapState = 'view';
 //            item = _this.mapContextMenu.menu('findItem', 'map view');
-            _this.mapContextMenu.menu('setText', { target: item.target, text: 'map edit'});
+            _this.mapContextMenu.menu('setText', { target: item.target, text: 'to edition mode'});
             var _tmp = {};
             _this.toolsPanel.window('close');
             _this.propertiesPanel.window('close');
@@ -876,7 +944,7 @@ MapEditorController.prototype._context_menu = function(action, w)
          else {
             _this.mapState = 'edit';
 //            item = _this.mapContextMenu.menu('findItem','map edit');
-            _this.mapContextMenu.menu('setText', { target:item.target, text: 'map view'});
+            _this.mapContextMenu.menu('setText', { target:item.target, text: 'to view mode'});
             _this.toolsPanel.window('open');
             $('div[id^="Widget_"]').each(function(){
                var data = $(this).prop('mea-widgetdata');
@@ -960,10 +1028,17 @@ MapEditorController.prototype.max_zIndex = function(div)
 
 MapEditorController.prototype.repair = function(v)
 {
-   var r = parseInt(v/20)*20;
-   if (Math.abs(v % 20) > 10) {
-      r += v > 0 ? 20 : -20;
+   var _this = this;
+
+   if(_this.grid == 1)
+      return v;
+
+   var r = parseInt(v/_this.grid) * _this.grid;
+
+   if (Math.abs(v % _this.grid) > (_this.grid / 2)) {
+      r += v > 0 ? _this.grid : -_this.grid;
    }
+
    return r;
 }
 
@@ -1043,6 +1118,9 @@ MapEditorController.prototype._constrain = function(e, drag, model)
       _this.timeout=setTimeout(_this.scroll, 150);
       d.top = t_max - model.outerHeight();
    }
+
+   d.top = _this.repair(d.top);
+   d.left = _this.repair(d.left);
 }
 
 
@@ -1235,15 +1313,16 @@ MapEditorController.prototype.loadWidgets = function(list)
          i=i-1;
          if(i<0)
          {
+            var accordion = $('#accordion_'+_this.toolsPanel.attr('id'));
             $.each(meaWidgetsJar, function(i,obj) {
-               var p = $('#paneltools_accordion').accordion('getPanel', obj.getGroup());
+               var p = accordion.accordion('getPanel', obj.getGroup());
                if(!p) {
-                  $('#paneltools_accordion').accordion('add', {
+                  accordion.accordion('add', {
 	             title: obj.getGroup(),
 	             content: "<div id='grp_"+obj.getGroup()+"'></div>",
 	             selected: false
                   });
-                  p = $('#paneltools_accordion').accordion('getPanel', obj.getGroup());
+                  p = accordion.accordion('getPanel', obj.getGroup());
                }
                p.append("<div id='_tip_"+obj.getType()+"'class='widgetIcon'>"+obj.getHtmlIcon()+"</div>");
                $('#widgets_container').append(obj.getHtml());
@@ -1266,7 +1345,7 @@ MapEditorController.prototype.loadWidgets = function(list)
                   meaFormaters[i]=val;
                });
             });
-            p=$('#paneltools_accordion').accordion('select',0);
+            p=accordion.accordion('select',0);
             
          }
          else
@@ -1328,7 +1407,8 @@ function simu()
 
 jQuery(document).ready(function() {
    var list = [
-      "../widgets/meawidget_lampe.js",
+//      "../widgets/meawidget_lampe.js",
+      "../widgets/meawidget_value.js",
       "../widgets/meawidget_slider.js",
       "../widgets/meawidget_button.js"
    ];
@@ -1355,12 +1435,47 @@ jQuery(document).ready(function() {
 
    setTimeout(simu, 5000);
 
-/*
    $("#button_up_actions_win_me").on('click', xplEditorUp);
    $("#button_down_actions_win_me").on('click', xplEditorDown);
    $("#button_ok_ft_action_win_me").on('click', xplEditorOk);
    $("#button_cancel_ft_action_win_me").on('click', xplEditorCancel);
-*/
+
+   $("#spectrum1").spectrum({
+      color: "#f00",
+      allowEmpty:true,
+      showInput: true,
+      showAlpha: true,
+      chooseText: "set color",
+      cancelText: "Cancel", 
+      dragstop: function(e,color) {
+         ctrlr_mapEditor.map.css("background", '');
+         ctrlr_mapEditor.map.css("background-size", '');
+         ctrlr_mapEditor.map.css("background-color", color.toHexString());
+         ctrlr_mapEditor.bgcolor = color.toHexString();
+      },
+      change: function(color) {
+         ctrlr_mapEditor.map.css("background", '');
+         ctrlr_mapEditor.map.css("background-size", '');
+         ctrlr_mapEditor.map.css("background-color", color.toHexString());
+         ctrlr_mapEditor.bgcolor = color.toHexString();
+      },
+         showPalette: true,
+//       showPaletteOnly: true,
+//       togglePaletteOnly: true,
+//       togglePaletteMoreText: 'more',
+//       togglePaletteLessText: 'less',
+       palette: [
+          ["#000","#444","#666","#999","#ccc","#eee","#f3f3f3","#fff"],
+          ["#f00","#f90","#ff0","#0f0","#0ff","#00f","#90f","#f0f"],
+          ["#f4cccc","#fce5cd","#fff2cc","#d9ead3","#d0e0e3","#cfe2f3","#d9d2e9","#ead1dc"],
+          ["#ea9999","#f9cb9c","#ffe599","#b6d7a8","#a2c4c9","#9fc5e8","#b4a7d6","#d5a6bd"],
+          ["#e06666","#f6b26b","#ffd966","#93c47d","#76a5af","#6fa8dc","#8e7cc3","#c27ba0"],
+          ["#c00","#e69138","#f1c232","#6aa84f","#45818e","#3d85c6","#674ea7","#a64d79"],
+          ["#900","#b45f06","#bf9000","#38761d","#134f5c","#0b5394","#351c75","#741b47"],
+          ["#600","#783f04","#7f6000","#274e13","#0c343d","#073763","#20124d","#4c1130"]
+       ]
+   });
+
 /*
    $(document).mouseleave(function(e){console.log('out')});
    $(document).mouseenter(function(e){console.log('in')});
@@ -1370,40 +1485,69 @@ jQuery(document).ready(function() {
 
 </script>
 
-<!-- <div id="panel_me" class="easyui-panel" style="position:absolute;width:100%;height:100%;overflow:scroll;background:#EEEEEE" data-options="border:false"> -->
 <div class="easyui-panel" style="position:absolute;width:100%;height:100%;overflow:hidden" data-options="border:false">
    <div id="panel_me" class="scrolling" style="position:absolute;width:100%;height:100%;overflow:scroll;background:#EEEEEE">
-<!--   <div id="map_me" class="notover" style="width:1920px;height:1080px;position:relative;overflow:hidden;border:1px solid #555555;background-image:url(fond.jpg)"> -->
+<!--
       <div id="map_me" style="width:1920px;height:1080px;position:relative;overflow:auto;border:1px solid #555555;background-image:url('/views/fond1.jpg');background-size: cover">
+-->
+      <div id="map_me" style="width:1920px;height:1080px;position:relative;overflow:auto;border:1px solid #555555;background:#FFFFFF">
       </div>
    <div id="widgets_container" style="display:none"></div>
 </div>
 </div>
 
 <div id="map_cm_me" class="easyui-menu" style="width:180px;display:hidden;">
-   <div onclick="javascript:ctrlr_mapEditor._context_menu('new', 'new_win_me')">new</div>
-<!--   <div onclick="javascript:newMap('new_win_me', 'map_me')">new</div> -->
-   <div onclick="javascript:ctrlr_mapEditor._context_menu('load')">load</div>
-   <div onclick="javascript:ctrlr_mapEditor._context_menu('save')">save</div>
-   <div onclick="javascript:ctrlr_mapEditor._context_menu('saveas')">save as</div>
+   <div id="map_cm_me_mode" name="toggle" onclick="javascript:ctrlr_mapEditor._context_menu('toggle')">to view mode</div>
    <div class="menu-sep"></div>
-   <div onclick="javascript:ctrlr_mapEditor._context_menu('delete')">delete</div>
+   <div>
+      <span>grid</span>
+      <div style="width:180px">
+         <div onclick="javascript:ctrlr_mapEditor._context_menu('gridnone')">none</div>
+         <div onclick="javascript:ctrlr_mapEditor._context_menu('grid5x5')">5 x 5</div>
+         <div onclick="javascript:ctrlr_mapEditor._context_menu('grid10x10')">10 x 10</div>
+         <div onclick="javascript:ctrlr_mapEditor._context_menu('grid20x20')">20 x 20</div>
+         <div onclick="javascript:ctrlr_mapEditor._context_menu('grid50x50')">50 x 50</div>
+      </div>
+   </div>
+   <div>
+      <span>background</span>
+      <div style="width:180px">
+<!--
+         <div onclick="javascript:ctrlr_mapEditor._context_menu('backgroundc')">color</div>
+-->
+         <div id="spectrum1">color</div>
+         <div onclick="javascript:ctrlr_mapEditor._context_menu('backgroundi')">image</div>
+      </div>
+   </div>
+
    <div class="menu-sep"></div>
-   <div onclick="javascript:ctrlr_mapEditor._context_menu('backgroundc')">background color</div>
-   <div onclick="javascript:ctrlr_mapEditor._context_menu('backgroundi')">background image</div>
-   <div class="menu-sep"></div>
-   <div id="map_cm_me_mode" name="toggle" onclick="javascript:ctrlr_mapEditor._context_menu('toggle')">map view</div>
+   <div>
+      <span>map</span>
+      <div style="width:180px">
+         <div onclick="javascript:ctrlr_mapEditor._context_menu('new', 'new_win_me')">new</div>
+         <div onclick="javascript:ctrlr_mapEditor._context_menu('load')">load</div>
+         <div onclick="javascript:ctrlr_mapEditor._context_menu('save')">save</div>
+         <div onclick="javascript:ctrlr_mapEditor._context_menu('saveas')">save as</div>
+         <div class="menu-sep"></div>
+         <div onclick="javascript:ctrlr_mapEditor._context_menu('delete')">delete</div>
+      </div>
+   </div>
 </div>
 
 <div id="widget_cm_me" class="easyui-menu" style="width:120px;display:hidden">
    <div onclick="javascript:ctrlr_mapEditor._widget_menu('properties')">properties</div>
    <div class="menu-sep"></div>
-   <div onclick="javascript:ctrlr_mapEditor._widget_menu('duplicate')">duplicate</div>
    <div onclick="javascript:ctrlr_mapEditor._widget_menu('delete')">remove</div>
 </div>
 
 <div id="all_windows" style="display:none"></div>
 
+<div id='widgetsPanel_win_me' class='easyui-window' title='Widgets' style='width:210px;height:500px'>
+   <div id='panel_widgetsPanel_win_me' style='width:100%;height:100%;position:relative;overflow:auto'>
+      <div id='accordion_widgetsPanel_win_me' class='easyui-accordion' style='width:100%;height:100%;'>
+      </div>
+   </div>
+</div>
 
 <div id="new_win_me" class="easyui-window" style="position:relative;width:300px;height:180px;overflow:hidden" data-options="title:'map size',modal:true,closed:true,footer:'#ft_new_win_me'">
    <table cellpadding="2" style="width:100%">
@@ -1481,7 +1625,7 @@ jQuery(document).ready(function() {
    <input id="actions_win_me_action" name="action_me" type="hidden">
 </div>
 <div id="ft_action_win_me" style="text-align:right;padding:5px;display:hidden">
-      <a id="button_ok_ft_action_win_me"      href="javascript:void(0)" class="easyui-linkbutton" style="width=50px;" data-options="iconCls:'icon-ok'"><?php mea_toLocalC('ok'); ?></a>
-      <a id="button_cancel_ft_action_win_me", href="javascript:void(0)" class="easyui-linkbutton" style="width=50px;" data-options="iconCls:'icon-cancel'"><?php mea_toLocalC('cancel'); ?></a>
+   <a id="button_ok_ft_action_win_me"      href="javascript:void(0)" class="easyui-linkbutton" style="width=50px;" data-options="iconCls:'icon-ok'"><?php mea_toLocalC('ok');?></a>
+   <a id="button_cancel_ft_action_win_me", href="javascript:void(0)" class="easyui-linkbutton" style="width=50px;" data-options="iconCls:'icon-cancel'"><?php mea_toLocalC('cancel');?></a>
 </div>
 

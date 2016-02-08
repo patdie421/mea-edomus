@@ -15,6 +15,9 @@ MeaWidget.prototype = {
    init: function(id) {
    },
 
+   update: function(id, row) {
+   },
+
    disabled: function(id) {
    },
 
@@ -45,6 +48,10 @@ MeaWidget.prototype = {
       return this.group;
    },
 
+   getFormaters: function() {
+      return {};
+   },
+
    setValue: function(data, n, v) {
       $.each(data, function(i, val)
       {
@@ -71,7 +78,6 @@ MeaWidget.prototype = {
    },
 
    doAction: function(action, data) {
-      console.log(action+" "+JSON.stringify(data));
       var _this = this;
       var _actions = _this.getValue(data, action, false);
 
