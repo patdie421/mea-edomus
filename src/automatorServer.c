@@ -43,6 +43,8 @@ long automator_xplout_indicator=0;
 
 char *rules_file=NULL;
 
+int16_t automator_send_all_inputs_flag = 0;
+
 // globales pour le fonctionnement du thread
 pthread_t *_automatorServer_thread_id=NULL;
 int _automatorServer_thread_is_running=0;
@@ -111,6 +113,12 @@ automatorServer_add_msg_clean_exit:
       e=NULL;
    }
    return ERROR;
+}
+
+
+int automatorServer_send_all_inputs()
+{
+   automator_send_all_inputs_flag = 1;
 }
 
 
@@ -263,6 +271,11 @@ void *_automator_thread(void *data)
          
          automator_match_inputs_rules(_inputs_rules, NULL);
          automator_play_output_rules(_outputs_rules);
+         if(automator_send_all_inputs_flag!=0)
+         {
+            automator_send_all_inputs();
+            automator_send_all_inputs_flag=0;
+         }
          automator_reset_inputs_change_flags();
          continue;
       }

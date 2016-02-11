@@ -29,16 +29,16 @@ if(!isset($_SESSION['logged_in']))
    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=0.99">
    <meta name="description" content="domotique DIY !">
-   <link rel="stylesheet" type="text/css" href="lib/jquery-easyui-1.4.1/themes/default/easyui.css">
-   <link rel="stylesheet" type="text/css" href="lib/jquery-easyui-1.4.1/themes/icon.css">
-   <link rel="stylesheet" type="text/css" href="lib/jquery-easyui-1.4.1/themes/color.css">
+   <link rel="stylesheet" type="text/css" href="lib/jquery-easyui-1.4.4/themes/default/easyui.css">
+   <link rel="stylesheet" type="text/css" href="lib/jquery-easyui-1.4.4/themes/icon.css">
+   <link rel="stylesheet" type="text/css" href="lib/jquery-easyui-1.4.4/themes/color.css">
    <link rel="stylesheet" type="text/css" href="lib/mea-edomus.css">
    <link rel='stylesheet' href='lib/bgrins-spectrum/spectrum.css' />
    
    <script src="lib/ace/src-noconflict/ace.js" type="text/javascript"></script>
 
-   <script type="text/javascript" src="lib/jquery-easyui-1.4.1/jquery.min.js"></script>
-   <script type="text/javascript" src="lib/jquery-easyui-1.4.1/jquery.easyui.min.js"></script>
+   <script type="text/javascript" src="lib/jquery-easyui-1.4.4/jquery.min.js"></script>
+   <script type="text/javascript" src="lib/jquery-easyui-1.4.4/jquery.easyui.min.js"></script>
    <script type="text/javascript" src="lib/jquery-easyui-datagridview/datagrid-groupview.js"></script>
    <script type="text/javascript" src="lib/noty-2.2.10/js/noty/packaged/jquery.noty.packaged.min.js"></script>
 

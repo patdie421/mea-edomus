@@ -98,9 +98,10 @@ def mea_xplCmndMsg(data):
          verbose(2, "ERROR (", fn_name, ") - can't create xpl message")
          return False
 
-   mea.xplSendMsg(xplMsg)
-   return True
+      mea.xplSendMsg(xplMsg)
+      return True
 
+   return False
 
 
 def mea_enoceanData(data):

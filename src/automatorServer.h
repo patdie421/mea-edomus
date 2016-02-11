@@ -47,6 +47,8 @@ typedef struct automator_queue_elem_s
 mea_error_t automatorServer_add_msg(xPL_MessagePtr msg);
 int         automatorServer_timer_wakeup(char *name, void *userdata);
 
+int         automatorServer_send_all_inputs();
+
 void        setAutomatorRulesFile(char *file);
 int         start_automatorServer(int my_id, void *data, char *errmsg, int l_errmsg);
 int         stop_automatorServer(int my_id, void *data, char *errmsg, int l_errmsg);

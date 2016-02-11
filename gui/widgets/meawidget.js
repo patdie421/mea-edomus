@@ -3,11 +3,24 @@ var meaWidgetsJar = {};
 var meaFormaters = {};
 meaFormaters["boolean"] = function(x) { if(x > 0) return "true"; else return "false"; };
 meaFormaters["highlow"] = function(x) { if(x > 0) return "high"; else return "low"; };
-meaFormaters["float"]   = function(x) { return x.toFixed(2) ; };
+meaFormaters["float"]   = function(x) {
+   try {
+      var ret=x.toFixed(2);
+      return ret;
+   }
+   catch(e) {
+      return false;
+   }
+};
 
 function MeaWidget()
 {
    this.type="undefined";
+   this.params = {};
+   this.params["values"] = {};
+   this.params["labels"] = {};
+   this.params["actions"] = {};
+   this.params["links"] = {};
 }
 
 
@@ -94,13 +107,13 @@ MeaWidget.prototype = {
                   var v=_val.trim();
                   if(v.charAt(0)=='[' && v.charAt(v.length - 1)==']') {
                      v = v.substring(1, v.length - 1);
-                     xplmsgdata[_i]=_this.getValue(data, v, v); 
+                     xplmsgdata[_i]="'"+_this.getValue(data, v, v)+"'"; 
                   }
                   else
-                     xplmsgdata[_i]=v; 
+                     xplmsgdata[_i]="'"+v+"'"; 
 
                });
-               console.log("XPLSEND: "+JSON.stringify(xplmsgdata));
+               _this.xplsend(JSON.stringify(xplmsgdata));
                return true;
                break;
          }
@@ -116,5 +129,24 @@ MeaWidget.prototype = {
 
 //      meaWidgetsJar[this.ident]=this;
       meaWidgetsJar[this.type]=this;
+   },
+
+   xplsend: function(msg) {
+   var _this = this;
+
+      $.post("/CMD/xplsend.php", { msg: msg }, function(response) {
+         if(response.iserror===false)
+         {
+         }
+         else
+         {
+         }
+      }).done(function() {
+      }).fail(function(jqXHR, textStatus, errorThrown) {
+         $.messager.show({
+            title:'error: ',
+            msg: "communication error"+' ('+textStatus+')'
+         });
+      });
    }
 };

@@ -59,4 +59,6 @@ sqlite3 *get_sqlite3_param_db();
 
 #define NOPTHREADJOIN 1
 
+extern FILE *dbgfd;
+
 #endif

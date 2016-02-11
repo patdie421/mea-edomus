@@ -1,5 +1,6 @@
 extendClass(MeaWidget_value, MeaWidget);
 
+
 var meaWidget_value = new MeaWidget_value("MeaWidget_value", "basic", "value");
 
 function MeaWidget_value(name, group, type)
@@ -10,18 +11,9 @@ function MeaWidget_value(name, group, type)
 
    this.valueName = "value";
    this.valueUnit = "unit";
-   this.params = {};
 
-   this.params["values"] = {};
    this.params["values"][this.valueName] = "";
-
-   this.params["labels"] = {};
    this.params["labels"][this.valueUnit] = this.valueUnit;
-
-   this.params["actions"] = {};
-
-   this.params["links"] = {};
-
 }
 
 
@@ -32,7 +24,7 @@ MeaWidget_value.prototype.init = function(id)
    var data = widget.prop('mea-widgetdata');
 
    widget.find('label[mea_widgetlabelname="'+_this.valueUnit+'"]').text(_this.getValue(data, _this.valueUnit, _this.valueUnit));
-   widget.find('label[mea_widgetvaluename="'+_this.valueName+'"]').attr("name",_this.getValue(data, _this.valueName, ""));
+   widget.find('label[mea_widgetvaluename="'+_this.valueName+'"]').attr("name",_this.getValue(data, _this.valueName, "")).text('?.??');
 }
 
 
@@ -68,3 +60,4 @@ MeaWidget_value.prototype.getHtml = function()
 
    return html;
 }
+

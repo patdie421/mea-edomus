@@ -35,6 +35,19 @@ MeaWidget_button.prototype.init = function(id)
 }
 
 
+MeaWidget_button.prototype.disabled = function(id,d)
+{
+   var _this = this;
+   var widget = $("#"+id);
+
+   var button = widget.find('div[mea_widgetactionname="'+_this.action+'"]');
+   if(d===true)
+      button.removeClass('mea_button_anim');
+   else
+      button.addClass('mea_button_anim');
+}
+
+
 MeaWidget_button.prototype.getHtmlIcon = function()
 {
    var _this = this;
@@ -60,10 +73,13 @@ var _this = this; var html =
    text-align: center; \
    vertical-align: middle; \
 } \
-.mea_button:hover { \
+.mea_button_anim { \
+} \
+.mea_button_anim:hover { \
+    background-color: lightgreen; \
     cursor: pointer; \
 } \
-.mea_button:active { \
+.mea_button_anim:active { \
    background-color: green; \
    } \
 </style> \

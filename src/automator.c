@@ -40,6 +40,8 @@
 #include "cJSON.h"
 #include "uthash.h"
 #include "mea_eval.h"
+#include "mea_sockets_utils.h"
+#include "nodejsServer.h"
 
 #define DEBUG
 #define USEALLOCA
@@ -1150,7 +1152,7 @@ static int automator_setinputvalue(cJSON *parameters)
 }
 
 
-static int automator_sendxpl(cJSON *parameters)
+int automator_sendxpl(cJSON *parameters)
 {
    if(parameters==NULL || parameters->child==NULL)
       return -1;
@@ -1158,7 +1160,8 @@ static int automator_sendxpl(cJSON *parameters)
    xPL_ServicePtr servicePtr = mea_getXPLServicePtr();
    if(!servicePtr)
    {
-      fprintf(stderr,"pas de service xpl ...\n");
+      DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s (%s) : pas de service xpl ...\n",  ERROR_STR, __func__);
+      //fprintf(stderr,"pas de service xpl ...\n");
       return -1;
    }
 
@@ -1172,6 +1175,7 @@ static int automator_sendxpl(cJSON *parameters)
    char schema[21]="control.basic";
    char target[VALUE_MAX_STR_SIZE]="";
    int msgtype=xPL_MESSAGE_COMMAND;
+
    while(e)
    {
       struct value_s v;
@@ -1219,7 +1223,7 @@ static int automator_sendxpl(cJSON *parameters)
             xPL_setMessageNamedValue(xplMessage, e->string, s);
          }
       }
-      else {
+      else { 
          retour=-1;
          break;
       }
@@ -1400,7 +1404,7 @@ static cJSON *cJSON_DetachItemFromItem(cJSON *item, cJSON *e)
 {
    cJSON *c=item->child;
 
-   while (c) // on cherche e dans les fils de item
+   while (c) // on cherche e dans les files de item
    {
       if(c != e)
          c=c->next;
@@ -1505,7 +1509,6 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
          continue;
       }
 
-//      if(res.type==1 && mea_strcmplower(res.val.strval,"<LABEL>")==0)
       if(res.type==1 && strcmp(res.val.strval,"<LABEL>")==0)
       {
          match=0;
@@ -1759,6 +1762,118 @@ next_loop:{}
 }
 
 
+int send_change(char *name, struct value_s *v)
+{
+   static int port = -1;
+   int sock = -1;
+   int ret = -1;
+
+   if(port==-1)
+      port = get_nodejsServer_socketdata_port();
+
+   char str[VALUE_MAX_STR_SIZE]="";
+
+   if(v->type == 0)
+      sprintf(str,"%f",v->val.floatval);
+   if(v->type == 1)
+      sprintf(str, "\"%s\"", v->val.strval);
+   if(v->type == 2)
+   {
+      if(v->val.booleanval==0)
+         strcpy(str,"false");
+      else
+         strcpy(str,"true");
+   }
+
+   int l_data = strlen(str)+strlen(name)+5;
+   char *msg = alloca(l_data+1);
+   sprintf(msg,"{\"%s\":%s}",name, str);
+   msg[l_data]=0;
+
+   if(mea_socket_connect(&sock, localhost_const, port)<0)
+      ret=-1;
+   else
+   {
+      l_data=l_data+4; // 4 pour AUT:
+      char *message = (char *)alloca(l_data+9);
+
+      sprintf(message,"$$$%c%cAUT:%s###", (char)(l_data%128), (char)(l_data/128), msg);
+//      fprintf(stderr,"%s\n",&message[5]);
+
+      ret = mea_socket_send(&sock, message, l_data+9);
+      close(sock);
+   }
+
+   return ret;
+}
+
+
+int automator_send_all_inputs()
+{
+   static int port = -1;
+
+   struct inputs_table_s *s;
+   char *msg;
+   char tmpStr[VALUE_MAX_STR_SIZE * 2 + 5];
+   char tmpVal[VALUE_MAX_STR_SIZE];
+   int startflag = 1; 
+   int sock = -1;
+   int ret = -1;
+
+   if(port==-1)
+      port = get_nodejsServer_socketdata_port();
+
+   int l_msg = HASH_COUNT(inputs_table)*(sizeof(tmpStr)+1)+3;
+
+   msg=(char *)alloca(l_msg);
+   if(!msg)
+      return -1;
+
+   strcpy(msg,"{");
+   for(s=inputs_table; s != NULL; s=s->hh.next)
+   {
+      struct value_s *v = &(s->v);
+
+      if(!startflag)
+         strcat(msg,",");
+      if(v->type == 0)
+         sprintf(tmpVal, "%f", v->val.floatval);
+      if(v->type == 1)
+         sprintf(tmpVal, "\"%s\"", v->val.strval);
+      if(v->type == 2) {
+         if(v->val.booleanval==0)
+            strcpy(tmpVal, "false");
+//            strcpy(tmpVal, "\"false\"");
+         else
+            strcpy(tmpVal, "true");
+//            strcpy(tmpVal, "\"true\"");
+      }
+      sprintf(tmpStr, "\"%s\":%s", s->name, tmpVal);
+      strcat(msg, tmpStr);
+      startflag=0;
+   }
+   strcat(msg,"}");
+
+//   fprintf(stderr,"%s\n",msg);
+
+   if(mea_socket_connect(&sock, localhost_const, port)<0)
+      return -1;
+   else
+   {
+      int l_data = strlen(msg);
+      l_data=l_data+4; // 4 pour AUT:
+      char *message = (char *)alloca(l_data+9);
+
+      sprintf(message,"$$$%c%cAUT:%s###", (char)(l_data%128), (char)(l_data/128), msg);
+
+      ret = mea_socket_send(&sock, message, l_data+9);
+      close(sock);
+   }
+
+   return ret;
+}
+
+
 struct inputs_table_s *_automator_add_to_inputs_table(char *_name, struct value_s *v, int16_t update_state)
 {
    struct inputs_table_s *e = NULL;
@@ -1809,6 +1924,9 @@ struct inputs_table_s *_automator_add_to_inputs_table(char *_name, struct value_
          e->v.val.booleanval = v->val.booleanval;
       e->state = state;
 
+      if(state!=STAY)
+         send_change(_name, v);
+
       return e;
    }
    else
@@ -1829,6 +1947,8 @@ struct inputs_table_s *_automator_add_to_inputs_table(char *_name, struct value_
       else
          s->state=UNKNOWN;
       HASH_ADD_STR(inputs_table, name, s);
+
+      send_change(_name, v);
 
       return s;
    }

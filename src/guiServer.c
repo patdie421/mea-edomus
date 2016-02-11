@@ -31,10 +31,14 @@
 #include "tokens.h"
 #include "init.h"
 #include "mea_sockets_utils.h"
+#include "cJSON.h"
 
 #include "processManager.h"
+#include "automatorServer.h"
+
 #include "notify.h"
 #include "nodejsServer.h"
+#include "automator.h"
 
 //
 // pour compilation php-cgi :
@@ -179,6 +183,7 @@ void _httpResponse(struct mg_connection *conn, char *response)
              "\r\n"
              "%s\r\n",
              (int)strlen(response)+2, response);
+
    process_update_indicator(_httpServer_monitoring_id, "HTTPOUT", ++httpout_indicator);
 }
 
@@ -337,6 +342,116 @@ _phpsessid_check_loggedin_and_admin_clean_exit:
 
 #define MAX_BUFFER_SIZE 80
 #define MAX_TOKEN 20
+
+
+int gui_automator(struct mg_connection *conn, char *phpsessid, char *_php_sessions_path)
+{
+   const struct mg_request_info *request_info = mg_get_request_info(conn);
+
+   if(!phpsessid[0] || _phpsessid_check_loggedin_and_admin(phpsessid, _php_sessions_path)<0)
+   {
+      _httpErrno(conn, 2, NULL); // pas habilité
+      return 1;
+   }
+
+   if(strcmp(request_info->request_method, "POST") != 0)
+   {
+      _httpErrno(conn, 3, NULL); // pas la bonne méthode
+      return 1;
+   }
+
+   const char *_l = mg_get_header(conn, "Content-Length");
+   if(_l)
+   {
+      int l = atoi(_l);
+      char *post = (char *)alloca(l+1);
+      if(post)
+      { 
+         char *cmnd=(char *)alloca(l+1);
+
+         mg_read(conn, post, l);
+         post[l]=0;
+         fprintf(stderr,"%s\n",post);
+         if(mg_get_var((const char *)post, l, "cmnd", cmnd, l)<0)
+         {
+            _httpErrno(conn, 40, NULL); // erreur interne
+            return 1;
+         }
+         else
+         {
+            if(strcmp(cmnd,"sendallinputs")==0)
+            {
+               automatorServer_send_all_inputs();
+            }
+            else
+            {
+               _httpErrno(conn, 20, NULL); // bad command
+               return 1;
+            }
+         }
+      }
+
+      _httpErrno(conn, 0, NULL);
+      return 1;
+   }
+}
+
+
+int gui_xplsend(struct mg_connection *conn, char *phpsessid, char *_php_sessions_path)
+{
+   const struct mg_request_info *request_info = mg_get_request_info(conn);
+
+   if(!phpsessid[0] || _phpsessid_check_loggedin_and_admin(phpsessid, _php_sessions_path)<0)
+   {
+      _httpErrno(conn, 2, NULL); // pas habilité
+      return 1;
+   }
+
+   if(strcmp(request_info->request_method, "POST") != 0)
+   {
+      _httpErrno(conn, 3, NULL); // pas la bonne méthode
+      return 1;
+   }
+
+   const char *_l = mg_get_header(conn, "Content-Length");
+   if(_l)
+   {
+      int l = atoi(_l);
+      char *post = (char *)alloca(l+1);
+      if(post)
+      {
+         char *xplmsg=(char *)alloca(l+1);
+
+         mg_read(conn, post, l);
+         post[l]=0;
+
+         if(mg_get_var((const char *)post, l, "msg", xplmsg, l)<0)
+         {
+            _httpErrno(conn, 40, NULL); // erreur interne
+            return 1;
+         }
+
+         cJSON *json_xplmsg = cJSON_Parse(xplmsg);
+         automator_sendxpl(json_xplmsg);
+         cJSON_Delete(json_xplmsg);
+
+         _httpErrno(conn, 0, NULL);
+         return 1;
+      }
+      else
+      {
+         _httpErrno(conn, 40, NULL);
+         return 1;
+      }
+   }
+   else
+   {
+      _httpErrno(conn, 40, NULL);
+      return 1;
+   }
+}
+
+
 static int _begin_request_handler(struct mg_connection *conn)
 {
    uint32_t id = 0;
@@ -388,6 +503,14 @@ static int _begin_request_handler(struct mg_connection *conn)
       
       _httpErrno(conn, 0, NULL);
       return 1;
+   }
+   else if(mea_strncmplower("/CMD/automator.php",(char *)request_info->uri,18)==0)
+   {
+      return gui_automator(conn, phpsessid, _php_sessions_path);
+   }
+   else if(mea_strncmplower("/CMD/xplsend.php",(char *)request_info->uri,16)==0)
+   {
+      return gui_xplsend(conn, phpsessid, _php_sessions_path);
    }
    else if(mea_strncmplower("/CMD/startstop.php",(char *)request_info->uri,18)==0)
    {
@@ -466,6 +589,7 @@ static int _begin_request_handler(struct mg_connection *conn)
       
       return 1;
    }
+/*
    else if(mea_strncmplower("/API/",(char *)request_info->uri,5)==0)
    {
       // traiter ici l'URL
@@ -572,6 +696,7 @@ static int _begin_request_handler(struct mg_connection *conn)
          return 0;
    }
    // pas une api
+*/
    return 0;
 }
 

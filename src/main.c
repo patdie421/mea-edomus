@@ -56,6 +56,8 @@
 
 #include "notify.h"
 
+// FILE *dbgfd;
+
 int xplServer_monitoring_id=-1;
 int httpServer_monitoring_id=-1;
 int logServer_monitoring_id=-1;
@@ -817,6 +819,8 @@ int main(int argc, const char * argv[])
    //
    char log_file[255];
    int16_t n;
+
+//   dbgfd = fopen("/tmp/dbg.log", "r+");
 
    if(!params_list[LOG_PATH] || !strlen(params_list[LOG_PATH]))
    {
