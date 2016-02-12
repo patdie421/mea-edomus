@@ -36,6 +36,8 @@
 #include "mea_queue.h"
 #include "mea_string_utils.h"
 #include "mea_sockets_utils.h"
+#include "mea_timer.h"
+
 #include "parameters_utils.h"
 
 #include "init.h"
@@ -982,7 +984,7 @@ int main(int argc, const char * argv[])
       VERBOSE(1) mea_log_printf("%s (%s) : can't start python plugin server\n",ERROR_STR,__func__);
       clean_all_and_exit();
    }
-   sleep(1);
+   sleep(2);
 
    //
    // xPLServer

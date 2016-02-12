@@ -1,8 +1,8 @@
 #!/bin/sh
 
 ### BEGIN INIT INFO
-# Provides:        mea-edomus
-# Required-Start:  $network
+# Provides:        meaedomus
+# Required-Start:  $all
 # Required-Stop:   $network $syslog
 # Default-Start:   2 3 4 5
 # Default-Stop:    0 1 6

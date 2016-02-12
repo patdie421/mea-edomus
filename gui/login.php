@@ -17,13 +17,13 @@ session_start();
    <meta name="viewport" content="width=device-width, initial-scale=0.99">
    <meta name="description" content="domotique DIY !">
 
-   <link rel="stylesheet" type="text/css" href="lib/jquery-easyui-1.4.1/themes/default/easyui.css">
-   <link rel="stylesheet" type="text/css" href="lib/jquery-easyui-1.4.1/themes/icon.css">
-   <link rel="stylesheet" type="text/css" href="lib/jquery-easyui-1.4.1/themes/color.css">
+   <link rel="stylesheet" type="text/css" href="lib/jquery-easyui-1.4.4/themes/default/easyui.css">
+   <link rel="stylesheet" type="text/css" href="lib/jquery-easyui-1.4.4/themes/icon.css">
+   <link rel="stylesheet" type="text/css" href="lib/jquery-easyui-1.4.4/themes/color.css">
    <link rel="stylesheet" type="text/css" href="lib/mea-edomus.css">
    
-   <script type="text/javascript" src="lib/jquery-easyui-1.4.1/jquery.min.js"></script>
-   <script type="text/javascript" src="lib/jquery-easyui-1.4.1/jquery.easyui.min.js"></script>
+   <script type="text/javascript" src="lib/jquery-easyui-1.4.4/jquery.min.js"></script>
+   <script type="text/javascript" src="lib/jquery-easyui-1.4.4/jquery.easyui.min.js"></script>
 </head>
 
 <script type="text/javascript" src="models/common/models-utils.js"></script>
@@ -65,7 +65,20 @@ jQuery(document).ready(function(){
    passwordController = new PasswordController('models/login.php','models/set_password.php');
    passwordController.linkToTranslationController(translationController);
    passwordController.linkToCredentialController(credentialController);
-   
+
+   userid = $("#userid");
+   passwd = $("#passwd");
+  
+   userid.textbox('textbox').on('keydown', function(e) {
+      if(e.keyCode == 13)
+         passwd.textbox('textbox').focus();
+   });
+
+   passwd.textbox('textbox').on('keydown', function(e) {
+      if(e.keyCode == 13)
+         login();
+   });
+
    <?php
       echo "chgPasswordDest = \"change_password2.php";
       if(isset($_REQUEST['view'])) {

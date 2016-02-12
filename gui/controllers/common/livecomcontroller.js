@@ -31,7 +31,6 @@ LiveComController.prototype = {
          timeout: 5000,
          success: function(data, textStatus, jqXHR) // _socket_available
                   {
-                     console.log("ICI:"+JSON.stringify(data));
                      var socketioAddr=window.location.protocol + '//' + window.location.hostname + ':'+_liveCom._socketio_port;
                      _liveCom.socketio = io.connect(socketioAddr);
                      if(null !== _liveCom.socketio)
