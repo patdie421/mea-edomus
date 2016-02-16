@@ -506,31 +506,6 @@ enum function_e getFunctionNum(char *str, char *params, int l_params)
 
    return -1;
 }
-/*
-static int getFunctionNum(char *str, char *params, int l_params)
-{
-   int ls=strlen(str); 
-   for(int i=0; functionsList2[i].name; i++)
-   {
-      int lf=functionsList2[i].l;
-      if(strncmp(str,functionsList2[i].name, functionsList2[i].l)==0)
-      {
-         if(str[lf]=='[' && str[ls-1]==']')
-         {
-            int lp = ls-lf-2;
-            if(lp>l_params)
-               lp=l_params;
-            strncpy(params, &(str[lf+1]), lp);
-            params[lp]=0;
-            return functionsList2[i].num;
-         }
-         else
-            return -1;
-      }
-   }
-   return -1;
-}
-*/
 
 
 static int getInputEdge(char *expr, int direction,  struct value_s *v, xPL_NameValueListPtr ListNomsValeursPtr)
@@ -1258,6 +1233,89 @@ int automator_sendxpl(cJSON *parameters)
 }
 
 
+int sendxplFromJson(cJSON *parameters)
+{
+   if(parameters==NULL || parameters->child==NULL)
+      return -1;
+
+   xPL_ServicePtr servicePtr = mea_getXPLServicePtr();
+   if(!servicePtr)
+   {
+      DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s (%s) : pas de service xpl ...\n",  ERROR_STR, __func__);
+      return -1;
+   }
+
+   xPL_MessagePtr xplMessage = xPL_createBroadcastMessage(servicePtr, xPL_MESSAGE_COMMAND);
+   if(!xplMessage)
+      return -1;
+
+   cJSON *e=parameters->child;
+
+   int retour=0;
+   char schema[21]="control.basic";
+   char target[VALUE_MAX_STR_SIZE]="*";
+   int msgtype=xPL_MESSAGE_COMMAND;
+
+   while(e)
+   {
+      // type de message
+      if(strcmp(e->string, "msgtype")==0)
+      {
+         if(strcmp(e->valuestring, "trigger")==0)
+            msgtype=xPL_MESSAGE_TRIGGER;
+         else if(strcmp(e->valuestring, "status")==0)
+            msgtype=xPL_MESSAGE_STATUS;
+         else if(strcmp(e->valuestring, "command")==0)
+            msgtype=xPL_MESSAGE_COMMAND;
+         else {
+            retour=-1;
+            break;
+         }
+      }
+      else if(strcmp(e->string, "schema")==0) {
+         strncpy(schema, e->valuestring, sizeof(schema)-1);
+         schema[sizeof(schema)-1]=0;
+      }
+      else if(strcmp(e->string,"source")==0) {
+         retour=-1;
+         break;
+      }
+      else if(strcmp(e->string,"target")==0) {
+         strncpy(target, e->valuestring, sizeof(target)-1);
+         target[sizeof(target)-1]=0;
+      }
+      else
+         xPL_setMessageNamedValue(xplMessage, e->string, e->valuestring);
+      e=e->next;
+   }
+   if(retour==-1) { 
+      xPL_releaseMessage(xplMessage);
+      return -1;
+   }
+
+   // changement du type de message
+   xplMessage->messageType = msgtype;
+
+   // mise en place du schema
+   char class[21]; char type[21];
+   sscanf(schema,"%[^.].%s\n", class, type);
+   xPL_setSchema(xplMessage, class, type);
+
+   // changement du target si nécessaire
+   if(target[0]!=0) {
+   }
+
+   // emission du message
+   mea_sendXPLMessage(xplMessage);
+
+   DEBUG_SECTION2(DEBUGFLAG) displayXPLMsg(xplMessage);
+
+   xPL_releaseMessage(xplMessage);
+ 
+   return 0;
+}
+
+
 int automator_play_output_rules(cJSON *rules)
 {
    if(rules==NULL)
@@ -1270,10 +1328,8 @@ int automator_play_output_rules(cJSON *rules)
    cJSON *e=rules->child;
    while(e) // balayage des règles
    {
-//      cJSON *name       = cJSON_GetObjectItem(e,"name");
       cJSON *cond  = cJSON_GetObjectItem(e,"condition");
 
-//      struct inputs_table_s  *current, *tmp; HASH_ITER(hh, inputs_table, current, tmp) fprintf(stderr,"> [%s]\n", current->name); 
       struct inputs_table_s *i = NULL;
       HASH_FIND_STR(inputs_table, cond->child->string, i);
       int actionFlag=0; 
@@ -1609,22 +1665,6 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
 
          if(onmatch) // post action
          {
-/*
-            char action[VALUE_MAX_STR_SIZE]="";
-            mea_strncpylower(action, onmatch->valuestring, sizeof(action)-1);
-            action[sizeof(action)-1]=0;
-            // découpage de la chaine si nécessaire
-            char *p=NULL;
-            for(int i=0;action[i];i++)
-            {
-               if(action[i]==' ')
-               {
-                  p=&(action[i+1]);
-                  action[i]=0;
-                  break;
-               }
-            }
-*/
             char action[VALUE_MAX_STR_SIZE]="";
             char action_l=sizeof(action)-1;
             char *p_action  = action;
@@ -1654,11 +1694,9 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
                // supprime les blancs en début de p_onmatch
                while(*p_onmatch && *p_onmatch==' ') ++p_onmatch;
 
-//               if(evalStr(p_onmatch, &r, NULL)==0 && r.type==1)
                if(*p_onmatch)
                {
                   int16_t notCacheMoveForwardFlag = 0;
-                  // HASH_FIND_STR(moveforward_dests, r.val.strval, md);
                   HASH_FIND_STR(moveforward_dests, p_onmatch, md);
                   if(md) // on va vérifier qu'on fait bien un saut en avant
                   {
@@ -1675,8 +1713,6 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
                      _e = e->next;
                      while(_e)
                      {
-//                        if(cJSON_GetObjectItem(_e,"name") && mea_strcmplower(cJSON_GetObjectItem(_e,"name")->valuestring,r.val.strval)==0)
-                        // if(cJSON_GetObjectItem(_e,"name") && strcmp(cJSON_GetObjectItem(_e,"name")->valuestring,r.val.strval)==0)
                         if(cJSON_GetObjectItem(_e,"name") && strcmp(cJSON_GetObjectItem(_e,"name")->valuestring, p_onmatch)==0)
                         {
                            if(notCacheMoveForwardFlag == 0)
@@ -1798,7 +1834,6 @@ int send_change(char *name, struct value_s *v)
       char *message = (char *)alloca(l_data+9);
 
       sprintf(message,"$$$%c%cAUT:%s###", (char)(l_data%128), (char)(l_data/128), msg);
-//      fprintf(stderr,"%s\n",&message[5]);
 
       ret = mea_socket_send(&sock, message, l_data+9);
       close(sock);
@@ -1843,18 +1878,14 @@ int automator_send_all_inputs()
       if(v->type == 2) {
          if(v->val.booleanval==0)
             strcpy(tmpVal, "false");
-//            strcpy(tmpVal, "\"false\"");
          else
             strcpy(tmpVal, "true");
-//            strcpy(tmpVal, "\"true\"");
       }
       sprintf(tmpStr, "\"%s\":%s", s->name, tmpVal);
       strcat(msg, tmpStr);
       startflag=0;
    }
    strcat(msg,"}");
-
-//   fprintf(stderr,"%s\n",msg);
 
    if(mea_socket_connect(&sock, localhost_const, port)<0)
       return -1;
@@ -2107,3 +2138,4 @@ int automator_clean()
 
    return 0;
 }
+

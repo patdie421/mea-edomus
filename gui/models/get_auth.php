@@ -9,8 +9,8 @@ if( !isset($_SESSION['userid']) ||
         exit(1);
 }
 
-error_log(json_encode(array("result"=>"OK", "iserror" => false, "userid"=>$_SESSION['userid'], "logged_in"=>$_SESSION['logged_in'], "profil"=>$_SESSION['profil'])) );
+error_log(json_encode(array("result"=>"OK", "iserror" => false, "userid"=>$_SESSION['userid'], "logged_in"=>(int)$_SESSION['logged_in'], "profil"=>(int)$_SESSION['profil'])) );
 
-echo json_encode(array("result"=>"OK", "iserror" => false, "userid"=>$_SESSION['userid'], "logged_in"=>$_SESSION['logged_in'], "profil"=>$_SESSION['profil']));
+echo json_encode(array("result"=>"OK", "iserror" => false, "userid"=>$_SESSION['userid'], "logged_in"=>(int)$_SESSION['logged_in'], "profil"=>(int)$_SESSION['profil']));
 
 $file_db = null;

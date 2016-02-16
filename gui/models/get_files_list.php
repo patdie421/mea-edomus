@@ -1,29 +1,19 @@
 <?php
 include_once('../lib/configs.php');
 include_once('../lib/php/auth_utils.php');
+include_once('../lib/php/tools.php');
 session_start();
 
+//$DEBUG_ON=1;
 if(isset($DEBUG_ON) && ($DEBUG_ON == 1))
 {
-   ob_start();
-   print_r($_REQUEST);
-   $debug_msg = ob_get_contents();
-   ob_end_clean();
-   error_log($debug_msg);
+   error_log_REQUEST();
 }
 
-switch(check_admin()){
-    case 98:
-        break;
-    case 99:
-        echo json_encode(array('iserror'=>true, "result"=>"KO", "errno"=>99, "errMsg"=>"not connected" ));
-        exit(1);
-    case 0:
-        break;
-    default:
-        echo json_encode(array('iserror'=>true, "result"=>"KO", "errno"=>1, "errMsg"=>"unknown error" ));
-        exit(1);
-}
+header('Content-type: application/json');
+
+
+inform_and_exit_if_not_connected();
 
 if(!isset($_GET['type'])){
     echo json_encode(array('iserror'=>true, "result"=>"KO", "errno"=>2, "errMsg"=>"parameters error" ));
@@ -32,45 +22,51 @@ if(!isset($_GET['type'])){
     $type=$_GET['type'];
 }
 
-function endsWith($haystack, $needle) {
-    // search forward starting from end minus needle length characters
-    return $needle === "" || (($temp = strlen($haystack) - strlen($needle)) >= 0 && strpos($haystack, $needle, $temp) !== FALSE);
-}
-
-
-function getPath($db, $param)
-{
-   $response=[];
-
-   try {
-      $file_db = new PDO($db);
-   }
-   catch (PDOException $e) {
-      return false;
-   }
-
-   $file_db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-   $file_db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION); // ERRMODE_WARNING | ERRMODE_EXCEPTION | ERRMODE_SILENT
-
-   $SQL='SELECT * FROM application_parameters WHERE key = "'.$param.'"';
-   try {
-      $stmt = $file_db->prepare($SQL);
-      $stmt->execute();
-      $result = $stmt->fetchAll();
-   }
-   catch(PDOException $e) {
-      $result = false;
-   }
-   $file_db=null;
-   return $result;
-}
-
 $param=false;
 $path=false;
+$exclude=false;
+$subpath=false;
+
+function validExt($dirEntry, $exts)
+{
+   foreach ($exts as $ext){
+      if(endsWith($dirEntry,"." . $ext))
+         return True;
+   }
+   return False;
+}
+
+
 if($type=='srules')
 {
    $param="RULESFILESPATH";
-   $extention="srules";
+   $extention=array("srules");
+}
+else if($type=='rset')
+{
+   $param="RULESFILESPATH";
+   $extention=array("rset");
+}
+else if($type=='rules')
+{
+   $param="RULESFILESPATH";
+   $extention=array("rules");
+   $automator=getParamVal($PARAMS_DB_PATH, "RULESFILE");
+   $automator=$automator[0]{'value'};
+   preg_replace('#/+#','/',$automator);
+   $exclude=array($automator);
+}
+else if($type=='map')
+{
+   $param="GUIPATH";
+   $subpath="maps";
+   $extention=array("map");
+}
+else if($type=='img')
+{
+   $param="GUIPATH";
+   $subpath="images";
+   $extention=array("jpg","png");
 }
 else
 {
@@ -80,11 +76,13 @@ else
 
 if($param!=false)
 {
-   $res=getPath($PARAMS_DB_PATH, $param);
+   $res=getParamVal($PARAMS_DB_PATH, $param);
    if($res!=false)
    {
       $res=$res[0];
       $path=$res{'value'};
+      if($subpath!=false)
+         $path=$path."/".$subpath;
    }
 }
 else
@@ -103,14 +101,16 @@ if(is_dir($path))
 
       foreach( $dirContents as $dirEntry ) {
          $dirEntryFullPath=$path . "/" . $dirEntry;
-         if( substr($dirEntry, 0, 1)!="." && !is_dir($dirEntryFullPath) && (endsWith($dirEntry,"." . $extention))) 
+         preg_replace('#/+#','/', $dirEntryFullPath);
+         if($exclude <> false && in_array($dirEntryFullPath, $exclude))
+            continue;
+//         if( substr($dirEntry, 0, 1)!="." && !is_dir($dirEntryFullPath) && (endsWith($dirEntry,"." . $extention))) 
+         if( substr($dirEntry, 0, 1)!="." && !is_dir($dirEntryFullPath) && (validExt($dirEntry, $extention))) 
          {
             array_push($values, $dirEntry);
          }
       }
    }
 }
-
-header('Content-type: application/json');
 
 echo json_encode(array('iserror'=>false, "result"=>"OK","values"=>$values, "errno"=>0));
