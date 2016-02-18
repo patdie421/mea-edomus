@@ -72,16 +72,24 @@ CredentialController.prototype.isLoggedIn = function() {
 };
 
    
-CredentialController.prototype.__auth = function(_controller,methode)
+CredentialController.prototype.__auth = function(_controller, methode, param)
 {
+   var _this = this;
+
    var jqxhr = $.get(this.dataSource,
                      {}, // pas de parametre
                      function(data) {
                         if(data.result=="OK"){
-                           _controller[methode]();
+                           var now = Date.now();
+                           _this.userid=data.userid;
+                           _this.profil=parseInt(data.profil);
+                           _this.loggedIn=true;
+                           _this.last=now;
+
+                           _controller[methode](param);
                         }
                         else {
-                           $.messager.alert(_controller._toLocalC('error')+_controller._localDoubleDot(),_controller.toLocalC('you are not connected')+' !', 'error', function(){ window.location = "login.php"; });
+                           $.messager.alert(_controller._toLocalC('error')+_controller._localDoubleDot(),_controller._toLocalC('you are not connected')+' !', 'error', function(){ window.location = "login.php"; });
                         }
                      },
                      "json")

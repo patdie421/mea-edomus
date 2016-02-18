@@ -10,6 +10,7 @@ session_start();
 ?>
 
 <!DOCTYPE html>
+
 <?php
 // contrôle et redirections
 if(!isset($_SESSION['logged_in']))
@@ -28,22 +29,27 @@ if(!isset($_SESSION['logged_in']))
    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=0.99">
    <meta name="description" content="domotique DIY !">
-   
-   <link rel="stylesheet" type="text/css" href="lib/jquery-easyui-1.4.1/themes/default/easyui.css">
-   <link rel="stylesheet" type="text/css" href="lib/jquery-easyui-1.4.1/themes/icon.css">
-   <link rel="stylesheet" type="text/css" href="lib/jquery-easyui-1.4.1/themes/color.css">
+   <link rel="stylesheet" type="text/css" href="lib/jquery-easyui-1.4.4/themes/default/easyui.css">
+   <link rel="stylesheet" type="text/css" href="lib/jquery-easyui-1.4.4/themes/icon.css">
+   <link rel="stylesheet" type="text/css" href="lib/jquery-easyui-1.4.4/themes/color.css">
    <link rel="stylesheet" type="text/css" href="lib/mea-edomus.css">
+   <link rel='stylesheet' href='lib/bgrins-spectrum/spectrum.css' />
    
-   <script type="text/javascript" src="lib/jquery-easyui-1.4.1/jquery.min.js"></script>
-   <script type="text/javascript" src="lib/jquery-easyui-1.4.1/jquery.easyui.min.js"></script>
+   <script src="lib/ace/src-noconflict/ace.js" type="text/javascript"></script>
+
+   <script type="text/javascript" src="lib/jquery-easyui-1.4.4/jquery.min.js"></script>
+   <script type="text/javascript" src="lib/jquery-easyui-1.4.4/jquery.easyui.min.js"></script>
    <script type="text/javascript" src="lib/jquery-easyui-datagridview/datagrid-groupview.js"></script>
    <script type="text/javascript" src="lib/noty-2.2.10/js/noty/packaged/jquery.noty.packaged.min.js"></script>
+
+   <script src="lib/bgrins-spectrum/spectrum.js" type="text/javascript"></script>
 </head>
 
 
 <!-- Chargement des modules et objets communs -->
 <script type="text/javascript" src="models/common/models-utils.js"></script>
 
+<script type="text/javascript" src="controllers/common/meaobject.js"></script>
 <script type="text/javascript" src="controllers/common/commoncontroller.js"></script>
 <script type="text/javascript" src="controllers/common/gridcontroller.js"></script>
 <script type="text/javascript" src="controllers/common/translationcontroller.js"></script>
@@ -52,6 +58,10 @@ if(!isset($_SESSION['logged_in']))
 <script type="text/javascript" src="controllers/common/livelogcontroller.js"></script>
 <script type="text/javascript" src="controllers/common/viewscontroller.js"></script>
 <script type="text/javascript" src="controllers/common/tabspagecontroller.js"></script>
+<script type="text/javascript" src="controllers/common/filechoosercontroller.js"></script>
+<script type="text/javascript" src="controllers/common/filechooseruploadercontroller.js"></script>
+
+<script type="text/javascript" src="widgets/meawidget.js"></script>
 
 <!-- surcharge des méthodes du controleur de traduction spécifiques à une langue donnée -->
 <?php
@@ -88,6 +98,10 @@ function liveComUnavailable(destview)
    viewsController.addView(translationController.toLocalC('application'),'page3.php','page3_tab');
    viewsController.addView(translationController.toLocalC('users'),'page3.php','page3_tab');
 
+   viewsController.addView(translationController.toLocalC('rules editor'),'page4.php','page4_tab');
+   viewsController.addView(translationController.toLocalC('rules manager'),'page4.php','page4_tab');
+   viewsController.addView(translationController.toLocalC('map editor'),'page4.php','page4_tab');
+
    if(destview=="" || typeof(viewController.views[destview])=="undefined")
       destview=translationController.toLocalC('sensors/actuators');
    
@@ -110,6 +124,10 @@ function liveComAvailable(s,destview)
    viewsController.addView(translationController.toLocalC('application'),'page3.php','page3_tab');
    viewsController.addView(translationController.toLocalC('users'),'page3.php','page3_tab');
 
+   viewsController.addView(translationController.toLocalC('rules editor'),'page4.php','page4_tab');
+   viewsController.addView(translationController.toLocalC('rules manager'),'page4.php','page4_tab');
+   viewsController.addView(translationController.toLocalC('map editor'),'page4.php','page4_tab');
+
    if(destview=="" || typeof(viewsController.views[destview])=="undefined")
       destview=translationController.toLocalC('indicators');
 
@@ -118,8 +136,25 @@ function liveComAvailable(s,destview)
 }
 
 
+function resizeDiv()
+{
+   vpw = $(window).width();
+   vph = $(window).height();
+   vph = vph - 130;
+   if(vph < 670)
+      vph=670;
+   $('#mea-layout').layout('resize', { width:'100%', height:vph });
+}
+
+
 jQuery(document).ready(function() {
    $.ajaxSetup({ cache: false });
+
+   resizeDiv();
+   $(window).resize(function() {
+      resizeDiv();
+   });
+
    //
    // récupération des variables depuis PHP
    //
@@ -154,6 +189,15 @@ jQuery(document).ready(function() {
          function(s){liveComAvailable(s,destview);},
          function() {liveComUnavailable(destview);}
    );
+
+   $('#mea-layout').layout('panel','center').panel({
+      onResize: function() {
+         $(document).trigger( "CenterResize", [ "", "" ] );
+      },
+      onBeforeLoad: function() {
+         $(document).trigger( "MeaCleanView", [ "", "" ] );
+      }
+   });
 });
 </script>
 
@@ -179,14 +223,17 @@ a.meamenu:hover {
 }
 </style>
 
-<body>
-   <div style="min-width:750px;">
+<body style="margin:0;padding:0">
+   <div style="min-width:950px;">
       <div id='logo'  style="float:left; width:250px; height:50px; text-align:left;">LOGO</div>
       <div id='pub' style="width:250px; float:right; height:50px; text-align:right;">INFORMATION</div>
       <div id='titre-page' style="height:50px; text-align:center;">CENTER</div>
    </div>
-   <div style="min-width:950px;min-height:600px;margin:10px;">
+   <div id='meamain' style="min-width:950px;min-height:650px;margin:10px;">
+<!--
       <div id='mea-layout' class="easyui-layout" fit=true>
+-->
+      <div id='mea-layout' class="easyui-layout">
 
          <div region="west" split="true" collapsible="false" title="" style="width:200px;">
             <div id="aa" class="easyui-accordion" data-options="animate:false,border:false" style="width:100%;">
@@ -203,6 +250,12 @@ a.meamenu:hover {
                   <div><a href="#" class="meamenu" onclick="javascript:viewsController.displayView(translationController.toLocalC('locations'),'page2.php','page2_tab')"><?php mea_toLocalC('locations'); ?></a></div>
                </div>
 
+               <div title="<?php mea_toLocalC('automator'); ?>" style="overflow:auto;padding:10px;">
+                  <div><a href="#" class="meamenu" onclick="javascript:viewsController.displayView(translationController.toLocalC('rules manager'),'page4.php','page4_tab')"><?php mea_toLocalC('rules manager'); ?></a></div>
+                  <div><a href="#" class="meamenu" onclick="javascript:viewsController.displayView(translationController.toLocalC('rules editor'),'page4.php','page4_tab')"><?php mea_toLocalC('rules editor'); ?></a></div>
+                  <div><a href="#" class="meamenu" onclick="javascript:viewsController.displayView(translationController.toLocalC('map editor'),'page4.php','page4_tab')"><?php mea_toLocalC('map editor'); ?></a></div>
+               </div>
+
                <div title="<?php mea_toLocalC('preferences'); ?>" style="overflow:auto;padding:10px;">
                   <div><a href="#" class="meamenu" onclick="javascript:viewsController.displayView(translationController.toLocalC('application'),'page3.php','page3_tab')"><?php mea_toLocalC('application'); ?></a></div>
                   <div><a href="#" class="meamenu" onclick="javascript:viewsController.displayView(translationController.toLocalC('users'),'page3.php','page3_tab')"><?php mea_toLocalC('users'); ?></a></div>
@@ -215,8 +268,8 @@ a.meamenu:hover {
          </div>
 
          <div id="content" region="center" title=""></div>
-         <div id="livelog" region="south" split="true" collapsible="true" title="<?php mea_toLocalC('live log'); ?>" style="height:150px;">
-            <div id="console" class="console" style="background:lightgray;width:100%;height:100%"></div>
+         <div id="livelog" region="south" split="true" collapsible="true" title="<?php mea_toLocalC('live log'); ?>" style="height:150px;position:relative;overflow:hidden">
+            <div id="console" class="console" style="background:lightgray;width:auto;height:100%"></div>
          </div>
       </div>
    </div>

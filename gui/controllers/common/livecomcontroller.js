@@ -22,8 +22,9 @@ LiveComController.prototype = {
       this._connect(this, null, null);
    },
    
-   _connect: function(_liveCom,fn_ok,fn_ko) {
+   _connect: function(_liveCom, fn_ok, fn_ko) {
        var socketioJsUrl=window.location.protocol + '//' + window.location.hostname + ':'+_liveCom._socketio_port+'/socket.io/socket.io.js';
+      console.log(socketioJsUrl);
       $.ajax({
          url: socketioJsUrl,
          dataType: "script",

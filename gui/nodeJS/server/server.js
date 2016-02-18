@@ -3,6 +3,7 @@
 // process.argv.forEach(function (val, index, array) {
 //  console.log(index + ': ' + val);
 //});
+// passer les ports et sessions_path
 //
 
 // voir ici : http://stackoverflow.com/questions/6502031/authenticate-user-for-socket-io-nodejs pour récupérer l'id session PHP dans les cookies
@@ -12,7 +13,7 @@ process.on('uncaughtException', function (error) {
 //   console.log(error.stack);
    if(error.code == 'EADDRINUSE')
    {
-      console.log(getDateTime()+" ERROR port already in use");
+      console.log(getDateTime()+"ERROR port already in use");
       process.exit(0);
    }
    console.log(getDateTime()+" INFO  uncaughtException, check :");
@@ -135,8 +136,14 @@ function internalCmnd(s, msg)
 
 function process_msg(s, cmnd, msg)
 {
-   if(cmnd=="LOG")
+   if(cmnd=="AUT")
+   {
+      sendMessage('aut', msg);
+   }
+   else if(cmnd=="LOG")
+   {
       sendMessage('log', msg);
+   }
    else if(cmnd=="MON")
    {
       sendMessage('mon', msg);
@@ -155,7 +162,7 @@ function process_msg(s, cmnd, msg)
    }
    else
    {
-      console.log(getDateTime()+" INFO   socket.on(data) : unknown command - "+cmd);
+      console.log(getDateTime()+" INFO   socket.on(data) : unknown command - "+cnmd);
       return -1;
    }
    return 0;
@@ -169,7 +176,7 @@ var server = require('net').createServer(function (socket) {
       // $$$%c%c%3s:%s###
       // avec %c%c : taille de la zone data ("CMD:%s") en little indian
       //      %3s  : code commande (ex : LOG, MON, ...)
-     try {
+      try {
          var car = socket.read(1);
          do
          {
@@ -224,11 +231,11 @@ var server = require('net').createServer(function (socket) {
             process_msg(socket, cmnd, msg);
          }
          while( null !== (car = socket.read(1)) ); // encore des caractères à lire ?
-     }
-     catch(err)
-     {
-        console.log(getDateTime()+" ERROR : socket.on('readable',function(){})");
-     }
+      }
+      catch(err)
+      {
+        console.log(getDateTime()+" ERROR : socket.on('readable',function(){}) - "+err.message+" ("+err.lineNumber+")");
+      }
    });
 }).listen(LOCAL_PORT);
 
@@ -241,8 +248,7 @@ server.on('listening', function () {
 var clients = [];
 var phpsessids = [];
 
-var socketio=require('socket.io');
-var io = socketio.listen(SOKET_IO_PORT);
+var io = require('socket.io').listen(SOKET_IO_PORT);
 
 var fs = require('fs');
 
@@ -314,8 +320,9 @@ function sendMessage(key, message) {
    // emission du message 'key' à tous les clients "authentifies"
    for (var i in clients) {
       try {
-         // clients[i].socket.emit(key, message.toString());
-         clients[i].socket.emit(key, ""+message);
+         clients[i].socket.emit(key, message.toString());
+         // clients[i].socket.emit(key, ""+message);
+         // clients[i].socket.emit(key, message);
       }
       catch(err)
       {

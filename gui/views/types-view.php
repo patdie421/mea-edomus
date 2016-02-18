@@ -153,11 +153,13 @@ jQuery(document).ready(function(){
          <thead>
             <tr>
                <th data-options="field:'id',width:10,hidden:true"><?php mea_toLocalC('id'); ?></th>
-               <th data-options="field:'name',width:100,sortable:true,align:'left'"><?php mea_toLocalC('name'); ?></th>
-               <th data-options="field:'id_type',width:50"><?php mea_toLocalC('type id'); ?></th>
-               <th data-options="field:'typeoftype',width:50,formatter:strTypeOfType_ty"><?php mea_toLocalC('type of type'); ?></th>
+               <th data-options="field:'name',width:100,fixed:true,sortable:true,align:'left'"><?php mea_toLocalC('name'); ?></th>
+               <th data-options="field:'id_type',width:50,fixed:true"><?php mea_toLocalC('type id'); ?></th>
+               <th data-options="field:'typeoftype',width:75,fixed:true,formatter:strTypeOfType_ty"><?php mea_toLocalC('type of type'); ?></th>
                <th data-options="field:'description',width:200,align:'left'"><?php mea_toLocalC('description'); ?></th>
+<!--
                <th data-options="field:'parameters',width:200,align:'left'"><?php mea_toLocalC('parameters'); ?></th>
+-->
                <th data-options="field:'flag',hidden:true"><?php mea_toLocalC('flag'); ?></th>
             </tr>
          </thead>

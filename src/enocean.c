@@ -203,7 +203,8 @@ int16_t enocean_init(enocean_ed_t *ed, char *dev)
       ed->queue=NULL;
       return -1;
    }
-   
+   fprintf(stderr,"ENOCEAN : %x\n", ed->read_thread);
+
    ed->id=-1;
    if(enocean_get_local_addr(ed, &ed->id,&nerr)<0) // pas de reponse correct
    {

@@ -13,10 +13,10 @@ DEBUGFLAGS = -g \
 	-std=gnu99 \
 	-O2 \
 	-D_BSD_SOURCE \
-	-I $(MEAINCLUDESDIR) \
+	-I$(MEAINCLUDESDIR) \
 	$(DEBUGFLAGS)
 
-LDFLAGS = -lm -ldl
+LDFLAGS = -lm -ldl -lpthread
 
 .DEFAULT_GOAL = all
 
@@ -26,7 +26,7 @@ all: .deps enoceanpairing enoceanlogger
 	@mkdir -p .deps
 
 enoceanpairing: enocean_pairing.o
-	$(CC) $(LDFLAGS) $(MEALIB) enocean_pairing.o -o $@
+	$(CC) $(LDFLAGS) enocean_pairing.o $(MEALIB) -o $@
 
 enoceanlogger: enocean_logger.o
 	$(CC) $(LDFLAGS) enocean_logger.o -o $@

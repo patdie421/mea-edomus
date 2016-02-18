@@ -44,7 +44,8 @@
 #define PARAMSDBVERSION       24
 #define INTERFACE             25
 #define RULES_FILE            26
-#define MAX_LIST_SIZE         27
+#define RULES_FILES_PATH      27
+#define MAX_LIST_SIZE         28
 
 #define CURRENT_PARAMS_DB_VERSION 7
 sqlite3 *get_sqlite3_param_db();
@@ -57,5 +58,7 @@ sqlite3 *get_sqlite3_param_db();
 #define UNIT_H  5 // pourcentage humidité
 
 #define NOPTHREADJOIN 1
+
+extern FILE *dbgfd;
 
 #endif

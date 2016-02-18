@@ -1,23 +1,41 @@
-extendClass = function(subClass, baseClass) {
-   function __inheritance() {}
-   __inheritance.prototype = baseClass.prototype;
-   subClass.prototype = new __inheritance();
-   subClass.prototype.constructor = subClass;
-   subClass.superConstructor = baseClass;
-   subClass.superClass = baseClass.prototype;
+String.prototype.mea_hexDecode = function(){
+    var j;
+    var hexes = this.match(/.{1,4}/g) || [];
+    var back = "";
+    for(j = 0; j<hexes.length; j++) {
+        back += String.fromCharCode(parseInt(hexes[j], 16));
+    }
+
+    return back;
 }
+
+
+String.prototype.mea_hexEncode = function(){
+    var hex, i;
+
+    var result = "";
+    for (i=0; i<this.length; i++) {
+        hex = this.charCodeAt(i).toString(16);
+        result += ("000"+hex).slice(-4);
+    }
+
+    return result
+}
+
 
 // voir aussi pour les class : http://www.42hacks.com/notes/fr/20111213-comment-ecrire-du-code-oriente-objet-propre-et-maintenable-en-javascript/
-
 function CommonController()
 {
-  this.loginUrl = "login.php"; // à mettre dans credential controller ?
+   CommonController.superConstructor.call(this);
+
+//   this.loginUrl = "login.php"; // à mettre dans credential controller ?
 }
 
+extendClass(CommonController, MeaObject);
 
+
+/*
 CommonController.prototype = {
-
-// from translation controller
    _toLocal: function(string)
    {
       return string.toLowerCase();
@@ -117,4 +135,4 @@ CommonController.prototype = {
       $.messager.alert(title, msg, 'error');
    }
 };
-
+*/

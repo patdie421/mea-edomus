@@ -17,17 +17,18 @@ session_start();
    <meta name="viewport" content="width=device-width, initial-scale=0.99">
    <meta name="description" content="domotique DIY !">
 
-   <link rel="stylesheet" type="text/css" href="lib/jquery-easyui-1.4.1/themes/default/easyui.css">
-   <link rel="stylesheet" type="text/css" href="lib/jquery-easyui-1.4.1/themes/icon.css">
-   <link rel="stylesheet" type="text/css" href="lib/jquery-easyui-1.4.1/themes/color.css">
+   <link rel="stylesheet" type="text/css" href="lib/jquery-easyui-1.4.4/themes/default/easyui.css">
+   <link rel="stylesheet" type="text/css" href="lib/jquery-easyui-1.4.4/themes/icon.css">
+   <link rel="stylesheet" type="text/css" href="lib/jquery-easyui-1.4.4/themes/color.css">
    <link rel="stylesheet" type="text/css" href="lib/mea-edomus.css">
    
-   <script type="text/javascript" src="lib/jquery-easyui-1.4.1/jquery.min.js"></script>
-   <script type="text/javascript" src="lib/jquery-easyui-1.4.1/jquery.easyui.min.js"></script>
+   <script type="text/javascript" src="lib/jquery-easyui-1.4.4/jquery.min.js"></script>
+   <script type="text/javascript" src="lib/jquery-easyui-1.4.4/jquery.easyui.min.js"></script>
 </head>
 
 <script type="text/javascript" src="models/common/models-utils.js"></script>
 
+<script type="text/javascript" src="controllers/common/meaobject.js"></script>
 <script type="text/javascript" src="controllers/common/commoncontroller.js"></script>
 <script type="text/javascript" src="controllers/common/translationcontroller.js"></script>
 <script type="text/javascript" src="controllers/common/credentialcontroller.js"></script>
@@ -64,7 +65,20 @@ jQuery(document).ready(function(){
    passwordController = new PasswordController('models/login.php','models/set_password.php');
    passwordController.linkToTranslationController(translationController);
    passwordController.linkToCredentialController(credentialController);
-   
+
+   userid = $("#userid");
+   passwd = $("#passwd");
+  
+   userid.textbox('textbox').on('keydown', function(e) {
+      if(e.keyCode == 13)
+         passwd.textbox('textbox').focus();
+   });
+
+   passwd.textbox('textbox').on('keydown', function(e) {
+      if(e.keyCode == 13)
+         login();
+   });
+
    <?php
       echo "chgPasswordDest = \"change_password2.php";
       if(isset($_REQUEST['view'])) {
@@ -95,7 +109,7 @@ jQuery(document).ready(function(){
       <div style="display:inline-block;margin-top:75px">
          <div class="easyui-panel" title="<?php mea_toLocalC('Login to system'); ?>" style="width:400px;padding:30px 70px 20px 70px;margin:0 auto">
             <div style="margin-bottom:10px">
-               <input id="userid" class="easyui-textbox" style="width:100%;height:40px;padding:12px" data-options="prompt:'<?php mea_toLocalC('user id'); ?>',iconCls:'icon-man',iconWidth:38">
+               <input id="userid" class="easyui-textbox" autocapitalize="off" autocorrect="off" style="width:100%;height:40px;padding:12px;" data-options="prompt:'<?php mea_toLocalC('user id'); ?>',iconCls:'icon-man',iconWidth:38">
             </div>
             <div style="margin-bottom:20px">
                <input id="passwd" class="easyui-textbox" type="password" style="width:100%;height:40px;padding:12px" data-options="prompt:'<?php mea_toLocalC('password'); ?>',iconCls:'icon-lock',iconWidth:38">

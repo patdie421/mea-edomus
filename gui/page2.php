@@ -18,6 +18,8 @@ jQuery(document).ready(function(){
 ?>
    if(destview=="")
       destview=translationController.toLocalC('sensors/actuators');
+   else
+      destview=destview.mea_hexDecode();
 
    // un peu de ménage pour éviter les doublons ...
    // les boites de dialogue et objets associés (forme, boutons, données de combobox, ...) reste présents lorsqu'on
@@ -36,9 +38,7 @@ jQuery(document).ready(function(){
    page2_ctrlr = new TabsPageController("page2_tab");
    page2_ctrlr.linkToTranslationController(translationController);
    page2_ctrlr.linkToCredentialController(credentialController); // pour la gestion des habilitations
-
    page2_ctrlr.start(destview);
-
 });
 </script>
 

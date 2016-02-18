@@ -91,5 +91,18 @@
 .icon-large-chart{
 	background:url('icons/large_chart.png') no-repeat center center;
 }
-
-
+.icon-mealeftarrow{
+	background:url('icons/mea_leftarrow.png') no-repeat center center;
+}
+.icon-mearightarrow{
+	background:url('icons/mea_rightarrow.png') no-repeat center center;
+}
+.icon-meauparrow{
+	background:url('icons/mea_uparrow.png') no-repeat center center;
+}
+.icon-meadownarrow{
+	background:url('icons/mea_downarrow.png') no-repeat center center;
+}
+.icon-meacompiler{
+	background:url('icons/mea_compiler.png') no-repeat center center;
+}

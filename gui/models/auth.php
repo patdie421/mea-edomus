@@ -55,7 +55,7 @@ if($result){
     }
 
     $_SESSION['userid']=$user_name;
-    $_SESSION['profil']=$result[0]['profil'];
+    $_SESSION['profil']=(int)$result[0]['profil'];
     if($result[0]['flag']!=1)
         $_SESSION['logged_in']=1;
     else

@@ -161,7 +161,7 @@ def mea_xplCmndMsg(data):
          verbose(2, "ERROR (", fn_name, ") - xpl command error")
          return False
 
-   elif schema!="sensor.basic":
+   elif schema=="sensor.basic":
       if request==False:
          verbose(2, "ERROR (", fn_name, ") - no \"request\" in message body") 
          return False

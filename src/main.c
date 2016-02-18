@@ -36,6 +36,8 @@
 #include "mea_queue.h"
 #include "mea_string_utils.h"
 #include "mea_sockets_utils.h"
+#include "mea_timer.h"
+
 #include "parameters_utils.h"
 
 #include "init.h"
@@ -56,6 +58,8 @@
 
 #include "notify.h"
 
+// FILE *dbgfd;
+
 int xplServer_monitoring_id=-1;
 int httpServer_monitoring_id=-1;
 int logServer_monitoring_id=-1;
@@ -68,6 +72,8 @@ int log_rotation_id=-1;
 mea_queue_t *interfaces=NULL;                  /*!< liste (file) des interfaces. Variable globale car doit être accessible par les gestionnaires de signaux. */
 sqlite3 *sqlite3_param_db=NULL;            /*!< descripteur pour la base sqlite de paramétrage. */
 pthread_t *monitoringServer_thread=NULL;   /*!< Adresse du thread de surveillance interne. Variable globale car doit être accessible par les gestionnaires de signaux.*/
+
+long sigsegv_indicator = 0;
 
 uint16_t params_db_version=0;
 char *params_names[MAX_LIST_SIZE];          /*!< liste des noms (chaines) de paramètres dans la base sqlite3 de paramétrage.*/
@@ -127,6 +133,7 @@ void usage(char *cmd)
       "  --guipath, -G       (défaut : basepath/lib/mea-gui)",
       "  --logpath, -L       (défaut : basepath/var/log ou /var/log si basepath=/usr)",
       "  --pluginspath, -A   (défaut : basepath/lib/mea-plugins)",
+      "  --rulesfilespath, -R(défaut : basepath/lib/rules)",
       "  --rulesfile, -r     (défaut : basepath/lib/rules/automator.rules)",
       "  --bufferdb, -B      (défaut : basepath/var/db/queries.db ou",
       "                                /var/db/mea-queries.db si basepath=/usr)",
@@ -209,6 +216,7 @@ void init_param_names(char *param_names[])
    param_names[PARAMSDBVERSION]      = "PARAMSDBVERSION";
    param_names[INTERFACE]            = "INTERFACE";
    param_names[RULES_FILE]           = "RULESFILE";
+   param_names[RULES_FILES_PATH]     = "RULESFILESPATH";
 }
 
 
@@ -347,6 +355,7 @@ void clean_all_and_exit()
 
 static void error_handler(int signal_number)
 {
+/*
    void *array[10];
    char **messages;
 
@@ -364,12 +373,27 @@ static void error_handler(int signal_number)
    for (int i=1; i < size && messages != NULL; ++i)
       fprintf(stderr, "[backtrace]: (%d) %s\n", i, messages[i]);
    free(messages);
+*/
+//extern pthread_t *_xPLServer_thread_id;
+//extern jmp_buf xPLServer_JumpBuffer;
 
-   // pour générer un coredump voir
-   // http://www.alexonlinux.com/how-to-handle-sigsegv-but-also-generate-core-dump
-   signal(signal_number, SIG_DFL);
-   kill(getpid(), signal_number);
+   ++sigsegv_indicator;
 
+   fprintf(stderr, "Error: signal %d:\n", signal_number);
+   if((_xPLServer_thread_id!=NULL) && pthread_equal(*_xPLServer_thread_id, pthread_self())!=0)
+   {
+      fprintf(stderr, "Error: in xPLServer, try to recover\n");
+      longjmp(xPLServer_JumpBuffer, 1);
+   }
+   else if((_automatorServer_thread_id!=NULL) && pthread_equal(*_automatorServer_thread_id, pthread_self())!=0)
+   {
+      fprintf(stderr, "Error: in automatorServer ... (%s)\n", _automatorServer_fn);
+   }
+
+   fprintf(stderr, "Error: aborting\n");
+   fprintf(stderr, "Thread id : %x", pthread_self());
+
+   abort();
    exit(1);
 }
 
@@ -416,7 +440,7 @@ int main(int argc, const char * argv[])
    // pour changer l'endroit ou sont les cores dump et donner un nom plus explicite
    // echo '/tmp/core_%e.%p' | sudo tee /proc/sys/kernel/core_pattern
 
-//   signal(SIGSEGV, error_handler);
+   signal(SIGSEGV, error_handler);
 
    // toutes les options possibles
    static struct option long_options[] = {
@@ -444,6 +468,7 @@ int main(int argc, const char * argv[])
       {"instanceid",        required_argument, 0,  INSTANCE_ID          }, // 'S'
       {"verboselevel",      required_argument, 0,  VERBOSELEVEL         }, // 'v'
       {"rulesfile",         required_argument, 0,  RULES_FILE           }, // 'r'
+      {"rulesfilespath",    required_argument, 0,  RULES_FILES_PATH     }, // 'R'
       {"nodejspath",        required_argument, 0,  NODEJS_PATH          }, // 'j'
       {"nodejssocketioport",required_argument, 0,  NODEJSIOSOCKET_PORT  }, // 'J'
       {"nodejsdataport",    required_argument, 0,  NODEJSDATA_PORT      }, // 'k'
@@ -647,6 +672,10 @@ int main(int argc, const char * argv[])
          case 'r':
             c=RULES_FILE;
             break;
+
+         case 'R':
+            c=RULES_FILES_PATH;
+            break;
       }
 
       if(c>'!') // parametre non attendu trouvé (! = premier caractère imprimable).
@@ -797,6 +826,8 @@ int main(int argc, const char * argv[])
    char log_file[255];
    int16_t n;
 
+//   dbgfd = fopen("/tmp/dbg.log", "r+");
+
    if(!params_list[LOG_PATH] || !strlen(params_list[LOG_PATH]))
    {
       params_list[LOG_PATH]=(char *)malloc(strlen("/var/log"));
@@ -863,6 +894,7 @@ int main(int argc, const char * argv[])
    process_set_type(main_monitoring_id, NOTMANAGED);
    process_set_status(main_monitoring_id, RUNNING);
    process_add_indicator(main_monitoring_id, "UPTIME", 0);
+   process_add_indicator(main_monitoring_id, "SIGSEGV", 0);
 
    //
    // nodejsServer (1er lancé, il est utilisé par les autres serveurs pour les notifications ou les log)
@@ -956,7 +988,7 @@ int main(int argc, const char * argv[])
       VERBOSE(1) mea_log_printf("%s (%s) : can't start python plugin server\n",ERROR_STR,__func__);
       clean_all_and_exit();
    }
-   sleep(1);
+   sleep(2);
 
    //
    // xPLServer
@@ -1019,6 +1051,7 @@ int main(int argc, const char * argv[])
 //   process_run_task(log_rotation_id, NULL, 0);
 
    VERBOSE(1) mea_log_printf("%s (%s) : MEA-EDOMUS %s starded\n", INFO_STR, __func__, __MEA_EDOMUS_VERSION__);
+   fprintf(stderr,"MAIN : %x\n",  pthread_self());
 
    time_t start_time;
    long uptime = 0;
@@ -1042,6 +1075,7 @@ int main(int argc, const char * argv[])
       // indicateur de fonctionnement de mea-edomus
       uptime = (long)(time(NULL)-start_time);
       process_update_indicator(main_monitoring_id, "UPTIME", uptime);
+      process_update_indicator(main_monitoring_id, "SIGSEGV", sigsegv_indicator);
 
       managed_processes_loop(); // watchdog et indicateurs
       

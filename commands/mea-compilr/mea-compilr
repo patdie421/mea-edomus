@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # coding: utf8
 
+import os
 import re
 #import string
 import sys
@@ -27,17 +28,28 @@ def optimize_boolean(b,o):
       return b;
 
 
-def rulesToJSON(file, verboseFlag, debugFlag, numFile, optimize):
+def printError(errortojson, num, line, text):
+   if errortojson == True:
+      error = { "errno" : num, "line" : line, "message" : text }
+      print error
+   else:
+      linenum=""
+      if line != 0:
+         linenum="Line "+str(line)+":"
+      print "Error#"+str(num), linenum, text 
+
+
+def rulesToJSON(file, verboseFlag, debugFlag, numFile, optimize, errortojson):
    inputs_rules=[]
    outputs_rules=[]
    files=[]
    try: 
       f = open(file, 'r')
    except IOError as e:
-      print "can't open file '"+file+"': ", e.strerror
+      printError(errortojson, 1, 0, "can't open file '"+file+"': "+e.strerror)
       return False
    except:
-      print "unexpected error: ", sys.exc_info()[0]
+      printError(errortojson, 1, 0, "unexpected error: "+sys.exc_info()[0])
       return False
 
    numLine=0
@@ -57,7 +69,7 @@ def rulesToJSON(file, verboseFlag, debugFlag, numFile, optimize):
       s=re.split('(is:|if:|onmatch:|do:|with:|when:)',line) # découpage suivant les 6 mots clés
       nb_elems=len(s)
       if not nb_elems in [3, 5, 7]:
-         print "line "+str(numLine)+" : malformed rule, check syntax"
+         printError(errortojson, 2, numLine, "malformed rule, check syntax")
          return False
       # "nettoyage" (suppression des blancs en debut et fin de chaine)  des éléments résultats du découpage
       for i in range(0, len(s)):
@@ -72,11 +84,11 @@ def rulesToJSON(file, verboseFlag, debugFlag, numFile, optimize):
          elif s[1]=='do:':
             toOutput=True
          else:
-            print "line "+str(numLine)+": 'is:' or 'do:' is mandatory"
+            printError(errortojson, 3, numLine, "'is:' or 'do:' is mandatory")
             return False
 
          if isname(s[0])<>True:
-            print "line "+str(numLine)+": name format error"
+            printError(errortojson, 4, numLine, "name format error")
             return False
 
          if toInput==True:
@@ -89,7 +101,7 @@ def rulesToJSON(file, verboseFlag, debugFlag, numFile, optimize):
             rule["file"]=numFile
             rule["line"]=numLine
       except:
-         print "line "+str(numLine)+": unexpected error - ", sys.exc_info()[0]
+         printError(errortojson, 5, numLine, "unexpected error - ", sys.exc_info()[0])
          return False
 
       if toInput==True:
@@ -106,7 +118,7 @@ def rulesToJSON(file, verboseFlag, debugFlag, numFile, optimize):
                      c=re.split('(==|!=|<=|>=|<|>)',i)
                      rule['conditions'].append({ 'value1' : optimize_boolean(c[0].strip(), optimize), 'op' : c[1].strip(), 'value2' : optimize_boolean(c[2].strip(),optimize) })
                else:
-                  print "line "+str(numLine)+": conditions error"
+                  printError(errortojson, 6, numLine, "conditions error")
                   return False
                n=n+2
          # onmatch
@@ -117,12 +129,12 @@ def rulesToJSON(file, verboseFlag, debugFlag, numFile, optimize):
 
       elif toOutput==True:
          if nb_elems <> 7:
-            print "line "+str(numLine)+" : malformed rule, check syntax"
+            printError(errortojson, 7, numLine, "malformed rule, check syntax")
             return False
          else:
             n=7
          if s[3]!='with:' or s[5]!='when:':
-            print "line "+str(numLine)+" : malformed rule, check syntax"
+            printError(errortojson, 8, numLine, "malformed rule, check syntax")
             return False
 
          rule['parameters']={}
@@ -136,7 +148,7 @@ def rulesToJSON(file, verboseFlag, debugFlag, numFile, optimize):
 
          condition=re.split('(rise|fall|change|new)',s[6])
          if len(condition) != 3:
-            print "line "+str(numLine)+" : malformed rule, check syntax"
+            printError(errortojson, 9, numLine, "malformed rule, check syntax")
             return False
          for i in range(0, len(condition)-1):
             condition[i]=condition[i].strip()
@@ -162,7 +174,7 @@ def rulesToJSON(file, verboseFlag, debugFlag, numFile, optimize):
          if toOutput == True:
             outputs_rules.append(rule)
       else:
-         print "line "+str(numLine)+": not a rule, check syntax (probably 'if:' or 'onmatch:' dupplication, or if:/onmatch: inversion)'"
+         printError(errortojson, 9, numLine, "not a rule, check syntax (probably 'if:' or 'onmatch:' dupplication, or if:/onmatch: inversion)'")
          return False
 
    f.close()
@@ -179,14 +191,17 @@ def main():
 
    parser = OptionParser(usage)
 
-   parser.add_option("-o", "--output", dest="outputfile", help="write result to FILE", metavar="FILE", default=False)
-   parser.add_option("-i", "--indent", action="store_true", dest="indent", help="JSON indented output")
-   parser.add_option("-v", "--verbose", action="store_true", dest="verbose", help="verbose")
-   parser.add_option("-d", "--debug", action="store_true", dest="debug", help="debug")
-   parser.add_option("-O", "--optimize", action="store_true", dest="optimize", help="optimize result code")
+   parser.add_option("-o", "--output",    dest="outputfile",   help="write result to FILE", metavar="FILE", default=False)
+   parser.add_option("-i", "--indent",    action="store_true", dest="indent", help="JSON indented output")
+   parser.add_option("-v", "--verbose",   action="store_true", dest="verbose", help="verbose")
+   parser.add_option("-d", "--debug",     action="store_true", dest="debug", help="debug")
+   parser.add_option("-O", "--optimize",  action="store_true", dest="optimize", help="optimize result code")
+   parser.add_option("-s", "--set",       dest="rulessetfile", help="from rules set", default=False)
+   parser.add_option("-p", "--rulespath", dest="rulespath",    help="default rules files path", default=False)
+   parser.add_option("-j", "--errorjson", action="store_true", dest="errorjson", help="error in json format", default=False)
 
    (options, args) = parser.parse_args()
-   if len(args) < 1:
+   if options.rulessetfile==False and len(args) < 1:
       parser.error("incorrect number of arguments")
 
    files=[]
@@ -195,20 +210,48 @@ def main():
    rules["inputs"]=[]
    rules["outputs"]=[]
    _rules=False
- 
+
+   if options.rulessetfile!=False:
+      try:
+         with open(options.rulessetfile) as rulesfileslist:    
+            rulesfileslist = json.load(rulesfileslist)
+            for i in rulesfileslist:
+               rulesfile=i+".srules"
+               if options.rulespath!=False:
+                  rulesfile=options.rulespath+"/"+rulesfile
+               ret=rulesToJSON(rulesfile, options.verbose, options.debug, fileNum, options.optimize, options.errorjson)
+               if ret!=False:
+                  try:
+                     rules["inputs"]=rules["inputs"]+ret["inputs"]
+                     rules["outputs"]=rules["outputs"]+ret["outputs"]
+                  except:
+                     printError(options.errorjson, 14, 0, "unexpected error: "+str(sys.exc_info()[0]))
+                     os._exit(1)
+               else:
+                  os._exit(1)
+               files.append(rulesfile)
+               fileNum=fileNum+1
+
+      except IOError as e:
+         printError(errortojson, 10, 0, "can't open file '"+file+"': "+e.strerror)
+         os._exit(1)
+      except:
+         printError(options.errorjson, 11, 0, "unexpected error: "+str(sys.exc_info()[0]))
+         os._exit(1)
+
    for i in args:
       if options.verbose == True:
          print "Processing file : "+i
-      ret=rulesToJSON(i, options.verbose, options.debug, fileNum, options.optimize)
+         ret=rulesToJSON(i, options.verbose, options.debug, fileNum, options.optimize, options.errorjson)
       if ret!=False:
          try:
             rules["inputs"]=rules["inputs"]+ret["inputs"]
             rules["outputs"]=rules["outputs"]+ret["outputs"]
          except:
-            print "unexpected error: ", sys.exc_info()[0]
-            exit(1)
+            printError(errortojson, 12, 0, "unexpected error: "+str(sys.exc_info()[0]))
+            os._exit(1)
       else:
-         exit(1)
+         return 1
       files.append(i)
       fileNum=fileNum+1
 
@@ -225,12 +268,15 @@ def main():
          f = open(options.outputfile, 'w')
          f.write(_rules)
          f.close()
+         if options.errorjson==True:
+            printError(True, 0, 0, "no error")
+
       except IOError as e:
-         print "can't open file '"+file+"': ", e.strerror
-         exit(1)
+         printError(errortojson, 12, 0, "can't open file '"+file+"': "+e.strerror)
+         os._exit(1)
       except:
-         print "unexpected error: ", sys.exc_info()[0]
-         exit(1)
+         printError(errortojson, 13, 0, "unexpected error: "+str(sys.exc_info()[0]))
+         os._exit(1)
    else:
       print _rules 
 

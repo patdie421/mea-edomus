@@ -106,9 +106,9 @@ int send_line(char *hostname, int port_socketdata, char *line)
       }
    }
  
-   char message[1024];
+//   char message[1024];
    int l_data=strlen(line)+4; // 4 pour strlen de "LOG:"
-
+   char *message=(char *)alloca(l_data+12);
    sprintf(message,"$$$xxLOG:%s###", line);
    // on remplace les xx par la longueur
    message[3]=(char)(l_data%128);
@@ -430,12 +430,12 @@ void *logServer_thread(void *data)
    mea_init_timer(&log_timer, 5, 1); // heartbeat toutes les 5 secondes
    mea_start_timer(&log_timer);
 
+    char line[4096];
    do
    {
       if(_livelog_enable==1)
       {
-         char line[1024];
-            
+         line[0]=0; 
          if(!fp)
          {
             fp = fopen(log_file, "r");
@@ -453,11 +453,13 @@ void *logServer_thread(void *data)
             
          if(fp)
          {
-            int ret=read_line(fp, line, sizeof(line), &pos);
+            int ret=read_line(fp, line, sizeof(line)-1, &pos);
             if(ret==0)
             {
                if(line[0]) // ligne non vide
                {
+//                  fprintf(dbgfd, "[%s]\n",line);
+//                  fflush(dbgfd);
                   if(send_line(logServer_thread_data->hostname, logServer_thread_data->port_socketdata, line) < 0)
                   {
 //                     VERBOSE(9) mea_log_printf("%s (%s) : can't send line.\n", ERROR_STR, __func__);
@@ -562,10 +564,12 @@ int start_logServer(int my_id, void *data, char *errmsg, int l_errmsg)
 
       return -1;
    }
+   fprintf(stderr,"LOGSERVER : %x\n", *_logServer_thread);
    pthread_detach(*_logServer_thread);
+
    _logServer_monitoring_id=my_id;
 
-   VERBOSE(1) mea_log_printf("%s (%s) : %s %s.\n", INFO_STR, __func__, log_server_name_str, launched_successfully_str);
+   VERBOSE(2) mea_log_printf("%s (%s) : %s %s.\n", INFO_STR, __func__, log_server_name_str, launched_successfully_str);
    mea_notify_printf('S', "%s %s.", log_server_name_str, launched_successfully_str);
    return 0;
 }

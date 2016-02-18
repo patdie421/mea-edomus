@@ -12,6 +12,7 @@
 #include <time.h>
 #include <sys/time.h>
 #include <signal.h>
+#include <setjmp.h>
 #include <errno.h>
 #include <string.h>
 #include <pthread.h>
@@ -47,6 +48,7 @@ char *xpl_server_name_str="XPLSERVER";
 char *xpl_server_xplin_str="XPLIN";
 char *xpl_server_xplout_str="XPLOUT";
 
+// gestion du service xPL
 xPL_ServicePtr xPLService = NULL;
 char *xpl_vendorID=NULL;
 char *xpl_deviceID=NULL;
@@ -55,6 +57,8 @@ char *xpl_instanceID=NULL;
 
 // gestion du thread et des indicateurs
 pthread_t *_xPLServer_thread_id;
+jmp_buf xPLServer_JumpBuffer;
+int xPLServer_longjmp_flag = 0;
 int _xplServer_monitoring_id = -1;
 volatile sig_atomic_t _xPLServer_thread_is_running=0;
 
@@ -70,13 +74,6 @@ pthread_cond_t  xplRespQueue_sync_cond;
 pthread_mutex_t xplRespQueue_sync_lock;
 int             _xPLServer_mutex_initialized=0;
 
-/*
-// declaration des fonctions xPL non exporté par la librairies
-extern xPL_MessagePtr xPL_AllocMessage();
-extern xPL_NameValueListPtr xPL_AllocNVList();
-extern xPL_MessagePtr createSendableMessage(xPL_MessageType messageType, char *vendorID, char *deviceID, char *instanceID);
-export xPL_MessagePtr createReceivedMessage(xPL_MessageType messageType);
-*/
 
 void _cmndXPLMessageHandler(xPL_MessagePtr theMessage, xPL_ObjectPtr userValue);
 
@@ -340,9 +337,7 @@ xPL_MessagePtr mea_readXPLResponse(int id)
       } 
    }
    else
-   {
       goto readFromQueue_return;
-   }
 
    // a ce point il devrait y avoir quelque chose dans la file.
    if(mea_queue_first(xplRespQueue)==0)
@@ -533,6 +528,7 @@ void *xPLServer_thread(void *data)
    pthread_cleanup_push( (void *)set_xPLServer_isnt_running, (void *)NULL );
    pthread_cleanup_push( (void *)clean_xPLServer, (void *)NULL);
    
+   xPLServer_longjmp_flag = 0;
    _xPLServer_thread_is_running=1;
    process_heartbeat(_xplServer_monitoring_id); // 1er heartbeat après démarrage.
    
@@ -563,13 +559,19 @@ void *xPLServer_thread(void *data)
 
    do
    {
+      if(setjmp(xPLServer_JumpBuffer) != 0)
+      {
+         xPLServer_longjmp_flag++;
+         break;
+      }
+
       pthread_testcancel();
       process_heartbeat(_xplServer_monitoring_id); // heartbeat après chaque boucle
       
 #ifdef XPL_WD
       if(mea_test_timer(&xPLnoMsgReceivedTimer)==0)
       {
-         // pas de message depuis 90 secondes
+         // pas de message depuis X secondes
          VERBOSE(2) {
             mea_log_printf("%s (%s) : no xPL message since 30 seconds, but we should have one ... I send me three !\n", ERROR_STR, __func__);
             mea_log_printf("%s (%s) : watchdog_recovery forced ...\n", ERROR_STR, __func__);
@@ -577,7 +579,7 @@ void *xPLServer_thread(void *data)
          process_forced_watchdog_recovery(_xplServer_monitoring_id);
       }
       
-      if(mea_test_timer(&xPLWDSendMsgTimer)==0) // envoie d'un message toutes les 30 secondes
+      if(mea_test_timer(&xPLWDSendMsgTimer)==0) // envoie d'un message toutes les X secondes
          xPL_sendMessage(xplWDMsg);
 #endif
 
@@ -597,6 +599,9 @@ void *xPLServer_thread(void *data)
       _flushExpiredXPLResponses();
    }
    while (1);
+
+   if(xPLServer_longjmp_flag > 1)
+      abort();
 
    pthread_cleanup_pop(1);
    pthread_cleanup_pop(1);
@@ -781,3 +786,4 @@ int restart_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg)
    }
    return ret;
 }
+

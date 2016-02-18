@@ -54,6 +54,7 @@ mea_string_utils.c \
 mea_timer.c  \
 mea_verbose.c \
 tokens.c  \
+serial.c \
 xbee.c 
 
 OBJECTS=$(addprefix $(TECHNO).objects/, $(SOURCES:.c=.o))
@@ -74,6 +75,7 @@ $(LIBDIR)/$(LIBNAME): $(OBJECTS)
 	@mkdir -p $(LIBDIR)
 	rm -f $(LIBDIR)/$(LIBNAME)
 	ar q $(LIBDIR)/$(LIBNAME) $(OBJECTS)
+	ranlib $(LIBDIR)/$(LIBNAME)
 
 clean:
 	rm -f $(TECHNO).objects/*.o $(LIBDIR)/$(LIBNAME) .deps/*.dep

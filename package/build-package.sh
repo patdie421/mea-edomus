@@ -61,6 +61,11 @@ fi
 if [ -f $SOURCE/complements/xPL_Hub/src/xPLLib/examples/xPL_Hub_static ]
 then
    cp $SOURCE/complements/xPL_Hub/src/xPLLib/examples/xPL_Hub_static $SOURCE/package/tmp/bin
+fi
+
+if [ -f $SOURCE/complements/xPL_Hub/src/xPLLib/examples/xPL_Hub ]
+then
+   cp $SOURCE/complements/xPL_Hub/src/xPLLib/examples/xPL_Hub $SOURCE/package/tmp/bin
    cp $SOURCE/complements/xPL_Hub/install/init.d/xPLHub $SOURCE/package/tmp/etc/init.d
 fi
 

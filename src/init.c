@@ -388,7 +388,7 @@ int16_t create_php_ini(char *phpini_path)
 }
 
 
-int16_t create_configs_php(char *gui_home, char *params_db_fullname, char *php_log_fullname, char *php_sessions_fullname, int iosocket_port)
+int16_t create_configs_php(char *base_path, char *gui_home, char *params_db_fullname, char *php_log_fullname, char *php_sessions_fullname, int iosocket_port)
  /**
   * \brief     Création d'un fichier configs.php cohérent avec l'installation de l'interface graphique et les chemins de fichiers à utiliser.
   * \details   Actuellement positionne fichier de log de php et chemin de la base sqlite3 de parametrage.
@@ -417,6 +417,7 @@ int16_t create_configs_php(char *gui_home, char *params_db_fullname, char *php_l
       fprintf(fd, "ini_set('session.save_path', \"%s\");\n", php_sessions_fullname);
 
       fprintf(fd, "$TITRE_APPLICATION='Mea eDomus Admin';\n");
+      fprintf(fd, "$BASEPATH='%s';\n",base_path);
       fprintf(fd, "$PARAMS_DB_PATH='sqlite:%s';\n",params_db_fullname);
       fprintf(fd, "$QUERYDB_SQL='sql/querydb.sql';\n");
       fprintf(fd, "$IOSOCKET_PORT=%d;\n",iosocket_port);
@@ -932,6 +933,7 @@ int16_t autoInit(char **params_list, char **keys)
    _construct_path(params_list,   GUI_PATH,          params_list[MEA_PATH], "lib/mea-gui");
    _construct_path(params_list,   PLUGINS_PATH,      params_list[MEA_PATH], "lib/mea-plugins");
    _construct_path(params_list,   RULES_FILE,        params_list[MEA_PATH], "lib/mea-rules/automator.rules");
+   _construct_path(params_list,   RULES_FILES_PATH,  params_list[MEA_PATH], "lib/mea-rules");
    _construct_path(params_list,   LOG_PATH,          p_str,                 "var/log");
    _construct_path(params_list,   SQLITE3_DB_BUFF_PATH, p_str, "var/db/queries.db");
 
@@ -1043,7 +1045,8 @@ int16_t interactiveInit(char **params_list, char **keys)
    
    _read_path(params_list,   GUI_PATH,         params_list[MEA_PATH], "lib/mea-gui",     "PATH to gui directory");
    _read_path(params_list,   PLUGINS_PATH,     params_list[MEA_PATH], "lib/mea-plugins", "PATH to plugins directory");
-   _read_path(params_list,   RULES_FILE,       params_list[MEA_PATH], "lib/mea-rules/automator.rules", "automator rules file");
+   _read_path(params_list,   RULES_FILE,       params_list[MEA_PATH], "lib/mea-rules/automator.rules", "automator executable rules file");
+   _read_path(params_list,   RULES_FILES_PATH, params_list[MEA_PATH], "lib/mea-rules", "automator rules sources files");
    _read_path(params_list,   PHPCGI_PATH,      params_list[MEA_PATH], "bin",             "PATH to 'php-cgi' directory");
    _read_path(params_list,   PHPINI_PATH,      p_str,                 "etc",             "PATH to 'php.ini' directory");
    _read_path(params_list,   PHPSESSIONS_PATH, p_str,                 sessions_str,      "PATH to php sessions directory");
