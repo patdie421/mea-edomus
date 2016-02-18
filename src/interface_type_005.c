@@ -166,6 +166,7 @@ int16_t interface_type_005_current_last(struct type005_sensor_actuator_queue_ele
 {
    if(!type || !str_current || !str_last)
       return -1;
+//   VERBOSE(9) mea_log_printf("%s (%s) : start current_last\n", ERROR_STR, __func__);
 
    if(d1) *d1=0.0;
    if(d2) *d2=0.0;
@@ -196,6 +197,7 @@ int16_t interface_type_005_current_last(struct type005_sensor_actuator_queue_ele
       {
          float v2;
          float v1=(e->module->current->thermostat.battery_vp-3000.0)/1500.0*100.0;
+
          if(v1>100.0) v1=100.0;
          if(v1<0.0) v1=0.0;
          sprintf(str_current, "%3.0f", v1);
@@ -230,15 +232,6 @@ int16_t interface_type_005_current_last(struct type005_sensor_actuator_queue_ele
          strcpy(type,"setpoint");
          if(d1) *d1=(double)e->module->current->thermostat.setpoint_temp;
          break;
-
-// TEMPERATURE_BIT (1 << TEMPERATURE)
-// CO2_BIT         (1 << CO2)
-// HUMIDITY_BIT    (1 << HUMIDITY)
-// NOISE_BIT       (1 << NOISE)
-// PRESSURE_BIT    (1 << PRESSURE)
-// RAIN_BIT        (1 << RAIN)
-// WINDANGLE_BIT   (1 << WINDANGLE)
-// WINDSTRENGTH_BIT (1 << WINDSTRENGTH)
 
       case _TEMPERATURE:
          if(e->module->current->station.dataTypeFlags & TEMPERATURE_BIT)
@@ -619,7 +612,6 @@ int load_interface_type_005(interface_type_005_t *i005, sqlite3 *db)
             }
             if(d_elem==NULL) // il n'existe pas, on va le créer
             {
-               fprintf(stderr,"creation device %s\n", device_id);
                d_elem=(struct type005_device_queue_elem_s *)malloc(sizeof(struct type005_device_queue_elem_s));
                if(d_elem==NULL)
                {
@@ -649,7 +641,6 @@ int load_interface_type_005(interface_type_005_t *i005, sqlite3 *db)
             }
             if(m_elem==NULL) // pas encore associé on le créé
             {
-               fprintf(stderr,"creation module %s\n", module_id);
                m_elem=(struct type005_module_queue_elem_s *)malloc(sizeof(struct type005_module_queue_elem_s));
                if(m_elem==NULL)
                {
@@ -692,7 +683,6 @@ int load_interface_type_005(interface_type_005_t *i005, sqlite3 *db)
                new_m_elem_flag=1; // on signale qu'on a créé un module
             }
 
-            fprintf(stderr,"creation sensor/actuator %s\n", name);
             sa_elem=(struct type005_sensor_actuator_queue_elem_s *)malloc(sizeof(struct type005_sensor_actuator_queue_elem_s));
             if(sa_elem==NULL)
             {
@@ -886,31 +876,37 @@ static int interface_type_005_sendData(interface_type_005_t *i005, struct type00
    double data4db2=0.0;
    char data4dbComp[20]="";
                      
+//   VERBOSE(9) mea_log_printf("%s (%s) : start sendData\n", ERROR_STR, __func__);
    ret=interface_type_005_current_last(sa_elem, type, str_value, str_last, &data4db, &data4db2, data4dbComp);
    if(ret==1)
    {
       _interface_type_005_send_xPL_sensor_basic(i005, xPL_MESSAGE_TRIGGER, sa_elem->name, type, str_value, str_last);
       if(sa_elem->todbflag==1)
          dbServer_add_data_to_sensors_values(sa_elem->id, data4db, 0, data4db2, data4dbComp);
+//      VERBOSE(9) mea_log_printf("%s (%s) : sendData done\n", ERROR_STR, __func__);
       return 0;
    }
    else
+   {
+//      VERBOSE(9) mea_log_printf("%s (%s) : sendData error\n", ERROR_STR, __func__);
       return -1;
+   }
 }
 
 
-static int interface_type_005_udateModuleData(interface_type_005_t *i005,
+static int interface_type_005_updateModuleData(interface_type_005_t *i005,
                                               struct type005_module_queue_elem_s *m_elem,
                                               void *data, int l_data)
 {
    union module_data_u *tmp;
    struct type005_sensor_actuator_queue_elem_s *sa_elem;
 
+//   VERBOSE(9) mea_log_printf("%s (%s) : start updateModuleData %x\n", DEBUG_STR, __func__, m_elem);
    tmp=m_elem->last;
    m_elem->last=m_elem->current;
    m_elem->current=tmp;
    memcpy(m_elem->current, data, l_data);
-
+   
    mea_queue_first(&(m_elem->sensors_actuators_list));
    for(int k=0;k<m_elem->sensors_actuators_list.nb_elem;k++)
    {
@@ -921,6 +917,7 @@ static int interface_type_005_udateModuleData(interface_type_005_t *i005,
 
       mea_queue_next(&(m_elem->sensors_actuators_list));
    }
+//   VERBOSE(9) mea_log_printf("%s (%s) : updateModuleData done\n", DEBUG_STR, __func__);
 
    return 0;
 }
@@ -967,7 +964,12 @@ static int interface_type_005_getData(interface_type_005_t *i005)
                   }
                }
                if(data!=NULL)
-                  interface_type_005_udateModuleData(i005, m_elem, data,  sizeof(struct netatmo_data_s));
+               {
+                  (i005->indicators.nbread)++;
+
+//                  VERBOSE(9) mea_log_printf("%s (%s) : call updateModuleData for %s (station)\n", DEBUG_STR, __func__, m_elem->module_id);
+                  interface_type_005_updateModuleData(i005, m_elem, data,  sizeof(struct netatmo_data_s));
+               }
 
                mea_queue_next(&(d_elem->modules_list));
             }
@@ -975,7 +977,7 @@ static int interface_type_005_getData(interface_type_005_t *i005)
          else
          {
             (i005->indicators.nbreaderror)++;
-            DEBUG_SECTION mea_log_printf("%s (%s) : can't get station data (%d: %s)\n", ERROR_STR, __func__, ret, err);
+//            DEBUG_SECTION mea_log_printf("%s (%s) : can't get station data (%d: %s)\n", ERROR_STR, __func__, ret, err);
          }
       }
       else if(d_elem->device_type==THERMOSTAT)
@@ -991,12 +993,13 @@ static int interface_type_005_getData(interface_type_005_t *i005)
             {
                (i005->indicators.nbread)++;
 
-               interface_type_005_udateModuleData(i005, m_elem, &data,  sizeof(data));
+//               VERBOSE(9) mea_log_printf("%s (%s) : call updateModuleData for %s (thermostat)\n", DEBUG_STR, __func__, m_elem->module_id);
+               interface_type_005_updateModuleData(i005, m_elem, &data,  sizeof(data));
             }
             else
             {
                (i005->indicators.nbreaderror)++;
-               DEBUG_SECTION mea_log_printf("%s (%s) : can't get thermostat data (%d: %s)\n", ERROR_STR, __func__, ret, err);
+//               DEBUG_SECTION mea_log_printf("%s (%s) : can't get thermostat data (%d: %s)\n", ERROR_STR, __func__, ret, err);
             }
             mea_queue_next(&(d_elem->modules_list));
          }
@@ -1052,11 +1055,12 @@ void *_thread_interface_type_005(void *thread_data)
 
       if(auth_flag==0)
       {
+         VERBOSE(9) mea_log_printf("%s (%s) : start authentification\n", ERROR_STR, __func__);
          ret=netatmo_get_token(client_id, client_secret, i005->user, i005->password, "read_thermostat write_thermostat read_station", &(i005->token), err, sizeof(err)-1);
          if(ret!=0)
          {
             VERBOSE(5) {
-               mea_log_printf("%s (%s) : Authentification error - ", ERROR_STR, __func__);
+               mea_log_printf("%s (%s) : authentification error - ", ERROR_STR, __func__);
                if(ret<0)
                   fprintf(MEA_STDERR, "%d\n", ret);
                else
@@ -1066,7 +1070,7 @@ void *_thread_interface_type_005(void *thread_data)
          else
          {
             VERBOSE(9) {
-               mea_log_printf("%s (%s) : Authentification done - %s\n", INFO_STR, __func__, i005->token.access);
+               mea_log_printf("%s (%s) : authentification done - %s\n", INFO_STR, __func__, i005->token.access);
             }
           
             auth_flag=1;
@@ -1077,11 +1081,12 @@ void *_thread_interface_type_005(void *thread_data)
 
       if(mea_test_timer(&refresh_timer)==0)
       {
+         VERBOSE(9) mea_log_printf("%s (%s) : start refresh", ERROR_STR, __func__);
          ret=netatmo_refresh_token(client_id, client_secret, &(i005->token), err, sizeof(err)-1);
          if(ret!=0)
          {
             VERBOSE(9) {
-               mea_log_printf("%s (%s) : Authentification error\n", INFO_STR, __func__);
+               mea_log_printf("%s (%s) : authentification error\n", INFO_STR, __func__);
             }
             auth_flag=0;
             continue;
@@ -1095,7 +1100,9 @@ void *_thread_interface_type_005(void *thread_data)
 
       if(auth_flag!=0 && mea_test_timer(&getdata_timer)==0)
       {
+//         VERBOSE(9) mea_log_printf("%s (%s) : start getData", ERROR_STR, __func__);
          interface_type_005_getData(i005);
+//         VERBOSE(9) mea_log_printf("%s (%s) : getData done", ERROR_STR, __func__);
       }
 
       sleep(5);
@@ -1306,6 +1313,7 @@ int start_interface_type_005(int my_id, void *data, char *errmsg, int l_errmsg)
       VERBOSE(2) mea_log_printf("%s (%s) : pthread_create - can't start thread\n",ERROR_STR,__func__);
       goto start_interface_type_005_clean_exit;
    }
+   fprintf(stderr, "INTERFACE_TYPE_005 : %x\n", *interface_type_005_thread_id);
 
    start_stop_params->i005->xPL_callback=interface_type_005_xPL_callback;
    start_stop_params->i005->thread=interface_type_005_thread_id;

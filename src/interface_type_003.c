@@ -581,7 +581,9 @@ pthread_t *start_interface_type_003_enocean_data_thread(interface_type_003_t *i0
    
    if(pthread_create (thread, NULL, (void *)function, (void *)params))
       goto clean_exit;
-   
+   fprintf(stderr,"INTERFACE_TYPE_003 : %x\n", *thread); 
+   pthread_detach(*thread);
+
    return thread;
    
 clean_exit:

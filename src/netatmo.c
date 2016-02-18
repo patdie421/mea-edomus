@@ -896,10 +896,8 @@ int main(int argc, char *argv[])
    else if(ret>0)
       printf("error : %s (%d)\n", err, ret); 
 
-   struct netatmo_station_data_s station_data;
-
-   netatmo_get_station_data(token.access, "70:ee:50:12:5b:c2", &station_data, err,  sizeof(err)-1);
-
+//   struct netatmo_station_data_s station_data;
+//   netatmo_get_station_data(token.access, "70:ee:50:12:5b:c2", &station_data, err,  sizeof(err)-1);
 //   netatmo_set_thermostat_setpoint(token.access, "70:ee:50:0a:34:e0", "04:00:00:0a:37:8c", MANUAL, 3600, 19.5, err, sizeof(err)-1);
 //   netatmo_set_thermostat_setpoint(token.access, "70:ee:50:0a:34:e0", "04:00:00:0a:37:8c", MAX, 3600, -1.0, err, sizeof(err)-1);
 //   netatmo_set_thermostat_setpoint(token.access, "70:ee:50:0a:34:e0", "04:00:00:0a:37:8c", AWAY, 3600, -1.0, err, sizeof(err)-1);

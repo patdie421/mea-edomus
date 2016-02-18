@@ -171,6 +171,11 @@ jQuery(document).ready(function() {
    <div onclick="javascript:ctrlr_mapEditor._widget_menu('properties')">properties</div>
    <div class="menu-sep"></div>
    <div onclick="javascript:ctrlr_mapEditor._widget_menu('delete')">remove</div>
+   <div class="menu-sep"></div>
+   <div onclick="javascript:ctrlr_mapEditor._widget_menu('background')">background</div>
+   <div onclick="javascript:ctrlr_mapEditor._widget_menu('backward')">backward</div>
+   <div onclick="javascript:ctrlr_mapEditor._widget_menu('forward')">forward</div>
+   <div onclick="javascript:ctrlr_mapEditor._widget_menu('forground')">forground</div>
 </div>
 
 

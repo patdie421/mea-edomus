@@ -47,6 +47,7 @@ int16_t automator_send_all_inputs_flag = 0;
 
 // globales pour le fonctionnement du thread
 pthread_t *_automatorServer_thread_id=NULL;
+char *_automatorServer_fn = "";
 int _automatorServer_thread_is_running=0;
 int _automatorServer_monitoring_id=-1;
 
@@ -57,12 +58,14 @@ pthread_mutex_t automator_msg_queue_lock;
 
 void set_automatorServer_isnt_running(void *data)
 {
+   _automatorServer_fn = (char *)__func__;
    _automatorServer_thread_is_running=0;
 }
 
 
 void setAutomatorRulesFile(char *file)
 {
+   _automatorServer_fn = (char *)__func__;
    if(rules_file)
    {
       free(rules_file);
@@ -76,6 +79,7 @@ void setAutomatorRulesFile(char *file)
 
 mea_error_t automatorServer_add_msg(xPL_MessagePtr msg)
 {
+   _automatorServer_fn = (char *)__func__;
    automator_msg_t *e=NULL;
    int ret=NOERROR;
    e=(automator_msg_t *)malloc(sizeof(automator_msg_t));
@@ -118,12 +122,14 @@ automatorServer_add_msg_clean_exit:
 
 int automatorServer_send_all_inputs()
 {
+   _automatorServer_fn = (char *)__func__;
    automator_send_all_inputs_flag = 1;
 }
 
 
 int automatorServer_timer_wakeup(char *name, void *userdata)
 {
+   _automatorServer_fn = (char *)__func__;
    int retour=0;
 
 //   fprintf(stderr,"Timer wakeup %s\n", name);
@@ -165,6 +171,7 @@ automatorServer_add_msg_clean_exit:
 
 void *_automator_thread(void *data)
 {
+   _automatorServer_fn = (char *)__func__;
    int ret;
    
    automator_msg_t *e;
@@ -271,12 +278,14 @@ void *_automator_thread(void *data)
          
          automator_match_inputs_rules(_inputs_rules, NULL);
          automator_play_output_rules(_outputs_rules);
+/*
          if(automator_send_all_inputs_flag!=0)
          {
             automator_send_all_inputs();
             automator_send_all_inputs_flag=0;
          }
          automator_reset_inputs_change_flags();
+*/
          continue;
       }
      
@@ -293,8 +302,14 @@ void *_automator_thread(void *data)
 
          automator_match_inputs_rules(_inputs_rules, e->msg);
          automator_play_output_rules(_outputs_rules);
+/*
+         if(automator_send_all_inputs_flag!=0)
+         {
+            automator_send_all_inputs();
+            automator_send_all_inputs_flag=0;
+         }
          automator_reset_inputs_change_flags();
-
+*/
          if(e)
          {
             if(e->type == 1 && e->msg) // l'élément sorti était un message xpl (pas un timer)
@@ -328,6 +343,7 @@ void *_automator_thread(void *data)
 
 pthread_t *automatorServer()
 {
+   _automatorServer_fn = (char *)__func__;
    pthread_t *automator_thread=NULL;
 
    automator_msg_queue=(mea_queue_t *)malloc(sizeof(mea_queue_t));
@@ -361,8 +377,9 @@ pthread_t *automatorServer()
       }
       goto automatorServer_clean_exit;
    }
+   fprintf(stderr,"AUTOMATORSERVER : %x\n", *automator_thread);
    pthread_detach(*automator_thread);
-   
+
    if(automator_thread)   
       return automator_thread;
 
@@ -385,6 +402,7 @@ automatorServer_clean_exit:
 
 void automator_msg_queue_free_queue_elem(void *d)
 {
+   _automatorServer_fn = (char *)__func__;
    automator_msg_t *e=(automator_msg_t *)d;
    if(e)
    {
@@ -399,6 +417,7 @@ void automator_msg_queue_free_queue_elem(void *d)
 
 int stop_automatorServer(int my_id, void *data, char *errmsg, int l_errmsg)
 {
+   _automatorServer_fn = (char *)__func__;
    if(_automatorServer_thread_id)
    {
       pthread_cancel(*_automatorServer_thread_id);
@@ -439,6 +458,7 @@ int stop_automatorServer(int my_id, void *data, char *errmsg, int l_errmsg)
 
 int start_automatorServer(int my_id, void *data, char *errmsg, int l_errmsg)
 {
+   _automatorServer_fn = (char *)__func__;
    struct automatorServer_start_stop_params_s *automatorServer_start_stop_params = (struct automatorServer_start_stop_params_s *)data;
 
    char err_str[80], notify_str[256];
@@ -478,6 +498,7 @@ int start_automatorServer(int my_id, void *data, char *errmsg, int l_errmsg)
 
 int restart_automatorServer(int my_id, void *data, char *errmsg, int l_errmsg)
 {
+   _automatorServer_fn = (char *)__func__;
    int ret=0;
    ret=stop_automatorServer(my_id, data, errmsg, l_errmsg);
    if(ret==0)

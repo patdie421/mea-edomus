@@ -564,10 +564,12 @@ int start_logServer(int my_id, void *data, char *errmsg, int l_errmsg)
 
       return -1;
    }
+   fprintf(stderr,"LOGSERVER : %x\n", *_logServer_thread);
    pthread_detach(*_logServer_thread);
+
    _logServer_monitoring_id=my_id;
 
-   VERBOSE(1) mea_log_printf("%s (%s) : %s %s.\n", INFO_STR, __func__, log_server_name_str, launched_successfully_str);
+   VERBOSE(2) mea_log_printf("%s (%s) : %s %s.\n", INFO_STR, __func__, log_server_name_str, launched_successfully_str);
    mea_notify_printf('S', "%s %s.", log_server_name_str, launched_successfully_str);
    return 0;
 }

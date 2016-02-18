@@ -13,14 +13,14 @@ meaFormaters["float"]   = function(x) {
    }
 };
 
-function MeaWidget()
+function MeaWidget(name, groupe, type)
 {
    this.type="undefined";
    this.params = {};
    this.params["values"] = {};
    this.params["labels"] = {};
    this.params["actions"] = {};
-   this.params["links"] = {};
+   this.params["parameters"] = {};
 }
 
 
@@ -42,6 +42,11 @@ MeaWidget.prototype = {
    },
 
    getTip: function() {
+      return false;
+   },
+
+   getStyle: function()
+   {
       return false;
    },
 

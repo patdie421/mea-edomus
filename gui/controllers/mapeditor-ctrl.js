@@ -12,13 +12,30 @@ $.fn.datagrid.defaults.editors.empty = {
    init: function(container, options){
       return $('<div style="padding:0 4px"></div>').appendTo(container);
    },
-   getValue: function(target){
+   etValue: function(target){
       return $(target).html();
    },
    setValue: function(target, value){
       $(target).html(value);
    }
 };
+
+
+function getValueIndex(data, n) {
+   var found = false;
+
+   $.each(data, function(i, val) {
+      if(val.name == n) {
+         found = i;
+         return false;
+      }
+   });
+
+   if(found !== false)
+      return found;
+   else
+      return false;
+}
 
 
 function MapEditorController(container, map, propertiesPanel, actionPanel, newPanel, mapContextMenu, widgetContextMenu)
@@ -54,7 +71,7 @@ function MapEditorController(container, map, propertiesPanel, actionPanel, newPa
    this.dragDropEntered = false;
    this.objid = 10;
    this.timeout = false;
-   
+   this.resize_in_progress = false; 
    this.mapState = 'edit';
 
    var _this = this;
@@ -75,14 +92,20 @@ function MapEditorController(container, map, propertiesPanel, actionPanel, newPa
       onBeforeDrag: function(e)
       {
          _this._updateProperties($(this).attr('id'));
-
+      /*
          zindex = $(this).css("z-index");
          if(zindex != _this.current_zindex)
          $(this).css("z-index", ++_this.current_zindex);
+      */
       },
 
       onStartDrag: function(e)
       {
+      /*
+         zindex = $(this).css("z-index");
+         if(zindex != _this.current_zindex)
+         $(this).css("z-index", ++_this.current_zindex);
+      */
          $(this).hide();
          $('body').append($(this));
          $(this).draggable('proxy').addClass('dp');
@@ -103,9 +126,34 @@ function MapEditorController(container, map, propertiesPanel, actionPanel, newPa
 
          data[2].value = l;
          data[3].value = t;
-         data[4].value = ++_this.current_zindex;
+//         data[4].value = ++_this.current_zindex;
 
-         _this.createFromWidgetdata(data, true).draggable('enable');
+         var  p = _this.createFromWidgetdata(data, true);
+         p.draggable('enable');
+
+         var drag_zone = p.find('[class="mea_dragzone_for_resizable"]');
+         if(drag_zone.length)
+         {
+            p.draggable({ handle: drag_zone });
+            p.resizable({
+/*
+               maxWidth:800,
+               maxHeight:600,
+*/
+               onStartResize: function(e) { },
+               onResize: function(e) { },
+               onStopResize: function(e) {
+                  var data   = $(this).prop('mea-widgetdata');
+                  var i=getValueIndex(data, "width");
+                  if(i)
+                     data[i]["value"]=p.width();
+                  var i=getValueIndex(data, "height");
+                  if(i)
+                     data[i]["value"]=p.height();
+                  _this._updateProperties(data[0].value);
+               }
+            });
+         }
 
          $(this).remove();
 
@@ -125,7 +173,8 @@ function MapEditorController(container, map, propertiesPanel, actionPanel, newPa
       onDrag: function(e) {
          var d = e.data;
          var id=$(e.data.target).attr('mea_widget');
-         _this.constrain(e, $("#"+id+"_drag"), $("#"+id+"_model"));
+//         _this.constrain(e, $("#"+id+"_drag"), $("#"+id+"_model"));
+         _this.constrain(e, $("#"+id+"_drag"), $(e.data.target));
       }
    };
 
@@ -206,8 +255,32 @@ MapEditorController.prototype.widgetsPanel_init = function()
          p.prop('_me', _this);
          p.bind('contextmenu', _this.open_widget_menu);
          p.prop('mea-widgetdata', mea_widgetdata);
+
          p.draggable(_this.draggable_options);
 
+         var drag_zone = p.find('[class="mea_dragzone_for_resizable"]');
+         if(drag_zone.length)
+         {
+            p.draggable({ handle: drag_zone });
+            p.resizable({
+/*
+               maxWidth:800,
+               maxHeight:600,
+*/
+               onStartResize: function(e) { },
+               onResize: function(e) { },
+               onStopResize: function(e) {
+                  var data   = $(this).prop('mea-widgetdata');
+                  var i=getValueIndex(data, "width");
+                  if(i)
+                     data[i]["value"]=p.width();
+                  var i=getValueIndex(data, "height");
+                  if(i)
+                     data[i]["value"]=p.height();
+                  _this._updateProperties(data[0].value);
+               }
+            });
+         }
          $(this).append(p);
 
          _this._updateProperties(newid);
@@ -460,29 +533,22 @@ MapEditorController.prototype.newWidgetData = function(newid, type, x, y, zi, p)
    ];
 
    try {
+      $.each(p.data().widgetparams.parameters, function(i,val) {
+         mea_widgetdata.push({"name":i, "value":val, "group":"parameters", "editor":"text", "type":""});
+      });
+   }
+   catch(e) {};
+ 
+   try {
       $.each(p.data().widgetparams.labels, function(i,val) {
-         mea_widgetdata.push({"name":i, "value":val, "group":"labels", "editor":"text", "type":"string"});
+         mea_widgetdata.push({"name":i, "value":val, "group":"texts", "editor":"text", "type":"string"});
      });
    }
    catch(e) {};
  
    try {
       $.each(p.data().widgetparams.values, function(i,val) {
-         mea_widgetdata.push({"name":i, "value":"", "group":"values", "editor":"text", "type":val});
-      });
-   }
-   catch(e) {};
- 
-   try {
-      $.each(p.data().widgetparams.actions, function(i,val) {
-         mea_widgetdata.push({"name":i, "value":val, "group":"actions", "editor":"text", "type":""});
-      });
-   }
-   catch(e) {};
- 
-   try {
-      $.each(p.data().widgetparams.link, function(i,val) {
-         mea_widgetdata.push({"name":i, "value":val, "group":"links", "editor":"text", "type":""});
+         mea_widgetdata.push({"name":i, "value":"", "group":"data links (inputs)", "editor":"text", "type":val});
       });
    }
    catch(e) {};
@@ -492,7 +558,15 @@ MapEditorController.prototype.newWidgetData = function(newid, type, x, y, zi, p)
          mea_widgetdata.push({"name":i, "value":val, "group":"variables", "editor":"empty", "type":""});
       });
    }
+
    catch(e) {};
+   try {
+      $.each(p.data().widgetparams.actions, function(i,val) {
+         mea_widgetdata.push({"name":i, "value":val, "group":"actions", "editor":"text", "type":""});
+      });
+   }
+   catch(e) {};
+ 
 
    return mea_widgetdata;
 }
@@ -598,8 +672,8 @@ MapEditorController.prototype.createFromWidgetdata = function(obj, d)
    if(d === true)
       p.bind('contextmenu', _this.open_widget_menu);
 
-//   p.draggable(_this.draggable_options);
-//   p.draggable('disable');
+   p.draggable(_this.draggable_options);
+   p.draggable('disable');
    p.prop('mea-widgetdata', obj);
 
    meaWidgetsJar[type].init(id);
@@ -982,10 +1056,10 @@ MapEditorController.prototype._updateProperties = function(id)
    var zi = parseInt(_id.css("z-index"));
 
    var data = _id.prop('mea-widgetdata');
-   _this.propertiesTbl.propertygrid({data: data});
    data[2].value = x;
    data[3].value = y;
    data[4].value = zi;
+   _this.propertiesTbl.propertygrid({data: data});
 
    function _resize()
    {
@@ -1019,6 +1093,46 @@ MapEditorController.prototype._widget_menu = function(action)
       case 'properties':
          _this.propertiesPanel.window('open');
          return true;
+      
+      case 'background':
+         var id = _this.widgetContextMenu.attr('mea_eid');
+         $("#"+id).css('zIndex',1);
+         _this._updateProperties(id);
+         return true;
+
+      case 'forground':
+         var id = _this.widgetContextMenu.attr('mea_eid');
+         $("#"+id).css('zIndex',++_this.current_zindex);
+         _this._updateProperties(id);
+         return true;
+
+      case 'forward':
+         var id = _this.widgetContextMenu.attr('mea_eid');
+         var zi=$("#"+id).css('zIndex');
+         zi++;
+         if(zi>_this.current_zindex)
+            _this.current_zindex++;
+         $("#"+id).css('zIndex',zi);
+         _this._updateProperties(id);
+         return true;
+
+      case 'backward':
+         var id = _this.widgetContextMenu.attr('mea_eid');
+         var zi=$("#"+id).css('zIndex');
+         zi--;
+         if(zi<0)
+            zi=0;
+         $("#"+id).css('zIndex',zi);
+         _this._updateProperties(id);
+         return true;
+
+
+/*
+      case 'background':
+         var zi=_this.css('zIndex');
+         console.log(zi);
+         return true,
+*/
    }
 }
 
@@ -1291,7 +1405,6 @@ MapEditorController.prototype._xplEditorDown = function()
       if(found === false)
          data.push({f1: [name,value], f2:name+" = "+value});
 
-      console.log(JSON.stringify(data));
       namesvalues2_sel.datalist('loadData',data);
    } 
 }
@@ -1371,13 +1484,13 @@ MapEditorController.prototype.__aut_listener=function(message)
 };
 
 
-MapEditorController.prototype.loadWidgets = function(list)
+MapEditorController.prototype._loadWidgets = function(list)
 {
    var _this = this;
 
    function load_widgets(list, i)
    {
-      $.getScript(list[i], function(data, textStatus, jqxhr) {
+      $.getScript("../widgets/"+list[i], function(data, textStatus, jqxhr) {
          if(jqxhr.status == 200)
             console.log(list[i]+": loaded");
          else
@@ -1397,6 +1510,9 @@ MapEditorController.prototype.loadWidgets = function(list)
                   p = accordion.accordion('getPanel', obj.getGroup());
                }
                p.append("<div id='_tip_"+obj.getType()+"'class='widgetIcon'>"+obj.getHtmlIcon()+"</div>");
+               var style = obj.getStyle();
+               if(style)
+                  $('#widgets_container').append("<style>"+style+"</style>");
                $('#widgets_container').append(obj.getHtml());
 
                if(obj.getTip()!==false) {
@@ -1429,3 +1545,28 @@ MapEditorController.prototype.loadWidgets = function(list)
 
    load_widgets(list, i);
 }
+
+
+MapEditorController.prototype.loadWidgets = function(list)
+{
+   var _this = this;
+
+   $.get("models/get_files_list.php", { type: "widget" }, function(response) {
+      if(response.iserror === false)
+      {
+         _this._loadWidgets(response.values); 
+      }
+      else
+      {
+         $.messager.alert(_this._toLocalC('error'), _this._toLocalC("No widget found")+ " (" + _this._toLocal('server message')+_this._localDoubleDot()+response.errMsg+")", 'error');
+      }
+   }).done(function() {
+   }).fail(function(jqXHR, textStatus, errorThrown) {
+      $.messager.show({
+         title:_this._toLocalC('error')+_this._localDoubleDot(),
+         msg: _this._toLocalC("communication error")+' ('+textStatus+')'
+      });
+  });
+
+}
+

@@ -728,7 +728,8 @@ pthread_t *timeServer()
       goto timeServer_clean_exit;
    }
    pthread_detach(*timeServer_thread);
-   
+   fprintf(stderr,"DATATIMESERVER : %x\n", *timeServer_thread);
+
    if(timeServer_thread)
       return timeServer_thread;
 

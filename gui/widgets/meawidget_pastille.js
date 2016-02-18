@@ -2,7 +2,6 @@ extendClass(MeaWidget_pastille, MeaWidget);
 
 var meaWidget_pastille = new MeaWidget_pastille("MeaWidget_pastille", "basic", "pastille");
 
-
 function MeaWidget_pastille(name, group, type)
 {
    MeaWidget_pastille.superConstructor.call(this);
@@ -49,7 +48,7 @@ MeaWidget_pastille.prototype.disabled = function(id,d) {
 MeaWidget_pastille.prototype.getFormaters = function()
 {
    var formaters = {
-      greenred: function(v,o) {
+      mea_pastille_greenred: function(v,o) {
          o.removeClass('mea_pastille_disable');
          if(v === true || v != 0 || v === "true")
          {
@@ -68,13 +67,9 @@ MeaWidget_pastille.prototype.getFormaters = function()
 }
 
 
-MeaWidget_pastille.prototype.getHtml = function()
+MeaWidget_pastille.prototype.getStyle = function()
 {
-var _this = this;
-var html =
-" \
-\
-<style> \
+var style = "\
 .mea_pastille { \
    width:30px; \
    height:30px; \
@@ -84,22 +79,33 @@ var html =
    background:red; \
 } \
 .mea_pastille_disable { \
-   background:black; \
+background:black; \
 } \
 .mea_pastille_green { \
-   background:green; \
-} \
-</style> \
+background:green; \
+}"
+
+return style;
+}
+
+
+MeaWidget_pastille.prototype.getHtml = function()
+{
+var _this = this;
+var html = "\
 <div id = '"+_this.type+"_model' \
-   mea_widget = '"+_this.type+"\' \
-   class = 'mea-widget' data-widgetparams='"+JSON.stringify(_this.params)+"' \
-   style = 'position:absolute; width: 30px; height: 30px; \
+     mea_widget='"+_this.type+"' \
+     class='mea-widget' \
+     data-widgetparams='"+JSON.stringify(_this.params)+"' \
+     style ='position:absolute;width:30px;height:30px;' \
 > \
-   <div class='ui-widget-content'  style='width:100%;height:100%;text-align:center;'> \
-      <div class='mea_pastille mea_pastille_disable' mea_valueformater='greenred' mea_widgetvaluename='"+this.valueName+"'></div> \
+   <div class='ui-widget-content' \
+        style='width:100%;height:100%;text-align:center;'> \
+      <div class='mea_pastille mea_pastille_disable' \
+           mea_valueformater='mea_pastille_greenred' \
+           mea_widgetvaluename='"+this.valueName+"'></div> \
    </div> \
 </div> \
-\
 ";
 return html;
 }

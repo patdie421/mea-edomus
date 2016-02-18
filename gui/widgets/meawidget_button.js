@@ -10,13 +10,7 @@ function MeaWidget_button(name, group, type)
 
    this.action = "push";
 
-   this.params = {};
-
-   this.params["values"] = {};
-   this.params["labels"] = {};
    this.params["labels"]["label"] = "push me";
-   this.params["links"] = {};
-   this.params["actions"] = {};
    this.params["actions"][this.action] = '{"xplsend":{"current":"high"}}';
 }
 
@@ -42,7 +36,10 @@ MeaWidget_button.prototype.disabled = function(id,d)
 
    var button = widget.find('div[mea_widgetactionname="'+_this.action+'"]');
    if(d===true)
+   {
+      button.off('click');
       button.removeClass('mea_button_anim');
+   }
    else
       button.addClass('mea_button_anim');
 }
@@ -58,12 +55,9 @@ MeaWidget_button.prototype.getHtmlIcon = function()
 }
 
 
-MeaWidget_button.prototype.getHtml = function()
+MeaWidget_button.prototype.getStyle = function()
 {
-var _this = this; var html =
-" \
-\
-<style> \
+var style="\
 .mea_button { \
    width:90px; \
    height:25px; \
@@ -81,18 +75,28 @@ var _this = this; var html =
 } \
 .mea_button_anim:active { \
    background-color: green; \
-   } \
-</style> \
+}";
+return style;
+}
+
+
+MeaWidget_button.prototype.getHtml = function()
+{
+var _this = this;
+var html ="\
 <div id = '"+_this.type+"_model' \
-   mea_widget = '"+_this.type+"\' \
-   class = 'mea-widget' data-widgetparams='"+JSON.stringify(_this.params)+"' \
-   style = 'position:absolute; width: 98px; height: 31px; \
+     mea_widget = '"+_this.type+"' \
+     style = 'position:absolute;width:98px;height:31px;' \
+     class = 'mea-widget' data-widgetparams='"+JSON.stringify(_this.params)+"' \
 > \
-   <div class='ui-widget-content'  style='width:100%;height:100%;text-align:center;'> \
-      <div class='mea_button' mea_widgetactionname='push'>"+this.params['labels']['label']+"</div> \
+   <div style='width:100%;height:100%;text-align:center;'> \
+      <div class='mea_button' \
+           mea_widgetactionname='push'> \
+         "+this.params['labels']['label']+" \
+      </div> \
    </div> \
 </div> \
-\
 ";
+console.log(html);
 return html;
 }

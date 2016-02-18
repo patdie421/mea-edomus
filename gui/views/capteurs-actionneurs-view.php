@@ -153,7 +153,7 @@ jQuery(document).ready(function(){
              style="width:100%;height:100%"
              border="false"
              pagination="true"
-             pageSize=20
+             pageSize=50
              pageList=[20,50,100]             
              idField="id"
              fitColumns="true"

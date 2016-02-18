@@ -102,9 +102,9 @@
 # A6 do: timerCtrl  with: (command='stop', name='timer1') when: E1 fall
 */
 
-cJSON *_rules;
-cJSON *_inputs_rules;
-cJSON *_outputs_rules;
+cJSON *_rules = NULL;
+cJSON *_inputs_rules = NULL;
+cJSON *_outputs_rules = NULL;
 
 enum input_state_e { NEW, RISE, FALL, STAY, CHANGE, TYPECHANGE, UNKNOWN };
 
@@ -136,7 +136,11 @@ struct inputs_id_name_assoc_s
    UT_hash_handle hh;
 };
 
-struct inputs_table_s *inputs_table;
+struct inputs_table_s *inputs_table = NULL;
+pthread_cond_t inputs_table_cond = PTHREAD_COND_INITIALIZER;
+pthread_mutex_t inputs_table_lock = PTHREAD_MUTEX_INITIALIZER;
+
+
 struct inputs_id_name_assoc_s *inputs_id_name_assoc = NULL;
 
 static int startupStatus = 1;
@@ -153,7 +157,9 @@ time_t automator_now = 0;
 
 static int getBoolean(char *s, char *b)
 {
+   _automatorServer_fn = (char *)__func__;
    *b=-1;
+
    if((s[0]=='1' && s[1]==0) ||
 //      strcmp(s, "true")==0   ||
 //      strcmp(s, "high")==0)
@@ -178,7 +184,8 @@ static int getBoolean(char *s, char *b)
 
 static int getNumber(char *s, double *v)
 {
-   char *n;
+   _automatorServer_fn = (char *)__func__;
+   char *n = NULL;
  
    *v=strtod(s, &n);
 
@@ -191,10 +198,11 @@ static int getNumber(char *s, double *v)
 
 static int _setValueFromStr(struct value_s *v, char *str, char trimFlag)
 {
-   double f;
-   char b;
+   _automatorServer_fn = (char *)__func__;
+   double f = 0.0;
+   char b = 0;
    char _str[sizeof(v->val.strval)];
-   char *p;
+   char *p = NULL;
 
    if(trimFlag!=0)
       p=mea_strtrim(strcpy(_str, v->val.strval));
@@ -223,12 +231,14 @@ static int _setValueFromStr(struct value_s *v, char *str, char trimFlag)
 
 static int setValueFromStr(struct value_s *v, char *str)
 {
+   _automatorServer_fn = (char *)__func__;
    return _setValueFromStr(v, str, 0);
 }
 
 
 static int setValueFromStrTrim(struct value_s *v, char *str)
 {
+   _automatorServer_fn = (char *)__func__;
    return _setValueFromStr(v, str, 1);
 }
 
@@ -237,6 +247,7 @@ enum conversion_e { INT = 0x01, FLOAT=0x02, HIGHLOW=0x04, TRUEFALSE=0x08, DEFAUL
 
 static int valueToStr(struct value_s *v, char *str, int l_str, enum conversion_e flag)
 {
+   _automatorServer_fn = (char *)__func__;
    if(v->type==0)
       if(flag & INT)
          snprintf(str,l_str,"%d", (int)v->val.floatval);
@@ -271,24 +282,10 @@ static int valueToStr(struct value_s *v, char *str, int l_str, enum conversion_e
 
 
 enum comparator_e { O_EQ=0, O_NE, O_GR, O_LO, O_GE, O_LE };
-/*
-char *comparators[] = {"==","!=",">","<",">=","<=",NULL};
+
 static int getComparator(char *str)
 {
-   int comparatorNum=-1;
-   for(int i=0;comparators[i];i++)
-   {
-      if(strcmp(comparators[i], str)==0)
-      {
-         comparatorNum=i;
-         break;
-      }
-   }
-   return comparatorNum;
-}
-*/
-static int getComparator(char *str)
-{
+   _automatorServer_fn = (char *)__func__;
    if(str[1]=='=' && str[2]==0)
    {
       switch(str[0])
@@ -316,6 +313,7 @@ static int getComparator(char *str)
  
 static int valueCmp(struct value_s *v1, int comparator, struct value_s *v2)
 {
+   _automatorServer_fn = (char *)__func__;
    // cas type différent : seule la différence peut retourner 1
    if(v1->type != v2->type) {
       if(comparator == O_NE) {
@@ -372,6 +370,7 @@ static int valueCmp(struct value_s *v1, int comparator, struct value_s *v2)
 #ifdef DEBUG
 static int valuePrint(struct value_s *v)
 {
+   _automatorServer_fn = (char *)__func__;
    if(v->type==0)
       fprintf(stderr,"(float)%f",v->val.floatval);
    else if(v->type==1)
@@ -403,7 +402,8 @@ enum function_e {
    F_XPLMSGDATA,
    F_TOHLSTR,
    F_TOTFSTR,
-   _FN_LIST_END };
+   _FN_LIST_END
+};
 
 struct function_def_s
 {
@@ -440,12 +440,14 @@ struct function_def_s functionsList2[]={
 
 int qsort_compare_functions_names(const void * a, const void * b)
 {
+   _automatorServer_fn = (char *)__func__;
    return strcmp(functionsList2[functions_index[*(int16_t *)a]].name, functionsList2[functions_index[*(int16_t *)b]].name);
 }
 
 
 void init_functions_index()
 {
+   _automatorServer_fn = (char *)__func__;
    for(int i=0;i<_FN_LIST_END;i++)
       functions_index[i]=i;
    qsort (functions_index, _FN_LIST_END, sizeof (int16_t), qsort_compare_functions_names); 
@@ -454,6 +456,7 @@ void init_functions_index()
 
 enum function_e getFunctionNum(char *str, char *params, int l_params)
 {
+   _automatorServer_fn = (char *)__func__;
    char fn[VALUE_MAX_STR_SIZE];
    int l=VALUE_MAX_STR_SIZE;
    char *fnPtr=fn;
@@ -510,6 +513,7 @@ enum function_e getFunctionNum(char *str, char *params, int l_params)
 
 static int getInputEdge(char *expr, int direction,  struct value_s *v, xPL_NameValueListPtr ListNomsValeursPtr)
 {
+   _automatorServer_fn = (char *)__func__;
    if((direction==CHANGE ||
        direction==RISE   ||
        direction==STAY   ||
@@ -524,17 +528,24 @@ static int getInputEdge(char *expr, int direction,  struct value_s *v, xPL_NameV
       if(ret==0 && r.type==1)
       {
          v->type=2;
+         pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&inputs_table_lock);
+         pthread_mutex_lock(&inputs_table_lock);
          HASH_FIND_STR(inputs_table, r.val.strval, e);
+         ret=-1;
          if(e)
          {
             if(direction != CHANGE)
                v->val.booleanval=(e->state==direction);
             else
                v->val.booleanval=(e->state==CHANGE || e->state==RISE  || e->state==FALL || e->state==TYPECHANGE || e->state==NEW);
-            return 0;
+            ret=0;
          }
          else
-            return 1;
+            ret=1;
+         pthread_mutex_unlock(&inputs_table_lock);
+         pthread_cleanup_pop(0);
+
+         return ret;
       }
    }
    return -1;
@@ -543,7 +554,12 @@ static int getInputEdge(char *expr, int direction,  struct value_s *v, xPL_NameV
 
 int getInputId(char *name, uint32_t *id)
 {
+   _automatorServer_fn = (char *)__func__;
    struct inputs_table_s *e = NULL;
+   int ret = -1;
+
+   pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&inputs_table_lock);
+   pthread_mutex_lock(&inputs_table_lock);
    HASH_FIND_STR(inputs_table, name, e);
    if(!e)
    {
@@ -562,39 +578,56 @@ int getInputId(char *name, uint32_t *id)
         struct inputs_id_name_assoc_s *a;
         a=(struct inputs_id_name_assoc_s *)malloc(sizeof(struct inputs_id_name_assoc_s));
         if(a==NULL)
-           return -1;
-        a->id=e->id;
-        a->elem = e;
-        HASH_ADD_INT(inputs_id_name_assoc, id, a);
+           ret=-1;
+        else
+        {
+           a->id=e->id;
+           a->elem = e;
+           HASH_ADD_INT(inputs_id_name_assoc, id, a);
+           ret=0;
+        }
      }
-     *id=e->id;
-     return 0;
+     if(ret==0)
+        *id=e->id;
    }
+   pthread_mutex_unlock(&inputs_table_lock);
+   pthread_cleanup_pop(0);
 
-   return -1;
+   return ret;
 }
 
 
 int getInputFloatValueById(uint32_t id, double *d)
 {
+   _automatorServer_fn = (char *)__func__;
    struct inputs_id_name_assoc_s *a;
+   int ret = -1;
 
+   pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&inputs_table_lock);
+   pthread_mutex_lock(&inputs_table_lock);
    HASH_FIND_INT(inputs_id_name_assoc, &id, a);
    if(a == NULL)
-      return -1;
+      ret=-1;
    else
    {
       if(a->elem->v.type == 0)
+      {
          *d = a->elem->v.val.floatval;
+         ret = 0;
+      }
       else
-         return -1;
+         ret=-1;
    }
-   return 0;
+   pthread_mutex_unlock(&inputs_table_lock);
+   pthread_cleanup_pop(0);
+
+   return ret;
 }
 
 
 void idNameAssocsClean()
 {
+   _automatorServer_fn = (char *)__func__;
    struct inputs_id_name_assoc_s *current, *tmp;
 
    HASH_ITER(hh, inputs_id_name_assoc, current, tmp)
@@ -603,12 +636,14 @@ void idNameAssocsClean()
       free(current);
       current=NULL;
    }
+
    inputs_id_name_assoc=NULL;
 }
 
 
 int16_t myGetVarId(char *str, void *userdata, int16_t *id)
 {
+   _automatorServer_fn = (char *)__func__;
    uint32_t _id = 0;
    int16_t retour = 0;
 
@@ -622,6 +657,7 @@ int16_t myGetVarId(char *str, void *userdata, int16_t *id)
 
 int16_t myGetVarVal(int16_t id, void *userdata, double *d)
 {
+   _automatorServer_fn = (char *)__func__;
    return getInputFloatValueById((uint32_t)id, d);
 }
 
@@ -630,7 +666,7 @@ int16_t myGetVarVal(int16_t id, void *userdata, double *d)
 
 static int callFunction(char *str, struct value_s *v, xPL_NameValueListPtr ListNomsValeursPtr)
 {
-   
+   _automatorServer_fn = (char *)__func__;
    char *f = NULL;
    int retour=-1;
    int str_l = strlen(str)+1;
@@ -732,9 +768,9 @@ static int callFunction(char *str, struct value_s *v, xPL_NameValueListPtr ListN
          break;
       case F_TIMER:
          {
-            int ret;
             struct value_s r;
-            ret=evalStr(params, &r, ListNomsValeursPtr);
+
+            int ret=evalStr(params, &r, ListNomsValeursPtr);
             if(ret==0 && r.type==1)
             {
                int state = 0;
@@ -750,11 +786,9 @@ static int callFunction(char *str, struct value_s *v, xPL_NameValueListPtr ListN
          break;
       case F_TIME: // $time['18:31:01']
          {
-            // struct tm tm;
-            int ret;
             struct value_s r;
             time_t t;
-            ret=evalStr(params, &r, ListNomsValeursPtr);
+            int ret=evalStr(params, &r, ListNomsValeursPtr);
             if(ret==0 && r.type==1 && r.val.strval[8]==0)
             {
                if(mea_timeFromStr(r.val.strval, &t)==0)
@@ -768,11 +802,9 @@ static int callFunction(char *str, struct value_s *v, xPL_NameValueListPtr ListN
          break;
       case F_DATE: // date pour comparaison : $date['2001-11-12 18:31:01'] 
          {
-            int ret;
             struct tm tm;
             struct value_s r;
-
-            ret=evalStr(params, &r, ListNomsValeursPtr);
+            int ret=evalStr(params, &r, ListNomsValeursPtr);
             if(ret==0 && r.type==1 && r.val.strval[19])
             {
                memset(&tm, 0, sizeof(struct tm));
@@ -790,9 +822,8 @@ static int callFunction(char *str, struct value_s *v, xPL_NameValueListPtr ListN
       case F_TOHLSTR:
       case F_TOTFSTR:
          {
-            int ret;
             struct value_s r;
-            ret=evalStr(params, &r, ListNomsValeursPtr);
+            int ret=evalStr(params, &r, ListNomsValeursPtr);
             if(ret==0 && r.type==2)
             {
                v->type=1;
@@ -825,11 +856,10 @@ static int callFunction(char *str, struct value_s *v, xPL_NameValueListPtr ListN
       case F_TWILIGHTSTART:
       case F_TWILIGHTEND:
          {
-            int ret;
             struct value_s r;
             r.type=0;
             r.val.floatval=0.0;
-            ret=evalStr(params, &r, ListNomsValeursPtr);
+            int ret=evalStr(params, &r, ListNomsValeursPtr);
             if( (ret==0 && r.type==0) || ret==1) // ret == 1 : chaine vide
             {
                time_t t=0;
@@ -864,6 +894,7 @@ static int callFunction(char *str, struct value_s *v, xPL_NameValueListPtr ListN
 
 static int evalStr(char *str, struct value_s *v, xPL_NameValueListPtr ListNomsValeursPtr)
 {
+   _automatorServer_fn = (char *)__func__;
    char p[sizeof(v->val.strval)];
 
    if( (str[1]=='0' || str[1]=='1') && str[0]=='&' && str[2]==0)
@@ -934,11 +965,13 @@ static int evalStr(char *str, struct value_s *v, xPL_NameValueListPtr ListNomsVa
            if(l>(sizeof(name)+2))
               l=sizeof(name)+2;
 
+           int ret = -1;
            char *_p=NULL;
            mea_strncpytrim(name, &(p[1]), l-2);
            name[l-2]=0;
            _p=name; 
-
+           pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&inputs_table_lock);
+           pthread_mutex_lock(&inputs_table_lock);
            HASH_FIND_STR(inputs_table, _p, e);
            if(e)
            {
@@ -951,6 +984,10 @@ static int evalStr(char *str, struct value_s *v, xPL_NameValueListPtr ListNomsVa
               }
           }
           else
+             ret=1;
+          pthread_mutex_unlock(&inputs_table_lock);
+          pthread_cleanup_pop(0);
+          if(ret==1)
              return 1;
         }
         break;
@@ -991,6 +1028,7 @@ static int evalStr(char *str, struct value_s *v, xPL_NameValueListPtr ListNomsVa
 
 static int automator_timerCtrl(cJSON *parameters)
 {
+   _automatorServer_fn = (char *)__func__;
    double now;
    if(parameters==NULL || parameters->child==NULL)
       return -1;
@@ -1096,6 +1134,7 @@ static int automator_timerCtrl(cJSON *parameters)
 
 static int automator_setinputvalue(cJSON *parameters)
 {
+   _automatorServer_fn = (char *)__func__;
    int16_t _updatestate = 1;
 
    if(parameters==NULL || parameters->child==NULL)
@@ -1129,6 +1168,7 @@ static int automator_setinputvalue(cJSON *parameters)
 
 int automator_sendxpl(cJSON *parameters)
 {
+   _automatorServer_fn = (char *)__func__;
    if(parameters==NULL || parameters->child==NULL)
       return -1;
 
@@ -1235,6 +1275,7 @@ int automator_sendxpl(cJSON *parameters)
 
 int sendxplFromJson(cJSON *parameters)
 {
+   _automatorServer_fn = (char *)__func__;
    if(parameters==NULL || parameters->child==NULL)
       return -1;
 
@@ -1318,6 +1359,7 @@ int sendxplFromJson(cJSON *parameters)
 
 int automator_play_output_rules(cJSON *rules)
 {
+   _automatorServer_fn = (char *)__func__;
    if(rules==NULL)
    {
       DEBUG_SECTION2(DEBUGFLAG)  mea_log_printf("%s (%s) : NO OUTPUT RULE\n", DEBUG_STR, __func__);
@@ -1331,42 +1373,55 @@ int automator_play_output_rules(cJSON *rules)
       cJSON *cond  = cJSON_GetObjectItem(e,"condition");
 
       struct inputs_table_s *i = NULL;
-      HASH_FIND_STR(inputs_table, cond->child->string, i);
+      int ret = 0;
       int actionFlag=0; 
+
+      pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&inputs_table_lock);
+      pthread_mutex_lock(&inputs_table_lock);
+      HASH_FIND_STR(inputs_table, cond->child->string, i);
       if(i==NULL)
       {
          DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s (%s) : Input rule (%s) no data found\n", DEBUG_STR, __func__, cond->child->string);
-         goto next_rule;
+         ret = -1;
       }
-
-      switch(cond->child->valueint)
+      else
       {
-         case 1:
-            if(i->state==RISE)
-               actionFlag=1; 
-            break;
-         case 2:
-            if(i->state==FALL)
-               actionFlag=1; 
-            break;
-         case 3:
-            if(i->state==CHANGE || i->state==RISE || i->state==FALL || i->state == NEW)
-               actionFlag=1; 
-            break;
-         case 4:
-            if(i->state==NEW)
-               actionFlag=1; 
-            break;
-         default:
-            automator_rule_debug_info_print(e, "Incorrect output rule condition - not rise, fall, change or new (rule removed)");
-            cJSON *c;
-            c=e;
-            e=e->next;
-            c=cJSON_DetachItemFromItem(rules, c);
-            cJSON_Delete(c);
-            goto next_iteration;
+         switch(cond->child->valueint)
+         {
+            case 1:
+               if(i->state==RISE)
+                  actionFlag=1; 
+               break;
+            case 2:
+               if(i->state==FALL)
+                  actionFlag=1; 
+               break;
+            case 3:
+               if(i->state==CHANGE || i->state==RISE || i->state==FALL || i->state == NEW)
+                  actionFlag=1; 
+               break;
+            case 4:
+               if(i->state==NEW)
+                  actionFlag=1; 
+               break;
+            default:
+               automator_rule_debug_info_print(e, "Incorrect output rule condition - not rise, fall, change or new (rule removed)");
+               cJSON *c;
+               c=e;
+               e=e->next;
+               c=cJSON_DetachItemFromItem(rules, c);
+               cJSON_Delete(c);
+               ret = -2;
+         }
       }
+      pthread_mutex_unlock(&inputs_table_lock);
+      pthread_cleanup_pop(0);
 
+      if(ret==-1)
+         goto next_rule;
+      if(ret==-2)
+         goto next_iteration;
+        
       if(actionFlag==1)
       {
          cJSON *action     = cJSON_GetObjectItem(e,"action");
@@ -1421,6 +1476,7 @@ next_iteration: {}
 
 int automator_getValue(cJSON *value, struct value_s *v, char *source, char *schema, xPL_NameValueListPtr ListNomsValeursPtr)
 {
+   _automatorServer_fn = (char *)__func__;
    int ret=0;
    
    if(strcmp(value->valuestring, "source")==0)
@@ -1436,6 +1492,7 @@ int automator_getValue(cJSON *value, struct value_s *v, char *source, char *sche
 
 static void automator_rule_debug_info_print(cJSON *rule, char *msg)
 {
+   _automatorServer_fn = (char *)__func__;
    cJSON *files  = cJSON_GetObjectItem(_rules, "files");
    if(files==NULL)
       return;
@@ -1458,6 +1515,7 @@ static void automator_rule_debug_info_print(cJSON *rule, char *msg)
 
 static cJSON *cJSON_DetachItemFromItem(cJSON *item, cJSON *e)
 {
+   _automatorServer_fn = (char *)__func__;
    cJSON *c=item->child;
 
    while (c) // on cherche e dans les files de item
@@ -1495,6 +1553,7 @@ struct moveforward_dest_s *moveforward_dests = NULL;
 
 int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
 {
+   _automatorServer_fn = (char *)__func__;
    if(rules==NULL)
    {
       DEBUG_SECTION2(DEBUGFLAG)  mea_log_printf("%s (%s) : NO INPUT RULE\n", DEBUG_STR, __func__);
@@ -1532,7 +1591,6 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
       
       struct value_s res, val1, val2;
 
-      
       cJSON *name    = cJSON_GetObjectItem(e,"name");
       cJSON *value   = cJSON_GetObjectItem(e,"value");
       cJSON *onmatch = cJSON_GetObjectItem(e,"onmatch");
@@ -1556,7 +1614,7 @@ int automator_match_inputs_rules(cJSON *rules, xPL_MessagePtr message)
          DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s (%s) :    [%s] incorrect value\n",  DEBUG_STR, __func__, value->valuestring);
          automator_rule_debug_info_print(e, "incorrect rule value (rule removed)");
 
-         cJSON *c;
+         cJSON *c = NULL;
          c=e;
          e=e->next;
          c=cJSON_DetachItemFromItem(rules, c);
@@ -1800,17 +1858,26 @@ next_loop:{}
 
 int send_change(char *name, struct value_s *v)
 {
+   _automatorServer_fn = (char *)__func__;
    static int port = -1;
    int sock = -1;
    int ret = -1;
 
    if(port==-1)
       port = get_nodejsServer_socketdata_port();
+   if(port==0)
+   {
+      port=-1;
+      return -1;
+   } 
 
-   char str[VALUE_MAX_STR_SIZE]="";
+   char str[VALUE_MAX_STR_SIZE+1]="";
 
    if(v->type == 0)
-      sprintf(str,"%f",v->val.floatval);
+   {
+      snprintf(str, VALUE_MAX_STR_SIZE, "%f",v->val.floatval);
+      str[VALUE_MAX_STR_SIZE]=0;
+   }
    if(v->type == 1)
       sprintf(str, "\"%s\"", v->val.strval);
    if(v->type == 2)
@@ -1845,6 +1912,7 @@ int send_change(char *name, struct value_s *v)
 
 int automator_send_all_inputs()
 {
+   _automatorServer_fn = (char *)__func__;
    static int port = -1;
 
    struct inputs_table_s *s;
@@ -1858,34 +1926,43 @@ int automator_send_all_inputs()
    if(port==-1)
       port = get_nodejsServer_socketdata_port();
 
+   pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&inputs_table_lock);
+   pthread_mutex_lock(&inputs_table_lock);
    int l_msg = HASH_COUNT(inputs_table)*(sizeof(tmpStr)+1)+3;
-
    msg=(char *)alloca(l_msg);
    if(!msg)
-      return -1;
-
-   strcpy(msg,"{");
-   for(s=inputs_table; s != NULL; s=s->hh.next)
+      ret= -1;
+   else
    {
-      struct value_s *v = &(s->v);
+      strcpy(msg,"{");
+      for(s=inputs_table; s != NULL; s=s->hh.next)
+      {
+         struct value_s *v = &(s->v);
 
-      if(!startflag)
-         strcat(msg,",");
-      if(v->type == 0)
-         sprintf(tmpVal, "%f", v->val.floatval);
-      if(v->type == 1)
-         sprintf(tmpVal, "\"%s\"", v->val.strval);
-      if(v->type == 2) {
-         if(v->val.booleanval==0)
-            strcpy(tmpVal, "false");
-         else
-            strcpy(tmpVal, "true");
+         if(!startflag)
+            strcat(msg,",");
+         if(v->type == 0)
+            sprintf(tmpVal, "%f", v->val.floatval);
+         if(v->type == 1)
+            sprintf(tmpVal, "\"%s\"", v->val.strval);
+         if(v->type == 2) {
+            if(v->val.booleanval==0)
+               strcpy(tmpVal, "false");
+            else
+               strcpy(tmpVal, "true");
+         }
+         sprintf(tmpStr, "\"%s\":%s", s->name, tmpVal);
+         strcat(msg, tmpStr);
+         startflag=0;
+         ret=0;
       }
-      sprintf(tmpStr, "\"%s\":%s", s->name, tmpVal);
-      strcat(msg, tmpStr);
-      startflag=0;
+      strcat(msg,"}");
    }
-   strcat(msg,"}");
+   pthread_mutex_unlock(&inputs_table_lock);
+   pthread_cleanup_pop(0);
+
+   if(ret==-1)
+      return -1;
 
    if(mea_socket_connect(&sock, localhost_const, port)<0)
       return -1;
@@ -1907,8 +1984,12 @@ int automator_send_all_inputs()
 
 struct inputs_table_s *_automator_add_to_inputs_table(char *_name, struct value_s *v, int16_t update_state)
 {
+   _automatorServer_fn = (char *)__func__;
    struct inputs_table_s *e = NULL;
+   struct inputs_table_s *ret = NULL;
 
+   pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&inputs_table_lock);
+   pthread_mutex_lock(&inputs_table_lock);
    HASH_FIND_STR(inputs_table, _name, e);
    if(e)
    {
@@ -1958,7 +2039,7 @@ struct inputs_table_s *_automator_add_to_inputs_table(char *_name, struct value_
       if(state!=STAY)
          send_change(_name, v);
 
-      return e;
+      ret=e;
    }
    else
    {
@@ -1981,32 +2062,43 @@ struct inputs_table_s *_automator_add_to_inputs_table(char *_name, struct value_
 
       send_change(_name, v);
 
-      return s;
+      ret=s;
    }
+   pthread_mutex_unlock(&inputs_table_lock);
+   pthread_cleanup_pop(0);
 
-   return NULL;
+   return ret;
 }
 
 
 static inline struct inputs_table_s *automator_add_to_inputs_table(char *_name, struct value_s *v)
 {
+   _automatorServer_fn = (char *)__func__;
    return _automator_add_to_inputs_table(_name, v, 1);
 }
 
 
 static inline struct inputs_table_s *automator_add_to_inputs_table_noupdate(char *_name, struct value_s *v)
 {
+   _automatorServer_fn = (char *)__func__;
    return _automator_add_to_inputs_table(_name, v, 0);
 }
 
 
 int automator_reset_inputs_change_flags()
 {
-   struct inputs_table_s *s;
+   _automatorServer_fn = (char *)__func__;
+   struct inputs_table_s *s = NULL;
+
+   pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&inputs_table_lock);
+   pthread_mutex_lock(&inputs_table_lock);
 
    for(s=inputs_table; s != NULL; s=s->hh.next)
       s->state=STAY;
-   
+
+   pthread_mutex_unlock(&inputs_table_lock);
+   pthread_cleanup_pop(0);
+
    return 0;
 }
 
@@ -2014,16 +2106,25 @@ int automator_reset_inputs_change_flags()
 #ifdef DEBUG
 static int automator_print_inputs_table()
 {
-   struct inputs_table_s *s;
+   _automatorServer_fn = (char *)__func__;
+   struct inputs_table_s *s = NULL;
 
    fprintf(stderr,"INPUTS TABLE :\n");
    fprintf(stderr,"--------------\n");
+
+   pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&inputs_table_lock);
+   pthread_mutex_lock(&inputs_table_lock);
+
    for(s=inputs_table; s != NULL; s=s->hh.next)
    {
       fprintf(stderr,"rule %s: ", s->name);
       valuePrint(&(s->v));
       fprintf(stderr," (%d)\n", s->state);
    }
+
+   pthread_mutex_unlock(&inputs_table_lock);
+   pthread_cleanup_pop(0);
+
    fprintf(stderr,"--------------\n");
    
    return 0;
@@ -2033,6 +2134,7 @@ static int automator_print_inputs_table()
 
 cJSON *automator_load_rules_from_string(char *rules)
 {
+   _automatorServer_fn = (char *)__func__;
    cJSON *rules_json = cJSON_Parse(rules);
 
    return rules_json;
@@ -2041,6 +2143,7 @@ cJSON *automator_load_rules_from_string(char *rules)
 
 cJSON *automator_load_rules_from_file(char *file)
 {
+   _automatorServer_fn = (char *)__func__;
    cJSON *rules_json = NULL;
    FILE *fd = NULL;
    
@@ -2080,6 +2183,7 @@ cJSON *automator_load_rules_from_file(char *file)
 
 int automator_init(char *rulesfile)
 {
+   _automatorServer_fn = (char *)__func__;
    idNameAssocsClean();
    mea_eval_clean_stack_cache();
    mea_eval_setGetVarCallBacks(&myGetVarId, &myGetVarVal, NULL);
@@ -2087,7 +2191,7 @@ int automator_init(char *rulesfile)
 
    if(inputs_table)
    {
-      struct inputs_table_s  *current, *tmp;
+      struct inputs_table_s  *current=NULL, *tmp=NULL;
 
       HASH_ITER(hh, inputs_table, current, tmp)
       {
@@ -2099,7 +2203,7 @@ int automator_init(char *rulesfile)
 
    if(moveforward_dests)
    {
-      struct moveforward_dest_s  *current, *tmp;
+      struct moveforward_dest_s  *current=NULL, *tmp=NULL;
 
       HASH_ITER(hh, moveforward_dests, current, tmp)
       {
@@ -2130,6 +2234,7 @@ int automator_init(char *rulesfile)
 
 int automator_clean()
 {
+   _automatorServer_fn = (char *)__func__;
    if(_inputs_rules)
       cJSON_Delete(_inputs_rules);
 

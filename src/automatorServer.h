@@ -24,6 +24,8 @@ extern long automator_xplin_indicator;
 extern long automator_xplout_indicator;
 
 extern int _automatorServer_monitoring_id;
+extern pthread_t *_automatorServer_thread_id;
+extern char *_automatorServer_fn;
 
 struct automatorServer_start_stop_params_s
 {
