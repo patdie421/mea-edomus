@@ -1150,7 +1150,7 @@ static int automator_setinputvalue(cJSON *parameters)
 }
 
 
-static int automator_sendxpl(cJSON *parameters)
+int automator_sendxpl(cJSON *parameters)
 {
    if(parameters==NULL || parameters->child==NULL)
       return -1;
