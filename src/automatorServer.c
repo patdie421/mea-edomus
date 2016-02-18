@@ -284,8 +284,8 @@ void *_automator_thread(void *data)
             automator_send_all_inputs();
             automator_send_all_inputs_flag=0;
          }
-         automator_reset_inputs_change_flags();
 */
+         automator_reset_inputs_change_flags();
          continue;
       }
      
@@ -308,8 +308,8 @@ void *_automator_thread(void *data)
             automator_send_all_inputs();
             automator_send_all_inputs_flag=0;
          }
-         automator_reset_inputs_change_flags();
 */
+         automator_reset_inputs_change_flags();
          if(e)
          {
             if(e->type == 1 && e->msg) // l'élément sorti était un message xpl (pas un timer)
