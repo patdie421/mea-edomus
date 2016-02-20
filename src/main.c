@@ -388,6 +388,8 @@ static void error_handler(int signal_number)
    else if((_automatorServer_thread_id!=NULL) && pthread_equal(*_automatorServer_thread_id, pthread_self())!=0)
    {
       fprintf(stderr, "Error: in automatorServer ... (%s)\n", _automatorServer_fn);
+      if(strcmp(_automatorServer_fn, "evalStr")==0)
+         fprintf(stderr, "(%s) (%s)\n", _automatorServer_str, _automatorServer_where);
    }
 
    fprintf(stderr, "Error: aborting\n");
