@@ -635,7 +635,7 @@ pthread_t *start_interface_type_006_genericserial_data_thread(interface_type_006
    if(pthread_create (thread, NULL, (void *)function, (void *)params))
       goto start_interface_type_006_genericserial_data_thread_clean_exit;
    pthread_detach(*thread);
-   fprintf(stderr,"INTERFACE_TYPE_006 : %x\n", *thread);
+   fprintf(stderr,"INTERFACE_TYPE_006 : %x\n", (unsigned int)*thread);
 
    return thread;
    

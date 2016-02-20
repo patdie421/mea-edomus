@@ -1396,7 +1396,7 @@ int mg_start_thread(mg_thread_func_t func, void *param) {
    // (void) pthread_attr_setstacksize(&attr, sizeof(struct mg_connection) * 5);
    
    result = pthread_create(&thread_id, &attr, func, param);
-   fprintf(stderr,"MOMGOOSE : %x\n", thread_id);
+   fprintf(stderr,"MOMGOOSE : %x\n", (unsigned int)thread_id);
    pthread_attr_destroy(&attr);
    
    return result;

@@ -1285,7 +1285,7 @@ int start_interface_type_004(int my_id, void *data, char *errmsg, int l_errmsg)
       VERBOSE(2) mea_log_printf("%s (%s) : pthread_create - can't start thread\n",ERROR_STR,__func__);
       goto start_interface_type_004_clean_exit;
    }
-   fprintf(stderr,"INTERFACE_TYPE_004 : %x\n", *interface_type_004_thread_id); 
+   fprintf(stderr,"INTERFACE_TYPE_004 : %x\n", (unsigned int)*interface_type_004_thread_id);
 
    interface_type_004_thread_args->i004->thread=interface_type_004_thread_id;
    
