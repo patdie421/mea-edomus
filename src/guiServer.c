@@ -550,6 +550,7 @@ int gui_automator_cmnd(struct mg_connection *conn, char *phpsessid, char *_php_s
       _httpErrno(conn, 0, NULL);
       return 1;
    }
+   return 0;
 }
 
 
@@ -651,7 +652,7 @@ int gui_xplsend(struct mg_connection *conn, char *phpsessid, char *_php_sessions
 
 static int _begin_request_handler(struct mg_connection *conn)
 {
-   uint32_t id = 0;
+//   uint32_t id = 0;
    const struct mg_request_info *request_info = mg_get_request_info(conn);
    char phpsessid[80];
    

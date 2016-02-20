@@ -507,7 +507,7 @@ pthread_t *pythonPluginServer()
       goto pythonPluginServer_clean_exit;
 
    }
-   fprintf(stderr,"PYTHONPLUGINSERVER : %x\n", *pythonPlugin_thread);
+   fprintf(stderr,"PYTHONPLUGINSERVER : %x\n", (unsigned int)*pythonPlugin_thread);
 
    pthread_detach(*pythonPlugin_thread);
    

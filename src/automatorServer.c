@@ -124,6 +124,8 @@ int automatorServer_send_all_inputs()
 {
    _automatorServer_fn = (char *)__func__;
    automator_send_all_inputs_flag = 1;
+   
+   return 0;
 }
 
 
@@ -377,7 +379,7 @@ pthread_t *automatorServer()
       }
       goto automatorServer_clean_exit;
    }
-   fprintf(stderr,"AUTOMATORSERVER : %x\n", *automator_thread);
+   fprintf(stderr,"AUTOMATORSERVER : %x\n", (unsigned int)*automator_thread);
    pthread_detach(*automator_thread);
 
    if(automator_thread)   

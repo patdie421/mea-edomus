@@ -564,7 +564,7 @@ int start_logServer(int my_id, void *data, char *errmsg, int l_errmsg)
 
       return -1;
    }
-   fprintf(stderr,"LOGSERVER : %x\n", *_logServer_thread);
+   fprintf(stderr,"LOGSERVER : %x\n", (unsigned int)*_logServer_thread);
    pthread_detach(*_logServer_thread);
 
    _logServer_monitoring_id=my_id;

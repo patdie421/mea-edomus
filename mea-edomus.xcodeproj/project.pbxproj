@@ -11,103 +11,6 @@
 		4E0096431BFCFFC70003C62D /* serial.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E0096411BFCFFC70003C62D /* serial.c */; };
 		4E0096441BFCFFC70003C62D /* serial.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E0096411BFCFFC70003C62D /* serial.c */; };
 		4E09454E17C10FB2003749FE /* init.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E09454D17C10FB2003749FE /* init.c */; };
-		4E1A17DB1C765D2400B67DDE /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A11E01C765D2200B67DDE /* README.md */; };
-		4E1A17DC1C765D2400B67DDE /* README.markdown in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A17D41C765D2400B67DDE /* README.markdown */; };
-		4E1A19BA1C765D5A00B67DDE /* HISTORY.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A17DF1C765D5900B67DDE /* HISTORY.md */; };
-		4E1A19BB1C765D5A00B67DDE /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A17E31C765D5900B67DDE /* README.md */; };
-		4E1A19BC1C765D5A00B67DDE /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A17EA1C765D5900B67DDE /* README.md */; };
-		4E1A19BD1C765D5A00B67DDE /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A17F01C765D5900B67DDE /* Makefile */; };
-		4E1A19BE1C765D5A00B67DDE /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A17F21C765D5900B67DDE /* README.md */; };
-		4E1A19BF1C765D5A00B67DDE /* History.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A17F81C765D5900B67DDE /* History.md */; };
-		4E1A19C01C765D5A00B67DDE /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A17FA1C765D5900B67DDE /* Makefile */; };
-		4E1A19C11C765D5A00B67DDE /* Readme.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A17FC1C765D5900B67DDE /* Readme.md */; };
-		4E1A19C21C765D5A00B67DDE /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A18071C765D5900B67DDE /* README.md */; };
-		4E1A19C31C765D5A00B67DDE /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A180F1C765D5900B67DDE /* README.md */; };
-		4E1A19C41C765D5A00B67DDE /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A18131C765D5900B67DDE /* README.md */; };
-		4E1A19C51C765D5A00B67DDE /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A18161C765D5900B67DDE /* README.md */; };
-		4E1A19C61C765D5A00B67DDE /* History.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A181D1C765D5A00B67DDE /* History.md */; };
-		4E1A19C71C765D5A00B67DDE /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A181F1C765D5A00B67DDE /* Makefile */; };
-		4E1A19C81C765D5A00B67DDE /* Readme.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A18211C765D5A00B67DDE /* Readme.md */; };
-		4E1A19C91C765D5A00B67DDE /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A18261C765D5A00B67DDE /* Makefile */; };
-		4E1A19CA1C765D5A00B67DDE /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A18281C765D5A00B67DDE /* README.md */; };
-		4E1A19CB1C765D5A00B67DDE /* History.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A182D1C765D5A00B67DDE /* History.md */; };
-		4E1A19CC1C765D5A00B67DDE /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A182F1C765D5A00B67DDE /* Makefile */; };
-		4E1A19CD1C765D5A00B67DDE /* Readme.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A18311C765D5A00B67DDE /* Readme.md */; };
-		4E1A19CE1C765D5A00B67DDE /* History.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A18351C765D5A00B67DDE /* History.md */; };
-		4E1A19CF1C765D5A00B67DDE /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A18371C765D5A00B67DDE /* Makefile */; };
-		4E1A19D01C765D5A00B67DDE /* Readme.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A18391C765D5A00B67DDE /* Readme.md */; };
-		4E1A19D11C765D5A00B67DDE /* History.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A183F1C765D5A00B67DDE /* History.md */; };
-		4E1A19D21C765D5A00B67DDE /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A18411C765D5A00B67DDE /* Makefile */; };
-		4E1A19D31C765D5A00B67DDE /* Readme.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A18431C765D5A00B67DDE /* Readme.md */; };
-		4E1A19D41C765D5A00B67DDE /* History.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A18471C765D5A00B67DDE /* History.md */; };
-		4E1A19D51C765D5A00B67DDE /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A18491C765D5A00B67DDE /* Makefile */; };
-		4E1A19D61C765D5A00B67DDE /* Readme.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A184B1C765D5A00B67DDE /* Readme.md */; };
-		4E1A19D71C765D5A00B67DDE /* History.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A18551C765D5A00B67DDE /* History.md */; };
-		4E1A19D81C765D5A00B67DDE /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A18561C765D5A00B67DDE /* Makefile */; };
-		4E1A19D91C765D5A00B67DDE /* Readme.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A18591C765D5A00B67DDE /* Readme.md */; };
-		4E1A19DA1C765D5A00B67DDE /* History.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A185D1C765D5A00B67DDE /* History.md */; };
-		4E1A19DB1C765D5A00B67DDE /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A186B1C765D5A00B67DDE /* Makefile */; };
-		4E1A19DC1C765D5A00B67DDE /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A186D1C765D5A00B67DDE /* README.md */; };
-		4E1A19DD1C765D5A00B67DDE /* History.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A18731C765D5A00B67DDE /* History.md */; };
-		4E1A19DE1C765D5A00B67DDE /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A18811C765D5A00B67DDE /* Makefile */; };
-		4E1A19DF1C765D5A00B67DDE /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A18831C765D5A00B67DDE /* README.md */; };
-		4E1A19E01C765D5A00B67DDE /* History.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A18881C765D5A00B67DDE /* History.md */; };
-		4E1A19E11C765D5A00B67DDE /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A188F1C765D5A00B67DDE /* Makefile */; };
-		4E1A19E21C765D5A00B67DDE /* History.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A18951C765D5A00B67DDE /* History.md */; };
-		4E1A19E31C765D5A00B67DDE /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A18981C765D5A00B67DDE /* Makefile */; };
-		4E1A19E41C765D5A00B67DDE /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A189A1C765D5A00B67DDE /* README.md */; };
-		4E1A19E51C765D5A00B67DDE /* Readme.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A189D1C765D5A00B67DDE /* Readme.md */; };
-		4E1A19E61C765D5A00B67DDE /* History.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A18A01C765D5A00B67DDE /* History.md */; };
-		4E1A19E71C765D5A00B67DDE /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A18A31C765D5A00B67DDE /* Makefile */; };
-		4E1A19E81C765D5A00B67DDE /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A18A51C765D5A00B67DDE /* README.md */; };
-		4E1A19E91C765D5A00B67DDE /* History.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A18AA1C765D5A00B67DDE /* History.md */; };
-		4E1A19EA1C765D5A00B67DDE /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A18AC1C765D5A00B67DDE /* Makefile */; };
-		4E1A19EB1C765D5A00B67DDE /* Readme.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A18AE1C765D5A00B67DDE /* Readme.md */; };
-		4E1A19EC1C765D5A00B67DDE /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A18B41C765D5A00B67DDE /* Makefile */; };
-		4E1A19ED1C765D5A00B67DDE /* Readme.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A18B61C765D5A00B67DDE /* Readme.md */; };
-		4E1A19EE1C765D5A00B67DDE /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A18BD1C765D5A00B67DDE /* README.md */; };
-		4E1A19EF1C765D5A00B67DDE /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A18D01C765D5A00B67DDE /* README.md */; };
-		4E1A19F01C765D5A00B67DDE /* HISTORY.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A18D31C765D5A00B67DDE /* HISTORY.md */; };
-		4E1A19F11C765D5A00B67DDE /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A18D71C765D5A00B67DDE /* README.md */; };
-		4E1A19F21C765D5A00B67DDE /* HISTORY.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A18D91C765D5A00B67DDE /* HISTORY.md */; };
-		4E1A19F31C765D5A00B67DDE /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A18DD1C765D5A00B67DDE /* README.md */; };
-		4E1A19F41C765D5A00B67DDE /* History.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A18E01C765D5A00B67DDE /* History.md */; };
-		4E1A19F51C765D5A00B67DDE /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A18E41C765D5A00B67DDE /* README.md */; };
-		4E1A19F61C765D5A00B67DDE /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A18EE1C765D5A00B67DDE /* README.md */; };
-		4E1A19F71C765D5A00B67DDE /* History.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A18F21C765D5A00B67DDE /* History.md */; };
-		4E1A19F81C765D5A00B67DDE /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A18F41C765D5A00B67DDE /* Makefile */; };
-		4E1A19F91C765D5A00B67DDE /* Readme.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A18F61C765D5A00B67DDE /* Readme.md */; };
-		4E1A19FA1C765D5A00B67DDE /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A18FD1C765D5A00B67DDE /* Makefile */; };
-		4E1A19FB1C765D5A00B67DDE /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A18FF1C765D5A00B67DDE /* README.md */; };
-		4E1A19FC1C765D5A00B67DDE /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A19021C765D5A00B67DDE /* Makefile */; };
-		4E1A19FD1C765D5A00B67DDE /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A19071C765D5A00B67DDE /* Makefile */; };
-		4E1A19FE1C765D5A00B67DDE /* History.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A190B1C765D5A00B67DDE /* History.md */; };
-		4E1A19FF1C765D5A00B67DDE /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A190D1C765D5A00B67DDE /* Makefile */; };
-		4E1A1A001C765D5A00B67DDE /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A191B1C765D5A00B67DDE /* README.md */; };
-		4E1A1A011C765D5A00B67DDE /* History.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A191C1C765D5A00B67DDE /* History.md */; };
-		4E1A1A021C765D5A00B67DDE /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A19231C765D5A00B67DDE /* Makefile */; };
-		4E1A1A031C765D5A00B67DDE /* Readme.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A19251C765D5A00B67DDE /* Readme.md */; };
-		4E1A1A041C765D5A00B67DDE /* History.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A19281C765D5A00B67DDE /* History.md */; };
-		4E1A1A051C765D5A00B67DDE /* History.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A19341C765D5A00B67DDE /* History.md */; };
-		4E1A1A061C765D5A00B67DDE /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A19371C765D5A00B67DDE /* Makefile */; };
-		4E1A1A071C765D5A00B67DDE /* Readme.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A193F1C765D5A00B67DDE /* Readme.md */; };
-		4E1A1A081C765D5A00B67DDE /* Readme.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A19411C765D5A00B67DDE /* Readme.md */; };
-		4E1A1A091C765D5A00B67DDE /* Readme.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A19431C765D5A00B67DDE /* Readme.md */; };
-		4E1A1A0A1C765D5A00B67DDE /* History.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A19451C765D5A00B67DDE /* History.md */; };
-		4E1A1A0B1C765D5A00B67DDE /* History.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A194F1C765D5A00B67DDE /* History.md */; };
-		4E1A1A0C1C765D5A00B67DDE /* Readme.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A19531C765D5A00B67DDE /* Readme.md */; };
-		4E1A1A0D1C765D5A00B67DDE /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A19551C765D5A00B67DDE /* README.md */; };
-		4E1A1A0E1C765D5A00B67DDE /* History.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A195F1C765D5A00B67DDE /* History.md */; };
-		4E1A1A0F1C765D5A00B67DDE /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A19631C765D5A00B67DDE /* Makefile */; };
-		4E1A1A101C765D5A00B67DDE /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A196B1C765D5A00B67DDE /* README.md */; };
-		4E1A1A111C765D5A00B67DDE /* Readme.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A196D1C765D5A00B67DDE /* Readme.md */; };
-		4E1A1A121C765D5A00B67DDE /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A19731C765D5A00B67DDE /* README.md */; };
-		4E1A1A131C765D5A00B67DDE /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A197A1C765D5A00B67DDE /* README.md */; };
-		4E1A1A141C765D5A00B67DDE /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A19851C765D5A00B67DDE /* README.md */; };
-		4E1A1A151C765D5A00B67DDE /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A199E1C765D5A00B67DDE /* Makefile */; };
-		4E1A1A161C765D5A00B67DDE /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A19A01C765D5A00B67DDE /* README.md */; };
-		4E1A1A171C765D5A00B67DDE /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A19A91C765D5A00B67DDE /* README.md */; };
-		4E1A1A181C765D5A00B67DDE /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = 4E1A19B91C765D5A00B67DDE /* README.md */; };
 		4E207BB519F0529D00410B40 /* logServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E207BB419F0529D00410B40 /* logServer.c */; };
 		4E207BC919F1C14700410B40 /* mea-xpllogger.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E207BB819F1BA4300410B40 /* mea-xpllogger.c */; };
 		4E207BCA19F1C15F00410B40 /* xPL-utils.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E76CE96163F120C00A3EBA9 /* xPL-utils.c */; };
@@ -7932,156 +7835,59 @@
 			files = (
 				4E2AD4D01A3F4C84004177D4 /* enocean.c in Sources */,
 				4E0096431BFCFFC70003C62D /* serial.c in Sources */,
-				4E1A19F91C765D5A00B67DDE /* Readme.md in Sources */,
-				4E1A19D71C765D5A00B67DDE /* History.md in Sources */,
-				4E1A1A0B1C765D5A00B67DDE /* History.md in Sources */,
-				4E1A1A111C765D5A00B67DDE /* Readme.md in Sources */,
 				4E4A5EA315F003420052ABF4 /* interface_type_001.c in Sources */,
-				4E1A1A101C765D5A00B67DDE /* README.md in Sources */,
 				4E4F885E1A9E76A000479945 /* cJSON.c in Sources */,
-				4E1A19FA1C765D5A00B67DDE /* Makefile in Sources */,
-				4E1A19D61C765D5A00B67DDE /* Readme.md in Sources */,
-				4E1A19BE1C765D5A00B67DDE /* README.md in Sources */,
-				4E1A1A161C765D5A00B67DDE /* README.md in Sources */,
 				4E8787E61816732800A87FF0 /* sqlite3db_utils.c in Sources */,
-				4E1A1A021C765D5A00B67DDE /* Makefile in Sources */,
-				4E1A1A151C765D5A00B67DDE /* Makefile in Sources */,
-				4E1A19D21C765D5A00B67DDE /* Makefile in Sources */,
 				4EF3F6C31828400F00959B93 /* interfacesServer.c in Sources */,
-				4E1A19BD1C765D5A00B67DDE /* Makefile in Sources */,
-				4E1A19D31C765D5A00B67DDE /* Readme.md in Sources */,
 				4E4A5EA815F003420052ABF4 /* interface_type_002.c in Sources */,
 				4E83D2B51BF12A81009FF74F /* mea_queue.c in Sources */,
-				4E1A19EA1C765D5A00B67DDE /* Makefile in Sources */,
-				4E1A19FE1C765D5A00B67DDE /* History.md in Sources */,
-				4E1A19D81C765D5A00B67DDE /* Makefile in Sources */,
 				4E4A5EA915F003420052ABF4 /* dbServer.c in Sources */,
 				4E4A5EAA15F003420052ABF4 /* xbee.c in Sources */,
-				4E1A19EC1C765D5A00B67DDE /* Makefile in Sources */,
 				4E83D2C91BF12A81009FF74F /* tokens_da.c in Sources */,
 				4E3F343C19F970150066A9CC /* consts.c in Sources */,
 				4E7A0B011AB766DE00ABF5ED /* main.c in Sources */,
 				4E76CE98163F120C00A3EBA9 /* xPL-config.c in Sources */,
 				4E76CE9A163F120C00A3EBA9 /* xPL-io.c in Sources */,
-				4E1A19F61C765D5A00B67DDE /* README.md in Sources */,
-				4E1A19BF1C765D5A00B67DDE /* History.md in Sources */,
 				4E76CE9B163F120C00A3EBA9 /* xPL-listeners.c in Sources */,
 				4E5E49081C1F7FA200CBE3EE /* sunriset.c in Sources */,
-				4E1A19ED1C765D5A00B67DDE /* Readme.md in Sources */,
-				4E1A19C11C765D5A00B67DDE /* Readme.md in Sources */,
-				4E1A19F81C765D5A00B67DDE /* Makefile in Sources */,
-				4E1A1A0F1C765D5A00B67DDE /* Makefile in Sources */,
-				4E1A19E11C765D5A00B67DDE /* Makefile in Sources */,
-				4E1A19DD1C765D5A00B67DDE /* History.md in Sources */,
-				4E1A19F41C765D5A00B67DDE /* History.md in Sources */,
-				4E1A19E71C765D5A00B67DDE /* Makefile in Sources */,
 				4E83D2B91BF12A81009FF74F /* mea_sockets_utils.c in Sources */,
-				4E1A19E81C765D5A00B67DDE /* README.md in Sources */,
-				4E1A19FB1C765D5A00B67DDE /* README.md in Sources */,
-				4E1A19C71C765D5A00B67DDE /* Makefile in Sources */,
 				4E4F88561A98D2A500479945 /* interface_type_003.c in Sources */,
-				4E1A19E21C765D5A00B67DDE /* History.md in Sources */,
 				4E60BA7A19FEF40A00D56F21 /* notify.c in Sources */,
 				4E83D2C11BF12A81009FF74F /* mea_timer.c in Sources */,
-				4E1A1A041C765D5A00B67DDE /* History.md in Sources */,
-				4E1A19DF1C765D5A00B67DDE /* README.md in Sources */,
 				4E76CE9C163F120C00A3EBA9 /* xPL-message.c in Sources */,
-				4E1A19FF1C765D5A00B67DDE /* Makefile in Sources */,
-				4E1A19E31C765D5A00B67DDE /* Makefile in Sources */,
-				4E1A1A051C765D5A00B67DDE /* History.md in Sources */,
-				4E1A19EE1C765D5A00B67DDE /* README.md in Sources */,
-				4E1A1A121C765D5A00B67DDE /* README.md in Sources */,
 				4E76CE9D163F120C00A3EBA9 /* xPL-service.c in Sources */,
-				4E1A1A031C765D5A00B67DDE /* Readme.md in Sources */,
 				4E76CE9E163F120C00A3EBA9 /* xPL-store.c in Sources */,
-				4E1A19BB1C765D5A00B67DDE /* README.md in Sources */,
-				4E1A1A001C765D5A00B67DDE /* README.md in Sources */,
 				4E4F885F1A9E76A000479945 /* philipshue.c in Sources */,
 				4E83D2DF1BF515F7009FF74F /* interface_type_005.c in Sources */,
-				4E1A1A141C765D5A00B67DDE /* README.md in Sources */,
-				4E1A1A131C765D5A00B67DDE /* README.md in Sources */,
-				4E1A1A181C765D5A00B67DDE /* README.md in Sources */,
 				4EF3D8FC19B3C02200892F29 /* comio2.c in Sources */,
-				4E1A19D51C765D5A00B67DDE /* Makefile in Sources */,
 				4E76CE9F163F120C00A3EBA9 /* xPL-utils.c in Sources */,
-				4E1A19CF1C765D5A00B67DDE /* Makefile in Sources */,
-				4E1A19C91C765D5A00B67DDE /* Makefile in Sources */,
-				4E1A19E61C765D5A00B67DDE /* History.md in Sources */,
-				4E1A19CD1C765D5A00B67DDE /* Readme.md in Sources */,
 				4E83D2C51BF12A81009FF74F /* mea_verbose.c in Sources */,
-				4E1A1A0C1C765D5A00B67DDE /* Readme.md in Sources */,
 				4E98B61F1C12282E00985383 /* automatorServer.c in Sources */,
 				4E83D2BD1BF12A81009FF74F /* mea_string_utils.c in Sources */,
-				4E1A19E51C765D5A00B67DDE /* Readme.md in Sources */,
 				4E76CEA2163F124200A3EBA9 /* xPLServer.c in Sources */,
 				4E4292961AA7AEC700E64F4F /* philipshue_color.c in Sources */,
 				4E98B6241C15D04200985383 /* automator.c in Sources */,
-				4E1A19C01C765D5A00B67DDE /* Makefile in Sources */,
-				4E1A19E91C765D5A00B67DDE /* History.md in Sources */,
-				4E1A19CC1C765D5A00B67DDE /* Makefile in Sources */,
-				4E1A1A061C765D5A00B67DDE /* Makefile in Sources */,
-				4E1A19DE1C765D5A00B67DDE /* Makefile in Sources */,
-				4E1A19EF1C765D5A00B67DDE /* README.md in Sources */,
 				4E76CEA5163F12C800A3EBA9 /* arduino_pins.c in Sources */,
-				4E1A19F51C765D5A00B67DDE /* README.md in Sources */,
 				4E76CEAB163F146900A3EBA9 /* parameters_utils.c in Sources */,
-				4E1A19C21C765D5A00B67DDE /* README.md in Sources */,
-				4E1A19F11C765D5A00B67DDE /* README.md in Sources */,
-				4E1A19DC1C765D5A00B67DDE /* README.md in Sources */,
 				4E5E490B1C21D62E00CBE3EE /* datetimeServer.c in Sources */,
-				4E1A19E41C765D5A00B67DDE /* README.md in Sources */,
-				4E1A1A171C765D5A00B67DDE /* README.md in Sources */,
-				4E1A1A091C765D5A00B67DDE /* Readme.md in Sources */,
-				4E1A19E01C765D5A00B67DDE /* History.md in Sources */,
 				4E76CEB2163F175100A3EBA9 /* tokens.c in Sources */,
-				4E1A17DC1C765D2400B67DDE /* README.markdown in Sources */,
-				4E1A19F31C765D5A00B67DDE /* README.md in Sources */,
-				4E1A17DB1C765D2400B67DDE /* README.md in Sources */,
 				4E207BB519F0529D00410B40 /* logServer.c in Sources */,
-				4E1A19BC1C765D5A00B67DDE /* README.md in Sources */,
 				4E83D2E01BF515F7009FF74F /* netatmo.c in Sources */,
-				4E1A1A011C765D5A00B67DDE /* History.md in Sources */,
 				4E98B6401C1A25E700985383 /* mea_eval.c in Sources */,
-				4E1A19FC1C765D5A00B67DDE /* Makefile in Sources */,
-				4E1A19EB1C765D5A00B67DDE /* Readme.md in Sources */,
 				4E5FC65F172F0F91004266EB /* interface_type_001_counters.c in Sources */,
-				4E1A1A0E1C765D5A00B67DDE /* History.md in Sources */,
-				4E1A1A0D1C765D5A00B67DDE /* README.md in Sources */,
-				4E1A1A081C765D5A00B67DDE /* Readme.md in Sources */,
-				4E1A19D41C765D5A00B67DDE /* History.md in Sources */,
 				4E8A87B01A095D4A00A99E80 /* nodejsServer.c in Sources */,
 				4E5FC660172F0F91004266EB /* interface_type_001_sensors.c in Sources */,
-				4E1A19C51C765D5A00B67DDE /* README.md in Sources */,
 				4E5FC662172F103B004266EB /* interface_type_001_actuators.c in Sources */,
 				4E5FC67917357D72004266EB /* pythonPluginServer.c in Sources */,
 				4E0096401BFBE7E40003C62D /* interface_type_006.c in Sources */,
-				4E1A19BA1C765D5A00B67DDE /* HISTORY.md in Sources */,
-				4E1A19F01C765D5A00B67DDE /* HISTORY.md in Sources */,
-				4E1A1A0A1C765D5A00B67DDE /* History.md in Sources */,
-				4E1A19C61C765D5A00B67DDE /* History.md in Sources */,
 				4E798FF919D4871400F87593 /* processManager.c in Sources */,
-				4E1A19C81C765D5A00B67DDE /* Readme.md in Sources */,
 				4E5E24C3173C34AE00B8CEFE /* mea_api.c in Sources */,
-				4E1A19DB1C765D5A00B67DDE /* Makefile in Sources */,
 				4EFBFCAE175E616E007BBFD1 /* guiServer.c in Sources */,
-				4E1A19CA1C765D5A00B67DDE /* README.md in Sources */,
-				4E1A19D01C765D5A00B67DDE /* Readme.md in Sources */,
 				4EFBFCC9175E6BE7007BBFD1 /* mongoose.c in Sources */,
-				4E1A19C41C765D5A00B67DDE /* README.md in Sources */,
-				4E1A19CE1C765D5A00B67DDE /* History.md in Sources */,
 				4EFBFCCC175E8BDC007BBFD1 /* python_utils.c in Sources */,
 				4E83D2E11BF515F7009FF74F /* curl_adds.c in Sources */,
-				4E1A19FD1C765D5A00B67DDE /* Makefile in Sources */,
-				4E1A1A071C765D5A00B67DDE /* Readme.md in Sources */,
-				4E1A19C31C765D5A00B67DDE /* README.md in Sources */,
 				4E09454E17C10FB2003749FE /* init.c in Sources */,
 				4E4292941AA4E84700E64F4F /* interface_type_004.c in Sources */,
-				4E1A19F21C765D5A00B67DDE /* HISTORY.md in Sources */,
-				4E1A19CB1C765D5A00B67DDE /* History.md in Sources */,
-				4E1A19F71C765D5A00B67DDE /* History.md in Sources */,
-				4E1A19D11C765D5A00B67DDE /* History.md in Sources */,
-				4E1A19D91C765D5A00B67DDE /* Readme.md in Sources */,
-				4E1A19DA1C765D5A00B67DDE /* History.md in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

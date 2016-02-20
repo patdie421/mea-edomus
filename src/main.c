@@ -391,7 +391,7 @@ static void error_handler(int signal_number)
    }
 
    fprintf(stderr, "Error: aborting\n");
-   fprintf(stderr, "Thread id : %x", pthread_self());
+   fprintf(stderr, "Thread id : %x", (unsigned int)pthread_self());
 
    abort();
    exit(1);
@@ -1051,7 +1051,7 @@ int main(int argc, const char * argv[])
 //   process_run_task(log_rotation_id, NULL, 0);
 
    VERBOSE(1) mea_log_printf("%s (%s) : MEA-EDOMUS %s starded\n", INFO_STR, __func__, __MEA_EDOMUS_VERSION__);
-   fprintf(stderr,"MAIN : %x\n",  pthread_self());
+   fprintf(stderr,"MAIN : %x\n",  (unsigned int)pthread_self());
 
    time_t start_time;
    long uptime = 0;

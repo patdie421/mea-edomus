@@ -153,6 +153,8 @@ int16_t format_float_current_last(char *str_current, char *str_last, char *forma
    if(last>=0.0)
       sprintf(str_last, format, last);
    if(d1) *d1=(double)current;
+   
+   return 0;
 }
 
 
@@ -1313,7 +1315,7 @@ int start_interface_type_005(int my_id, void *data, char *errmsg, int l_errmsg)
       VERBOSE(2) mea_log_printf("%s (%s) : pthread_create - can't start thread\n",ERROR_STR,__func__);
       goto start_interface_type_005_clean_exit;
    }
-   fprintf(stderr, "INTERFACE_TYPE_005 : %x\n", *interface_type_005_thread_id);
+   fprintf(stderr, "INTERFACE_TYPE_005 : %x\n", (unsigned int)*interface_type_005_thread_id);
 
    start_stop_params->i005->xPL_callback=interface_type_005_xPL_callback;
    start_stop_params->i005->thread=interface_type_005_thread_id;

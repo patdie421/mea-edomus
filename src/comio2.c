@@ -228,7 +228,7 @@ int16_t comio2_init(comio2_ad_t *ad, char *dev, speed_t speed)
       ad->queue=NULL;
       return -1;
    }
-   fprintf(stderr,"COMIO2 : %x\n", ad->read_thread); 
+   fprintf(stderr,"COMIO2 : %x\n", (unsigned int)ad->read_thread);
    return ad->fd;
 }
 

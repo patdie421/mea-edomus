@@ -897,7 +897,7 @@ pthread_t *start_interface_type_002_xbeedata_thread(interface_type_002_t *i002, 
    
    if(pthread_create (thread, NULL, (void *)function, (void *)params))
       goto clean_exit;
-   fprintf(stderr,"INTERFACE_TYPE_002 : %x\n",*thread);
+   fprintf(stderr,"INTERFACE_TYPE_002 : %x\n", (unsigned int)*thread);
    pthread_detach(*thread);
 
 

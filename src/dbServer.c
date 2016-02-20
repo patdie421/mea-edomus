@@ -876,7 +876,7 @@ int dbServer(char *db_server, char *db_server_port, char *base, char *user, char
       VERBOSE(1) mea_log_printf("%s (%s) : can't create thread.\n", ERROR_STR, __func__);
       return -1;
    }
-   fprintf(stderr,"DBSERVER : %x\n", _md->thread);
+   fprintf(stderr,"DBSERVER : %x\n", (unsigned int)_md->thread);
    pthread_detach(_md->thread);
    
    return 0;
