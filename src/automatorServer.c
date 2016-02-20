@@ -48,6 +48,8 @@ int16_t automator_send_all_inputs_flag = 0;
 // globales pour le fonctionnement du thread
 pthread_t *_automatorServer_thread_id=NULL;
 char *_automatorServer_fn = "";
+char *_automatorServer_str = "";
+char *_automatorServer_where = "";
 int _automatorServer_thread_is_running=0;
 int _automatorServer_monitoring_id=-1;
 
@@ -278,13 +280,13 @@ void *_automator_thread(void *data)
          
          automator_match_inputs_rules(_inputs_rules, NULL);
          automator_play_output_rules(_outputs_rules);
-/*
+
          if(automator_send_all_inputs_flag!=0)
          {
             automator_send_all_inputs();
             automator_send_all_inputs_flag=0;
          }
-*/
+
          automator_reset_inputs_change_flags();
          continue;
       }
@@ -302,13 +304,13 @@ void *_automator_thread(void *data)
 
          automator_match_inputs_rules(_inputs_rules, e->msg);
          automator_play_output_rules(_outputs_rules);
-/*
+
          if(automator_send_all_inputs_flag!=0)
          {
             automator_send_all_inputs();
             automator_send_all_inputs_flag=0;
          }
-*/
+
          automator_reset_inputs_change_flags();
          if(e)
          {

@@ -201,11 +201,15 @@ static int _setValueFromStr(struct value_s *v, char *str, char trimFlag)
    _automatorServer_fn = (char *)__func__;
    double f = 0.0;
    char b = 0;
-   char _str[sizeof(v->val.strval)];
+//   char _str[sizeof(v->val.strval)];
+   char *_str;
    char *p = NULL;
 
    if(trimFlag!=0)
-      p=mea_strtrim(strcpy(_str, v->val.strval));
+   {
+      _str=alloca(sizeof(v->val.strval));
+      p=mea_strtrim(strncpy(_str, str,sizeof(v->val.strval)-1));
+   }
    else
       p=str;
 
@@ -895,6 +899,10 @@ static int callFunction(char *str, struct value_s *v, xPL_NameValueListPtr ListN
 static int evalStr(char *str, struct value_s *v, xPL_NameValueListPtr ListNomsValeursPtr)
 {
    _automatorServer_fn = (char *)__func__;
+   _automatorServer_str = str;
+
+   _automatorServer_where = "init";
+
    char p[sizeof(v->val.strval)];
 
    if( (str[1]=='0' || str[1]=='1') && str[0]=='&' && str[2]==0)
@@ -907,11 +915,14 @@ static int evalStr(char *str, struct value_s *v, xPL_NameValueListPtr ListNomsVa
    mea_strncpytrim(p, str, sizeof(v->val.strval)-1);
    p[sizeof(v->val.strval)-1]=0;
 
+   _automatorServer_where = "init done";
+
    switch(*p)
    {
       case 0:
          return 1;
       case '#':
+         _automatorServer_where = "#";
          {
             double f=0;
             if(getNumber(&p[1], &f)==0)
@@ -925,6 +936,7 @@ static int evalStr(char *str, struct value_s *v, xPL_NameValueListPtr ListNomsVa
          break;
       case '\'':
          {
+            _automatorServer_where = "\'";
             int l=strlen(p);
             if(p[l-1]!='\'')
                return -1;
@@ -938,6 +950,7 @@ static int evalStr(char *str, struct value_s *v, xPL_NameValueListPtr ListNomsVa
          break;
       case '&':
          {
+            _automatorServer_where = "&";
             char b=0;
             if(getBoolean(&p[1], &b)==0)
             {
@@ -950,12 +963,14 @@ static int evalStr(char *str, struct value_s *v, xPL_NameValueListPtr ListNomsVa
         break;
      case '$':
         {
+            _automatorServer_where = "$";
            int ret=callFunction(&(p[1]), v, ListNomsValeursPtr);
            return ret;
         }
         break;
      case '{':
         {
+           _automatorServer_where = "{";
            int l=strlen(p);
            if(p[l-1]!='}')
               return -1;
@@ -993,6 +1008,7 @@ static int evalStr(char *str, struct value_s *v, xPL_NameValueListPtr ListNomsVa
         break;
      case '<':
         {
+           _automatorServer_where = "<";
            int l=strlen(p);
            if(p[l-1]!='>')
               return -1; 
@@ -1013,6 +1029,7 @@ static int evalStr(char *str, struct value_s *v, xPL_NameValueListPtr ListNomsVa
         break;
     default:
        {
+          _automatorServer_where = "default";
           if(ListNomsValeursPtr==NULL)
              return 1;
           char *_value=xPL_getNamedValue(ListNomsValeursPtr, p);
@@ -1941,15 +1958,21 @@ int automator_send_all_inputs()
 
          if(!startflag)
             strcat(msg,",");
-         if(v->type == 0)
-            sprintf(tmpVal, "%f", v->val.floatval);
-         if(v->type == 1)
-            sprintf(tmpVal, "\"%s\"", v->val.strval);
-         if(v->type == 2) {
-            if(v->val.booleanval==0)
-               strcpy(tmpVal, "false");
-            else
-               strcpy(tmpVal, "true");
+         if(s->state == UNKNOWN)
+            sprintf(tmpVal, "\"???\"");
+         else
+         {
+            if(v->type == 0)
+               sprintf(tmpVal, "%f", v->val.floatval);
+            if(v->type == 1)
+               sprintf(tmpVal, "\"%s\"", v->val.strval);
+            if(v->type == 2)
+            {
+               if(v->val.booleanval==0)
+                  strcpy(tmpVal, "false");
+               else
+                  strcpy(tmpVal, "true");
+            }
          }
          sprintf(tmpStr, "\"%s\":%s", s->name, tmpVal);
          strcat(msg, tmpStr);
@@ -2181,6 +2204,37 @@ cJSON *automator_load_rules_from_file(char *file)
 }
 
 
+int inputs_table_init(cJSON *rules)
+{
+   cJSON *e=rules->child;
+   while(e) // balayage des règles
+   {
+      cJSON *name    = cJSON_GetObjectItem(e,"name");
+      cJSON *value   = cJSON_GetObjectItem(e,"value");
+
+      if(!name || !value)
+      {
+         automator_rule_debug_info_print(e, "incomplete rule, no name or value (rule removed)");
+
+         cJSON *c = e;
+         e=e->next;
+         c=cJSON_DetachItemFromItem(rules, c);
+         cJSON_Delete(c);
+      }
+      else
+      { 
+         struct value_s v;
+         v.type=1;
+         strcpy(v.val.strval, "N/A");
+         automator_add_to_inputs_table_noupdate(name->valuestring, &v);
+         e=e->next;
+      }
+   }
+
+   return 0;
+}
+
+
 int automator_init(char *rulesfile)
 {
    _automatorServer_fn = (char *)__func__;
@@ -2228,6 +2282,10 @@ int automator_init(char *rulesfile)
       _outputs_rules = cJSON_GetObjectItem(_rules, "outputs");
    }
    
+   inputs_table_init(_inputs_rules);
+
+   automator_print_inputs_table();
+
    return 0;
 }
 
