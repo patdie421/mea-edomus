@@ -57,7 +57,7 @@ function endsWith($haystack, $needle) {
 
 function getParamVal($db, $param)
 {
-   $response=[];
+   $response=array();
 
    try {
       $file_db = new PDO($db);
