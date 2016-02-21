@@ -1552,7 +1552,7 @@ MapEditorController.prototype.loadWidgets = function(list)
    var _this = this;
 
    $.get("models/get_files_list.php", { type: "widget" }, function(response) {
-      console.log("response : ", JSON.stringify(response));
+      console.log("response : ", response);
       if(response.iserror === false)
       {
          _this._loadWidgets(response.values); 
@@ -1563,6 +1563,7 @@ MapEditorController.prototype.loadWidgets = function(list)
       }
    }).done(function() {
    }).fail(function(jqXHR, textStatus, errorThrown) {
+      console.log("err="+textStatus);
       $.messager.show({
          title:_this._toLocalC('error')+_this._localDoubleDot(),
          msg: _this._toLocalC("communication error")+' ('+textStatus+')'

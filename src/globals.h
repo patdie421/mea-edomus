@@ -47,7 +47,7 @@
 #define RULES_FILES_PATH      27
 #define MAX_LIST_SIZE         28
 
-#define CURRENT_PARAMS_DB_VERSION 7
+#define CURRENT_PARAMS_DB_VERSION 8
 sqlite3 *get_sqlite3_param_db();
 
 // voir ou mettre
@@ -59,6 +59,6 @@ sqlite3 *get_sqlite3_param_db();
 
 #define NOPTHREADJOIN 1
 
-extern FILE *dbgfd;
+// extern FILE *dbgfd;
 
 #endif

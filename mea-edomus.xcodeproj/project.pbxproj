@@ -2317,6 +2317,7 @@
 		4E1A1A331C765F0700B67DDE /* meawidget_slider.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = meawidget_slider.js; sourceTree = "<group>"; };
 		4E1A1A341C765F0700B67DDE /* meawidget_value.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = meawidget_value.js; sourceTree = "<group>"; };
 		4E1A1A351C765F0700B67DDE /* slider1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = slider1.png; sourceTree = "<group>"; };
+		4E1A1A361C79BBEF00B67DDE /* tools.php */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.php; path = tools.php; sourceTree = "<group>"; };
 		4E207BB319F0528400410B40 /* logServer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = logServer.h; path = src/logServer.h; sourceTree = "<group>"; };
 		4E207BB419F0529D00410B40 /* logServer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = logServer.c; path = src/logServer.c; sourceTree = "<group>"; };
 		4E207BB819F1BA4300410B40 /* mea-xpllogger.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = "mea-xpllogger.c"; path = "/Users/patrice/Developpement/Logiciels/mea-edomus/commands/mea-xpllogger/mea-xpllogger.c"; sourceTree = "<absolute>"; };
@@ -5642,6 +5643,7 @@
 		4E1A17D51C765D2400B67DDE /* php */ = {
 			isa = PBXGroup;
 			children = (
+				4E1A1A361C79BBEF00B67DDE /* tools.php */,
 				4E1A17D61C765D2400B67DDE /* auth_utils.php */,
 				4E1A17D71C765D2400B67DDE /* fr */,
 				4E1A17D91C765D2400B67DDE /* translation.php */,

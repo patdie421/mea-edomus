@@ -46,18 +46,21 @@ function inform_and_exit_if_not_admin()
 }
 
 
-function startsWith($haystack, $needle) {
-    return $needle === "" || strrpos($haystack, $needle, -strlen($haystack)) !== false;
+function startsWith($haystack, $needle)
+{
+   return $needle === "" || strrpos($haystack, $needle, -strlen($haystack)) !== false;
 }
 
 
-function endsWith($haystack, $needle) {
-    return $needle === "" || (($temp = strlen($haystack) - strlen($needle)) >= 0 && strpos($haystack, $needle, $temp) !== FALSE);
+function endsWith($haystack, $needle)
+{
+   return $needle === "" || (($temp = strlen($haystack) - strlen($needle)) >= 0 && strpos($haystack, $needle, $temp) !== FALSE);
 }
+
 
 function getParamVal($db, $param)
 {
-   $response=[];
+   $response=array();
 
    try {
       $file_db = new PDO($db);

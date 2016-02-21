@@ -4,7 +4,7 @@ include_once('../lib/php/auth_utils.php');
 include_once('../lib/php/tools.php');
 session_start();
 
-//$DEBUG_ON=1;
+$DEBUG_ON=1;
 if(isset($DEBUG_ON) && ($DEBUG_ON == 1))
 {
    error_log_REQUEST();
@@ -114,21 +114,22 @@ else
 }
 
 $values=array();
+
 if(is_dir($path))
 {
    $dirContents = scandir($path);
-   if( count($dirContents) > 2 ) /* si plus que . et .. */
+   if( count($dirContents) > 2 ) // si plus que . et ..
    {
       natsort($dirContents);
 
       foreach( $dirContents as $dirEntry ) {
          $dirEntryFullPath=$path . "/" . $dirEntry;
          preg_replace('#/+#','/', $dirEntryFullPath);
+         
          if($excludes <> false && in_array($dirEntryFullPath, $excludes))
             continue;
-//         if( substr($dirEntry, 0, 1)!="." && !is_dir($dirEntryFullPath) && (endsWith($dirEntry,"." . $extentions))) 
-//         if( substr($dirEntry, 0, 1)!="." && !is_dir($dirEntryFullPath) && (validExt($dirEntry, $extentions))) 
-         if( substr($dirEntry, 0, 1)!="." && !is_dir($dirEntryFullPath) && validExts($dirEntry, $extentions) && validPrefixes($dirEntry, $prefixes)) 
+         
+         if( substr($dirEntry, 0, 1)!="." && !is_dir($dirEntryFullPath) && validExts($dirEntry, $extentions) && validPrefixes($dirEntry, $prefixes))
          {
             array_push($values, $dirEntry);
          }
@@ -136,4 +137,4 @@ if(is_dir($path))
    }
 }
 
-echo json_encode(array('iserror'=>false, "result"=>"OK","values"=>$values, "errno"=>0));
+echo json_encode(array('iserror'=>false, "result"=>"OK", "values"=>$values, "errno"=>0));

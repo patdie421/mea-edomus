@@ -1230,6 +1230,45 @@ exit_updateMeaEdomus:
 
 
 // une fonction pour chaque changement de version.
+int16_t upgrade_params_db_from_7_to_8(sqlite3 *sqlite3_param_db, struct upgrade_params_s *upgrade_params)
+{
+ int ret;
+ char *err = NULL;
+ char sql[256];
+ int16_t n;
+ 
+   VERBOSE(5) mea_log_printf ("%s (%s) : passage de la version 7 à la version 8\n",INFO_STR,__func__);
+  
+   n=snprintf(sql, sizeof(sql), "REPLACE INTO 'application_parameters' (id, key, value, complement) VALUES ('%d', 'RULESFILESPATH', '%s/lib/mea-rules', '')", RULES_FILES_PATH, upgrade_params->params_list[MEA_PATH]);
+   if(n<0 || n==sizeof(sql))
+   {
+      VERBOSE(9) {
+         mea_log_printf ("%s (%s) : snprintf - ", DEBUG_STR,__func__);
+         perror("");
+      }
+      return -1;
+   }
+   ret = sqlite3_exec(sqlite3_param_db, sql, NULL, NULL, &err);
+   if( ret != SQLITE_OK )
+   {
+      VERBOSE(9) mea_log_printf ("%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__, sqlite3_errmsg(sqlite3_param_db));
+      sqlite3_free(err);
+      return -1;
+   }
+ 
+   ret = sqlite3_exec(sqlite3_param_db, "UPDATE 'application_parameters' set value = '8' WHERE key = 'PARAMSDBVERSION'", NULL, NULL, &err);
+   if( ret != SQLITE_OK )
+   {
+      VERBOSE(9) mea_log_printf ("%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
+      sqlite3_free(err);
+      return -1;
+   }
+   
+   return 0;
+}
+
+
+// une fonction pour chaque changement de version.
 int16_t upgrade_params_db_from_6_to_7(sqlite3 *sqlite3_param_db, struct upgrade_params_s *upgrade_params)
 {
  int ret;
@@ -1586,6 +1625,7 @@ upgrade_params_db_from_x_to_y_f upgrade_params_db_from_x_to_y[]= {
    upgrade_params_db_from_4_to_5,
    upgrade_params_db_from_5_to_6,
    upgrade_params_db_from_6_to_7,
+   upgrade_params_db_from_7_to_8,
    NULL };
 
 
