@@ -1,8 +1,3 @@
-/*
-if(typeof(CommonController)=="undefined") { // TabsPageController héritera de CommonController ...
-   window.location = "error.html";
-}
-*/
 function TabsPageController(tabs_id)
 {
    TabsPageController.superConstructor.call(this);

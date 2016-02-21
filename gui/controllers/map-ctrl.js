@@ -197,9 +197,6 @@ MapController.prototype.__aut_listener=function(message)
 {
    var _this = this;
 
-//   if(_this.mapState=='edit')
-//      return;
-
    var data = jQuery.parseJSON(message);
 
    try {
@@ -266,7 +263,6 @@ MapController.prototype.loadWidgets = function(list, callback)
          if(i<0)
          {
             $.each(meaWidgetsJar, function(i,obj) {
-//               $('#widgets_container').append(obj.getHtml());
                _this.widgets_container.append(obj.getHtml());
 
                $.each(obj.getFormaters(), function(i,val) {

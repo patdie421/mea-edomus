@@ -12,65 +12,61 @@ LiveComController.prototype = {
       return this.socketio;
    },
    
-   start: function(fn_ok,fn_ko)
-   {
+start: function(fn_ok,fn_ko) {
       this._connect(this, fn_ok, fn_ko);
    },
    
-   connect: function()
-   {
+   connect: function() {
       this._connect(this, null, null);
    },
    
    _connect: function(_liveCom, fn_ok, fn_ko) {
-       var socketioJsUrl=window.location.protocol + '//' + window.location.hostname + ':'+_liveCom._socketio_port+'/socket.io/socket.io.js';
-      console.log(socketioJsUrl);
+      var _this = this;
+
+      var socketioJsUrl=window.location.protocol + '//' + window.location.hostname + ':'+_liveCom._socketio_port+'/socket.io/socket.io.js';
       $.ajax({
          url: socketioJsUrl,
          dataType: "script",
          timeout: 5000,
-         success: function(data, textStatus, jqXHR) // _socket_available
+         success: function(data, textStatus, jqXHR) {
+            var socketioAddr=window.location.protocol + '//' + window.location.hostname + ':'+_liveCom._socketio_port;
+            _liveCom.socketio = io.connect(socketioAddr);
+            if(null !== _liveCom.socketio)
+            {
+               _liveCom.socketio.removeAllListeners('not');
+               _liveCom.socketio.on('not', function(data) {
+                  var type="";
+                  var _type = data.substring(0, 1);
+                  var msg = data.slice(2);
+                  switch(_type)
                   {
-                     var socketioAddr=window.location.protocol + '//' + window.location.hostname + ':'+_liveCom._socketio_port;
-                     _liveCom.socketio = io.connect(socketioAddr);
-                     if(null !== _liveCom.socketio)
-                     {
-                        _liveCom.socketio.removeAllListeners('not');
-                        _liveCom.socketio.on('not', function(data)
-                        {
-                           var type="";
-                           var _type = data.substring(0, 1);
-                           var msg = data.slice(2);
-                           switch(_type)
-                           {
-                              // alert - success - error - warning - information - confirmation
-                              case "A" : type="alert"; break;
-                              case "E" : type="error"; break;
-                              case "S" : type="success"; break;
-                              case "W" : type="warning"; break;
-                              case "I" : type="information"; break;
-                              case "C" : type="confirmation"; break;
-                              default  : type="information"; break;
-                           };
-                           _liveCom.notify(msg, type);
-                        });
+                     // alert - success - error - warning - information - confirmation
+                     case "A" : type="alert"; break;
+                     case "E" : type="error"; break;
+                     case "S" : type="success"; break;
+                     case "W" : type="warning"; break;
+                     case "I" : type="information"; break;
+                     case "C" : type="confirmation"; break;
+                     default  : type="information"; break;
+                  };
+                  _liveCom.notify(msg, type);
+               });
                        
-                        if(fn_ok)
-                           fn_ok(_liveCom.socketio);
-                     }
-                  },
-         error:   function(xhr, textStatus, thrownError)
-                  {
-                     xhr.abort();
-                     $.messager.show({
-                         title: _controller._toLocalC('error'),
-                         msg: _controller._toLocalC("communication error")+' ('+textStatus+')'
-                     });
-                     _liveCom.socketio=null;
-                     _liveCom._socketio_port=-1;
-                     if(fn_ko)
-                        fn_ko();
-                  }
+               if(fn_ok)
+                  fn_ok(_liveCom.socketio);
+               }
+            },
+         error: function(xhr, textStatus, thrownError) {
+            xhr.abort();
+            $.messager.show({
+               title: _liveCom._toLocalC('error'),
+               msg: _liveCom._toLocalC("communication error")+' ('+textStatus+')'
+            });
+            _liveCom.socketio=null;
+            _liveCom._socketio_port=-1;
+            if(fn_ko)
+               fn_ko();
+         }
       });
    },
    

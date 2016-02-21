@@ -141,7 +141,8 @@ function MapEditorController(container, map, propertiesPanel, actionPanel, newPa
                maxHeight:600,
 */
                onStartResize: function(e) { },
-               onResize: function(e) { },
+               onResize: function(e) {
+               },
                onStopResize: function(e) {
                   var data   = $(this).prop('mea-widgetdata');
                   var i=getValueIndex(data, "width");
@@ -268,9 +269,12 @@ MapEditorController.prototype.widgetsPanel_init = function()
                maxHeight:600,
 */
                onStartResize: function(e) { },
-               onResize: function(e) { },
+               onResize: function(e) {
+                  // console.log(e.data.top+" "+e.data.left+" "+e.data.width+" "+e.data.height);
+                  // console.log(JSON.stringify(e.data));
+               },
                onStopResize: function(e) {
-                  var data   = $(this).prop('mea-widgetdata');
+                  var data = $(this).prop('mea-widgetdata');
                   var i=getValueIndex(data, "width");
                   if(i)
                      data[i]["value"]=p.width();
@@ -636,7 +640,7 @@ MapEditorController.prototype.saveTo = function(s)
    s['width']=_this.map.width();
    s['height']=_this.map.height();
 
-   s['background-color']=_this.bgcolor;
+   s['bgcolor']=_this.bgcolor;
    s['bgimage']=_this.bgimage;
    s['grid']=_this.grid;
 
@@ -695,6 +699,9 @@ MapEditorController.prototype.loadFrom = function(s)
       $(this).remove();
    });
 
+   _this.map.css("background", '');
+   _this.map.css("background-size", '');
+
    _this.map.width(s['width']);
    _this.map.height(s['height']);
    _this.bgimage=s['bgimage'];
@@ -712,11 +719,11 @@ MapEditorController.prototype.loadFrom = function(s)
       _this.map.css("background", "url('"+_this.imagepath+"/"+_this.bgimage+"') no-repeat");
       _this.map.css("background-size", "cover");
    }
-   else
-   {
-      _this.map.css("background", '');
-      _this.map.css("background-size", '');
-   }
+//   else
+//   {
+//      _this.map.css("background", '');
+//      _this.map.css("background-size", '');
+//   }
 
    _this.objid=0;
    _this.current_zindex=0;
@@ -1069,7 +1076,7 @@ MapEditorController.prototype._updateProperties = function(id)
          _this.propertiesPanel.window('resize', { height: h+40 });
          return true;
       }
-      setTimeout( _resize, 25);
+      setTimeout(_resize, 25);
       return false;
    }
 
@@ -1125,14 +1132,6 @@ MapEditorController.prototype._widget_menu = function(action)
          $("#"+id).css('zIndex',zi);
          _this._updateProperties(id);
          return true;
-
-
-/*
-      case 'background':
-         var zi=_this.css('zIndex');
-         console.log(zi);
-         return true,
-*/
    }
 }
 
@@ -1442,10 +1441,11 @@ MapEditorController.prototype.__aut_listener=function(message)
             var _formater = $(this).attr('mea_valueformater');
             if(_formater) {
                var str = '';
-               var v = parseFloat(val);
-               if (v === false)
-                  v = val;
-               str = meaFormaters[_formater](v);
+//               var v = parseFloat(val);
+//               if (v === false)
+//                  v = val;
+//               str = meaFormaters[_formater](v);
+               str = meaFormaters[_formater](val);
                if(str!==false)
                   $(this).text(str);
                else
@@ -1475,7 +1475,7 @@ MapEditorController.prototype.__aut_listener=function(message)
             if(_formater)
                meaFormaters[_formater](val, $(this));
             else
-               $(this).html(i);
+               $(this).html(val);
          });
       });
    }
@@ -1552,7 +1552,6 @@ MapEditorController.prototype.loadWidgets = function(list)
    var _this = this;
 
    $.get("models/get_files_list.php", { type: "widget" }, function(response) {
-      console.log("response : ", response);
       if(response.iserror === false)
       {
          _this._loadWidgets(response.values); 
@@ -1563,7 +1562,6 @@ MapEditorController.prototype.loadWidgets = function(list)
       }
    }).done(function() {
    }).fail(function(jqXHR, textStatus, errorThrown) {
-      console.log("err="+textStatus);
       $.messager.show({
          title:_this._toLocalC('error')+_this._localDoubleDot(),
          msg: _this._toLocalC("communication error")+' ('+textStatus+')'

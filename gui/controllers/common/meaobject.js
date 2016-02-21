@@ -36,83 +36,68 @@ MeaObject.prototype = {
    linkToTranslationController: function(translationController)
    {
       var _toLocal = null;
-      try
-      {
+      try {
          _toLocal = translationController.toLocal;
          this._toLocal = _toLocal.bind(translationController);
       }
-      catch(e)
-      {
+      catch(e) {
          console.log("probably bad object");
       }
       
       var _localDoubleDot = null;
-      try
-      {
+      try {
          _localDoubleDot = translationController.localDoubleDot;
          this._localDoubleDot = _localDoubleDot.bind(translationController);
       }
-      catch(e)
-      {
+      catch(e) {
          console.log("probably bad object");
       }
    },
 
 
 // from credentials controller
-   _isLoggedIn: function()
-   {
+   _isLoggedIn: function() {
       return true;
    },
    
-   _isAdmin: function()
-   {
+   _isAdmin: function() {
       return true;
    },
    
-   __auth: function(_controller,methode)
-   {
+   __auth: function(_controller, methode) {
       _controller[methode]();
    },
 
-   linkToCredentialController: function(_credentialController)
-   {
+   linkToCredentialController: function(_credentialController) {
       var _isLoggedIn = null;
-      try
-      {
+      try {
          _isLoggedIn = _credentialController.isLoggedIn;
          this._isLoggedIn = _isLoggedIn.bind(_credentialController);
       }
-      catch(e)
-      {
+      catch(e) {
          console.log("probably bad object");
       }
       
       var _isAdmin = null;
-      try
-      {
+      try {
          _isAdmin = _credentialController.isAdmin;
          this._isAdmin = _isAdmin.bind(_credentialController);
       }
-      catch(e)
-      {
+      catch(e) {
          console.log("probably bad object");
       }
       
       var __auth = null;
-      try
-      {
+      try {
          __auth = _credentialController.__auth;
          this.__auth = __auth.bind(_credentialController);
       }
-      catch(e)
-      {
+      catch(e) {
          console.log("probably bad object");
       }
    },
 
-   errorAlert: function(title, msg)
-   {
+   errorAlert: function(title, msg) {
       $.messager.alert(title, msg, 'error');
    }
 };

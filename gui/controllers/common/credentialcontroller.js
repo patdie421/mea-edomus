@@ -11,13 +11,14 @@ function CredentialController(dataSource)
 
 CredentialController.prototype.get = function()
 {
-   var _controller = this;
+   var _this = this;
+   var _controller = _this;
    var retour=false;
    var now = Date.now();
       
-   if((now - 5*1000) > _controller.last) {
+   if((now - 5*1000) > _this.last) {
       $.ajax({
-         url: _controller.dataSource,
+         url: _this.dataSource,
          async: false,
          type: 'GET',
          dataType: 'json',
@@ -26,26 +27,26 @@ CredentialController.prototype.get = function()
 //         },
          success: function(data) {
             if(data.result=="OK") {
-               _controller.userid=data.userid;
-               _controller.profil=parseInt(data.profil);
-               _controller.loggedIn=true;
-               _controller.last=now;
+               _this.userid=data.userid;
+               _this.profil=parseInt(data.profil);
+               _this.loggedIn=true;
+               _this.last=now;
                retour=true;
             }
          },
          error: function(jqXHR, textStatus, errorThrown){
             // afficher message d'alerte ici ?
-            _controller.userid=-1;
-            _controller.profil=-1;
-            _controller.loggedIn=false;
-            _controller.last=0;
+            _this.userid=-1;
+            _this.profil=-1;
+            _this.loggedIn=false;
+            _this.last=0;
             retour=false;
            console.log("Communication Error : "+textStatus+" ("+errorThrown+")");
          }
       });
    }
    else {
-      if(this.loggedIn!=-1)
+      if(_this.loggedIn!=-1)
          retour=true;
       else
          retour=false;
@@ -77,31 +78,32 @@ CredentialController.prototype.__auth = function(_controller, methode, param)
    var _this = this;
 
    var jqxhr = $.get(this.dataSource,
-                     {}, // pas de parametre
-                     function(data) {
-                        if(data.result=="OK"){
-                           var now = Date.now();
-                           _this.userid=data.userid;
-                           _this.profil=parseInt(data.profil);
-                           _this.loggedIn=true;
-                           _this.last=now;
+      {}, // pas de parametre
+      function(data) {
+         if(data.result=="OK"){
+            var now = Date.now();
+            _this.userid=data.userid;
+            _this.profil=parseInt(data.profil);
+            _this.loggedIn=true;
+            _this.last=now;
 
-                           _controller[methode](param);
-                        }
-                        else {
-                           $.messager.alert(_controller._toLocalC('error')+_controller._localDoubleDot(),_controller._toLocalC('you are not connected')+' !', 'error', function(){ window.location = "login.php"; });
-                        }
-                     },
-                     "json")
-                     .done(function() {
-                     })
-                     .fail(function(jqXHR, textStatus, errorThrown) {
-                         $.messager.show({
-                            title:_controller._toLocalC('error')+_controller._localDoubleDot(),
-                            msg: _controller._toLocalC('communication error')+'('+textStatus+')'
-                         });
-                     })
-                     .always(function() {
-                     });
+            _controller[methode](param);
+         }
+         else {
+            $.messager.alert(_controller._toLocalC('error')+_controller._localDoubleDot(),_controller._toLocalC('you are not connected')+' !', 'error', function(){ window.location = "login.php"; });
+         }
+      },
+      "json"
+   )
+   .done(function() {
+   })
+   .fail(function(jqXHR, textStatus, errorThrown) {
+      $.messager.show({
+         title:_controller._toLocalC('error')+_controller._localDoubleDot(),
+         msg: _controller._toLocalC('communication error')+'('+textStatus+')'
+      });
+   })
+   .always(function() {
+   });
 };
 

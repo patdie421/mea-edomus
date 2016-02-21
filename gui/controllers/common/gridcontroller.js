@@ -1,9 +1,3 @@
-/*
-if(typeof(CommonController)!="undefined") { // GridController héritera de CommonController ...
-   window.location = "error.html";
-}
-*/
-
 function GridController(params)
 {
    GridController.superConstructor.call(this);
@@ -80,8 +74,8 @@ GridController.prototype.__update=function(_controller,action)
             });
          }
          else {
-            $('#'+_controller._dlgbox_id).dialog('close');        // close the dialog
-            $('#'+_controller._grid_id).datagrid('reload');    // reload the user data
+            $('#'+_controller._dlgbox_id).dialog('close');  // close the dialog
+            $('#'+_controller._grid_id).datagrid('reload'); // reload the user data
          }
       },
       'json' // I expect a JSON response
@@ -92,32 +86,6 @@ GridController.prototype.__update=function(_controller,action)
       });
    });
 };
-/*
-   $('#'+_controller._form_id).form('submit',{
-      url: datasource_url,
-      onSubmit: function() {
-         if(!_controller.validate())
-         {
-            return false;
-         }
-         return true;
-      },
-      success: function(result) {
-         var result = eval('('+result+')');
-         if (result.iserror>0) {
-            $.messager.show({
-               title: _controller._toLocalC('error'),
-               msg: _controller._toLocalC("server side error")+' ('+result.errorMsg+' / errno='+result.errno+')'
-            });
-         }
-         else {
-           $('#'+_controller._dlgbox_id).dialog('close');        // close the dialog
-           $('#'+_controller._grid_id).datagrid('reload');    // reload the user data
-         }
-      }
-   });
-};
-*/
 
 
 GridController.prototype._add=function()
@@ -132,6 +100,7 @@ GridController.prototype._add=function()
    $('#'+_controller._form_id).form('clear');
    $('#'+_controller._form_id).form('reset');
 };
+
    
 GridController.prototype._edit=function()
 {
@@ -309,7 +278,6 @@ function checkRegexp( str,regexp)
 }
 
 
-// pour les contrôles de surface "automatique" => à déplacer dans un autre fichier ...
 // pour les contrôles de surface "automatique" => à déplacer dans un autre fichier ...
 $.extend($.fn.validatebox.defaults.rules, {
    name_validation: {

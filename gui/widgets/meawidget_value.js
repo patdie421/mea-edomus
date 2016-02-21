@@ -57,10 +57,14 @@ MeaWidget_value.prototype.getFormaters = function()
 {
    var formaters = {
       mea_value_alarm: function(v,o) {
+
+         if(isNaN(v)===true)
+            return;
+
          try {
             var low = o.attr('lowalarm');
             var high = o.attr('highalarm');
-            
+
             if(low && v<=low)
                o.addClass("mea_value_alarmOn");
             else if(high && v>=high)
@@ -70,7 +74,6 @@ MeaWidget_value.prototype.getFormaters = function()
 
          }
          catch(e) { console.log("mea_value_alarm error") };
-
       }
    };
 
@@ -104,7 +107,6 @@ var style = "\
 .mea_value_alarmOn { \
    background:red; \
 }"
-
 return style;
 }
 
@@ -115,10 +117,10 @@ var _this = this;
 
 var html = " \
 <div id = '"+_this.type+"_model' \
-   mea_widget = '"+ _this.type +"\' \
+     mea_widget = '"+ _this.type +"' \
      class = 'mea-widget mea_value_disabled' \
      style = 'position:absolute;width:138px;height:23px;' \
-     data-widgetparams='"+ JSON.stringify(_this.params) +"' \
+     data-widgetparams='"+JSON.stringify(_this.params)+"' \
 > \
    <div \
         mea_widgetvaluename='"+ _this.valueName +"' \
@@ -127,13 +129,15 @@ var html = " \
       <div style='float:left;width:98px;height:23px;overflow:hidden;text-align:right'> \
          <label class = 'mea-value'\
                 mea_widgetvaluename='"+ _this.valueName +"' \
-                mea_valueformater='float' style='font-size:18px'>value \
+                mea_valueformater='float' style='font-size:18px'> \
+            value \
          </label> \
       </div> \
-      <div style='float:right;width:40px;height:23px;line-height:25px;padding:0;overflow:hidden'> \
+      <div style='float:right;width:40px;height:23px;line-height:23px;padding:0;overflow:hidden'> \
          <label class = 'mea-label' \
                 mea_widgetlabelname='"+ _this.valueUnit +"' \
-                style='font-size:12px'>unit \
+                style='font-size:12px'> \
+            unit \
          </label> \
       </div> \
    </div> \

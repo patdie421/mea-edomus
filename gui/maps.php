@@ -34,7 +34,6 @@ session_start();
 <script type="text/javascript" src="controllers/common/credentialcontroller.js"></script>
 <script type="text/javascript" src="controllers/common/livecomcontroller.js"></script>
 <script type="text/javascript" src="controllers/common/filechoosercontroller.js"></script>
-<script type="text/javascript" src="controllers/common/filechooseruploadercontroller.js"></script>
 
 <script type="text/javascript" src="widgets/meawidget.js"></script>
 

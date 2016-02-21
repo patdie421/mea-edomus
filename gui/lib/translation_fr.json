@@ -107,5 +107,8 @@
    "rules source file ..." :
       "fichier \"source\" de règles ...",
    "can't delete rules source file" :
-      "impossible de supprimer le fichier \"source\" de règle"
+      "impossible de supprimer le fichier \"source\" de règle",
+
+   "map editor" :
+      "editeur de carte"
 }
