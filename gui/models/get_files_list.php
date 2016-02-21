@@ -24,13 +24,27 @@ if(!isset($_GET['type'])){
 
 $param=false;
 $path=false;
-$exclude=false;
+$excludes=false;
 $subpath=false;
+$prefixes=false;
+$extentions=false;
 
-function validExt($dirEntry, $exts)
+function validPrefixes($dirEntry, $prefixes)
+{
+   if($prefixes == False)
+      return True;
+
+   foreach ($prefixes as $prefix){
+      if(startsWith($dirEntry, $prefix))
+         return True;
+   }
+   return False;
+}
+
+function validExts($dirEntry, $exts)
 {
    foreach ($exts as $ext){
-      if(endsWith($dirEntry,"." . $ext))
+      if(endsWith($dirEntry, "." . $ext))
          return True;
    }
    return False;
@@ -40,33 +54,41 @@ function validExt($dirEntry, $exts)
 if($type=='srules')
 {
    $param="RULESFILESPATH";
-   $extention=array("srules");
+   $extentions=array("srules");
 }
 else if($type=='rset')
 {
    $param="RULESFILESPATH";
-   $extention=array("rset");
+   $extentions=array("rset");
 }
 else if($type=='rules')
 {
    $param="RULESFILESPATH";
-   $extention=array("rules");
+   $extentions=array("rules");
    $automator=getParamVal($PARAMS_DB_PATH, "RULESFILE");
    $automator=$automator[0]{'value'};
    preg_replace('#/+#','/',$automator);
-   $exclude=array($automator);
+   $excludes=array($automator);
 }
 else if($type=='map')
 {
    $param="GUIPATH";
    $subpath="maps";
-   $extention=array("map");
+   $extentions=array("map");
 }
 else if($type=='img')
 {
    $param="GUIPATH";
    $subpath="images";
-   $extention=array("jpg","png");
+   $extentions=array("jpg","png");
+}
+else if($type=='widget')
+{
+   $param="GUIPATH";
+   $subpath="widgets";
+   $extentions=array("js");
+   $prefixes=array("meawidget_");
+   $excludes=array("meawidgets.js");
 }
 else
 {
@@ -102,10 +124,11 @@ if(is_dir($path))
       foreach( $dirContents as $dirEntry ) {
          $dirEntryFullPath=$path . "/" . $dirEntry;
          preg_replace('#/+#','/', $dirEntryFullPath);
-         if($exclude <> false && in_array($dirEntryFullPath, $exclude))
+         if($excludes <> false && in_array($dirEntryFullPath, $excludes))
             continue;
-//         if( substr($dirEntry, 0, 1)!="." && !is_dir($dirEntryFullPath) && (endsWith($dirEntry,"." . $extention))) 
-         if( substr($dirEntry, 0, 1)!="." && !is_dir($dirEntryFullPath) && (validExt($dirEntry, $extention))) 
+//         if( substr($dirEntry, 0, 1)!="." && !is_dir($dirEntryFullPath) && (endsWith($dirEntry,"." . $extentions))) 
+//         if( substr($dirEntry, 0, 1)!="." && !is_dir($dirEntryFullPath) && (validExt($dirEntry, $extentions))) 
+         if( substr($dirEntry, 0, 1)!="." && !is_dir($dirEntryFullPath) && validExts($dirEntry, $extentions) && validPrefixes($dirEntry, $prefixes)) 
          {
             array_push($values, $dirEntry);
          }
