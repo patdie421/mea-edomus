@@ -113,7 +113,7 @@ else
    exit(1);
 }
 
-$values=[];
+$values=array();
 if(is_dir($path))
 {
    $dirContents = scandir($path);

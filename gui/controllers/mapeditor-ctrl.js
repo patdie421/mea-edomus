@@ -1552,6 +1552,7 @@ MapEditorController.prototype.loadWidgets = function(list)
    var _this = this;
 
    $.get("models/get_files_list.php", { type: "widget" }, function(response) {
+      console.log("response : ", JSON.stringify(response));
       if(response.iserror === false)
       {
          _this._loadWidgets(response.values); 
