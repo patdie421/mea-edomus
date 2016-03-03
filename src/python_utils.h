@@ -38,6 +38,7 @@ PyObject *mea_stmt_to_pydict_device(sqlite3_stmt * stmt);
 PyObject *mea_stmt_to_pydict_interface(sqlite3_stmt * stmt);
 
 PyObject *mea_xplMsgToPyDict(xPL_MessagePtr xplMsg);
+PyObject *mea_xplMsgToPyDict2(cJSON *xplMsgJson);
 
 int mea_call_python_function(char *plugin_name, char *plugin_func, PyObject *plugin_params_dict);
 int mea_call_python_function2(PyObject *pFunc, PyObject *plugin_params_dict);

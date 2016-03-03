@@ -121,6 +121,72 @@ int16_t interface_type_001_xPL_callback(xPL_ServicePtr theService, xPL_MessagePt
 }
 
 
+int16_t interface_type_001_xPL_callback2(cJSON *xplMsgJson, xPL_ObjectPtr userValue)
+{
+   char *schema = NULL, *device = NULL, *type = NULL;
+   cJSON *j=NULL;
+
+   (i001->indicators.nbxplin)++;
+
+   interface_type_001_t *i001=(interface_type_001_t *)userValue;
+
+   j = cJSON_GetObjectItem(xplMsgJson,"schema"); 
+   if(j)
+      schema = j->valuestring;
+   else
+   {
+      VERBOSE(5) mea_log_printf("%s (%s) : xPL message no schema\n", INFO_STR, __func__);
+      return 0;
+   }
+
+   j = cJSON_GetObjectItem(xplMsgJson, get_token_string_by_id(XPL_DEVICE_ID)); 
+   if(j)
+      device=j->valuestring;
+   j = cJSON_GetObjectItem(xplMsgJson, get_token_string_by_id(XPL_TYPE_ID)); 
+   if(j)
+      type=j->valuestring;
+
+   VERBOSE(9) mea_log_printf("%s (%s) : xPL Message to process : %s\n", INFO_STR, __func__, schema);
+
+   if(mea_strcmplower(schema, "control.basic") == 0)
+   {
+      if(!device)
+      {
+         VERBOSE(5) mea_log_printf("%s (%s) : xPL message no device\n", INFO_STR, __func__);
+         return 0;
+      }
+      if(!type)
+      {
+         VERBOSE(5) mea_log_printf("%s (%s) : xPL message no type\n", INFO_STR, __func__);
+         return 0;
+      }
+      return xpl_actuator2(i001, xplMsgJson, device, type);
+   }
+   else if(mea_strcmplower(schema, "sensor.request") == 0)
+   {
+      char *request = NULL;
+      j = cJSON_GetObjectItem(xplMsgJson, get_token_string_by_id(XPL_REQUEST_ID)); 
+      if(j)
+         request = j->valuestring;
+      if(!request)
+      {
+         VERBOSE(5) mea_log_printf("%s (%s) : xPL message no request\n", INFO_STR, __func__);
+         return 0;
+      }
+      if(mea_strcmplower(request,get_token_string_by_id(XPL_CURRENT_ID))!=0)
+      {
+         VERBOSE(5) mea_log_printf("%s (%s) : xPL message request!=current\n", INFO_STR, __func__);
+         return 0;
+      }
+      
+      interface_type_001_counters_process_xpl_msg2(i001, xplMsgJson, device, type);
+      interface_type_001_sensors_process_xpl_msg2(i001, xplMsgJson, device, type);
+   }
+   
+   return 0;
+}
+
+
 int load_interface_type_001(interface_type_001_t *i001, int interface_id, sqlite3 *db)
 {
    sqlite3_stmt * stmt;

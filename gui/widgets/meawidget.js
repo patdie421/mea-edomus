@@ -20,6 +20,7 @@ function MeaWidget(name, groupe, type)
 {
    this.type="undefined";
    this.params = {};
+   this.params["variables"] = {};
    this.params["values"] = {};
    this.params["labels"] = {};
    this.params["actions"] = {};
@@ -85,15 +86,16 @@ MeaWidget.prototype = {
 
    getValue: function(data, n, notfound) {
       var found = false;
-
+      var v     = false;
       $.each(data, function(i, val) {
          if(val.name == n) {
-            found = val.value;
+            v = val.value;
+            found = true;
             return false;
          }
       });
       if(found !== false)
-         return found;
+         return v;
       else
          return notfound;
    },
@@ -118,8 +120,9 @@ MeaWidget.prototype = {
                      xplmsgdata[_i]="'"+_this.getValue(data, v, v)+"'"; 
                   }
                   else
+                  {
                      xplmsgdata[_i]="'"+v+"'"; 
-
+                  }
                });
                _this.xplsend(JSON.stringify(xplmsgdata));
                return true;

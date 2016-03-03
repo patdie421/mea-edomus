@@ -102,6 +102,7 @@ typedef struct interface_type_004_s
                     indicators;
    int              loaded;
    xpl_f            xPL_callback;
+   xpl2_f           xPL_callback2;
    char            *parameters;
 
 } interface_type_004_t;

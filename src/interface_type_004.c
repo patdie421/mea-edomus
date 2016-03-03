@@ -44,42 +44,52 @@ char *interface_type_004_xplin_str="XPLIN";
 char *interface_type_004_xplout_str="XPLOUT";
 char *interface_type_004_lightschanges_str="NBTRANSITIONS";
 
+extern Bool xPL_sendRawMessage(String, int);
 
 int16_t sendXPLLightState(interface_type_004_t *i004, xPL_ServicePtr servicePtr, xPL_MessageType xplMsgType, char *deviceName, int16_t newState, int16_t reachable, int16_t on, int16_t last)
 {
-   if(servicePtr)
+   if(servicePtr==NULL)
+      return -1;
+
+   char *current_state_str;
+   char *last_state_str;
+   char *on_str;
+   char *reachable_str;
+      
+   char *high=get_token_string_by_id(HIGH_ID);
+   char *low=get_token_string_by_id(LOW_ID);
+   
+   char xplBodyStr[2048]="";
+   int xplBodyStrPtr=0;
+   char source[32];
+   char schema[32];
+   int n=0;
+   char *msgtype="xpl-cmnd";
+   int l=8;
+ 
+   if(newState)
+      current_state_str = high;
+   else
+      current_state_str = low;
+      
+   if(last!=-1)
    {
-      char *current_state_str;
-      char *last_state_str;
-      char *on_str;
-      char *reachable_str;
-      
-      char *high=get_token_string_by_id(HIGH_ID);
-      char *low=get_token_string_by_id(LOW_ID);
-      
-      if(newState)
-         current_state_str = high;
+      if(last)
+         last_state_str = low;
       else
-         current_state_str = low;
+         last_state_str = high;
+   }
       
-      if(last!=-1)
-      {
-         if(last)
-            last_state_str = low;
-         else
-            last_state_str = high;
-      }
-      
-      if(on)
-         on_str=high;
-      else
-         on_str=low;
-      
-      if(reachable)
-         reachable_str="true";
-      else
-         reachable_str="false";
-      
+   if(on)
+      on_str=high;
+   else
+      on_str=low;
+   
+   if(reachable)
+      reachable_str="true";
+   else
+      reachable_str="false";
+/*      
       xPL_MessagePtr lightMessageStat = xPL_createBroadcastMessage(servicePtr, xplMsgType);
       
       xPL_setSchema(lightMessageStat, get_token_string_by_id(XPL_SENSOR_ID), get_token_string_by_id(XPL_BASIC_ID));
@@ -96,7 +106,36 @@ int16_t sendXPLLightState(interface_type_004_t *i004, xPL_ServicePtr servicePtr,
       
       (i004->indicators.xplout)++;
    }
-   
+*/
+   l+=sprintf(source,"%s-%s.%s", mea_getXPLVendorID(), mea_getXPLDeviceID(), mea_getXPLInstanceID());
+   l+=sprintf(schema,"%s.%s", get_token_string_by_id(XPL_SENSOR_ID),  get_token_string_by_id(XPL_BASIC_ID));
+   switch(xplMsgType) //  xPL_MESSAGE_ANY, xPL_MESSAGE_COMMAND, xPL_MESSAGE_STATUS, xPL_MESSAGE_TRIGGER
+   {
+      case xPL_MESSAGE_TRIGGER: msgtype="xpl-trig"; break;
+      case xPL_MESSAGE_STATUS:  msgtype="xpl-stat"; break;
+   }
+
+   n=sprintf(&(xplBodyStr[xplBodyStrPtr]),"%s=%s\n", get_token_string_by_id(XPL_DEVICE_ID),deviceName); xplBodyStrPtr+=n; l+=n;
+   n=sprintf(&(xplBodyStr[xplBodyStrPtr]),"%s=%s\n", get_token_string_by_id(XPL_TYPE_ID), get_token_string_by_id(XPL_OUTPUT_ID)); xplBodyStrPtr+=n; l+=n;
+   n=sprintf(&(xplBodyStr[xplBodyStrPtr]),"%s=%s\n", get_token_string_by_id(XPL_CURRENT_ID),current_state_str); xplBodyStrPtr+=n; l+=n;
+   if(last != -1)
+      n=sprintf(&(xplBodyStr[xplBodyStrPtr]),"%s=%s\n", get_token_string_by_id(XPL_LAST_ID),last_state_str);  xplBodyStrPtr+=n; l+=n;
+   n=sprintf(&(xplBodyStr[xplBodyStrPtr]),"%s=%s\n", get_token_string_by_id(REACHABLE_ID),reachable_str); xplBodyStrPtr+=n; l+=n;
+   n=sprintf(&(xplBodyStr[xplBodyStrPtr]),"%s=%s\n", "on", on_str); xplBodyStrPtr+=n; l+=n;
+ 
+   l+=36;
+   char *msg = (char *)alloca(l);
+
+   n=snprintf(msg,l,"%s\n{\nhop=1\nsource=%s\ntarget=*\n}\n%s\n{\n%s}\n",msgtype,source,schema,xplBodyStr);
+   if(n>0 && n < l)
+   {
+      xPL_sendRawMessage(msg, n);
+      (i004->indicators.xplout)++;
+   }
+   else
+   {
+      VERBOSE(5) mea_log_printf("%s (%s) : xPL message string too small (not send)\n", ERROR_STR, __func__);
+   }
    return 0;
 }
 

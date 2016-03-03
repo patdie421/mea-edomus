@@ -92,10 +92,14 @@ char *interface_type_005_xplout_str="XPLOUT";
 char *interface_type_005_nbreaderror_str="NBREADERROR";
 char *interface_type_005_nbread_str="NBREAD";
 
+extern Bool xPL_sendRawMessage(String, int);
 
 static int16_t _interface_type_005_send_xPL_sensor_basic(interface_type_005_t *i005, int xplmsgtype, char *name, char *type, char *str_value, char *str_last)
 {
    xPL_ServicePtr servicePtr = mea_getXPLServicePtr();
+   if(servicePtr==NULL)
+      return -1;
+/*
    if(servicePtr)
    {
       xPL_MessagePtr cntrMessageStat = xPL_createBroadcastMessage(servicePtr, xplmsgtype);
@@ -113,7 +117,43 @@ static int16_t _interface_type_005_send_xPL_sensor_basic(interface_type_005_t *i
 
       xPL_releaseMessage(cntrMessageStat);
    }
-   
+*/
+   char xplBodyStr[2048]="";
+   int xplBodyStrPtr=0;
+   char source[32];
+   char schema[32];
+   int n=0;
+   char *msgtype="xpl-cmnd";
+   int l=8;
+
+   l+=sprintf(source,"%s-%s.%s", mea_getXPLVendorID(), mea_getXPLDeviceID(), mea_getXPLInstanceID());
+   l+=sprintf(schema,"%s.%s", get_token_string_by_id(XPL_SENSOR_ID),  get_token_string_by_id(XPL_BASIC_ID));
+
+   switch(xplmsgtype) //  xPL_MESSAGE_ANY, xPL_MESSAGE_COMMAND, xPL_MESSAGE_STATUS, xPL_MESSAGE_TRIGGER
+   {
+      case xPL_MESSAGE_TRIGGER: msgtype="xpl-trig"; break;
+      case xPL_MESSAGE_STATUS:  msgtype="xpl-stat"; break;
+   }
+
+   n=sprintf(&(xplBodyStr[xplBodyStrPtr]),"%s=%s\n", get_token_string_by_id(XPL_DEVICE_ID),name);       xplBodyStrPtr+=n; l+=n;
+   n=sprintf(&(xplBodyStr[xplBodyStrPtr]),"%s=%s\n", get_token_string_by_id(XPL_TYPE_ID), type);        xplBodyStrPtr+=n; l+=n;
+   n=sprintf(&(xplBodyStr[xplBodyStrPtr]),"%s=%s\n", get_token_string_by_id(XPL_CURRENT_ID),str_value); xplBodyStrPtr+=n; l+=n;
+   if(str_last && str_last[0]!=0)
+      n=sprintf(&(xplBodyStr[xplBodyStrPtr]),"%s=%s\n", get_token_string_by_id(XPL_LAST_ID),str_last);  xplBodyStrPtr+=n; l+=n;
+
+   l+=36;
+   char *msg = (char *)alloca(l);
+
+   n=snprintf(msg,l,"%s\n{\nhop=1\nsource=%s\ntarget=*\n}\n%s\n{\n%s}\n",msgtype,source,schema,xplBodyStr);
+   if(n>0 && n < l)
+   {
+      xPL_sendRawMessage(msg, n);
+      (i005->indicators.xplout)++;
+   } 
+   else
+   {
+      VERBOSE(5) mea_log_printf("%s (%s) : xPL message string too small (not send)\n", ERROR_STR, __func__);
+   }
    return 0;
 }
 

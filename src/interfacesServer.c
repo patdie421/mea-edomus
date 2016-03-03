@@ -24,6 +24,7 @@
 #include "mea_sockets_utils.h"
 #include "consts.h"
 
+#include "cJSON.h"
 #include "xPL.h"
 
 #include "processManager.h"
@@ -143,6 +144,87 @@ int16_t get_dev_and_speed(char *device, char *dev, int16_t dev_l, speed_t *speed
    return 0;
 }
 */
+
+
+void dispatchXPLMessageToInterfaces2(cJSON *xplMsgJson)
+{
+   int ret;
+
+   interfaces_queue_elem_t *iq;
+
+   DEBUG_SECTION mea_log_printf("%s (%s) : Reception message xPL\n", INFO_STR, __func__);
+
+   pthread_cleanup_push( (void *)pthread_rwlock_unlock, (void *)&interfaces_queue_rwlock);
+   pthread_rwlock_rdlock(&interfaces_queue_rwlock);
+   
+   if(_interfaces && _interfaces->nb_elem)
+   {
+      mea_queue_first(_interfaces);
+      while(1)
+      {
+         mea_queue_current(_interfaces, (void **)&iq);
+         switch (iq->type)
+         {
+            case INTERFACE_TYPE_001:
+            {
+               interface_type_001_t *i001 = (interface_type_001_t *)(iq->context);
+               if(i001->monitoring_id>-1 && process_is_running(i001->monitoring_id) && i001->xPL_callback)
+                  i001->xPL_callback2(xplMsgJson, (xPL_ObjectPtr)i001);
+               break;
+            }
+
+            case INTERFACE_TYPE_002:
+            {
+               interface_type_002_t *i002 = (interface_type_002_t *)(iq->context);
+               if(i002->monitoring_id>-1 && process_is_running(i002->monitoring_id) && i002->xPL_callback)
+                  i002->xPL_callback2(xplMsgJson, (xPL_ObjectPtr)i002);
+               break;
+            }
+
+            case INTERFACE_TYPE_003:
+            {
+               interface_type_003_t *i003 = (interface_type_003_t *)(iq->context);
+               if(i003->monitoring_id>-1 && process_is_running(i003->monitoring_id) && i003->xPL_callback)
+                  i003->xPL_callback2(xplMsgJson, (xPL_ObjectPtr)i003);
+               break;
+            }
+
+            case INTERFACE_TYPE_004:
+            {
+               interface_type_004_t *i004 = (interface_type_004_t *)(iq->context);
+               if(i004->monitoring_id>-1 && process_is_running(i004->monitoring_id) && i004->xPL_callback)
+                  i004->xPL_callback2(xplMsgJson, (xPL_ObjectPtr)i004);
+               break;
+            }
+
+            case INTERFACE_TYPE_005:
+            {
+               interface_type_005_t *i005 = (interface_type_005_t *)(iq->context);
+               if(i005->monitoring_id>-1 && process_is_running(i005->monitoring_id) && i005->xPL_callback)
+                  i005->xPL_callback2(xplMsgJson, (xPL_ObjectPtr)i005);
+               break;
+            }
+
+            case INTERFACE_TYPE_006:
+            {
+               interface_type_006_t *i006 = (interface_type_006_t *)(iq->context);
+               if(i006->monitoring_id>-1 && process_is_running(i006->monitoring_id) && i006->xPL_callback)
+                  i006->xPL_callback2(xplMsgJson, (xPL_ObjectPtr)i006);
+               break;
+            }
+
+            default:
+               break;
+         }
+         ret=mea_queue_next(_interfaces);
+         if(ret<0)
+            break;
+      }
+   }
+   
+   pthread_rwlock_unlock(&interfaces_queue_rwlock);
+   pthread_cleanup_pop(0);
+}
 
 
 void dispatchXPLMessageToInterfaces(xPL_ServicePtr theService, xPL_MessagePtr theMessage)

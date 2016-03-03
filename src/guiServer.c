@@ -215,7 +215,6 @@ int _phpsessid_check_loggedin_and_admin(char *phpsessid,char *sessions_files_pat
    
    if (stat(session_file, &st) == 0)
    {
-//      buff=(char *)malloc(st.st_size+1);
       buff=(char *)alloca(st.st_size+1);
       if(!buff)
          return -1;
@@ -291,13 +290,6 @@ int _phpsessid_check_loggedin_and_admin(char *phpsessid,char *sessions_files_pat
       ret=-1;
    }
 _phpsessid_check_loggedin_and_admin_clean_exit:
-/*
-   if(buff)
-   {
-      free(buff);
-      buff=NULL;
-   }
-*/
    return ret;
 }
 
@@ -308,6 +300,7 @@ _phpsessid_check_loggedin_and_admin_clean_exit:
 #define REQUESTERRNO_NOTAUTHORIZED 2
 #define REQUESTERRNO_METHODEERR    3
 #define REQUESTERRNO_CMNDERR       4
+#define REQUESTERRNO_INTERNALERR   5
 #define REQUESTERRNO_OPERERR       7
 
 #ifdef INTERNALAPI
@@ -317,6 +310,7 @@ int gui_api(struct mg_connection *conn, char *phpsessid, char *_php_sessions_pat
    reponse[0]=0;
    char *tokens[MAX_TOKEN]; // 10 tokens maximum
    char buffer[MAX_BUFFER_SIZE];
+   int ret=-1;
 
    if(strlen(&(request_info->uri[5]))>(sizeof(buffer)-1))
       return 0;
@@ -327,7 +321,18 @@ int gui_api(struct mg_connection *conn, char *phpsessid, char *_php_sessions_pat
    {
       if(mea_strcmplower("XPL-INTERNAL",tokens[0])==0)
       {
-         xPL_MessagePtr msg = mea_createReceivedMessage(xPL_MESSAGE_COMMAND);
+         xPL_MessagePtr msg = NULL;
+ 
+         pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(_xPLServer_xPL_lock) );
+         pthread_mutex_lock(&_xPLServer_xPL_lock);
+
+         msg = mea_createReceivedMessage(xPL_MESSAGE_COMMAND);
+         if(!msg)
+         {
+            ret=0;
+            goto gui_api_next;
+         }
+
          xPL_setBroadcastMessage(msg, TRUE); // pas de destinataire spécifié (pas nécessaire, on sait que c'est pour nous
          int waitResp = FALSE;
             
@@ -350,8 +355,9 @@ int gui_api(struct mg_connection *conn, char *phpsessid, char *_php_sessions_pat
          }
          else
          {
-            xPL_releaseMessage(msg);
-            return 0;
+//            xPL_releaseMessage(msg);
+            ret=0;
+            goto gui_api_next;
          }
             
             // fabrication du body
@@ -370,13 +376,20 @@ int gui_api(struct mg_connection *conn, char *phpsessid, char *_php_sessions_pat
             }
             else
             {
-               xPL_releaseMessage(msg);
-               return 0;
+//               xPL_releaseMessage(msg);
+               ret=0;
+               goto gui_api_next;
             }
-         }
-            
+         }            
+         
          mea_sendXPLMessage(msg);
-         xPL_releaseMessage(msg);
+gui_api_next:
+         if(msg)
+            xPL_releaseMessage(msg);
+         pthread_mutex_unlock(&_xPLServer_xPL_lock);
+         pthread_cleanup_pop(0);
+         if(ret==0)
+            return 0;
          
          if(waitResp==FALSE)
          {
@@ -539,6 +552,19 @@ int gui_automator_cmnd(struct mg_connection *conn, char *phpsessid, char *_php_s
             {
                automatorServer_send_all_inputs();
             }
+            else if(strcmp(cmnd,"getallinputs")==0)
+            {
+               char *inputs = automator_inputs_table_to_json_string_alloc(); 
+               if(!inputs)
+               {
+                  _httpErrno(conn, REQUESTERRNO_INTERNALERR, NULL); // erreur interne
+                  return 1;
+               }
+               _httpResponse(conn, inputs);
+               free(inputs);
+               inputs=NULL;
+               return -1;
+            }
             else
             {
                _httpErrno(conn, REQUESTERRNO_CMNDERR, NULL); // bad command
@@ -630,7 +656,7 @@ int gui_xplsend(struct mg_connection *conn, char *phpsessid, char *_php_sessions
          }
 
          cJSON *json_xplmsg = cJSON_Parse(xplmsg);
-         automator_sendxpl(json_xplmsg);
+         automator_sendxpl2(json_xplmsg);
          cJSON_Delete(json_xplmsg);
 
          _httpErrno(conn, 0, NULL);

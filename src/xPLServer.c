@@ -33,6 +33,7 @@
 #include "automatorServer.h"
 #include "mea_sockets_utils.h"
 #include "notify.h"
+#include "cJSON.h"
 
 #define XPL_VERSION "0.1a2"
 
@@ -194,6 +195,37 @@ xPL_MessagePtr xPLCpyMsg(xPL_MessagePtr msg)
 }
 
 
+cJSON *mea_xPL2JSON(xPL_MessagePtr msg)
+{
+   char str[256];
+
+   cJSON *msg_json = cJSON_CreateObject();
+
+   sprintf(str,"%s-%s.%s", xPL_getSourceVendor(msg), xPL_getSourceDeviceID(msg), xPL_getSourceInstanceID(msg));
+
+   cJSON_AddItemToObject(msg_json, "source", cJSON_CreateString(str));
+
+   strcpy(str,"*");
+   if (!xPL_isBroadcastMessage(msg))
+      sprintf(str,"%s-%s.%s", xPL_getTargetVendor(msg), xPL_getTargetDeviceID(msg), xPL_getTargetInstanceID(msg));
+   cJSON_AddItemToObject(msg_json, "target", cJSON_CreateString("*"));
+
+   sprintf(str,"%s.%s", xPL_getSchemaClass(msg), xPL_getSchemaType(msg));
+   cJSON_AddItemToObject(msg_json, "schema",  cJSON_CreateString(str));
+
+   xPL_NameValueListPtr body = xPL_getMessageBody(msg);
+   int n = xPL_getNamedValueCount(body);
+   for (int16_t i = 0; i < n; i++)
+   {
+      xPL_NameValuePairPtr keyValuePtr = xPL_getNamedValuePairAt(body, i);
+      if (keyValuePtr->itemValue != NULL && keyValuePtr->itemName != NULL)
+          cJSON_AddItemToObject(msg_json,  keyValuePtr->itemName, cJSON_CreateString(keyValuePtr->itemValue));
+   }
+
+   return msg_json;
+}
+
+
 uint32_t mea_getXplRequestId() // rajouter un verrou ...
 {
    uint32_t id=0;
@@ -256,7 +288,7 @@ xPL_ServicePtr mea_getXPLServicePtr()
 }
 
 
-uint16_t mea_sendXPLMessage(xPL_MessagePtr xPLMsg)
+uint16_t mea_sendXPLMessage(xPL_MessagePtr xPLMsg, cJSON *xplMsgJson)
 {
    char *addr;
    xPL_MessagePtr newXPLMsg = NULL;
@@ -306,6 +338,77 @@ uint16_t mea_sendXPLMessage(xPL_MessagePtr xPLMsg)
    else
    {
       xPL_sendMessage(xPLMsg);
+      return 0;
+   }
+}
+
+
+uint16_t mea_sendXPLMessage2(cJSON *xplMsgJson)
+{
+   char *str = NULL;
+   char deviceID[17];
+   xPL_MessagePtr newXPLMsg = NULL;
+   xplRespQueue_elem_t *e;
+   cJSON *j = NULL;
+
+   process_update_indicator(_xplServer_monitoring_id, xpl_server_xplout_str, ++xplout_indicator);
+
+   str=NULL;
+   deviceID[0]=0;
+   j=cJSON_GetObjectItem(xplMsgJson,"source");
+   if(j)
+   {
+      str=j->valuestring;
+      if(str)
+         sscanf(str, "%*[^-]-%[^.].%*s", deviceID);
+   }
+
+   if(deviceID[0]!=0 && strcmp(deviceID,INTERNAL_STR_C)==0) // source interne => dispatching sans passer par le réseau
+   {
+      dispatchXPLMessageToInterfaces2(xplMsgJson);
+      return 0;
+   }
+
+   str=NULL;
+   deviceID[0]=0;
+   j=cJSON_GetObjectItem(xplMsgJson,"target");
+   if(j)
+   {
+      str=j->valuestring;
+      if(str)
+         sscanf(str, "%*[^-]-%[^.].%*s", deviceID);
+   }
+   if(deviceID[0]!=0 && strcmp(str,INTERNAL_STR_C)==0) // destination interne, retour à mettre dans une file (avec timestamp) ...
+   {
+      int id;
+
+      sscanf(str, "%*[^.].%d", &id);
+      cJSON *xplMsgJson_new = cJSON_Duplicate(xplMsgJson, 1);
+
+      pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(xplRespQueue_sync_lock) );
+      pthread_mutex_lock(&xplRespQueue_sync_lock);
+
+      if(xplRespQueue)
+      {
+         e = malloc(sizeof(xplRespQueue_elem_t));
+         e->msgjson = xplMsgJson_new;
+         e->id = id;
+         e->tsp = (uint32_t)time(NULL);
+
+         mea_queue_in_elem(xplRespQueue, e);
+
+         if(xplRespQueue->nb_elem>=1)
+            pthread_cond_broadcast(&xplRespQueue_sync_cond);
+      }
+
+      pthread_mutex_unlock(&xplRespQueue_sync_lock);
+      pthread_cleanup_pop(0);
+
+      return 0;
+   }
+   else
+   {
+//      xPL_sendMessage(xPLMsg);
       return 0;
    }
 }
@@ -444,10 +547,13 @@ void _cmndXPLMessageHandler(xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
    }
 
    // on envoie tous les messages à l'automate (à lui de filtrer ...)
+   cJSON *msg_json = NULL;
+   msg_json = mea_xPL2JSON(theMessage);
    xPL_MessagePtr msg=xPLCpyMsg(theMessage);
    if(msg)
    {
-      if(automatorServer_add_msg(msg)==ERROR)
+//      if(automatorServer_add_msg(msg, msg_json)==ERROR)
+      if(automatorServer_add_msg(msg_json)==ERROR)
       {
       }
    }
@@ -459,7 +565,7 @@ void _cmndXPLMessageHandler(xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
       return;
 
    process_update_indicator(_xplServer_monitoring_id, xpl_server_xplin_str, ++xplin_indicator);
-   displayXPLMsg(theMessage);
+   //displayXPLMsg(theMessage);
    dispatchXPLMessageToInterfaces(xPLService, theMessage);
 }
 
@@ -788,4 +894,6 @@ int restart_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg)
    }
    return ret;
 }
+
+
 

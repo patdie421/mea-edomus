@@ -69,6 +69,7 @@ typedef struct interface_type_001_s
    mea_queue_t *actuators_list;
    mea_queue_t *sensors_list;
    xpl_f xPL_callback;
+   xpl2_f xPL_callback2;
    
    struct interface_type_001_indicators_s indicators;
 

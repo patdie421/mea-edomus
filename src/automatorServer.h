@@ -12,6 +12,7 @@
 
 #include "mea_error.h"
 #include "xPL.h"
+#include "cJSON.h"
 
 extern char *automator_server_name_str;
 extern char *automator_input_exec_time_str;
@@ -25,9 +26,6 @@ extern long automator_xplout_indicator;
 
 extern int _automatorServer_monitoring_id;
 extern pthread_t *_automatorServer_thread_id;
-extern char *_automatorServer_fn;
-extern char *_automatorServer_str;
-extern char *_automatorServer_where;
 
 struct automatorServer_start_stop_params_s
 {
@@ -39,7 +37,8 @@ struct automatorServer_start_stop_params_s
 typedef struct automator_msg_s
 {
    int type;
-   xPL_MessagePtr msg;
+//   xPL_MessagePtr msg;
+   cJSON *msg_json;
 } automator_msg_t;
 
 
@@ -48,7 +47,8 @@ typedef struct automator_queue_elem_s
 } automator_queue_elem_t;
 
 
-mea_error_t automatorServer_add_msg(xPL_MessagePtr msg);
+//mea_error_t automatorServer_add_msg(xPL_MessagePtr msg);
+mea_error_t automatorServer_add_msg(cJSON *msg_json);
 int         automatorServer_timer_wakeup(char *name, void *userdata);
 
 int         automatorServer_send_all_inputs();

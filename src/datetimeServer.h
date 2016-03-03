@@ -21,6 +21,8 @@ int mea_datetime_startAlarm2(char *name, time_t date, datetime_timer_callback_f 
       
 int mea_datetime_stopTimer(char *name);
 
+void mea_getTime(struct timespec *t);
+
 void timespecAdd(struct timespec *t, struct timespec *t1, struct timespec *t2);
 void timespecDiff(struct timespec *t, struct timespec *t1, struct timespec *t2);
 int  timespecCmp(struct timespec *a, struct timespec *b);

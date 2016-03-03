@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <sqlite3.h>
 
+#include "cJSON.h"
 #include "xPL.h"
 
 #include "mea_verbose.h"
@@ -230,6 +231,11 @@ int mea_call_python_function(char *plugin_name, char *plugin_func, PyObject *plu
    PyErr_Clear();
 
    return retour;
+}
+
+
+PyObject *mea_xplMsgToPyDict2(cJSON *xplMsgJson)
+{
 }
 
 

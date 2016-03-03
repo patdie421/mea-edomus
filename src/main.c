@@ -51,6 +51,7 @@
 #include "guiServer.h"
 #include "logServer.h"
 #include "automatorServer.h"
+#include "automator.h"
 #include "nodejsServer.h"
 #include "interfacesServer.h"
 #include "interface_type_001.h"
@@ -374,9 +375,6 @@ static void error_handler(int signal_number)
       fprintf(stderr, "[backtrace]: (%d) %s\n", i, messages[i]);
    free(messages);
 */
-//extern pthread_t *_xPLServer_thread_id;
-//extern jmp_buf xPLServer_JumpBuffer;
-
    ++sigsegv_indicator;
 
    fprintf(stderr, "Error: signal %d:\n", signal_number);
@@ -387,9 +385,14 @@ static void error_handler(int signal_number)
    }
    else if((_automatorServer_thread_id!=NULL) && pthread_equal(*_automatorServer_thread_id, pthread_self())!=0)
    {
-      fprintf(stderr, "Error: in automatorServer ... (%s)\n", _automatorServer_fn);
-      if(strcmp(_automatorServer_fn, "evalStr")==0)
-         fprintf(stderr, "(%s) (%s)\n", _automatorServer_str, _automatorServer_where);
+      fprintf(stderr, "Error: in automator.c/automatorServer.c\n");
+      fprintf(stderr, "Error: in function : %s\n", _automatorServer_fn);
+      if(strcmp(_automatorServer_fn, "_evalStr")==0)
+      {
+         fprintf(stderr, "Error: function caller : %s\n", _automatorEvalStrCaller);
+         fprintf(stderr, "Error: evalStr operation : %c\n", _automatorEvalStrOperation);
+         fprintf(stderr, "Error: evalStr str : %s\n", _automatorEvalStrArg);
+      }
    }
 
    fprintf(stderr, "Error: aborting\n");

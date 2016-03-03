@@ -25,7 +25,6 @@ MeaWidget_value.prototype.init = function(id)
    var widget = $("#"+id);
    var data = widget.prop('mea-widgetdata');
 
-   widget.removeClass("mea_value_disabled");
    widget.find('label[mea_widgetlabelname="'+_this.valueUnit+'"]').text(_this.getValue(data, _this.valueUnit, _this.valueUnit));
    widget.find('label[mea_widgetvaluename="'+_this.valueName+'"]').attr("name",_this.getValue(data, _this.valueName, "")).text('?.??');
    widget.find('div[mea_widgetvaluename="'+_this.valueName+'"]')

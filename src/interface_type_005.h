@@ -48,6 +48,7 @@ typedef struct interface_type_005_s
    char             password[81];
    char            *parameters;
    xpl_f            xPL_callback;
+   xpl2_f           xPL_callback2;
    mea_queue_t      devices_list;
    int              monitoring_id;
    pthread_t       *thread;

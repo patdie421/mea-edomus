@@ -24,7 +24,8 @@ jQuery(document).ready(function() {
    ctrlr_rulesEditor = new RulesEditorController(
       "myeditorzone",
       "myeditor",
-      "myeditormenu");
+      "myeditormenu",
+      "myeditorcontextmenu");
    ctrlr_rulesEditor.linkToTranslationController(translationController);
    ctrlr_rulesEditor.linkToCredentialController(credentialController);
 
@@ -48,4 +49,13 @@ jQuery(document).ready(function() {
       </div>
    </div>
    <div id="myeditor" style="width:100%;height:0px;display:none"></div>
+</div>
+
+<div id="myeditorcontextmenu" class="easyui-menu" style="width:120px;display:hidden">
+   <div onclick="javascript:domenu_re('new')"><?php mea_toLocalC('new'); ?></div>
+   <div onclick="javascript:domenu_re('open')"><?php mea_toLocalC('open'); ?></div>
+   <div onclick="javascript:domenu_re('save')"><?php mea_toLocalC('save'); ?></div>
+   <div onclick="javascript:domenu_re('saveas')"><?php mea_toLocalC('save as'); ?></div>
+   <div class="menu-sep"></div>
+   <div onclick="javascript:domenu_re('delete')"><?php mea_toLocalC('delete'); ?></div>
 </div>

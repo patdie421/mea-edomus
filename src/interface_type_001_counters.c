@@ -105,7 +105,7 @@ int16_t interface_type_001_counters_process_traps(int16_t numTrap, char *buff, i
             xPL_setMessageNamedValue(cntrMessageStat, get_token_string_by_id(XPL_CURRENT_ID), value);
 
             // Broadcast the message
-            mea_sendXPLMessage(cntrMessageStat);
+            mea_sendXPLMessage(cntrMessageStat, NULL);
 
             *(counter->nbxplout)=*(counter->nbxplout)+1;
 
@@ -221,7 +221,7 @@ void counter_to_xpl(interface_type_001_t *i001, struct electricity_counter_s *co
       xPL_setMessageNamedValue(cntrMessageStat, get_token_string_by_id(XPL_TYPE_ID), get_token_string_by_id(XPL_ENERGY_ID));
       xPL_setMessageNamedValue(cntrMessageStat,  get_token_string_by_id(XPL_CURRENT_ID),value);
       
-      mea_sendXPLMessage(cntrMessageStat);
+      mea_sendXPLMessage(cntrMessageStat, NULL);
 
       (i001->indicators.nbcountersxplsent)++;
 
@@ -327,8 +327,9 @@ mea_error_t interface_type_001_counters_process_xpl_msg(interface_type_001_t *i0
          }
          else
             break;
-            
+           
          cntrMessageStat = xPL_createBroadcastMessage(theService, xPL_MESSAGE_STATUS) ;
+
          xPL_setBroadcastMessage(cntrMessageStat, FALSE);
 
          xPL_setSchema(cntrMessageStat,  get_token_string_by_id(XPL_SENSOR_ID), get_token_string_by_id(XPL_BASIC_ID));
@@ -339,7 +340,7 @@ mea_error_t interface_type_001_counters_process_xpl_msg(interface_type_001_t *i0
          xPL_setTarget(cntrMessageStat, xPL_getSourceVendor(msg), xPL_getSourceDeviceID(msg), xPL_getSourceInstanceID(msg));
    
          // Broadcast the message
-         mea_sendXPLMessage(cntrMessageStat);
+         mea_sendXPLMessage(cntrMessageStat, NULL);
 
          (i001->indicators.nbcountersxplsent)++;
          
@@ -384,7 +385,7 @@ int16_t interface_type_001_counters_poll_inputs(interface_type_001_t *i001)
             xPL_setMessageNamedValue(cntrMessageStat, get_token_string_by_id(XPL_TYPE_ID), get_token_string_by_id(XPL_POWER_ID));
             xPL_setMessageNamedValue(cntrMessageStat, get_token_string_by_id(XPL_CURRENT_ID), "0");
             
-            mea_sendXPLMessage(cntrMessageStat);
+            mea_sendXPLMessage(cntrMessageStat, NULL);
 
             (i001->indicators.nbcountersxplsent)++;
 

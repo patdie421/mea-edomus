@@ -14,6 +14,7 @@
 
 #include "mea_queue.h"
 #include "dbServer.h"
+#include "cJSON.h"
 #include "xPL.h"
 
 #define INTERFACE_TYPE_001 100
@@ -46,6 +47,7 @@ struct interfacesServerData_s
 mea_queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db);
 void         stop_interfaces();
 void         dispatchXPLMessageToInterfaces(xPL_ServicePtr theService, xPL_MessagePtr theMessage);
+void         dispatchXPLMessageToInterfaces2(cJSON *xplMsgJson);
 int          restart_interfaces(int my_id, void *data, char *errmsg, int l_errmsg);
 
 #endif

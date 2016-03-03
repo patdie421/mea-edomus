@@ -533,7 +533,7 @@ static PyObject *mea_xplSendMsg(PyObject *self, PyObject *args)
    }
    
    //xPL_sendMessage(xplMsg);
-   mea_sendXPLMessage(xplMsg);
+   mea_sendXPLMessage(xplMsg, NULL);
 
    xPL_releaseMessage(xplMsg);
    

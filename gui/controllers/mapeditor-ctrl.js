@@ -136,10 +136,6 @@ function MapEditorController(container, map, propertiesPanel, actionPanel, newPa
          {
             p.draggable({ handle: drag_zone });
             p.resizable({
-/*
-               maxWidth:800,
-               maxHeight:600,
-*/
                onStartResize: function(e) { },
                onResize: function(e) {
                },
@@ -264,14 +260,8 @@ MapEditorController.prototype.widgetsPanel_init = function()
          {
             p.draggable({ handle: drag_zone });
             p.resizable({
-/*
-               maxWidth:800,
-               maxHeight:600,
-*/
                onStartResize: function(e) { },
                onResize: function(e) {
-                  // console.log(e.data.top+" "+e.data.left+" "+e.data.width+" "+e.data.height);
-                  // console.log(JSON.stringify(e.data));
                },
                onStopResize: function(e) {
                   var data = $(this).prop('mea-widgetdata');
@@ -1043,7 +1033,29 @@ MapEditorController.prototype._context_menu = function(action, w)
                var data = $(this).prop('mea-widgetdata');
                meaWidgetsJar[data[1].value].init(data[0].value, true);
                meaWidgetsJar[data[1].value].disabled(data[0].value, true);
-               $(this).draggable('enable');
+               p = $(this);
+               p.draggable('enable');
+               var drag_zone = p.find('[class="mea_dragzone_for_resizable"]');
+               if(drag_zone.length)
+               {
+                  p.draggable({ handle: drag_zone });
+                  p.resizable({
+                     onStartResize: function(e) { },
+                     onResize: function(e) {
+                     },
+                     onStopResize: function(e) {
+                        var data   = $(this).prop('mea-widgetdata');
+                        var i=getValueIndex(data, "width");
+                        if(i)
+                           data[i]["value"]=p.width();
+                        var i=getValueIndex(data, "height");
+                        if(i)
+                           data[i]["value"]=p.height();
+                        _this._updateProperties(data[0].value);
+                     }
+                  });
+               }
+
                $(this).bind('contextmenu', _this.open_widget_menu);
             });
          }
@@ -1088,10 +1100,10 @@ MapEditorController.prototype._widget_menu = function(action)
 {
    var _this = this;
 
+   var id = _this.widgetContextMenu.attr('mea_eid');
    switch(action)
    {
       case 'delete':
-         var id = _this.widgetContextMenu.attr('mea_eid');
          _this.propertiesTbl.propertygrid({data:[]});
          $("#"+id).empty();
          $("#"+id).remove();
@@ -1102,19 +1114,16 @@ MapEditorController.prototype._widget_menu = function(action)
          return true;
       
       case 'background':
-         var id = _this.widgetContextMenu.attr('mea_eid');
          $("#"+id).css('zIndex',1);
          _this._updateProperties(id);
          return true;
 
       case 'forground':
-         var id = _this.widgetContextMenu.attr('mea_eid');
          $("#"+id).css('zIndex',++_this.current_zindex);
          _this._updateProperties(id);
          return true;
 
       case 'forward':
-         var id = _this.widgetContextMenu.attr('mea_eid');
          var zi=$("#"+id).css('zIndex');
          zi++;
          if(zi>_this.current_zindex)
@@ -1124,7 +1133,6 @@ MapEditorController.prototype._widget_menu = function(action)
          return true;
 
       case 'backward':
-         var id = _this.widgetContextMenu.attr('mea_eid');
          var zi=$("#"+id).css('zIndex');
          zi--;
          if(zi<0)
@@ -1306,6 +1314,7 @@ MapEditorController.prototype.addWidget = function(type)
          var p = $("#"+type+"_model").clone().attr('id', type+'_drag');
          $(p).css("z-index", 999999);
          p.appendTo('body');
+         
          return p;
       },
       revert:true,
@@ -1325,8 +1334,9 @@ MapEditorController.prototype.addWidget = function(type)
          $('body').unbind('mousemove',  _this.getmousepos_handler);
       },
 
-      onStartDrag:function(){
+      onStartDrag:function(e){
          var __this = this;
+         meaWidgetsJar[type].init(type+'_drag');
          $(__this).draggable('options').cursor='not-allowed';
          $(__this).draggable('proxy').addClass('dp');
          $('body').mousemove(_this.getmousepos_handler);

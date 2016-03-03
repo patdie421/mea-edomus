@@ -72,6 +72,5 @@ var html = "\
    </div> \
 </div> \
 ";
-console.log(html);
 return html;
 }

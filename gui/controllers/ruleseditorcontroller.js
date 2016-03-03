@@ -1,4 +1,4 @@
-function RulesEditorController(_editorzone, _editordiv, _menu)
+function RulesEditorController(_editorzone, _editordiv, _menu, _contextmenu)
 {
    RulesEditorController.superConstructor.call(this);
 
@@ -7,6 +7,7 @@ function RulesEditorController(_editorzone, _editordiv, _menu)
    this.editorzone = _editorzone;
    this.editordiv = _editordiv;
    this.menu = _menu;
+   this.contextmenu = _contextmenu;
 
    this.editor = ace.edit(this.editordiv);
    this.editor.setOption("fixedWidthGutter", true);
@@ -48,9 +49,35 @@ RulesEditorController.prototype.start = function()
 
    _this.editor.setValue("", -1);
    _this.editor.resize();
+
+/*
+   _this.editor.container.addEventListener("contextmenu", function(e) {
+       _this.open_context_menu(e);
+   });
+*/
    $("#"+_this.menu).show();
    $("#"+_this.editordiv).show();
 };
+
+
+RulesEditorController.prototype._open_context_menu = function(x, y)
+{
+   var _this = this;
+
+   $("#"+_this.contextMenu).menu('show', {left: x, top: y });
+}
+
+
+RulesEditorController.prototype.open_context_menu = function(e)
+{
+   var _this = this;
+
+   e.preventDefault();
+
+   _this._open_context_menu(e.pageX, e.pageY);
+
+   return false;
+}
 
 
 RulesEditorController.prototype.open = function(name, type, checkflag)
