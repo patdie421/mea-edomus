@@ -25,6 +25,7 @@
 #include "parameters_utils.h"
 #include "mea_string_utils.h"
 #include "tokens.h"
+#include "tokens_da.h"
 #include "interface_type_001_sensors.h"
 
 #include "processManager.h"
@@ -175,7 +176,7 @@ void interface_type_001_sensors_free_queue_elem(void *d)
    e=NULL;
 }
 
-
+/*
 int16_t interface_type_001_sensors_process_traps(int16_t numTrap, char *data, int16_t l_data, void *userdata)
 {
    struct sensor_s *sensor;
@@ -223,6 +224,61 @@ int16_t interface_type_001_sensors_process_traps(int16_t numTrap, char *data, in
          dbServer_add_data_to_sensors_values(sensor->sensor_id, (double)data[0], 0, 0, "");
 
       xPL_releaseMessage(sensorMessageStat);
+   }
+   
+   return NOERROR;
+}
+*/
+
+int16_t interface_type_001_sensors_process_traps2(int16_t numTrap, char *data, int16_t l_data, void *userdata)
+{
+   struct sensor_s *sensor;
+   
+   sensor=(struct sensor_s *)userdata;
+   
+   sensor->val=(unsigned char)data[0];
+   
+   {
+      *(sensor->nbtrap)=*(sensor->nbtrap)+1;
+      
+      char value[20];
+      xPL_ServicePtr servicePtr;
+      
+      servicePtr=mea_getXPLServicePtr();
+      if(!servicePtr)
+         return 1;
+
+      if(data[0]==0)
+      {
+         sensor->val=0;
+         sprintf(value,"low");
+      }
+      else
+      {
+         sensor->val=1;
+         sprintf(value,"high");
+      }
+      
+      VERBOSE(9) mea_log_printf("%s (%s) : sensor %s = %s\n", INFO_STR, __func__, sensor->name, value);
+
+      char str[256];     
+      cJSON *xplMsgJson = cJSON_CreateObject(); 
+      cJSON_AddItemToObject(xplMsgJson, XPLMSGTYPE_STR_C, cJSON_CreateString("xpl-trig"));
+      sprintf(str,"%s.%s", get_token_string_by_id(XPL_SENSOR_ID), get_token_string_by_id(XPL_BASIC_ID));
+      cJSON_AddItemToObject(xplMsgJson, XPLSCHEMA_STR_C, cJSON_CreateString(str));
+      cJSON_AddItemToObject(xplMsgJson, get_token_string_by_id(XPL_TYPE_ID), cJSON_CreateString(get_token_string_by_id(XPL_INPUT_ID)));
+      cJSON_AddItemToObject(xplMsgJson, get_token_string_by_id(XPL_DEVICE_ID), cJSON_CreateString(sensor->name));
+      cJSON_AddItemToObject(xplMsgJson, get_token_string_by_id(XPL_CURRENT_ID), cJSON_CreateString(value));
+ 
+      // Broadcast the message
+      mea_sendXPLMessage2(xplMsgJson);
+      
+      *(sensor->nbxplout)=*(sensor->nbxplout)+1;
+
+      if(sensor->todbflag==1)
+         dbServer_add_data_to_sensors_values(sensor->sensor_id, (double)data[0], 0, 0, "");
+
+      cJSON_Delete(xplMsgJson);
    }
    
    return NOERROR;
@@ -346,7 +402,7 @@ interface_type_001_sensors_valid_and_malloc_sensor_clean_exit:
 }
 
 
-mea_error_t interface_type_001_sensors_process_xpl_msg(interface_type_001_t *i001, xPL_ServicePtr theService, xPL_MessagePtr msg, char *device, char *type)
+mea_error_t interface_type_001_sensors_process_xpl_msg_(interface_type_001_t *i001, xPL_ServicePtr theService, xPL_MessagePtr msg, char *device, char *type)
 /**
   * \brief     Traite les demandes xpl de retransmission de la valeur courrante ("sensor.request/request=current") pour interface_type_001
   * \details   La demande sensor.request peut être de la forme est de la forme :
@@ -494,7 +550,7 @@ mea_error_t interface_type_001_sensors_process_xpl_msg(interface_type_001_t *i00
 
             xPL_setTarget(sensorMessageStat, xPL_getSourceVendor(msg), xPL_getSourceDeviceID(msg), xPL_getSourceInstanceID(msg));
 
-            mea_sendXPLMessage(sensorMessageStat, NULL);
+//            mea_sendXPLMessage(sensorMessageStat, NULL);
             
             i001->indicators.nbsensorsxplsent++;
             
@@ -510,6 +566,177 @@ mea_error_t interface_type_001_sensors_process_xpl_msg(interface_type_001_t *i00
 }
 
 
+mea_error_t interface_type_001_sensors_process_xpl_msg2(interface_type_001_t *i001, cJSON *xplMsgJson, char *device, char *type)
+/**
+  * \brief     Traite les demandes xpl de retransmission de la valeur courrante ("sensor.request/request=current") pour interface_type_001
+  * \details   La demande sensor.request peut être de la forme est de la forme :
+  *            sensor.request
+  *            {
+  *               request=current
+  *               [device=<device>]
+  *               [type=<type>]
+  *            }
+  *            device et type sont optionnels. S'il ne sont pas précisé, le statut tous les capteurs sera émis. Si le type est précisé sans device,
+  *            tous les statuts des capteurs du type "type" seront transmis.
+  *
+  * \param     i001                contexte de l'interface.
+  * \param     xplMsgJson
+  * \param     device              le périphérique à interroger ou NULL
+  * \param     type                le type à interroger ou NULL
+  * \return    ERROR en cas d'erreur, NOERROR sinon  */  
+{
+   mea_queue_t *sensors_list=i001->sensors_list;
+   struct sensor_s *sensor;
+   int type_id=0;
+   uint16_t send_xpl_flag=0;
+   int16_t no_type=0;
+
+//   xPL_NameValueListPtr ListNomsValeursPtr = xPL_getMessageBody(msg);
+   i001->indicators.nbsensorsxplrecv++;
+   if(type)
+   {
+      type_id=get_token_id_by_string(type);
+      if(type_id==-1)
+         return ERROR; // type inconnu, on ne peut pas traiter
+   }
+   else
+      no_type=1; // type par defaut, le type est celui du capteur
+   
+   mea_queue_first(sensors_list);
+   for(int i=0; i<sensors_list->nb_elem; i++)
+   {
+      mea_queue_current(sensors_list, (void **)&sensor);
+      if(!device || mea_strcmplower(device,sensor->name)==0) // pas de device, on transmettra le statut de tous les capteurs du type demandé (si précisé)
+      {
+         char value[20];
+          char *unit;
+         if(no_type==1) // pas de type demandé, on "calcule" le type du capteur
+         {
+            if(sensor->arduino_pin_type==ANALOG_ID)
+            {
+               if(sensor->algo==XPL_AREF5_ID || sensor->algo==XPL_AREF5_ID)
+                  type_id=XPL_VOLTAGE_ID;
+               else if(sensor->algo==XPL_TMP36_ID)
+                  type_id=XPL_TEMP_ID;
+               else
+                  type_id=GENERIC_ID; // juste une valeur ...
+            }
+            else if(sensor->arduino_pin_type==DIGITAL_ID)
+            {
+               type_id=XPL_INPUT_ID;
+            }
+            type=get_token_string_by_id(type_id);
+         }
+         
+         // préparation de la réponse
+         send_xpl_flag=0;
+         switch(type_id)
+         {
+            case XPL_TEMP_ID:
+            {
+               if(sensor->arduino_pin_type==ANALOG_ID)
+               {
+                  if(sensor->algo==XPL_TMP36_ID)
+                  {
+                     sprintf(value,"%0.2f", sensor->computed_val);
+                     unit="c";
+                  }
+                  else
+                  {
+                     sprintf(value,"%d", sensor->val);
+                     unit=NULL;
+                  }
+                  send_xpl_flag=1;
+               }
+               break;
+            }
+            
+            case XPL_VOLTAGE_ID:
+            {
+               if(sensor->arduino_pin_type==ANALOG_ID)
+               {
+                  if(sensor->algo==XPL_AREF5_ID || sensor->algo==XPL_AREF11_ID)
+                  {
+                     sprintf(value,"%0.2f", sensor->computed_val);
+                     unit="v";
+                  }
+                  else
+                  {
+                     sprintf(value,"%d", sensor->val);
+                     unit=NULL;
+                  }
+                  send_xpl_flag=1;
+               }
+               break;
+            }
+            
+            case XPL_INPUT_ID:
+            {
+               if(sensor->arduino_pin_type==DIGITAL_ID)
+               {
+                  if(sensor->val==0)
+                     sprintf(value,"low");
+                  else
+                     sprintf(value,"high");
+                  unit=NULL;
+                  send_xpl_flag=1;
+               }
+               break;
+            }
+            
+            case GENERIC_ID:
+            {
+               if(sensor->arduino_pin_type==ANALOG_ID)
+               {
+                  sprintf(value,"%d", sensor->val);
+                  unit=NULL;
+                  send_xpl_flag=1;
+                  break;
+               }
+            }
+            default:
+               break;
+         }
+         
+         if(send_xpl_flag)
+         {
+            VERBOSE(9) mea_log_printf("%s (%s) : sensor %s = %s\n", INFO_STR, __func__, sensor->name, value);
+
+            char str[256];
+            cJSON *j = NULL;
+            cJSON *msg_json = cJSON_CreateObject();
+
+            cJSON_AddItemToObject(msg_json, XPLMSGTYPE_STR_C,  cJSON_CreateString("xpl-stat"));
+
+            sprintf(str,"%s.%s", get_token_string_by_id(XPL_SENSOR_ID), get_token_string_by_id(XPL_BASIC_ID));
+
+            cJSON_AddItemToObject(msg_json, XPLSCHEMA_STR_C,  cJSON_CreateString(str));
+            cJSON_AddItemToObject(msg_json, get_token_string_by_id(XPL_DEVICE_ID),  cJSON_CreateString(sensor->name));
+            cJSON_AddItemToObject(msg_json, get_token_string_by_id(XPL_TYPE_ID),    cJSON_CreateString(type));
+            cJSON_AddItemToObject(msg_json, get_token_string_by_id(XPL_CURRENT_ID), cJSON_CreateString(value));
+            if(unit)
+               cJSON_AddItemToObject(msg_json, get_token_string_by_id(UNIT_ID),        cJSON_CreateString(unit));
+
+            j=cJSON_GetObjectItem(xplMsgJson, XPLSOURCE_STR_C);
+            if(j)
+               cJSON_AddItemToObject(msg_json, XPLTARGET_STR_C, cJSON_CreateString(j->valuestring));
+            else
+               cJSON_AddItemToObject(msg_json, XPLTARGET_STR_C, cJSON_CreateString("*"));
+
+            mea_sendXPLMessage2(msg_json);
+
+            i001->indicators.nbsensorsxplsent++;
+         }
+         
+         if(device) // demande ciblée ?
+            return NOERROR; // oui => fin de traitement, sinon on continu
+      }
+      mea_queue_next(sensors_list);
+   }
+   return NOERROR;
+}
+
+/*
 int16_t interface_type_001_sensors_poll_inputs(interface_type_001_t *i001)
 {
    mea_queue_t *sensors_list=i001->sensors_list;
@@ -616,6 +843,119 @@ int16_t interface_type_001_sensors_poll_inputs(interface_type_001_t *i001)
    }
    return 0;
 }
+*/
+
+
+int16_t interface_type_001_sensors_poll_inputs2(interface_type_001_t *i001)
+{
+   mea_queue_t *sensors_list=i001->sensors_list;
+   struct sensor_s *sensor;
+
+   int16_t comio2_err;
+   int unit=0;
+
+   mea_queue_first(sensors_list);
+   for(int16_t i=0; i<sensors_list->nb_elem; i++)
+   {
+      mea_queue_current(sensors_list, (void **)&sensor);
+      if(!mea_test_timer(&(sensor->timer)))
+      {
+         if(sensor->arduino_pin_type==ANALOG_ID)
+         {
+            int v;
+
+            unsigned char buffer[8], resp[8];
+            uint16_t l_resp;
+            buffer[0]=sensor->arduino_pin;
+
+            int ret=comio2_call_fn(i001->ad, (uint16_t)sensor->arduino_function, (char *)buffer, 1, &v, resp, &l_resp, &comio2_err);
+            if(ret<0)
+            {
+               VERBOSE(5) {
+                  mea_log_printf("%s (%s) : comio2 error = %d.\n", ERROR_STR, __func__, comio2_err);
+               }
+               i001->indicators.nbsensorsreaderr++;
+               if(comio2_err == COMIO2_ERR_DOWN)
+               {
+                  return -1;
+               }
+               continue;
+            }
+            else if(ret>0)
+            {
+               VERBOSE(5) {
+                  mea_log_printf("%s (%s) : function %d return error = %d.\n", ERROR_STR, __func__, sensor->arduino_function, comio2_err);
+               }
+               i001->indicators.nbsensorsreaderr++;
+               continue;
+            }
+            
+            i001->indicators.nbsensorsread++;
+            if(sensor->val!=v)
+            {
+               int16_t last=sensor->val;
+               float computed_last;
+               
+               sensor->val=v;
+               sensor->computed_val=sensor->compute_fn(v);
+               computed_last=sensor->compute_fn(last);
+                  
+               if(sensor->compute==XPL_TEMP_ID)
+               {
+                  VERBOSE(9) mea_log_printf("%s (%s) : temperature sensor %s =  %.1f °C (%d) \n", INFO_STR, __func__, sensor->name, sensor->computed_val, sensor->val);
+                  unit = UNIT_C;
+               }
+               else if(sensor->compute==XPL_VOLTAGE_ID)
+               {
+                  VERBOSE(9) mea_log_printf("%s (%s) : voltage sensor %s =  %.1f V (%d) \n", INFO_STR, __func__, sensor->name, sensor->computed_val, sensor->val);
+                  unit = UNIT_V;
+               }
+               else
+               {
+                  VERBOSE(9) mea_log_printf("%s (%s) : raw sensor %s = %d\n", INFO_STR, __func__, sensor->name, sensor->val);
+               }
+                  
+               char str_value[20];
+               char str_last[20];
+               
+               if(sensor->todbflag == 1)
+                  dbServer_add_data_to_sensors_values(sensor->sensor_id, (double)sensor->computed_val, unit, (double)sensor->val, "");
+
+               xPL_ServicePtr servicePtr = mea_getXPLServicePtr();
+               if(servicePtr)
+               {
+                  char str[256];
+
+
+                  cJSON *xplMsgJson = cJSON_CreateObject();
+                  cJSON_AddItemToObject(xplMsgJson, XPLMSGTYPE_STR_C, cJSON_CreateString("xpl-trig"));
+                  sprintf(str,"%s.%s", get_token_string_by_id(XPL_SENSOR_ID), get_token_string_by_id(XPL_BASIC_ID));
+                  cJSON_AddItemToObject(xplMsgJson, XPLSCHEMA_STR_C, cJSON_CreateString(str));
+                  cJSON_AddItemToObject(xplMsgJson, get_token_string_by_id(XPL_DEVICE_ID), cJSON_CreateString(sensor->name));
+                  cJSON_AddItemToObject(xplMsgJson, get_token_string_by_id(XPL_TYPE_ID), cJSON_CreateString(get_token_string_by_id(XPL_POWER_ID)));
+                  sprintf(str,"%0.1f",sensor->computed_val);
+                  cJSON_AddItemToObject(xplMsgJson, get_token_string_by_id(XPL_CURRENT_ID), cJSON_CreateString(str));
+                  sprintf(str,"%0.1f",computed_last);
+                  cJSON_AddItemToObject(xplMsgJson, get_token_string_by_id(XPL_LAST_ID), cJSON_CreateString(str));
+
+                  // Broadcast the message
+                  mea_sendXPLMessage2(xplMsgJson);
+
+                  (i001->indicators.nbsensorsxplsent)++;
+               
+                  cJSON_Delete(xplMsgJson);   
+               }
+            }
+         }
+         else
+         {
+            // traiter ici les capteurs logiques
+         }
+      }
+      mea_queue_next(sensors_list);
+   }
+   return 0;
+}
 
 
 void interface_type_001_sensors_init(interface_type_001_t *i001)
@@ -631,7 +971,7 @@ void interface_type_001_sensors_init(interface_type_001_t *i001)
       sensor->nbtrap=&(i001->indicators.nbsensorstraps);
       sensor->nbxplout=&(i001->indicators.nbsensorsxplsent);
       
-      comio2_setTrap(i001->ad, sensor->arduino_pin+10, interface_type_001_sensors_process_traps, (void *)sensor);
+      comio2_setTrap(i001->ad, sensor->arduino_pin+10, interface_type_001_sensors_process_traps2, (void *)sensor);
 
       mea_start_timer(&(sensor->timer));
 

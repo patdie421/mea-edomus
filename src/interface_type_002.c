@@ -29,6 +29,8 @@
 #include "mea_queue.h"
 
 #include "tokens.h"
+#include "tokens_da.h"
+
 #include "parameters_utils.h"
 
 #include "notify.h"
@@ -36,7 +38,6 @@
 #include "xbee.h"
 #include "serial.h"
 #include "dbServer.h"
-//#include "mea_api.h"
 #include "pythonPluginServer.h"
 #include "python_utils.h"
 
@@ -324,108 +325,6 @@ PyObject *stmt_to_pydict_interface(sqlite3_stmt * stmt)
 }
 
 
-int16_t _interface_type_002_xPL_callback(xPL_ServicePtr theService, xPL_MessagePtr xplMsg, xPL_ObjectPtr userValue)
-{
-   xPL_NameValueListPtr xplBody;
-   char *device;
-   int ret;
-   int err;
-   
-   
-   interface_type_002_t *interface=(interface_type_002_t *)userValue;
-   struct callback_xpl_data_s *params=(struct callback_xpl_data_s *)interface->xPL_callback_data;
-   
-   interface->indicators.xplin++;
-   
-   sqlite3 *params_db = params->param_db;
-   
-   if(!params->mainThreadState)
-   {
-      params->mainThreadState=PyThreadState_Get();
-   }
-   if(!params->myThreadState)
-      params->myThreadState = PyThreadState_New(params->mainThreadState->interp);
-   
-   xplBody = xPL_getMessageBody(xplMsg);
-   device  = xPL_getNamedValue(xplBody, get_token_string_by_id(XPL_DEVICE_ID));
-   
-   if(!device)
-      return ERROR;
-   
-   char sql[2048];
-   sqlite3_stmt * stmt;
-   
-   sprintf(sql,"%s WHERE lower(sensors_actuators.name)='%s' and sensors_actuators.state='1';", sql_select_device_info, device);
-   ret = sqlite3_prepare_v2(params_db, sql, strlen(sql)+1, &stmt, NULL);
-   if(ret)
-   {
-      VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (params_db));
-      return ERROR;
-   }
-   
-   while(1)
-   {
-      int s = sqlite3_step(stmt);
-      if (s == SQLITE_ROW)
-      {
-         parsed_parameters_t *plugin_params=NULL;
-         int nb_plugin_params;
-         
-         plugin_params=alloc_parsed_parameters((char *)sqlite3_column_text(stmt, 3), valid_xbee_plugin_params, &nb_plugin_params, &err, 0);
-         if(!plugin_params || !plugin_params->parameters[XBEE_PLUGIN_PARAMS_PLUGIN].value.s)
-         {
-            if(plugin_params)
-               release_parsed_parameters(&plugin_params);
-
-            continue; // si pas de parametre (=> pas de plugin) ou pas de fonction ... pas la peine d'aller plus loin pour ce capteur
-         }
-         plugin_queue_elem_t *plugin_elem = (plugin_queue_elem_t *)malloc(sizeof(plugin_queue_elem_t));
-         if(plugin_elem)
-         {
-            plugin_elem->type_elem=XPLMSG;
-            
-            { // appel des fonctions Python
-               PyEval_AcquireLock();
-               PyThreadState *tempState = PyThreadState_Swap(params->myThreadState);
-               
-               plugin_elem->aDict=stmt_to_pydict_device(stmt);
-               mea_addLong_to_pydict(plugin_elem->aDict, get_token_string_by_id(ID_XBEE_ID), (long)interface->xd);
-               PyObject *d=mea_xplMsgToPyDict(xplMsg);
-               PyDict_SetItemString(plugin_elem->aDict, "xplmsg", d);
-               mea_addLong_to_pydict(plugin_elem->aDict, get_token_string_by_id(DEVICE_TYPE_ID_ID), sqlite3_column_int(stmt, 5));
-               Py_DECREF(d);
-               
-               if(plugin_params->parameters[XBEE_PLUGIN_PARAMS_PARAMETERS].value.s)
-                  mea_addString_to_pydict(plugin_elem->aDict, get_token_string_by_id(DEVICE_PARAMETERS_ID), plugin_params->parameters[XBEE_PLUGIN_PARAMS_PARAMETERS].value.s);
-               
-               PyThreadState_Swap(tempState);
-               PyEval_ReleaseLock();
-            } // fin appel des fonctions Python
-            
-            pythonPluginServer_add_cmd(plugin_params->parameters[XBEE_PLUGIN_PARAMS_PLUGIN].value.s, (void *)plugin_elem, sizeof(plugin_queue_elem_t));
-            interface->indicators.senttoplugin++;
-            release_parsed_parameters(&plugin_params);
-            plugin_elem=NULL;
-         }
-         
-         free(plugin_params);
-         plugin_params=NULL;
-      }
-      else if (s == SQLITE_DONE)
-      {
-         sqlite3_finalize(stmt);
-         break;
-      }
-      else
-      {
-         sqlite3_finalize(stmt);
-         break; // voir autres erreurs possibles
-      }
-   }
-   return NOERROR;
-}
-
-
 int16_t _interface_type_002_xPL_callback2(cJSON *xplMsgJson, xPL_ObjectPtr userValue)
 {
    char *device;
@@ -496,7 +395,7 @@ int16_t _interface_type_002_xPL_callback2(cJSON *xplMsgJson, xPL_ObjectPtr userV
 
                PyObject *d=mea_xplMsgToPyDict2(xplMsgJson);
 
-               PyDict_SetItemString(plugin_elem->aDict, "xplmsg", d);
+               PyDict_SetItemString(plugin_elem->aDict, XPLMSG_STR_C, d);
                mea_addLong_to_pydict(plugin_elem->aDict, get_token_string_by_id(DEVICE_TYPE_ID_ID), sqlite3_column_int(stmt, 5));
                Py_DECREF(d);
                
@@ -1084,7 +983,8 @@ interface_type_002_t *malloc_and_init_interface_type_002(sqlite3 *sqlite3_param_
    i002->xd=NULL;
    i002->local_xbee=NULL;
    i002->thread=NULL;
-   i002->xPL_callback=NULL;
+//   i002->xPL_callback=NULL;
+   i002->xPL_callback2=NULL;
    i002->xPL_callback_data=NULL;
 
    process_set_group(i002->monitoring_id, 1);
@@ -1116,8 +1016,10 @@ int clean_interface_type_002(interface_type_002_t *i002)
       i002->xPL_callback_data=NULL;
    }
    
-   if(i002->xPL_callback)
-      i002->xPL_callback=NULL;
+//   if(i002->xPL_callback)
+//      i002->xPL_callback=NULL;
+   if(i002->xPL_callback2)
+      i002->xPL_callback2=NULL;
    
    if(i002->xd && i002->xd->dataflow_callback_data &&
      (i002->xd->dataflow_callback_data == i002->xd->io_callback_data))
@@ -1189,9 +1091,13 @@ int stop_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
       start_stop_params->i002->xPL_callback_data=NULL;
    }
    
-   if(start_stop_params->i002->xPL_callback)
+//   if(start_stop_params->i002->xPL_callback)
+//   {
+//      start_stop_params->i002->xPL_callback=NULL;
+//   }
+   if(start_stop_params->i002->xPL_callback2)
    {
-      start_stop_params->i002->xPL_callback=NULL;
+      start_stop_params->i002->xPL_callback2=NULL;
    }
    
    if(start_stop_params->i002->xd &&
@@ -1569,7 +1475,7 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
    xpl_callback_params->myThreadState=NULL;
    
    start_stop_params->i002->xPL_callback_data=xpl_callback_params;
-   start_stop_params->i002->xPL_callback=_interface_type_002_xPL_callback;
+//   start_stop_params->i002->xPL_callback=_interface_type_002_xPL_callback;
    start_stop_params->i002->xPL_callback2=_interface_type_002_xPL_callback2;
    
    VERBOSE(2) mea_log_printf("%s  (%s) : %s %s.\n", INFO_STR, __func__,start_stop_params->i002->name, launched_successfully_str);

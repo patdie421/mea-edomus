@@ -24,24 +24,25 @@
 
 #include "automator.h"
 #include "automatorServer.h"
+#include "processManager.h"
 #include "datetimeServer.h"
+#include "xPLServer.h"
+#include "nodejsServer.h"
 
 #include "globals.h"
 #include "consts.h"
-#include "xPL.h"
+#include "tokens.h"
+#include "tokens_da.h"
+
 #include "mea_verbose.h"
 #include "mea_queue.h"
 #include "mea_timer.h"
-#include "tokens.h"
-#include "tokens_da.h"
-#include "xPLServer.h"
 #include "mea_string_utils.h"
-#include "processManager.h"
-#include "cJSON.h"
-#include "uthash.h"
 #include "mea_eval.h"
 #include "mea_sockets_utils.h"
-#include "nodejsServer.h"
+
+#include "cJSON.h"
+#include "uthash.h"
 
 #define DEBUG
 #define USEALLOCA
@@ -1176,114 +1177,6 @@ static int automator_setinputvalue(cJSON *parameters)
    return 0;  
 }
 
-/*
-int automator_sendxpl(cJSON *parameters)
-{
-   _automatorServer_fn = (char *)__func__;
-   if(parameters==NULL || parameters->child==NULL)
-      return -1;
-
-   xPL_ServicePtr servicePtr = mea_getXPLServicePtr();
-   if(!servicePtr)
-   {
-      DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s (%s) : pas de service xpl ...\n",  ERROR_STR, __func__);
-      return -1;
-   }
-
-   xPL_MessagePtr xplMessage = NULL;
-
-   xplMessage = xPL_createBroadcastMessage(servicePtr, xPL_MESSAGE_COMMAND);
-   if(!xplMessage)
-      return -1;
-
-   cJSON *e=parameters->child;
-
-   int retour=0;
-   char schema[21]="control.basic";
-   char target[VALUE_MAX_STR_SIZE]="";
-   int msgtype=xPL_MESSAGE_COMMAND;
-
-   while(e)
-   {
-      struct value_s v;
-    
-      if(evalStr(e->valuestring, &v, NULL)==0)
-      {
-         // type de message
-         if(strcmp(e->string, "msgtype")==0)
-         {
-            if(v.type==1)
-            {
-               if(strcmp(v.val.strval, "trigger")==0)
-                  msgtype=xPL_MESSAGE_TRIGGER;
-               else if(strcmp(v.val.strval, "status")==0)
-                  msgtype=xPL_MESSAGE_STATUS;
-               else if(strcmp(v.val.strval, "command")==0)
-                  msgtype=xPL_MESSAGE_COMMAND;
-               else {
-                  retour=-1;
-                  break;
-               }
-            }
-            else {
-               retour=-1;
-               break;
-            }
-         }
-         else if(strcmp(e->string, "schema")==0) {
-         
-            strncpy(schema, v.val.strval, sizeof(schema)-1);
-            schema[sizeof(schema)-1]=0;
-         }
-         else if(strcmp(e->string,"source")==0) {
-            retour=-1;
-            break;
-         }
-         else if(strcmp(e->string,"target")==0) {
-            strncpy(target, v.val.strval, sizeof(target)-1);
-            target[sizeof(target)-1]=0;
-         }
-         else
-         {
-            char s[sizeof(v.val.strval)];
-            valueToStr(&v, s, sizeof(v.val.strval), INT | HIGHLOW);
-            xPL_setMessageNamedValue(xplMessage, e->string, s);
-         }
-      }
-      else { 
-         retour=-1;
-         break;
-      }
-      e=e->next;
-   }
-   if(retour==-1) { 
-      xPL_releaseMessage(xplMessage);
-      return -1;
-   }
-
-   // changement du type de message
-   xplMessage->messageType = msgtype;
-
-   // mise en place du schema
-   char class[21]; char type[21];
-   sscanf(schema,"%[^.].%s\n", class, type);
-   xPL_setSchema(xplMessage, class, type);
-
-   // changement du target si nécessaire
-   if(target[0]!=0) {
-   }
-
-   // emission du message
-   automator_xplout_indicator++;
-   mea_sendXPLMessage(xplMessage);
-
-//   DEBUG_SECTION2(DEBUGFLAG) displayXPLMsg(xplMessage);
-
-   xPL_releaseMessage(xplMessage);
- 
-   return 0;
-}
-*/
 
 int automator_sendxpl2(cJSON *parameters)
 {
@@ -1312,7 +1205,7 @@ int automator_sendxpl2(cJSON *parameters)
       if(evalStr(e->valuestring, &v, NULL)==0)
       {
          // type de message
-         if(strcmp(e->string, "msgtype")==0)
+         if(strcmp(e->string, XPLMSGTYPE_STR_C)==0)
          {
             if(v.type==1)
             {
@@ -1331,15 +1224,15 @@ int automator_sendxpl2(cJSON *parameters)
                break;
             }
          }
-         else if(strcmp(e->string, "schema")==0) {
+         else if(strcmp(e->string, XPLSCHEMA_STR_C)==0) {
             strncpy(schema, v.val.strval, sizeof(schema)-1);
             schema[sizeof(schema)-1]=0;
          }
-         else if(strcmp(e->string, "source")==0) {
+         else if(strcmp(e->string, XPLSOURCE_STR_C)==0) {
             return -1;
             break;
          }
-         else if(strcmp(e->string, "target")==0) {
+         else if(strcmp(e->string, XPLTARGET_STR_C)==0) {
             strncpy(target, v.val.strval, sizeof(target)-1);
             target[sizeof(target)-1]=0;
          }
@@ -1366,91 +1259,6 @@ int automator_sendxpl2(cJSON *parameters)
       xPL_sendRawMessage(msg, n);
 }
 
-/*
-int sendxplFromJson(cJSON *parameters)
-{
-   _automatorServer_fn = (char *)__func__;
-   if(parameters==NULL || parameters->child==NULL)
-      return -1;
-
-   xPL_ServicePtr servicePtr = mea_getXPLServicePtr();
-   if(!servicePtr)
-   {
-      DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s (%s) : pas de service xpl ...\n",  ERROR_STR, __func__);
-      return -1;
-   }
-
-
-   xPL_MessagePtr xplMessage = xPL_createBroadcastMessage(servicePtr, xPL_MESSAGE_COMMAND);
-   if(!xplMessage)
-      return -1;
-
-   cJSON *e=parameters->child;
-
-   int retour=0;
-   char schema[21]="control.basic";
-   char target[VALUE_MAX_STR_SIZE]="*";
-   int msgtype=xPL_MESSAGE_COMMAND;
-
-   while(e)
-   {
-      // type de message
-      if(strcmp(e->string, "msgtype")==0)
-      {
-         if(strcmp(e->valuestring, "trigger")==0)
-            msgtype=xPL_MESSAGE_TRIGGER;
-         else if(strcmp(e->valuestring, "status")==0)
-            msgtype=xPL_MESSAGE_STATUS;
-         else if(strcmp(e->valuestring, "command")==0)
-            msgtype=xPL_MESSAGE_COMMAND;
-         else {
-            retour=-1;
-            break;
-         }
-      }
-      else if(strcmp(e->string, "schema")==0) {
-         strncpy(schema, e->valuestring, sizeof(schema)-1);
-         schema[sizeof(schema)-1]=0;
-      }
-      else if(strcmp(e->string,"source")==0) {
-         retour=-1;
-         break;
-      }
-      else if(strcmp(e->string,"target")==0) {
-         strncpy(target, e->valuestring, sizeof(target)-1);
-         target[sizeof(target)-1]=0;
-      }
-      else
-         xPL_setMessageNamedValue(xplMessage, e->string, e->valuestring);
-      e=e->next;
-   }
-   if(retour==-1) { 
-      xPL_releaseMessage(xplMessage);
-      return -1;
-   }
-
-   // changement du type de message
-   xplMessage->messageType = msgtype;
-
-   // mise en place du schema
-   char class[21]; char type[21];
-   sscanf(schema,"%[^.].%s\n", class, type);
-   xPL_setSchema(xplMessage, class, type);
-
-   // changement du target si nécessaire
-   if(target[0]!=0) {
-   }
-
-   // emission du message
-   mea_sendXPLMessage(xplMessage);
-
-//   DEBUG_SECTION2(DEBUGFLAG) displayXPLMsg(xplMessage);
-
-   xPL_releaseMessage(xplMessage);
- 
-   return 0;
-}
-*/
 
 int automator_play_output_rules(cJSON *rules)
 {
@@ -1667,10 +1475,10 @@ int automator_match_inputs_rules(cJSON *rules, cJSON *xplMsgJson)
    
    if(xplMsgJson)
    {
-      cJSON *_source = cJSON_GetObjectItem(xplMsgJson,"source");
+      cJSON *_source = cJSON_GetObjectItem(xplMsgJson, XPLSOURCE_STR_C);
       if(_source) 
          source = _source->valuestring;
-      cJSON *_schema = cJSON_GetObjectItem(xplMsgJson,"schema");
+      cJSON *_schema = cJSON_GetObjectItem(xplMsgJson, XPLSCHEMA_STR_C);
       if(_schema)
          schema = _schema->valuestring;
    }

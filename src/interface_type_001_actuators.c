@@ -28,6 +28,8 @@
 
 #include "processManager.h"
 
+#include "cJSON.h"
+
 // PIN=D5;TYPE=DIGITAL_OUT
 char *valid_relay_params[]={"S:PIN","S:TYPE",NULL};
 #define ACTUATOR_PARAMS_PIN        0
@@ -151,7 +153,7 @@ valid_and_malloc_relay_clean_exit:
    return NULL;
 }
 
-
+/*
 mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNomsValeursPtr, char *device, char *type)
 {
    int ret;
@@ -328,3 +330,188 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
    }
    return ERROR;
 }
+*/
+
+mea_error_t xpl_actuator2(interface_type_001_t *i001, cJSON *xplMsgJson, char *device, char *type)
+{
+   int ret;
+   int type_id;
+   unsigned char sval[2];
+   int16_t comio2_err;
+
+   (i001->indicators.nbactuatorsxplrecv)++;
+   
+   type_id=get_token_id_by_string(type);
+   if(type_id != XPL_OUTPUT_ID && type_id !=VARIABLE_ID)
+      return ERROR;
+   
+   if(mea_queue_first(i001->actuators_list)==-1)
+      return ERROR;
+   
+   struct actuator_s *iq;
+   while(1)
+   {
+      mea_queue_current(i001->actuators_list, (void **)&iq);
+      if(mea_strcmplower(iq->name, device)==0) // OK, c'est bien pour moi ...
+      {
+         char *current=NULL;
+         cJSON *j = NULL;
+         j=cJSON_GetObjectItem(xplMsgJson, get_token_string_by_id(XPL_CURRENT_ID));
+         if(j)
+            current = j->valuestring;
+         if(!current)
+            return ERROR;
+         int current_id=get_token_id_by_string(current);
+         if(type_id==XPL_OUTPUT_ID && iq->arduino_pin_type==DIGITAL_ID)
+         {
+            switch(current_id)
+            {
+               case XPL_PULSE_ID:
+               {
+                  int pulse_width;
+                  char *data1=NULL;
+                  j=cJSON_GetObjectItem(xplMsgJson, get_token_string_by_id(XPL_DATA1_ID));
+                  if(j)
+                     data1=j->valuestring;
+                  if(data1)
+                  {
+                     pulse_width=atoi(data1);
+                     if(pulse_width<=0)
+                        pulse_width=250;
+                  }
+                  else
+                     pulse_width=250;
+
+                  VERBOSE(9) mea_log_printf("%s (%s) : %s PLUSE %d ms on %d\n", INFO_STR, __func__, device, pulse_width, iq->arduino_pin);
+                  
+                  sval[0]=iq->arduino_pin;
+                  sval[1]=((pulse_width / 100) & 0xFF);
+                  ret=comio2_call_proc(i001->ad, 0, (char *)sval, 2, &comio2_err);
+                  if(ret!=0)
+                  {
+                     VERBOSE(9) mea_log_printf("%s (%s) : comio2_call_proc error (comio2_err=%d)\n", INFO_STR, __func__, comio2_err);
+                     (i001->indicators.nbactuatorsouterr)++;
+
+                     return ERROR;
+                  }
+                  
+                  (i001->indicators.nbactuatorsout)++;
+                  dbServer_add_data_to_sensors_values(iq->actuator_id, 1, 0, sval[1], "pulse");
+                  return NOERROR;
+                  break;
+               }
+               
+               case HIGH_ID:
+               case LOW_ID:
+               {
+                  int o=0;
+                  
+                  if(current_id==HIGH_ID)
+                     o=255;
+                  
+                  VERBOSE(9) mea_log_printf("%s (%s) : %s set %d on pin %d\n", INFO_STR, __func__, device, o, iq->arduino_pin);
+                  
+                  sval[0]=iq->arduino_pin;
+                  sval[1]=o;
+                  ret=comio2_call_proc(i001->ad, 1, (char *)sval, 2, &comio2_err);
+                  if(ret!=0)
+                  {
+                     VERBOSE(9) mea_log_printf("%s (%s) : comio2_call_proc error (comio2_err=%d)\n", INFO_STR, __func__, comio2_err);
+                     (i001->indicators.nbactuatorsouterr)++;
+
+                     return ERROR;
+                  }
+                  (i001->indicators.nbactuatorsout)++;
+                  if(iq->todbflag == 1)
+                     dbServer_add_data_to_sensors_values(iq->actuator_id, (double)o, 0, 0.0, "");
+
+                  return NOERROR;
+                  break;
+               }
+               
+               default:
+                  VERBOSE(9) mea_log_printf("%s (%s) : incorrect request for %s (%s)\n", INFO_STR, __func__, device, type);
+                  return ERROR;
+            }
+            
+         }
+         else if(type_id==VARIABLE_ID && iq->arduino_pin_type==ANALOG_ID)
+         {
+            int o=0;
+            switch(current_id)
+            {
+               case DEC_ID:
+                  o=(int)iq->old_val-1;
+                  break;
+               case INC_ID:
+                  o=iq->old_val+1;
+                  break;
+               default:
+               {
+                  int16_t inc_dec=0; // +1 = inc ; -1 = dec
+                  char *str;
+                  if(current[0]=='-')
+                  {
+                     inc_dec=-1;
+                     str=&current[1];
+                  }
+                  else if (current[0]=='+')
+                  {
+                     inc_dec=1;
+                     str=&current[1];
+                  }
+                  else str=current;
+                        
+                  int n;
+                  ret=sscanf(str,"%d%n", &o, &n);
+                  if(o>255) o=255;
+                        
+                  if(ret==1 && !(strlen(str)-n))
+                  {
+                     if(inc_dec)
+                     {
+                        o=iq->old_val+(uint16_t)o*(uint16_t)inc_dec;
+                     }
+                     if(o>255) o=255;
+                     if(o<  0) o=0;
+                  }
+                  else
+                  {
+                     VERBOSE(9) mea_log_printf("%s (%s) : %s ???\n", INFO_STR, __func__, current);
+                     return ERROR; // erreur de syntaxe ...
+                  }
+               }
+               break;
+            }
+            if(o>255)
+               o=255;
+            else if(o<0)
+               o=0;
+            iq->old_val=(uint16_t)o;
+                  
+            VERBOSE(9) mea_log_printf("%s (%s) : %s set %d on pin %d\n", INFO_STR, __func__, device, o, iq->arduino_pin);
+            
+            sval[0]=iq->arduino_pin;
+            sval[1]=o;
+            ret=comio2_call_proc(i001->ad, 2, (char *)sval, 2, &comio2_err);
+            if(ret!=0)
+            {
+               VERBOSE(9) mea_log_printf("%s (%s) : comio2_call_proc error (comio2_err=%d)\n", INFO_STR, __func__, comio2_err);
+               (i001->indicators.nbactuatorsouterr)++;
+               return ERROR;
+            }
+            (i001->indicators.nbactuatorsout)++;
+            if(iq->todbflag==1)
+               dbServer_add_data_to_sensors_values(iq->actuator_id, (double)o, 0, 0.0, "");
+
+            return NOERROR;
+         }
+         return ERROR;
+      }
+      ret=mea_queue_next(i001->actuators_list);
+      if(ret<0)
+         break;
+   }
+   return ERROR;
+}
+

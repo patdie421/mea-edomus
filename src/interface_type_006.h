@@ -43,7 +43,7 @@ typedef struct interface_type_006_s
    int              monitoring_id;
    pthread_t       *thread;
    volatile sig_atomic_t thread_is_running;
-   xpl_f            xPL_callback;
+//   xpl_f            xPL_callback;
    xpl2_f           xPL_callback2;
    void            *xPL_callback_data;
 

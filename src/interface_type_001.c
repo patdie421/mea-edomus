@@ -21,6 +21,8 @@
 #include "globals.h"
 #include "consts.h"
 #include "macros.h"
+#include "tokens.h"
+#include "tokens_da.h"
 
 #include "mea_string_utils.h"
 #include "mea_verbose.h"
@@ -68,69 +70,15 @@ void set_interface_type_001_isnt_running(void *data)
 // xPLSend -c sensor.request -m cmnd request=current device=CONSO type=POWER => dernière puissance instantannée
 // xPLSend -c sensor.request -m cmnd request=current device=CONSO type=ENERGY => valeur du compteur ERDF
 //
-int16_t interface_type_001_xPL_callback(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
-{
-   xPL_NameValueListPtr ListNomsValeursPtr ;
-   char *schema_type, *schema_class, *device, *type;
-   interface_type_001_t *i001=(interface_type_001_t *)userValue;
-   schema_class       = xPL_getSchemaClass(theMessage);
-   schema_type        = xPL_getSchemaType(theMessage);
-   ListNomsValeursPtr = xPL_getMessageBody(theMessage);
-   device             = xPL_getNamedValue(ListNomsValeursPtr, get_token_string_by_id(XPL_DEVICE_ID));
-   type               = xPL_getNamedValue(ListNomsValeursPtr, get_token_string_by_id(XPL_TYPE_ID));
-   
-   (i001->indicators.nbxplin)++;
-   
-   VERBOSE(9) mea_log_printf("%s (%s) : xPL Message to process : %s.%s\n", INFO_STR, __func__, schema_class, schema_type);
-
-   if(mea_strcmplower(schema_class, get_token_string_by_id(XPL_CONTROL_ID)) == 0 &&
-      mea_strcmplower(schema_type, get_token_string_by_id(XPL_BASIC_ID)) == 0)
-   {
-      if(!device)
-      {
-         VERBOSE(5) mea_log_printf("%s (%s) : xPL message no device\n", INFO_STR, __func__);
-         return 0;
-      }
-      if(!type)
-      {
-         VERBOSE(5) mea_log_printf("%s (%s) : xPL message no type\n", INFO_STR, __func__);
-         return 0;
-      }
-      return xpl_actuator(i001, ListNomsValeursPtr, device, type);
-   }
-   else if(mea_strcmplower(schema_class, get_token_string_by_id(XPL_SENSOR_ID)) == 0 &&
-           mea_strcmplower(schema_type, get_token_string_by_id(XPL_REQUEST_ID)) == 0)
-   {
-      char *request = xPL_getNamedValue(ListNomsValeursPtr, get_token_string_by_id(XPL_REQUEST_ID));
-      if(!request)
-      {
-         VERBOSE(5) mea_log_printf("%s (%s) : xPL message no request\n", INFO_STR, __func__);
-         return 0;
-      }
-      if(mea_strcmplower(request,get_token_string_by_id(XPL_CURRENT_ID))!=0)
-      {
-         VERBOSE(5) mea_log_printf("%s (%s) : xPL message request!=current\n", INFO_STR, __func__);
-         return 0;
-      }
-      
-      interface_type_001_counters_process_xpl_msg(i001, theService, theMessage, device, type);
-      interface_type_001_sensors_process_xpl_msg(i001, theService, theMessage, device, type);
-   }
-   
-   return 0;
-}
-
-
 int16_t interface_type_001_xPL_callback2(cJSON *xplMsgJson, xPL_ObjectPtr userValue)
 {
    char *schema = NULL, *device = NULL, *type = NULL;
    cJSON *j=NULL;
 
+   interface_type_001_t *i001=(interface_type_001_t *)userValue;
    (i001->indicators.nbxplin)++;
 
-   interface_type_001_t *i001=(interface_type_001_t *)userValue;
-
-   j = cJSON_GetObjectItem(xplMsgJson,"schema"); 
+   j = cJSON_GetObjectItem(xplMsgJson, XPLSCHEMA_STR_C); 
    if(j)
       schema = j->valuestring;
    else
@@ -173,14 +121,14 @@ int16_t interface_type_001_xPL_callback2(cJSON *xplMsgJson, xPL_ObjectPtr userVa
          VERBOSE(5) mea_log_printf("%s (%s) : xPL message no request\n", INFO_STR, __func__);
          return 0;
       }
-      if(mea_strcmplower(request,get_token_string_by_id(XPL_CURRENT_ID))!=0)
+      if(mea_strcmplower(request, get_token_string_by_id(XPL_CURRENT_ID))!=0)
       {
          VERBOSE(5) mea_log_printf("%s (%s) : xPL message request!=current\n", INFO_STR, __func__);
          return 0;
       }
       
-      interface_type_001_counters_process_xpl_msg2(i001, xplMsgJson, device, type);
-      interface_type_001_sensors_process_xpl_msg2(i001, xplMsgJson, device, type);
+//      interface_type_001_counters_process_xpl_msg2(i001, xplMsgJson, device, type);
+//      interface_type_001_sensors_process_xpl_msg2(i001, xplMsgJson, device, type);
    }
    
    return 0;
@@ -196,7 +144,8 @@ int load_interface_type_001(interface_type_001_t *i001, int interface_id, sqlite
    
    // préparation des éléments de contexte de l'interface
    i001->interface_id=interface_id;
-   i001->xPL_callback=NULL;
+//   i001->xPL_callback=NULL;
+   i001->xPL_callback2=NULL;
    i001->counters_list=NULL;
    i001->sensors_list=NULL;
    i001->actuators_list=NULL;
@@ -395,7 +344,8 @@ interface_type_001_t *malloc_and_init_interface_type_001(sqlite3 *sqlite3_param_
    i001->counters_list=NULL;
    i001->actuators_list=NULL;
    i001->sensors_list=NULL;
-   i001->xPL_callback=NULL;
+//   i001->xPL_callback=NULL;
+   i001->xPL_callback2=NULL;
 
    // initialisation du process
    i001_start_stop_params->i001=i001;
@@ -524,13 +474,13 @@ void *_thread_interface_type_001(void *args)
       process_update_indicator(i001->monitoring_id, I001_CNBXPLIN,   i001->indicators.nbcountersxplrecv);
 
 
-      if(interface_type_001_counters_poll_inputs(i001)<0)
+      if(interface_type_001_counters_poll_inputs2(i001)<0)
       {
          VERBOSE(2) mea_log_printf("%s (%s) : %s - thread goes down.\n", ERROR_STR, __func__, i001->name);
          pthread_exit(NULL);
       }
       
-      if(interface_type_001_sensors_poll_inputs(i001)<0)
+      if(interface_type_001_sensors_poll_inputs2(i001)<0)
       {
          VERBOSE(2) mea_log_printf("%s (%s) : %s - thread goes down.\n", ERROR_STR, __func__, i001->name);
          pthread_exit(NULL);
@@ -692,7 +642,7 @@ int start_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
    if(!interface_type_001_thread_id)
       goto start_interface_type_001_clean_exit;
    
-   start_stop_params->i001->xPL_callback=interface_type_001_xPL_callback;
+   start_stop_params->i001->xPL_callback2=interface_type_001_xPL_callback2;
 
    if(pthread_create (interface_type_001_thread_id, NULL, _thread_interface_type_001, (void *)interface_type_001_thread_params))
    {

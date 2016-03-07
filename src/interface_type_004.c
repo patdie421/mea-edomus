@@ -18,6 +18,7 @@
 #include "consts.h"
 
 #include "tokens.h"
+#include "tokens_da.h"
 #include "mea_verbose.h"
 #include "macros.h"
 #include "mea_string_utils.h"
@@ -33,24 +34,35 @@
 
 #include "interfacesServer.h"
 
+// Parametrage :
+// Name : LAMPE001
+// Type : OUTPUT
+// Interface : PHILIPSHUE01
+// Parameters : HUELIGHT=Hue Lamp 1
+//   ou
+// Parameters : HUELIGHT=Hue Lamp 1;REACHABLE_USE=1
+// on/off
+// ./xPLSend -m cmnd -c control.basic device=lampe001 current=high type=output
+// ./xPLSend -m cmnd -c control.basic device=lampe001 current=low type=output
+
+// changement de couleur
+// ./xPLSend -m cmnd -c control.basic device=lampe001 current=#FF0000 type=color
+
 char *valid_hue_params[]={"S:HUELIGHT", "I:REACHABLE_USE", "S:HUEGROUP", "S:HUESCENE", NULL};
 #define PARAMS_HUELIGH 0
 #define PARAMS_REACHABLE 1
 #define PARAMS_HUEGROUP 2
 #define PARAMS_HUESCENE 3
 
+#define DEBUG_FLAG 1
 
 char *interface_type_004_xplin_str="XPLIN";
 char *interface_type_004_xplout_str="XPLOUT";
 char *interface_type_004_lightschanges_str="NBTRANSITIONS";
 
-extern Bool xPL_sendRawMessage(String, int);
 
-int16_t sendXPLLightState(interface_type_004_t *i004, xPL_ServicePtr servicePtr, xPL_MessageType xplMsgType, char *deviceName, int16_t newState, int16_t reachable, int16_t on, int16_t last)
+int16_t sendXPLLightState2(interface_type_004_t *i004, char *xplMsgType, char *deviceName, int16_t newState, int16_t reachable, int16_t on, int16_t last)
 {
-   if(servicePtr==NULL)
-      return -1;
-
    char *current_state_str;
    char *last_state_str;
    char *on_str;
@@ -89,53 +101,29 @@ int16_t sendXPLLightState(interface_type_004_t *i004, xPL_ServicePtr servicePtr,
       reachable_str="true";
    else
       reachable_str="false";
-/*      
-      xPL_MessagePtr lightMessageStat = xPL_createBroadcastMessage(servicePtr, xplMsgType);
-      
-      xPL_setSchema(lightMessageStat, get_token_string_by_id(XPL_SENSOR_ID), get_token_string_by_id(XPL_BASIC_ID));
-      xPL_setMessageNamedValue(lightMessageStat, get_token_string_by_id(XPL_DEVICE_ID),deviceName);
-      xPL_setMessageNamedValue(lightMessageStat, get_token_string_by_id(XPL_TYPE_ID), get_token_string_by_id(XPL_OUTPUT_ID));
-      xPL_setMessageNamedValue(lightMessageStat, get_token_string_by_id(XPL_CURRENT_ID), current_state_str);
-      if(last != -1)
-         xPL_setMessageNamedValue(lightMessageStat, get_token_string_by_id(XPL_LAST_ID), last_state_str);
-      xPL_setMessageNamedValue(lightMessageStat, get_token_string_by_id(REACHABLE_ID), reachable_str);
-      xPL_setMessageNamedValue(lightMessageStat, "on", on_str);
-      mea_sendXPLMessage(lightMessageStat);
-      
-      xPL_releaseMessage(lightMessageStat);
-      
-      (i004->indicators.xplout)++;
-   }
-*/
-   l+=sprintf(source,"%s-%s.%s", mea_getXPLVendorID(), mea_getXPLDeviceID(), mea_getXPLInstanceID());
-   l+=sprintf(schema,"%s.%s", get_token_string_by_id(XPL_SENSOR_ID),  get_token_string_by_id(XPL_BASIC_ID));
-   switch(xplMsgType) //  xPL_MESSAGE_ANY, xPL_MESSAGE_COMMAND, xPL_MESSAGE_STATUS, xPL_MESSAGE_TRIGGER
-   {
-      case xPL_MESSAGE_TRIGGER: msgtype="xpl-trig"; break;
-      case xPL_MESSAGE_STATUS:  msgtype="xpl-stat"; break;
-   }
 
-   n=sprintf(&(xplBodyStr[xplBodyStrPtr]),"%s=%s\n", get_token_string_by_id(XPL_DEVICE_ID),deviceName); xplBodyStrPtr+=n; l+=n;
-   n=sprintf(&(xplBodyStr[xplBodyStrPtr]),"%s=%s\n", get_token_string_by_id(XPL_TYPE_ID), get_token_string_by_id(XPL_OUTPUT_ID)); xplBodyStrPtr+=n; l+=n;
-   n=sprintf(&(xplBodyStr[xplBodyStrPtr]),"%s=%s\n", get_token_string_by_id(XPL_CURRENT_ID),current_state_str); xplBodyStrPtr+=n; l+=n;
+   cJSON *msg = NULL;
+
+   char str[256];
+   cJSON *xplMsgJson = cJSON_CreateObject();
+   cJSON_AddItemToObject(xplMsgJson, XPLMSGTYPE_STR_C, cJSON_CreateString(xplMsgType));
+   sprintf(str,"%s.%s", get_token_string_by_id(XPL_SENSOR_ID), get_token_string_by_id(XPL_BASIC_ID));
+   cJSON_AddItemToObject(xplMsgJson, XPLSCHEMA_STR_C, cJSON_CreateString(str));
+   cJSON_AddItemToObject(xplMsgJson, get_token_string_by_id(XPL_TYPE_ID), cJSON_CreateString(get_token_string_by_id(XPL_INPUT_ID)));
+   cJSON_AddItemToObject(xplMsgJson, get_token_string_by_id(XPL_DEVICE_ID), cJSON_CreateString(deviceName));
+   cJSON_AddItemToObject(xplMsgJson, get_token_string_by_id(XPL_CURRENT_ID), cJSON_CreateString(current_state_str));
    if(last != -1)
-      n=sprintf(&(xplBodyStr[xplBodyStrPtr]),"%s=%s\n", get_token_string_by_id(XPL_LAST_ID),last_state_str);  xplBodyStrPtr+=n; l+=n;
-   n=sprintf(&(xplBodyStr[xplBodyStrPtr]),"%s=%s\n", get_token_string_by_id(REACHABLE_ID),reachable_str); xplBodyStrPtr+=n; l+=n;
-   n=sprintf(&(xplBodyStr[xplBodyStrPtr]),"%s=%s\n", "on", on_str); xplBodyStrPtr+=n; l+=n;
- 
-   l+=36;
-   char *msg = (char *)alloca(l);
+      cJSON_AddItemToObject(xplMsgJson, get_token_string_by_id(XPL_LAST_ID), cJSON_CreateString(last_state_str));
+   cJSON_AddItemToObject(xplMsgJson, get_token_string_by_id(REACHABLE_ID), cJSON_CreateString(reachable_str));
+   cJSON_AddItemToObject(xplMsgJson, "on", cJSON_CreateString(on_str));
 
-   n=snprintf(msg,l,"%s\n{\nhop=1\nsource=%s\ntarget=*\n}\n%s\n{\n%s}\n",msgtype,source,schema,xplBodyStr);
-   if(n>0 && n < l)
-   {
-      xPL_sendRawMessage(msg, n);
-      (i004->indicators.xplout)++;
-   }
-   else
-   {
-      VERBOSE(5) mea_log_printf("%s (%s) : xPL message string too small (not send)\n", ERROR_STR, __func__);
-   }
+   // Broadcast the message
+   mea_sendXPLMessage2(xplMsgJson);
+
+   (i004->indicators.xplout)++;
+
+   cJSON_Delete(xplMsgJson);
+
    return 0;
 }
 
@@ -177,7 +165,7 @@ int16_t sendAllxPLTrigger(interface_type_004_t *i004)
             }
             state = state & onCurrent->valueint;
             
-            sendXPLLightState(i004, servicePtr, xPL_MESSAGE_TRIGGER, deviceName, state, reachableCurrent->valueint, onCurrent->valueint, -1);
+            sendXPLLightState2(i004, "xpl-trig", deviceName, state, reachableCurrent->valueint, onCurrent->valueint, -1);
          }
       }
       currentLight=currentLight->next;
@@ -237,9 +225,9 @@ int16_t whatChange(interface_type_004_t *i004)
                else
                   newState = onCurrent->valueint;
                if(newState != 0)
-                  sendXPLLightState(i004, servicePtr, xPL_MESSAGE_TRIGGER, deviceName, 1, reachableCurrent->valueint, onCurrent->valueint, 0);
+                  sendXPLLightState2(i004, "xpl-trig", deviceName, 1, reachableCurrent->valueint, onCurrent->valueint, 0);
                else
-                  sendXPLLightState(i004, servicePtr, xPL_MESSAGE_TRIGGER, deviceName, 0, reachableCurrent->valueint, onCurrent->valueint, 1);
+                  sendXPLLightState2(i004, "xpl-trig", deviceName, 0, reachableCurrent->valueint, onCurrent->valueint, 1);
                
                (i004->indicators.lightschanges)++;
             }
@@ -251,7 +239,7 @@ int16_t whatChange(interface_type_004_t *i004)
    return 0;
 }
 
-
+/*
 int16_t interface_type_004_xPL_actuator(interface_type_004_t *i004, xPL_ServicePtr theService, xPL_NameValueListPtr ListNomsValeursPtr, char *device, char *type)
 {
    int type_id = -1;
@@ -443,6 +431,206 @@ int16_t interface_type_004_xPL_actuator(interface_type_004_t *i004, xPL_ServiceP
    }
    return ret;
 }
+*/
+
+int16_t interface_type_004_xPL_actuator2(interface_type_004_t *i004, cJSON *xplMsgJson, char *device, char *type)
+{
+   int type_id = -1;
+   int16_t ret=-1;
+   char *sensor=NULL;
+   struct lightsListElem_s *e = NULL;
+   char *current_value = NULL;
+   cJSON *j=NULL;
+  
+   type_id=get_token_id_by_string(type);
+   if(type_id != XPL_OUTPUT_ID && type_id != COLOR_ID)
+      return -1;
+   
+   // récupérer ici tous les éléments du message xpl
+   j = cJSON_GetObjectItem(xplMsgJson,get_token_string_by_id(XPL_CURRENT_ID));
+   if(j)
+      current_value = j->valuestring;
+   if(!current_value)
+      return -1;
+   
+   int current_value_id=-1;
+   char *color_str=NULL;
+   if(type_id == XPL_OUTPUT_ID)
+      current_value_id=get_token_id_by_string(current_value);
+   else if (type_id == COLOR_ID)
+      color_str = current_value;
+
+   int16_t state=-1;
+   int16_t on=-1;
+   int16_t reachable=-1;
+   int16_t reachable_use=-1;
+   uint32_t color=0xFFFFFFFF;
+   
+   int16_t id_sensor=-1;
+   
+   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(i004->lock) );
+   pthread_mutex_lock(&(i004->lock));
+
+   DEBUG_SECTION2(DEBUGFLAG) {
+      mea_log_printf("%s  (%s) : processing %s (current_value_id = %d, type_id = %d)\n", DEBUG_STR, __func__, device, current_value_id, type_id);
+   }
+
+   HASH_FIND(hh_actuatorname, i004->lightsListByActuatorName, device, strlen(device), e);
+   if(e)
+   {
+      reachable_use = e->reachable_use;
+      id_sensor = e->id_sensor;
+      
+      switch(current_value_id)
+      {
+         case HIGH_ID:
+            fprintf(stderr,"LA1 %s\n",e->huename);
+            ret=setLightStateByName(i004->currentHueLightsState, (char *)e->huename, 1, i004->server, i004->port, i004->user);
+            DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s  (%s) : setLightStateByName(%s, high) => ret = %d\n", DEBUG_STR, __func__, (char *)e->huename, ret);
+            state=1;
+            break;
+         case LOW_ID:
+            fprintf(stderr,"LA2 %s\n",e->huename);
+            ret=setLightStateByName(i004->currentHueLightsState, (char *)e->huename, 0, i004->server, i004->port, i004->user);
+            DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s  (%s) : setLightStateByName(%s, low) => ret = %d\n", DEBUG_STR, __func__, (char *)e->huename, ret);
+            state=0;
+            break;
+         default:
+            if(type_id == COLOR_ID)
+            {
+               int n=0,l=0;
+               
+               n=sscanf(color_str,"#%6x%n",&color, &l);
+               if(n==1 && l==strlen(color_str))
+               {
+                  if(color==0) // off => on envoie low
+                  {
+                     ret=setLightStateByName(i004->currentHueLightsState, (char *)e->huename, 0, i004->server, i004->port, i004->user);
+                     DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s  (%s) : setLightStateByName(%s, low) => ret = %d\n", DEBUG_STR, __func__, (char *)e->huename, ret);
+                     state=0;
+                  }
+                  else // on envoie la couleur
+                  {
+                     ret=setLightColorByName(i004->currentHueLightsState, (char *)e->huename, color, i004->server, i004->port, i004->user);
+                     DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s  (%s) : setLightColorByName(%s, %d) => ret = %d\n", DEBUG_STR, __func__, (char *)e->huename, color, ret);
+                     state=1;
+                  }
+               }
+               else
+               {
+                  color=0xFFFFFFFF;
+               }
+            }
+            else
+               ret=-1;
+            break;
+      }
+      if(ret!=-1)
+      {
+         if(state != ret)
+            (i004->indicators.lightschanges)++;
+      }
+   }
+   else
+   {
+      DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s  (%s) : device %s not found in lights list, try in groups list\n", DEBUG_STR, __func__, device);
+
+      struct groupsListElem_s *g = NULL;
+      HASH_FIND(hh_groupname, i004->groupsListByGroupName, device, strlen(device), g);
+      if(g)
+      {
+         // traiter
+         switch(current_value_id)
+         {
+            case HIGH_ID:
+               ret=setGroupStateByName(i004->allGroups, (char *)g->huegroupname, 1, i004->server, i004->port, i004->user);
+               break;
+            case LOW_ID:
+               ret=setGroupStateByName(i004->allGroups, (char *)g->huegroupname, 0, i004->server, i004->port, i004->user);
+               break;
+            default:
+               if(type_id == COLOR_ID)
+               {
+                  int n=0,l=0;
+                  
+                  n=sscanf(color_str,"#%6x%n",&color, &l);
+                  if(n==1 && l==strlen(color_str))
+                  {
+                     if(color==0) // off => on envoie low
+                     {
+                        ret=setGroupStateByName(i004->allGroups, (char *)g->huegroupname, 0, i004->server, i004->port, i004->user);
+                     }
+                     else // on envoie la couleur
+                     {
+                        ret=setGroupColorByName(i004->allGroups, (char *)g->huegroupname, color, i004->server, i004->port, i004->user);
+                     }
+                  }
+                  else
+                  {
+                     color=0xFFFFFFFF;
+                  }
+               }
+               else
+                  ret=-1;
+               break;
+         }
+      }
+      else
+      {
+         DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s  (%s) : device %s not found in groups list, try in scenes list\n", DEBUG_STR, __func__, device);
+         struct scenesListElem_s *s = NULL;
+         HASH_FIND(hh_scenename, i004->scenesListBySceneName, device, strlen(device), s);
+         if(s)
+         {
+            // traiter
+            switch(current_value_id)
+            {
+               case HIGH_ID:
+                  ret=setGroupStateByName(i004->allScenes, (char *)s->huescenename, 1, i004->server, i004->port, i004->user);
+                  break;
+               case LOW_ID:
+                  ret=setGroupStateByName(i004->allScenes, (char *)s->huescenename, 0, i004->server, i004->port, i004->user);
+                  break;
+               default:
+                  ret=-1;
+                  break;
+            }
+         }
+         else
+         {
+            DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s  (%s) : device %s not found !!!\n", DEBUG_STR, __func__, device);
+            ret = -1;
+         }
+      }
+   }
+   
+   if(ret!=-1 && id_sensor>0) // si aussi un capteur, on récupère les info avec de libérer le verrou
+   {
+      getLightStateByName(i004->currentHueLightsState, (char *)e->huename, &on, &reachable);
+      if(e->sensorname)
+      {
+         sensor = (char *)malloc(strlen(e->sensorname)+1);
+         strcpy(sensor,e->sensorname);
+      }
+   }
+   
+   pthread_mutex_unlock(&(i004->lock));
+   pthread_cleanup_pop(0);
+   
+   if(ret != -1 && id_sensor>0)
+   {
+      if( (on!=-1 && type_id == XPL_OUTPUT_ID) || color != 0xFFFFFFFF) // si on a des info (on != -1), c'est donc qu'on doit envoyer un message xpl
+      {
+         if(reachable_use==1)
+            state = state & reachable;
+         sendXPLLightState2(i004, "xpl-trig", sensor, state, reachable, on, -1);
+      }
+
+      if(sensor)
+         free(sensor);
+   }
+   return ret;
+}
 
 
 int16_t interface_type_004_xPL_sensor(interface_type_004_t *i004, xPL_ServicePtr theService, xPL_MessagePtr msg, char *device, char *type)
@@ -496,12 +684,70 @@ int16_t interface_type_004_xPL_sensor(interface_type_004_t *i004, xPL_ServicePtr
    pthread_cleanup_pop(0);
    
    if(ret==0)
-      sendXPLLightState(i004, theService, xPL_MESSAGE_STATUS, device, state, reachable, on, 0);
+      sendXPLLightState2(i004, "xpl-stat", device, state, reachable, on, 0);
    
    return ret;
 }
 
 
+int16_t interface_type_004_xPL_sensor2(interface_type_004_t *i004, cJSON *xplMsgJson, char *device, char *type)
+/**
+ * \brief     Traite les demandes xpl de retransmission de la valeur courrante ("sensor.request/request=current") pour interface_type_004
+ * \details   La demande sensor.request peut être de la forme est de la forme :
+ *            sensor.request
+ *            {
+ *               request=current
+ *               device=<device>
+ *               [type=<type>]
+ *            }
+ *            type est optionnel. Si le type est précisé le type par défaut est "input".
+ *
+ * \param     i004                contexte de l'interface.
+ * \param     theService          xxx
+ * \param     ListNomsValeursPtr  xxx
+ * \param     device              le périphérique à interroger ou NULL
+ * \param     device              le type à interroger ou NULL
+ * \return    ERROR en cas d'erreur, NOERROR sinon  */
+{
+   //   int type_id = -1;
+   struct lightsListElem_s *e = NULL;
+   int16_t ret=-1;
+   
+   if(type && get_token_id_by_string(type) != XPL_OUTPUT_ID)
+      return -1; // type inconnu, on ne peut pas traiter
+   
+   int16_t on = 0, reachable = 0;
+   int16_t state = 0;
+   
+   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(i004->lock) );
+   pthread_mutex_lock(&(i004->lock));
+   
+   HASH_FIND(hh_sensorname, i004->lightsListBySensorName, device, strlen(device), e);
+   if(e && i004->currentHueLightsState)
+   {
+      if(getLightStateByName(i004->currentHueLightsState, (char *)e->huename, &on, &reachable)!=NULL)
+      {
+         state = on;
+         if(e->reachable_use == 1)
+            state = state & reachable;
+         
+         VERBOSE(9) mea_log_printf("%s  (%s) : sensor %s = %d\n",INFO_STR,__func__,e->sensorname, state);
+         
+         ret=0;
+      }
+   }
+   
+   pthread_mutex_unlock(&(i004->lock));
+   pthread_cleanup_pop(0);
+   
+   if(ret==0)
+      sendXPLLightState2(i004, "xpl-stat", device, state, reachable, on, 0);
+   
+   return ret;
+}
+
+
+/*
 int16_t interface_type_004_xPL_callback(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
 {
    xPL_NameValueListPtr ListNomsValeursPtr ;
@@ -549,6 +795,74 @@ int16_t interface_type_004_xPL_callback(xPL_ServicePtr theService, xPL_MessagePt
          return -1;
       }
       return interface_type_004_xPL_sensor(i004, theService, theMessage, device, type);
+   }
+   
+   return 0;
+}
+*/
+
+int16_t interface_type_004_xPL_callback2(cJSON *xplMsgJson, xPL_ObjectPtr userValue)
+{
+   char *schema = NULL, *device = NULL, *type = NULL;
+   cJSON *j=NULL;
+
+   interface_type_004_t *i004=(interface_type_004_t *)userValue;
+
+   j = cJSON_GetObjectItem(xplMsgJson, XPLSCHEMA_STR_C);
+   if(j)
+      schema = j->valuestring;
+   else
+   {
+      VERBOSE(5) mea_log_printf("%s (%s) : xPL message no schema\n", INFO_STR, __func__);
+      return 0;
+   }
+
+   j = cJSON_GetObjectItem(xplMsgJson, get_token_string_by_id(XPL_DEVICE_ID));
+   if(j)
+      device=j->valuestring;
+
+   j = cJSON_GetObjectItem(xplMsgJson, get_token_string_by_id(XPL_TYPE_ID));
+   if(j)
+      type=j->valuestring;
+
+   mea_strtolower(device);
+   
+   (i004->indicators.xplin)++;
+   
+   VERBOSE(9) mea_log_printf("%s  (%s) : xPL Message to process : %s\n",INFO_STR,__func__,schema);
+   
+   if(mea_strcmplower(schema, "control.basic") == 0)
+   {
+      if(!device)
+      {
+         VERBOSE(5) mea_log_printf("%s  (%s) : xPL message no device\n",INFO_STR,__func__);
+         return -1;
+      }
+      if(!type)
+      {
+         VERBOSE(5) mea_log_printf("%s  (%s) : xPL message no type\n",INFO_STR,__func__);
+         return -1;
+      }
+      return interface_type_004_xPL_actuator2(i004, xplMsgJson, device, type);
+   }
+   else if(mea_strcmplower(schema, "sensor.request") == 0)
+   {
+      char *request = NULL;
+      j = cJSON_GetObjectItem(xplMsgJson, get_token_string_by_id(XPL_REQUEST_ID));
+      if(j)
+         request = j->valuestring;
+      if(!request)
+      {
+         VERBOSE(5) mea_log_printf("%s (%s) : xPL message no request\n", INFO_STR, __func__);
+         return 0;
+      }
+
+      if(mea_strcmplower(request, get_token_string_by_id(XPL_CURRENT_ID))!=0)
+      {
+         VERBOSE(5) mea_log_printf("%s  (%s) : xPL message request!=current\n",INFO_STR,__func__);
+         return -1;
+      }
+      return interface_type_004_xPL_sensor2(i004, xplMsgJson, device, type);
    }
    
    return 0;
@@ -772,7 +1086,7 @@ int load_interface_type_004(interface_type_004_t *i004, sqlite3 *db)
    
    i004->loaded=0;
    
-   fprintf(stderr,"LOAD INTERFACE TYPE 004\n");
+//   fprintf(stderr,"LOAD INTERFACE TYPE 004\n");
    
    // on vide d'abord les listes s'il y a déjà des données
    _interface_type_004_clean_configs_lists(i004);
@@ -1031,7 +1345,7 @@ int load_interface_type_004(interface_type_004_t *i004, sqlite3 *db)
    
 load_interface_type_004_clean_exit:
    _interface_type_004_clean_configs_lists(i004);
-   i004->xPL_callback=NULL;
+   i004->xPL_callback2=NULL;
    if(hue_params)
    {
       release_parsed_parameters(&hue_params);
@@ -1087,7 +1401,7 @@ interface_type_004_t *malloc_and_init_interface_type_004(sqlite3 *sqlite3_param_
       return NULL;
    }
    i004->thread_is_running=0;
-   
+   pthread_mutex_init(&i004->lock,NULL);
    struct interface_type_004_start_stop_params_s *i004_start_stop_params=(struct interface_type_004_start_stop_params_s *)malloc(sizeof(struct interface_type_004_start_stop_params_s));
    if(!i004_start_stop_params)
    {
@@ -1132,7 +1446,8 @@ interface_type_004_t *malloc_and_init_interface_type_004(sqlite3 *sqlite3_param_
    i004->server[0]=0;
    i004->user[0]=0;
    i004->port=0;
-   i004->xPL_callback=NULL;
+//   i004->xPL_callback=NULL;
+   i004->xPL_callback2=NULL;
    i004->thread=NULL;
    i004->loaded=0;
    
@@ -1162,7 +1477,8 @@ int clean_interface_type_004(interface_type_004_t *i004)
       i004->parameters=NULL;
    }
    
-   i004->xPL_callback=NULL;
+//   i004->xPL_callback=NULL;
+   i004->xPL_callback2=NULL;
    
    if(i004->thread)
    {
@@ -1203,9 +1519,13 @@ int stop_interface_type_004(int my_id, void *data, char *errmsg, int l_errmsg)
    
    VERBOSE(1) mea_log_printf("%s  (%s) : %s shutdown thread ... ", INFO_STR, __func__, start_stop_params->i004->name);
    
-   if(start_stop_params->i004->xPL_callback)
+//   if(start_stop_params->i004->xPL_callback)
+//   {
+//      start_stop_params->i004->xPL_callback=NULL;
+//   }
+   if(start_stop_params->i004->xPL_callback2)
    {
-      start_stop_params->i004->xPL_callback=NULL;
+      start_stop_params->i004->xPL_callback2=NULL;
    }
    
    if(start_stop_params->i004->thread)
@@ -1310,7 +1630,7 @@ int start_interface_type_004(int my_id, void *data, char *errmsg, int l_errmsg)
    interface_type_004_thread_args->i004->user[sizeof(interface_type_004_thread_args->i004->user)-1]=0;
    interface_type_004_thread_args->i004->port=port;
    
-   start_stop_params->i004->xPL_callback=interface_type_004_xPL_callback;
+   start_stop_params->i004->xPL_callback2=interface_type_004_xPL_callback2;
    
    interface_type_004_thread_id=(pthread_t *)malloc(sizeof(pthread_t));
    if(!interface_type_004_thread_id)

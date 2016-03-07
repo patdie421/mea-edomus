@@ -75,7 +75,7 @@ def xplMsgNew(source_addr, target_addr, xpl_message_type, xpl_class, xpl_type):
    # controle des parameters :
    # source_addr
    # target_addr
-   # message_xpl_type = [ "xpl-cmnd" | "xpl-stat" | "xpl-trig" ]
+   # msgtype = [ "xpl-cmnd" | "xpl-stat" | "xpl-trig" ]
    # xpl_class 8 car "xpl"
    # xpl_type 8 car "xpl"
 
@@ -96,7 +96,7 @@ def xplMsgNew(source_addr, target_addr, xpl_message_type, xpl_class, xpl_type):
    # le format des donnees est valide, on peut creer le message
    xplMsg={} # creation du dictionnaire
    xplMsg["xplmsg"]=True # pour des besoins internes (controle)
-   xplMsg["message_xpl_type"]=xpl_message_type.lower()
+   xplMsg["msgtype"]=xpl_message_type.lower()
    xplMsg["hop"]="1"
    xplMsg["source"]= source_addr
    xplMsg["target"]= target_addr
@@ -159,7 +159,7 @@ def xplMsgSetValues(xplMsg, aDict):
 
 def xplMsgPrint(xplMsg):
    try:
-      sys.stderr.write(xplMsg["message_xpl_type"])
+      sys.stderr.write(xplMsg["msgtype"])
       sys.stderr.write("{")
       sys.stderr.write("hop=" + xplMsg["hop"])
       sys.stderr.write("source=" + xplMsg["source"])
@@ -180,7 +180,7 @@ def xplMsgPrint(xplMsg):
 
 def xplMsgToString(xplMsg):
    try:
-      s=xplMsg["message_xpl_type"] + "\n{\n" + "hop=" + xplMsg["hop"] + "\nsource=" + xplMsg["source"] + "\ntarget=" + xplMsg["target"] + "\n}\n" + xplMsg["schema"] + "\n{\n"
+      s=xplMsg["msgtype"] + "\n{\n" + "hop=" + xplMsg["hop"] + "\nsource=" + xplMsg["source"] + "\ntarget=" + xplMsg["target"] + "\n}\n" + xplMsg["schema"] + "\n{\n"
       body=xplMsg["xpl-body"]
       for i in body:
          s = s + i + "=" + body[i] + "\n"

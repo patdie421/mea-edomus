@@ -8,9 +8,10 @@
 #include <stdio.h>
 
 #include "globals.h"
-#include "xPL.h"
+// #include "xPL.h"
 #include "xPLServer.h"
 #include "tokens.h"
+#include "tokens_da.h"
 #include "dbServer.h"
 #include "xbee.h"
 #include "enocean.h"
@@ -33,7 +34,8 @@ static PyObject *mea_enoceanCRC(PyObject *self, PyObject *args);
 static PyObject *mea_xplGetVendorID();
 static PyObject *mea_xplGetDeviceID();
 static PyObject *mea_xplGetInstanceID();
-static PyObject *mea_xplSendMsg(PyObject *self, PyObject *args);
+//static PyObject *mea_xplSendMsg(PyObject *self, PyObject *args);
+static PyObject *mea_xplSendMsg2(PyObject *self, PyObject *args);
 static PyObject *mea_addDataToSensorsValuesTable(PyObject *self, PyObject *args);
 static PyObject *mea_write(PyObject *self, PyObject *args);
 static PyObject *mea_read(PyObject *self, PyObject *args);
@@ -48,7 +50,8 @@ static PyMethodDef MeaMethods[] = {
    {"xplGetVendorID",               mea_xplGetVendorID,               METH_VARARGS, "VendorID"},
    {"xplGetDeviceID",               mea_xplGetDeviceID,               METH_VARARGS, "DeviceID"},
    {"xplGetInstanceID",             mea_xplGetInstanceID,             METH_VARARGS, "InstanceID"},
-   {"xplSendMsg",                   mea_xplSendMsg,                   METH_VARARGS, "Envoie un message XPL"},
+//   {"xplSendMsg",                   mea_xplSendMsg,                  METH_VARARGS, "Envoie un message XPL"},
+   {"xplSendMsg",                   mea_xplSendMsg2,                  METH_VARARGS, "Envoie un message XPL"},
    {"addDataToSensorsValuesTable",  mea_addDataToSensorsValuesTable,  METH_VARARGS, "Envoi des donnees dans la table sensors_values"},
    {"sendSerialData",               mea_write,                        METH_VARARGS, "Envoi des donnees vers une ligne serie"},
    {"receiveSerialData",            mea_read,                         METH_VARARGS, "recupere des donnees depuis une ligne serie"},
@@ -235,102 +238,6 @@ mea_sendEnoceanPacketAndWaitResp_arg_err:
    return NULL;
 }
 
-/*
-PyObject *mea_xplMsgToPyDict(xPL_MessagePtr xplMsg)
-{
-   PyObject *pyXplMsg;
-   PyObject *s;
-   PyObject *l;
-   char tmpStr[35]; // chaine temporaire. Taille max pour vendorID(8) + "-"(1) + deviceID(8) + "."(1) + instanceID(16)
-   
-   
-   pyXplMsg = PyDict_New();
-   if(!pyXplMsg)
-   {
-      PyErr_SetString(PyExc_RuntimeError, "ERROR (mea_xplMSgToPyDict) : PyDict_New error");
-      return NULL;
-   }
-   
-   // xplmsg
-   l = PyLong_FromLong(1L);
-   PyDict_SetItemString(pyXplMsg, "xplmsg", l);
-   Py_DECREF(l);
-   
-   // message-type
-   switch(xPL_getMessageType(xplMsg))
-   {
-      case xPL_MESSAGE_COMMAND:
-         s=PyString_FromString("xpl-cmnd");
-         break;
-      case xPL_MESSAGE_STATUS:
-         s= PyString_FromString("xpl-stat");
-         break;
-      case xPL_MESSAGE_TRIGGER:
-         s= PyString_FromString("xpl-trig");
-         break;
-      default:
-         PyErr_SetString(PyExc_RuntimeError, "ERROR (mea_xplMsgSend) : ...");
-         return NULL;
-   }
-   PyDict_SetItemString(pyXplMsg, "message_xpl_type", s);
-   Py_DECREF(s);
-   
-   // hop
-   sprintf(tmpStr,"%d",xPL_getHopCount(xplMsg));
-   s=PyString_FromString(tmpStr);
-   PyDict_SetItemString(pyXplMsg, "hop", s);
-   Py_DECREF(s);
-
-   // source
-   sprintf(tmpStr,"%s-%s.%s", xPL_getSourceVendor(xplMsg), xPL_getSourceDeviceID(xplMsg), xPL_getSourceInstanceID(xplMsg));
-   s=PyString_FromString(tmpStr);
-   PyDict_SetItemString(pyXplMsg, "source", s);
-   Py_DECREF(s);
-
-   if (xPL_isBroadcastMessage(xplMsg))
-   {
-      strcpy(tmpStr,"*");
-   }
-   else
-   {
-      sprintf(tmpStr,"%s-%s.%s", xPL_getTargetVendor(xplMsg), xPL_getTargetDeviceID(xplMsg), xPL_getTargetInstanceID(xplMsg));
-   }
-   s=PyString_FromString(tmpStr);
-   PyDict_SetItemString(pyXplMsg, "target", s);
-   Py_DECREF(s);
-   
-   // schema
-   sprintf(tmpStr,"%s.%s", xPL_getSchemaClass(xplMsg), xPL_getSchemaType(xplMsg));
-   s=PyString_FromString(tmpStr);
-   PyDict_SetItemString(pyXplMsg, "schema", s);
-   Py_DECREF(s);
-   
-   // body
-   PyObject *pyBody=PyDict_New();
-   xPL_NameValueListPtr body = xPL_getMessageBody(xplMsg);
-   int n = xPL_getNamedValueCount(body);
-   for (int16_t i = 0; i < n; i++)
-   {
-      xPL_NameValuePairPtr keyValuePtr = xPL_getNamedValuePairAt(body, i);
-      if (keyValuePtr->itemValue != NULL)
-      {
-         s=PyString_FromString(keyValuePtr->itemValue);
-      }
-      else
-      {
-         s=Py_None;
-         Py_INCREF(s);
-      }
-      PyDict_SetItemString(pyBody, keyValuePtr->itemName, s);
-      Py_DECREF(s);
-   }
-   
-   PyDict_SetItemString(pyXplMsg, "body", pyBody);
-   Py_DECREF(pyBody);
-   
-   return pyXplMsg;
-}
-*/
 
 static PyObject *mea_xplGetVendorID()
 {
@@ -350,12 +257,11 @@ static PyObject *mea_xplGetInstanceID()
 }
 
 
-static PyObject *mea_xplSendMsg(PyObject *self, PyObject *args)
+static PyObject *mea_xplSendMsg2(PyObject *self, PyObject *args)
 {
    PyObject *PyXplMsg;
    PyObject *item;
    PyObject *body;
-
             
    char vendor_id[40]="";
    char device_id[40]="";
@@ -364,15 +270,13 @@ static PyObject *mea_xplSendMsg(PyObject *self, PyObject *args)
    if(PyTuple_Size(args)!=1)
    {
       PyErr_SetString(PyExc_RuntimeError, "ERROR (mea_xplMsgSend) : need one argument");
-      
       return NULL;
    }
    
    // recuperation du parametre
    PyXplMsg=PyTuple_GetItem(args, 0);
    
-   // le parametre doit etre de type “dictionnaire”
-   if(!PyDict_Check(PyXplMsg))
+   if(!PyDict_Check(PyXplMsg)) // le parametre doit etre de type “dictionnaire”
    {
       PyErr_SetString(PyExc_RuntimeError, "ERROR (mea_xplMsgSend) : argument not a dictionary");
       return NULL;
@@ -383,123 +287,50 @@ static PyObject *mea_xplSendMsg(PyObject *self, PyObject *args)
    // - le type de message xpl (xpl-cmnd, xpl-trig ou xpl-stat)
    // - le schema
    // - les donnees
-   
-   xPL_MessagePtr xplMsg=NULL;
-   
+   char str[256];
+   cJSON *xplMsgJson = cJSON_CreateObject();
+ 
    // recuperation du type de message
    item = PyDict_GetItemString(PyXplMsg, "message_xpl_type");
-   if(item)
+   if(!item)
    {
-      char *p=PyString_AsString(item);
-      int message_type=-1;
-      if(p)
-      {
-         if(strcmp(p,"xpl-trig")==0)
-            message_type=xPL_MESSAGE_TRIGGER;
-         else if(strcmp(p,"xpl-cmnd")==0)
-            message_type=xPL_MESSAGE_COMMAND;
-         else if(strcmp(p,"xpl-stat")==0)
-            message_type=xPL_MESSAGE_STATUS;
-         else
-         {
-            PyErr_SetString(PyExc_RuntimeError, "ERROR (mea_xplMsgSend) : xpl message type error");
-            return NULL;
-         }
-         
-//         xplMsg=NULL;
-         item = PyDict_GetItemString(PyXplMsg, "source");
-         if(!item)
-         {
-            PyErr_SetString(PyExc_RuntimeError, "ERROR (mea_xplMsgSend) : xpl message no source");
-            return NULL;
-         }
-         p=PyString_AsString(item);
-         
-         xPL_ServicePtr servicePtr = mea_getXPLServicePtr();
-         if(servicePtr)
-         {
-            int16_t n=sscanf(p,"%[^-]-%[^.].%s", vendor_id, device_id, instance_id);
-            if(n==3)
-            {
-               if(strcmp(device_id,"internal")==0)
-               {
-                  xplMsg = mea_createSendableMessage(message_type, vendor_id, device_id, instance_id);
-                  xPL_setBroadcastMessage(xplMsg, TRUE);
-               }
-               else
-               {
-                  xplMsg = xPL_createBroadcastMessage(servicePtr, message_type);
-               }
-            }
-            else
-               xplMsg = xPL_createBroadcastMessage(servicePtr, message_type);
-
-         }
-
-         if(!xplMsg)
-         {
-            PyErr_SetString(PyExc_RuntimeError, "ERROR (mea_xplMsgSend) : internal error");
-            return NULL;
-         }
-      }
+       PyErr_SetString(PyExc_RuntimeError, "ERROR (mea_xplMsgSend) : xpl message no type");
+       goto mea_xplSendMsg_clean_exit;
    }
-   else
+   char *p=PyString_AsString(item);
+   if(p)
+       cJSON_AddItemToObject(xplMsgJson, XPLMSGTYPE_STR_C, cJSON_CreateString(p));
+
+
+   item = PyDict_GetItemString(PyXplMsg, XPLSOURCE_STR_C);
+   if(!item)
    {
-      DEBUG_SECTION mea_log_printf("ERROR (mea_xplMsgSend) : message-type not found\n");
-      PyErr_SetString(PyExc_RuntimeError, "ERROR (mea_xplMsgSend) : xpl message type not found");
-      return NULL;
+       PyErr_SetString(PyExc_RuntimeError, "ERROR (mea_xplMsgSend) : xpl message no source");
+       goto mea_xplSendMsg_clean_exit;
    }
-   
-   
+   p=PyString_AsString(item);
+   if(p)
+       cJSON_AddItemToObject(xplMsgJson, XPLSOURCE_STR_C, cJSON_CreateString(p));
+
    // recuperation de la class et du type du message XPL
-   item = PyDict_GetItemString(PyXplMsg, "schema");
-   if(item)
-   {
-      char *p=PyString_AsString(item);
-      if(p)
-      {
-         char xpl_class[9], xpl_type[9];
-         int16_t n=sscanf(p,"%[^.].%s", xpl_class, xpl_type);
-         if(n==2)
-            xPL_setSchema(xplMsg, xpl_class, xpl_type);
-         else
-         {
-            PyErr_SetString(PyExc_RuntimeError, "ERROR (mea_xplMsgSend) : bad schema");
-            goto mea_xplSendMsg_exit;
-         }
-      }
-      else
-      {
-         PyErr_SetString(PyExc_RuntimeError, "ERROR (mea_xplMsgSend) : schema not a string");
-         goto mea_xplSendMsg_exit;
-      }
-   }
-   else
+   item = PyDict_GetItemString(PyXplMsg, XPLSCHEMA_STR_C);
+   if(!item)
    {
       PyErr_SetString(PyExc_RuntimeError, "ERROR (mea_xplMsgSend) : xpl schema not found");
-      goto mea_xplSendMsg_exit;
+      goto mea_xplSendMsg_clean_exit;
    }
-   
-   item = PyDict_GetItemString(PyXplMsg, "target");
-   if(item)
+   p=PyString_AsString(item);
+   if(p)
+      cJSON_AddItemToObject(xplMsgJson, XPLSCHEMA_STR_C, cJSON_CreateString(p));
+
+
+   item = PyDict_GetItemString(PyXplMsg, XPLTARGET_STR_C);
+   if(!item)
    {
-      char *p=PyString_AsString(item);
-      if(strcmp(p,"*")!=0)
-      {
-         // spliter correctement d'adresse et faire le xPL_setMessageTarget qui va bien
-         int16_t n=sscanf(p,"%[^-]-%[^.].%s", vendor_id, device_id, instance_id);
-         if(n==3)
-         {
-            // valider le format ici et si OK
-
-            xPL_setTarget(xplMsg, vendor_id, device_id, instance_id);
-
-            // si target exist et est conforme => ce n'est plus un message broadcast
-            xPL_setBroadcastMessage(xplMsg, FALSE);
-         }
-
-      }
    }
+   p=PyString_AsString(item);
+   if(p)
+      cJSON_AddItemToObject(xplMsgJson, XPLTARGET_STR_C, cJSON_CreateString(p));
  
    body = PyDict_GetItemString(PyXplMsg, "xpl-body");
    if(body)
@@ -507,7 +338,7 @@ static PyObject *mea_xplSendMsg(PyObject *self, PyObject *args)
       if(!PyDict_Check(body))
       {
          PyErr_SetString(PyExc_RuntimeError, "ERROR (mea_xplMsgSend) : body not a dictionary.\n");
-         goto mea_xplSendMsg_exit;
+         goto mea_xplSendMsg_clean_exit;
       }
       
       // parcours de la liste
@@ -518,30 +349,36 @@ static PyObject *mea_xplSendMsg(PyObject *self, PyObject *args)
          char *skey=PyString_AS_STRING(key);
          char *svalue=PyString_AS_STRING(value);
          
-         if(!key || !value)
+         if(!skey || !svalue)
          {
             PyErr_SetString(PyExc_RuntimeError, "ERROR (mea_xplMsgSend) : incorrect data in body.");
-            goto mea_xplSendMsg_exit;
+            goto mea_xplSendMsg_clean_exit;
          }
-         xPL_setMessageNamedValue(xplMsg, skey, svalue);
+
+         cJSON_AddItemToObject(xplMsgJson, skey, cJSON_CreateString(svalue));
       }
    }
    else
    {
       PyErr_SetString(PyExc_RuntimeError, "ERROR (mea_xplMsgSend) : xpl body data not found.");
-      goto mea_xplSendMsg_exit;
+      goto mea_xplSendMsg_clean_exit;
    }
-   
-   //xPL_sendMessage(xplMsg);
-   mea_sendXPLMessage(xplMsg, NULL);
 
-   xPL_releaseMessage(xplMsg);
+/*  
+   char *tmp = NULL;
+   tmp = cJSON_Print(xplMsgJson);
+   fprintf(stderr,"%s\n",tmp);
+   free(tmp);
+*/
+   mea_sendXPLMessage2(xplMsgJson);
+
+   cJSON_Delete(xplMsgJson); 
    
    return PyLong_FromLong(1L); // return True
    
-mea_xplSendMsg_exit:
-   if(xplMsg)
-      xPL_releaseMessage(xplMsg);
+mea_xplSendMsg_clean_exit:
+   if(xplMsgJson)
+      cJSON_Delete(xplMsgJson); 
    
    return NULL; // retour un exception python
 }
@@ -799,7 +636,6 @@ mea_atCmdSend_arg_err:
 }
 
 
-//static PyObject *mea_addDataToSensorsValuesTable(tomysqldb_md_t *md, uint16_t sensor_id, float value1, uint16_t unit, float value2, char *complement)
 static PyObject *mea_addDataToSensorsValuesTable(PyObject *self, PyObject *args)
 {
    uint16_t sensor_id;

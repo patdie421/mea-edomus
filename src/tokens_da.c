@@ -79,6 +79,12 @@ int16_t init_strings_da()
    tokens_string_da->local_xbee_addr_h_str_c          = get_token_string_by_id(LOCAL_XBEE_ADDR_H_ID);
    tokens_string_da->local_xbee_addr_l_str_c          = get_token_string_by_id(LOCAL_XBEE_ADDR_L_ID);
    tokens_string_da->internal_str_c                   = get_token_string_by_id(INTERNAL_ID);
+   tokens_string_da->xplmsg_str_c                     = get_token_string_by_id(XPLMSG_ID);
+   tokens_string_da->xplsource_str_c                  = get_token_string_by_id(XPLSOURCE_ID);
+   tokens_string_da->xpltarget_str_c                  = get_token_string_by_id(XPLTARGET_ID);
+   tokens_string_da->xplschema_str_c                  = get_token_string_by_id(XPLSCHEMA_ID);
+   tokens_string_da->xplmsgtype_str_c                 = get_token_string_by_id(XPLMSGTYPE_ID);
+
 #endif
    return 0;
 }

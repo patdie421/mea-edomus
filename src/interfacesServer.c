@@ -19,13 +19,11 @@
 
 #include "mea_string_utils.h"
 #include "mea_queue.h"
-//#include "debug.h"
 #include "mea_verbose.h"
 #include "mea_sockets_utils.h"
 #include "consts.h"
 
 #include "cJSON.h"
-#include "xPL.h"
 
 #include "processManager.h"
 #include "nodejsServer.h"
@@ -64,87 +62,6 @@ FROM sensors_actuators INNER JOIN interfaces ON sensors_actuators.id_interface =
 
 char *sql_select_interface_info="SELECT * FROM interfaces";
 
-/*
-uint32_t speeds[][3]={
-   {   300,    B300},
-   {  1200,   B1200},
-   {  4800,   B4800},
-   {  9600,   B9600},
-   { 19200,  B19200},
-   { 38400,  B38400},
-   { 57600,  B57600},
-   {115200, B115200},
-   {0,0}
-};
-
-
-int32_t get_speed_from_speed_t(speed_t speed)
-{
-   for(int16_t i=0;speeds[i][0];i++)
-   {
-      if(speeds[i][1]==speed)
-         return speeds[i][0];
-   }
-   return -1;
-}
-
-
-int16_t get_dev_and_speed(char *device, char *dev, int16_t dev_l, speed_t *speed)
-{
-   *speed=0;
-   char _dev[41];
-   char reste[41];
-   char vitesse[41];
-
-   char *_dev_ptr;
-   char *reste_ptr;
-   char *vitesse_ptr;
-   char *end=NULL;
-
-   int16_t n=sscanf(device,"SERIAL://%40[^:]%40[^/r/n]",_dev,reste);
-   if(n<=0)
-      return -1;
-
-   _dev_ptr=mea_strtrim(_dev);
-
-   if(n==1)
-   {
-      *speed=B9600;
-   }
-   else
-   {
-      uint32_t v;
-
-      reste_ptr=mea_strtrim(reste);
-      n=sscanf(reste_ptr,":%40[^/n/r]",vitesse);
-      if(n!=1)
-         return -1;
-
-      vitesse_ptr=mea_strtrim(vitesse);
-      v=strtol(vitesse_ptr,&end,10);
-      if(end==vitesse || *end!=0 || errno==ERANGE)
-         return -1;
-
-      *speed=0;
-      int i;
-      for(i=0;speeds[i][0];i++)
-      {
-         if(speeds[i][0]==v)
-         {
-            *speed=speeds[i][1];
-            break;
-         }
-      }
-      if(*speed==0)
-         return -1;
-   }
-
-   strncpy(dev,_dev_ptr,dev_l-1);
-
-   return 0;
-}
-*/
-
 
 void dispatchXPLMessageToInterfaces2(cJSON *xplMsgJson)
 {
@@ -167,49 +84,57 @@ void dispatchXPLMessageToInterfaces2(cJSON *xplMsgJson)
          {
             case INTERFACE_TYPE_001:
             {
+               fprintf(stderr,"ICI1-1\n");
                interface_type_001_t *i001 = (interface_type_001_t *)(iq->context);
-               if(i001->monitoring_id>-1 && process_is_running(i001->monitoring_id) && i001->xPL_callback)
+               if(i001->monitoring_id>-1 && process_is_running(i001->monitoring_id) && i001->xPL_callback2)
                   i001->xPL_callback2(xplMsgJson, (xPL_ObjectPtr)i001);
+               fprintf(stderr,"ICI1-2\n");
                break;
             }
 
             case INTERFACE_TYPE_002:
             {
+               fprintf(stderr,"ICI2-1\n");
                interface_type_002_t *i002 = (interface_type_002_t *)(iq->context);
-               if(i002->monitoring_id>-1 && process_is_running(i002->monitoring_id) && i002->xPL_callback)
+               if(i002->monitoring_id>-1 && process_is_running(i002->monitoring_id) && i002->xPL_callback2)
                   i002->xPL_callback2(xplMsgJson, (xPL_ObjectPtr)i002);
+               fprintf(stderr,"ICI2-2\n");
                break;
             }
 
             case INTERFACE_TYPE_003:
             {
                interface_type_003_t *i003 = (interface_type_003_t *)(iq->context);
-               if(i003->monitoring_id>-1 && process_is_running(i003->monitoring_id) && i003->xPL_callback)
+               if(i003->monitoring_id>-1 && process_is_running(i003->monitoring_id) && i003->xPL_callback2)
                   i003->xPL_callback2(xplMsgJson, (xPL_ObjectPtr)i003);
                break;
             }
 
             case INTERFACE_TYPE_004:
             {
+               fprintf(stderr,"ICI4-1\n");
                interface_type_004_t *i004 = (interface_type_004_t *)(iq->context);
-               if(i004->monitoring_id>-1 && process_is_running(i004->monitoring_id) && i004->xPL_callback)
+               if(i004->monitoring_id>-1 && process_is_running(i004->monitoring_id) && i004->xPL_callback2)
                   i004->xPL_callback2(xplMsgJson, (xPL_ObjectPtr)i004);
+               fprintf(stderr,"ICI4-2\n");
                break;
             }
 
             case INTERFACE_TYPE_005:
             {
                interface_type_005_t *i005 = (interface_type_005_t *)(iq->context);
-               if(i005->monitoring_id>-1 && process_is_running(i005->monitoring_id) && i005->xPL_callback)
+               if(i005->monitoring_id>-1 && process_is_running(i005->monitoring_id) && i005->xPL_callback2)
                   i005->xPL_callback2(xplMsgJson, (xPL_ObjectPtr)i005);
                break;
             }
 
             case INTERFACE_TYPE_006:
             {
+               fprintf(stderr,"ICI6-1\n");
                interface_type_006_t *i006 = (interface_type_006_t *)(iq->context);
-               if(i006->monitoring_id>-1 && process_is_running(i006->monitoring_id) && i006->xPL_callback)
+               if(i006->monitoring_id>-1 && process_is_running(i006->monitoring_id) && i006->xPL_callback2)
                   i006->xPL_callback2(xplMsgJson, (xPL_ObjectPtr)i006);
+               fprintf(stderr,"ICI6-2\n");
                break;
             }
 
@@ -224,90 +149,8 @@ void dispatchXPLMessageToInterfaces2(cJSON *xplMsgJson)
    
    pthread_rwlock_unlock(&interfaces_queue_rwlock);
    pthread_cleanup_pop(0);
-}
 
-
-void dispatchXPLMessageToInterfaces(xPL_ServicePtr theService, xPL_MessagePtr theMessage)
-{
-   int ret;
-
-   interfaces_queue_elem_t *iq;
-
-   if(theService == NULL)
-      return;
-
-   DEBUG_SECTION mea_log_printf("%s (%s) : Reception message xPL\n", INFO_STR, __func__);
-
-   pthread_cleanup_push( (void *)pthread_rwlock_unlock, (void *)&interfaces_queue_rwlock);
-   pthread_rwlock_rdlock(&interfaces_queue_rwlock);
-   
-   if(_interfaces && _interfaces->nb_elem)
-   {
-      mea_queue_first(_interfaces);
-      while(1)
-      {
-         mea_queue_current(_interfaces, (void **)&iq);
-         switch (iq->type)
-         {
-            case INTERFACE_TYPE_001:
-            {
-               interface_type_001_t *i001 = (interface_type_001_t *)(iq->context);
-               if(i001->monitoring_id>-1 && process_is_running(i001->monitoring_id) && i001->xPL_callback)
-                  i001->xPL_callback(theService, theMessage, (xPL_ObjectPtr)i001);
-               break;
-            }
-
-            case INTERFACE_TYPE_002:
-            {
-               interface_type_002_t *i002 = (interface_type_002_t *)(iq->context);
-               if(i002->monitoring_id>-1 && process_is_running(i002->monitoring_id) && i002->xPL_callback)
-                  i002->xPL_callback(theService, theMessage, (xPL_ObjectPtr)i002);
-               break;
-            }
-
-            case INTERFACE_TYPE_003:
-            {
-               interface_type_003_t *i003 = (interface_type_003_t *)(iq->context);
-               if(i003->monitoring_id>-1 && process_is_running(i003->monitoring_id) && i003->xPL_callback)
-                  i003->xPL_callback(theService, theMessage, (xPL_ObjectPtr)i003);
-               break;
-            }
-
-            case INTERFACE_TYPE_004:
-            {
-               interface_type_004_t *i004 = (interface_type_004_t *)(iq->context);
-               if(i004->monitoring_id>-1 && process_is_running(i004->monitoring_id) && i004->xPL_callback)
-                  i004->xPL_callback(theService, theMessage, (xPL_ObjectPtr)i004);
-               break;
-            }
-
-            case INTERFACE_TYPE_005:
-            {
-               interface_type_005_t *i005 = (interface_type_005_t *)(iq->context);
-               if(i005->monitoring_id>-1 && process_is_running(i005->monitoring_id) && i005->xPL_callback)
-                  i005->xPL_callback(theService, theMessage, (xPL_ObjectPtr)i005);
-               break;
-            }
-
-            case INTERFACE_TYPE_006:
-            {
-               interface_type_006_t *i006 = (interface_type_006_t *)(iq->context);
-               if(i006->monitoring_id>-1 && process_is_running(i006->monitoring_id) && i006->xPL_callback)
-                  i006->xPL_callback(theService, theMessage, (xPL_ObjectPtr)i006);
-               break;
-            }
-
-            default:
-               break;
-         }
-         ret=mea_queue_next(_interfaces);
-         if(ret<0)
-            break;
-      }
-   }
-   
-   pthread_rwlock_unlock(&interfaces_queue_rwlock);
-   pthread_cleanup_pop(0);
+   cJSON_Delete(xplMsgJson);
 }
 
 
@@ -330,8 +173,8 @@ void stop_interfaces()
             {
                interface_type_001_t *i001=(interface_type_001_t *)(iq->context);
                
-               if(i001->xPL_callback)
-                  i001->xPL_callback=NULL;
+               if(i001->xPL_callback2)
+                  i001->xPL_callback2=NULL;
 
                if(i001->monitoring_id!=-1)
                {
@@ -355,8 +198,8 @@ void stop_interfaces()
             {
                interface_type_002_t *i002=(interface_type_002_t *)(iq->context);
                
-               if(i002->xPL_callback)
-                  i002->xPL_callback=NULL;
+               if(i002->xPL_callback2)
+                  i002->xPL_callback2=NULL;
                
                if(i002->monitoring_id!=-1)
                {
@@ -385,8 +228,8 @@ void stop_interfaces()
             {
                interface_type_003_t *i003=(interface_type_003_t *)(iq->context);
                
-               if(i003->xPL_callback)
-                  i003->xPL_callback=NULL;
+               if(i003->xPL_callback2)
+                  i003->xPL_callback2=NULL;
                
                if(i003->monitoring_id!=-1)
                {
@@ -415,8 +258,8 @@ void stop_interfaces()
             {
                interface_type_004_t *i004=(interface_type_004_t *)(iq->context);
                
-               if(i004->xPL_callback)
-                  i004->xPL_callback=NULL;
+               if(i004->xPL_callback2)
+                  i004->xPL_callback2=NULL;
                
                if(i004->monitoring_id!=-1)
                {
@@ -445,8 +288,8 @@ void stop_interfaces()
             {
                interface_type_005_t *i005=(interface_type_005_t *)(iq->context);
                
-               if(i005->xPL_callback)
-                  i005->xPL_callback=NULL;
+               if(i005->xPL_callback2)
+                  i005->xPL_callback2=NULL;
                
                if(i005->monitoring_id!=-1)
                {
@@ -475,8 +318,8 @@ void stop_interfaces()
             {
                interface_type_006_t *i006=(interface_type_006_t *)(iq->context);
                
-               if(i006->xPL_callback)
-                  i006->xPL_callback=NULL;
+               if(i006->xPL_callback2)
+                  i006->xPL_callback2=NULL;
                
                if(i006->monitoring_id!=-1)
                {

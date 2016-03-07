@@ -1,5 +1,3 @@
-// A renommer en python_utils.c
-
 //
 //  python_utils.c
 //  mea-eDomus
@@ -236,96 +234,56 @@ int mea_call_python_function(char *plugin_name, char *plugin_func, PyObject *plu
 
 PyObject *mea_xplMsgToPyDict2(cJSON *xplMsgJson)
 {
-}
+   if(xplMsgJson == NULL)
+      return NULL;
 
-
-PyObject *mea_xplMsgToPyDict(xPL_MessagePtr xplMsg)
-{
-   PyObject *pyXplMsg;
-   PyObject *s;
-   PyObject *l;
-   char tmpStr[35]; // chaine temporaire. Taille max pour vendorID(8) + "-"(1) + deviceID(8) + "."(1) + instanceID(16)
-   
+   PyObject *pyXplMsg = NULL;
+   PyObject *s = NULL;
+   PyObject *l = NULL;
+   char tmpStr[35]=""; // chaine temporaire. Taille max pour vendorID(8) + "-"(1) + deviceID(8) + "."(1) + instanceID(16)
+//   cJSON *j = NULL;
    
    pyXplMsg = PyDict_New();
-   if(!pyXplMsg)
+   PyObject *pyBody=PyDict_New();
+
+   if(!pyXplMsg || !pyBody)
    {
       PyErr_SetString(PyExc_RuntimeError, "ERROR (mea_xplMSgToPyDict) : PyDict_New error");
       return NULL;
    }
-   
-   // xplmsg
+
    l = PyLong_FromLong(1L);
-   PyDict_SetItemString(pyXplMsg, "xplmsg", l);
+   PyDict_SetItemString(pyXplMsg, XPLMSG_STR_C, l);
    Py_DECREF(l);
-   
-   // message-type
-   switch(xPL_getMessageType(xplMsg))
+ 
+   cJSON *e=xplMsgJson->child; 
+   while(e)
    {
-      case xPL_MESSAGE_COMMAND:
-         s=PyString_FromString("xpl-cmnd");
-         break;
-      case xPL_MESSAGE_STATUS:
-         s= PyString_FromString("xpl-stat");
-         break;
-      case xPL_MESSAGE_TRIGGER:
-         s= PyString_FromString("xpl-trig");
-         break;
-      default:
-         PyErr_SetString(PyExc_RuntimeError, "ERROR (mea_xplMsgSend) : ...");
-         return NULL;
-   }
-   PyDict_SetItemString(pyXplMsg, "message_xpl_type", s);
-   Py_DECREF(s);
-   
-   // hop
-   sprintf(tmpStr,"%d",xPL_getHopCount(xplMsg));
-   s=PyString_FromString(tmpStr);
-   PyDict_SetItemString(pyXplMsg, "hop", s);
-   Py_DECREF(s);
-
-   // source
-   sprintf(tmpStr,"%s-%s.%s", xPL_getSourceVendor(xplMsg), xPL_getSourceDeviceID(xplMsg), xPL_getSourceInstanceID(xplMsg));
-   s=PyString_FromString(tmpStr);
-   PyDict_SetItemString(pyXplMsg, "source", s);
-   Py_DECREF(s);
-
-   if (xPL_isBroadcastMessage(xplMsg))
-   {
-      strcpy(tmpStr,"*");
-   }
-   else
-   {
-      sprintf(tmpStr,"%s-%s.%s", xPL_getTargetVendor(xplMsg), xPL_getTargetDeviceID(xplMsg), xPL_getTargetInstanceID(xplMsg));
-   }
-   s=PyString_FromString(tmpStr);
-   PyDict_SetItemString(pyXplMsg, "target", s);
-   Py_DECREF(s);
-   
-   // schema
-   sprintf(tmpStr,"%s.%s", xPL_getSchemaClass(xplMsg), xPL_getSchemaType(xplMsg));
-   s=PyString_FromString(tmpStr);
-   PyDict_SetItemString(pyXplMsg, "schema", s);
-   Py_DECREF(s);
-   
-   // body
-   PyObject *pyBody=PyDict_New();
-   xPL_NameValueListPtr body = xPL_getMessageBody(xplMsg);
-   int n = xPL_getNamedValueCount(body);
-   for (int16_t i = 0; i < n; i++)
-   {
-      xPL_NameValuePairPtr keyValuePtr = xPL_getNamedValuePairAt(body, i);
-      if (keyValuePtr->itemValue != NULL)
+      if(e->string)
       {
-         s=PyString_FromString(keyValuePtr->itemValue);
+         if(strcmp(e->string, XPLSOURCE_STR_C)==0 ||
+            strcmp(e->string, XPLTARGET_STR_C)==0 ||
+            strcmp(e->string, XPLMSGTYPE_STR_C)==0 ||
+            strcmp(e->string, XPLSCHEMA_STR_C)==0)
+         {
+            s=PyString_FromString(e->valuestring);
+            PyDict_SetItemString(pyXplMsg, e->string, s);
+            Py_DECREF(s);
+         }
+         else
+         {
+            if (e->valuestring != NULL)
+               s=PyString_FromString(e->valuestring);
+            else
+            {
+               s=Py_None;
+               Py_INCREF(s);
+            }
+            PyDict_SetItemString(pyBody, e->string, s);
+            Py_DECREF(s);
+         }
       }
-      else
-      {
-         s=Py_None;
-         Py_INCREF(s);
-      }
-      PyDict_SetItemString(pyBody, keyValuePtr->itemName, s);
-      Py_DECREF(s);
+      e=e->next;
    }
    
    PyDict_SetItemString(pyXplMsg, "body", pyBody);
@@ -333,4 +291,3 @@ PyObject *mea_xplMsgToPyDict(xPL_MessagePtr xplMsg)
    
    return pyXplMsg;
 }
-

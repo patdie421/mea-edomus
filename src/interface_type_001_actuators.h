@@ -8,6 +8,7 @@
 #ifndef __interface_type_001_actuators_h
 #define __interface_type_001_actuators_h
 
+#include "cJSON.h"
 #include "mea_timer.h"
 #include "interface_type_001.h"
 
@@ -28,5 +29,6 @@ struct actuator_s
 void _interface_type_001_free_actuators_queue_elem(void *d);
 struct actuator_s *interface_type_001_valid_and_malloc_actuator(int16_t id_sensor_actuator, char *name, char *parameters);
 mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNomsValeursPtr, char *device, char *type);
+mea_error_t xpl_actuator2(interface_type_001_t *i001, cJSON *xplMsgJson, char *device, char *type);
 
 #endif

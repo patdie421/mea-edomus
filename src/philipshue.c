@@ -257,7 +257,7 @@ int16_t _setOnOffState(int id, char *template, int16_t state, char *server, int 
 
    snprintf(url, sizeof(url) - 1, template, user, id);
    snprintf(request, sizeof(request) - 1, "{\"on\":%s}", _bool);
-   
+
    l_response=sizeof(response);
    char *httpResponseDataPtr = httpRequest(HTTP_PUT, server, port, url, request, strlen(request), response, &l_response, &nerr);
    if(!httpResponseDataPtr)

@@ -29,7 +29,7 @@
 
 #include "tokens.h"
 #include "tokens_da.h"
-
+#include "mea_string_utils.h"
 #include "mea_verbose.h"
 #include "macros.h"
 
@@ -199,13 +199,13 @@ void set_interface_type_006_isnt_running(void *data)
 }
 
 
-int16_t _interface_type_006_xPL_callback(xPL_ServicePtr theService, xPL_MessagePtr xplMsg, xPL_ObjectPtr userValue)
+int16_t _interface_type_006_xPL_callback2(cJSON *xplMsgJson, xPL_ObjectPtr userValue)
 {
-   xPL_NameValueListPtr xplBody;
    char *device;
    int ret;
    int err;
-  
+   cJSON *j = NULL;
+ 
    interface_type_006_t *interface=(interface_type_006_t *)userValue;
    struct genericserial_callback_xpl_data_s *params=(struct genericserial_callback_xpl_data_s *)interface->xPL_callback_data;
    
@@ -219,10 +219,17 @@ int16_t _interface_type_006_xPL_callback(xPL_ServicePtr theService, xPL_MessageP
    }
    if(!params->myThreadState)
       params->myThreadState = PyThreadState_New(params->mainThreadState->interp);
-   
-   xplBody = xPL_getMessageBody(xplMsg);
-   device  = xPL_getNamedValue(xplBody, XPL_DEVICE_STR_C);
-   
+  
+   j=cJSON_GetObjectItem(xplMsgJson, get_token_string_by_id(XPL_DEVICE_ID));
+   if(j)
+      device=j->valuestring;
+   if(!device)
+   {
+      VERBOSE(5) mea_log_printf("%s (%s) : xPL message no device\n", INFO_STR, __func__);
+      return -1;
+   }
+   mea_strtolower(device);
+ 
    if(!device)
       return -1;
    
@@ -272,8 +279,8 @@ int16_t _interface_type_006_xPL_callback(xPL_ServicePtr theService, xPL_MessageP
 
                mea_addLong_to_pydict(plugin_elem->aDict, "fd", (long)interface->fd);
 
-               PyObject *_xplmsg=mea_xplMsgToPyDict(xplMsg); 
-               PyDict_SetItemString(plugin_elem->aDict, "xplmsg", _xplmsg); 
+               PyObject *_xplmsg=mea_xplMsgToPyDict2(xplMsgJson);
+               PyDict_SetItemString(plugin_elem->aDict, XPLMSG_STR_C, _xplmsg); 
                
                PyThreadState_Swap(tempState);
                PyEval_ReleaseLock();
@@ -302,7 +309,6 @@ int16_t _interface_type_006_xPL_callback(xPL_ServicePtr theService, xPL_MessageP
    }
    return 0;
 }
-
 
 void *_thread_interface_type_006_genericserial_data_cleanup(void *args)
 {
@@ -675,8 +681,10 @@ int clean_interface_type_006(interface_type_006_t *i006)
       i006->xPL_callback_data=NULL;
    }
    
-   if(i006->xPL_callback)
-      i006->xPL_callback=NULL;
+   //if(i006->xPL_callback)
+   //   i006->xPL_callback=NULL;
+   if(i006->xPL_callback2)
+      i006->xPL_callback2=NULL;
 
    if(i006->thread)
    {
@@ -725,7 +733,8 @@ interface_type_006_t *malloc_and_init_interface_type_006(sqlite3 *sqlite3_param_
    i006->indicators.serialout=0;
    
    i006->thread=NULL;
-   i006->xPL_callback=NULL;
+//   i006->xPL_callback=NULL;
+   i006->xPL_callback2=NULL;
    i006->xPL_callback_data=NULL;
 
    i006->monitoring_id=process_register((char *)name);
@@ -763,9 +772,13 @@ int stop_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg)
       start_stop_params->i006->xPL_callback_data=NULL;
    }
    
-   if(start_stop_params->i006->xPL_callback)
+   //if(start_stop_params->i006->xPL_callback)
+   //{
+   //   start_stop_params->i006->xPL_callback=NULL;
+   //}
+   if(start_stop_params->i006->xPL_callback2)
    {
-      start_stop_params->i006->xPL_callback=NULL;
+      start_stop_params->i006->xPL_callback2=NULL;
    }
 
    if(start_stop_params->i006->thread)
@@ -895,7 +908,7 @@ int start_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg)
    xpl_callback_params->myThreadState=NULL;
 
    start_stop_params->i006->xPL_callback_data=xpl_callback_params;
-   start_stop_params->i006->xPL_callback=_interface_type_006_xPL_callback;
+   start_stop_params->i006->xPL_callback2=_interface_type_006_xPL_callback2;
 
    start_stop_params->i006->thread=start_interface_type_006_genericserial_data_thread(start_stop_params->i006, start_stop_params->sqlite3_param_db, interface_parameters, (thread_f)_thread_interface_type_006_genericserial_data);
    

@@ -72,7 +72,7 @@ def mea_xplCmndMsg(data):
    try: 
       x=data["xplmsg"]
       schema=x["schema"]
-      msgtype=x["message_xpl_type"]
+      msgtype=x["msgtype"]
       body=x["body"]
       device=body["device"]
    except:

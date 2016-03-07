@@ -19,6 +19,7 @@
 extern char *xpl_vendorID;
 extern char *xpl_deviceID;
 extern char *xpl_instanceID;
+extern char xpl_source[];
 
 extern char *xpl_server_name_str;
 extern char *xpl_server_xplin_str;
@@ -32,7 +33,6 @@ extern jmp_buf xPLServer_JumpBuffer;
 typedef struct xplRespQueue_elem_s
 {
    int id;
-   xPL_MessagePtr msg;
    cJSON *msgjson;
    uint32_t tsp;
 } xplRespQueue_elem_t;
@@ -45,7 +45,6 @@ struct xplServer_start_stop_params_s
 };
 
 
-typedef int16_t (*xpl_f)(xPL_ServicePtr, xPL_MessagePtr theMessage, xPL_ObjectPtr userValue);
 typedef int16_t (*xpl2_f)(cJSON *xplMsgJson, xPL_ObjectPtr userValue);
 
 
@@ -59,17 +58,16 @@ char          *mea_getXPLInstanceID();
 char          *mea_getXPLDeviceID();
 char          *mea_getXPLVendorID();
 
-// uint16_t       mea_sendXPLMessage(xPL_MessagePtr xPLMsg);
-uint16_t       mea_sendXPLMessage(xPL_MessagePtr xPLMsg, cJSON *xplMsgJson);
+char          *mea_getXPLSource();
+
 uint16_t       mea_sendXPLMessage2(cJSON *xplMsgJson);
-xPL_MessagePtr mea_readXPLResponse(int id);
+cJSON         *mea_readXPLResponse(int id);
 uint32_t       mea_getXplRequestId();
 
+/*
 extern xPL_MessagePtr xPL_AllocMessage();
 extern xPL_NameValueListPtr xPL_AllocNVList();
-
-xPL_MessagePtr mea_createReceivedMessage(xPL_MessageType messageType);
-xPL_MessagePtr mea_createSendableMessage(xPL_MessageType messageType, char *vendorID, char *deviceID, char *instanceID);
+*/
 
 int           start_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg);
 int           stop_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg);
@@ -78,4 +76,5 @@ int           restart_xPLServer(int my_id, void *data, char *errmsg, int l_errms
 int16_t       displayXPLMsg(xPL_MessagePtr theMessage);
 
 cJSON        *mea_xPL2JSON(xPL_MessagePtr msg);
+int           mea_sendXplMsgJson(cJSON *xplMsgJson);
 #endif

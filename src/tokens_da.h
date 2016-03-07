@@ -60,6 +60,11 @@ struct tokens_strings_da_s
    char *reachable_str_c;
    char *state_str_c;
    char *internal_str_c;
+   char *xplmsg_str_c;
+   char *xplsource_str_c;
+   char *xpltarget_str_c;
+   char *xplschema_str_c;
+   char *xplmsgtype_str_c;
 };
 
 extern struct tokens_strings_da_s *tokens_string_da;
@@ -105,8 +110,14 @@ extern struct tokens_strings_da_s *tokens_string_da;
 #define LOCAL_XBEE_ADDR_H_STR_C          tokens_string_da->local_xbee_addr_h_str_c
 #define LOCAL_XBEE_ADDR_L_STR_C          tokens_string_da->local_xbee_addr_l_str_c
 #define INTERNAL_STR_C                   tokens_string_da->internal_str_c
+#define XPLMSG_STR_C                     tokens_string_da->xplmsg_str_c
+#define XPLSOURCE_STR_C                  tokens_string_da->xplsource_str_c
+#define XPLTARGET_STR_C                  tokens_string_da->xpltarget_str_c
+#define XPLMSGTYPE_STR_C                 tokens_string_da->xplmsgtype_str_c
+#define XPLSCHEMA_STR_C                  tokens_string_da->xplschema_str_c
 
 #else
+
 #define DEVICE_PARAMETERS_STR_C          get_token_string_by_id(DEVICE_PARAMETERS_ID)
 #define DEVICE_TYPE_ID_STR_C             get_token_string_by_id(DEVICE_TYPE_ID_ID)
 #define FALSE_STR_C                      get_token_string_by_id(FALSE_ID)
@@ -147,7 +158,11 @@ extern struct tokens_strings_da_s *tokens_string_da;
 #define LOCAL_XBEE_ADDR_H_STR_C          get_token_string_by_id(LOCAL_XBEE_ADDR_H_ID)
 #define LOCAL_XBEE_ADDR_L_STR_C          get_token_string_by_id(LOCAL_XBEE_ADDR_L_ID)
 #define INTERNAL_STR_C                   get_token_string_by_id(INTERNAL_ID)
-
+#define XPLMSG_STR_C                     get_token_string_by_id(XPLMSG_ID)
+#define XPLSOURCE_STR_C                  get_token_string_by_id(XPLSOURCE_ID)
+#define XPLTARGET_STR_C                  get_token_string_by_id(XPLTARGET_ID)
+#define XPLMSGTYPE_STR_C                 get_token_string_by_id(XPLMSGTYPE_ID)
+#define XPLSCHEMA_STR_C                  get_token_string_by_id(XPLSCHEMA_ID)
 #endif
 
 int16_t init_strings_da();

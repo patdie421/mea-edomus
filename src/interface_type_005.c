@@ -24,6 +24,7 @@
 #include "consts.h"
 
 #include "tokens.h"
+#include "tokens_da.h"
 
 #include "macros.h"
 #include "dbServer.h"
@@ -92,69 +93,25 @@ char *interface_type_005_xplout_str="XPLOUT";
 char *interface_type_005_nbreaderror_str="NBREADERROR";
 char *interface_type_005_nbread_str="NBREAD";
 
-extern Bool xPL_sendRawMessage(String, int);
 
-static int16_t _interface_type_005_send_xPL_sensor_basic(interface_type_005_t *i005, int xplmsgtype, char *name, char *type, char *str_value, char *str_last)
+static int16_t _interface_type_005_send_xPL_sensor_basic2(interface_type_005_t *i005, char *xplmsgtype, char *name, char *type, char *str_value, char *str_last)
 {
-   xPL_ServicePtr servicePtr = mea_getXPLServicePtr();
-   if(servicePtr==NULL)
-      return -1;
-/*
-   if(servicePtr)
-   {
-      xPL_MessagePtr cntrMessageStat = xPL_createBroadcastMessage(servicePtr, xplmsgtype);
-
-      xPL_setSchema(cntrMessageStat, get_token_string_by_id(XPL_SENSOR_ID), get_token_string_by_id(XPL_BASIC_ID));
-      xPL_setMessageNamedValue(cntrMessageStat, get_token_string_by_id(XPL_DEVICE_ID),name);
-      xPL_setMessageNamedValue(cntrMessageStat, get_token_string_by_id(XPL_TYPE_ID), type);
-      xPL_setMessageNamedValue(cntrMessageStat, get_token_string_by_id(XPL_CURRENT_ID),str_value);
-      if(str_last && str_last[0]!=0)
-         xPL_setMessageNamedValue(cntrMessageStat, get_token_string_by_id(XPL_LAST_ID),str_last);
-
-      mea_sendXPLMessage(cntrMessageStat);
-
-      (i005->indicators.xplout)++;
-
-      xPL_releaseMessage(cntrMessageStat);
-   }
-*/
-   char xplBodyStr[2048]="";
-   int xplBodyStrPtr=0;
-   char source[32];
-   char schema[32];
-   int n=0;
-   char *msgtype="xpl-cmnd";
-   int l=8;
-
-   l+=sprintf(source,"%s-%s.%s", mea_getXPLVendorID(), mea_getXPLDeviceID(), mea_getXPLInstanceID());
-   l+=sprintf(schema,"%s.%s", get_token_string_by_id(XPL_SENSOR_ID),  get_token_string_by_id(XPL_BASIC_ID));
-
-   switch(xplmsgtype) //  xPL_MESSAGE_ANY, xPL_MESSAGE_COMMAND, xPL_MESSAGE_STATUS, xPL_MESSAGE_TRIGGER
-   {
-      case xPL_MESSAGE_TRIGGER: msgtype="xpl-trig"; break;
-      case xPL_MESSAGE_STATUS:  msgtype="xpl-stat"; break;
-   }
-
-   n=sprintf(&(xplBodyStr[xplBodyStrPtr]),"%s=%s\n", get_token_string_by_id(XPL_DEVICE_ID),name);       xplBodyStrPtr+=n; l+=n;
-   n=sprintf(&(xplBodyStr[xplBodyStrPtr]),"%s=%s\n", get_token_string_by_id(XPL_TYPE_ID), type);        xplBodyStrPtr+=n; l+=n;
-   n=sprintf(&(xplBodyStr[xplBodyStrPtr]),"%s=%s\n", get_token_string_by_id(XPL_CURRENT_ID),str_value); xplBodyStrPtr+=n; l+=n;
+   char str[36];
+   cJSON *xplMsgJson = cJSON_CreateObject();
+   cJSON_AddItemToObject(xplMsgJson, XPLMSGTYPE_STR_C, cJSON_CreateString(xplmsgtype));
+   sprintf(str,"%s.%s", get_token_string_by_id(XPL_SENSOR_ID), get_token_string_by_id(XPL_BASIC_ID));
+   cJSON_AddItemToObject(xplMsgJson, XPLSCHEMA_STR_C, cJSON_CreateString(str));
+   cJSON_AddItemToObject(xplMsgJson, get_token_string_by_id(XPL_DEVICE_ID), cJSON_CreateString(name));
+   cJSON_AddItemToObject(xplMsgJson, get_token_string_by_id(XPL_TYPE_ID), cJSON_CreateString(type));
+   cJSON_AddItemToObject(xplMsgJson, get_token_string_by_id(XPL_CURRENT_ID), cJSON_CreateString(str_value));
    if(str_last && str_last[0]!=0)
-      n=sprintf(&(xplBodyStr[xplBodyStrPtr]),"%s=%s\n", get_token_string_by_id(XPL_LAST_ID),str_last);  xplBodyStrPtr+=n; l+=n;
+      cJSON_AddItemToObject(xplMsgJson, get_token_string_by_id(XPL_LAST_ID), cJSON_CreateString(str_last));
 
-   l+=36;
-   char *msg = (char *)alloca(l);
+   mea_sendXPLMessage2(xplMsgJson);
 
-   n=snprintf(msg,l,"%s\n{\nhop=1\nsource=%s\ntarget=*\n}\n%s\n{\n%s}\n",msgtype,source,schema,xplBodyStr);
-   if(n>0 && n < l)
-   {
-      xPL_sendRawMessage(msg, n);
-      (i005->indicators.xplout)++;
-   } 
-   else
-   {
-      VERBOSE(5) mea_log_printf("%s (%s) : xPL message string too small (not send)\n", ERROR_STR, __func__);
-   }
-   return 0;
+   (i005->indicators.xplout)++;
+
+   cJSON_Delete(xplMsgJson);
 }
 
 
@@ -208,7 +165,6 @@ int16_t interface_type_005_current_last(struct type005_sensor_actuator_queue_ele
 {
    if(!type || !str_current || !str_last)
       return -1;
-//   VERBOSE(9) mea_log_printf("%s (%s) : start current_last\n", ERROR_STR, __func__);
 
    if(d1) *d1=0.0;
    if(d2) *d2=0.0;
@@ -377,13 +333,10 @@ int16_t interface_type_005_current_last(struct type005_sensor_actuator_queue_ele
 }
 
 
-
-int16_t interface_type_005_xPL_actuator(interface_type_005_t *i005,
-                                        xPL_ServicePtr theService,
-                                        xPL_NameValueListPtr ListNomsValeursPtr,
-                                        char *device,
-                                        char *type,
-                                        struct type005_sensor_actuator_queue_elem_s *e)
+int16_t interface_type_005_xPL_actuator2(interface_type_005_t *i005,
+                                         cJSON *xplMsgJson,
+                                         char *device,
+                                         struct type005_sensor_actuator_queue_elem_s *e)
 {
 // xPLSend -m cmnd -c control.basic device=therm01 mode=manual setpoint=25.5 expire=3600
 // xPLSend -m cmnd -c control.basic device=therm01 mode=away expire=3600
@@ -393,11 +346,28 @@ int16_t interface_type_005_xPL_actuator(interface_type_005_t *i005,
    char err[81];
    if(e->type==501)
    {
-      char *mode     = xPL_getNamedValue(ListNomsValeursPtr, "mode");
-      char *setpoint = xPL_getNamedValue(ListNomsValeursPtr, "setpoint");
-      char *expire   = xPL_getNamedValue(ListNomsValeursPtr, "expire");
+      char *mode     = NULL;
+      char *setpoint = NULL;
+      char *expire   = NULL;
+      cJSON *j;
+
+      j=cJSON_GetObjectItem(xplMsgJson, "mode");
+      if(j)
+         mode=j->valuestring;
+
+      j=cJSON_GetObjectItem(xplMsgJson, "setpoint");
+      if(j)
+         setpoint=j->valuestring;
+
+      j=cJSON_GetObjectItem(xplMsgJson, "expire");
+      if(j)
+         expire=j->valuestring;
+
+//      char *mode     = xPL_getNamedValue(ListNomsValeursPtr, "mode");
+//      char *setpoint = xPL_getNamedValue(ListNomsValeursPtr, "setpoint");
+//      char *expire   = xPL_getNamedValue(ListNomsValeursPtr, "expire");
       
-      char * pEnd;
+      char *pEnd;
   
       long int _mode=-1L;
       long int _expire=0L;
@@ -451,12 +421,10 @@ int16_t interface_type_005_xPL_actuator(interface_type_005_t *i005,
 }
 
 
-int16_t interface_type_005_xPL_sensor(interface_type_005_t *i005,
-                                      xPL_ServicePtr theService,
-                                      xPL_MessagePtr msg,
-                                      char *device,
-                                      char *type,
-                                      struct type005_sensor_actuator_queue_elem_s *e)
+int16_t interface_type_005_xPL_sensor2(interface_type_005_t *i005,
+                                       cJSON *xplMsgJson,
+                                       char *device,
+                                       struct type005_sensor_actuator_queue_elem_s *e)
 {
 // xPLSend -m cmnd -c sensor.request device=temp02 request=current
    if(e->type==500)
@@ -467,7 +435,7 @@ int16_t interface_type_005_xPL_sensor(interface_type_005_t *i005,
          return -1;
       else
       {
-         _interface_type_005_send_xPL_sensor_basic(i005, xPL_MESSAGE_STATUS, e->name, ntype, str_value, str_last);
+         _interface_type_005_send_xPL_sensor_basic2(i005, "xpl-stat", e->name, ntype, str_value, str_last);
          return 0;
       }
    }
@@ -478,36 +446,42 @@ int16_t interface_type_005_xPL_sensor(interface_type_005_t *i005,
 }
 
 
-int16_t interface_type_005_xPL_callback(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
+int16_t interface_type_005_xPL_callback2(cJSON *xplMsgJson, xPL_ObjectPtr userValue)
 {
-   xPL_NameValueListPtr ListNomsValeursPtr ;
-   char *schema_type = NULL, *schema_class = NULL, *device = NULL, *type = NULL;
+   char *schema = NULL, *device = NULL, *type = NULL;
+   cJSON *j;
+
    interface_type_005_t *i005=(interface_type_005_t *)userValue;
-   schema_class       = xPL_getSchemaClass(theMessage);
-   schema_type        = xPL_getSchemaType(theMessage);
-   ListNomsValeursPtr = xPL_getMessageBody(theMessage);
 
-   if(ListNomsValeursPtr == NULL)
-   {
-      VERBOSE(5) mea_log_printf("%s (%s) : incorrect xPL message\n", INFO_STR, __func__);
-      return -1;
-   }
-
-   device = xPL_getNamedValue(ListNomsValeursPtr, get_token_string_by_id(XPL_DEVICE_ID));
-   mea_strtolower(device);
+   j=cJSON_GetObjectItem(xplMsgJson, get_token_string_by_id(XPL_DEVICE_ID));
+   if(j)
+      device=j->valuestring;
    if(!device)
    {
       VERBOSE(5) mea_log_printf("%s (%s) : xPL message no device\n", INFO_STR, __func__);
       return -1;
    }
-
-//   type = xPL_getNamedValue(ListNomsValeursPtr, get_token_string_by_id(XPL_TYPE_ID));
-   type = xPL_getNamedValue(ListNomsValeursPtr, "type");
+   mea_strtolower(device);
+/*
+   j=cJSON_GetObjectItem(xplMsgJson, "type");
+   if(j)
+      type=j->valuestring;
    if(!type)
    {
       VERBOSE(5) mea_log_printf("%s (%s) : xPL message no type\n", INFO_STR, __func__);
       return -1;
    }
+*/
+
+   j=cJSON_GetObjectItem(xplMsgJson, XPLSCHEMA_STR_C);
+   if(j)
+      schema=j->valuestring;
+   if(!schema)
+   {
+      VERBOSE(5) mea_log_printf("%s (%s) : xPL message no schema\n", INFO_STR, __func__);
+      return -1;
+   }
+   mea_strtolower(schema);
 
    struct type005_sensor_actuator_queue_elem_s *elem=_find_sensor_actuator(&(i005->devices_list), device);
    if(elem==NULL)
@@ -517,29 +491,31 @@ int16_t interface_type_005_xPL_callback(xPL_ServicePtr theService, xPL_MessagePt
    } 
    (i005->indicators.xplin)++;
    
-   VERBOSE(9) mea_log_printf("%s (%s) : xPL Message to process : %s.%s\n", INFO_STR, __func__, schema_class, schema_type);
+   VERBOSE(9) mea_log_printf("%s (%s) : xPL Message to process : %s\n", INFO_STR, __func__, schema);
    
-   if(mea_strcmplower(schema_class, get_token_string_by_id(XPL_CONTROL_ID)) == 0 &&
-      mea_strcmplower(schema_type, get_token_string_by_id(XPL_BASIC_ID)) == 0)
+   if(mea_strcmplower(schema, "control.basic") == 0)
    {
-      return interface_type_005_xPL_actuator(i005, theService, ListNomsValeursPtr, device, type, elem);
+      return interface_type_005_xPL_actuator2(i005, xplMsgJson, device, elem);
    }
-   else if(mea_strcmplower(schema_class, get_token_string_by_id(XPL_SENSOR_ID)) == 0 &&
-           mea_strcmplower(schema_type, get_token_string_by_id(XPL_REQUEST_ID)) == 0)
+   else if(mea_strcmplower(schema, "sensor.request") == 0)
    {
-      char *request = xPL_getNamedValue(ListNomsValeursPtr, get_token_string_by_id(XPL_REQUEST_ID));
+      char *request = NULL;
+      j = cJSON_GetObjectItem(xplMsgJson, get_token_string_by_id(XPL_REQUEST_ID));
+      if(j)
+         request = j->valuestring;
       if(!request)
       {
          VERBOSE(5) mea_log_printf("%s (%s) : xPL message no request\n", INFO_STR, __func__);
-         return -1;
+         return 0;
       }
+
       if(mea_strcmplower(request,get_token_string_by_id(XPL_CURRENT_ID))!=0 && mea_strcmplower(request,get_token_string_by_id(XPL_LAST_ID))!=0)
       {
          VERBOSE(5) mea_log_printf("%s (%s) : xPL message request!=current or request!=last\n", INFO_STR, __func__);
          return -1;
       }
 
-      return interface_type_005_xPL_sensor(i005, theService, theMessage, device, type, elem);
+      return interface_type_005_xPL_sensor2(i005, xplMsgJson, device, elem);
    }
    
    return 0;
@@ -922,7 +898,8 @@ static int interface_type_005_sendData(interface_type_005_t *i005, struct type00
    ret=interface_type_005_current_last(sa_elem, type, str_value, str_last, &data4db, &data4db2, data4dbComp);
    if(ret==1)
    {
-      _interface_type_005_send_xPL_sensor_basic(i005, xPL_MESSAGE_TRIGGER, sa_elem->name, type, str_value, str_last);
+      //_interface_type_005_send_xPL_sensor_basic(i005, xPL_MESSAGE_TRIGGER, sa_elem->name, type, str_value, str_last);
+      _interface_type_005_send_xPL_sensor_basic2(i005, "xpl-trig", sa_elem->name, type, str_value, str_last);
       if(sa_elem->todbflag==1)
          dbServer_add_data_to_sensors_values(sa_elem->id, data4db, 0, data4db2, data4dbComp);
 //      VERBOSE(9) mea_log_printf("%s (%s) : sendData done\n", ERROR_STR, __func__);
@@ -1208,7 +1185,7 @@ interface_type_005_t *malloc_and_init_interface_type_005(sqlite3 *sqlite3_param_
    i005->indicators.xplout=0;
    i005->indicators.nbreaderror=0;
    i005->indicators.nbread=0;
-   i005->xPL_callback=NULL;
+   i005->xPL_callback2=NULL;
    i005->thread=NULL;
    
    i005->monitoring_id=process_register((char *)name);
@@ -1240,7 +1217,7 @@ int clean_interface_type_005(interface_type_005_t *i005)
       i005->parameters=NULL;
    }
    
-   i005->xPL_callback=NULL;
+   i005->xPL_callback2=NULL;
    
    if(i005->thread)
    {
@@ -1261,7 +1238,7 @@ int stop_interface_type_005(int my_id, void *data, char *errmsg, int l_errmsg)
    
    VERBOSE(1) mea_log_printf("%s (%s) : %s shutdown thread ...\n", INFO_STR, __func__, start_stop_params->i005->name);
    
-   start_stop_params->i005->xPL_callback=NULL;
+   start_stop_params->i005->xPL_callback2=NULL;
    
    if(start_stop_params->i005->thread)
    {
@@ -1318,7 +1295,7 @@ int start_interface_type_005(int my_id, void *data, char *errmsg, int l_errmsg)
    
    struct interface_type_005_start_stop_params_s *start_stop_params=(struct interface_type_005_start_stop_params_s *)data; // données pour la gestion des arrêts/relances
 
-   start_stop_params->i005->xPL_callback=NULL;
+   start_stop_params->i005->xPL_callback2=NULL;
 
    if(load_interface_type_005(start_stop_params->i005, start_stop_params->sqlite3_param_db)<0)
       return -1;
@@ -1357,7 +1334,7 @@ int start_interface_type_005(int my_id, void *data, char *errmsg, int l_errmsg)
    }
    fprintf(stderr, "INTERFACE_TYPE_005 : %x\n", (unsigned int)*interface_type_005_thread_id);
 
-   start_stop_params->i005->xPL_callback=interface_type_005_xPL_callback;
+   start_stop_params->i005->xPL_callback2=interface_type_005_xPL_callback2;
    start_stop_params->i005->thread=interface_type_005_thread_id;
 
    pthread_detach(*interface_type_005_thread_id);
