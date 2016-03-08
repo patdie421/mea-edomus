@@ -57,13 +57,13 @@ struct groupsListElem_s {
     UT_hash_handle hh_groupname;/* makes this structure hashable */
 };
 
-
+/*
 struct scenesListElem_s {
-    const char *scenename; /* key */
+    const char *scenename; // key
     const char *huescenename;
-    UT_hash_handle hh_scenename;/* makes this structure hashable */
+    UT_hash_handle hh_scenename; // makes this structure hashable
 };
-
+*/
 
 typedef struct interface_type_004_s
 {
@@ -89,15 +89,16 @@ typedef struct interface_type_004_s
                    
    struct groupsListElem_s
                    *groupsListByGroupName;
-                   
+/*
    struct scenesListElem_s
                    *scenesListBySceneName;
-                   
+*/
    cJSON *lastHueLightsState;
    cJSON *currentHueLightsState;
    cJSON *allGroups;
+/*
    cJSON *allScenes;
-   
+*/   
    struct interface_type_004_indicators_s
                     indicators;
    int              loaded;

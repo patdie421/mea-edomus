@@ -6,11 +6,6 @@
 
 #define VALUE_MAX_STR_SIZE 41
 
-extern char *_automatorServer_fn;
-extern char *_automatorEvalStrArg;
-extern char *_automatorEvalStrCaller;
-extern char _automatorEvalStrOperation;
-
 extern char *inputs_rules;
 extern char *outputs_rules;
 

@@ -16,10 +16,102 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/select.h>
+#include <fcntl.h>
+#include <errno.h>
 
 #include "mea_sockets_utils.h"
 
 #include "mea_verbose.h"
+
+
+int mea_connect(int soc, const struct sockaddr *addr, socklen_t addr_l) { 
+   int res; 
+   long arg; 
+   fd_set myset; 
+   struct timeval tv; 
+   int valopt; 
+
+  // Set non-blocking 
+  if( (arg = fcntl(soc, F_GETFL, NULL)) < 0)
+  { 
+     DEBUG_SECTION2(DEBUGFLAG) fprintf(stderr, "Error fcntl(..., F_GETFL) (%s)\n", strerror(errno)); 
+     return -1; 
+  }
+ 
+  arg |= O_NONBLOCK; 
+  if( fcntl(soc, F_SETFL, arg) < 0)
+  { 
+     DEBUG_SECTION2(DEBUGFLAG) fprintf(stderr, "Error fcntl(..., F_SETFL) (%s)\n", strerror(errno)); 
+     return -1; 
+  } 
+
+  // Trying to connect with timeout 
+  res = connect(soc, addr, addr_l); 
+  if (res < 0)
+  { 
+     if(errno == EINPROGRESS)
+     { 
+//        fprintf(stderr, "EINPROGRESS in connect() - selecting\n"); 
+        do
+        { 
+           tv.tv_sec = 2; 
+           tv.tv_usec = 0; 
+           FD_ZERO(&myset); 
+           FD_SET(soc, &myset); 
+           res = select(soc+1, NULL, &myset, NULL, &tv); 
+           if (res < 0 && errno != EINTR)
+           { 
+              DEBUG_SECTION2(DEBUGFLAG) fprintf(stderr, "Error connecting %d - %s\n", errno, strerror(errno)); 
+              return -1; 
+           } 
+           else if (res > 0)
+           { 
+              // Socket selected for write 
+              socklen_t l = sizeof(int); 
+              if (getsockopt(soc, SOL_SOCKET, SO_ERROR, (void*)(&valopt), &l) < 0)
+              { 
+                 DEBUG_SECTION2(DEBUGFLAG) fprintf(stderr, "Error in getsockopt() %d - %s\n", errno, strerror(errno)); 
+                 return -1; 
+              } 
+              // Check the value returned... 
+              if (valopt)
+              { 
+                 DEBUG_SECTION2(DEBUGFLAG) fprintf(stderr, "Error in delayed connection() %d - %s\n", valopt, strerror(valopt)); 
+                 return -1; 
+              } 
+              break; 
+           } 
+           else
+           { 
+              DEBUG_SECTION2(DEBUGFLAG) fprintf(stderr, "mea_connect timeout !\n"); 
+              return -1; 
+           } 
+        }
+        while(1); 
+     } 
+     else
+    { 
+        DEBUG_SECTION2(DEBUGFLAG) fprintf(stderr, "Error connecting %d - %s\n", errno, strerror(errno)); 
+        return -1; 
+     } 
+  } 
+
+  // Set to blocking mode again... 
+  if( (arg = fcntl(soc, F_GETFL, NULL)) < 0)
+  { 
+     DEBUG_SECTION2(DEBUGFLAG) fprintf(stderr, "Error fcntl(..., F_GETFL) (%s)\n", strerror(errno)); 
+     return -1; 
+  }
+
+  arg &= (~O_NONBLOCK); 
+  if( fcntl(soc, F_SETFL, arg) < 0)
+  { 
+     DEBUG_SECTION2(DEBUGFLAG) fprintf(stderr, "Error fcntl(..., F_SETFL) (%s)\n", strerror(errno)); 
+     return -1; 
+  } 
+
+  return 0;
+}
 
 
 int mea_socket_connect(int *s, char *hostname, int port)
@@ -42,7 +134,7 @@ int mea_socket_connect(int *s, char *hostname, int port)
    if(serv_info == NULL)
    {
       DEBUG_SECTION {
-         mea_log_printf("%s (%s) :  gethostbyname - can't get information : ",ERROR_STR,__func__);
+         mea_log_printf("%s (%s) :  gethostbyname - can't get information : ", ERROR_STR, __func__);
          perror("");
       }
       return -1;
@@ -53,14 +145,13 @@ int mea_socket_connect(int *s, char *hostname, int port)
    serv_addr.sin_port   = htons(port);
    bcopy((char *)serv_info->h_addr, (char *)&serv_addr.sin_addr.s_addr, serv_info->h_length);
    
-   if(connect(sock, (const struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
+//   if(connect(sock, (const struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
+   if(mea_connect(sock, (const struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
    {
-/*
       DEBUG_SECTION {
-         mea_log_printf("%s (%s) :  connect - can't connect : ",ERROR_STR,__func__);
-         perror("");
+         mea_log_printf("%s (%s) :  connect - can't connect\n", ERROR_STR, __func__);
+//         perror("");
       }
-*/
       close(sock);
       return -1;
    }
@@ -177,10 +268,11 @@ char *httpRequest(uint8_t type, char *server, int port, char *url, char *data, u
    // creation de la requete
    char *requete = NULL;
 
-   pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
+//   pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
 
    if(type==HTTP_GET || type==HTTP_DELETE)
    {
+
       requete = (char *)malloc( (strlen(sprintf_get_delete_template) - 6) + strlen(httpMethodes[type]) + strlen(url) + strlen(server) + 1 );
       if(!requete)
       {
@@ -225,8 +317,8 @@ char *httpRequest(uint8_t type, char *server, int port, char *url, char *data, u
    {
       *nerr = HTTPREQUEST_ERR_CONNECT;
       DEBUG_SECTION {
-         mea_log_printf("%s (%s) : mea_socket_connect - ",ERROR_STR,__func__);
-         perror("");
+         mea_log_printf("%s (%s) : mea_socket_connect\n",ERROR_STR,__func__);
+//         perror("");
       }
       goto httpRequest_clean_exit;
    }

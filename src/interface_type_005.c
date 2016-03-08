@@ -435,7 +435,7 @@ int16_t interface_type_005_xPL_sensor2(interface_type_005_t *i005,
          return -1;
       else
       {
-         _interface_type_005_send_xPL_sensor_basic2(i005, "xpl-stat", e->name, ntype, str_value, str_last);
+         _interface_type_005_send_xPL_sensor_basic2(i005, XPL_STAT_STR_C, e->name, ntype, str_value, str_last);
          return 0;
       }
    }
@@ -493,11 +493,11 @@ int16_t interface_type_005_xPL_callback2(cJSON *xplMsgJson, xPL_ObjectPtr userVa
    
    VERBOSE(9) mea_log_printf("%s (%s) : xPL Message to process : %s\n", INFO_STR, __func__, schema);
    
-   if(mea_strcmplower(schema, "control.basic") == 0)
+   if(mea_strcmplower(schema, XPL_CONTROLBASIC_STR_C) == 0)
    {
       return interface_type_005_xPL_actuator2(i005, xplMsgJson, device, elem);
    }
-   else if(mea_strcmplower(schema, "sensor.request") == 0)
+   else if(mea_strcmplower(schema, XPL_SENSORREQUEST_STR_C) == 0)
    {
       char *request = NULL;
       j = cJSON_GetObjectItem(xplMsgJson, get_token_string_by_id(XPL_REQUEST_ID));
@@ -899,7 +899,7 @@ static int interface_type_005_sendData(interface_type_005_t *i005, struct type00
    if(ret==1)
    {
       //_interface_type_005_send_xPL_sensor_basic(i005, xPL_MESSAGE_TRIGGER, sa_elem->name, type, str_value, str_last);
-      _interface_type_005_send_xPL_sensor_basic2(i005, "xpl-trig", sa_elem->name, type, str_value, str_last);
+      _interface_type_005_send_xPL_sensor_basic2(i005, XPL_TRIG_STR_C, sa_elem->name, type, str_value, str_last);
       if(sa_elem->todbflag==1)
          dbServer_add_data_to_sensors_values(sa_elem->id, data4db, 0, data4db2, data4dbComp);
 //      VERBOSE(9) mea_log_printf("%s (%s) : sendData done\n", ERROR_STR, __func__);

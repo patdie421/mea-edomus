@@ -343,6 +343,7 @@ void *_pythonPlugin_thread(void *data)
    
    pthread_cleanup_push( (void *)_pythonPluginServer_clean_threadState, (void *)myThreadState );
    pthread_cleanup_push( (void *)set_pythonPluginServer_isnt_running, (void *)NULL );
+
    _pythonPluginServer_thread_is_running=1;
    process_heartbeat(_pythonPluginServer_monitoring_id);
 
@@ -566,7 +567,7 @@ int stop_pythonPluginServer(int my_id, void *data, char *errmsg, int l_errmsg)
             break;
          }
       }
-      DEBUG_SECTION mea_log_printf("%s (%s) : %s, fin après %d itération\n",DEBUG_STR, __func__, pythonPlugin_server_name_str, 100-counter);
+      DEBUG_SECTION mea_log_printf("%s (%s) : %s, fin après %d itération(s)\n",DEBUG_STR, __func__, pythonPlugin_server_name_str, 100-counter);
 
       
       free(_pythonPluginServer_thread_id);

@@ -65,6 +65,12 @@ struct tokens_strings_da_s
    char *xpltarget_str_c;
    char *xplschema_str_c;
    char *xplmsgtype_str_c;
+   char *xpl_trig_str_c;
+   char *xpl_stat_str_c;
+   char *xpl_cmnd_str_c;
+   char *xpl_pulse_str_c;
+   char *xpl_controlbasic_str_c;
+   char *xpl_sensorrequest_str_c;
 };
 
 extern struct tokens_strings_da_s *tokens_string_da;
@@ -115,7 +121,12 @@ extern struct tokens_strings_da_s *tokens_string_da;
 #define XPLTARGET_STR_C                  tokens_string_da->xpltarget_str_c
 #define XPLMSGTYPE_STR_C                 tokens_string_da->xplmsgtype_str_c
 #define XPLSCHEMA_STR_C                  tokens_string_da->xplschema_str_c
-
+#define XPL_TRIG_STR_C                   tokens_string_da->xpl_trig_str_c
+#define XPL_STAT_STR_C                   tokens_string_da->xpl_stat_str_c
+#define XPL_CMND_STR_C                   tokens_string_da->xpl_cmnd_str_c
+#define XPL_PULSE_STR_C                  tokens_string_da->xpl_pulse_str_c
+#define XPL_CONTROLBASIC_STR_C           tokens_string_da->xpl_controlbasic_str_c
+#define XPL_SENSORREQUEST_STR_C          tokens_string_da->xpl_sensorrequest_str_c
 #else
 
 #define DEVICE_PARAMETERS_STR_C          get_token_string_by_id(DEVICE_PARAMETERS_ID)
@@ -163,6 +174,12 @@ extern struct tokens_strings_da_s *tokens_string_da;
 #define XPLTARGET_STR_C                  get_token_string_by_id(XPLTARGET_ID)
 #define XPLMSGTYPE_STR_C                 get_token_string_by_id(XPLMSGTYPE_ID)
 #define XPLSCHEMA_STR_C                  get_token_string_by_id(XPLSCHEMA_ID)
+#define XPL_TRIG_STR_C                   get_token_string_by_id(XPL_TRIG_ID)
+#define XPL_STAT_STR_C                   get_token_string_by_id(XPL_STAT_ID)
+#define XPL_CMND_STR_C                   get_token_string_by_id(XPL_CMND_ID)
+#define XPL_PULSE_STR_C                  get_token_string_by_id(XPL_PULSE_ID)
+#define XPL_CONTROLBASIC_STR_C           get_token_string_by_id(XPL_CONTROLBASIC_ID)
+#define XPL_SENSORREQUEST_STR_C          get_token_string_by_id(XPL_SENSORREQUEST_ID)
 #endif
 
 int16_t init_strings_da();

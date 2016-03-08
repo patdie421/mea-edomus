@@ -50,7 +50,6 @@ static PyMethodDef MeaMethods[] = {
    {"xplGetVendorID",               mea_xplGetVendorID,               METH_VARARGS, "VendorID"},
    {"xplGetDeviceID",               mea_xplGetDeviceID,               METH_VARARGS, "DeviceID"},
    {"xplGetInstanceID",             mea_xplGetInstanceID,             METH_VARARGS, "InstanceID"},
-//   {"xplSendMsg",                   mea_xplSendMsg,                  METH_VARARGS, "Envoie un message XPL"},
    {"xplSendMsg",                   mea_xplSendMsg2,                  METH_VARARGS, "Envoie un message XPL"},
    {"addDataToSensorsValuesTable",  mea_addDataToSensorsValuesTable,  METH_VARARGS, "Envoi des donnees dans la table sensors_values"},
    {"sendSerialData",               mea_write,                        METH_VARARGS, "Envoi des donnees vers une ligne serie"},
@@ -72,8 +71,8 @@ void mea_api_release()
 // /!\ a ecrire pour librérer tous le contenu de la memoire partagé ...
    if(mea_memory)
       Py_DECREF(mea_memory);
-   if(mea_module)
-      Py_DECREF(mea_module);
+//   if(mea_module)
+//      Py_DECREF(mea_module);
 }
 
 
@@ -291,7 +290,8 @@ static PyObject *mea_xplSendMsg2(PyObject *self, PyObject *args)
    cJSON *xplMsgJson = cJSON_CreateObject();
  
    // recuperation du type de message
-   item = PyDict_GetItemString(PyXplMsg, "message_xpl_type");
+//   item = PyDict_GetItemString(PyXplMsg, "message_xpl_type");
+   item = PyDict_GetItemString(PyXplMsg, "msgtype");
    if(!item)
    {
        PyErr_SetString(PyExc_RuntimeError, "ERROR (mea_xplMsgSend) : xpl message no type");

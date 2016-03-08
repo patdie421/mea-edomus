@@ -21,6 +21,7 @@
 #include "arduino_pins.h"
 #include "parameters_utils.h"
 #include "tokens.h"
+#include "tokens_da.h"
 #include "mea_string_utils.h"
 
 #include "interface_type_001.h"
@@ -332,6 +333,7 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
 }
 */
 
+
 mea_error_t xpl_actuator2(interface_type_001_t *i001, cJSON *xplMsgJson, char *device, char *type)
 {
    int ret;
@@ -396,7 +398,7 @@ mea_error_t xpl_actuator2(interface_type_001_t *i001, cJSON *xplMsgJson, char *d
                   }
                   
                   (i001->indicators.nbactuatorsout)++;
-                  dbServer_add_data_to_sensors_values(iq->actuator_id, 1, 0, sval[1], "pulse");
+                  dbServer_add_data_to_sensors_values(iq->actuator_id, 1, 0, sval[1], XPL_PULSE_STR_C);
                   return NOERROR;
                   break;
                }

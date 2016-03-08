@@ -84,6 +84,12 @@ int16_t init_strings_da()
    tokens_string_da->xpltarget_str_c                  = get_token_string_by_id(XPLTARGET_ID);
    tokens_string_da->xplschema_str_c                  = get_token_string_by_id(XPLSCHEMA_ID);
    tokens_string_da->xplmsgtype_str_c                 = get_token_string_by_id(XPLMSGTYPE_ID);
+   tokens_string_da->xpl_trig_str_c                   = get_token_string_by_id(XPL_TRIG_ID);
+   tokens_string_da->xpl_stat_str_c                   = get_token_string_by_id(XPL_STAT_ID);
+   tokens_string_da->xpl_cmnd_str_c                   = get_token_string_by_id(XPL_CMND_ID);
+   tokens_string_da->xpl_pulse_str_c                  = get_token_string_by_id(XPL_PULSE_ID);
+   tokens_string_da->xpl_sensorrequest_str_c          = get_token_string_by_id(XPL_SENSORREQUEST_ID);
+   tokens_string_da->xpl_controlbasic_str_c           = get_token_string_by_id(XPL_CONTROLBASIC_ID);
 
 #endif
    return 0;

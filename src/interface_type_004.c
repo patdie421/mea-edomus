@@ -48,11 +48,12 @@
 // changement de couleur
 // ./xPLSend -m cmnd -c control.basic device=lampe001 current=#FF0000 type=color
 
-char *valid_hue_params[]={"S:HUELIGHT", "I:REACHABLE_USE", "S:HUEGROUP", "S:HUESCENE", NULL};
+//char *valid_hue_params[]={"S:HUELIGHT", "I:REACHABLE_USE", "S:HUEGROUP", "S:HUESCENE", NULL};
+char *valid_hue_params[]={"S:HUELIGHT", "I:REACHABLE_USE", "S:HUEGROUP", NULL};
 #define PARAMS_HUELIGH 0
 #define PARAMS_REACHABLE 1
 #define PARAMS_HUEGROUP 2
-#define PARAMS_HUESCENE 3
+// #define PARAMS_HUESCENE 3
 
 #define DEBUG_FLAG 1
 
@@ -76,7 +77,7 @@ int16_t sendXPLLightState2(interface_type_004_t *i004, char *xplMsgType, char *d
    char source[32];
    char schema[32];
    int n=0;
-   char *msgtype="xpl-cmnd";
+   char *msgtype=XPL_CMND_STR_C;
    int l=8;
  
    if(newState)
@@ -98,9 +99,9 @@ int16_t sendXPLLightState2(interface_type_004_t *i004, char *xplMsgType, char *d
       on_str=low;
    
    if(reachable)
-      reachable_str="true";
+      reachable_str=TRUE_STR_C;
    else
-      reachable_str="false";
+      reachable_str=FALSE_STR_C;
 
    cJSON *msg = NULL;
 
@@ -115,7 +116,7 @@ int16_t sendXPLLightState2(interface_type_004_t *i004, char *xplMsgType, char *d
    if(last != -1)
       cJSON_AddItemToObject(xplMsgJson, get_token_string_by_id(XPL_LAST_ID), cJSON_CreateString(last_state_str));
    cJSON_AddItemToObject(xplMsgJson, get_token_string_by_id(REACHABLE_ID), cJSON_CreateString(reachable_str));
-   cJSON_AddItemToObject(xplMsgJson, "on", cJSON_CreateString(on_str));
+   cJSON_AddItemToObject(xplMsgJson, ON_STR_C, cJSON_CreateString(on_str));
 
    // Broadcast the message
    mea_sendXPLMessage2(xplMsgJson);
@@ -144,7 +145,7 @@ int16_t sendAllxPLTrigger(interface_type_004_t *i004)
    {
       struct lightsListElem_s *e = NULL /*, *tmp = NULL */;
       
-      char *huename = my_cJSON_GetItemByName(currentLight, "name")->valuestring;
+      char *huename = my_cJSON_GetItemByName(currentLight, NAME_STR_C)->valuestring;
       
       char *deviceName=NULL;
       HASH_FIND(hh_huename, i004->lightsListByHueName, huename, strlen(huename), e);
@@ -153,11 +154,11 @@ int16_t sendAllxPLTrigger(interface_type_004_t *i004)
       
       if(deviceName)
       {
-         cJSON *stateCurrent = my_cJSON_GetItemByName(currentLight, "state");
+         cJSON *stateCurrent = my_cJSON_GetItemByName(currentLight, STATE_STR_C);
          if(stateCurrent)
          {
-            cJSON *onCurrent        = my_cJSON_GetItemByName(stateCurrent, "on");
-            cJSON *reachableCurrent = my_cJSON_GetItemByName(stateCurrent, "reachable");
+            cJSON *onCurrent        = my_cJSON_GetItemByName(stateCurrent, ON_STR_C);
+            cJSON *reachableCurrent = my_cJSON_GetItemByName(stateCurrent, REACHABLE_STR_C);
             int16_t state = 1;
             if(e->reachable_use == 1)
             {
@@ -165,7 +166,7 @@ int16_t sendAllxPLTrigger(interface_type_004_t *i004)
             }
             state = state & onCurrent->valueint;
             
-            sendXPLLightState2(i004, "xpl-trig", deviceName, state, reachableCurrent->valueint, onCurrent->valueint, -1);
+            sendXPLLightState2(i004, XPL_TRIG_STR_C, deviceName, state, reachableCurrent->valueint, onCurrent->valueint, -1);
          }
       }
       currentLight=currentLight->next;
@@ -194,7 +195,7 @@ int16_t whatChange(interface_type_004_t *i004)
       struct lightsListElem_s *e = NULL /*, *tmp = NULL */;
       
       char *_id = currentLight->string;
-      char *huename = my_cJSON_GetItemByName(currentLight, "name")->valuestring;
+      char *huename = my_cJSON_GetItemByName(currentLight, NAME_STR_C)->valuestring;
       
       char *deviceName=NULL;
       HASH_FIND(hh_huename, i004->lightsListByHueName, huename, strlen(huename), e);
@@ -204,14 +205,14 @@ int16_t whatChange(interface_type_004_t *i004)
       lastLight = cJSON_GetObjectItem(last, _id);
       if(deviceName && lastLight != NULL)
       {
-         cJSON *stateCurrent = my_cJSON_GetItemByName(currentLight, "state");
-         cJSON *stateLast    = my_cJSON_GetItemByName(lastLight,    "state");
+         cJSON *stateCurrent = my_cJSON_GetItemByName(currentLight, STATE_STR_C);
+         cJSON *stateLast    = my_cJSON_GetItemByName(lastLight,    STATE_STR_C);
          if(stateCurrent && stateLast)
          {
-            cJSON *onCurrent        = my_cJSON_GetItemByName(stateCurrent, "on");
-            cJSON *onLast           = my_cJSON_GetItemByName(stateLast,    "on");
-            cJSON *reachableCurrent = my_cJSON_GetItemByName(stateCurrent, "reachable");
-            cJSON *reachableLast    = my_cJSON_GetItemByName(stateLast,    "reachable");
+            cJSON *onCurrent        = my_cJSON_GetItemByName(stateCurrent, ON_STR_C);
+            cJSON *onLast           = my_cJSON_GetItemByName(stateLast,    ON_STR_C);
+            cJSON *reachableCurrent = my_cJSON_GetItemByName(stateCurrent, REACHABLE_STR_C);
+            cJSON *reachableLast    = my_cJSON_GetItemByName(stateLast,    REACHABLE_STR_C);
             int16_t newState = -1;
             if(e->reachable_use == 1)
             {
@@ -225,9 +226,9 @@ int16_t whatChange(interface_type_004_t *i004)
                else
                   newState = onCurrent->valueint;
                if(newState != 0)
-                  sendXPLLightState2(i004, "xpl-trig", deviceName, 1, reachableCurrent->valueint, onCurrent->valueint, 0);
+                  sendXPLLightState2(i004, XPL_TRIG_STR_C, deviceName, 1, reachableCurrent->valueint, onCurrent->valueint, 0);
                else
-                  sendXPLLightState2(i004, "xpl-trig", deviceName, 0, reachableCurrent->valueint, onCurrent->valueint, 1);
+                  sendXPLLightState2(i004, XPL_TRIG_STR_C, deviceName, 0, reachableCurrent->valueint, onCurrent->valueint, 1);
                
                (i004->indicators.lightschanges)++;
             }
@@ -239,199 +240,6 @@ int16_t whatChange(interface_type_004_t *i004)
    return 0;
 }
 
-/*
-int16_t interface_type_004_xPL_actuator(interface_type_004_t *i004, xPL_ServicePtr theService, xPL_NameValueListPtr ListNomsValeursPtr, char *device, char *type)
-{
-   int type_id = -1;
-   int16_t ret=-1;
-   char *sensor=NULL;
-   struct lightsListElem_s *e = NULL;
-   
-   type_id=get_token_id_by_string(type);
-   if(type_id != XPL_OUTPUT_ID && type_id != COLOR_ID)
-      return -1;
-   
-   // récupérer ici tous les éléments du message xpl
-   char *current_value=xPL_getNamedValue(ListNomsValeursPtr, get_token_string_by_id(XPL_CURRENT_ID));
-   if(!current_value)
-      return -1;
-   
-   int current_value_id=-1;
-   char *color_str=NULL;
-   if(type_id == XPL_OUTPUT_ID)
-      current_value_id=get_token_id_by_string(current_value);
-   else if (type_id == COLOR_ID)
-      color_str = current_value;
-   
-   int16_t state=-1;
-   int16_t on=-1;
-   int16_t reachable=-1;
-   int16_t reachable_use=-1;
-   uint32_t color=0xFFFFFFFF;
-   
-   int16_t id_sensor=-1;
-   
-   pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(i004->lock) );
-   pthread_mutex_lock(&(i004->lock));
-
-   DEBUG_SECTION2(DEBUGFLAG) {
-      mea_log_printf("%s  (%s) : processing %s (current_value_id = %d, type_id = %d)\n", DEBUG_STR, __func__, device, current_value_id, type_id);
-   }
-   HASH_FIND(hh_actuatorname, i004->lightsListByActuatorName, device, strlen(device), e);
-   if(e)
-   {
-      reachable_use = e->reachable_use;
-      id_sensor = e->id_sensor;
-      
-      switch(current_value_id)
-      {
-         case HIGH_ID:
-            ret=setLightStateByName(i004->currentHueLightsState, (char *)e->huename, 1, i004->server, i004->port, i004->user);
-            DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s  (%s) : setLightStateByName(%s, high) => ret = %d\n", DEBUG_STR, __func__, (char *)e->huename, ret);
-            state=1;
-            break;
-         case LOW_ID:
-            ret=setLightStateByName(i004->currentHueLightsState, (char *)e->huename, 0, i004->server, i004->port, i004->user);
-            DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s  (%s) : setLightStateByName(%s, low) => ret = %d\n", DEBUG_STR, __func__, (char *)e->huename, ret);
-            state=0;
-            break;
-         default:
-            if(type_id == COLOR_ID)
-            {
-               int n=0,l=0;
-               
-               n=sscanf(color_str,"#%6x%n",&color, &l);
-               if(n==1 && l==strlen(color_str))
-               {
-                  if(color==0) // off => on envoie low
-                  {
-                     ret=setLightStateByName(i004->currentHueLightsState, (char *)e->huename, 0, i004->server, i004->port, i004->user);
-                     DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s  (%s) : setLightStateByName(%s, low) => ret = %d\n", DEBUG_STR, __func__, (char *)e->huename, ret);
-                     state=0;
-                  }
-                  else // on envoie la couleur
-                  {
-                     ret=setLightColorByName(i004->currentHueLightsState, (char *)e->huename, color, i004->server, i004->port, i004->user);
-                     DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s  (%s) : setLightColorByName(%s, %d) => ret = %d\n", DEBUG_STR, __func__, (char *)e->huename, color, ret);
-                     state=1;
-                  }
-               }
-               else
-               {
-                  color=0xFFFFFFFF;
-               }
-            }
-            else
-               ret=-1;
-            break;
-      }
-      if(ret!=-1)
-      {
-         if(state != ret)
-            (i004->indicators.lightschanges)++;
-      }
-   }
-   else
-   {
-      DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s  (%s) : device %s not found in lights list, try in groups list\n", DEBUG_STR, __func__, device);
-
-      struct groupsListElem_s *g = NULL;
-      HASH_FIND(hh_groupname, i004->groupsListByGroupName, device, strlen(device), g);
-      if(g)
-      {
-         // traiter
-         switch(current_value_id)
-         {
-            case HIGH_ID:
-               ret=setGroupStateByName(i004->allGroups, (char *)g->huegroupname, 1, i004->server, i004->port, i004->user);
-               break;
-            case LOW_ID:
-               ret=setGroupStateByName(i004->allGroups, (char *)g->huegroupname, 0, i004->server, i004->port, i004->user);
-               break;
-            default:
-               if(type_id == COLOR_ID)
-               {
-                  int n=0,l=0;
-                  
-                  n=sscanf(color_str,"#%6x%n",&color, &l);
-                  if(n==1 && l==strlen(color_str))
-                  {
-                     if(color==0) // off => on envoie low
-                     {
-                        ret=setGroupStateByName(i004->allGroups, (char *)g->huegroupname, 0, i004->server, i004->port, i004->user);
-                     }
-                     else // on envoie la couleur
-                     {
-                        ret=setGroupColorByName(i004->allGroups, (char *)g->huegroupname, color, i004->server, i004->port, i004->user);
-                     }
-                  }
-                  else
-                  {
-                     color=0xFFFFFFFF;
-                  }
-               }
-               else
-                  ret=-1;
-               break;
-         }
-      }
-      else
-      {
-         DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s  (%s) : device %s not found in groups list, try in scenes list\n", DEBUG_STR, __func__, device);
-         struct scenesListElem_s *s = NULL;
-         HASH_FIND(hh_scenename, i004->scenesListBySceneName, device, strlen(device), s);
-         if(s)
-         {
-            // traiter
-            switch(current_value_id)
-            {
-               case HIGH_ID:
-                  ret=setGroupStateByName(i004->allScenes, (char *)s->huescenename, 1, i004->server, i004->port, i004->user);
-                  break;
-               case LOW_ID:
-                  ret=setGroupStateByName(i004->allScenes, (char *)s->huescenename, 0, i004->server, i004->port, i004->user);
-                  break;
-               default:
-                  ret=-1;
-                  break;
-            }
-         }
-         else
-         {
-            DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s  (%s) : device %s not found !!!\n", DEBUG_STR, __func__, device);
-            ret = -1;
-         }
-      }
-   }
-   
-   if(ret!=-1 && id_sensor>0) // si aussi un capteur, on récupère les info avec de libérer le verrou
-   {
-      getLightStateByName(i004->currentHueLightsState, (char *)e->huename, &on, &reachable);
-      if(e->sensorname)
-      {
-         sensor = (char *)malloc(strlen(e->sensorname)+1);
-         strcpy(sensor,e->sensorname);
-      }
-   }
-   
-   pthread_mutex_unlock(&(i004->lock));
-   pthread_cleanup_pop(0);
-   
-   if(ret != -1 && id_sensor>0)
-   {
-      if( (on!=-1 && type_id == XPL_OUTPUT_ID) || color != 0xFFFFFFFF) // si on a des info (on != -1), c'est donc qu'on doit envoyer un message xpl
-      {
-         if(reachable_use==1)
-            state = state & reachable;
-         sendXPLLightState(i004, mea_getXPLServicePtr(), xPL_MESSAGE_TRIGGER, sensor, state, reachable, on, -1);
-      }
-
-      if(sensor)
-         free(sensor);
-   }
-   return ret;
-}
-*/
 
 int16_t interface_type_004_xPL_actuator2(interface_type_004_t *i004, cJSON *xplMsgJson, char *device, char *type)
 {
@@ -445,7 +253,7 @@ int16_t interface_type_004_xPL_actuator2(interface_type_004_t *i004, cJSON *xplM
    type_id=get_token_id_by_string(type);
    if(type_id != XPL_OUTPUT_ID && type_id != COLOR_ID)
       return -1;
-   
+
    // récupérer ici tous les éléments du message xpl
    j = cJSON_GetObjectItem(xplMsgJson,get_token_string_by_id(XPL_CURRENT_ID));
    if(j)
@@ -484,13 +292,11 @@ int16_t interface_type_004_xPL_actuator2(interface_type_004_t *i004, cJSON *xplM
       switch(current_value_id)
       {
          case HIGH_ID:
-            fprintf(stderr,"LA1 %s\n",e->huename);
             ret=setLightStateByName(i004->currentHueLightsState, (char *)e->huename, 1, i004->server, i004->port, i004->user);
             DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s  (%s) : setLightStateByName(%s, high) => ret = %d\n", DEBUG_STR, __func__, (char *)e->huename, ret);
             state=1;
             break;
          case LOW_ID:
-            fprintf(stderr,"LA2 %s\n",e->huename);
             ret=setLightStateByName(i004->currentHueLightsState, (char *)e->huename, 0, i004->server, i004->port, i004->user);
             DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s  (%s) : setLightStateByName(%s, low) => ret = %d\n", DEBUG_STR, __func__, (char *)e->huename, ret);
             state=0;
@@ -575,6 +381,7 @@ int16_t interface_type_004_xPL_actuator2(interface_type_004_t *i004, cJSON *xplM
                break;
          }
       }
+/*
       else
       {
          DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s  (%s) : device %s not found in groups list, try in scenes list\n", DEBUG_STR, __func__, device);
@@ -602,6 +409,12 @@ int16_t interface_type_004_xPL_actuator2(interface_type_004_t *i004, cJSON *xplM
             ret = -1;
          }
       }
+*/
+      else
+      {
+         DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s  (%s) : device %s not found !!!\n", DEBUG_STR, __func__, device);
+         ret = -1;
+      }
    }
    
    if(ret!=-1 && id_sensor>0) // si aussi un capteur, on récupère les info avec de libérer le verrou
@@ -623,7 +436,7 @@ int16_t interface_type_004_xPL_actuator2(interface_type_004_t *i004, cJSON *xplM
       {
          if(reachable_use==1)
             state = state & reachable;
-         sendXPLLightState2(i004, "xpl-trig", sensor, state, reachable, on, -1);
+         sendXPLLightState2(i004, XPL_TRIG_STR_C, sensor, state, reachable, on, -1);
       }
 
       if(sensor)
@@ -684,7 +497,7 @@ int16_t interface_type_004_xPL_sensor(interface_type_004_t *i004, xPL_ServicePtr
    pthread_cleanup_pop(0);
    
    if(ret==0)
-      sendXPLLightState2(i004, "xpl-stat", device, state, reachable, on, 0);
+      sendXPLLightState2(i004, XPL_STAT_STR_C, device, state, reachable, on, 0);
    
    return ret;
 }
@@ -741,65 +554,11 @@ int16_t interface_type_004_xPL_sensor2(interface_type_004_t *i004, cJSON *xplMsg
    pthread_cleanup_pop(0);
    
    if(ret==0)
-      sendXPLLightState2(i004, "xpl-stat", device, state, reachable, on, 0);
+      sendXPLLightState2(i004, XPL_STAT_STR_C, device, state, reachable, on, 0);
    
    return ret;
 }
 
-
-/*
-int16_t interface_type_004_xPL_callback(xPL_ServicePtr theService, xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
-{
-   xPL_NameValueListPtr ListNomsValeursPtr ;
-   char *schema_type = NULL, *schema_class = NULL, *device = NULL, *type = NULL;
-   interface_type_004_t *i004=(interface_type_004_t *)userValue;
-   schema_class       = xPL_getSchemaClass(theMessage);
-   schema_type        = xPL_getSchemaType(theMessage);
-   ListNomsValeursPtr = xPL_getMessageBody(theMessage);
-   device             = xPL_getNamedValue(ListNomsValeursPtr, get_token_string_by_id(XPL_DEVICE_ID));
-   type               = xPL_getNamedValue(ListNomsValeursPtr, get_token_string_by_id(XPL_TYPE_ID));
-   
-   mea_strtolower(device);
-   
-   (i004->indicators.xplin)++;
-   
-   VERBOSE(9) mea_log_printf("%s  (%s) : xPL Message to process : %s.%s\n",INFO_STR,__func__,schema_class,schema_type);
-   
-   if(mea_strcmplower(schema_class, get_token_string_by_id(XPL_CONTROL_ID)) == 0 &&
-      mea_strcmplower(schema_type, get_token_string_by_id(XPL_BASIC_ID)) == 0)
-   {
-      if(!device)
-      {
-         VERBOSE(5) mea_log_printf("%s  (%s) : xPL message no device\n",INFO_STR,__func__);
-         return -1;
-      }
-      if(!type)
-      {
-         VERBOSE(5) mea_log_printf("%s  (%s) : xPL message no type\n",INFO_STR,__func__);
-         return -1;
-      }
-      return interface_type_004_xPL_actuator(i004, theService, ListNomsValeursPtr, device, type);
-   }
-   else if(mea_strcmplower(schema_class, get_token_string_by_id(XPL_SENSOR_ID)) == 0 &&
-           mea_strcmplower(schema_type, get_token_string_by_id(XPL_REQUEST_ID)) == 0)
-   {
-      char *request = xPL_getNamedValue(ListNomsValeursPtr, get_token_string_by_id(XPL_REQUEST_ID));
-      if(!request)
-      {
-         VERBOSE(5) mea_log_printf("%s  (%s) : xPL message no request\n",INFO_STR,__func__);
-         return -1;
-      }
-      if(mea_strcmplower(request,get_token_string_by_id(XPL_CURRENT_ID))!=0)
-      {
-         VERBOSE(5) mea_log_printf("%s  (%s) : xPL message request!=current\n",INFO_STR,__func__);
-         return -1;
-      }
-      return interface_type_004_xPL_sensor(i004, theService, theMessage, device, type);
-   }
-   
-   return 0;
-}
-*/
 
 int16_t interface_type_004_xPL_callback2(cJSON *xplMsgJson, xPL_ObjectPtr userValue)
 {
@@ -813,7 +572,7 @@ int16_t interface_type_004_xPL_callback2(cJSON *xplMsgJson, xPL_ObjectPtr userVa
       schema = j->valuestring;
    else
    {
-      VERBOSE(5) mea_log_printf("%s (%s) : xPL message no schema\n", INFO_STR, __func__);
+      VERBOSE(9) mea_log_printf("%s (%s) : xPL message no schema\n", INFO_STR, __func__);
       return 0;
    }
 
@@ -826,12 +585,12 @@ int16_t interface_type_004_xPL_callback2(cJSON *xplMsgJson, xPL_ObjectPtr userVa
       type=j->valuestring;
 
    mea_strtolower(device);
-   
+  
    (i004->indicators.xplin)++;
    
    VERBOSE(9) mea_log_printf("%s  (%s) : xPL Message to process : %s\n",INFO_STR,__func__,schema);
    
-   if(mea_strcmplower(schema, "control.basic") == 0)
+   if(mea_strcmplower(schema, XPL_CONTROLBASIC_STR_C) == 0)
    {
       if(!device)
       {
@@ -845,7 +604,7 @@ int16_t interface_type_004_xPL_callback2(cJSON *xplMsgJson, xPL_ObjectPtr userVa
       }
       return interface_type_004_xPL_actuator2(i004, xplMsgJson, device, type);
    }
-   else if(mea_strcmplower(schema, "sensor.request") == 0)
+   else if(mea_strcmplower(schema, XPL_SENSORREQUEST_STR_C) == 0)
    {
       char *request = NULL;
       j = cJSON_GetObjectItem(xplMsgJson, get_token_string_by_id(XPL_REQUEST_ID));
@@ -898,7 +657,7 @@ void *_thread_interface_type_004(void *thread_data)
       i004->allGroups=NULL;
    }
    i004->allGroups = getAllGroups(server, port, user); // à recharger ensuite régulièrement
-   i004->allScenes = getAllScenes(server, port, user); // à recharger ensuite régulièrement
+//   i004->allScenes = getAllScenes(server, port, user); // à recharger ensuite régulièrement
    
    mea_timer_t sendAllxPLTriggerTimer, getAllGroupsAndScenesTimer;
    
@@ -906,7 +665,8 @@ void *_thread_interface_type_004(void *thread_data)
    mea_start_timer(&sendAllxPLTriggerTimer);
    mea_init_timer(&getAllGroupsAndScenesTimer, 600, 1); // lecture des groupes toutes les 10 min (600 secondes)
    mea_start_timer(&getAllGroupsAndScenesTimer);
-   
+   pthread_t *me = i004->thread;
+ 
    while(1)
    {
       pthread_testcancel();
@@ -917,6 +677,9 @@ void *_thread_interface_type_004(void *thread_data)
       process_update_indicator(i004->monitoring_id, I004_LIGHSCHANGES, i004->indicators.lightschanges);
       
       cJSON *allLights = getAllLights(server, port, user);
+      if(me != i004->thread)
+         pthread_exit(NULL);
+
       if(!allLights)
       {
          VERBOSE(2) {
@@ -956,6 +719,8 @@ void *_thread_interface_type_004(void *thread_data)
          
          tmp = NULL;
          cJSON *allGroups = getAllGroups(server, port, user);
+         if(me != i004->thread)
+            pthread_exit(NULL);
          if(allGroups)
          {
             pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(i004->lock) );
@@ -970,7 +735,7 @@ void *_thread_interface_type_004(void *thread_data)
             if(tmp)
                cJSON_Delete(tmp);
          }
-         
+/*         
          tmp = NULL;
          cJSON *allScenes = getAllScenes(server, port, user);
          if(allScenes)
@@ -987,8 +752,8 @@ void *_thread_interface_type_004(void *thread_data)
             if(tmp)
                cJSON_Delete(tmp);
          }
+*/      
       }
-      
       
    _thread_interface_type_004_next_loop:
       sleep(5);
@@ -1053,7 +818,7 @@ int _interface_type_004_clean_configs_lists(interface_type_004_t *i004)
       i004->groupsListByGroupName=NULL;
    }
 
-
+/*
    if(i004->scenesListBySceneName)
    {
       struct scenesListElem_s *s = NULL, *ts = NULL;
@@ -1070,7 +835,7 @@ int _interface_type_004_clean_configs_lists(interface_type_004_t *i004)
       }
       i004->scenesListBySceneName=NULL;
    }
-   
+*/   
    return 0;
 }
 
@@ -1117,12 +882,13 @@ int load_interface_type_004(interface_type_004_t *i004, sqlite3 *db)
          hue_params=alloc_parsed_parameters((char *)parameters, valid_hue_params, &nb_hue_params, &nerr, 0);
          if(hue_params && nb_hue_params>0)
          {
-            int params_test = (hue_params->parameters[PARAMS_HUELIGH].value.s != NULL) + (hue_params->parameters[PARAMS_HUEGROUP].value.s != NULL) + (hue_params->parameters[PARAMS_HUESCENE].value.s != NULL);
+//            int params_test = (hue_params->parameters[PARAMS_HUELIGH].value.s != NULL) + (hue_params->parameters[PARAMS_HUEGROUP].value.s != NULL) + (hue_params->parameters[PARAMS_HUESCENE].value.s != NULL);
+            int params_test = (hue_params->parameters[PARAMS_HUELIGH].value.s != NULL) + (hue_params->parameters[PARAMS_HUEGROUP].value.s != NULL);
             
             if(params_test != 1)
             {
                VERBOSE(2) {
-                  mea_log_printf("%s (%s) : a HUELIGH, HUEGROUP or HUESCENE parameter is mandatory and only one ... (device %s skipped)", WARNING_STR, __func__, name);
+                  mea_log_printf("%s (%s) : a HUELIGHT, HUEGROUP or HUESCENE parameter is mandatory and only one ... (device %s skipped)", WARNING_STR, __func__, name);
                }
                continue;
             }
@@ -1267,6 +1033,7 @@ int load_interface_type_004(interface_type_004_t *i004, sqlite3 *db)
                   }
                }
             }
+/*
             else if(hue_params->parameters[PARAMS_HUESCENE].value.s) // c'est une scene ?
             {
                if(id_type != 501)
@@ -1318,6 +1085,7 @@ int load_interface_type_004(interface_type_004_t *i004, sqlite3 *db)
                   }
                }
             }
+*/
             release_parsed_parameters(&hue_params);
          }
          else
@@ -1438,9 +1206,9 @@ interface_type_004_t *malloc_and_init_interface_type_004(sqlite3 *sqlite3_param_
    i004->lightsListByActuatorName=NULL;
    i004->lightsListBySensorName=NULL;
    i004->groupsListByGroupName=NULL;
-   i004->scenesListBySceneName=NULL;
+//   i004->scenesListBySceneName=NULL;
    i004->allGroups=NULL;
-   i004->allScenes=NULL;
+//   i004->allScenes=NULL;
    i004->lastHueLightsState=NULL;
    i004->currentHueLightsState=NULL;
    i004->server[0]=0;
@@ -1517,17 +1285,13 @@ int stop_interface_type_004(int my_id, void *data, char *errmsg, int l_errmsg)
    
    struct interface_type_004_start_stop_params_s *start_stop_params=(struct interface_type_004_start_stop_params_s *)data;
    
-   VERBOSE(1) mea_log_printf("%s  (%s) : %s shutdown thread ... ", INFO_STR, __func__, start_stop_params->i004->name);
+   VERBOSE(1) mea_log_printf("%s  (%s) : %s shutdown thread ...\n", INFO_STR, __func__, start_stop_params->i004->name);
    
-//   if(start_stop_params->i004->xPL_callback)
-//   {
-//      start_stop_params->i004->xPL_callback=NULL;
-//   }
    if(start_stop_params->i004->xPL_callback2)
    {
       start_stop_params->i004->xPL_callback2=NULL;
    }
-   
+  
    if(start_stop_params->i004->thread)
    {
       pthread_cancel(*(start_stop_params->i004->thread));
@@ -1541,12 +1305,9 @@ int stop_interface_type_004(int my_id, void *data, char *errmsg, int l_errmsg)
             usleep(100); // will sleep for 10 ms
          }
          else
-         {
-//            stopped=0;
             break;
-         }
       }
-      DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s (%s) : %s, fin après %d itération\n", DEBUG_STR, __func__, start_stop_params->i004->name, 100-counter);
+      DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s (%s) : %s, fin après %d itération(s)\n", DEBUG_STR, __func__, start_stop_params->i004->name, 100-counter);
       
       free(start_stop_params->i004->thread);
       start_stop_params->i004->thread=NULL;
@@ -1669,7 +1430,7 @@ start_interface_type_004_clean_exit:
    
    return -1;
 }
-
+/*END*/
 /* LIGHTS
  {
 	"1":	{

@@ -263,7 +263,7 @@ int16_t interface_type_001_sensors_process_traps2(int16_t numTrap, char *data, i
 
       char str[256];     
       cJSON *xplMsgJson = cJSON_CreateObject(); 
-      cJSON_AddItemToObject(xplMsgJson, XPLMSGTYPE_STR_C, cJSON_CreateString("xpl-trig"));
+      cJSON_AddItemToObject(xplMsgJson, XPLMSGTYPE_STR_C, cJSON_CreateString(XPL_TRIG_STR_C));
       sprintf(str,"%s.%s", get_token_string_by_id(XPL_SENSOR_ID), get_token_string_by_id(XPL_BASIC_ID));
       cJSON_AddItemToObject(xplMsgJson, XPLSCHEMA_STR_C, cJSON_CreateString(str));
       cJSON_AddItemToObject(xplMsgJson, get_token_string_by_id(XPL_TYPE_ID), cJSON_CreateString(get_token_string_by_id(XPL_INPUT_ID)));
@@ -512,9 +512,9 @@ mea_error_t interface_type_001_sensors_process_xpl_msg_(interface_type_001_t *i0
                if(sensor->arduino_pin_type==DIGITAL_ID)
                {
                   if(sensor->val==0)
-                     sprintf(value,"low");
+                     sprintf(value,LOW_STR_C);
                   else
-                     sprintf(value,"high");
+                     sprintf(value,HIGH_STR_C);
                   unit=NULL;
                   send_xpl_flag=1;
                }
@@ -675,9 +675,9 @@ mea_error_t interface_type_001_sensors_process_xpl_msg2(interface_type_001_t *i0
                if(sensor->arduino_pin_type==DIGITAL_ID)
                {
                   if(sensor->val==0)
-                     sprintf(value,"low");
+                     sprintf(value, LOW_STR_C);
                   else
-                     sprintf(value,"high");
+                     sprintf(value, HIGH_STR_C);
                   unit=NULL;
                   send_xpl_flag=1;
                }
@@ -706,7 +706,7 @@ mea_error_t interface_type_001_sensors_process_xpl_msg2(interface_type_001_t *i0
             cJSON *j = NULL;
             cJSON *msg_json = cJSON_CreateObject();
 
-            cJSON_AddItemToObject(msg_json, XPLMSGTYPE_STR_C,  cJSON_CreateString("xpl-stat"));
+            cJSON_AddItemToObject(msg_json, XPLMSGTYPE_STR_C,  cJSON_CreateString(XPL_STAT_STR_C));
 
             sprintf(str,"%s.%s", get_token_string_by_id(XPL_SENSOR_ID), get_token_string_by_id(XPL_BASIC_ID));
 
@@ -928,7 +928,7 @@ int16_t interface_type_001_sensors_poll_inputs2(interface_type_001_t *i001)
 
 
                   cJSON *xplMsgJson = cJSON_CreateObject();
-                  cJSON_AddItemToObject(xplMsgJson, XPLMSGTYPE_STR_C, cJSON_CreateString("xpl-trig"));
+                  cJSON_AddItemToObject(xplMsgJson, XPLMSGTYPE_STR_C, cJSON_CreateString(XPL_TRIG_STR_C));
                   sprintf(str,"%s.%s", get_token_string_by_id(XPL_SENSOR_ID), get_token_string_by_id(XPL_BASIC_ID));
                   cJSON_AddItemToObject(xplMsgJson, XPLSCHEMA_STR_C, cJSON_CreateString(str));
                   cJSON_AddItemToObject(xplMsgJson, get_token_string_by_id(XPL_DEVICE_ID), cJSON_CreateString(sensor->name));

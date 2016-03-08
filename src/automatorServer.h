@@ -14,6 +14,15 @@
 #include "xPL.h"
 #include "cJSON.h"
 
+#define DEBUGFLAG_AUTOMATOR 1
+
+#if DEBUGFLAG_AUTOMATOR > 0
+extern char *_automatorServer_fn;
+extern char *_automatorEvalStrArg;
+extern char *_automatorEvalStrCaller;
+extern char _automatorEvalStrOperation;
+#endif
+
 extern char *automator_server_name_str;
 extern char *automator_input_exec_time_str;
 extern char *automator_output_exec_time_str;

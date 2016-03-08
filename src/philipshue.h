@@ -10,7 +10,7 @@ extern char *apiStateTemplate;
 extern char *apiLightsTemplate;
 
 
-cJSON *getAllScenes(char *server, int port, char *user);
+//cJSON *getAllScenes(char *server, int port, char *user);
 cJSON *getAllGroups(char *server, int port, char *user);
 cJSON *getAllLights(char *server, int port, char *user);
 

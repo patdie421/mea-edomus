@@ -118,13 +118,16 @@ cJSON *mea_xPL2JSON(xPL_MessagePtr msg)
    switch(xPL_getMessageType(msg))
    {
       case xPL_MESSAGE_COMMAND:
-         msgtype="xpl-cmnd";
+//         msgtype="xpl-cmnd";
+         msgtype=XPL_CMND_STR_C;
          break;
       case xPL_MESSAGE_STATUS:
-         msgtype="xpl-stat";
+//         msgtype="xpl-stat";
+         msgtype=XPL_STAT_STR_C;
          break;
       case xPL_MESSAGE_TRIGGER:
-         msgtype="xpl-trig";
+//         msgtype="xpl-trig";
+         msgtype=XPL_TRIG_STR_C;
          break;
    }
    cJSON_AddItemToObject(msg_json, XPLMSGTYPE_STR_C, cJSON_CreateString(msgtype));
@@ -760,7 +763,7 @@ int stop_xPLServer(int my_id, void *data,  char *errmsg, int l_errmsg)
    }   
 
    xPL_shutdown();
-   fprintf(stderr, "xPL_shutdown\n");
+//   fprintf(stderr, "xPL_shutdown\n");
 
    if(ret==0)
    {

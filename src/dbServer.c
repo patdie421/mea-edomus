@@ -55,12 +55,6 @@ typedef struct dbServer_md_s
 
 } dbServer_md_t;
 
-/*
-#ifdef DEBUG_SECTION
-#undef DEBUG_SECTION
-#define DEBUG_SECTION if(0)
-#endif
-*/
 
 const char *db_server_name_str="DBSERVER";
 
@@ -905,7 +899,7 @@ int stop_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
 //               stopped=0;
                break;
             }
-            DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, fin après %d itération (%d)\n",DEBUG_STR, __func__,500-counter,(int)(time(NULL)-now));
+            DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, fin après %d itération(s) (%d)\n",DEBUG_STR, __func__,500-counter,(int)(time(NULL)-now));
          }
       }
       

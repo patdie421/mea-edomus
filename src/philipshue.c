@@ -25,7 +25,7 @@ char *apiLightStateTemplate = "/api/%s/lights/%d/state";
 char *apiGroupStateTemplate = "/api/%s/groups/%d/action";
 char *apiLightsListTemplate = "/api/%s/lights";
 char *apiGroupsListTemplate = "/api/%s/groups";
-char *apiscenesListTemplate = "/api/%s/scenes"; // à vérifier ...
+//char *apiscenesListTemplate = "/api/%s/scenes"; // à vérifier ...
 
 char *apiOnxyBriColorTemplate = "{\"on\": true, \"xy\" : [%f, %f], \"bri\" : %d}";
 char *apiLightStateOnTemplate = "/lights/%s/state/on";
@@ -258,18 +258,19 @@ int16_t _setOnOffState(int id, char *template, int16_t state, char *server, int 
    snprintf(url, sizeof(url) - 1, template, user, id);
    snprintf(request, sizeof(request) - 1, "{\"on\":%s}", _bool);
 
+
    l_response=sizeof(response);
    char *httpResponseDataPtr = httpRequest(HTTP_PUT, server, port, url, request, strlen(request), response, &l_response, &nerr);
    if(!httpResponseDataPtr)
    {
-      VERBOSE(5) fprintf(MEA_STDERR, "%s : httpRequest() error (%d)\n", __func__, nerr);
+      VERBOSE(5) mea_log_printf("%s : httpRequest() error (%d)\n", __func__, nerr);
       return -1;
    }
-   
+
    int httpResponseStatus = httpGetResponseStatusCode(response, l_response);
    if(httpResponseStatus != 200)
    {
-      VERBOSE(5) fprintf(MEA_STDERR, "%s : http error = %d\n", __func__, httpResponseStatus);
+      VERBOSE(5) mea_log_printf("%s : http error = %d\n", __func__, httpResponseStatus);
       return -1;
    }
 
@@ -297,6 +298,7 @@ int16_t _setOnOffState(int id, char *template, int16_t state, char *server, int 
 int16_t setGroupStateByName(cJSON *allGroups, char *name, int16_t state, char *server, int port, char *user)
 {
    int16_t id;
+
    if(allGroups == NULL)
       return 0;
    cJSON *group = getGroupIdByName(allGroups, name, &id);
@@ -358,14 +360,14 @@ int16_t setRGBColor(int id, char *template, uint32_t color, char *server, int po
    char *httpResponseDataPtr = httpRequest(HTTP_PUT, server, port, url, request, strlen(request), response, &l_response, &nerr);
    if(!httpResponseDataPtr)
    {
-      VERBOSE(5) fprintf(MEA_STDERR, "%s : httpRequest() error (%d)\n", __func__, nerr);
+      VERBOSE(5) mea_log_printf("%s : httpRequest() error (%d)\n", __func__, nerr);
       return -1;
    }
    
    int httpResponseStatus = httpGetResponseStatusCode(response, l_response);
    if(httpResponseStatus != 200)
    {
-      VERBOSE(5) fprintf(MEA_STDERR, "%s : http error = %d\n", __func__, httpResponseStatus);
+      VERBOSE(5) mea_log_printf("%s : http error = %d\n", __func__, httpResponseStatus);
       return -1;
    }
 
@@ -445,7 +447,7 @@ cJSON *_getAll(char *template, char *server, int port, char *user)
    if(!httpResponseDataPtr)
    {
       DEBUG_SECTION {
-         mea_log_printf("%s (%s) : no data in response (error = %d)\n", __func__, ERROR_STR, nerr);
+         mea_log_printf("%s (%s) : no data in response (error = %d)\n", ERROR_STR, __func__, nerr);
       }
       return NULL;
    }
@@ -454,7 +456,7 @@ cJSON *_getAll(char *template, char *server, int port, char *user)
    if(httpResponseStatus != 200)
    {
       DEBUG_SECTION {
-         mea_log_printf("%s (%s) : http error = %d\n", __func__, ERROR_STR, httpResponseStatus);
+         mea_log_printf("%s (%s) : http error = %d\n", ERROR_STR, __func__, httpResponseStatus);
       }
    }
    else
@@ -464,7 +466,7 @@ cJSON *_getAll(char *template, char *server, int port, char *user)
       if (!all)
       {
          DEBUG_SECTION {
-            mea_log_printf("%s (%s) : Error before:\n...[%80s]...\n", __func__, ERROR_STR, cJSON_GetErrorPtr());
+            mea_log_printf("%s (%s) : Error before:\n...[%80s]...\n", ERROR_STR, __func__, cJSON_GetErrorPtr());
          }
          return NULL;
       }
@@ -477,12 +479,12 @@ cJSON *_getAll(char *template, char *server, int port, char *user)
    return NULL;
 }
 
-
+/*
 cJSON *getAllScenes(char *server, int port, char *user)
 {
    return _getAll(apiscenesListTemplate, server, port, user);
 }
-
+*/
 
 cJSON *getAllGroups(char *server, int port, char *user)
 {

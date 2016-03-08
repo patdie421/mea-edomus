@@ -1140,7 +1140,7 @@ int stop_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
             break;
          }
       }
-      DEBUG_SECTION mea_log_printf("%s (%s) : %s, fin après %d itération\n",DEBUG_STR, __func__,start_stop_params->i002->name,100-counter);
+      DEBUG_SECTION mea_log_printf("%s (%s) : %s, fin après %d itération(s)\n",DEBUG_STR, __func__,start_stop_params->i002->name,100-counter);
 
       free(start_stop_params->i002->thread);
       start_stop_params->i002->thread=NULL;

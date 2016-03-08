@@ -318,12 +318,12 @@ static int getSunRiseSetOrTwilingStartEnd(double lon, double lat, time_t *_start
       break;
 
       case +1:
-         fprintf(stderr, "Sun above horizon\n");
+         DEBUG_SECTION2(DEBUGFLAG) fprintf(stderr, "Sun above horizon\n");
          return -1;
          break;
 
       case -1:
-         fprintf(stderr, "Sun below horizon\n");
+         DEBUG_SECTION2(DEBUGFLAG) fprintf(stderr, "Sun below horizon\n");
          return -1;
          break;
    }
@@ -615,7 +615,7 @@ void *_timeServer_thread(void *data)
 
       if((last_te_tv_sec != te.tv_sec) && (te.tv_sec % 60) == 0) // toutes les minutes
       {
-         DEBUG_SECTION {
+         DEBUG_SECTION2(DEBUGFLAG) {
             mea_log_printf("Traitement minute\n");
          }
          localtime_r(&(mea_time_value), &mea_tm); // conversion en tm
@@ -623,7 +623,7 @@ void *_timeServer_thread(void *data)
 
       if((te.tv_sec % 3600) == 0) // toutes les heures;
       {
-         DEBUG_SECTION {
+         DEBUG_SECTION2(DEBUGFLAG) {
             mea_log_printf("Traitement heure\n");
          }
          mea_clean_datetime_values_cache(); // on fait le ménage dans le cache
@@ -631,7 +631,7 @@ void *_timeServer_thread(void *data)
 
       if(mea_tm.tm_wday != current_day) // 1x par jour
       {
-         DEBUG_SECTION {
+         DEBUG_SECTION2(DEBUGFLAG) {
             mea_log_printf("Traitement jour\n");
          }
          current_day = mea_tm.tm_wday;
@@ -728,7 +728,7 @@ pthread_t *timeServer()
       goto timeServer_clean_exit;
    }
    pthread_detach(*timeServer_thread);
-   fprintf(stderr,"DATATIMESERVER : %x\n", (unsigned int)*timeServer_thread);
+   DEBUG_SECTION2(DEBUGFLAG) fprintf(stderr,"DATATIMESERVER : %x\n", (unsigned int)*timeServer_thread);
 
    if(timeServer_thread)
       return timeServer_thread;

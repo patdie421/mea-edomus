@@ -31,6 +31,13 @@
 #include "automatorServer.h"
 #include "datetimeServer.h"
 
+#if DEBUGFLAG_AUTOMATOR > 0
+char *_automatorServer_fn = "";
+char *_automatorEvalStrCaller = "";
+char *_automatorEvalStrArg = "";
+char _automatorEvalStrOperation = '0';
+#endif
+
 char *automator_server_name_str="AUTOMATORSERVER";
 char *automator_input_exec_time_str="INEXECTIME";
 char *automator_output_exec_time_str="OUTEXECTIME";
@@ -76,7 +83,9 @@ void setAutomatorRulesFile(char *file)
 
 mea_error_t automatorServer_add_msg(cJSON *msg_json)
 {
+#if DEBUGFLAG_AUTOMATOR > 0
    _automatorServer_fn = (char *)__func__;
+#endif
 
    automator_msg_t *e=NULL;
    int ret=NOERROR;
@@ -129,7 +138,9 @@ automatorServer_add_msg_clean_exit:
 
 int automatorServer_send_all_inputs()
 {
+#if DEBUGFLAG_AUTOMATOR > 0
    _automatorServer_fn = (char *)__func__;
+#endif
 
    automator_send_all_inputs_flag = 1;
    
@@ -139,7 +150,9 @@ int automatorServer_send_all_inputs()
 
 int automatorServer_timer_wakeup(char *name, void *userdata)
 {
+#if DEBUGFLAG_AUTOMATOR > 0
    _automatorServer_fn = (char *)__func__;
+#endif
 
    int retour=0;
 
@@ -180,7 +193,9 @@ automatorServer_add_msg_clean_exit:
 
 void *_automator_thread(void *data)
 {
+#if DEBUGFLAG_AUTOMATOR > 0
    _automatorServer_fn = (char *)__func__;
+#endif
 
    int ret;
    
@@ -376,7 +391,9 @@ void *_automator_thread(void *data)
 
 pthread_t *automatorServer()
 {
+#if DEBUGFLAG_AUTOMATOR > 0
    _automatorServer_fn = (char *)__func__;
+#endif
 
    pthread_t *automator_thread=NULL;
 
@@ -436,7 +453,9 @@ automatorServer_clean_exit:
 
 void automator_msg_queue_free_queue_elem(void *d)
 {
+#if DEBUGFLAG_AUTOMATOR > 0
    _automatorServer_fn = (char *)__func__;
+#endif
 
    automator_msg_t *e=(automator_msg_t *)d;
    if(e)
@@ -461,7 +480,9 @@ void automator_msg_queue_free_queue_elem(void *d)
 
 int stop_automatorServer(int my_id, void *data, char *errmsg, int l_errmsg)
 {
+#if DEBUGFLAG_AUTOMATOR > 0
    _automatorServer_fn = (char *)__func__;
+#endif
 
    if(_automatorServer_thread_id)
    {
@@ -503,7 +524,9 @@ int stop_automatorServer(int my_id, void *data, char *errmsg, int l_errmsg)
 
 int start_automatorServer(int my_id, void *data, char *errmsg, int l_errmsg)
 {
+#if DEBUGFLAG_AUTOMATOR > 0
    _automatorServer_fn = (char *)__func__;
+#endif
 
    struct automatorServer_start_stop_params_s *automatorServer_start_stop_params = (struct automatorServer_start_stop_params_s *)data;
 
@@ -544,7 +567,9 @@ int start_automatorServer(int my_id, void *data, char *errmsg, int l_errmsg)
 
 int restart_automatorServer(int my_id, void *data, char *errmsg, int l_errmsg)
 {
+#if DEBUGFLAG_AUTOMATOR > 0
    _automatorServer_fn = (char *)__func__;
+#endif
 
    int ret=0;
    ret=stop_automatorServer(my_id, data, errmsg, l_errmsg);

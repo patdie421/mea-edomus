@@ -96,7 +96,7 @@ int16_t interface_type_001_xPL_callback2(cJSON *xplMsgJson, xPL_ObjectPtr userVa
 
    VERBOSE(9) mea_log_printf("%s (%s) : xPL Message to process : %s\n", INFO_STR, __func__, schema);
 
-   if(mea_strcmplower(schema, "control.basic") == 0)
+   if(mea_strcmplower(schema, XPL_CONTROLBASIC_STR_C) == 0)
    {
       if(!device)
       {
@@ -110,7 +110,7 @@ int16_t interface_type_001_xPL_callback2(cJSON *xplMsgJson, xPL_ObjectPtr userVa
       }
       return xpl_actuator2(i001, xplMsgJson, device, type);
    }
-   else if(mea_strcmplower(schema, "sensor.request") == 0)
+   else if(mea_strcmplower(schema, XPL_SENSORREQUEST_STR_C) == 0)
    {
       char *request = NULL;
       j = cJSON_GetObjectItem(xplMsgJson, get_token_string_by_id(XPL_REQUEST_ID)); 
@@ -287,7 +287,8 @@ load_interface_type_001_clean_exit:
 }
 
 
-interface_type_001_t *malloc_and_init_interface_type_001(sqlite3 *sqlite3_param_db, int id_interface, char *name, char *dev, char *description)
+interface_type_001_t *malloc_and_init_interface_type_001(sqlite3 *sqlite3_param_db, int id_interface, char *name, char *dev, char *parameters, char *description)
+//interface_type_001_t *malloc_and_init_interface_type_001(sqlite3 *sqlite3_param_db, int id_interface, char *name, char *dev, char *description)
 {
    interface_type_001_t *i001;
                  
@@ -527,7 +528,7 @@ int stop_interface_type_001(int my_id, void *data, char *errmsg, int l_errmsg)
             break;
          }
       }
-      DEBUG_SECTION mea_log_printf("%s (%s) : %s, fin après %d itération\n",DEBUG_STR, __func__,start_stop_params->i001->name,100-counter);
+      DEBUG_SECTION mea_log_printf("%s (%s) : %s, fin après %d itération(s)\n",DEBUG_STR, __func__,start_stop_params->i001->name,100-counter);
 
       free(start_stop_params->i001->thread_id);
       start_stop_params->i001->thread_id=NULL;

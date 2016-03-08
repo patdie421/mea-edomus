@@ -112,11 +112,9 @@ void dispatchXPLMessageToInterfaces2(cJSON *xplMsgJson)
 
             case INTERFACE_TYPE_004:
             {
-               fprintf(stderr,"ICI4-1\n");
                interface_type_004_t *i004 = (interface_type_004_t *)(iq->context);
                if(i004->monitoring_id>-1 && process_is_running(i004->monitoring_id) && i004->xPL_callback2)
                   i004->xPL_callback2(xplMsgJson, (xPL_ObjectPtr)i004);
-               fprintf(stderr,"ICI4-2\n");
                break;
             }
 
@@ -432,7 +430,7 @@ mea_queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                {
                   interface_type_001_t *i001;
                   
-                  i001=malloc_and_init_interface_type_001(sqlite3_param_db, id_interface, (char *)name, (char *)dev, (char *)description);
+                  i001=malloc_and_init_interface_type_001(sqlite3_param_db, id_interface, (char *)name, (char *)dev, (char *)parameters, (char *)description);
                   if(i001 == NULL)
                      break;
                   iq->context=i001;
@@ -444,7 +442,7 @@ mea_queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                {
                   interface_type_002_t *i002;
 
-                  i002=malloc_and_init_interface_type_002(sqlite3_param_db, id_interface, (char *)name, (char *)dev, (char *)parameters ,(char *)description);
+                  i002=malloc_and_init_interface_type_002(sqlite3_param_db, id_interface, (char *)name, (char *)dev, (char *)parameters, (char *)description);
                   if(i002 == NULL)
                      break;
                   iq->context=i002;

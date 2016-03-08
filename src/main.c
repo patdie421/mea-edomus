@@ -285,12 +285,12 @@ void clean_all_and_exit()
       process_unregister(httpServer_monitoring_id);
       httpServer_monitoring_id=-1;
    }
-   
+  
    if(interfaces)
    {
       stop_interfaces();
    }
-   
+ 
    if(pythonPluginServer_monitoring_id!=-1)
    {
       process_stop(pythonPluginServer_monitoring_id, NULL, 0);
@@ -386,6 +386,7 @@ static void error_handler(int signal_number)
    else if((_automatorServer_thread_id!=NULL) && pthread_equal(*_automatorServer_thread_id, pthread_self())!=0)
    {
       fprintf(stderr, "Error: in automator.c/automatorServer.c\n");
+#if DEBUGFLAG_AUTOMATOR > 0
       fprintf(stderr, "Error: in function : %s\n", _automatorServer_fn);
       if(strcmp(_automatorServer_fn, "_evalStr")==0)
       {
@@ -393,6 +394,7 @@ static void error_handler(int signal_number)
          fprintf(stderr, "Error: evalStr operation : %c\n", _automatorEvalStrOperation);
          fprintf(stderr, "Error: evalStr str : %s\n", _automatorEvalStrArg);
       }
+#endif
    }
 
    fprintf(stderr, "Error: aborting\n");
@@ -486,7 +488,7 @@ int main(int argc, const char * argv[])
 #define __MEA_DEBUG_ON__ 1
 #ifdef __MEA_DEBUG_ON__
    debug_on();
-   set_verbose_level(9);
+   set_verbose_level(5);
 #else
    debug_off();
    set_verbose_level(2);
