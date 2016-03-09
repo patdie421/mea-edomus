@@ -302,7 +302,8 @@ void *_automator_thread(void *data)
          pthread_testcancel();
          
          automator_match_inputs_rules(_inputs_rules, NULL);
-         automator_play_output_rules(_outputs_rules);
+         int n= automator_play_output_rules(_outputs_rules);
+         automator_xplout_indicator+=n;
 
          if(automator_send_all_inputs_flag!=0)
          {
@@ -339,7 +340,8 @@ void *_automator_thread(void *data)
          automator_match_inputs_rules(_inputs_rules, e->msg_json);
 //         automator_match_inputs_rules(_inputs_rules, e->msg);
 
-         automator_play_output_rules(_outputs_rules);
+         int n=automator_play_output_rules(_outputs_rules);
+         automator_xplout_indicator+=n;
 
          if(automator_send_all_inputs_flag!=0)
          {

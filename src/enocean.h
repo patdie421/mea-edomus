@@ -88,10 +88,11 @@ void          enocean_clean_ed(enocean_ed_t *ed);
 void          enocean_free_ed(enocean_ed_t *ed);
 enocean_ed_t *enocean_new_ed();
 
-int16_t enocean_set_data_callback(enocean_ed_t *ed, enocean_callback_f f);
-int16_t enocean_set_data_callback2(enocean_ed_t *ed, enocean_callback_f f, void *data);
-int16_t enocean_remove_data_callback(enocean_ed_t *ed);
-int16_t enocean_send_packet(enocean_ed_t *ed, uint8_t *packet, uint16_t l_packet, uint8_t *response, uint16_t *l_response, int16_t *nerr);
+uint16_t enocean_get_local_addr(enocean_ed_t *ed, uint32_t *addr, int16_t *nerr);
+int16_t  enocean_set_data_callback(enocean_ed_t *ed, enocean_callback_f f);
+int16_t  enocean_set_data_callback2(enocean_ed_t *ed, enocean_callback_f f, void *data);
+int16_t  enocean_remove_data_callback(enocean_ed_t *ed);
+int16_t  enocean_send_packet(enocean_ed_t *ed, uint8_t *packet, uint16_t l_packet, uint8_t *response, uint16_t *l_response, int16_t *nerr);
 
 
 

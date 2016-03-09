@@ -1223,8 +1223,6 @@ int automator_sendxpl2(cJSON *parameters)
 
    cJSON *e=parameters->child;
 
-   int retour=0;
-
    char schema[21];
    char target[VALUE_MAX_STR_SIZE]="*";
    char source[VALUE_MAX_STR_SIZE]="moi";
@@ -1260,7 +1258,6 @@ int automator_sendxpl2(cJSON *parameters)
             }
             else {
                return -1;
-               break;
             }
          }
          else if(strcmp(e->string, XPLSCHEMA_STR_C)==0) {
@@ -1269,7 +1266,6 @@ int automator_sendxpl2(cJSON *parameters)
          }
          else if(strcmp(e->string, XPLSOURCE_STR_C)==0) {
             return -1;
-            break;
          }
          else if(strcmp(e->string, XPLTARGET_STR_C)==0) {
             strncpy(target, v.val.strval, sizeof(target)-1);
@@ -1284,8 +1280,7 @@ int automator_sendxpl2(cJSON *parameters)
          }
       }
       else { 
-         retour=-1;
-         break;
+         return -1;
       }
       e=e->next;
    }
@@ -1295,7 +1290,12 @@ int automator_sendxpl2(cJSON *parameters)
    int n=sprintf(msg,"%s\n{\nhop=1\nsource=%s\ntarget=%s\n}\n%s\n{\n%s}\n",type,source,target,schema,xplBodyStr);
 
    if(n>0)
+   {
       xPL_sendRawMessage(msg, n);
+      return 0;
+   }
+
+   return -1;
 }
 
 
@@ -1304,6 +1304,7 @@ int automator_play_output_rules(cJSON *rules)
 #if DEBUGFLAG_AUTOMATOR > 0
    _automatorServer_fn = (char *)__func__;
 #endif
+   int xplout_cntr=0;
    if(rules==NULL)
    {
       DEBUG_SECTION2(DEBUGFLAG)  mea_log_printf("%s (%s) : NO OUTPUT RULE\n", DEBUG_STR, __func__);
@@ -1375,7 +1376,8 @@ int automator_play_output_rules(cJSON *rules)
          if(mea_strcmplower(action->valuestring, "xPLSend")==0)
          {
             //automator_sendxpl(parameters);
-            automator_sendxpl2(parameters);
+            if(automator_sendxpl2(parameters)>=0)
+               xplout_cntr++;
          }
          else if(mea_strcmplower(action->valuestring, "timerCtrl")==0)
             automator_timerCtrl(parameters);
@@ -1418,7 +1420,7 @@ next_iteration: {}
       } 
    }
 
-   return 0;
+   return xplout_cntr;
 }
 
 /*

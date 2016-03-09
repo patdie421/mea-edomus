@@ -6,7 +6,7 @@
 #include <inttypes.h>
 
 #ifndef DEBUGFLAG
-#define DEBUGFLAG 1
+#define DEBUGFLAG 0
 #endif
 
 #define ERROR_STR        _error_str

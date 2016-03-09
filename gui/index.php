@@ -38,11 +38,18 @@ if(!isset($_SESSION['logged_in']))
    <script src="lib/ace/src-noconflict/ace.js" type="text/javascript"></script>
 
    <script type="text/javascript" src="lib/jquery-easyui-1.4.4/jquery.min.js"></script>
+
    <script type="text/javascript" src="lib/jquery-easyui-1.4.4/jquery.easyui.min.js"></script>
    <script type="text/javascript" src="lib/jquery-easyui-datagridview/datagrid-groupview.js"></script>
+
    <script type="text/javascript" src="lib/noty-2.2.10/js/noty/packaged/jquery.noty.packaged.min.js"></script>
 
    <script src="lib/bgrins-spectrum/spectrum.js" type="text/javascript"></script>
+
+   <script type="text/javascript" src="lib/highcharts-4.2.3/js/highcharts.js"></script>
+   <script type="text/javascript" src="lib/highcharts-4.2.3/js/highcharts-more.js"></script>
+   <script type="text/javascript" src="lib/highcharts-4.2.3/js/modules/solid-gauge.js"></script>
+   <script type="text/javascript" src="lib/highcharts-4.2.3/js/themes/grid-light.js"></script>
 </head>
 
 
@@ -223,7 +230,7 @@ a.meamenu:hover {
 }
 </style>
 
-<body style="margin:0;padding:0">
+<body style="margin:0;padding:0;height:100px;width:100%;overflow:auto">
    <div style="min-width:950px;">
       <div id='logo'  style="float:left; width:250px; height:50px; text-align:left;">LOGO</div>
       <div id='pub' style="width:250px; float:right; height:50px; text-align:right;">INFORMATION</div>
