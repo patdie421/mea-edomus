@@ -1443,18 +1443,14 @@ MapEditorController.prototype.__aut_listener=function(message)
       return;
 
    var data = jQuery.parseJSON(message);
-
    try {
-      $.each(data, function(i,val) {
-
+      $.each(data, function(i,x) {
+         var val=x["v"];
+//         console.log(i+" "+val+" "+x["t"]);
          $.each(_this.map.find('label[name="'+i+'"]'), function() {
             var _formater = $(this).attr('mea_valueformater');
             if(_formater) {
                var str = '';
-//               var v = parseFloat(val);
-//               if (v === false)
-//                  v = val;
-//               str = meaFormaters[_formater](v);
                str = meaFormaters[_formater](val);
                if(str!==false)
                   $(this).text(str);
@@ -1463,6 +1459,14 @@ MapEditorController.prototype.__aut_listener=function(message)
             }
             else {
                $(this).text(val);
+            }
+            if($(this).attr("mea_notooltip")!='true')
+            { 
+               $(this).tooltip({
+                  position: 'bottom',
+                  showDelay: 1000,
+                  content:"<span style='font-size:8px'>"+x["t"]+"</span>"
+               });
             }
          });
 
@@ -1478,6 +1482,14 @@ MapEditorController.prototype.__aut_listener=function(message)
             else {
                $(this).val(val);
             }
+            if($(this).prop("mea_notooltip")!='true')
+            {
+               $(this).tooltip({
+                  position: 'bottom',
+                  showDelay: 1000,
+                  content:"<span style='font-size:8px'>"+x["t"]+"</span>"
+               });
+            }
          });
 
          $.each(_this.map.find('div[name="'+i+'"]'), function() {
@@ -1486,6 +1498,15 @@ MapEditorController.prototype.__aut_listener=function(message)
                meaFormaters[_formater](val, $(this));
             else
                $(this).html(val);
+            var t=$(this).attr("mea_notooltip");
+            if($(this).attr("mea_notooltip")!='true')
+            {
+               $(this).tooltip({
+                  position: 'bottom',
+                  showDelay: 1000,
+                  content:"<span style='font-size:8px'>"+x["t"]+"</span>"
+               });
+            }
          });
       });
    }

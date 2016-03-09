@@ -6,7 +6,7 @@ INITDONE is: <NOP> if: ({INITFAIT} == &true) onmatch: moveforward APRESINIT
    BUTTON003 is: &false
    ** fin initialisation
    INITFAIT is: &true
-APRESINIT is: <LABEL>
+APRESINIT is <LABEL>
 
 ** filtre(s)
 FILTRE1 is: <NOP> if: ($xplmsgdata[] == &false) onmatch: moveforward NOTXPLMSG  ** pas de données xpl

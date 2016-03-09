@@ -42,11 +42,6 @@ else if($type=='rules')
 }
 else if($type=='map')
 {
-   $param="RULESFILESPATH";
-   $extention="map";
-}
-else if($type=='map')
-{
    $param="GUIPATH";
    $subpath="maps";
    $extention="map";

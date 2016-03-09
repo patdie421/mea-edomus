@@ -1,0 +1,86 @@
+** STARTUP  is: &false at startup
+
+STARTUP     is: $startup[]
+
+FILTRE1     is: <NOP>   if: ($xplmsgdata[] == &false)    onmatch: moveforward NEXT
+FILTRE2     is: <NOP>   if: (schema == 'hbeat.app')      onmatch: break
+FILTRE3     is: <NOP>   if: (schema == 'watchdog.basic') onmatch: break
+
+** Compteurs électrique
+CONSO       is: current if: (device == 'conso', type == 'power' ) onmatch: moveforward NEXT
+ECONSO      is: current if: (device == 'conso', type == 'energy') onmatch: moveforward NEXT
+PROD        is: current if: (device == 'prod',  type == 'power' ) onmatch: moveforward NEXT
+EPROD       is: current if: (device == 'prod',  type == 'energy') onmatch: moveforward NEXT
+** température tableau
+TEMP01      is: current if: (device == 'temp01')      onmatch: moveforward NEXT
+
+** Capteurs xbee
+XPILE01     is: current if: (device == 'xpile01')     onmatch: moveforward NEXT
+XPILE02     is: current if: (device == 'xpile02')     onmatch: moveforward NEXT
+XTEMP01     is: current if: (device == 'xtemp01')     onmatch: moveforward NEXT
+XTEMP02     is: current if: (device == 'xtemp02')     onmatch: moveforward NEXT
+XHUMI01     is: current if: (device == 'xhumi01')     onmatch: moveforward NEXT
+XHUMI02     is: current if: (device == 'xhumi02')     onmatch: moveforward NEXT
+
+** Netatmo (capteurs)
+** Thermostat
+TEMP005     is: current if: (device == 'temp005')     onmatch: moveforward NEXT
+BRULEUR005  is: current if: (device == 'bruleur005')  onmatch: moveforward NEXT
+BATTERIE005 is: current if: (device == 'batterie005') onmatch: moveforward NEXT
+CONSIGNE005 is: current if: (device == 'consigne005') onmatch: moveforward NEXT
+MODE005     is: current if: (device == 'mode005')     onmatch: moveforward NEXT
+** Station
+TEMP006     is: current if: (device == 'temp006')     onmatch: moveforward NEXT
+PRESS006    is: current if: (device == 'press006')    onmatch: moveforward NEXT
+HUMI006     is: current if: (device == 'humi006')     onmatch: moveforward NEXT
+NOISE006    is: current if: (device == 'noise006')    onmatch: moveforward NEXT
+CO2006      is: current if: (device == 'co2006')      onmatch: moveforward NEXT
+** Exterieur
+TEMP007     is: current if: (device == 'temp007')     onmatch: moveforward NEXT
+HUMI007     is: current if: (device == 'humi007')     onmatch: moveforward NEXT
+** Bureau
+TEMP008     is: current if: (device == 'temp008')     onmatch: moveforward NEXT
+HUMI008     is: current if: (device == 'humi008')     onmatch: moveforward NEXT
+CO2008      is: current if: (device == 'co2008')      onmatch: moveforward NEXT
+
+** PHILIPS HUE
+LAMPE001S   is: current if: (device == 'lampe001s')   onmatch: moveforward NEXT
+CHAMBRE001DS is: current if: (device == 'chambre001ds') onmatch: moveforward NEXT
+CHAMBRE001GS is: current if: (device == 'chambre001gs') onmatch: moveforward NEXT
+
+** test
+DIMER001    is: current if: (device == 'dimer001')    onmatch: moveforward NEXT
+DIMER002    is: current if: (device == 'dimer002')    onmatch: moveforward NEXT
+
+** acquisition des boutons
+LAMPE001    is: current if: (device == 'lampe001')    onmatch: moveforward NEXT
+BUTTON001   is: current if: (device == 'button001')   onmatch: moveforward NEXT
+BUTTON002   is: current if: (device == 'button002')   onmatch: moveforward NEXT
+
+SWITCH001   is: current if: (device == 'switch001')   onmatch: moveforward NEXT
+SWITCH002   is: current if: (device == 'switch002')   onmatch: moveforward NEXT
+SWITCH002   is: current if: (device == 'switch002')   onmatch: moveforward NEXT
+
+GSWITCH001  is: current if: (device == 'gswitch001')  onmatch: moveforward NEXT
+
+NEXT is: <LABEL>
+TIMER1 is: $timer['timer1']
+
+TEST do: xPLSend with: (device = 'TEST', schema = 'control.basic', current='FALL', type='test' ) when: STARTUP fall
+TEST do: xPLSend with: (device = 'TEST', schema = 'control.basic', current='NEW', type='test' ) when: STARTUP new
+TEST do: xPLSend with: (device = 'TEST', schema = 'control.basic', current='CHANGE', type='test' ) when: STARTUP change
+
+T1 do: timerCtrl with: (command = 'start', name = 'timer1', unit = 'msec', value=#500) when: STARTUP fall
+T1 do: timerCtrl with: (command = 'start', name = 'timer1', unit = 'msec', value=#500) when: TIMER1 rise
+
+T1 do: timerCtrl with: (command = 'start', name = 'timer1', unit = 'msec', value=#500) when: BUTTON001 rise
+T1 do: timerCtrl with: (command = 'stop',  name = 'timer1') when: BUTTON001 fall
+
+
+ACTION001  do: xPLSend  with: ( device = 'lampe001',   schema = 'control.basic', current=$tohlstr[{BUTTON001}], type='output' ) when: BUTTON001 change
+ACTION002  do: xPLSend  with: ( device = 'lampe002',   schema = 'control.basic', current=$tohlstr[{BUTTON002}], type='output' ) when: BUTTON002 change
+ACTION003  do: xPLSend  with: ( device = 'timer1',     schema = 'control.basic', current=&high,                 type='output' ) when: TIMER1    rise
+
+SWITCH001R do: xPLSend  with: ( device = 'gswitch001', schema = 'control.basic', current=$totfstr[{SWITCH001}], type='output' ) when: SWITCH001 change
+SWITCH001R do: xPLSend  with: ( device = 'gswitch001', schema = 'control.basic', current=$totfstr[{SWITCH002}], type='output' ) when: SWITCH002 change
+SWITCH001R do: xPLSend  with: ( device = 'gswitch001', schema = 'control.basic', current=$totfstr[{SWITCH003}], type='output' ) when: SWITCH003 change

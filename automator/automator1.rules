@@ -1,0 +1,763 @@
+{
+    "files": [
+        "inputs.srules"
+    ],
+    "inputs": [
+        {
+            "onmatch": "moveforward 'APRESINIT'",
+            "name": "INITDONE",
+            "value": "<NOP>",
+            "file": 0,
+            "line": 2,
+            "conditions": [
+                {
+                    "value2": "&true",
+                    "value1": "{INITFAIT}",
+                    "op": "=="
+                }
+            ]
+        },
+        {
+            "file": 0,
+            "line": 4,
+            "name": "CPTR1",
+            "value": "#0"
+        },
+        {
+            "file": 0,
+            "line": 5,
+            "name": "SURCONSO",
+            "value": "&false"
+        },
+        {
+            "file": 0,
+            "line": 8,
+            "name": "INITFAIT",
+            "value": "&true"
+        },
+        {
+            "file": 0,
+            "line": 9,
+            "name": "APRESINIT",
+            "value": "<LABEL>"
+        },
+        {
+            "onmatch": "moveforward 'NOTXPLMSG'",
+            "name": "FILTRE1",
+            "value": "<NOP>",
+            "file": 0,
+            "line": 12,
+            "conditions": [
+                {
+                    "value2": "&false",
+                    "value1": "$xplmsgdata[]",
+                    "op": "=="
+                }
+            ]
+        },
+        {
+            "onmatch": "break",
+            "name": "FILTRE2",
+            "value": "<NOP>",
+            "file": 0,
+            "line": 13,
+            "conditions": [
+                {
+                    "value2": "'hbeat.app'",
+                    "value1": "schema",
+                    "op": "=="
+                }
+            ]
+        },
+        {
+            "onmatch": "break",
+            "name": "FILTRE3",
+            "value": "<NOP>",
+            "file": 0,
+            "line": 14,
+            "conditions": [
+                {
+                    "value2": "'watchdog.basic'",
+                    "value1": "schema",
+                    "op": "=="
+                }
+            ]
+        },
+        {
+            "onmatch": "break",
+            "name": "BUTTON001",
+            "value": "current",
+            "file": 0,
+            "line": 17,
+            "conditions": [
+                {
+                    "value2": "'BUTTON001'",
+                    "value1": "device",
+                    "op": "=="
+                }
+            ]
+        },
+        {
+            "onmatch": "break",
+            "name": "BUTTON002",
+            "value": "current",
+            "file": 0,
+            "line": 18,
+            "conditions": [
+                {
+                    "value2": "'BUTTON002'",
+                    "value1": "device",
+                    "op": "=="
+                }
+            ]
+        },
+        {
+            "onmatch": "break",
+            "name": "BUTTON003",
+            "value": "current",
+            "file": 0,
+            "line": 19,
+            "conditions": [
+                {
+                    "value2": "'BUTTON003'",
+                    "value1": "device",
+                    "op": "=="
+                }
+            ]
+        },
+        {
+            "file": 0,
+            "line": 22,
+            "name": "SOIREE",
+            "value": "&false"
+        },
+        {
+            "conditions": [
+                {
+                    "value2": "$time['19:00:00']",
+                    "value1": "$now[]",
+                    "op": ">"
+                },
+                {
+                    "value2": "$time['23:00:00']",
+                    "value1": "$now[]",
+                    "op": "<="
+                }
+            ],
+            "file": 0,
+            "line": 23,
+            "name": "SOIREE",
+            "value": "&true"
+        },
+        {
+            "file": 0,
+            "line": 24,
+            "name": "JOURNUIT",
+            "value": "&false"
+        },
+        {
+            "conditions": [
+                {
+                    "value2": "$sunrise[#+30]",
+                    "value1": "$now[]",
+                    "op": ">"
+                },
+                {
+                    "value2": "$sunset[#-30]",
+                    "value1": "$now[]",
+                    "op": "<="
+                }
+            ],
+            "file": 0,
+            "line": 25,
+            "name": "JOURNUIT",
+            "value": "&true"
+        },
+        {
+            "onmatch": "break",
+            "name": "TEMP01",
+            "value": "current",
+            "file": 0,
+            "line": 28,
+            "conditions": [
+                {
+                    "value2": "'xtemp01'",
+                    "value1": "device",
+                    "op": "=="
+                }
+            ]
+        },
+        {
+            "onmatch": "break",
+            "name": "TEMP02",
+            "value": "current",
+            "file": 0,
+            "line": 29,
+            "conditions": [
+                {
+                    "value2": "'xtemp02'",
+                    "value1": "device",
+                    "op": "=="
+                }
+            ]
+        },
+        {
+            "onmatch": "break",
+            "name": "TEMP03",
+            "value": "current",
+            "file": 0,
+            "line": 30,
+            "conditions": [
+                {
+                    "value2": "'temp01'",
+                    "value1": "device",
+                    "op": "=="
+                }
+            ]
+        },
+        {
+            "onmatch": "break",
+            "name": "TEMP04",
+            "value": "current",
+            "file": 0,
+            "line": 31,
+            "conditions": [
+                {
+                    "value2": "'temp02'",
+                    "value1": "device",
+                    "op": "=="
+                }
+            ]
+        },
+        {
+            "onmatch": "break",
+            "name": "PILE1",
+            "value": "current",
+            "file": 0,
+            "line": 34,
+            "conditions": [
+                {
+                    "value2": "'xpile01'",
+                    "value1": "device",
+                    "op": "=="
+                }
+            ]
+        },
+        {
+            "onmatch": "break",
+            "name": "PILE2",
+            "value": "current",
+            "file": 0,
+            "line": 35,
+            "conditions": [
+                {
+                    "value2": "'xpile02'",
+                    "value1": "device",
+                    "op": "=="
+                }
+            ]
+        },
+        {
+            "onmatch": "break",
+            "name": "PILE3",
+            "value": "current",
+            "file": 0,
+            "line": 36,
+            "conditions": [
+                {
+                    "value2": "'batterie01'",
+                    "value1": "device",
+                    "op": "=="
+                }
+            ]
+        },
+        {
+            "onmatch": "break",
+            "name": "HUMI01",
+            "value": "current",
+            "file": 0,
+            "line": 39,
+            "conditions": [
+                {
+                    "value2": "'xhumi01'",
+                    "value1": "device",
+                    "op": "=="
+                }
+            ]
+        },
+        {
+            "onmatch": "break",
+            "name": "HUMI02",
+            "value": "current",
+            "file": 0,
+            "line": 40,
+            "conditions": [
+                {
+                    "value2": "'xhumi02'",
+                    "value1": "device",
+                    "op": "=="
+                }
+            ]
+        },
+        {
+            "conditions": [
+                {
+                    "value2": "'PROD'",
+                    "value1": "device",
+                    "op": "=="
+                },
+                {
+                    "value2": "'energy'",
+                    "value1": "type",
+                    "op": "=="
+                }
+            ],
+            "file": 0,
+            "line": 43,
+            "name": "PRODE",
+            "value": "current"
+        },
+        {
+            "conditions": [
+                {
+                    "value2": "'PROD'",
+                    "value1": "device",
+                    "op": "=="
+                },
+                {
+                    "value2": "'power'",
+                    "value1": "type",
+                    "op": "=="
+                }
+            ],
+            "file": 0,
+            "line": 44,
+            "name": "PRODP",
+            "value": "current"
+        },
+        {
+            "conditions": [
+                {
+                    "value2": "'CONSO'",
+                    "value1": "device",
+                    "op": "=="
+                },
+                {
+                    "value2": "'energy'",
+                    "value1": "type",
+                    "op": "=="
+                }
+            ],
+            "file": 0,
+            "line": 45,
+            "name": "CONSOE",
+            "value": "current"
+        },
+        {
+            "conditions": [
+                {
+                    "value2": "'CONSO'",
+                    "value1": "device",
+                    "op": "=="
+                },
+                {
+                    "value2": "'power'",
+                    "value1": "type",
+                    "op": "=="
+                }
+            ],
+            "file": 0,
+            "line": 46,
+            "name": "CONSOP",
+            "value": "current"
+        },
+        {
+            "conditions": [
+                {
+                    "value2": "'BUTTON004'",
+                    "value1": "device",
+                    "op": "=="
+                }
+            ],
+            "file": 0,
+            "line": 48,
+            "name": "VAETVIENT1",
+            "value": "current"
+        },
+        {
+            "conditions": [
+                {
+                    "value2": "'BUTTON005'",
+                    "value1": "device",
+                    "op": "=="
+                }
+            ],
+            "file": 0,
+            "line": 49,
+            "name": "VAETVIENT1",
+            "value": "current"
+        },
+        {
+            "conditions": [
+                {
+                    "value2": "'CONSO'",
+                    "value1": "device",
+                    "op": "=="
+                },
+                {
+                    "value2": "'power'",
+                    "value1": "type",
+                    "op": "=="
+                },
+                {
+                    "value2": "&true",
+                    "value1": "{SOIREE}",
+                    "op": "=="
+                },
+                {
+                    "value2": "#600.0",
+                    "value1": "current",
+                    "op": "<="
+                }
+            ],
+            "file": 0,
+            "line": 54,
+            "name": "SURCONSO",
+            "value": "&false"
+        },
+        {
+            "conditions": [
+                {
+                    "value2": "'CONSO'",
+                    "value1": "device",
+                    "op": "=="
+                },
+                {
+                    "value2": "'power'",
+                    "value1": "type",
+                    "op": "=="
+                },
+                {
+                    "value2": "&true",
+                    "value1": "{SOIREE}",
+                    "op": "=="
+                },
+                {
+                    "value2": "#600.0",
+                    "value1": "current",
+                    "op": ">"
+                }
+            ],
+            "file": 0,
+            "line": 55,
+            "name": "SURCONSO",
+            "value": "&true"
+        },
+        {
+            "file": 0,
+            "line": 58,
+            "name": "NOTXPLMSG",
+            "value": "<LABEL>"
+        },
+        {
+            "file": 0,
+            "line": 59,
+            "name": "MIDI",
+            "value": "$time['12:00:00']"
+        },
+        {
+            "file": 0,
+            "line": 60,
+            "name": "TIMER1",
+            "value": "$timer['timer1']"
+        },
+        {
+            "file": 0,
+            "line": 61,
+            "name": "TIMER3",
+            "value": "$timer['timer3']"
+        },
+        {
+            "file": 0,
+            "line": 62,
+            "name": "ALARM1",
+            "value": "$timer['alarm1']"
+        },
+        {
+            "file": 0,
+            "line": 63,
+            "name": "CPTR1",
+            "value": "$calcn['{CPTR1}+#1']"
+        }
+    ],
+    "outputs": [
+        {
+            "name": "A1",
+            "parameters": {
+                "command": "'start'",
+                "name": "'alarm1'",
+                "value": "{MIDI}",
+                "mode": "'alarm'"
+            },
+            "cond": {
+                "'MIDI'": 3
+            },
+            "file": 0,
+            "action": "timerCtrl",
+            "line": 68,
+            "condition": {
+                "'MIDI'": "change"
+            }
+        },
+        {
+            "name": "T1",
+            "parameters": {
+                "value": "#5",
+                "command": "'start'",
+                "name": "'timer1'",
+                "unit": "'sec'"
+            },
+            "cond": {
+                "'INITFAIT'": 4
+            },
+            "file": 0,
+            "action": "timerCtrl",
+            "line": 69,
+            "condition": {
+                "'INITFAIT'": "new"
+            }
+        },
+        {
+            "name": "O1",
+            "parameters": {
+                "device": "'TEST2A'",
+                "current": "'low'",
+                "type": "'output'",
+                "schema": "'control.basic'"
+            },
+            "cond": {
+                "'INITFAIT'": 4
+            },
+            "file": 0,
+            "action": "xPLSend",
+            "line": 70,
+            "condition": {
+                "'INITFAIT'": "new"
+            }
+        },
+        {
+            "name": "T1",
+            "parameters": {
+                "value": "#5000",
+                "command": "'start'",
+                "name": "'timer1'",
+                "unit": "'msec'"
+            },
+            "cond": {
+                "'TIMER1'": 1
+            },
+            "file": 0,
+            "action": "timerCtrl",
+            "line": 77,
+            "condition": {
+                "'TIMER1'": "rise"
+            }
+        },
+        {
+            "name": "T1",
+            "parameters": {
+                "device": "'TOTO'",
+                "current": "'high'",
+                "type": "'output'",
+                "schema": "'control.basic'"
+            },
+            "cond": {
+                "'TIMER1'": 1
+            },
+            "file": 0,
+            "action": "xPLSend",
+            "line": 78,
+            "condition": {
+                "'TIMER1'": "rise"
+            }
+        },
+        {
+            "name": "O1",
+            "parameters": {
+                "device": "'TEST2A'",
+                "current": "'high'",
+                "type": "'output'",
+                "schema": "'control.basic'"
+            },
+            "cond": {
+                "'SURCONSO'": 1
+            },
+            "file": 0,
+            "action": "xPLSend",
+            "line": 81,
+            "condition": {
+                "'SURCONSO'": "rise"
+            }
+        },
+        {
+            "name": "O1",
+            "parameters": {
+                "device": "'TEST2A'",
+                "current": "'low'",
+                "type": "'output'",
+                "schema": "'control.basic'"
+            },
+            "cond": {
+                "'SURCONSO'": 2
+            },
+            "file": 0,
+            "action": "xPLSend",
+            "line": 82,
+            "condition": {
+                "'SURCONSO'": "fall"
+            }
+        },
+        {
+            "name": "O1",
+            "parameters": {
+                "device": "'TEST2A'",
+                "current": "'low'",
+                "type": "'output'",
+                "schema": "'control.basic'"
+            },
+            "cond": {
+                "'SOIREE'": 2
+            },
+            "file": 0,
+            "action": "xPLSend",
+            "line": 83,
+            "condition": {
+                "'SOIREE'": "fall"
+            }
+        },
+        {
+            "name": "O4",
+            "parameters": {
+                "device": "'LAMPE1'",
+                "current": "$tohlstr[{BUTTON001}]",
+                "type": "'output'",
+                "schema": "'control.basic'"
+            },
+            "cond": {
+                "'BUTTON001'": 3
+            },
+            "file": 0,
+            "action": "xPLSend",
+            "line": 86,
+            "condition": {
+                "'BUTTON001'": "change"
+            }
+        },
+        {
+            "name": "O5",
+            "parameters": {
+                "device": "'LAMPE2'",
+                "current": "$tohlstr[{BUTTON002}]",
+                "type": "'output'",
+                "schema": "'control.basic'"
+            },
+            "cond": {
+                "'BUTTON002'": 3
+            },
+            "file": 0,
+            "action": "xPLSend",
+            "line": 87,
+            "condition": {
+                "'BUTTON002'": "change"
+            }
+        },
+        {
+            "name": "O6",
+            "parameters": {
+                "device": "'LAMPE3'",
+                "current": "$tohlstr[{VAETVIENT1}]",
+                "type": "'output'",
+                "schema": "'control.basic'"
+            },
+            "cond": {
+                "'VAETVIENT1'": 3
+            },
+            "file": 0,
+            "action": "xPLSend",
+            "line": 88,
+            "condition": {
+                "'VAETVIENT1'": "change"
+            }
+        },
+        {
+            "name": "O3",
+            "parameters": {
+                "device": "'LAMPE3'",
+                "current": "$tohlstr[{BUTTON003}]",
+                "type": "'output'",
+                "schema": "'control.basic'"
+            },
+            "cond": {
+                "'BUTTON003'": 3
+            },
+            "file": 0,
+            "action": "xPLSend",
+            "line": 92,
+            "condition": {
+                "'BUTTON003'": "change"
+            }
+        },
+        {
+            "name": "T3",
+            "parameters": {
+                "value": "#5",
+                "command": "'start'",
+                "name": "'timer3'",
+                "unit": "'min'"
+            },
+            "cond": {
+                "'BUTTON003'": 1
+            },
+            "file": 0,
+            "action": "timerCtrl",
+            "line": 94,
+            "condition": {
+                "'BUTTON003'": "rise"
+            }
+        },
+        {
+            "name": "T3",
+            "parameters": {
+                "command": "'stop'",
+                "name": "'timer3'"
+            },
+            "cond": {
+                "'BUTTON003'": 2
+            },
+            "file": 0,
+            "action": "timerCtrl",
+            "line": 96,
+            "condition": {
+                "'BUTTON003'": "fall"
+            }
+        },
+        {
+            "name": "O3",
+            "parameters": {
+                "device": "'LAMPE3'",
+                "current": "'low'",
+                "type": "'output'",
+                "schema": "'control.basic'"
+            },
+            "cond": {
+                "'TIMER3'": 1
+            },
+            "file": 0,
+            "action": "xPLSend",
+            "line": 98,
+            "condition": {
+                "'TIMER3'": "rise"
+            }
+        }
+    ]
+}

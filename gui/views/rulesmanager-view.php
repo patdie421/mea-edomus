@@ -107,8 +107,12 @@ jQuery(document).ready(function() {
 
                   <tr>
                      <td align="center">
+<!--
                         <select multiple name="files_to_sel_rm" id="files_to_sel_rm" size="12" style="width:100%;font-family:verdana,helvetica,arial,sans-serif;font-size:12px;">
                         </select>
+-->
+                        <div id="files_to_sel_rm" style="width:100%;height:200px;">
+                        </div>
                      </td>
                      <td align="center">
                         <table>
@@ -122,8 +126,11 @@ jQuery(document).ready(function() {
                      </td>
 
                      <td align="center">
+<!--
                         <select name="files_sel_rm" id="files_sel_rm" size="12" style="width:100%;font-family:verdana,helvetica,arial,sans-serif;font-size:12px;">
                         </select>
+-->
+                        <div id="files_sel_rm" style="width:100%;height:200px;">
                      </td>
                      <td align="center">
                         <table>
@@ -153,8 +160,11 @@ jQuery(document).ready(function() {
                   </tr>
                   <tr>
                      <td align="center">
+<!--
                         <select name="builded_rules_rm" id="builded_rules_rm" size="12" style="width:40%;font-family:verdana,helvetica,arial,sans-serif;font-size:12px;">
                         </select>
+-->
+                        <div id="builded_rules_rm" style="width:40%;height:200px;">
                      </td>
                   </tr>
                </table>

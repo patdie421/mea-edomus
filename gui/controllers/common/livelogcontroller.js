@@ -1,4 +1,4 @@
-LiveLogController = function(console_id,nbLines)
+LiveLogController = function(console_id, nbLines)
 {
    this.started=0;
    this.whoIsScrollingFlag=0;
@@ -57,7 +57,7 @@ LiveLogController.prototype = {
          if(_this.scrollOnOffFlag==0 && _this.whoIsScrollingFlag==0) // si scroll inactif
          {
             // le slider a-t-il été poussé jusqu'en bas ?
-            if($(this).scrollTop() + $(this).innerHeight() >= $(_this)[0].scrollHeight)
+            if($(this).scrollTop() + $(this).innerHeight() >= $(this)[0].scrollHeight)
             {
                _logViewer.scrollOnOffFlag=1; // on réactive le scroll (live)
             }
