@@ -25,12 +25,16 @@ MeaWidget_value.prototype.init = function(id)
    var widget = $("#"+id);
    var data = widget.prop('mea-widgetdata');
 
-   widget.find('label[mea_widgetlabelname="'+_this.valueUnit+'"]').text(_this.getValue(data, _this.valueUnit, _this.valueUnit));
-   widget.find('label[mea_widgetvaluename="'+_this.valueName+'"]').attr("name",_this.getValue(data, _this.valueName, "")).text('?.??');
-   widget.find('div[mea_widgetvaluename="'+_this.valueName+'"]')
-      .attr("name",_this.getValue(data, _this.valueName, ""))
-      .attr("lowalarm", _this.getValue(data, "low alarm", false))
-      .attr("highalarm", _this.getValue(data, "high alarm", false));
+   if(data)
+   {
+      widget.find('label[mea_widgetlabelname="'+_this.valueUnit+'"]').text(_this.getValue(data, _this.valueUnit, _this.valueUnit));
+      widget.find('label[mea_widgetvaluename="'+_this.valueName+'"]').attr("name",_this.getValue(data, _this.valueName, "")).text('?.??');
+   
+      widget.find('div[mea_widgetvaluename="'+_this.valueName+'"]')
+         .attr("name",_this.getValue(data, _this.valueName, ""))
+         .attr("lowalarm", _this.getValue(data, "low alarm", false))
+         .attr("highalarm", _this.getValue(data, "high alarm", false));
+   }
 }
 
 
@@ -123,6 +127,7 @@ var html = " \
 > \
    <div \
         mea_widgetvaluename='"+ _this.valueName +"' \
+        mea_notooltip='true' \
         mea_valueformater='mea_value_alarm' \
         style='width:100%;height:100%;text-align:center;font-size:18px'> \
       <div style='float:left;width:98px;height:23px;overflow:hidden;text-align:right'> \
