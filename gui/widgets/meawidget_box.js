@@ -25,23 +25,26 @@ MeaWidget_box.prototype.init = function(id)
    var widget = $("#"+id);
    var data = widget.prop('mea-widgetdata');
 
-   var width=_this.getValue(data, "width", false);
-   if(width !== false && isNumeric(width) && width >0)
-      widget.width(width);
+   if(data)
+   {
+      var width=_this.getValue(data, "width", false);
+      if(width !== false && isNumeric(width) && width >0)
+         widget.width(width);
 
-   var height=_this.getValue(data, "height", false);
-   if(height !== false && isNumeric(height) && height >0)
-      widget.height(height);
+      var height=_this.getValue(data, "height", false);
+      if(height !== false && isNumeric(height) && height >0)
+         widget.height(height);
 
-   var border = _this.getValue(data, "border", false);
-   if(border !== false)
-      widget.css("border-color", border);
+      var border = _this.getValue(data, "border", false);
+      if(border !== false)
+         widget.css("border-color", border);
 
-   var background = _this.getValue(data, "background", false);
-   if(background !== false && background != "")
-      widget.css("background-color", background);
-   else
-      widget.css('background', 'transparent');
+      var background = _this.getValue(data, "background", false);
+      if(background !== false && background != "")
+         widget.css("background-color", background);
+      else
+         widget.css('background', 'transparent');
+   }
 }
 
 

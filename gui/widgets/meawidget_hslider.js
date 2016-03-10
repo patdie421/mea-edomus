@@ -1,6 +1,6 @@
 extendClass(MeaWidget_hslider, MeaWidget);
 
-var meaWidget_button = new MeaWidget_hslider("MeaWidget_hslider", "basic", "hslider");
+var meaWidget_hslider = new MeaWidget_hslider("MeaWidget_hslider", "basic", "hslider");
 
 function MeaWidget_hslider(name, group, type)
 {
@@ -53,7 +53,7 @@ MeaWidget_hslider.prototype.init = function(id)
    var max=100;
    var step=1;
    var unit=' ';
-
+   var reversed=false;
    if(data)
    {
       value = _this.getValue(data,_this.hsliderName+"_value", 0);
@@ -70,6 +70,7 @@ MeaWidget_hslider.prototype.init = function(id)
       var tmp = max;
       max = min;
       min = tmp;
+      reversed=true;
    }
    var _max=(max-min)/step;
 
@@ -83,6 +84,7 @@ MeaWidget_hslider.prototype.init = function(id)
       max:_max,
       step:1,
       rule:[min,max],
+      reversed:reversed,
       value: ((value-min)/step).toFixed(2),
       onComplete: function(value) {
          _this.setValue(data,_this.hsliderName+"_value", min+value*step);

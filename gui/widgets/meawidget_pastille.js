@@ -20,7 +20,8 @@ MeaWidget_pastille.prototype.init = function(id)
    var widget = $("#"+id);
    var data = widget.prop('mea-widgetdata');
 
-   widget.find('div[mea_widgetvaluename="'+_this.valueName+'"]').attr("name",_this.getValue(data, _this.valueName, ""));
+   if(data)
+      widget.find('div[mea_widgetvaluename="'+_this.valueName+'"]').attr("name",_this.getValue(data, _this.valueName, ""));
 }
 
 

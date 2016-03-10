@@ -22,10 +22,13 @@ MeaWidget_button.prototype.init = function(id)
 
    var data = widget.prop('mea-widgetdata');
    var button = widget.find('div[mea_widgetactionname="'+_this.action+'"]');
-   button.html(_this.getValue(data, "label", false));
-   button.on('click', function() {
-      _this.doAction(_this.action, data);
-   });
+   if(data)
+   {
+      button.html(_this.getValue(data, "label", false));
+      button.on('click', function() {
+         _this.doAction(_this.action, data);
+      });
+   }
 }
 
 

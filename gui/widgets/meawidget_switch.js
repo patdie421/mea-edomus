@@ -1,6 +1,6 @@
 extendClass(MeaWidget_switch, MeaWidget);
 
-var meaWidget_button = new MeaWidget_switch("MeaWidget_switch", "basic", "switch");
+var meaWidget_switch = new MeaWidget_switch("MeaWidget_switch", "basic", "switch");
 
 function MeaWidget_switch(name, group, type)
 {
@@ -46,6 +46,7 @@ MeaWidget_switch.prototype.init = function(id)
 
    s.prop('mea_action_flag', true);
    s.prop('mea_change_flag', true);
+
    s.switchbutton({
       checked: true,
       onText:  'I',
@@ -62,9 +63,12 @@ MeaWidget_switch.prototype.init = function(id)
    });
 
    wg = widget.find('div[mea_widgetswitchname="'+_this.switchName+'"]').show();
-   var vn = _this.getValue(data, "value", false);
-   if(vn !== false)
-      wg.attr("name", vn)
+   if(data)
+   {
+      var vn = _this.getValue(data, "value", false);
+      if(vn !== false)
+         wg.attr("name", vn)
+   }
 }
 
 
