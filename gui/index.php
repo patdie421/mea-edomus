@@ -34,24 +34,29 @@ if(!isset($_SESSION['logged_in']))
    <link rel="stylesheet" type="text/css" href="lib/jquery-easyui-1.4.4/themes/color.css">
    <link rel="stylesheet" type="text/css" href="lib/mea-edomus.css">
    <link rel='stylesheet' href='lib/bgrins-spectrum/spectrum.css' />
-   
-   <script src="lib/ace/src-noconflict/ace.js" type="text/javascript"></script>
-
-   <script type="text/javascript" src="lib/jquery-easyui-1.4.4/jquery.min.js"></script>
-
-   <script type="text/javascript" src="lib/jquery-easyui-1.4.4/jquery.easyui.min.js"></script>
-   <script type="text/javascript" src="lib/jquery-easyui-datagridview/datagrid-groupview.js"></script>
-
-   <script type="text/javascript" src="lib/noty-2.2.10/js/noty/packaged/jquery.noty.packaged.min.js"></script>
-
-   <script src="lib/bgrins-spectrum/spectrum.js" type="text/javascript"></script>
-
-   <script type="text/javascript" src="lib/highcharts-4.2.3/js/highcharts.js"></script>
-   <script type="text/javascript" src="lib/highcharts-4.2.3/js/highcharts-more.js"></script>
-   <script type="text/javascript" src="lib/highcharts-4.2.3/js/modules/solid-gauge.js"></script>
-   <script type="text/javascript" src="lib/highcharts-4.2.3/js/themes/grid-light.js"></script>
 </head>
+   
+<script src="lib/ace/src-noconflict/ace.js" type="text/javascript"></script>
 
+<script type="text/javascript" src="lib/jquery-easyui-1.4.4/jquery.min.js"></script>
+
+<script type="text/javascript" src="lib/jquery-easyui-1.4.4/jquery.easyui.min.js"></script>
+<script type="text/javascript" src="lib/jquery-easyui-datagridview/datagrid-groupview.js"></script>
+
+<script type="text/javascript" src="lib/noty-2.2.10/js/noty/packaged/jquery.noty.packaged.min.js"></script>
+
+<script src="lib/bgrins-spectrum/spectrum.js" type="text/javascript"></script>
+
+<!--
+<script type="text/javascript" src="lib/highcharts-4.2.3/js/highcharts.js"></script>
+-->
+<script type="text/javascript" src="lib/highstock-4.2.3/js/highstock.js"></script>
+<script type="text/javascript" src="lib/highcharts-4.2.3/js/highcharts-more.js"></script>
+<script type="text/javascript" src="lib/highcharts-4.2.3/js/modules/solid-gauge.js"></script>
+<script type="text/javascript" src="lib/highcharts-4.2.3/js/modules/exporting.js"></script>
+<script type="text/javascript" src="lib/highcharts-4.2.3/js/modules/offline-exporting.js"></script>
+<script type="text/javascript" src="lib/highcharts-4.2.3/js/modules/no-data-to-display.js"></script>
+<script type="text/javascript" src="lib/highcharts-4.2.3/js/themes/grid-light.js"></script>
 
 <!-- Chargement des modules et objets communs -->
 <script type="text/javascript" src="models/common/models-utils.js"></script>
@@ -197,6 +202,8 @@ jQuery(document).ready(function() {
          function() {liveComUnavailable(destview);}
    );
 
+   Highcharts.setOptions({global: { useUTC: false } });
+
    $('#mea-layout').layout('panel','center').panel({
       onResize: function() {
          $(document).trigger( "CenterResize", [ "", "" ] );
@@ -207,7 +214,6 @@ jQuery(document).ready(function() {
    });
 });
 </script>
-
 
 <style>
 a.meamenu {
