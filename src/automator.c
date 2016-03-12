@@ -2292,6 +2292,9 @@ int inputs_table_init(cJSON *rules)
 #if DEBUGFLAG_AUTOMATOR > 0
    _automatorServer_fn = (char *)__func__;
 #endif
+   if(!rules)
+      return -1;
+
    cJSON *e=rules->child;
    while(e) // balayage des règles
    {
@@ -2370,13 +2373,15 @@ int automator_init(char *rulesfile)
    {
       _inputs_rules = cJSON_GetObjectItem(_rules, "inputs");
       _outputs_rules = cJSON_GetObjectItem(_rules, "outputs");
+
+      inputs_table_init(_inputs_rules);
+
+      automator_print_inputs_table();
+
+      return 0;
    }
    
-   inputs_table_init(_inputs_rules);
-
-   automator_print_inputs_table();
-
-   return 0;
+   return -1;
 }
 
 
