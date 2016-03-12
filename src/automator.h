@@ -2,7 +2,6 @@
 #define __automator_h
 
 #include "cJSON.h"
-#include "xPL.h"
 
 #define VALUE_MAX_STR_SIZE 41
 

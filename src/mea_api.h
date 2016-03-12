@@ -10,8 +10,6 @@
 
 #include <Python.h>
 
-#include "xPL.h"
-
 void mea_api_init();
 void mea_api_release();
 

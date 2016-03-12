@@ -11,7 +11,6 @@
 #include <pthread.h>
 
 #include "mea_error.h"
-#include "xPL.h"
 #include "cJSON.h"
 
 #define DEBUGFLAG_AUTOMATOR 1

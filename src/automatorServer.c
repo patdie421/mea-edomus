@@ -16,7 +16,6 @@
 #include <string.h>
 #include <pthread.h>
 
-#include "xPL.h"
 #include "xPLServer.h"
 #include "mea_verbose.h"
 #include "globals.h"
