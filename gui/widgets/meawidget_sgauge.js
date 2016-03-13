@@ -94,7 +94,11 @@ MeaWidget_sgauge.prototype.mksgauge = function(widget, data)
    
    var gaugeOptions = {
         credits: {
-           enabled: false
+            enabled: false
+        },
+
+        exporting: {
+            enabled: false
         },
 
         chart: {

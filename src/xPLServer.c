@@ -790,16 +790,27 @@ int start_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg)
 
       xPL_setBroadcastInterface(xplServer_start_stop_params->params_list[INTERFACE]);
 
-      if ( !xPL_initialize(xPL_getParsedConnectionType()) )
-//      if ( !xPL_initialize(xcStandAlone) )
-//      if ( !xPL_initialize(xcViaHub) )
+      int16_t xPL_initialize_done = 0;
+      int16_t xPL_initialize_cntr = 0;
+      do
       {
-         VERBOSE(1) {
-            mea_log_printf("%s (%s) : xPL_initialize - error\n",ERROR_STR,__func__);
+         if ( !xPL_initialize(xPL_getParsedConnectionType()) )
+         {
+            xPL_initialize_cntr++;
+            if(xPL_initialize_cntr > 10)
+            {
+               VERBOSE(1) {
+                  mea_log_printf("%s (%s) : xPL_initialize - error\n",ERROR_STR,__func__);
+               }
+               mea_notify_printf('E', "%s Can't be launched - xPL_initialize error.\n", xpl_server_name_str);
+               return -1;
+            }
+            sleep(1);
          }
-         mea_notify_printf('E', "%s Can't be launched - xPL_initialize error.\n", xpl_server_name_str);
-         return -1;
+         else
+            xPL_initialize_done = 1;
       }
+      while(xPL_initialize_done == 0);
 
       _xPLServer_thread_id=xPLServer();
 

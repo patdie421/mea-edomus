@@ -84,7 +84,11 @@ sudo ./bin/mea-edomus --autoinit --basepath="$BASEPATH" $OPTIONS
 
 sudo chown -R "$MEAUSER":"$MEAGROUP" "$BASEPATH"/lib/mea-gui
 sudo chmod -R 775 "$BASEPATH"/lib/mea-gui
+sudo chown -R "$MEAUSER":"$MEAGROUP" "$BASEPATH"/lib/mea-gui/maps
+sudo chmod -R 775 "$BASEPATH"/lib/mea-plugins
 sudo chown -R "$MEAUSER":"$MEAGROUP" "$BASEPATH"/lib/mea-plugins
+sudo chmod -R 775 "$BASEPATH"/lib/mea-rules
+sudo chown -R "$MEAUSER":"$MEAGROUP" "$BASEPATH"/lib/mea-rules
 sudo chmod -R 775 "$BASEPATH"/lib/mea-plugins
 sudo chown -R "$MEAUSER":"$MEAGROUP" "$BASEPATH"/var/log
 sudo chmod -R 775 "$BASEPATH"/var/log

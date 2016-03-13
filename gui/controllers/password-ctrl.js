@@ -69,7 +69,7 @@ PasswordController.prototype.validePassword=function(password){
 };
 
 
-PasswordController.prototype.chgpasswd=function(passwd, prev_passwd)
+PasswordController.prototype.chgpasswd=function(passwd, prev_passwd, done_fn, error_fn)
 {
    var _controller = this;
    var set_password_params = false;
@@ -94,13 +94,11 @@ PasswordController.prototype.chgpasswd=function(passwd, prev_passwd)
          {
             if(data.retour==0)
             {
-               $.messager.alert(_controller._toLocalC("password changed"),_controller._toLocalC("password succesfully changed"), 'info');
-               retour=0;
+               $.messager.alert(_controller._toLocalC("password changed"),_controller._toLocalC("password succesfully changed"), 'info', done_fn);
             }
             else
             {
-               $.messager.alert(_controller._toLocalC("password not changed"),_controller._toLocalC("try again ..."), 'info');
-               retour=1;
+               $.messager.alert(_controller._toLocalC("password not changed"),_controller._toLocalC("try again ..."), 'info', error_fn);
             }
          }
       },
@@ -111,7 +109,6 @@ PasswordController.prototype.chgpasswd=function(passwd, prev_passwd)
          })
       }
   });
-  console.log(retour);
   return retour;
 };
 

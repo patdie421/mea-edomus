@@ -194,8 +194,8 @@ endif; ?>
         <div class="fitem">
             <label><?php mea_toLocalC_2d('password option'); ?></label>
             <select class="easyui-combobox readonly_us" name="flag" data-options="required:true,editable:false,panelHeight:105" style="width:120px;">
-               <option value=1><?php mea_toLocalC("must be changed at first login"); ?></option>
-               <option value=0><?php mea_toLocalC("must not be changed at first login"); ?></option>
+               <option value=1><?php mea_toLocalC("must be changed at next login"); ?></option>
+               <option value=0><?php mea_toLocalC("must not be changed at next login"); ?></option>
                <option value=2><?php mea_toLocalC("can't be changed by user"); ?></option>
             </select>
         </div>

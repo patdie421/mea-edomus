@@ -22,7 +22,9 @@ mkdir -p $SOURCE/package/tmp
 mkdir -p $SOURCE/package/tmp/bin
 mkdir -p $SOURCE/package/tmp/lib
 mkdir -p $SOURCE/package/tmp/lib/mea-gui
+mkdir -p $SOURCE/package/tmp/lib/mea-gui/maps
 mkdir -p $SOURCE/package/tmp/lib/mea-plugins
+mkdir -p $SOURCE/package/tmp/lib/mea-rules
 mkdir -p $SOURCE/package/tmp/etc
 mkdir -p $SOURCE/package/tmp/etc/init.d
 mkdir -p $SOURCE/package/tmp/var
@@ -50,6 +52,11 @@ fi
 if [ -f $SOURCE/complements/nodejs/src/node-v0.10.32/out/Release/node ]
 then
    cp $SOURCE/complements/nodejs/src/node-v0.10.32/out/Release/node $SOURCE/package/tmp/bin
+fi
+
+if [ -f $SOURCE/commands/mea-compilr/mea-compilr ]
+then
+   cp $SOURCE/commands/mea-compilr/mea-compilr $SOURCE/package/tmp/bin
 fi
 
 if [ -f $SOURCE/complements/xplhub/src/xplhub/xplhub ]
