@@ -684,7 +684,7 @@ static PyObject *mea_addDataToSensorsValuesTable(PyObject *self, PyObject *args)
    {
       if(_check_todbflag(db, sensor_id)==1)
       {
-         dbServer_add_data_to_sensors_values(sensor_id, value1, unit, value2, complement);
+         dbServer_add_data_to_sensors_values(sensor_id, value1, unit, value2, complement, TMP_COLLECTOR_ID);
       }
       else
       {

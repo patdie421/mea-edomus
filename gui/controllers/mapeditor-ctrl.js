@@ -12,7 +12,7 @@ $.fn.datagrid.defaults.editors.empty = {
    init: function(container, options){
       return $('<div style="padding:0 4px"></div>').appendTo(container);
    },
-   etValue: function(target){
+   setValue: function(target){
       return $(target).html();
    },
    setValue: function(target, value){

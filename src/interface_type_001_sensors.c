@@ -221,7 +221,7 @@ int16_t interface_type_001_sensors_process_traps(int16_t numTrap, char *data, in
       *(sensor->nbxplout)=*(sensor->nbxplout)+1;
 
       if(sensor->todbflag==1)
-         dbServer_add_data_to_sensors_values(sensor->sensor_id, (double)data[0], 0, 0, "");
+         dbServer_add_data_to_sensors_values(sensor->sensor_id, (double)data[0], 0, 0, "", TMP_COLLECTOR_ID);
 
       xPL_releaseMessage(sensorMessageStat);
    }
@@ -276,7 +276,7 @@ int16_t interface_type_001_sensors_process_traps2(int16_t numTrap, char *data, i
       *(sensor->nbxplout)=*(sensor->nbxplout)+1;
 
       if(sensor->todbflag==1)
-         dbServer_add_data_to_sensors_values(sensor->sensor_id, (double)data[0], 0, 0, "");
+         dbServer_add_data_to_sensors_values(sensor->sensor_id, (double)data[0], 0, 0, "", TMP_COLLECTOR_ID);
 
       cJSON_Delete(xplMsgJson);
    }
@@ -810,7 +810,7 @@ int16_t interface_type_001_sensors_poll_inputs(interface_type_001_t *i001)
                char str_last[20];
                
                if(sensor->todbflag == 1)
-                  dbServer_add_data_to_sensors_values(sensor->sensor_id, (double)sensor->computed_val, unit, (double)sensor->val, "");
+                  dbServer_add_data_to_sensors_values(sensor->sensor_id, (double)sensor->computed_val, unit, (double)sensor->val, "", TMP_COLLECTOR_ID);
 
                xPL_ServicePtr servicePtr = mea_getXPLServicePtr();
                if(servicePtr)
@@ -919,7 +919,7 @@ int16_t interface_type_001_sensors_poll_inputs2(interface_type_001_t *i001)
                char str_last[20];
                
                if(sensor->todbflag == 1)
-                  dbServer_add_data_to_sensors_values(sensor->sensor_id, (double)sensor->computed_val, unit, (double)sensor->val, "");
+                  dbServer_add_data_to_sensors_values(sensor->sensor_id, (double)sensor->computed_val, unit, (double)sensor->val, "", TMP_COLLECTOR_ID);
 
                xPL_ServicePtr servicePtr = mea_getXPLServicePtr();
                if(servicePtr)

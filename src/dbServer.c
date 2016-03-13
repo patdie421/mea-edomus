@@ -83,7 +83,7 @@ void set_dbServer_isnt_running(void *data)
 }
 
 
-void free_value(void *data)
+void free_sensors_value(void *data)
 /**
  * \brief     libère les données allouées (malloc) pour un variable de structure sensors_values_s.
  * \param     data   pointeur anonyme sur une structure sensors_value_s
@@ -102,7 +102,7 @@ void free_value(void *data)
 }
 
 
-int16_t dbServer_add_data_to_sensors_values(uint16_t sensor_id, double value1, uint16_t unit, double value2, char *complement)
+int16_t dbServer_add_data_to_sensors_values(uint16_t sensor_id, double value1, uint16_t unit, double value2, char *complement, uint32_t collector_key)
 /**
  * \brief     Récupère les données de type "sensors values" pour stockage dans la table sensors_values de la base mysql.
  * \details   En dehors des données en provenance des capteurs la date courrante est rajoutée par cette fonction.
@@ -110,7 +110,8 @@ int16_t dbServer_add_data_to_sensors_values(uint16_t sensor_id, double value1, u
  * \param     value1     valeur principale
  * \param     unit       identifiant de l'unité de mesure
  * \param     value2     une valeur complémentaire optionnelle
- * \param     specific   un complément de données au format text optionnel
+ * \param     complement un complément de données au format text optionnel
+ * \param     collector_key identifiant unique de collecteur
  * \return    -1 en cas d'erreur, 0 sinon
  */
 {
@@ -169,7 +170,7 @@ int16_t dbServer_add_data_to_sensors_values(uint16_t sensor_id, double value1, u
 
    elem->type=TOMYSQLDB_TYPE_SENSORS_VALUES;
    elem->data=(void *)value;
-   elem->freedata=free_value;
+   elem->freedata=free_sensors_value;
 
    pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(_md->lock));
    pthread_mutex_lock(&(_md->lock));
@@ -177,7 +178,7 @@ int16_t dbServer_add_data_to_sensors_values(uint16_t sensor_id, double value1, u
    VERBOSE(9) mea_log_printf("%s (%s) : data to queue(%ld) (sensor_id=%d, value1=%f)\n", INFO_STR, __func__, _md->queue->nb_elem, sensor_id, value1);
    if(mea_queue_in_elem(_md->queue,(void *)elem)==ERROR)
    {
-      free_value(elem->data);
+      free_sensors_value(elem->data);
       free(elem);
       elem=NULL;
    }

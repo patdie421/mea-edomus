@@ -47,7 +47,7 @@ struct dbServerData_s
 };
 
 
-int16_t dbServer_add_data_to_sensors_values(uint16_t sensor_id, double value1, uint16_t unit, double value2, char *complement);
+int16_t dbServer_add_data_to_sensors_values(uint16_t sensor_id, double value1, uint16_t unit, double value2, char *complement, uint32_t collector_key);
 
 int start_dbServer(int my_id, void *data, char *errmsg, int l_errmsg);
 int stop_dbServer(int my_id, void *data, char *errmsg, int l_errmsg);

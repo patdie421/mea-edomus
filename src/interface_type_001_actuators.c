@@ -17,6 +17,9 @@
 #include <string.h>
 
 //#include "debug.h"
+
+#include "globals.h"
+
 #include "mea_verbose.h"
 #include "arduino_pins.h"
 #include "parameters_utils.h"
@@ -213,7 +216,7 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
                   }
                   
                   (i001->indicators.nbactuatorsout)++;
-                  dbServer_add_data_to_sensors_values(iq->actuator_id, 1, 0, sval[1], "pulse");
+                  dbServer_add_data_to_sensors_values(iq->actuator_id, 1, 0, sval[1], "pulse", TMP_COLLECTOR_ID);
                   return NOERROR;
                   break;
                }
@@ -240,7 +243,7 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
                   }
                   (i001->indicators.nbactuatorsout)++;
                   if(iq->todbflag == 1)
-                     dbServer_add_data_to_sensors_values(iq->actuator_id, (double)o, 0, 0.0, "");
+                     dbServer_add_data_to_sensors_values(iq->actuator_id, (double)o, 0, 0.0, "", TMP_COLLECTOR_ID);
 
                   return NOERROR;
                   break;
@@ -319,7 +322,7 @@ mea_error_t xpl_actuator(interface_type_001_t *i001, xPL_NameValueListPtr ListNo
             }
             (i001->indicators.nbactuatorsout)++;
             if(iq->todbflag==1)
-               dbServer_add_data_to_sensors_values(iq->actuator_id, (double)o, 0, 0.0, "");
+               dbServer_add_data_to_sensors_values(iq->actuator_id, (double)o, 0, 0.0, "", TMP_COLLECTOR_ID);
 
             return NOERROR;
          }
@@ -398,7 +401,7 @@ mea_error_t xpl_actuator2(interface_type_001_t *i001, cJSON *xplMsgJson, char *d
                   }
                   
                   (i001->indicators.nbactuatorsout)++;
-                  dbServer_add_data_to_sensors_values(iq->actuator_id, 1, 0, sval[1], XPL_PULSE_STR_C);
+                  dbServer_add_data_to_sensors_values(iq->actuator_id, 1, 0, sval[1], XPL_PULSE_STR_C, TMP_COLLECTOR_ID);
                   return NOERROR;
                   break;
                }
@@ -425,7 +428,7 @@ mea_error_t xpl_actuator2(interface_type_001_t *i001, cJSON *xplMsgJson, char *d
                   }
                   (i001->indicators.nbactuatorsout)++;
                   if(iq->todbflag == 1)
-                     dbServer_add_data_to_sensors_values(iq->actuator_id, (double)o, 0, 0.0, "");
+                     dbServer_add_data_to_sensors_values(iq->actuator_id, (double)o, 0, 0.0, "", TMP_COLLECTOR_ID);
 
                   return NOERROR;
                   break;
@@ -504,7 +507,7 @@ mea_error_t xpl_actuator2(interface_type_001_t *i001, cJSON *xplMsgJson, char *d
             }
             (i001->indicators.nbactuatorsout)++;
             if(iq->todbflag==1)
-               dbServer_add_data_to_sensors_values(iq->actuator_id, (double)o, 0, 0.0, "");
+               dbServer_add_data_to_sensors_values(iq->actuator_id, (double)o, 0, 0.0, "", TMP_COLLECTOR_ID);
 
             return NOERROR;
          }

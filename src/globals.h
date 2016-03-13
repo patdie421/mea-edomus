@@ -47,6 +47,8 @@
 #define RULES_FILES_PATH      27
 #define MAX_LIST_SIZE         28
 
+#define TMP_COLLECTOR_ID 0
+
 #define CURRENT_PARAMS_DB_VERSION 8
 sqlite3 *get_sqlite3_param_db();
 

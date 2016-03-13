@@ -901,7 +901,7 @@ static int interface_type_005_sendData(interface_type_005_t *i005, struct type00
       //_interface_type_005_send_xPL_sensor_basic(i005, xPL_MESSAGE_TRIGGER, sa_elem->name, type, str_value, str_last);
       _interface_type_005_send_xPL_sensor_basic2(i005, XPL_TRIG_STR_C, sa_elem->name, type, str_value, str_last);
       if(sa_elem->todbflag==1)
-         dbServer_add_data_to_sensors_values(sa_elem->id, data4db, 0, data4db2, data4dbComp);
+         dbServer_add_data_to_sensors_values(sa_elem->id, data4db, 0, data4db2, data4dbComp, TMP_COLLECTOR_ID);
 //      VERBOSE(9) mea_log_printf("%s (%s) : sendData done\n", ERROR_STR, __func__);
       return 0;
    }
