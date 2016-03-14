@@ -21,6 +21,8 @@
 #include "mea_queue.h"
 
 #define TOMYSQLDB_TYPE_SENSORS_VALUES 1
+#define START_BATCH_CONSO             2
+#define START_BATCH_PURGE             3
 
 struct sensor_value_s
 {
@@ -47,10 +49,13 @@ struct dbServerData_s
 };
 
 
-int16_t dbServer_add_data_to_sensors_values(uint16_t sensor_id, double value1, uint16_t unit, double value2, char *complement, uint32_t collector_key);
+int16_t dbServer_add_data_to_sensors_values(uint16_t sensor_id, double value1, uint16_t unit, double value2, char *complement);
 
 int start_dbServer(int my_id, void *data, char *errmsg, int l_errmsg);
 int stop_dbServer(int my_id, void *data, char *errmsg, int l_errmsg);
 int restart_dbServer(int my_id, void *data, char *errmsg, int l_errmsg);
+
+int16_t start_consolidation_batch();
+int16_t start_purge_batch();
 
 #endif

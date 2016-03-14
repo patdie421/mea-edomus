@@ -58,7 +58,7 @@ interfaces.dev, \
 sensors_actuators.todbflag, \
 types.typeoftype, \
 sensors_actuators.id_interface \
-FROM sensors_actuators INNER JOIN interfaces ON sensors_actuators.id_interface = interfaces.id_interface INNER JOIN types ON sensors_actuators.id_type = types.id_type";
+FROM sensors_actuators INNER JOIN interfaces ON sensors_actuators.id_interface = interfaces.id_interface INNER JOIN types ON sensors_actuators.id_type = types.id_type" ;
 
 char *sql_select_interface_info="SELECT * FROM interfaces";
 

@@ -16,7 +16,7 @@
 #include "mea_string_utils.h"
 #include "uthash.h"
 #include "sunriset.h"
-
+#include "dbServer.h"
 #include "datetimeServer.h"
 
 #define ONESECONDNS 1000000000L
@@ -601,7 +601,7 @@ void *_timeServer_thread(void *data)
    mea_getTime(&te);
    mea_time_value=te.tv_sec;
    localtime_r(&(mea_time_value), &mea_tm); // conversion en tm
-   
+   int hour_job_done = 0; 
    while(1)
    {
       mea_getTime(&te);
@@ -623,11 +623,19 @@ void *_timeServer_thread(void *data)
 
       if((te.tv_sec % 3600) == 0) // toutes les heures;
       {
-         DEBUG_SECTION2(DEBUGFLAG) {
-            mea_log_printf("Traitement heure\n");
+         if(hour_job_done == 0) // pour pas begailler
+         {
+            DEBUG_SECTION2(DEBUGFLAG) {
+               mea_log_printf("Traitement heure\n");
+            }
+            mea_clean_datetime_values_cache(); // on fait le ménage dans le cache
+            start_consolidation_batch();
+            start_purge_batch();
+            hour_job_done = 1;
          }
-         mea_clean_datetime_values_cache(); // on fait le ménage dans le cache
       }
+      else
+         hour_job_done=0;
 
       if(mea_tm.tm_wday != current_day) // 1x par jour
       {

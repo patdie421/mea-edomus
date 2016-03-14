@@ -236,7 +236,7 @@ int16_t _interface_type_006_xPL_callback2(cJSON *xplMsgJson, xPL_ObjectPtr userV
    char sql[2048];
    sqlite3_stmt * stmt;
    
-   sprintf(sql,"%s WHERE lower(sensors_actuators.name)='%s' and sensors_actuators.state='1';", sql_select_device_info, device);
+   sprintf(sql,"%s WHERE lower(sensors_actuators.name)='%s' AND sensors_acutators.deleted_flag <> 1 AND sensors_actuators.state='1';", sql_select_device_info, device);
    ret = sqlite3_prepare_v2(params_db, sql, strlen(sql)+1, &stmt, NULL);
    if(ret)
    {
@@ -507,7 +507,7 @@ void *_thread_interface_type_006_genericserial_data(void *args)
                char sql_request[1024];
                sqlite3_stmt * stmt;
 
-               sprintf(sql_request, "SELECT sensors_actuators.id_sensor_actuator, sensors_actuators.id_location, sensors_actuators.state, sensors_actuators.parameters, sensors_actuators.id_type, lower(sensors_actuators.name), sensors_actuators.todbflag, sensors_actuators.id_interface, types.typeoftype FROM sensors_actuators INNER JOIN types ON sensors_actuators.id_type = types.id_type WHERE sensors_actuators.id_interface=%d and sensors_actuators.state='1'", params->i006->id_interface);
+               sprintf(sql_request, "SELECT sensors_actuators.id_sensor_actuator, sensors_actuators.id_location, sensors_actuators.state, sensors_actuators.parameters, sensors_actuators.id_type, lower(sensors_actuators.name), sensors_actuators.todbflag, sensors_actuators.id_interface, types.typeoftype FROM sensors_actuators INNER JOIN types ON sensors_actuators.id_type = types.id_type WHERE sensors_actuators.id_interface=%d AND sensors_actuators.deleted_flag <> 1 AND sensors_actuators.state='1'", params->i006->id_interface);
                int ret = sqlite3_prepare_v2(params_db, sql_request, strlen(sql_request)+1, &stmt, NULL);
                if(ret)
                {

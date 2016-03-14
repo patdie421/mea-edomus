@@ -63,8 +63,8 @@ catch (PDOException $e) {
 }
 $next_id=$next_id+1;
 
-$SQL="INSERT INTO locations (id_location, name, description)
-      VALUES ('$next_id','$name', '$description')";
+$SQL="INSERT INTO locations (id_location, name, description, deleted_flag)
+      VALUES ('$next_id','$name', '$description', 0)";
 try {
    $request = $file_db->query($SQL);
 }

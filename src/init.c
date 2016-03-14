@@ -22,7 +22,7 @@
 #include <inttypes.h>
 #include <errno.h>
 #include <sys/stat.h>
-
+#include <time.h>
 #include <sqlite3.h>
 
 #include "init.h"
@@ -488,14 +488,11 @@ int16_t createMeaTables(sqlite3 *sqlite3_param_db)
    char *sql_createTables[] = {
       "CREATE TABLE application_parameters(id INTEGER PRIMARY KEY,key TEXT,value TEXT,complement TEXT)",
       "CREATE TABLE interfaces(id INTEGER PRIMARY KEY,id_interface INTEGER,id_type INTEGER,name TEXT,description TEXT,dev TEXT,parameters TEXT,state INTEGER)",
-      "CREATE TABLE locations(id INTEGER PRIMARY KEY,id_location INTEGER,name TEXT,description TEXT)",
-//      "CREATE TABLE sensors_actuators(id INTEGER PRIMARY KEY,id_sensor_actuator INTEGER,id_type INTEGER,id_interface INTERGER,name TEXT,description TEXT,id_location INTEGER,parameters TEXT,state INTEGER)",
-      "CREATE TABLE sensors_actuators(id INTEGER PRIMARY KEY,id_sensor_actuator INTEGER,id_type INTEGER,id_interface INTERGER,name TEXT,description TEXT,id_location INTEGER,parameters TEXT,state INTEGER, todbflag INTEGER)",
+      "CREATE TABLE locations(id INTEGER PRIMARY KEY,id_location INTEGER,name TEXT,description TEXT, deleted_flag INTEGER)",
+      "CREATE TABLE sensors_actuators(id INTEGER PRIMARY KEY,id_sensor_actuator INTEGER,id_type INTEGER,id_interface INTERGER,name TEXT,description TEXT,id_location INTEGER,parameters TEXT,state INTEGER, todbflag INTEGER, deleted_flag INTEGER)",
       "CREATE TABLE types(id INTEGER PRIMARY KEY,id_type INTEGER,name TEXT,description TEXT,parameters TEXT,flag INTEGER,typeoftype INTEGER)",
       "CREATE TABLE sessions (id INTEGER PRIMARY KEY, userid TEXT, sessionid INTEGER, lastaccess DATETIME)",
       "CREATE TABLE users (id INTEGER PRIMARY KEY, id_user INTEGER, name TEXT, password TEXT, description TEXT, profil INTEGER, flag INTEGER)",
-      "CREATE TABLE conditions (id INTEGER PRIMARY KEY, id_condition INTEGER, id_rule INTEGER, name TEXT, key TEXT, value TEXT, op INTEGER)",
-      "CREATE TABLE rules (id INTEGER PRIMARY KEY, id_rule INTEGER, name TEXT, source TEXT, schema TEXT, input_type INTEGER, input_index INTEGER, input_value TEXT, nb_conditions INTEGER)",
       NULL
    };
 
@@ -1129,15 +1126,16 @@ int16_t initMeaEdomus(int16_t mode, char **params_list, char **keys)
     int16_t installPathFlag=0;
     int16_t func_ret;
     char params_db_version[10];
-    
+    char collector_id[20];
+ 
     if(!params_list[MEA_PATH])
-    {
-//        params_list[MEA_PATH]="/usr/local/mea-edomus";
         mea_string_free_alloc_and_copy(&params_list[MEA_PATH], "/usr/local/mea-edomus");
-    } 
+
     snprintf(params_db_version,sizeof(params_db_version)-1,"%d",CURRENT_PARAMS_DB_VERSION);
-//    params_list[PARAMSDBVERSION]=params_db_version;
+    snprintf(collector_id,sizeof(collector_id)-1,"%lu",(unsigned long)time(NULL));
+    
     mea_string_free_alloc_and_copy(&params_list[PARAMSDBVERSION], params_db_version);
+    mea_string_free_alloc_and_copy(&params_list[COLLECTOR_ID], collector_id);
     
     if(mode==1) // automatique
     {
@@ -1226,6 +1224,78 @@ exit_updateMeaEdomus:
    if(sqlite3_param_db)
         sqlite3_close(sqlite3_param_db);
    return retcode;
+}
+
+
+// une fonction pour chaque changement de version.
+int16_t upgrade_params_db_from_8_to_9(sqlite3 *sqlite3_param_db, struct upgrade_params_s *upgrade_params)
+{
+ int ret;
+ char *err = NULL;
+ char sql[256];
+ int16_t n;
+
+   VERBOSE(5) mea_log_printf ("%s (%s) : passage de la version 8 à la version 9\n",INFO_STR,__func__);
+
+   time_t collector_id = time(NULL);
+
+   n=snprintf(sql, sizeof(sql), "INSERT INTO 'application_parameters' (id, key, value, complement) VALUES ('%d', 'COLLECTORID', %lu, '')", COLLECTOR_ID, (unsigned long)collector_id);
+
+   if(n<0 || n==sizeof(sql))
+   {
+      VERBOSE(9) {
+         mea_log_printf ("%s (%s) : snprintf - ", DEBUG_STR,__func__);
+         perror("");
+      }
+      return -1;
+   }
+   ret = sqlite3_exec(sqlite3_param_db, sql, NULL, NULL, &err);
+   if( ret != SQLITE_OK )
+   {
+      VERBOSE(9) mea_log_printf ("%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__, sqlite3_errmsg(sqlite3_param_db));
+      sqlite3_free(err);
+      return -1;
+   }
+
+
+   // ajout d'une colonne à la table des capteurs/actioneurs
+   ret = sqlite3_exec(sqlite3_param_db, "ALTER TABLE sensors_actuators ADD COLUMN deleted_flag INTEGER", NULL, NULL, &err);
+   if( ret != SQLITE_OK )
+   {
+      VERBOSE(9) mea_log_printf ("%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
+      sqlite3_free(err);
+   }
+   ret = sqlite3_exec(sqlite3_param_db, "UPDATE sensors_actuators SET deleted_flag = 0", NULL, NULL, &err);
+   if( ret != SQLITE_OK )
+   {
+      VERBOSE(9) mea_log_printf ("%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
+      sqlite3_free(err);
+   }
+
+ // ajout d'une colonne à la table des lieux (locations) 
+   ret = sqlite3_exec(sqlite3_param_db, "ALTER TABLE locations ADD COLUMN deleted_flag INTEGER", NULL, NULL, &err);
+   if( ret != SQLITE_OK )
+   {
+      VERBOSE(9) mea_log_printf ("%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
+      sqlite3_free(err);
+   }
+   ret = sqlite3_exec(sqlite3_param_db, "UPDATE locations SET deleted_flag = 0", NULL, NULL, &err);
+   if( ret != SQLITE_OK )
+   {
+      VERBOSE(9) mea_log_printf ("%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
+      sqlite3_free(err);
+   }
+
+
+   ret = sqlite3_exec(sqlite3_param_db, "UPDATE 'application_parameters' set value = '9' WHERE key = 'PARAMSDBVERSION'", NULL, NULL, &err);
+   if( ret != SQLITE_OK )
+   {
+      VERBOSE(9) mea_log_printf ("%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
+      sqlite3_free(err);
+      return -1;
+   }
+
+   return 0;
 }
 
 
@@ -1626,6 +1696,7 @@ upgrade_params_db_from_x_to_y_f upgrade_params_db_from_x_to_y[]= {
    upgrade_params_db_from_5_to_6,
    upgrade_params_db_from_6_to_7,
    upgrade_params_db_from_7_to_8,
+   upgrade_params_db_from_8_to_9,
    NULL };
 
 

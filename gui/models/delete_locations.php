@@ -50,7 +50,8 @@ catch(PDOException $e) {
 }
 $file_db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION); // ERRMODE_WARNING | ERRMODE_EXCEPTION | ERRMODE_SILENT
 
-$SQL= "DELETE FROM locations WHERE id='$id'";
+//$SQL= "DELETE FROM locations WHERE id='$id'";
+$SQL= "UPDATE locations SET deleted_flag = 1 WHERE id='$id'";
 
 try {
    $request = $file_db->query($SQL);

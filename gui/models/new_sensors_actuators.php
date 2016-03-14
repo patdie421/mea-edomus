@@ -69,8 +69,8 @@ catch (PDOException $e) {
 }
 $next_id=$next_id+1;
 
-$SQL="INSERT INTO sensors_actuators (id_sensor_actuator, name, id_type, description, id_interface, parameters, id_location, state, todbflag)
-      VALUES ('$next_id','$name', '$id_type', '$description', '$id_interface', '$parameters', '$id_location','$state','$todbflag')";
+$SQL="INSERT INTO sensors_actuators (id_sensor_actuator, name, id_type, description, id_interface, parameters, id_location, state, todbflag, deleted_flag)
+      VALUES ('$next_id','$name', '$id_type', '$description', '$id_interface', '$parameters', '$id_location','$state','$todbflag', 0)";
 try {
    $request = $file_db->query($SQL);
 }

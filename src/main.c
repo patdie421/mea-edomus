@@ -218,6 +218,7 @@ void init_param_names(char *param_names[])
    param_names[INTERFACE]            = "INTERFACE";
    param_names[RULES_FILE]           = "RULESFILE";
    param_names[RULES_FILES_PATH]     = "RULESFILESPATH";
+   param_names[COLLECTOR_ID]         = "COLLECTORID";
 }
 
 

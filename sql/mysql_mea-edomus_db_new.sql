@@ -13,7 +13,7 @@ USE domotique;
 CREATE TABLE IF NOT EXISTS sensors_values (
    id INT UNSIGNED NOT NULL AUTO_INCREMENT,
    sensor_id SMALLINT UNSIGNED,
-   collector_id SMALLINT UNSIGNED,
+   collector_id INT UNSIGNED,
    location_id SMALLINT UNSIGNED,
    date DATETIME,
    value1 FLOAT(13,3),
@@ -35,6 +35,7 @@ ALTER TABLE sensors_values ADD INDEX (collector_id);
 CREATE TABLE IF NOT EXISTS sensors_names (
    id INT UNSIGNED NOT NULL AUTO_INCREMENT,
    sensor_id SMALLINT UNSIGNED,
+   collector_id INT UNSIGNED,
    name VARCHAR(40),
    description VARCHAR(255),
    PRIMARY KEY(id)
@@ -42,13 +43,28 @@ CREATE TABLE IF NOT EXISTS sensors_names (
 
 CREATE TABLE IF NOT EXISTS collectors_names (
    id INT UNSIGNED NOT NULL AUTO_INCREMENT,
-   collector_id SMALLINT UNSIGNED,
-   collector_key BIGINT,
+   collector_id INT UNSIGNED,
    name VARCHAR(40),
    description VARCHAR(255),
    PRIMARY KEY(id)
 );
 
+CREATE TABLE IF NOT EXISTS sensors_values_c (
+   id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+   sensor_id SMALLINT UNSIGNED,
+   collector_id INT UNSIGNED,
+   location_id SMALLINT UNSIGNED,
+   date DATETIME,
+   nb_values SMALLINT UNSIGNED,
+   avg1 FLOAT(13,3),
+   min1 FLOAT(13,3),
+   max1 FLOAT(13,3),
+   unit SMALLINT UNSIGNED,
+   avg2 FLOAT(13,3),
+   min2 FLOAT(13,3),
+   max2 FLOAT(13,3),
+   PRIMARY KEY(id)
+);
 
 GRANT SELECT, INSERT, DELETE, UPDATE, LOCK TABLES ON domotique.* TO 'domotique'@'%' WITH GRANT OPTION;
 GRANT SELECT, INSERT, DELETE, UPDATE, LOCK TABLES ON domotique.* TO 'domotique'@'localhost' WITH GRANT OPTION;

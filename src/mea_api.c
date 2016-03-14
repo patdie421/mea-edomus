@@ -89,7 +89,7 @@ static int16_t _check_todbflag(sqlite3 *db, uint16_t sensor_id)
    int ret;
    
    DEBUG_SECTION mea_log_printf("%s (%s) : check loggin for sensor n#%d.\n", DEBUG_STR ,__func__,sensor_id);
-   snprintf(sql,sizeof(sql),"SELECT id,todbflag,id_sensor_actuator FROM sensors_actuators WHERE id_sensor_actuator = %d",sensor_id);
+   snprintf(sql,sizeof(sql),"SELECT id,todbflag,id_sensor_actuator FROM sensors_actuators WHERE id_sensor_actuator = %d AND deleted_flag <> 1",sensor_id);
    ret = sqlite3_prepare_v2(db, sql, strlen(sql)+1, &stmt, NULL);
    if(ret)
    {
@@ -684,7 +684,7 @@ static PyObject *mea_addDataToSensorsValuesTable(PyObject *self, PyObject *args)
    {
       if(_check_todbflag(db, sensor_id)==1)
       {
-         dbServer_add_data_to_sensors_values(sensor_id, value1, unit, value2, complement, TMP_COLLECTOR_ID);
+         dbServer_add_data_to_sensors_values(sensor_id, value1, unit, value2, complement);
       }
       else
       {

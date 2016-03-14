@@ -50,6 +50,8 @@ typedef struct dbServer_md_s
    
    char *sqlite3_db_path;
 
+   unsigned long collector_id;
+
    sqlite3 *db;
    MYSQL *conn;
 
@@ -76,7 +78,7 @@ void set_dbServer_isnt_running(void *data)
       mysql_close(_md->conn);
       _md->conn=NULL;
    }
-   mysql_thread_end();
+//   mysql_thread_end();
    _dbServer_thread_is_running=0;
 
    DEBUG_SECTION mea_log_printf("%s (%s) : after, _dbServer_thread_is_running = %d now\n", DEBUG_STR,__func__,_dbServer_thread_is_running);
@@ -102,7 +104,63 @@ void free_sensors_value(void *data)
 }
 
 
-int16_t dbServer_add_data_to_sensors_values(uint16_t sensor_id, double value1, uint16_t unit, double value2, char *complement, uint32_t collector_key)
+void free_batch_data(void *data)
+/**
+ * \brief     libère les données allouées (malloc) pour un variable de structure sensors_values_s.
+ * \param     data   pointeur anonyme sur une structure sensors_value_s
+ */
+{
+}
+
+
+int16_t start_batch(int batch_id)
+{
+   dbServer_queue_elem_t *elem;
+
+   elem=malloc(sizeof(dbServer_queue_elem_t));
+
+   if(!elem)
+   {
+      VERBOSE(1) {
+         mea_log_printf("%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
+         perror("");
+      }
+      return -1;
+   }
+
+   elem->type=batch_id;
+   elem->data=NULL;
+   elem->freedata=free_batch_data;
+
+   pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(_md->lock));
+   pthread_mutex_lock(&(_md->lock));
+
+   VERBOSE(9) mea_log_printf("%s (%s) : start consolidation batch 60 mn", INFO_STR, __func__);
+   if(mea_queue_in_elem(_md->queue,(void *)elem)==ERROR)
+   {
+      free(elem);
+      elem=NULL;
+   }
+
+   pthread_mutex_unlock(&(_md->lock));
+   pthread_cleanup_pop(0);
+
+}
+
+
+int16_t start_consolidation_batch()
+{
+   return start_batch(START_BATCH_CONSO);
+}
+
+
+int16_t start_purge_batch()
+{
+   return start_batch(START_BATCH_PURGE);
+}
+
+
+int16_t dbServer_add_data_to_sensors_values(uint16_t sensor_id, double value1, uint16_t unit, double value2, char *complement)
 /**
  * \brief     Récupère les données de type "sensors values" pour stockage dans la table sensors_values de la base mysql.
  * \details   En dehors des données en provenance des capteurs la date courrante est rajoutée par cette fonction.
@@ -111,7 +169,6 @@ int16_t dbServer_add_data_to_sensors_values(uint16_t sensor_id, double value1, u
  * \param     unit       identifiant de l'unité de mesure
  * \param     value2     une valeur complémentaire optionnelle
  * \param     complement un complément de données au format text optionnel
- * \param     collector_key identifiant unique de collecteur
  * \return    -1 en cas d'erreur, 0 sinon
  */
 {
@@ -209,7 +266,6 @@ void _dbServer_free_queue_elem(void *d) // pour vider_file2()
 }
 
 
-//int exec_mysql_query(MYSQL *conn, char *sql_query)
 int exec_mysql_query(char *sql_query)
 /**
  * \brief     Execute une commande sql dans Mysql.
@@ -349,6 +405,126 @@ int move_mysql_query_to_sqlite3(char *sql_query)
 }
 
 
+uint16_t get_name_description_from_param_db(int id, char *name, char *description)
+{
+   char sql[255]="";
+   sqlite3_stmt *stmt = NULL;
+   sqlite3 *sqlite3_param_db=get_sqlite3_param_db();
+   int ret=-1;   
+
+   if(sqlite3_param_db)
+   {
+      sprintf(sql, "SELECT name, description FROM sensors_actuators WHERE id_sensor_actuator = %d AND <> deleted_flag <> 1;", id);
+      ret = sqlite3_prepare_v2(sqlite3_param_db, sql, strlen(sql)+1, &stmt, NULL);
+      if(ret)
+      {
+         VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (sqlite3_param_db));
+         return ERROR;
+      }
+
+      ret=-1;
+      int s = sqlite3_step(stmt);
+      if (s == SQLITE_ROW)
+      {
+         strcpy(name, (char *)sqlite3_column_text(stmt, 0));
+         strcpy(description, (char *)sqlite3_column_text(stmt, 1));
+
+         ret=0;
+      }
+      sqlite3_finalize(stmt);
+   }
+
+   return ret;
+}
+
+
+int16_t get_location_from_param_db(int id)
+{
+   char sql[255]="";
+   sqlite3_stmt *stmt = NULL;
+   sqlite3 *sqlite3_param_db=get_sqlite3_param_db();
+   int ret=-1;
+
+   if(sqlite3_param_db)
+   {
+      sprintf(sql, "SELECT id_location FROM sensors_actuators WHERE id_sensor_actuator = %d AND deleted_flag <> 1;", id);
+      ret = sqlite3_prepare_v2(sqlite3_param_db, sql, strlen(sql)+1, &stmt, NULL);
+      if(ret)
+      {
+         VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (sqlite3_param_db));
+         return ERROR;
+      }
+
+      ret=-1;
+      int s = sqlite3_step(stmt);
+      if (s == SQLITE_ROW)
+      {
+         ret = sqlite3_column_int(stmt, 0);
+      }
+      sqlite3_finalize(stmt);
+   }
+
+   return ret;
+}
+
+
+uint16_t sync_mysql_sqlite3_dbs(void *data)
+{
+   struct sensor_value_s *sensor_value;
+   int ret;
+   char sql_query[255];
+   int exist=-1;
+
+   sensor_value=(struct sensor_value_s *)data;
+
+   sprintf(sql_query, "SELECT count(sensor_id) FROM sensors_names WHERE sensor_id = %d and collector_id = %u", sensor_value->sensor_id, _md->collector_id);
+
+   ret=mysql_query(_md->conn, sql_query);
+   if(ret)
+   {
+      VERBOSE(1) mea_log_printf("%s (%s) : mysql_query - %u : %s\n", ERROR_STR,__func__,mysql_errno(_md->conn), mysql_error(_md->conn));
+      return -1;
+   }
+   MYSQL_RES *result = mysql_store_result(_md->conn);
+   if(result == NULL)
+   {
+      VERBOSE(1) mea_log_printf("%s (%s) : mysql_store_result - %u : %s\n", ERROR_STR, __func__, mysql_errno(_md->conn), mysql_error(_md->conn));
+      return -1;
+   }
+   int nb_rows = mysql_num_rows(result);
+   if(nb_rows == 1)
+   {
+      MYSQL_ROW row = mysql_fetch_row(result);
+      if(row)
+         exist=atoi(row[0]);
+   }
+   mysql_free_result(result);
+
+   if(exist==0) // pas trouvé dans la base mysql
+   {
+      char name[40], description[256];
+
+      if(get_name_description_from_param_db(sensor_value->sensor_id, name, description) < 0)
+      {
+          VERBOSE(2) mea_log_printf("%s (%s) : can't get name and description for %d\n", ERROR_STR,__func__,sensor_value->sensor_id);
+         return -1;
+      }
+      else
+      {
+         sprintf(sql_query, "INSERT INTO sensors_names (sensor_id, collector_id, name, description) values (%d, %u, \"%s\", \"%s\")", sensor_value->sensor_id, _md->collector_id, name, description);
+         ret=mysql_query(_md->conn, sql_query);
+         if(ret)
+         {
+             VERBOSE(1) mea_log_printf("%s (%s) : mysql_query - %u : %s\n", ERROR_STR,__func__,mysql_errno(_md->conn), mysql_error(_md->conn));
+             return -1;
+         }
+      }
+   }
+
+   return 0;
+}
+
+
 uint16_t build_query_for_sensors_values(char *sql_query, uint16_t l_sql_query, void *data)
 /**
  * \brief     créer une requête SQL pour alimenter la table sensors_values.
@@ -374,16 +550,24 @@ uint16_t build_query_for_sensors_values(char *sql_query, uint16_t l_sql_query, v
          perror("");
       }
       return -1;
-   }   
+   } 
+  
+   int location_id = get_location_from_param_db(sensor_value->sensor_id);
+   if(location_id < 0)
+      location_id = 1; // location = unknown
+ 
    n=snprintf(sql_query,
               l_sql_query,
-              "INSERT INTO sensors_values (sensor_id, date, value1, unit, value2, complement) VALUES ( %d,\"%s\",%f,%d,%f,\"%s\" )",
+              "INSERT INTO sensors_values (sensor_id, date, value1, unit, value2, complement, collector_id, location_id) VALUES ( %d,\"%s\",%f,%d,%f,\"%s\",%u, %d )",
               sensor_value->sensor_id,
               time_str,
               sensor_value->value1, // valeur principale
               sensor_value->unit, // code unité de mesure (s'applique à la valeur principale)
               sensor_value->value2, // valeur secondaire
-              sensor_value->complement
+              sensor_value->complement,
+              _md->collector_id,
+              location_id
+
    );
    if(n<0 || n==l_sql_query)
    {
@@ -398,8 +582,165 @@ uint16_t build_query_for_sensors_values(char *sql_query, uint16_t l_sql_query, v
 }
 
 
-//int write_data_to_db(int mysql_connected, MYSQL *conn, sqlite3 *db, dbServer_queue_elem_t *elem)
-int write_data_to_db(dbServer_queue_elem_t *elem)
+int consolidation_batch()
+{
+   int ret=-1;
+   char date[40];
+   time_t t;
+   struct tm timeinfo;
+
+   VERBOSE(2) mea_log_printf("%s (%s) : starting batch\n", INFO_STR,__func__);
+
+   t = time(NULL);
+
+   t = t - 30 * 24 * 3600; // - 30 jours en seconde
+
+   localtime_r(&t, &timeinfo);
+   strftime(date, sizeof(date)-1, "%Y-%m-%d %H:00:00", &timeinfo);
+
+   if(_md->conn)
+   {
+      char *request=
+         "INSERT IGNORE INTO sensors_values_c (sensor_id, collector_id, location_id, date, nb_values, avg1, min1, max1, unit, avg2, min2, max2) "
+         "SELECT "
+            "sensor_id AS sensor_id," 
+            "collector_id AS collector_id,"
+            "location_id AS location_id,"
+            "FROM_UNIXTIME((UNIX_TIMESTAMP(date) DIV 3600) * 3600 +3600 DIV 2) as date,"
+            "count(sensor_id) AS nb_values,"
+            "avg(value1) AS avg1,"
+            "min(value1) AS min1,"
+            "max(value1) AS max1,"
+            "unit AS unit,"
+            "avg(value2) AS avg2,"
+            "min(value2) AS min2,"
+            "max(value2) AS max2 "
+         "FROM sensors_values "
+         "WHERE date < '%s' AND (archive_flag <> 1 OR archive_flag is NULL) "
+         "GROUP BY location_id, collector_id, sensor_id, UNIX_TIMESTAMP(date) DIV 3600 "
+         "ORDER BY date;";
+      char *sql = alloca(strlen(request)+25);
+      if(!sql)
+      {
+         return -1;
+      }
+
+      ret=mysql_query(_md->conn, "START TRANSACTION;");
+      if(ret)
+      {
+         VERBOSE(2) mea_log_printf("%s (%s) : mysql_query - %u: %s\n", ERROR_STR,__func__,mysql_errno(_md->conn), mysql_error(_md->conn));
+         return -1;
+      }
+      
+      sprintf(sql, request, date);
+      ret=mysql_query(_md->conn, sql);
+      if(ret)
+      {
+         VERBOSE(2) mea_log_printf("%s (%s) : mysql_query - INSERT INTO (%u: %s)\n", ERROR_STR,__func__,mysql_errno(_md->conn), mysql_error(_md->conn));
+         ret=mysql_query(_md->conn, "ROLLBACK;");
+         if(ret)
+         {
+            VERBOSE(2) mea_log_printf("%s (%s) : mysql_query - ROLLBACK (%u: %s)\n", ERROR_STR,__func__,mysql_errno(_md->conn), mysql_error(_md->conn));
+            return -1; 
+         }
+         return -1;
+      }
+
+      request = "UPDATE sensors_values SET archive_flag = 1 WHERE date < '%s'" ;
+      sprintf(sql, request, date);
+
+      ret=mysql_query(_md->conn, sql);
+      if(ret)
+      {
+         VERBOSE(2) mea_log_printf("%s (%s) : sql_query - UPDATE (%u: %s)\n", ERROR_STR,__func__,mysql_errno(_md->conn), mysql_error(_md->conn));
+         ret=mysql_query(_md->conn, "ROLLBACK;");
+         if(ret)
+         {
+            VERBOSE(2) mea_log_printf("%s (%s) : sql_query - ROLLBACK (%u: %s)\n", ERROR_STR,__func__,mysql_errno(_md->conn), mysql_error(_md->conn));
+            return -1;
+         }
+         return -1;
+      }
+
+      ret=mysql_query(_md->conn, "COMMIT;");
+      if(ret)
+      {
+          VERBOSE(2) mea_log_printf("%s (%s) : sql_query - COMMIT (%u: %s)\n", ERROR_STR,__func__,mysql_errno(_md->conn), mysql_error(_md->conn));
+          return -1;
+      }
+
+      VERBOSE(2) mea_log_printf("%s (%s) : batch done\n", INFO_STR,__func__);
+      return 0;
+   }
+
+   VERBOSE(2) mea_log_printf("%s (%s) : batch error\n", ERROR_STR,__func__);
+   return -1;
+}
+
+
+int16_t purge_batch()
+{
+   int ret=-1;
+   char date[40];
+   time_t t;
+   struct tm timeinfo;
+
+   VERBOSE(2) mea_log_printf("%s (%s) : starting batch\n", INFO_STR,__func__);
+
+   t = time(NULL);
+
+   t = t - 35 * 24 * 3600; // - 35 jours en seconde
+
+   localtime_r(&t, &timeinfo);
+   strftime(date, sizeof(date)-1, "%Y-%m-%d %H:00:00", &timeinfo);
+
+   if(_md->conn)
+   {
+      char *request=
+         "DELETE FROM sensors_values "
+         "WHERE date < '%s' AND archive_flag = 1 ";
+      char *sql = alloca(strlen(request)+25);
+      if(!sql)
+         return -1;
+
+      ret=mysql_query(_md->conn, "START TRANSACTION;");
+      if(ret)
+      {
+         VERBOSE(2) mea_log_printf("%s (%s) : mysql_query - %u: %s\n", ERROR_STR,__func__,mysql_errno(_md->conn), mysql_error(_md->conn));
+         return -1;
+      }
+
+      sprintf(sql, request, date);
+      ret=mysql_query(_md->conn, sql);
+      if(ret)
+      {
+         VERBOSE(2) mea_log_printf("%s (%s) : mysql_query - DELETE (%u: %s)\n", ERROR_STR,__func__,mysql_errno(_md->conn), mysql_error(_md->conn));
+         ret=mysql_query(_md->conn, "ROLLBACK;");
+         if(ret)
+         {
+            VERBOSE(2) mea_log_printf("%s (%s) : mysql_query - ROLLBACK (%u: %s)\n", ERROR_STR,__func__,mysql_errno(_md->conn), mysql_error(_md->conn));
+            return -1;
+         }
+         return -1;
+      }
+
+      ret=mysql_query(_md->conn, "COMMIT;");
+      if(ret)
+      {
+          VERBOSE(2) mea_log_printf("%s (%s) : sql_query - COMMIT (%u: %s)\n", ERROR_STR,__func__,mysql_errno(_md->conn), mysql_error(_md->conn));
+          return -1;
+      }
+
+      VERBOSE(2) mea_log_printf("%s (%s) : batch done\n", INFO_STR,__func__);
+      return 0;
+   }
+
+   VERBOSE(2) mea_log_printf("%s (%s) : batch error\n", ERROR_STR,__func__);
+   return -1;
+}
+
+
+int do_request(dbServer_queue_elem_t *elem)
 /**
  * \brief     écrit les données vers une table en fonction du type d'élément récupéré dans la file de traitement
  * \param     md              descripteur du gestionnaire. Il est alloué par l'appelant.
@@ -421,6 +762,11 @@ int write_data_to_db(dbServer_queue_elem_t *elem)
          build_query_for_sensors_values(query, sizeof(query), elem->data);
          break;
 
+      case START_BATCH_CONSO:
+         return consolidation_batch();
+         
+      case START_BATCH_PURGE:
+         return purge_batch();
       default:
          return 0;
          break;
@@ -428,6 +774,8 @@ int write_data_to_db(dbServer_queue_elem_t *elem)
    
    if(_md->conn)
    {
+      sync_mysql_sqlite3_dbs(elem->data);
+
       int ret = exec_mysql_query(query);
       if(ret==0)
       {
@@ -468,7 +816,7 @@ int _connect(MYSQL **conn)
    if(*conn)
    {
       mysql_close(*conn);
-      mysql_thread_end();
+//      mysql_thread_end();
    }
    
    // initialisation
@@ -512,7 +860,7 @@ int _connect(MYSQL **conn)
    {
       VERBOSE(1) mea_log_printf("%s (%s) : %u - %s\n", ERROR_STR,__func__,mysql_errno(*conn), mysql_error(*conn));
       mysql_close(*conn);
-      mysql_thread_end();
+//      mysql_thread_end();
       *conn=NULL;
       return -1;
    }
@@ -581,7 +929,7 @@ int flush_data(int heartbeat_flag)
       // si dispo on essaye d'écrire la donnée dans la base
       if(nb>0)
       {
-         ret=write_data_to_db(elem);
+         ret=do_request(elem);
          if(!ret)
          {
             if(elem->data && elem->freedata)
@@ -627,7 +975,7 @@ int select_database(int selection) // section : 0 auto, 1 mysql, 2 sqlite3
    if( selection == 2 && _md->conn)
    {
       mysql_close(_md->conn);
-      mysql_thread_end();
+//      mysql_thread_end();
       _md->conn=NULL;
    }
    
@@ -648,7 +996,7 @@ int select_database(int selection) // section : 0 auto, 1 mysql, 2 sqlite3
       {
          VERBOSE(5) mea_log_printf("%s (%s) : mysql_ping - %u: %s\n", INFO_STR, __func__, mysql_errno(_md->conn), mysql_error(_md->conn));
          mysql_close(_md->conn);
-         mysql_thread_end();
+//         mysql_thread_end();
          _md->conn=NULL;
          DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, _md->conn closed (%d)\n",DEBUG_STR, __func__,(int)(time(NULL)-now));
       }
@@ -768,6 +1116,8 @@ void *dbServer_thread(void *args)
                _md->db=NULL;
             }
             VERBOSE(2) mea_log_printf("%s (%s) : no mysql database available at first start. DBSERVER goes down.\n", ERROR_STR,__func__);
+
+//            mysql_thread_end();
             pthread_exit(NULL); // et on s'arrête
          }
       }
@@ -775,6 +1125,7 @@ void *dbServer_thread(void *args)
    else // aucune db disponible
    {
       managed_processes.processes_table[_dbServer_monitoring_id]->status=STOPPED;
+//      mysql_thread_end();
       pthread_exit(NULL);
    }
    
@@ -820,7 +1171,7 @@ void *dbServer_thread(void *args)
 }
 
 
-int dbServer(char *db_server, char *db_server_port, char *base, char *user, char *passwd, char *sqlite3_db_path)
+int dbServer(char *db_server, char *db_server_port, char *base, char *user, char *passwd, char *sqlite3_db_path, char *str_collector_id)
 /**
  * \brief     Initialise et démarre un gestionnaire de base de données mysql
  * \details   Tous les paramètres sont obligatoires. En cas de problème de communication avec le serveur mysql, les requêtes sont stockées dans une base sqlite3 locale. Dès que la base mysql est disponible, les requêtes sont envoyées au serveur.
@@ -831,9 +1182,12 @@ int dbServer(char *db_server, char *db_server_port, char *base, char *user, char
  * \param     user            utilisateur de la base (doit avoir les droits suffisant pour lire et modifier le contenu des tables
  * \param     passwd          mot de passe de l'utilisateur
  * \param     sqlite3_db_path chemin vers la base sqlite de secours
+ * \param     str_collector_id identifiant unique du collecteur
  * \return    -1 en cas d'erreur, 0 sinon
  */
 {
+   char *ptr = NULL;
+
    if(!db_server || !base || !user || !passwd || !sqlite3_db_path || !db_server_port)
       return -1;
 
@@ -855,7 +1209,10 @@ int dbServer(char *db_server, char *db_server_port, char *base, char *user, char
    _md->sqlite3_db_path=mea_string_alloc_and_copy(sqlite3_db_path);
    IF_NULL_RETURN(_md->sqlite3_db_path,-1);
    
-   
+   _md->collector_id = strtoul(str_collector_id, &ptr, 10);
+   if(ptr[0]!=0)
+      return -1;
+
    _md->queue=(mea_queue_t *)malloc(sizeof(mea_queue_t));
    if(!_md->queue)
    {
@@ -888,7 +1245,6 @@ int stop_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
       {
          pthread_cancel(_md->thread);
          int counter=500; // 5 secondes environ
-//         int stopped=-1;
          while(counter--)
          {
             if(_dbServer_thread_is_running)
@@ -896,10 +1252,7 @@ int stop_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
                usleep(10000); // will sleep for 10 ms
             }
             else
-            {
-//               stopped=0;
                break;
-            }
             DEBUG_SECTION mea_log_printf("%s (%s) : DBSERVER, fin après %d itération(s) (%d)\n",DEBUG_STR, __func__,500-counter,(int)(time(NULL)-now));
          }
       }
@@ -1014,7 +1367,8 @@ int start_dbServer(int my_id, void *data, char *errmsg, int l_errmsg)
                 dbServerData->params_list[MYSQL_DATABASE],
                 dbServerData->params_list[MYSQL_USER],
                 dbServerData->params_list[MYSQL_PASSWD],
-                dbServerData->params_list[SQLITE3_DB_BUFF_PATH]);
+                dbServerData->params_list[SQLITE3_DB_BUFF_PATH],
+                dbServerData->params_list[COLLECTOR_ID]);
    if(ret==-1)
    {
       VERBOSE(2) mea_log_printf("%s (%s) : can't init data base communication.\n", ERROR_STR, __func__);

@@ -567,7 +567,7 @@ int load_interface_type_005(interface_type_005_t *i005, sqlite3 *db)
       clean_queues(&(i005->devices_list));
    }
 
-   sprintf(sql_request,"SELECT * FROM sensors_actuators WHERE id_interface=%d and sensors_actuators.state='1'", i005->id_interface);
+   sprintf(sql_request,"SELECT * FROM sensors_actuators WHERE id_interface=%d AND sensors_actuators.deleted_flag <> 1 AND sensors_actuators.state='1'", i005->id_interface);
 
    ret = sqlite3_prepare_v2(db,sql_request,strlen(sql_request)+1,&stmt,NULL);
    if(ret)
@@ -901,7 +901,7 @@ static int interface_type_005_sendData(interface_type_005_t *i005, struct type00
       //_interface_type_005_send_xPL_sensor_basic(i005, xPL_MESSAGE_TRIGGER, sa_elem->name, type, str_value, str_last);
       _interface_type_005_send_xPL_sensor_basic2(i005, XPL_TRIG_STR_C, sa_elem->name, type, str_value, str_last);
       if(sa_elem->todbflag==1)
-         dbServer_add_data_to_sensors_values(sa_elem->id, data4db, 0, data4db2, data4dbComp, TMP_COLLECTOR_ID);
+         dbServer_add_data_to_sensors_values(sa_elem->id, data4db, 0, data4db2, data4dbComp);
 //      VERBOSE(9) mea_log_printf("%s (%s) : sendData done\n", ERROR_STR, __func__);
       return 0;
    }

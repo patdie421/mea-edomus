@@ -317,7 +317,7 @@ void counter_to_xpl2(interface_type_001_t *i001, struct electricity_counter_s *c
 
 int16_t counter_to_db(struct electricity_counter_s *counter)
 {
-   return dbServer_add_data_to_sensors_values(counter->sensor_id, (double)counter->wh_counter, UNIT_WH, (double)counter->kwh_counter, "WH", TMP_COLLECTOR_ID);
+   return dbServer_add_data_to_sensors_values(counter->sensor_id, (double)counter->wh_counter, UNIT_WH, (double)counter->kwh_counter, "WH");
 }
 
 

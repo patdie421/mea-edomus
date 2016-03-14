@@ -61,7 +61,7 @@ $file_db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION); // ERRMODE_WA
 // récupération du nombre total de ligne
 
 try {
-   $request = $file_db->query("SELECT count(*) FROM locations");
+   $request = $file_db->query("SELECT count(*) FROM locations WHERE deleted_flag <> 1");
    $row = $request->fetch(PDO::FETCH_NUM);
    $total=$row[0];
 }
@@ -83,6 +83,7 @@ $SQL="SELECT locations.id as id,
              locations.name as name,
              locations.description as description
       FROM locations
+      WHERE deleted_flag <> 1
       ORDER BY $sort $order
       LIMIT $offset, $rows";
 

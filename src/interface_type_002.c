@@ -60,13 +60,6 @@ char *valid_xbee_plugin_params[]={"S:PLUGIN","S:PARAMETERS", NULL};
 #define XBEE_PLUGIN_PARAMS_PLUGIN      0
 #define XBEE_PLUGIN_PARAMS_PARAMETERS  1
 
-/*
-//char *sql_select_device_info="SELECT sensors_actuators.id_sensor_actuator, sensors_actuators.id_location, sensors_actuators.state, sensors_actuators.parameters, types.parameters, sensors_actuators.id_type, lower(sensors_actuators.name), lower(interfaces.name), interfaces.id_type, (SELECT lower(types.name) FROM types WHERE types.id_type = interfaces.id_type), interfaces.dev FROM sensors_actuators INNER JOIN interfaces ON sensors_actuators.id_interface = interfaces.id_interface INNER JOIN types ON sensors_actuators.id_type = types.id_type";
-char *sql_select_device_info="SELECT sensors_actuators.id_sensor_actuator, sensors_actuators.id_location, sensors_actuators.state, sensors_actuators.parameters, types.parameters, sensors_actuators.id_type, lower(sensors_actuators.name), lower(interfaces.name), interfaces.id_type, (SELECT lower(types.name) FROM types WHERE types.id_type = interfaces.id_type), interfaces.dev, sensors_actuators.todbflag FROM sensors_actuators INNER JOIN interfaces ON sensors_actuators.id_interface = interfaces.id_interface INNER JOIN types ON sensors_actuators.id_type = types.id_type";
-char *sql_select_interface_info="SELECT * FROM interfaces";
-*/
-//extern char *sql_select_device_info;
-//extern char *sql_select_interface_info;
 
 char *printf_mask_addr="%02x%02x%02x%02x-%02x%02x%02x%02x";
 
@@ -357,7 +350,7 @@ int16_t _interface_type_002_xPL_callback2(cJSON *xplMsgJson, xPL_ObjectPtr userV
    char sql[2048];
    sqlite3_stmt * stmt;
    
-   sprintf(sql,"%s WHERE lower(sensors_actuators.name)='%s' and sensors_actuators.state='1';", sql_select_device_info, device);
+   sprintf(sql,"%s WHERE sensors_actuators.deleted_flag <> 1 AND lower(sensors_actuators.name)='%s' AND sensors_actuators.state='1';", sql_select_device_info, device);
    ret = sqlite3_prepare_v2(params_db, sql, strlen(sql)+1, &stmt, NULL);
    if(ret)
    {
@@ -493,7 +486,7 @@ mea_error_t _interface_type_002_commissionning_callback(int id, unsigned char *c
    
    char sql[1024];
    sqlite3_stmt * stmt;
-   sprintf(sql,"%s WHERE interfaces.dev ='MESH://%s' AND interfaces.state='2';", sql_select_interface_info, addr);
+   sprintf(sql,"%s WHERE sensors_actuators.deleted_flag <> 1 AND interfaces.dev ='MESH://%s' AND interfaces.state='2';", sql_select_interface_info, addr);
    
    int ret = sqlite3_prepare_v2(params_db,sql,strlen(sql)+1,&stmt,NULL);
    if(ret)
@@ -709,7 +702,7 @@ void *_thread_interface_type_002_xbeedata(void *args)
                  e->addr_64_l[3]);
          VERBOSE(9) mea_log_printf("%s  (%s) : data from = %s received\n",INFO_STR, __func__, addr);
          
-         sprintf(sql,"%s WHERE interfaces.dev ='MESH://%s' and sensors_actuators.state='1';", sql_select_device_info, addr);
+         sprintf(sql,"%s WHERE interfaces.dev ='MESH://%s' AND sensors_actuators.deleted_flag <> 1 AND sensors_actuators.state='1';", sql_select_device_info, addr);
          ret = sqlite3_prepare_v2(params_db,sql,strlen(sql)+1,&(params->stmt),NULL);
          if(ret)
          {

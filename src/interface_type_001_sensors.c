@@ -176,59 +176,6 @@ void interface_type_001_sensors_free_queue_elem(void *d)
    e=NULL;
 }
 
-/*
-int16_t interface_type_001_sensors_process_traps(int16_t numTrap, char *data, int16_t l_data, void *userdata)
-{
-   struct sensor_s *sensor;
-   
-   sensor=(struct sensor_s *)userdata;
-   
-   sensor->val=(unsigned char)data[0];
-   
-   {
-      *(sensor->nbtrap)=*(sensor->nbtrap)+1;
-      
-      char value[20];
-      xPL_ServicePtr servicePtr;
-      
-      servicePtr=mea_getXPLServicePtr();
-      if(!servicePtr)
-         return 1;
-      
-      xPL_MessagePtr sensorMessageStat = xPL_createBroadcastMessage(servicePtr, xPL_MESSAGE_TRIGGER);
-      
-      if(data[0]==0)
-      {
-         sensor->val=0;
-         sprintf(value,"low");
-      }
-      else
-      {
-         sensor->val=1;
-         sprintf(value,"high");
-      }
-      
-      VERBOSE(9) mea_log_printf("%s (%s) : sensor %s = %s\n", INFO_STR, __func__, sensor->name, value);
-      
-      xPL_setSchema(sensorMessageStat, get_token_string_by_id(XPL_SENSOR_ID), get_token_string_by_id(XPL_BASIC_ID));
-      xPL_setMessageNamedValue(sensorMessageStat, get_token_string_by_id(XPL_DEVICE_ID),sensor->name);
-      xPL_setMessageNamedValue(sensorMessageStat, get_token_string_by_id(XPL_TYPE_ID), get_token_string_by_id(XPL_INPUT_ID));
-      xPL_setMessageNamedValue(sensorMessageStat, get_token_string_by_id(XPL_CURRENT_ID),value);
-      
-      // Broadcast the message
-      mea_sendXPLMessage(sensorMessageStat, NULL);
-      
-      *(sensor->nbxplout)=*(sensor->nbxplout)+1;
-
-      if(sensor->todbflag==1)
-         dbServer_add_data_to_sensors_values(sensor->sensor_id, (double)data[0], 0, 0, "", TMP_COLLECTOR_ID);
-
-      xPL_releaseMessage(sensorMessageStat);
-   }
-   
-   return NOERROR;
-}
-*/
 
 int16_t interface_type_001_sensors_process_traps2(int16_t numTrap, char *data, int16_t l_data, void *userdata)
 {
@@ -276,7 +223,7 @@ int16_t interface_type_001_sensors_process_traps2(int16_t numTrap, char *data, i
       *(sensor->nbxplout)=*(sensor->nbxplout)+1;
 
       if(sensor->todbflag==1)
-         dbServer_add_data_to_sensors_values(sensor->sensor_id, (double)data[0], 0, 0, "", TMP_COLLECTOR_ID);
+         dbServer_add_data_to_sensors_values(sensor->sensor_id, (double)data[0], 0, 0, "");
 
       cJSON_Delete(xplMsgJson);
    }
@@ -736,115 +683,6 @@ mea_error_t interface_type_001_sensors_process_xpl_msg2(interface_type_001_t *i0
    return NOERROR;
 }
 
-/*
-int16_t interface_type_001_sensors_poll_inputs(interface_type_001_t *i001)
-{
-   mea_queue_t *sensors_list=i001->sensors_list;
-   struct sensor_s *sensor;
-
-   int16_t comio2_err;
-   int unit=0;
-
-   mea_queue_first(sensors_list);
-   for(int16_t i=0; i<sensors_list->nb_elem; i++)
-   {
-      mea_queue_current(sensors_list, (void **)&sensor);
-      if(!mea_test_timer(&(sensor->timer)))
-      {
-         if(sensor->arduino_pin_type==ANALOG_ID)
-         {
-            int v;
-
-            unsigned char buffer[8], resp[8];
-            uint16_t l_resp;
-            buffer[0]=sensor->arduino_pin;
-
-            int ret=comio2_call_fn(i001->ad, (uint16_t)sensor->arduino_function, (char *)buffer, 1, &v, resp, &l_resp, &comio2_err);
-            if(ret<0)
-            {
-               VERBOSE(5) {
-                  mea_log_printf("%s (%s) : comio2 error = %d.\n", ERROR_STR, __func__, comio2_err);
-               }
-               i001->indicators.nbsensorsreaderr++;
-               if(comio2_err == COMIO2_ERR_DOWN)
-               {
-                  return -1;
-               }
-               continue;
-            }
-            else if(ret>0)
-            {
-               VERBOSE(5) {
-                  mea_log_printf("%s (%s) : function %d return error = %d.\n", ERROR_STR, __func__, sensor->arduino_function, comio2_err);
-               }
-               i001->indicators.nbsensorsreaderr++;
-               continue;
-            }
-            
-            i001->indicators.nbsensorsread++;
-            if(sensor->val!=v)
-            {
-               int16_t last=sensor->val;
-               float computed_last;
-               
-               sensor->val=v;
-               sensor->computed_val=sensor->compute_fn(v);
-               computed_last=sensor->compute_fn(last);
-                  
-               if(sensor->compute==XPL_TEMP_ID)
-               {
-                  VERBOSE(9) mea_log_printf("%s (%s) : temperature sensor %s =  %.1f °C (%d) \n", INFO_STR, __func__, sensor->name, sensor->computed_val, sensor->val);
-                  unit = UNIT_C;
-               }
-               else if(sensor->compute==XPL_VOLTAGE_ID)
-               {
-                  VERBOSE(9) mea_log_printf("%s (%s) : voltage sensor %s =  %.1f V (%d) \n", INFO_STR, __func__, sensor->name, sensor->computed_val, sensor->val);
-                  unit = UNIT_V;
-               }
-               else
-               {
-                  VERBOSE(9) mea_log_printf("%s (%s) : raw sensor %s = %d\n", INFO_STR, __func__, sensor->name, sensor->val);
-               }
-                  
-               char str_value[20];
-               char str_last[20];
-               
-               if(sensor->todbflag == 1)
-                  dbServer_add_data_to_sensors_values(sensor->sensor_id, (double)sensor->computed_val, unit, (double)sensor->val, "", TMP_COLLECTOR_ID);
-
-               xPL_ServicePtr servicePtr = mea_getXPLServicePtr();
-               if(servicePtr)
-               {
-                  xPL_MessagePtr cntrMessageStat = xPL_createBroadcastMessage(servicePtr, xPL_MESSAGE_TRIGGER);
-               
-                  sprintf(str_value,"%0.1f",sensor->computed_val);
-                  sprintf(str_last,"%0.1f",computed_last);
-                     
-                  xPL_setSchema(cntrMessageStat, get_token_string_by_id(XPL_SENSOR_ID), get_token_string_by_id(XPL_BASIC_ID));
-                  xPL_setMessageNamedValue(cntrMessageStat, get_token_string_by_id(XPL_DEVICE_ID),sensor->name);
-                  xPL_setMessageNamedValue(cntrMessageStat, get_token_string_by_id(XPL_TYPE_ID), get_token_string_by_id(XPL_TEMP_ID));
-                  xPL_setMessageNamedValue(cntrMessageStat, get_token_string_by_id(XPL_CURRENT_ID),str_value);
-                  xPL_setMessageNamedValue(cntrMessageStat, get_token_string_by_id(XPL_LAST_ID),str_last);
-                     
-                  mea_sendXPLMessage(cntrMessageStat, NULL);
-                  
-                  (i001->indicators.nbsensorsxplsent)++;
-                  
-                  xPL_releaseMessage(cntrMessageStat);
-               }
-            }
-         }
-         else
-         {
-            // traiter ici les capteurs logiques
-         }
-      }
-      mea_queue_next(sensors_list);
-   }
-   return 0;
-}
-*/
-
 
 int16_t interface_type_001_sensors_poll_inputs2(interface_type_001_t *i001)
 {
@@ -919,7 +757,7 @@ int16_t interface_type_001_sensors_poll_inputs2(interface_type_001_t *i001)
                char str_last[20];
                
                if(sensor->todbflag == 1)
-                  dbServer_add_data_to_sensors_values(sensor->sensor_id, (double)sensor->computed_val, unit, (double)sensor->val, "", TMP_COLLECTOR_ID);
+                  dbServer_add_data_to_sensors_values(sensor->sensor_id, (double)sensor->computed_val, unit, (double)sensor->val, "");
 
                xPL_ServicePtr servicePtr = mea_getXPLServicePtr();
                if(servicePtr)

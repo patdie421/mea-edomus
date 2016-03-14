@@ -35,7 +35,7 @@ catch(PDOException $e) {
 $file_db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION); // ERRMODE_WARNING | ERRMODE_EXCEPTION | ERRMODE_SILENT
 
 // requete des données
-$SQL="SELECT id_location,name FROM locations";
+$SQL="SELECT id_location,name FROM locations WHERE deleted_flag <> 1";
 
 try {
    $request = $file_db->query($SQL);

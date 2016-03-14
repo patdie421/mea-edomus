@@ -62,7 +62,7 @@ $file_db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION); // ERRMODE_WA
 // récupération du nombre total de ligne
 
 try {
-   $request = $file_db->query("SELECT count(*) FROM sensors_actuators");
+   $request = $file_db->query("SELECT count(*) FROM sensors_actuators WHERE deleted_flag <> 1");
    $row = $request->fetch(PDO::FETCH_NUM);
    $total=$row[0];
 }
@@ -99,6 +99,7 @@ $SQL="SELECT sensors_actuators.id AS id,
          ON sensors_actuators.id_type = types.id_type
       INNER JOIN locations
          ON sensors_actuators.id_location = locations.id_location
+      WHERE sensors_actuators.deleted_flag <> 1
       ORDER BY $sort $order
       LIMIT $offset, $rows";
 
