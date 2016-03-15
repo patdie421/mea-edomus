@@ -89,8 +89,11 @@ MeaWidget_chart4.prototype.mkchart = function(widget, data)
             max--;
             continue;
          }
-         $.getJSON('models/get_msql_data.php?sensor_id='+sensors[i]+'&start=' + Math.round(e.min) + '&end=' + Math.round(e.max) + '&callback=?', function (data) {
-            chart.series[_i].setData(data);
+         console.log(e.min+" "+Math.round(e.min));
+         console.log(e.max+" "+Math.round(e.max));
+         console.log('models/get_msql_data.php?sensor_id='+sensors[i]+'&start=' + Math.round(e.min) + '&end=' + Math.round(e.max) + '&callback=?');
+         $.getJSON('models/get_msql_data.php?id='+i+'&sensor_id='+sensors[i]+'&start=' + Math.round(e.min) + '&end=' + Math.round(e.max) + '&callback=?', function (data) {
+            chart.series[data.id].setData(data.data);
             if(_i===max)
             {
                chart.hideLoading();
@@ -106,7 +109,6 @@ MeaWidget_chart4.prototype.mkchart = function(widget, data)
       }
    }
    
-
    // create the chart
    widget.highcharts('StockChart', {
       chart : {
@@ -158,6 +160,8 @@ MeaWidget_chart4.prototype.mkchart = function(widget, data)
       },
 
       xAxis : {
+         type: 'datetime',
+         ordinal: false,
          events : {
             afterSetExtremes : afterSetExtremes
          },
@@ -186,6 +190,10 @@ MeaWidget_chart4.prototype.mkchart = function(widget, data)
          dataGrouping: {
             enabled: false
          }
+      },{
+         dataGrouping: {
+            enabled: false
+         }
       }]
    });
 
@@ -203,12 +211,13 @@ MeaWidget_chart4.prototype.mkchart = function(widget, data)
          continue;
       }
 
-      $.getJSON('models/get_msql_data.php?sensor_id='+sensors[i]+'&callback=?', function (data) {
-         chart.series[_i].setData(data); 
+      $.getJSON('models/get_msql_data.php?id='+i+'&sensor_id='+sensors[i]+'&callback=?', function (data) {
+         console.log(data);
+         chart.series[data.id].setData(data.data); 
          if(navset===false)
          {
             navset=true;
-            nav.setData(data);
+            nav.setData(data.data);
          }
          if(_i===max)
             afterSetExtremes_on=true;
