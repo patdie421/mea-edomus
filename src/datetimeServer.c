@@ -629,8 +629,11 @@ void *_timeServer_thread(void *data)
                mea_log_printf("Traitement heure\n");
             }
             mea_clean_datetime_values_cache(); // on fait le ménage dans le cache
+
             start_consolidation_batch();
             start_purge_batch();
+            start_resync_batch();
+
             hour_job_done = 1;
          }
       }

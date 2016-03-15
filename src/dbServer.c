@@ -73,7 +73,7 @@ long mysqlwrite_indicator = 0;
 void set_dbServer_isnt_running(void *data)
 {
    DEBUG_SECTION mea_log_printf("%s (%s) : Before, _dbServer_thread_is_running = %d\n", DEBUG_STR,__func__,_dbServer_thread_is_running);
-   if(_md->conn)
+   if(_md && _md->conn)
    {
       mysql_close(_md->conn);
       _md->conn=NULL;
@@ -117,7 +117,10 @@ int16_t start_batch(int batch_id)
 {
    dbServer_queue_elem_t *elem;
 
-   elem=malloc(sizeof(dbServer_queue_elem_t));
+   if(!_md || !_md->conn || !_md->started || !_dbServer_thread_is_running)
+      return -1;
+
+   elem=(dbServer_queue_elem_t *)malloc(sizeof(dbServer_queue_elem_t));
 
    if(!elem)
    {
@@ -135,7 +138,7 @@ int16_t start_batch(int batch_id)
    pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(_md->lock));
    pthread_mutex_lock(&(_md->lock));
 
-   VERBOSE(9) mea_log_printf("%s (%s) : start consolidation batch 60 mn", INFO_STR, __func__);
+   VERBOSE(9) mea_log_printf("%s (%s) : start batch %d", INFO_STR, __func__, batch_id);
    if(mea_queue_in_elem(_md->queue,(void *)elem)==ERROR)
    {
       free(elem);
@@ -145,6 +148,12 @@ int16_t start_batch(int batch_id)
    pthread_mutex_unlock(&(_md->lock));
    pthread_cleanup_pop(0);
 
+}
+
+
+int16_t start_resync_batch()
+{
+   return start_batch(START_BATCH_RESYNC);
 }
 
 
@@ -286,7 +295,6 @@ int exec_mysql_query(char *sql_query)
 }
 
 
-//int move_sqlite3_queries_to_mysql(sqlite3 *db, MYSQL *conn)
 int move_sqlite3_queries_to_mysql()
 /**
  * \brief     récupère les requêtes en attente dans la base sqlite3 et les envoie au serveur mysql pour traitement.
@@ -405,21 +413,21 @@ int move_mysql_query_to_sqlite3(char *sql_query)
 }
 
 
-uint16_t get_name_description_from_param_db(int id, char *name, char *description)
+uint16_t get_location_name_description_from_param_db(int id, char *name, char *description)
 {
    char sql[255]="";
    sqlite3_stmt *stmt = NULL;
    sqlite3 *sqlite3_param_db=get_sqlite3_param_db();
-   int ret=-1;   
+   int ret=-1;
 
    if(sqlite3_param_db)
    {
-      sprintf(sql, "SELECT name, description FROM sensors_actuators WHERE id_sensor_actuator = %d AND <> deleted_flag <> 1;", id);
+      sprintf(sql, "SELECT name, description FROM locations WHERE id_location = %d AND deleted_flag <> 1;", id);
       ret = sqlite3_prepare_v2(sqlite3_param_db, sql, strlen(sql)+1, &stmt, NULL);
       if(ret)
       {
          VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (sqlite3_param_db));
-         return ERROR;
+         return -1;
       }
 
       ret=-1;
@@ -438,7 +446,40 @@ uint16_t get_name_description_from_param_db(int id, char *name, char *descriptio
 }
 
 
-int16_t get_location_from_param_db(int id)
+uint16_t get_sensor_name_description_from_param_db(int id, char *name, char *description)
+{
+   char sql[255]="";
+   sqlite3_stmt *stmt = NULL;
+   sqlite3 *sqlite3_param_db=get_sqlite3_param_db();
+   int ret=-1;   
+
+   if(sqlite3_param_db)
+   {
+      sprintf(sql, "SELECT name, description FROM sensors_actuators WHERE id_sensor_actuator = %d AND deleted_flag <> 1;", id);
+      ret = sqlite3_prepare_v2(sqlite3_param_db, sql, strlen(sql)+1, &stmt, NULL);
+      if(ret)
+      {
+         VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (sqlite3_param_db));
+         return -1;
+      }
+
+      ret=-1;
+      int s = sqlite3_step(stmt);
+      if (s == SQLITE_ROW)
+      {
+         strcpy(name, (char *)sqlite3_column_text(stmt, 0));
+         strcpy(description, (char *)sqlite3_column_text(stmt, 1));
+
+         ret=0;
+      }
+      sqlite3_finalize(stmt);
+   }
+
+   return ret;
+}
+
+
+int16_t get_sensor_location_from_param_db(int id)
 {
    char sql[255]="";
    sqlite3_stmt *stmt = NULL;
@@ -468,16 +509,16 @@ int16_t get_location_from_param_db(int id)
 }
 
 
-uint16_t sync_mysql_sqlite3_dbs(void *data)
+uint16_t resync_sensors_mysql_sqlite3_batch()
 {
-   struct sensor_value_s *sensor_value;
    int ret;
    char sql_query[255];
-   int exist=-1;
 
-   sensor_value=(struct sensor_value_s *)data;
+   if(!_md || !_md->conn)
+      return -1;
 
-   sprintf(sql_query, "SELECT count(sensor_id) FROM sensors_names WHERE sensor_id = %d and collector_id = %u", sensor_value->sensor_id, _md->collector_id);
+   // sensors_names
+   sprintf(sql_query, "SELECT id, sensor_id FROM sensors_names WHERE collector_id = %u", _md->collector_id);
 
    ret=mysql_query(_md->conn, sql_query);
    if(ret)
@@ -485,33 +526,323 @@ uint16_t sync_mysql_sqlite3_dbs(void *data)
       VERBOSE(1) mea_log_printf("%s (%s) : mysql_query - %u : %s\n", ERROR_STR,__func__,mysql_errno(_md->conn), mysql_error(_md->conn));
       return -1;
    }
+
    MYSQL_RES *result = mysql_store_result(_md->conn);
    if(result == NULL)
    {
       VERBOSE(1) mea_log_printf("%s (%s) : mysql_store_result - %u : %s\n", ERROR_STR, __func__, mysql_errno(_md->conn), mysql_error(_md->conn));
       return -1;
    }
+
+   MYSQL_ROW row;
+   int nb_rows = mysql_num_rows(result);
+   unsigned int *sensors_ids = alloca(nb_rows * sizeof(unsigned int));
+   if(sensors_ids == NULL)
+   {
+      mysql_free_result(result);
+      return -1;
+   }
+ 
+   unsigned int *ids = alloca(nb_rows * sizeof(unsigned int));
+   if(ids == NULL)
+   {
+      mysql_free_result(result);
+      return -1;
+   }
+
+   int i=0; 
+   while ((row = mysql_fetch_row(result))) 
+   { 
+      ids[i]=atoi(row[0]);
+      sensors_ids[i]=atoi(row[1]);
+      ++i;
+   }
+
+   mysql_free_result(result);
+
+   char name[40]="", description[256]="";
+   for(i=0; i<nb_rows;i++)
+   {
+      if(get_sensor_name_description_from_param_db(sensors_ids[i], name, description)<0)
+         continue;
+
+      sprintf(sql_query, "UPDATE sensors_names SET name='%s', description='%s' WHERE id = %u", name, description, ids[i]);
+      ret=mysql_query(_md->conn, sql_query);
+      if(ret)
+      {
+         VERBOSE(1) mea_log_printf("%s (%s) : mysql_query - %u : %s\n", ERROR_STR,__func__,mysql_errno(_md->conn), mysql_error(_md->conn));
+      }
+   }
+
+   return 0;
+}
+
+
+uint16_t resync_locations_mysql_sqlite3_batch()
+{
+   int ret;
+   char sql_query[255];
+
+   if(!_md || !_md->conn)
+      return -1;
+
+   // sensors_names
+   sprintf(sql_query, "SELECT id, location_id FROM locations WHERE collector_id = %u", _md->collector_id);
+
+   ret=mysql_query(_md->conn, sql_query);
+   if(ret)
+   {
+      VERBOSE(1) mea_log_printf("%s (%s) : mysql_query - %u : %s\n", ERROR_STR,__func__,mysql_errno(_md->conn), mysql_error(_md->conn));
+      return -1;
+   }
+
+   MYSQL_RES *result = mysql_store_result(_md->conn);
+   if(result == NULL)
+   {
+      VERBOSE(1) mea_log_printf("%s (%s) : mysql_store_result - %u : %s\n", ERROR_STR, __func__, mysql_errno(_md->conn), mysql_error(_md->conn));
+      return -1;
+   }
+
+   MYSQL_ROW row;
+   int nb_rows = mysql_num_rows(result);
+   unsigned int *locations_ids = alloca(nb_rows * sizeof(unsigned int));
+   if(locations_ids == NULL)
+   {
+      mysql_free_result(result);
+      return -1;
+   }
+ 
+   unsigned int *ids = alloca(nb_rows * sizeof(unsigned int));
+   if(ids == NULL)
+   {
+      mysql_free_result(result);
+      return -1;
+   }
+
+   int i=0; 
+   while ((row = mysql_fetch_row(result))) 
+   { 
+      ids[i]=atoi(row[0]);
+      locations_ids[i]=atoi(row[1]);
+      ++i;
+   }
+
+   mysql_free_result(result);
+
+   char name[40]="", description[256]="";
+   for(i=0; i<nb_rows;i++)
+   {
+      if(get_location_name_description_from_param_db(locations_ids[i], name, description)<0)
+         continue;
+
+      sprintf(sql_query, "UPDATE locations SET name='%s', description='%s' WHERE id = %u", name, description, ids[i]);
+      ret=mysql_query(_md->conn, sql_query);
+      if(ret)
+      {
+         VERBOSE(1) mea_log_printf("%s (%s) : mysql_query - %u : %s\n", ERROR_STR,__func__,mysql_errno(_md->conn), mysql_error(_md->conn));
+      }
+   }
+
+   return 0;
+}
+
+
+int get_keyid_of_collector_in_mysql_db(unsigned int collector_id)
+{
+   int ret;
+   char sql_query[255];
+   int id=-1;
+
+   if(!_md || !_md->conn)
+      return -1;
+
+   sprintf(sql_query, "SELECT id FROM collectors_names WHERE collector_id = %u", collector_id);
+   ret=mysql_query(_md->conn, sql_query);
+   if(ret)
+   {
+      VERBOSE(1) mea_log_printf("%s (%s) : mysql_query - %u : %s\n", ERROR_STR,__func__,mysql_errno(_md->conn), mysql_error(_md->conn));
+      return -2;
+   }
+   MYSQL_RES *result = mysql_store_result(_md->conn);
+   if(result == NULL)
+   {
+      VERBOSE(1) mea_log_printf("%s (%s) : mysql_store_result - %u : %s\n", ERROR_STR, __func__, mysql_errno(_md->conn), mysql_error(_md->conn));
+      return -2;
+   }
    int nb_rows = mysql_num_rows(result);
    if(nb_rows == 1)
    {
       MYSQL_ROW row = mysql_fetch_row(result);
       if(row)
-         exist=atoi(row[0]);
+         id=atoi(row[0]);
    }
    mysql_free_result(result);
 
-   if(exist==0) // pas trouvé dans la base mysql
+   return id;
+}
+
+
+int get_keyid_of_location_in_mysql_db(unsigned int location_id)
+{
+   int ret;
+   char sql_query[255];
+   int id=-1;
+
+   if(!_md || !_md->conn)
+      return -1;
+
+   sprintf(sql_query, "SELECT id FROM locations WHERE location_id = %d and collector_id = %u", location_id, _md->collector_id);
+   ret=mysql_query(_md->conn, sql_query);
+   if(ret)
+   {
+      VERBOSE(1) mea_log_printf("%s (%s) : mysql_query - %u : %s\n", ERROR_STR,__func__,mysql_errno(_md->conn), mysql_error(_md->conn));
+      return -2;
+   }
+   MYSQL_RES *result = mysql_store_result(_md->conn);
+   if(result == NULL)
+   {
+      VERBOSE(1) mea_log_printf("%s (%s) : mysql_store_result - %u : %s\n", ERROR_STR, __func__, mysql_errno(_md->conn), mysql_error(_md->conn));
+      return -2;
+   }
+   int nb_rows = mysql_num_rows(result);
+   if(nb_rows == 1)
+   {
+      MYSQL_ROW row = mysql_fetch_row(result);
+      if(row)
+         id=atoi(row[0]);
+   }
+   mysql_free_result(result);
+
+   return id;
+}
+
+
+
+uint16_t add_or_update_collector_in_mysql_db(int collector_id, char *name, char *description)
+{
+   int ret;
+   char sql_query[255];
+   int id=-1;
+
+   if(!_md || !_md->conn)
+      return -1;
+
+   id=get_keyid_of_collector_in_mysql_db(collector_id);
+   if(id==-1)
+   {
+      sprintf(sql_query, "INSERT INTO collectors_names (collector_id, name, description) values (%d, \"%s\", \"%s\")", collector_id, name, description);
+      ret=mysql_query(_md->conn, sql_query);
+      if(ret)
+      {
+          VERBOSE(1) mea_log_printf("%s (%s) : mysql_query - %u : %s\n", ERROR_STR,__func__,mysql_errno(_md->conn), mysql_error(_md->conn));
+          return -1;
+      }
+   }
+   else if(id >= 0)
+   {
+      sprintf(sql_query, "UPDATE collectors_names SET name = '%s', description = '%s' WHERE id = %d", name, description, id);
+      ret=mysql_query(_md->conn, sql_query);
+      if(ret)
+      {
+          VERBOSE(1) mea_log_printf("%s (%s) : mysql_query - %u : %s\n", ERROR_STR,__func__,mysql_errno(_md->conn), mysql_error(_md->conn));
+          return -1;
+      }
+   }
+
+   return 0;
+}
+
+
+uint16_t sync_mysql_sqlite3_locations_tables(unsigned int location_id)
+{
+   int ret;
+   char sql_query[255];
+   int id=-1;
+
+   if(!_md || !_md->conn)
+      return -1;
+
+   if(get_keyid_of_location_in_mysql_db(location_id)==-1)
    {
       char name[40], description[256];
 
-      if(get_name_description_from_param_db(sensor_value->sensor_id, name, description) < 0)
+      if(get_location_name_description_from_param_db(location_id, name, description) < 0)
       {
-          VERBOSE(2) mea_log_printf("%s (%s) : can't get name and description for %d\n", ERROR_STR,__func__,sensor_value->sensor_id);
+          VERBOSE(2) mea_log_printf("%s (%s) : can't get location name and description for %d\n", ERROR_STR,__func__, location_id);
          return -1;
       }
       else
       {
-         sprintf(sql_query, "INSERT INTO sensors_names (sensor_id, collector_id, name, description) values (%d, %u, \"%s\", \"%s\")", sensor_value->sensor_id, _md->collector_id, name, description);
+         sprintf(sql_query, "INSERT INTO locations (location_id, collector_id, name, description) values (%d, %u, \"%s\", \"%s\")", location_id, _md->collector_id, name, description);
+         ret=mysql_query(_md->conn, sql_query);
+         if(ret)
+         {
+             VERBOSE(1) mea_log_printf("%s (%s) : mysql_query - %u : %s\n", ERROR_STR,__func__,mysql_errno(_md->conn), mysql_error(_md->conn));
+             return -1;
+         }
+      }
+   }
+
+   return 0;
+}
+
+
+int get_keyid_of_sensor_in_mysql_db(unsigned int sensor_id)
+{
+   int ret;
+   char sql_query[255];
+   int id=-1;
+
+   if(!_md || !_md->conn)
+      return -1;
+
+   sprintf(sql_query, "SELECT count(sensor_id) FROM sensors_names WHERE sensor_id = %d and collector_id = %u", sensor_id, _md->collector_id);
+   ret=mysql_query(_md->conn, sql_query);
+   if(ret)
+   {
+      VERBOSE(1) mea_log_printf("%s (%s) : mysql_query - %u : %s\n", ERROR_STR,__func__,mysql_errno(_md->conn), mysql_error(_md->conn));
+      return -2;
+   }
+   MYSQL_RES *result = mysql_store_result(_md->conn);
+   if(result == NULL)
+   {
+      VERBOSE(1) mea_log_printf("%s (%s) : mysql_store_result - %u : %s\n", ERROR_STR, __func__, mysql_errno(_md->conn), mysql_error(_md->conn));
+      return -2;
+   }
+   int nb_rows = mysql_num_rows(result);
+   if(nb_rows == 1)
+   {
+      MYSQL_ROW row = mysql_fetch_row(result);
+      if(row)
+         id=atoi(row[0]);
+   }
+   mysql_free_result(result);
+
+   return id;
+}
+
+
+uint16_t sync_mysql_sqlite3_sensors_tables(unsigned int sensor_id)
+{
+   int ret;
+   char sql_query[255];
+   int exist=-1;
+
+   if(!_md || !_md->conn)
+      return -1;
+
+   if(get_keyid_of_sensor_in_mysql_db(sensor_id)==-1) // pas trouvé dans la base mysql, on le rajoute
+   {
+      char name[40], description[256];
+
+      if(get_sensor_name_description_from_param_db(sensor_id, name, description) < 0)
+      {
+          VERBOSE(2) mea_log_printf("%s (%s) : can't get name and description for %d\n", ERROR_STR,__func__,sensor_id);
+         return -1;
+      }
+      else
+      {
+         sprintf(sql_query, "INSERT INTO sensors_names (sensor_id, collector_id, name, description) values (%d, %u, \"%s\", \"%s\")", sensor_id, _md->collector_id, name, description);
          ret=mysql_query(_md->conn, sql_query);
          if(ret)
          {
@@ -552,9 +883,12 @@ uint16_t build_query_for_sensors_values(char *sql_query, uint16_t l_sql_query, v
       return -1;
    } 
   
-   int location_id = get_location_from_param_db(sensor_value->sensor_id);
+   int location_id = get_sensor_location_from_param_db(sensor_value->sensor_id);
    if(location_id < 0)
       location_id = 1; // location = unknown
+
+   sync_mysql_sqlite3_sensors_tables(sensor_value->sensor_id);
+   sync_mysql_sqlite3_locations_tables(location_id);
  
    n=snprintf(sql_query,
               l_sql_query,
@@ -589,6 +923,9 @@ int consolidation_batch()
    time_t t;
    struct tm timeinfo;
 
+   if(!_md || !_md->conn)
+      return -1;
+
    VERBOSE(2) mea_log_printf("%s (%s) : starting batch\n", INFO_STR,__func__);
 
    t = time(NULL);
@@ -606,7 +943,8 @@ int consolidation_batch()
             "sensor_id AS sensor_id," 
             "collector_id AS collector_id,"
             "location_id AS location_id,"
-            "FROM_UNIXTIME((UNIX_TIMESTAMP(date) DIV 3600) * 3600 +3600 DIV 2) as date,"
+            "max(date) as date,"
+//            "FROM_UNIXTIME((UNIX_TIMESTAMP(date) DIV 3600) * 3600 +3600 DIV 2) as date,"
             "count(sensor_id) AS nb_values,"
             "avg(value1) AS avg1,"
             "min(value1) AS min1,"
@@ -767,6 +1105,12 @@ int do_request(dbServer_queue_elem_t *elem)
          
       case START_BATCH_PURGE:
          return purge_batch();
+
+      case START_BATCH_RESYNC:
+         resync_sensors_mysql_sqlite3_batch();
+         resync_locations_mysql_sqlite3_batch();
+         return 0;
+
       default:
          return 0;
          break;
@@ -774,7 +1118,6 @@ int do_request(dbServer_queue_elem_t *elem)
    
    if(_md->conn)
    {
-      sync_mysql_sqlite3_dbs(elem->data);
 
       int ret = exec_mysql_query(query);
       if(ret==0)
@@ -1131,6 +1474,13 @@ void *dbServer_thread(void *args)
    
    _md->started=1;
    first_start=0;
+
+   if(1){
+      char hostname[256];
+      gethostname(hostname, sizeof(hostname)-1);
+      add_or_update_collector_in_mysql_db(_md->collector_id, hostname, "");
+   }
+
    while(1)
    {
       process_heartbeat(_dbServer_monitoring_id);

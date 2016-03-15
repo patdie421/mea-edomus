@@ -23,6 +23,7 @@
 #define TOMYSQLDB_TYPE_SENSORS_VALUES 1
 #define START_BATCH_CONSO             2
 #define START_BATCH_PURGE             3
+#define START_BATCH_RESYNC            4
 
 struct sensor_value_s
 {
@@ -57,5 +58,6 @@ int restart_dbServer(int my_id, void *data, char *errmsg, int l_errmsg);
 
 int16_t start_consolidation_batch();
 int16_t start_purge_batch();
+int16_t start_resync_batch();
 
 #endif

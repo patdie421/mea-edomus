@@ -49,6 +49,17 @@ CREATE TABLE IF NOT EXISTS collectors_names (
    PRIMARY KEY(id)
 );
 
+
+CREATE TABLE IF NOT EXISTS locations (
+   id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+   location_id INT UNSIGNED,
+   collector_id INT UNSIGNED,
+   name VARCHAR(40),
+   description VARCHAR(255),
+   PRIMARY KEY(id)
+);
+
+
 CREATE TABLE IF NOT EXISTS sensors_values_c (
    id INT UNSIGNED NOT NULL AUTO_INCREMENT,
    sensor_id SMALLINT UNSIGNED,
