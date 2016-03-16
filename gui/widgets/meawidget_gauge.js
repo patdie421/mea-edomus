@@ -101,10 +101,6 @@ MeaWidget_gauge.prototype.mkgauge = function(widget, data)
          enabled: false
       },
 
-      exporting: {
-         enabled: false
-      },
-
       tooltip: {
          enabled: false
       },
@@ -242,9 +238,7 @@ MeaWidget_gauge.prototype.getFormaters = function()
       mea_gauge: function(v,o) {
          var point = o.highcharts().series[0].points[0];  
          if(!isNaN(v))
-         {
-            point.update(parseFloat(v.toFixed(2)));
-         } 
+            point.update(v);
          else
             point.update(0);
       }

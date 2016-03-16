@@ -71,8 +71,6 @@ void mea_api_release()
 // /!\ a ecrire pour librérer tous le contenu de la memoire partagé ...
    if(mea_memory)
       Py_DECREF(mea_memory);
-//   if(mea_module)
-//      Py_DECREF(mea_module);
 }
 
 
@@ -281,7 +279,7 @@ static PyObject *mea_xplSendMsg2(PyObject *self, PyObject *args)
       return NULL;
    }
    
-   // on peut commencer a recuperer les elements necessaires
+   // on peut commencer à recuperer les elements necessaires
    // il nous faut :
    // - le type de message xpl (xpl-cmnd, xpl-trig ou xpl-stat)
    // - le schema
@@ -290,7 +288,6 @@ static PyObject *mea_xplSendMsg2(PyObject *self, PyObject *args)
    cJSON *xplMsgJson = cJSON_CreateObject();
  
    // recuperation du type de message
-//   item = PyDict_GetItemString(PyXplMsg, "message_xpl_type");
    item = PyDict_GetItemString(PyXplMsg, "msgtype");
    if(!item)
    {
@@ -364,12 +361,6 @@ static PyObject *mea_xplSendMsg2(PyObject *self, PyObject *args)
       goto mea_xplSendMsg_clean_exit;
    }
 
-/*  
-   char *tmp = NULL;
-   tmp = cJSON_Print(xplMsgJson);
-   fprintf(stderr,"%s\n",tmp);
-   free(tmp);
-*/
    mea_sendXPLMessage2(xplMsgJson);
 
    cJSON_Delete(xplMsgJson); 

@@ -19,7 +19,6 @@
 
 #include "globals.h"
 #include "consts.h"
-//#include "xPL.h"
 #include "mea_verbose.h"
 #include "mea_queue.h"
 #include "mea_timer.h"
@@ -118,15 +117,12 @@ cJSON *mea_xPL2JSON(xPL_MessagePtr msg)
    switch(xPL_getMessageType(msg))
    {
       case xPL_MESSAGE_COMMAND:
-//         msgtype="xpl-cmnd";
          msgtype=XPL_CMND_STR_C;
          break;
       case xPL_MESSAGE_STATUS:
-//         msgtype="xpl-stat";
          msgtype=XPL_STAT_STR_C;
          break;
       case xPL_MESSAGE_TRIGGER:
-//         msgtype="xpl-trig";
          msgtype=XPL_TRIG_STR_C;
          break;
    }

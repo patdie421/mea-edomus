@@ -69,11 +69,9 @@ int mea_rotate_open_log_file(char *name, uint16_t max_index)
 
    fd=fopen(name, "r+");
    if(!fd)
-   {
        return -1;
-   }
 
-   name_old = (char *)malloc(strlen(name)+7); // 7 => . + 5 digits (16 bit) + 1
+   name_old = (char *)malloc(strlen(name)+7); // 7 => '.' + 5 digits + 1
    if(name_old == NULL)
    {
       ret_code=-1;
@@ -94,8 +92,8 @@ int mea_rotate_open_log_file(char *name, uint16_t max_index)
    }
 
 
-   name_new = (char *)malloc(strlen(name)+7); // 7 => . + 5 digits (16 bit) + 1
-   if(name_old == NULL)
+   name_new = (char *)malloc(strlen(name)+7); // 7 => '.' + 5 digits + 1
+   if(name_new == NULL)
    {
       ret_code=-1;
       goto mea_rotate_open_log_file_clean_exit;

@@ -752,7 +752,6 @@ int process_set_start_stop(int id, managed_processes_process_f start, managed_pr
       ret=-1;
    else
    {
-//      managed_processes.processes_table[id]->type=AUTOSTART;
       managed_processes.processes_table[id]->status=STOPPED;
       managed_processes.processes_table[id]->start=start;
       managed_processes.processes_table[id]->stop=stop;
@@ -768,8 +767,6 @@ int process_set_start_stop(int id, managed_processes_process_f start, managed_pr
 #ifdef AUTO_INCREASE_MAX_PROCESSES
 int16_t _processes_manager_increase_max_processes(int nb_more)
 {
-//   int16_t ret;
-
    struct managed_processes_process_s **old_table= managed_processes.processes_table;
 
    managed_processes.processes_table=(struct managed_processes_process_s **)realloc(managed_processes.processes_table, (managed_processes.max_processes + nb_more)*sizeof(struct managed_processes_process_s *));
@@ -1212,7 +1209,6 @@ int managed_processes_send_stats_now(char *hostname, int port)
          int l_data=strlen(json)+4; // 4 pour MON: 
          char *message = (char *)alloca(l_data+12);
 
-//         fprintf(stderr,"l_data = %d (%d, %d)\n",l_data, (char)(l_data%128), (char)(l_data/128));
          sprintf(message,"$$$%c%cMON:%s###", (char)(l_data%128), (char)(l_data/128), json);
    
          ret = mea_socket_send(&sock, message, l_data+12);
@@ -1251,12 +1247,9 @@ int _managed_processes_send_stats(char *hostname, int port)
          else
          {
             int l_data=strlen(json)+4;
-//            fprintf(stderr,"l_data = %d (%d, %d)\n",l_data, (char)(l_data%128), (char)(l_data/128));
             char *message = (char *)alloca(l_data+12);
-//            char *message =( char *)malloc(l_data+12);
             sprintf(message,"$$$%c%cMON:%s###", (char)(l_data%128), (char)(l_data/128), json);
             ret = mea_socket_send(&sock, message, l_data+12);
-//            free(message);
       
             close(sock);
          }

@@ -40,7 +40,6 @@ cJSON.c \
 comio2.c \
 consts.c \
 enocean.c  \
-mongoose.c  \
 notify.c  \
 parameters_utils.c  \
 philipshue.c  \
@@ -53,7 +52,6 @@ sqlite3db_utils.c  \
 mea_string_utils.c \
 mea_timer.c  \
 mea_verbose.c \
-tokens.c  \
 serial.c \
 xbee.c 
 

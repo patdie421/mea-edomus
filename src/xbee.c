@@ -104,86 +104,6 @@ int _xbee_open(xbee_xd_t *xd, char *dev, int speed)
    return fd;
 }
 
-/*
-int   _xbee_open(xbee_xd_t *xd, char *dev, int speed)
-{
-   struct termios options, options_old;
-   int fd;
-   
-   // ouverture du port
-   int flags;
-   
-   flags=O_RDWR | O_NOCTTY | O_NDELAY | O_EXCL;
-#ifdef O_CLOEXEC
-   flags |= O_CLOEXEC;
-#endif
-   
-   fd = open(dev, flags);
-   if (fd == -1)
-   {
-      // ouverture du port serie impossible
-      return -1;
-   }
-   strcpy(xd->serial_dev_name,dev);
-   xd->speed=speed;
-   
-   // sauvegarde des caractéristiques du port serie
-   tcgetattr(fd, &options_old);
-   
-   // initialisation à 0 de la structure des options (termios)
-   memset(&options, 0, sizeof(struct termios));
-   
-   // paramétrage du débit
-   if(cfsetispeed(&options, speed)<0)
-   {
-      // modification du debit d'entrée impossible
-      return -1;
-   }
-   if(cfsetospeed(&options, speed)<0)
-   {
-      // modification du debit de sortie impossible
-      return -1;
-   }
-   
-   // ???
-   options.c_cflag |= (CLOCAL | CREAD); // mise à 1 du CLOCAL et CREAD
-   
-   // 8 bits de données, pas de parité, 1 bit de stop (8N1):
-   options.c_cflag &= ~PARENB; // pas de parité (N)
-   options.c_cflag &= ~CSTOPB; // 1 bit de stop seulement (1)
-   options.c_cflag &= ~CSIZE;
-   options.c_cflag |= CS8; // 8 bits (8)
-   
-   // bit ICANON = 0 => port en RAW (au lieu de canonical)
-   // bit ECHO =   0 => pas d'écho des caractères
-   // bit ECHOE =  0 => pas de substitution du caractère d'"erase"
-   // bit ISIG =   0 => interruption non autorisées
-   options.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
-   
-   // pas de contrôle de parité
-   options.c_iflag &= ~INPCK;
-   
-   // pas de contrôle de flux
-   options.c_iflag &= ~(IXON | IXOFF | IXANY);
-   
-   // parce qu'on est en raw
-   options.c_oflag &=~ OPOST;
-   
-   // VMIN : Nombre minimum de caractère à lire
-   // VTIME : temps d'attentes de données (en 10eme de secondes)
-   // à 0 car O_NDELAY utilisé
-   options.c_cc[VMIN] = 0;
-   options.c_cc[VTIME] = 0;
-   
-   // réécriture des options
-   tcsetattr(fd, TCSANOW, &options);
-   
-   // préparation du descripteur
-   xd->fd=fd;
-   
-   return xd->fd;
-}
-*/
 
 int   xbee_init(xbee_xd_t *xd, char *dev, int speed)
 /**
@@ -1387,7 +1307,6 @@ void _xbee_flush_old_responses_queue(xbee_xd_t *xd)
 }
 
 
-// void _xbee_add_response_to_queue(xbee_xd_t *xd, unsigned char *cmd, int l_cmd, uint32_t tsp)
 int16_t _xbee_add_response_to_queue(xbee_xd_t *xd, unsigned char *cmd, uint16_t l_cmd)
 {
    xbee_queue_elem_t *e;

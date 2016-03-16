@@ -109,7 +109,6 @@ int stop_nodejsServer(int my_id, void *data, char *errmsg, int l_errmsg)
 }
 
 
-// pid_t start_nodejsServer(char *nodejs_path, char *eventServer_path, int port_socketio, int port_socketdata, char *phpsession_path)
 int start_nodejsServer(int my_id, void *data, char *errmsg, int l_errmsg)
 {
    struct nodejsServerData_s *nodejsServerData = (struct nodejsServerData_s *)data;
@@ -160,8 +159,8 @@ int start_nodejsServer(int my_id, void *data, char *errmsg, int l_errmsg)
       sprintf(str_port_socketdata,"--dataport=%d",_socketdata_port);
       sprintf(str_phpsession_path,"--phpsession_path=%s",phpsession_path);
      
-//      cmd_line_params[0]="mea-edomus[nodejs]";
-      cmd_line_params[0]="mea-edomus";
+      cmd_line_params[0]="mea-edomus[nodejs]";
+//      cmd_line_params[0]="mea-edomus";
       cmd_line_params[1]=serverjs_path;
       cmd_line_params[2]=str_port_socketio;
       cmd_line_params[3]=str_port_socketdata;

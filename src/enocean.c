@@ -23,8 +23,6 @@
 
 #include "serial.h"
 #include "enocean.h"
-//#include "debug.h"
-//#include "error.h"
 #include "mea_verbose.h"
 #include "mea_queue.h"
 
@@ -77,86 +75,6 @@ int16_t _enocean_open(enocean_ed_t *ed, char *dev)
    return fd;
 }
 
-/*
-int16_t _enocean_open(enocean_ed_t *ed, char *dev)
-{
-   struct termios options, options_old;
-   int fd;
-//   int16_t nerr = 0;
-   
-   // ouverture du port
-   int flags;
-   
-   flags=O_RDWR | O_NOCTTY | O_NDELAY | O_EXCL;
-#ifdef O_CLOEXEC
-   flags |= O_CLOEXEC;
-#endif
-   
-   fd = open(dev, flags);
-   if (fd == -1)
-   {
-      // ouverture du port serie impossible
-      return -1;
-   }
-   strcpy(ed->serial_dev_name, dev);
-   
-   // sauvegarde des caractéristiques du port serie
-   tcgetattr(fd, &options_old);
-   
-   // initialisation à 0 de la structure des options (termios)
-   memset(&options, 0, sizeof(struct termios));
-   
-   // paramétrage du débit
-   if(cfsetispeed(&options, B57600)<0)
-   {
-      // modification du debit d'entrée impossible
-      return -1;
-   }
-   if(cfsetospeed(&options, B57600)<0)
-   {
-      // modification du debit de sortie impossible
-      return -1;
-   }
-   
-   // ???
-   options.c_cflag |= (CLOCAL | CREAD); // mise à 1 du CLOCAL et CREAD
-   
-   // 8 bits de données, pas de parité, 1 bit de stop (8N1):
-   options.c_cflag &= ~PARENB; // pas de parité (N)
-   options.c_cflag &= ~CSTOPB; // 1 bit de stop seulement (1)
-   options.c_cflag &= ~CSIZE;
-   options.c_cflag |= CS8; // 8 bits (8)
-   
-   // bit ICANON = 0 => port en RAW (au lieu de canonical)
-   // bit ECHO =   0 => pas d'écho des caractères
-   // bit ECHOE =  0 => pas de substitution du caractère d'"erase"
-   // bit ISIG =   0 => interruption non autorisées
-   options.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
-   
-   // pas de contrôle de parité
-   options.c_iflag &= ~INPCK;
-   
-   // pas de contrôle de flux
-   options.c_iflag &= ~(IXON | IXOFF | IXANY);
-   
-   // parce qu'on est en raw
-   options.c_oflag &=~ OPOST;
-   
-   // VMIN : Nombre minimum de caractère à lire
-   // VTIME : temps d'attentes de données (en 10eme de secondes)
-   // à 0 car O_NDELAY utilisé
-   options.c_cc[VMIN] = 0;
-   options.c_cc[VTIME] = 0;
-   
-   // réécriture des options
-   tcsetattr(fd, TCSANOW, &options);
-   
-   // préparation du descripteur
-   ed->fd=fd;
-
-   return fd;
-}
-*/
 
 int16_t enocean_init(enocean_ed_t *ed, char *dev)
 /**
@@ -406,7 +324,6 @@ int16_t _enocean_uart_read(int16_t fd, int32_t timeoutms, int16_t *nerr)
    if(ret!=1)
    {
       *nerr = ENOCEAN_ERR_SYS;
-//      VERBOSE(1) perror("READ: ");
       return -1;
    }
    else
@@ -569,7 +486,7 @@ int16_t _enocean_read_packet(int16_t fd, uint8_t *data, uint16_t *l_data, int16_
    {
       *nerr=ENOCEAN_ERR_NOERR;
       
-      rc=_enocean_uart_read(fd,ENOCEAN_TIMEOUT_DELAY1_MS,nerr);
+      rc=_enocean_uart_read(fd, ENOCEAN_TIMEOUT_DELAY1_MS, nerr);
       if(rc<0)
       {
          return -1;
@@ -591,17 +508,6 @@ int16_t _enocean_read_packet(int16_t fd, uint8_t *data, uint16_t *l_data, int16_
       {
          if(*nerr == ENOCEAN_ERR_CRC8H) // erreur de CRC, problème de synchro de début de trame ?
          {
-/*
-            for(int i=1;i<resyncBufferPtr;i++) // on rejoue les données déjà reçues qu'on a pris pour le contenu d'un header
-            {
-               step=0; // réinitialisation de l'automate
-               for(int j=i;j<resyncBufferPtr;j++) // on rejout tout sans ce poser de question
-               {
-                  _enocean_process_data(&step, resyncBuffer[j], data, l_data, nerr);
-               }
-               resyncBufferPtr=0; // on vide le buffer
-            }
-*/
             step=0; // réinitialisation de l'automate
             for(int j=1;j<resyncBufferPtr;j++) // on rejout tout (sauf le premier caractère) sans ce poser de question
             {
@@ -690,7 +596,6 @@ int16_t _enocean_build_radio_erp1_packet(uint8_t rorg, uint32_t source, uint32_t
          
    // rorg
    packet[ptr++] = rorg;
-//   crc8h = proc_crc8(crc8h, rorg);
    crc8d = proc_crc8(crc8d, rorg);
    
    // données
@@ -882,7 +787,6 @@ uint16_t enocean_get_local_addr(enocean_ed_t *ed, uint32_t *addr, int16_t *nerr)
    }
    else
    {
-//      fprintf(stderr,"ERROR = %d\n",*nerr);
       return -1;
    }
 

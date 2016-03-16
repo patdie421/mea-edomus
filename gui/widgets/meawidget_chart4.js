@@ -17,14 +17,28 @@ function MeaWidget_chart4(name, group, type)
    this.params["parameters"]["width"] = this.minwidth;
    this.params["parameters"]["height"] = this.minheight;
 
-   this.params["parameters"]["sensor1_id"] = 0;
-   this.params["parameters"]["collector1_id"] = 0;
-   this.params["parameters"]["sensor2_id"] = 0;
-   this.params["parameters"]["collector2_id"] = 0;
-   this.params["parameters"]["sensor3_id"] = 0;
-   this.params["parameters"]["collector3_id"] = 0;
-   this.params["parameters"]["sensor4_id"] = 0;
-   this.params["parameters"]["collector4_id"] = 0;
+   this.sensors_list = false;
+   this.sensors =  {
+      "val" : "",
+      "editor": {
+         "type":"combobox",
+         "options": {
+             panelMinWidth:300,
+             valueField:'id',
+             textField:'text',
+             groupField:'group',
+             method:'get',
+             url:'models/get_mysql_sensors_list.php'
+         }
+      },
+      "formatter": function(value,row) {
+         return "|"+value+"|"; 
+      }
+   };
+   this.params["parameters"]["sensor1"] = this.sensors;
+   this.params["parameters"]["sensor2"] = this.sensors;
+   this.params["parameters"]["sensor3"] = this.sensors;
+   this.params["parameters"]["sensor4"] = this.sensors;
 }
 
 
@@ -33,24 +47,30 @@ MeaWidget_chart4.prototype.disabled = function(id, d)
    var _this = this;
    var widget = $("#"+id);
    var data = widget.prop('mea-widgetdata');
+   var chartdiv = widget.find('div[mea_widgetvaluename="'+_this.chartName+'"]');
 
    if(d===true)
    {
-      widget.removeClass("mea_chart4_enabled");
-      widget.addClass("mea_chart4_disabled");
       try
       {
-         var chart = widget.highcharts();
+         var chart = chartdiv.highcharts();
          chart.destroy();
-         widget.append("<div class='mea_dragzone_for_resizable' style='width:calc( 100% - 12px );height:calc( 100% - 12px );'><div>");
       }
       catch(e) {};
+
+      widget.removeClass("mea_chart4_enabled");
+      chartdiv.removeClass("mea_chart4_bg_enabled");
+      widget.addClass("mea_chart4_disabled");
+      chartdiv.addClass("mea_chart4_bg_disabled");
    }
    else
    {
       widget.removeClass("mea_chart4_disabled");
+      chartdiv.removeClass("mea_chart4_bg_disabled");
       widget.addClass("mea_chart4_enabled");
-      _this.mkchart(widget, data);
+      chartdiv.addClass("mea_chart4_bg_enabled");
+      _this.mkchart(chartdiv, data);
+      widget.find('.mea_dragzone_for_resizable').remove();
    }
 }
 
@@ -62,16 +82,15 @@ MeaWidget_chart4.prototype.mkchart = function(widget, data)
       return;
 
    var sensors=[];
-   sensors[0] = _this.getValue(data,"sensor1_id", 0);
-   sensors[1] = _this.getValue(data,"sensor2_id", 0);
-   sensors[2] = _this.getValue(data,"sensor3_id", 0);
-   sensors[3] = _this.getValue(data,"sensor4_id", 0);
+   sensors[0] = _this.getValue(data,"sensor1", 0);
+   sensors[1] = _this.getValue(data,"sensor2", 0);
+   sensors[2] = _this.getValue(data,"sensor3", 0);
+   sensors[3] = _this.getValue(data,"sensor4", 0);
 
    var title = _this.getValue(data,"title", -1);
    var subtitle = _this.getValue(data,"subtitle", -1);
    var afterSetExtremes_on = false;
 
-   console.log(sensors);
    function afterSetExtremes(e)
    {
       if(afterSetExtremes_on === false)
@@ -89,10 +108,23 @@ MeaWidget_chart4.prototype.mkchart = function(widget, data)
             max--;
             continue;
          }
-         console.log(e.min+" "+Math.round(e.min));
-         console.log(e.max+" "+Math.round(e.max));
-         console.log('models/get_msql_data.php?sensor_id='+sensors[i]+'&start=' + Math.round(e.min) + '&end=' + Math.round(e.max) + '&callback=?');
-         $.getJSON('models/get_msql_data.php?id='+i+'&sensor_id='+sensors[i]+'&start=' + Math.round(e.min) + '&end=' + Math.round(e.max) + '&callback=?', function (data) {
+
+         var ids=false;
+         try
+         {
+            ids=JSON.parse(sensors[i]);
+         }
+         catch(e)
+         {
+         }
+
+         if(ids===false)
+         {
+            max--;
+            continue;
+         }
+
+         $.getJSON('models/get_mysql_data.php?id='+i+'&sensor_id='+ids.sensor_id+'&collector_id='+ids.collector_id+'&start=' + Math.round(e.min) + '&end=' + Math.round(e.max) + '&callback=?', function (data) {
             chart.series[data.id].setData(data.data);
             if(_i===max)
             {
@@ -164,8 +196,9 @@ MeaWidget_chart4.prototype.mkchart = function(widget, data)
          ordinal: false,
          events : {
             afterSetExtremes : afterSetExtremes
-         },
-         minRange: 1 * 3600 * 1000 // 1 hour
+         }
+//, minRange: 1 * 3600 * 1000 // 1 hour
+         , minRange: 1000 // 1 hour
       },
 
       yAxis: {
@@ -211,8 +244,23 @@ MeaWidget_chart4.prototype.mkchart = function(widget, data)
          continue;
       }
 
-      $.getJSON('models/get_msql_data.php?id='+i+'&sensor_id='+sensors[i]+'&callback=?', function (data) {
-         console.log(data);
+      var ids=false;
+      try
+      {
+         ids=JSON.parse(sensors[i]);
+      }
+      catch(e)
+      {
+      }
+
+      if(ids===false)
+      {
+         max--;
+         continue;
+      }
+
+      $.getJSON('models/get_mysql_data.php?id='+i+'&sensor_id='+ids.sensor_id+'&collector_id='+ids.collector_id+'&callback=?', function (data) {
+         console.log(data.data);
          chart.series[data.id].setData(data.data); 
          if(navset===false)
          {
@@ -261,20 +309,25 @@ MeaWidget_chart4.prototype.getStyle = function()
 {
 var style = 
 ".mea_chart4_disabled {" +
-   "background:url('/widgets/meawidget_chart.svg') rgb(243, 243, 243);" +
-   "background-repeat:no-repeat;" +
-   "background-position:center;" +
-   "background-size:contain;" +
+   "background-color: rgb(243, 243, 243);" +
    "border-style: dotted;" +
    "border-width: 1px;" +
    "border-color: gray;" +
 "}" +
 ".mea_chart4_enabled {" + 
+   "background-color: rgb(243, 243, 243);" +
    "border-style: solid;" +
    "border-width: 1px;" +
    "border-color: transparent;" +
-   "background-color: rgb(243, 243, 243);" +
    "opacity: 1;" +
+"}" +
+".mea_chart4_bg_disabled {" +
+   "background:url('/widgets/meawidget_chart.svg') rgb(243, 243, 243);" +
+   "background-repeat:no-repeat;" +
+   "background-position:center;" +
+   "background-size:contain;" +
+"}" +
+".mea_chart4_bg_enabled {" +
 "}";
 return style;
 }
@@ -301,7 +354,14 @@ var html =
      "mea_widgetname='"+_this.chartName+"' " +
      "data-widgetparams='"+JSON.stringify(_this.params)+"' " +
 ">" +
-   "<div class='mea_dragzone_for_resizable' style='margin:6px;width:calc( 100% - 12px );height:calc( 100% - 12px );'><div>" +
+   "<div style='postion:relative;height:100%;width:100%;display:table;'>" +
+      "<div style='height:25px;width:100%;display:table-row;'></div>" + 
+      "<div style='height:100%;width:100%;display:table-row;'>" +
+         "<div class='mea_chart4_bg_disabled' mea_widgetvaluename='"+_this.chartName+"' style='height:100%;width:100%;display:block'>" +
+         "</div>" +
+      "</div>" + 
+   "</div>" +
+   "<div class='mea_dragzone_for_resizable' style='position:absolute;top:6px;left:6px;width:calc( 100% - 12px );height:calc( 100% - 12px );opacity:0.0'><div>" +
 "</div>";
 return html;
 }

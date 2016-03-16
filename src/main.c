@@ -59,7 +59,6 @@
 
 #include "notify.h"
 
-// FILE *dbgfd;
 
 int xplServer_monitoring_id=-1;
 int httpServer_monitoring_id=-1;
@@ -886,14 +885,16 @@ int main(int argc, const char * argv[])
    mea_notify_disable(); // système de notification desactivé
 
    //
-   // initialisation du gestionnaire de process
-   //
-
    // démarrage du serveur de temps
-
+   //
    start_timeServer();
 
+
+   //
+   // initialisation du gestionnaire de process
+   //
    init_processes_manager(40);
+
 
    //
    // déclaration du process principal
@@ -903,6 +904,7 @@ int main(int argc, const char * argv[])
    process_set_status(main_monitoring_id, RUNNING);
    process_add_indicator(main_monitoring_id, "UPTIME", 0);
    process_add_indicator(main_monitoring_id, "SIGSEGV", 0);
+
 
    //
    // nodejsServer (1er lancé, il est utilisé par les autres serveurs pour les notifications ou les log)
@@ -985,7 +987,6 @@ int main(int argc, const char * argv[])
    //
    struct pythonPluginServer_start_stop_params_s pythonPluginServer_start_stop_params;
    pythonPluginServer_start_stop_params.params_list=params_list;
-//   pythonPluginServer_start_stop_params.sqlite3_param_db=sqlite3_param_db;
    pythonPluginServer_monitoring_id=process_register("PYTHONPLUGINSERVER");
    process_set_start_stop(pythonPluginServer_monitoring_id , start_pythonPluginServer, stop_pythonPluginServer, (void *)(&pythonPluginServer_start_stop_params), 1);
    process_set_watchdog_recovery(xplServer_monitoring_id, restart_pythonPluginServer, (void *)(&pythonPluginServer_start_stop_params));
@@ -1020,7 +1021,6 @@ int main(int argc, const char * argv[])
    //
    struct automatorServer_start_stop_params_s automatorServer_start_stop_params;
    automatorServer_start_stop_params.params_list=params_list;
-//   automatorServer_start_stop_params.sqlite3_param_db=sqlite3_param_db;
    automatorServer_monitoring_id=process_register(automator_server_name_str);
    process_set_start_stop(automatorServer_monitoring_id, start_automatorServer, stop_automatorServer, (void *)(&automatorServer_start_stop_params), 1);
    process_set_watchdog_recovery(automatorServer_monitoring_id, restart_automatorServer, (void *)(&automatorServer_start_stop_params));
@@ -1041,13 +1041,15 @@ int main(int argc, const char * argv[])
    struct interfacesServerData_s interfacesServerData;
    interfacesServerData.params_list=params_list;
    interfacesServerData.sqlite3_param_db=sqlite3_param_db;
-   interfaces=start_interfaces
-   (params_list, sqlite3_param_db); // démarrage des interfaces
+   interfaces=start_interfaces(params_list, sqlite3_param_db); // démarrage des interfaces
    int interfaces_reload_task_id=process_register("RELOAD"); // mise en place de la tâche de rechargement des paramètrages des interfaces
    process_set_group(interfaces_reload_task_id, 2);
    process_set_start_stop(interfaces_reload_task_id , restart_interfaces, NULL, (void *)(&interfacesServerData), 1);
    process_set_type(interfaces_reload_task_id, TASK);
 
+   //
+   // rotation des log 1x par jour
+   //
    int log_rotation_id=process_register("LOGROTATION");
    process_set_start_stop(log_rotation_id, logfile_rotation_job, NULL, (void *)log_file, 1);
    process_set_type(log_rotation_id, JOB);
@@ -1065,6 +1067,7 @@ int main(int argc, const char * argv[])
    long uptime = 0;
    start_time = time(NULL);
    int guiport = atoi(params_list[GUIPORT]);
+
    while(1) // boucle principale
    {
       // supervision "externe" des process

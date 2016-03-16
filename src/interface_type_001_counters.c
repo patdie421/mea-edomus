@@ -66,64 +66,6 @@ void interface_type_001_free_counters_queue_elem(void *d)
 }
 
 
-/*
-int16_t interface_type_001_counters_process_traps(int16_t numTrap, char *buff, int16_t l_buff, void * args)
- {
-   double t_old;
-   struct timeval tv;
-   struct electricity_counter_s *counter;
-   counter=(struct electricity_counter_s *)args;
-
-   *(counter->nbtrap)=*(counter->nbtrap)+1;
-   
-   // prise du chrono
-   gettimeofday(&tv, NULL); 
-   pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(counter->lock));
-   pthread_mutex_lock(&(counter->lock));
-   {
-      if(counter->t<0)
-         counter->t=(double)tv.tv_sec+(double)tv.tv_usec/1000000.0;
-      else
-      {
-         t_old=counter->t;
-         counter->t=(double)tv.tv_sec+(double)tv.tv_usec/1000000.0;
-         // calcul de la conso instantannée (enfin une estimation)
-         counter->last_power=counter->power;
-         counter->power=3600/(counter->t-t_old);
-         mea_start_timer(&(counter->trap_timer)); // réinitialisation du timer à chaque trap
-
-         char value[20];
-         xPL_ServicePtr servicePtr = mea_getXPLServicePtr();
-         if(servicePtr)
-         {
-            xPL_MessagePtr cntrMessageStat = xPL_createBroadcastMessage(servicePtr, xPL_MESSAGE_TRIGGER);
-            sprintf(value,"%f",counter->power);
-            xPL_setSchema(cntrMessageStat, get_token_string_by_id(XPL_SENSOR_ID), get_token_string_by_id(XPL_BASIC_ID));
-            xPL_setMessageNamedValue(cntrMessageStat, get_token_string_by_id(XPL_DEVICE_ID), counter->name);
-            xPL_setMessageNamedValue(cntrMessageStat, get_token_string_by_id(XPL_TYPE_ID), get_token_string_by_id(XPL_POWER_ID));
-            xPL_setMessageNamedValue(cntrMessageStat, get_token_string_by_id(XPL_CURRENT_ID), value);
-
-            // Broadcast the message
-            mea_sendXPLMessage(cntrMessageStat, NULL);
-
-            *(counter->nbxplout)=*(counter->nbxplout)+1;
-
-            xPL_releaseMessage(cntrMessageStat);
-         }
-         VERBOSE(9) {
-            char now[30];
-            strftime(now,30,"%d/%m/%y;%H:%M:%S",localtime(&tv.tv_sec));
-            mea_log_printf("%s (%s) : %s;%s;%f;%f;%f\n", INFO_STR, __func__, counter->name, now, counter->t, counter->t-t_old, counter->power);
-         }
-      }
-   }
-   // fin section critique
-   pthread_mutex_unlock(&(counter->lock));
-   pthread_cleanup_pop(0);
-   return NOERROR;
-}  
-*/
-
 int16_t interface_type_001_counters_process_traps2(int16_t numTrap, char *buff, int16_t l_buff, void * args)
  {
    double t_old;
@@ -262,31 +204,6 @@ valid_and_malloc_counter_clean_exit:
    return NULL;
 }
 
-/*
-void counter_to_xpl(interface_type_001_t *i001, struct electricity_counter_s *counter)
-{
-   char value[20];
-   
-   xPL_ServicePtr servicePtr = mea_getXPLServicePtr();
-   if(servicePtr)
-   {
-      xPL_MessagePtr cntrMessageStat = xPL_createBroadcastMessage(servicePtr, xPL_MESSAGE_TRIGGER);
-      
-      sprintf(value,"%d",counter->kwh_counter);
-      
-      xPL_setSchema(cntrMessageStat, get_token_string_by_id(XPL_SENSOR_ID), get_token_string_by_id(XPL_BASIC_ID));
-      xPL_setMessageNamedValue(cntrMessageStat, get_token_string_by_id(XPL_DEVICE_ID),counter->name);
-      xPL_setMessageNamedValue(cntrMessageStat, get_token_string_by_id(XPL_TYPE_ID), get_token_string_by_id(XPL_ENERGY_ID));
-      xPL_setMessageNamedValue(cntrMessageStat,  get_token_string_by_id(XPL_CURRENT_ID),value);
-      
-      mea_sendXPLMessage(cntrMessageStat, NULL);
-
-      (i001->indicators.nbcountersxplsent)++;
-
-      xPL_releaseMessage(cntrMessageStat);
-   }
-}
-*/
 
 void counter_to_xpl2(interface_type_001_t *i001, struct electricity_counter_s *counter)
 {
@@ -506,74 +423,6 @@ mea_error_t interface_type_001_counters_process_xpl_msg2(interface_type_001_t *i
    return NOERROR;
 }
 
-/*
-int16_t interface_type_001_counters_poll_inputs(interface_type_001_t *i001)
-{
-   mea_queue_t *counters_list=i001->counters_list;
-   struct electricity_counter_s *counter;
-
-   mea_queue_first(counters_list);
-   for(int16_t i=0; i<counters_list->nb_elem; i++)
-   {
-      mea_queue_current(counters_list, (void **)&counter);
-
-      pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&(counter->lock));
-      pthread_mutex_lock(&(counter->lock));
-      
-      if(!mea_test_timer(&(counter->trap_timer))) // traitement delai trop long entre 2 traps.
-      {
-         struct timeval tv;
-
-         gettimeofday(&tv, NULL);
-         
-         counter->t=(double)tv.tv_sec+(double)tv.tv_usec/1000000.0;
-         counter->last_power=counter->power;
-         counter->power=0;
-
-         // envoyer un message xpl 0W
-         xPL_ServicePtr servicePtr = mea_getXPLServicePtr();
-         if(servicePtr)
-         {
-            xPL_MessagePtr cntrMessageStat = xPL_createBroadcastMessage(servicePtr, xPL_MESSAGE_TRIGGER);
-            xPL_setSchema(cntrMessageStat, get_token_string_by_id(XPL_SENSOR_ID), get_token_string_by_id(XPL_BASIC_ID));
-            xPL_setMessageNamedValue(cntrMessageStat, get_token_string_by_id(XPL_DEVICE_ID), counter->name);
-            xPL_setMessageNamedValue(cntrMessageStat, get_token_string_by_id(XPL_TYPE_ID), get_token_string_by_id(XPL_POWER_ID));
-            xPL_setMessageNamedValue(cntrMessageStat, get_token_string_by_id(XPL_CURRENT_ID), "0");
-            
-            mea_sendXPLMessage(cntrMessageStat, NULL);
-
-            (i001->indicators.nbcountersxplsent)++;
-
-            xPL_releaseMessage(cntrMessageStat);
-         }
-      }
-      
-      pthread_mutex_unlock(&(counter->lock));
-      pthread_cleanup_pop(0);
-
-      if(!mea_test_timer(&(counter->timer)))
-      {
-         if(counter_read(i001, counter)<0)
-         {
-         }
-         else
-         {
-            if(counter->counter!=counter->last_counter)
-            {
-               if(counter->todbflag==1)
-                  counter_to_db(counter);
-            }
-
-            counter_to_xpl2(i001, counter);
-
-            VERBOSE(9) mea_log_printf("%s (%s) : counter %s %ld (WH=%ld KWH=%ld)\n", INFO_STR, __func__, counter->name, (long)counter->counter, (long)counter->wh_counter, (long)counter->kwh_counter);
-         }
-         mea_queue_next(counters_list);
-      }
-   }
-   return 0;
-}
-*/
 
 int16_t interface_type_001_counters_poll_inputs2(interface_type_001_t *i001)
 {

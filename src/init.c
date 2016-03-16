@@ -183,7 +183,6 @@ char *get_and_malloc_integer(int16_t default_value, char *question_str)
       value_str=get_and_malloc_string(default_value_str, question_str);
       if(!value_str)
          return NULL;
-      // value=
       strtol(value_str,&end,10);
       if(*end!=0 || errno==ERANGE)
       {
@@ -191,9 +190,7 @@ char *get_and_malloc_integer(int16_t default_value, char *question_str)
          value_str=NULL;
       }
       else
-      {
          break;
-      }
    }
    
    return value_str;
@@ -234,8 +231,6 @@ int16_t checkParamsDb(char *sqlite3_db_param_path, int16_t *cause)
    }
 
    // contrôler le contenu de la base ... à faire ???
-   //printf("Existe : %d\n",tableExist(sqlite3_param_db, "toto"));
-   //printf("Existe : %d\n",tableExist(sqlite3_param_db, "interfaces"));
    
    sqlite3_close(sqlite3_param_db);
    
@@ -365,7 +360,6 @@ int16_t create_php_ini(char *phpini_path)
    };
    
    char phpini[1024];
-   
    int16_t n=snprintf(phpini,sizeof(phpini),"%s/php.ini",phpini_path);
    if(n<0 || n==sizeof(phpini))
    {

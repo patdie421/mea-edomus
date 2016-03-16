@@ -162,7 +162,7 @@ static enum mea_eval_token_type_id_e mea_eval_getToken(char *str, char **newptr,
                strncpy(name, str+1, (int)(p-str)-1);
                name[(int)(p-str-1)]=0; 
 
-               if(_getVarVal != NULL)
+               if(_getVarId != NULL)
                {
                   int16_t id = 0;
 
@@ -219,10 +219,10 @@ static int mea_eval_doOperationN(double *d, double d1, int op, double d2)
              return -1;
          *d=d1/d2;
          break;
-      default:
       case '*':
          *d=d1*d2;
          break;
+      default:
          return -1;
    }
    return 0;
@@ -481,7 +481,6 @@ static int _evalCalcN(char *str, char **newptr, int16_t *lvl, struct mea_eval_st
             {
 #if ONFLYEVAL==0
                pushToEvalStack(2, (void *)&(operators[operators_index]), &stack, stack_size, stack_index);
-//               operators[operators_index]=op;
 #else
                if(mea_eval_calcOperationN(operators[operators_index], stack, stack_size, stack_index) < 0)
                {
@@ -489,7 +488,6 @@ static int _evalCalcN(char *str, char **newptr, int16_t *lvl, struct mea_eval_st
                   *err=11;
                   return -1;
                }
-//               operators[operators_index]=op;
 #endif
                operators[operators_index]=op;
             }
@@ -540,7 +538,7 @@ int16_t mea_eval_setGetVarCallBacks(getVarId_f fid, getVarVal_f fval, void *user
 #define DEFAULT_STACK_SIZE 80
 
 #if ONFLYEVAL==0
-#define EXEC_STACK_SIZE 20
+#define EXEC_STACK_SIZE 50
 struct mea_eval_stack_s *mea_eval_buildStack_alloc(char *str, char **p, int16_t *err, int32_t *stack_ptr)
 {
    int16_t lvl=0;

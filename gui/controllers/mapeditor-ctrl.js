@@ -326,6 +326,23 @@ MapEditorController.prototype.propertiesPanel_init = function()
    _this.propertiesPanel.append("<DIV id='div_properties' style='width:100%;height:auto;position:relative'><TABLE id='tbl_properties' style='width:100%'></TABLE></DIV>");
    _this.propertiesTbl = $("#tbl_properties");
    _this.propertiesTbl.propertygrid({
+      columns:[[
+               {field:'name', title:'name', width:150, sortable:false},
+               {field:'value', title:'value', width: 250, formatter:
+                  function(value,row,index) {
+                     try
+                     {
+                        var v = JSON.parse(value);
+                        if(typeof(v.text) !== 'undefined')
+                        {
+                           return v.text;
+                        }
+                     }
+                     catch(e) {}
+                     return value;
+                  }
+               }
+              ]],
       showGroup:true,
       border:false,
       scrollbarSize:0,
@@ -511,7 +528,7 @@ MapEditorController.prototype.propertiesPanel_init = function()
          meaWidgetsJar[rows[1].value].update(row);
          meaWidgetsJar[rows[1].value].init(rows[0].value);
          meaWidgetsJar[rows[1].value].disabled(rows[0].value, true); 
-      }
+      },
    });
 }
 
@@ -528,7 +545,13 @@ MapEditorController.prototype.newWidgetData = function(newid, type, x, y, zi, p)
 
    try {
       $.each(p.data().widgetparams.parameters, function(i,val) {
-         mea_widgetdata.push({"name":i, "value":val, "group":"parameters", "editor":"text", "type":""});
+//         mea_widgetdata.push({"name":i, "value":val, "group":"parameters", "editor":"text", "type":""});
+         if(val !== null && typeof val === 'object')
+         {
+            mea_widgetdata.push({"name":i, "value": val.val, "group":"parameters", "editor": val.editor });
+         }
+         else
+            mea_widgetdata.push({"name":i, "value":val, "group":"parameters", "editor":"text"});
       });
    }
    catch(e) {};

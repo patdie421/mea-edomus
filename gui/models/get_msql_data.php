@@ -56,7 +56,7 @@ if(!isset($_REQUEST['sensor_id']))
 }
 else
 {
-    $sensor_id=$_REQUEST['sensor_id'];
+   $sensor_id=$_REQUEST['sensor_id'];
 }
 
 if(!isset($_REQUEST['id']))
@@ -67,12 +67,15 @@ if(!isset($_REQUEST['id']))
 }
 else
 {
-    $id=$_REQUEST['id'];
+   $id=$_REQUEST['id'];
 }
 
 $callback = $_GET['callback']; 
-if (!preg_match('/^[a-zA-Z0-9_]+$/', $callback)) { 
-   die('Invalid callback name'); 
+if (!preg_match('/^[a-zA-Z0-9_]+$/', $callback))
+{
+   echo "console.log('Invalid callback name: ".$start."');\n";
+   echo $callback."([]);";
+   exit(1);
 } 
  
 $start = @$_GET['start']; 
@@ -111,9 +114,9 @@ try
 
 if (!$end)
    $end = (time())*1000; 
-// on va un peu plus loin pour être sûr de tout avoir
-$end = $end + (3600*1000);
+$end = $end + (3600*1000); // on va un peu plus loin pour être sûr de tout avoir
 
+// construction des requetes sur les différentes tables
 $min=0;
 $max=0;
 $sql = "SELECT UNIX_TIMESTAMP(min(date))*1000 AS min, UNIX_TIMESTAMP(max(date))*1000 AS max FROM sensors_values";
@@ -181,20 +184,40 @@ if(($startTime_c != False) && ($endTime_c != False))
          min(date) AS date,
          (UNIX_TIMESTAMP(date))*1000 AS tms
       FROM sensors_values_c
-      WHERE sensor_id=".$sensor_id." AND date between '$s' AND '$e'
+      WHERE sensor_id=".$sensor_id." AND (date between '$s' AND '$e')
       GROUP BY sensor_id, DATE_FORMAT(date, \"%Y-%m-%d %H\")
       ORDER BY tms
       LIMIT 0, 5000;";
 }
 
 //         UNIX_TIMESTAMP(max(date))*1000 AS tms
+//      ORDER BY tms
 if(($startTime != False) && ($endTime != False))
 {
+   $range = $end - $start; 
+
    $s = gmstrftime('%Y-%m-%d %H:%M:%S', $startTime / 1000);
    $e = gmstrftime('%Y-%m-%d %H:%M:%S', $endTime / 1000);
 
-   echo "console.log(' start = $s, end = $e ');\n";
-   $sql="SELECT
+   echo "console.log(' start = $s, end = $e, range = $range');\n";
+   if($range < 3 * 24 * 3600 * 1000)
+   {
+      $sql="SELECT
+         sensor_id AS id,
+         1 as nb,
+         value1 AS avg,
+         value1 AS min,
+         value1 AS max,
+         date AS date,
+         (UNIX_TIMESTAMP(date))*1000 AS tms
+      FROM sensors_values
+      WHERE sensor_id=".$sensor_id." AND (date between '$s' AND '$e')
+      ORDER BY tms
+      LIMIT 0, 5000;";
+   }
+   else
+   {
+      $sql="SELECT
          sensor_id AS id,
          count(sensor_id) AS nb,
          avg(value1) AS avg,
@@ -203,20 +226,14 @@ if(($startTime != False) && ($endTime != False))
          min(date) AS date,
          (UNIX_TIMESTAMP(date) DIV 3600 * 3600 + 1800) *1000 AS tms
       FROM sensors_values
-      WHERE sensor_id=".$sensor_id." AND date between '$s' AND '$e'
+      WHERE sensor_id=".$sensor_id." AND (date between '$s' AND '$e')
       GROUP BY sensor_id, DATE_FORMAT(date, \"%Y-%m-%d %H\")
       ORDER BY tms
       LIMIT 0, 5000;";
+   }
 }
 
 /*
-$range = $end - $start; 
-$startTime = gmstrftime('%Y-%m-%d %H:%M:%S', $start / 1000); 
-$endTime = gmstrftime('%Y-%m-%d %H:%M:%S', $end / 1000); 
-
-if ($range < 5 * 24 * 3600 * 1000) // 15 minutes
-{ 
-   error_log("15 mn");
    $sql="SELECT
          sensor_id AS id,
          count(sensor_id) AS nb,
@@ -230,9 +247,7 @@ if ($range < 5 * 24 * 3600 * 1000) // 15 minutes
       GROUP BY sensor_id, UNIX_TIMESTAMP(date) DIV 900
       ORDER BY tms
       LIMIT 0, 5000;";
-}
-elseif ($range < 31 * 24 * 3600 * 1000) // heure
-{ 
+
    $sql="SELECT
          sensor_id AS id,
          count(sensor_id) AS nb,
@@ -246,9 +261,7 @@ elseif ($range < 31 * 24 * 3600 * 1000) // heure
       GROUP BY sensor_id, DATE_FORMAT(date, \"%Y-%m-%d %H\")
       ORDER BY tms
       LIMIT 0, 5000;";
-}
-else // jour
-{ 
+
    $sql="SELECT
          sensor_id AS id,
          count(sensor_id) AS nb,
@@ -266,7 +279,10 @@ else // jour
 */
 
 $rows = array();
-try {
+error_log($sql);
+error_log($sql_c);
+try
+{
    if($sql_c != False)
    {
       $request = $db->query($sql_c);
@@ -293,6 +309,7 @@ catch(PDOException $e)
    $error_msg=$e->getMessage();
    $db=null;
    die($error_msg);
+   echo "console.log(' error  = $error_msg');\n";
 }
 
 $db=null;
