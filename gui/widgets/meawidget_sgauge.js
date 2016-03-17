@@ -108,6 +108,10 @@ MeaWidget_sgauge.prototype.mksgauge = function(widget, data)
             backgroundColor:'rgba(255, 255, 255, 0)',
         },
 
+        exporting: {
+           enabled: false
+        },
+
         title: null,
 
         pane: {

@@ -74,6 +74,13 @@ $rows = array();
 
 $request = $db->query($sql);
 
+$id = "{"."\"sensor_id\":\"-1\", \"text\":\"\"}";
+ $val = [
+         "id" => $id,
+         "text" => "NONE",
+      ];
+      $rows[]=$val; 
+
 try
 {
    while($row = $request->fetch(PDO::FETCH_OBJ))
@@ -86,9 +93,9 @@ try
       {
          $text = $row->sensor_name;
       }
-      $text2 = $row->sensor_name.":".$row->collector_name;
+      $text2 = $row->sensor_name." (".$row->collector_name.")";
       
-      $id = "{"."\"sensor_id\":\"".$row->sensor_id."\", \"collector_id\":\"". $row->collector_id."\", \"text\":\"".$text."\"}";
+      $id = "{"."\"sensor_id\":\"".$row->sensor_id."\", \"collector_id\":\"". $row->collector_id."\", \"text\":\"".$text."\", \"text2\":\"".$text2."\"}";
 
       $val = [
          "id" => $id,

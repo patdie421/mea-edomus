@@ -1,6 +1,7 @@
 var meaWidgetsJar = {};
 
 var meaFormaters = {};
+
 meaFormaters["boolean"] = function(x) { if(x > 0) return "true"; else return "false"; };
 meaFormaters["highlow"] = function(x) { if(x > 0) return "high"; else return "low"; };
 meaFormaters["float"]   = function(x) {
@@ -25,6 +26,7 @@ function MeaWidget(name, groupe, type)
    this.params["labels"] = {};
    this.params["actions"] = {};
    this.params["parameters"] = {};
+   this.params["positions"] = {};
 }
 
 

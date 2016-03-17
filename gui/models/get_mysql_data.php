@@ -185,7 +185,7 @@ if(($startTime_c != False) && ($endTime_c != False))
    $s = gmstrftime('%Y-%m-%d %H:%M:%S', $startTime_c / 1000);
    $e = gmstrftime('%Y-%m-%d %H:%M:%S', $endTime_c / 1000);
 
-   echo "console.log(' start_c = $s, end_c = $e ');\n";
+//   echo "console.log(' start_c = $s, end_c = $e ');\n";
    $sql_c="SELECT
          sensor_id AS id,
          count(sensor_id) AS nb,
@@ -193,7 +193,7 @@ if(($startTime_c != False) && ($endTime_c != False))
          min1 AS min,
          max1 AS max,
          min(date) AS date,
-         (UNIX_TIMESTAMP(date))*1000 AS tms
+         (UNIX_TIMESTAMP(date) DIV 3600 * 3600 + 1800) *1000 AS tms
       FROM sensors_values_c
       WHERE sensor_id=".$sensor_id." AND collector_id=".$collector_id." AND (date between '$s' AND '$e')
       GROUP BY sensor_id, DATE_FORMAT(date, \"%Y-%m-%d %H\")
@@ -210,7 +210,7 @@ if(($startTime != False) && ($endTime != False))
    $s = gmstrftime('%Y-%m-%d %H:%M:%S', $startTime / 1000);
    $e = gmstrftime('%Y-%m-%d %H:%M:%S', $endTime / 1000);
 
-   echo "console.log(' start = $s, end = $e, range = $range');\n";
+//   echo "console.log(' start = $s, end = $e, range = $range');\n";
    if($range < 3 * 24 * 3600 * 1000)
    {
       $sql="SELECT
@@ -223,7 +223,7 @@ if(($startTime != False) && ($endTime != False))
          (UNIX_TIMESTAMP(date))*1000 AS tms
       FROM sensors_values
       WHERE sensor_id=".$sensor_id." AND collector_id=".$collector_id." AND (date between '$s' AND '$e')
-      ORDER BY tms
+      ORDER BY date
       LIMIT 0, 5000;";
    }
    else
@@ -239,7 +239,7 @@ if(($startTime != False) && ($endTime != False))
       FROM sensors_values
       WHERE sensor_id=".$sensor_id." AND collector_id=".$collector_id." AND (date between '$s' AND '$e')
       GROUP BY sensor_id, DATE_FORMAT(date, \"%Y-%m-%d %H\")
-      ORDER BY tms
+      ORDER BY date
       LIMIT 0, 5000;";
    }
 }
@@ -299,7 +299,7 @@ try
       $request = $db->query($sql_c);
       while($row = $request->fetch(PDO::FETCH_OBJ))
       {
-         $rows[]="[".$row->tms.",".$row->avg."]"; 
+         $rows[]="[".$row->tms.",".number_format($row->avg,2)."]"; 
       }
    }
 
@@ -308,13 +308,13 @@ try
       $request = $db->query($sql);
       while($row = $request->fetch(PDO::FETCH_OBJ))
       {
-         $rows[]="[".$row->tms.",".$row->avg."]";
+         $rows[]="[".$row->tms.",".number_format($row->avg,2)."]";
       }
    }
 
    $rows[]="[".(time()*1000).",null]";
 
-   echo "console.log(' start = $start, end = $end, startTime = $startTime, endTime = $endTime ');\n"; 
+//   echo "console.log(' start = $start, end = $end, startTime = $startTime, endTime = $endTime ');\n"; 
    echo $callback ."({id: $id, data: [\n" . join(",\n", $rows) ."\n]});"; 
 }
 catch(PDOException $e)

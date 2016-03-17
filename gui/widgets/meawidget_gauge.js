@@ -124,6 +124,10 @@ MeaWidget_gauge.prototype.mkgauge = function(widget, data)
 
       title: null,
 
+      exporting: {
+         enabled: false
+      },
+
       pane: {
          startAngle: -150,
          endAngle: 150,

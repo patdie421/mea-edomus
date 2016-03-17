@@ -12,6 +12,9 @@ function MeaWidget_chart4(name, group, type)
    this.minwidth=540;
    this.minheight=400;
 
+   this.params["positions"]["minWidth"] = this.minwidth;
+   this.params["positions"]["minHeight"] = this.minheight;
+
    this.params["parameters"]["title"] = '';
    this.params["parameters"]["subtitle"] = '';
    this.params["parameters"]["width"] = this.minwidth;
@@ -28,17 +31,16 @@ function MeaWidget_chart4(name, group, type)
              textField:'text',
              groupField:'group',
              method:'get',
-             url:'models/get_mysql_sensors_list.php'
+             url:'models/get_mysql_sensors_list.php',
          }
-      },
-      "formatter": function(value,row) {
-         return "|"+value+"|"; 
       }
    };
    this.params["parameters"]["sensor1"] = this.sensors;
    this.params["parameters"]["sensor2"] = this.sensors;
    this.params["parameters"]["sensor3"] = this.sensors;
    this.params["parameters"]["sensor4"] = this.sensors;
+
+   this.dragzone_str = "<div class='mea_dragzone_for_resizable' style='position:absolute;top:6px;left:6px;width:calc( 100% - 12px );height:calc( 100% - 12px );opacity:0.0'><div>";
 }
 
 
@@ -62,6 +64,7 @@ MeaWidget_chart4.prototype.disabled = function(id, d)
       chartdiv.removeClass("mea_chart4_bg_enabled");
       widget.addClass("mea_chart4_disabled");
       chartdiv.addClass("mea_chart4_bg_disabled");
+      widget.append(_this.dragzone_str);
    }
    else
    {
@@ -91,6 +94,33 @@ MeaWidget_chart4.prototype.mkchart = function(widget, data)
    var subtitle = _this.getValue(data,"subtitle", -1);
    var afterSetExtremes_on = false;
 
+   var ids=new Array();
+   var series_names = ["","","",""];
+   var j=0;
+   for(var i=0;i<sensors.length;i++)
+   {
+      if(sensors[i]===0)
+         continue;
+
+      id = false;
+      try
+      {
+         id=JSON.parse(sensors[i]);
+      }
+      catch(e)
+      {
+         continue;
+      }
+
+      if(id===false || id.sensor_id < 0)
+      {
+         continue;
+      }
+      ids[j]=id;
+      series_names[j]=id.text2;
+      j++;
+   }
+
    function afterSetExtremes(e)
    {
       if(afterSetExtremes_on === false)
@@ -98,38 +128,23 @@ MeaWidget_chart4.prototype.mkchart = function(widget, data)
       afterSetExtremes_on = false;
 
       var chart = widget.highcharts();
-      chart.showLoading('Loading data from server...');
+
+      var max = ids.length - 1; 
+      if(max < 0)
+         return;
+
       var _i=0;
-      var max=sensors.length-1;
-      for(var i=0;i<sensors.length;i++)
+      chart.hideNoData();
+      chart.showLoading('Loading data from server...');
+
+      for(var i=0;i<ids.length;i++)
       {
-         if(sensors[i]===0)
-         {
-            max--;
-            continue;
-         }
-
-         var ids=false;
-         try
-         {
-            ids=JSON.parse(sensors[i]);
-         }
-         catch(e)
-         {
-         }
-
-         if(ids===false)
-         {
-            max--;
-            continue;
-         }
-
-         $.getJSON('models/get_mysql_data.php?id='+i+'&sensor_id='+ids.sensor_id+'&collector_id='+ids.collector_id+'&start=' + Math.round(e.min) + '&end=' + Math.round(e.max) + '&callback=?', function (data) {
+         $.getJSON('models/get_mysql_data.php?id='+i+'&sensor_id='+ids[i].sensor_id+'&collector_id='+ids[i].collector_id+'&start=' + Math.round(e.min) + '&end=' + Math.round(e.max) + '&callback=?', function (data) {
             chart.series[data.id].setData(data.data);
             if(_i===max)
             {
-               chart.hideLoading();
                afterSetExtremes_on=true;
+               chart.hideLoading();
             }
             _i++;
          })
@@ -196,9 +211,8 @@ MeaWidget_chart4.prototype.mkchart = function(widget, data)
          ordinal: false,
          events : {
             afterSetExtremes : afterSetExtremes
-         }
-//, minRange: 1 * 3600 * 1000 // 1 hour
-         , minRange: 1000 // 1 hour
+         },
+         minRange: 1 * 3600 * 1000 // 1 hour
       },
 
       yAxis: {
@@ -212,18 +226,22 @@ MeaWidget_chart4.prototype.mkchart = function(widget, data)
       },
 
       series : [{
+         name: series_names[0],
          dataGrouping: {
             enabled: false
          }
       },{
+         name: series_names[1],
          dataGrouping: {
             enabled: false
          }
       },{
+         name: series_names[2],
          dataGrouping: {
             enabled: false
          }
       },{
+         name: series_names[3],
          dataGrouping: {
             enabled: false
          }
@@ -234,33 +252,16 @@ MeaWidget_chart4.prototype.mkchart = function(widget, data)
    var nav = chart.get('navigation');
 
    var _i=0; 
-   var max = sensors.length-1;
+   var max = ids.length-1;
    var navset=false;
-   for(var i=0;i<sensors.length;i++)
+
+   if(max < 0)
+      return;
+   chart.hideNoData();
+   chart.showLoading('Loading data from server...');
+   for(var i=0;i<ids.length;i++)
    {
-      if(sensors[i]===0)
-      {
-         max--;
-         continue;
-      }
-
-      var ids=false;
-      try
-      {
-         ids=JSON.parse(sensors[i]);
-      }
-      catch(e)
-      {
-      }
-
-      if(ids===false)
-      {
-         max--;
-         continue;
-      }
-
-      $.getJSON('models/get_mysql_data.php?id='+i+'&sensor_id='+ids.sensor_id+'&collector_id='+ids.collector_id+'&callback=?', function (data) {
-         console.log(data.data);
+      $.getJSON('models/get_mysql_data.php?id='+i+'&sensor_id='+ids[i].sensor_id+'&collector_id='+ids[i].collector_id+'&callback=?', function (data) {
          chart.series[data.id].setData(data.data); 
          if(navset===false)
          {
@@ -268,7 +269,10 @@ MeaWidget_chart4.prototype.mkchart = function(widget, data)
             nav.setData(data.data);
          }
          if(_i===max)
+         {
             afterSetExtremes_on=true;
+            chart.hideLoading();
+         }
          _i++;
       })
       .fail(function( jqxhr, textStatus, error ) {
@@ -361,7 +365,7 @@ var html =
          "</div>" +
       "</div>" + 
    "</div>" +
-   "<div class='mea_dragzone_for_resizable' style='position:absolute;top:6px;left:6px;width:calc( 100% - 12px );height:calc( 100% - 12px );opacity:0.0'><div>" +
+   _this.dragzone_str +
 "</div>";
 return html;
 }

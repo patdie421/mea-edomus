@@ -135,7 +135,8 @@ function MapEditorController(container, map, propertiesPanel, actionPanel, newPa
          if(drag_zone.length)
          {
             p.draggable({ handle: drag_zone });
-            p.resizable({
+
+            var resizable_params = {
                onStartResize: function(e) { },
                onResize: function(e) {
                },
@@ -149,7 +150,16 @@ function MapEditorController(container, map, propertiesPanel, actionPanel, newPa
                      data[i]["value"]=p.height();
                   _this._updateProperties(data[0].value);
                }
-            });
+            };
+
+            var i = getValueIndex(data, "minHeight");
+            if(i)
+               resizable_params['minHeight'] = data[i]["value"];
+            i = getValueIndex(data, "minWidth");
+            if(i)
+               resizable_params['minWidth'] = data[i]["value"];;
+
+            p.resizable(resizable_params);
          }
 
          $(this).remove();
@@ -259,12 +269,13 @@ MapEditorController.prototype.widgetsPanel_init = function()
          if(drag_zone.length)
          {
             p.draggable({ handle: drag_zone });
-            p.resizable({
+
+            var resizable_params = {
                onStartResize: function(e) { },
                onResize: function(e) {
                },
                onStopResize: function(e) {
-                  var data = $(this).prop('mea-widgetdata');
+                  var data   = $(this).prop('mea-widgetdata');
                   var i=getValueIndex(data, "width");
                   if(i)
                      data[i]["value"]=p.width();
@@ -273,7 +284,16 @@ MapEditorController.prototype.widgetsPanel_init = function()
                      data[i]["value"]=p.height();
                   _this._updateProperties(data[0].value);
                }
-            });
+            };
+
+            var i = getValueIndex(mea_widgetdata, "minHeight");
+            if(i)
+               resizable_params['minHeight'] =  mea_widgetdata[i]["value"];
+            i = getValueIndex( mea_widgetdata, "minWidth");
+            if(i)
+               resizable_params['minWidth'] =  mea_widgetdata[i]["value"];;
+
+            p.resizable(resizable_params);
          }
          $(this).append(p);
 
@@ -329,16 +349,23 @@ MapEditorController.prototype.propertiesPanel_init = function()
       columns:[[
                {field:'name', title:'name', width:150, sortable:false},
                {field:'value', title:'value', width: 250, formatter:
+                     
                   function(value,row,index) {
                      try
                      {
                         var v = JSON.parse(value);
-                        if(typeof(v.text) !== 'undefined')
+
+                        if(typeof(v.text2) !== 'undefined')
+                        {
+                           return v.text2;
+                        }
+                        else if(typeof(v.text) !== 'undefined')
                         {
                            return v.text;
                         }
                      }
                      catch(e) {}
+
                      return value;
                   }
                }
@@ -510,6 +537,29 @@ MapEditorController.prototype.propertiesPanel_init = function()
          var __this = this;
          var ed = $(__this).propertygrid('getEditor', { index:i, field:'value'});
          var cell = $(ed.target);
+
+         // pour traiter le cas des combobox
+         if(ed.type == 'combobox')
+         {
+            try
+            {
+               var cb = cell;
+               var old=cb.combobox('getValue');
+               cb.combobox({
+                  onSelect: function()
+                  {
+                     $(__this).propertygrid('endEdit', i);
+                     cb.combobox({
+                        onSelect: function() { }
+                     });
+                  }
+               });
+               cb.combobox('setValue', old);
+               cell = cell.combobox('textbox');
+            }
+            catch(e) {};
+         }
+
          cell.bind('keyup', function(e) { c = e.keyCode || e.which(); if(c == 13) { $(__this).propertygrid('endEdit', i); } });
       },
       onEndEdit:function(index,row) {
@@ -517,9 +567,16 @@ MapEditorController.prototype.propertiesPanel_init = function()
          var i = index;
          if(row.group=="actions")
             return true;
-
          var ed = $(__this).propertygrid('getEditor', { index:i, field:'value'});
          var cell = $(ed.target);
+         if(ed.type == 'combobox')
+         {
+            try
+            {
+               cell = cell.combobox('textbox');
+            }
+            catch(e) {};
+         }
          cell.unbind('keyup');
          cell.blur();
          $(__this).propertygrid('unselectAll');
@@ -544,8 +601,15 @@ MapEditorController.prototype.newWidgetData = function(newid, type, x, y, zi, p)
    ];
 
    try {
+      $.each(p.data().widgetparams.positions, function(i,val) {
+         mea_widgetdata.push({"name":i, "value":val, "group":"Position", "editor":"empty"});
+      });
+   }
+
+   catch(e) {};
+ 
+   try {
       $.each(p.data().widgetparams.parameters, function(i,val) {
-//         mea_widgetdata.push({"name":i, "value":val, "group":"parameters", "editor":"text", "type":""});
          if(val !== null && typeof val === 'object')
          {
             mea_widgetdata.push({"name":i, "value": val.val, "group":"parameters", "editor": val.editor });
@@ -583,7 +647,7 @@ MapEditorController.prototype.newWidgetData = function(newid, type, x, y, zi, p)
       });
    }
    catch(e) {};
- 
+
 
    return mea_widgetdata;
 }
@@ -1062,7 +1126,8 @@ MapEditorController.prototype._context_menu = function(action, w)
                if(drag_zone.length)
                {
                   p.draggable({ handle: drag_zone });
-                  p.resizable({
+
+                  var resizable_params = {
                      onStartResize: function(e) { },
                      onResize: function(e) {
                      },
@@ -1076,10 +1141,19 @@ MapEditorController.prototype._context_menu = function(action, w)
                            data[i]["value"]=p.height();
                         _this._updateProperties(data[0].value);
                      }
-                  });
-               }
+                  };
 
-               $(this).bind('contextmenu', _this.open_widget_menu);
+                  var i = getValueIndex(data, "minHeight");
+                  if(i)
+                     resizable_params['minHeight'] = data[i]["value"];
+                  var i = getValueIndex(data, "minWidth");
+                  if(i)
+                     resizable_params['minWidth'] = data[i]["value"];;
+
+                  p.resizable(resizable_params);
+
+                  $(this).bind('contextmenu', _this.open_widget_menu);
+               }
             });
          }
          break;
