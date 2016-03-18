@@ -1151,9 +1151,8 @@ MapEditorController.prototype._context_menu = function(action, w)
                      resizable_params['minWidth'] = data[i]["value"];;
 
                   p.resizable(resizable_params);
-
-                  $(this).bind('contextmenu', _this.open_widget_menu);
                }
+               $(this).bind('contextmenu', _this.open_widget_menu);
             });
          }
          break;

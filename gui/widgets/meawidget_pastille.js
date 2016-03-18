@@ -42,7 +42,7 @@ MeaWidget_pastille.prototype.disabled = function(id,d) {
    var widget = $("#"+id);
 
    if(d===true)
-      widget.find('div[mea_widgetvaluename="'+_this.valueName+'"]').removeClass('mea_pastille_red').removeClass('mea_pastille_green').addClass('mea_pastille_disable');
+      widget.find('div[mea_widgetvaluename="'+_this.valueName+'"]').removeClass('mea_pastille_red').removeClass('mea_pastille_green').addClass('mea_pastille_black');
 }
 
 
@@ -50,16 +50,25 @@ MeaWidget_pastille.prototype.getFormaters = function()
 {
    var formaters = {
       mea_pastille_greenred: function(v,o) {
-         o.removeClass('mea_pastille_disable');
-         if(v === true || v != 0 || v === "true")
+         if(isNaN(v))
          {
-            o.addClass('mea_pastille_green');
+            o.addClass('mea_pastille_black');
             o.removeClass('mea_pastille_red');
+            o.removeClass('mea_pastille_green');
          }
          else
          {
-            o.addClass('mea_pastille_red');
-            o.removeClass('mea_pastille_green');
+            o.removeClass('mea_pastille_black');
+            if(v === true || v != 0 || v === "true")
+            {
+               o.addClass('mea_pastille_green');
+               o.removeClass('mea_pastille_red');
+            }
+            else
+            {
+               o.addClass('mea_pastille_red');
+               o.removeClass('mea_pastille_green');
+            }
          }
       } 
    };
@@ -79,7 +88,7 @@ var style = "\
 .mea_pastille_red { \
    background:red; \
 } \
-.mea_pastille_disable { \
+.mea_pastille_black { \
 background:black; \
 } \
 .mea_pastille_green { \
@@ -102,7 +111,7 @@ var html = "\
 > \
    <div class='ui-widget-content' \
         style='width:100%;height:100%;text-align:center;'> \
-      <div class='mea_pastille mea_pastille_disable' \
+      <div class='mea_pastille mea_pastille_black' \
            mea_valueformater='mea_pastille_greenred' \
            mea_widgetvaluename='"+this.valueName+"'></div> \
    </div> \
