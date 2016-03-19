@@ -647,7 +647,8 @@ void *_thread_interface_type_004(void *thread_data)
    int port=i004->port;
    
    free(thread_data);
-   
+   thread_data=NULL;
+  
    pthread_cleanup_push( (void *)set_interface_type_004_isnt_running, (void *)i004 );
    i004->thread_is_running=1;
    
@@ -658,7 +659,6 @@ void *_thread_interface_type_004(void *thread_data)
    }
    i004->allGroups = getAllGroups(server, port, user); // à recharger ensuite régulièrement
 //   i004->allScenes = getAllScenes(server, port, user); // à recharger ensuite régulièrement
-   
    mea_timer_t sendAllxPLTriggerTimer, getAllGroupsAndScenesTimer;
    
    mea_init_timer(&sendAllxPLTriggerTimer, 300, 1); // envoi d'un xPLTrigger de toutes les lampes toutes les 5 min (300 secondes)
@@ -1384,12 +1384,12 @@ int start_interface_type_004(int my_id, void *data, char *errmsg, int l_errmsg)
    }
    interface_type_004_thread_args->i004=start_stop_params->i004;
    
-   strncpy(interface_type_004_thread_args->i004->server, server, sizeof(interface_type_004_thread_args->i004->server));
-   interface_type_004_thread_args->i004->server[sizeof(interface_type_004_thread_args->i004->server)-1]=0;
+   strncpy(start_stop_params->i004->server, server, sizeof(start_stop_params->i004->server));
+   start_stop_params->i004->server[sizeof(start_stop_params->i004->server)-1]=0;
    
-   strncpy(interface_type_004_thread_args->i004->user, user, sizeof(interface_type_004_thread_args->i004->user));
-   interface_type_004_thread_args->i004->user[sizeof(interface_type_004_thread_args->i004->user)-1]=0;
-   interface_type_004_thread_args->i004->port=port;
+   strncpy(start_stop_params->i004->user, user, sizeof(start_stop_params->i004->user));
+   start_stop_params->i004->user[sizeof(start_stop_params->i004->user)-1]=0;
+   start_stop_params->i004->port=port;
    
    start_stop_params->i004->xPL_callback2=interface_type_004_xPL_callback2;
    
@@ -1407,10 +1407,10 @@ int start_interface_type_004(int my_id, void *data, char *errmsg, int l_errmsg)
    }
    fprintf(stderr,"INTERFACE_TYPE_004 : %x\n", (unsigned int)*interface_type_004_thread_id);
 
-   interface_type_004_thread_args->i004->thread=interface_type_004_thread_id;
-   
+   start_stop_params->i004->thread=interface_type_004_thread_id;
+
    pthread_detach(*interface_type_004_thread_id);
-   
+
    VERBOSE(2) mea_log_printf("%s  (%s) : %s %s.\n", INFO_STR, __func__, start_stop_params->i004->name, launched_successfully_str);
    mea_notify_printf('S', "%s %s", start_stop_params->i004->name, launched_successfully_str);
    

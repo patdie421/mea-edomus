@@ -69,7 +69,7 @@ typedef struct interface_type_004_s
 {
    int              id_interface;
    char             name[41];
-   char             dev[81];
+   char             dev[256];
    char             server[41];
    char             user[41];
    int              port;

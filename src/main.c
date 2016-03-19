@@ -904,7 +904,7 @@ int main(int argc, const char * argv[])
    process_set_status(main_monitoring_id, RUNNING);
    process_add_indicator(main_monitoring_id, "UPTIME", 0);
    process_add_indicator(main_monitoring_id, "SIGSEGV", 0);
-
+   fprintf(stderr,"MAIN : %x\n",  (unsigned int)pthread_self());
 
    //
    // nodejsServer (1er lancé, il est utilisé par les autres serveurs pour les notifications ou les log)
@@ -1061,7 +1061,6 @@ int main(int argc, const char * argv[])
 //   process_run_task(log_rotation_id, NULL, 0);
 
    VERBOSE(1) mea_log_printf("%s (%s) : MEA-EDOMUS %s starded\n", INFO_STR, __func__, __MEA_EDOMUS_VERSION__);
-   fprintf(stderr,"MAIN : %x\n",  (unsigned int)pthread_self());
 
    time_t start_time;
    long uptime = 0;

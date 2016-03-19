@@ -54,11 +54,6 @@ then
    cp $SOURCE/complements/nodejs/src/node-v0.10.32/out/Release/node $SOURCE/package/tmp/bin
 fi
 
-if [ -f $SOURCE/commands/mea-compilr/mea-compilr ]
-then
-   cp $SOURCE/commands/mea-compilr/mea-compilr $SOURCE/package/tmp/bin
-fi
-
 if [ -f $SOURCE/complements/xplhub/src/xplhub/xplhub ]
 then
    cp $SOURCE/complements/xplhub/src/xplhub/xplhub $SOURCE/package/tmp/bin
@@ -77,6 +72,11 @@ then
 fi
 
 strip $SOURCE/package/tmp/bin/*
+
+if [ -f $SOURCE/commands/mea-compilr/mea-compilr ]
+then
+   cp $SOURCE/commands/mea-compilr/mea-compilr $SOURCE/package/tmp/bin
+fi
 
 cd $SOURCE/package/tmp
 cd $SOURCE/package/tmp
