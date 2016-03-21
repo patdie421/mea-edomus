@@ -51,6 +51,8 @@ jQuery(document).ready(function() {
    ctrlr_rulesManager.linkToTranslationController(translationController); 
    ctrlr_rulesManager.linkToCredentialController(credentialController); 
 
+//   page4_ctrlr.addLeaveViewsCallbacks(function() { alert("leave rules manager"); } );
+
    domenu_rm = ctrlr_rulesManager.domenu.bind(ctrlr_rulesManager);
 
    ctrlr_rulesManager.start();

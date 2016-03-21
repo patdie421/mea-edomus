@@ -300,8 +300,8 @@ void *_automator_thread(void *data)
       {
          pthread_testcancel();
          
-         automator_match_inputs_rules(_inputs_rules, NULL);
-         int n= automator_play_output_rules(_outputs_rules);
+         automator_matchInputsRules(_inputs_rules, NULL);
+         int n= automator_playOutputRules(_outputs_rules);
          if(n>0)
             automator_xplout_indicator+=n;
 
@@ -337,10 +337,10 @@ void *_automator_thread(void *data)
             mea_log_printf("e:%p type:%d\n", e, e->type);
 */ 
 
-         automator_match_inputs_rules(_inputs_rules, e->msg_json);
+         automator_matchInputsRules(_inputs_rules, e->msg_json);
 //         automator_match_inputs_rules(_inputs_rules, e->msg);
 
-         int n=automator_play_output_rules(_outputs_rules);
+         int n=automator_playOutputRules(_outputs_rules);
          if(n>0)
             automator_xplout_indicator+=n;
 

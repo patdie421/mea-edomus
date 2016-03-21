@@ -15,19 +15,17 @@ session_start();
    <meta name="viewport" content="width=device-width, initial-scale=0.99">
    <meta name="description" content="domotique DIY !">
 
-   <link rel="stylesheet" type="text/css" href="lib/jquery-easyui-1.4.4/themes/default/easyui.css">
-   <link rel="stylesheet" type="text/css" href="lib/jquery-easyui-1.4.4/themes/icon.css">
-   <link rel="stylesheet" type="text/css" href="lib/jquery-easyui-1.4.4/themes/color.css">
+   <link rel="stylesheet" type="text/css" href="lib/jquery-easyui-1.4.1/themes/default/easyui.css">
+   <link rel="stylesheet" type="text/css" href="lib/jquery-easyui-1.4.1/themes/icon.css">
+   <link rel="stylesheet" type="text/css" href="lib/jquery-easyui-1.4.1/themes/color.css">
    <link rel="stylesheet" type="text/css" href="lib/mea-edomus.css">
    
-   <script type="text/javascript" src="lib/jquery-easyui-1.4.4/jquery.min.js"></script>
-   <script type="text/javascript" src="lib/jquery-easyui-1.4.4/jquery.easyui.min.js"></script>
+   <script type="text/javascript" src="lib/jquery-easyui-1.4.1/jquery.min.js"></script>
+   <script type="text/javascript" src="lib/jquery-easyui-1.4.1/jquery.easyui.min.js"></script>
    
 </head>
 
 <script type="text/javascript" src="models/common/models-utils.js"></script>
-
-<script type="text/javascript" src="controllers/common/meaobject.js"></script>
 
 <script type="text/javascript" src="controllers/common/commoncontroller.js"></script>
 <script type="text/javascript" src="controllers/common/translationcontroller.js"></script>

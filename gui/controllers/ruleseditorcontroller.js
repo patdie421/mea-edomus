@@ -57,6 +57,11 @@ RulesEditorController.prototype.start = function()
 */
    $("#"+_this.menu).show();
    $("#"+_this.editordiv).show();
+
+   var data = permMemController.get("rulesEditor_data");
+   if(data != false) {
+      _this.editor.setValue(data, -1);
+   }
 };
 
 
@@ -203,4 +208,14 @@ RulesEditorController.prototype.domenu = function(action)
       default:
          break;
    }
+}
+
+
+RulesEditorController.prototype.leaveViewCallback = function()
+{
+   var _this = this;
+
+   var data = _this.editor.getValue();
+
+   permMemController.add("rulesEditor_data", data);
 }

@@ -62,6 +62,8 @@ jQuery(document).ready(function() {
    ctrlr_mapEditor.linkToTranslationController(translationController); 
    ctrlr_mapEditor.linkToCredentialController(credentialController); 
 
+   page4_ctrlr.addLeaveViewsCallbacks(ctrlr_mapEditor.leaveViewCallback.bind(ctrlr_mapEditor));
+
    var s=liveComController.getSocketio();
    if(s!=null) {
       var aut_listener=ctrlr_mapEditor.__aut_listener.bind(ctrlr_mapEditor);
@@ -76,11 +78,7 @@ jQuery(document).ready(function() {
    var xplEditorOk     = ctrlr_mapEditor._xplEditorOk.bind(ctrlr_mapEditor);
    var xplEditorCancel = ctrlr_mapEditor._xplEditorCancel.bind(ctrlr_mapEditor);
 
-   ctrlr_mapEditor.loadWidgets(list);
-
-   ctrlr_mapEditor.start();
-
-//   setTimeout(simu, 5000);
+   ctrlr_mapEditor.loadWidgets(list, ctrlr_mapEditor.start.bind(ctrlr_mapEditor));
 
    $("#button_up_actions_win_me").on('click', xplEditorUp);
    $("#button_down_actions_win_me").on('click', xplEditorDown);

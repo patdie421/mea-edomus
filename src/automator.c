@@ -111,14 +111,17 @@ enum input_state_e { NEW, RISE, FALL, STAY, CHANGE, TYPECHANGE, UNKNOWN };
 
 uint32_t next_input_id = 0;
 
+enum value_type_e { VALUE_STRING=1, VALUE_FLOAT=0, VALUE_BOOLEAN=2 };
+
 struct value_s {
-   char type;
+   enum value_type_e type;
    union {
       char strval[VALUE_MAX_STR_SIZE];
       double floatval;
       char booleanval;
    } val;
 };
+
 
 struct inputs_table_s
 {
@@ -151,13 +154,13 @@ static int automator_print_inputs_table();
 static struct inputs_table_s *automator_add_to_inputs_table(char *name, struct value_s *v, struct timespec *t);
 static struct inputs_table_s *_automator_add_to_inputs_table(char *name, struct value_s *v, struct timespec *t, int16_t updatestate);
 static int reset_inputs_table_change_flag();
-static int _evalStr(char *str, struct value_s *v, cJSON *xplMsgJson, char *caller);
-#define evalStr(a, b, c) _evalStr(a, b, c, (char *)__func__)
+static int automator_evalStr(char *str, struct value_s *v, cJSON *xplMsgJson);
 
-static void automator_rule_debug_info_print(cJSON *rule, char *msg);
+static void automator_printRuleDebugInfo(cJSON *rule, char *msg);
 static cJSON *cJSON_DetachItemFromItem(cJSON *item, cJSON *e);
 
 time_t automator_now = 0;
+
 
 static int getBoolean(char *s, char *b)
 {
@@ -200,7 +203,39 @@ static int getNumber(char *s, double *v)
 }
 
 
-static int _setValueFromStr(struct value_s *v, char *str, char trimFlag)
+enum comparator_e { O_EQ=0, O_NE, O_GR, O_LO, O_GE, O_LE };
+
+static int getComparator(char *s)
+{
+#if DEBUGFLAG_AUTOMATOR > 0
+   _automatorServer_fn = (char *)__func__;
+#endif
+   if(s[1]=='=' && s[2]==0)
+   {
+      switch(s[0])
+      {
+         case '=' : return O_EQ;
+         case '!' : return O_NE;
+         case '>' : return O_GE;
+         case '<' : return O_LE;
+         default: return -1;
+      }
+   }
+   else if(s[1]==0)
+   {
+      switch(s[0])
+      {
+         case '>' : return O_GR;
+         case '<' : return O_LO;
+         default: return -1;
+      }
+   }
+   else
+      return -1;
+}
+
+
+static int _value_setFromStr(struct value_s *v, char *str, char trimFlag)
 {
 #if DEBUGFLAG_AUTOMATOR > 0
    _automatorServer_fn = (char *)__func__;
@@ -238,27 +273,27 @@ static int _setValueFromStr(struct value_s *v, char *str, char trimFlag)
 }
 
 
-static int setValueFromStr(struct value_s *v, char *str)
+static int value_setFromStr(struct value_s *v, char *str)
 {
 #if DEBUGFLAG_AUTOMATOR > 0
    _automatorServer_fn = (char *)__func__;
 #endif
-   return _setValueFromStr(v, str, 0);
+   return _value_setFromStr(v, str, 0);
 }
 
 
-static int setValueFromStrTrim(struct value_s *v, char *str)
+static int value_setFromStrTrim(struct value_s *v, char *str)
 {
 #if DEBUGFLAG_AUTOMATOR > 0
    _automatorServer_fn = (char *)__func__;
 #endif
-   return _setValueFromStr(v, str, 1);
+   return _value_setFromStr(v, str, 1);
 }
 
 
 enum conversion_e { INT=0x01, FLOAT=0x02, HIGHLOW=0x04, TRUEFALSE=0x08, DEFAULT=0x00 };
 
-static int valueToStr(struct value_s *v, char *str, int l_str, enum conversion_e flag)
+static int value_toStr(struct value_s *v, char *str, int l_str, enum conversion_e flag)
 {
 #if DEBUGFLAG_AUTOMATOR > 0
    _automatorServer_fn = (char *)__func__;
@@ -293,39 +328,7 @@ static int valueToStr(struct value_s *v, char *str, int l_str, enum conversion_e
 }
 
 
-enum comparator_e { O_EQ=0, O_NE, O_GR, O_LO, O_GE, O_LE };
-
-static int getComparator(char *str)
-{
-#if DEBUGFLAG_AUTOMATOR > 0
-   _automatorServer_fn = (char *)__func__;
-#endif
-   if(str[1]=='=' && str[2]==0)
-   {
-      switch(str[0])
-      {
-         case '=' : return O_EQ;
-         case '!' : return O_NE;
-         case '>' : return O_GE;
-         case '<' : return O_LE;
-         default: return -1;
-      }
-   }
-   else if(str[1]==0)
-   {
-      switch(str[0])
-      {
-         case '>' : return O_GR;
-         case '<' : return O_LO;
-         default: return -1;
-      }
-   }
-   else
-      return -1;
-}
-
- 
-static int valueCmp(struct value_s *v1, int comparator, struct value_s *v2)
+static int value_cmp(struct value_s *v1, int comparator, struct value_s *v2)
 {
 #if DEBUGFLAG_AUTOMATOR > 0
    _automatorServer_fn = (char *)__func__;
@@ -384,7 +387,7 @@ static int valueCmp(struct value_s *v1, int comparator, struct value_s *v2)
 
 
 #ifdef DEBUG
-static int valuePrint(struct value_s *v)
+static int value_print(struct value_s *v)
 {
 #if DEBUGFLAG_AUTOMATOR > 0
    _automatorServer_fn = (char *)__func__;
@@ -423,6 +426,7 @@ enum function_e {
    _FN_LIST_END
 };
 
+
 struct function_def_s
 {
    char *name;
@@ -456,7 +460,7 @@ struct function_def_s functionsList2[]={
 };
 
 
-int qsort_compare_functions_names(const void * a, const void * b)
+int function_qsort_compare_names(const void * a, const void * b)
 {
 #if DEBUGFLAG_AUTOMATOR > 0
    _automatorServer_fn = (char *)__func__;
@@ -465,18 +469,18 @@ int qsort_compare_functions_names(const void * a, const void * b)
 }
 
 
-void initFunctionsIndex()
+void function_initIndex()
 {
 #if DEBUGFLAG_AUTOMATOR > 0
    _automatorServer_fn = (char *)__func__;
 #endif
    for(int i=0;i<_FN_LIST_END;i++)
       functions_index[i]=i;
-   qsort (functions_index, _FN_LIST_END, sizeof (int16_t), qsort_compare_functions_names); 
+   qsort (functions_index, _FN_LIST_END, sizeof (int16_t), function_qsort_compare_names); 
 }
 
 
-enum function_e getFunctionNum(char *str, char *params, int l_params)
+enum function_e function_getNum(char *str, char *params, int l_params)
 {
 #if DEBUGFLAG_AUTOMATOR > 0
    _automatorServer_fn = (char *)__func__;
@@ -535,7 +539,7 @@ enum function_e getFunctionNum(char *str, char *params, int l_params)
 }
 
 
-static int getInputEdge(char *expr, int direction,  struct value_s *v, cJSON *xplMsgJson)
+static int input_getEdge(char *expr, int direction,  struct value_s *v, cJSON *xplMsgJson)
 {
 #if DEBUGFLAG_AUTOMATOR > 0
    _automatorServer_fn = (char *)__func__;
@@ -550,7 +554,7 @@ static int getInputEdge(char *expr, int direction,  struct value_s *v, cJSON *xp
       struct value_s r;
       struct inputs_table_s *e = NULL;
 
-      int ret=evalStr(expr, &r, xplMsgJson);
+      int ret=automator_evalStr(expr, &r, xplMsgJson);
       if(ret==0 && r.type==1)
       {
          v->type=2;
@@ -578,7 +582,7 @@ static int getInputEdge(char *expr, int direction,  struct value_s *v, cJSON *xp
 }
 
 
-int getInputId(char *name, uint32_t *id)
+int input_getId(char *name, uint32_t *id)
 {
 #if DEBUGFLAG_AUTOMATOR > 0
    _automatorServer_fn = (char *)__func__;
@@ -625,7 +629,7 @@ int getInputId(char *name, uint32_t *id)
 }
 
 
-int getInputFloatValueById(uint32_t id, double *d)
+int input_getFloatValueById(uint32_t id, double *d)
 {
 #if DEBUGFLAG_AUTOMATOR > 0
    _automatorServer_fn = (char *)__func__;
@@ -655,7 +659,7 @@ int getInputFloatValueById(uint32_t id, double *d)
 }
 
 
-void idNameAssocsClean()
+void input_cleanIdNameAssocs()
 {
 #if DEBUGFLAG_AUTOMATOR > 0
    _automatorServer_fn = (char *)__func__;
@@ -673,30 +677,9 @@ void idNameAssocsClean()
 }
 
 
-int16_t myGetVarId(char *str, void *userdata, int16_t *id)
-{
-   _automatorServer_fn = (char *)__func__;
-   uint32_t _id = 0;
-   int16_t retour = 0;
-
-   retour=(int16_t)getInputId(str, &_id);
-
-   *id=(int16_t)_id; 
-
-   return retour;
-}
-
-
-int16_t myGetVarVal(int16_t id, void *userdata, double *d)
-{
-   _automatorServer_fn = (char *)__func__;
-   return getInputFloatValueById((uint32_t)id, d);
-}
-
-
 #define MAX_STR_FUNCTION_SIZE 4096 
 
-static int callFunction(char *str, struct value_s *v, cJSON *xplMsgJson)
+static int function_call(char *str, struct value_s *v, cJSON *xplMsgJson)
 {
 #if DEBUGFLAG_AUTOMATOR > 0
    _automatorServer_fn = (char *)__func__;
@@ -711,7 +694,7 @@ static int callFunction(char *str, struct value_s *v, cJSON *xplMsgJson)
    }
    char *params=(char *)alloca(str_l);
    f = str;
-   int fn=getFunctionNum(f, params, str_l);
+   int fn=function_getNum(f, params, str_l);
    switch(fn)
    {
       case F_NOW:
@@ -769,7 +752,7 @@ static int callFunction(char *str, struct value_s *v, cJSON *xplMsgJson)
             struct value_s r;
             struct inputs_table_s *e = NULL;
 
-            int ret=evalStr(params, &r, xplMsgJson);
+            int ret=automator_evalStr(params, &r, xplMsgJson);
             if(ret==0 && r.type==1)
             {
                v->type=2;
@@ -783,22 +766,22 @@ static int callFunction(char *str, struct value_s *v, cJSON *xplMsgJson)
          }
          break;
       case F_RISE:
-         retour=getInputEdge(params, RISE, v, xplMsgJson);
+         retour=input_getEdge(params, RISE, v, xplMsgJson);
          break;
       case F_FALL:
-         retour=getInputEdge(params, FALL, v, xplMsgJson);
+         retour=input_getEdge(params, FALL, v, xplMsgJson);
          break;
       case F_STAY:
-         retour=getInputEdge(params, STAY, v, xplMsgJson);
+         retour=input_getEdge(params, STAY, v, xplMsgJson);
          break;
       case F_CHANGE:
-         retour=getInputEdge(params, CHANGE, v, xplMsgJson);
+         retour=input_getEdge(params, CHANGE, v, xplMsgJson);
          break;
       case F_TIMER:
          {
             struct value_s r;
 
-            int ret=evalStr(params, &r, xplMsgJson);
+            int ret=automator_evalStr(params, &r, xplMsgJson);
             if(ret==0 && r.type==1)
             {
                int state = 0;
@@ -816,7 +799,7 @@ static int callFunction(char *str, struct value_s *v, cJSON *xplMsgJson)
          {
             struct value_s r;
             time_t t;
-            int ret=evalStr(params, &r, xplMsgJson);
+            int ret=automator_evalStr(params, &r, xplMsgJson);
             if(ret==0 && r.type==1 && r.val.strval[8]==0)
             {
                if(mea_timeFromStr(r.val.strval, &t)==0)
@@ -832,7 +815,7 @@ static int callFunction(char *str, struct value_s *v, cJSON *xplMsgJson)
          {
             struct tm tm;
             struct value_s r;
-            int ret=evalStr(params, &r, xplMsgJson);
+            int ret=automator_evalStr(params, &r, xplMsgJson);
             if(ret==0 && r.type==1 && r.val.strval[19])
             {
                memset(&tm, 0, sizeof(struct tm));
@@ -851,7 +834,7 @@ static int callFunction(char *str, struct value_s *v, cJSON *xplMsgJson)
       case F_TOTFSTR:
          {
             struct value_s r;
-            int ret=evalStr(params, &r, xplMsgJson);
+            int ret=automator_evalStr(params, &r, xplMsgJson);
             if(ret==0 && r.type==2)
             {
                v->type=1;
@@ -883,7 +866,7 @@ static int callFunction(char *str, struct value_s *v, cJSON *xplMsgJson)
             struct value_s r;
             r.type=0;
             r.val.floatval=0.0;
-            int ret=evalStr(params, &r, xplMsgJson);
+            int ret=automator_evalStr(params, &r, xplMsgJson);
             if( (ret==0 && r.type==0) || ret==1) // ret == 1 : chaine vide
             {
                time_t t=0;
@@ -916,13 +899,10 @@ static int callFunction(char *str, struct value_s *v, cJSON *xplMsgJson)
 }
 
 
-static int _evalStr(char *str, struct value_s *v, cJSON *xplMsgJson, char *caller)
+static int automator_evalStr(char *str, struct value_s *v, cJSON *xplMsgJson)
 {
 #if DEBUGFLAG_AUTOMATOR > 0
    _automatorServer_fn = (char *)__func__;
-   _automatorEvalStrCaller = caller;
-   _automatorEvalStrArg = str;
-   _automatorEvalStrOperation = '0';
 #endif
 
    char p[sizeof(v->val.strval)];
@@ -982,7 +962,7 @@ static int _evalStr(char *str, struct value_s *v, cJSON *xplMsgJson, char *calle
         break;
      case '$':
         {
-           int ret=callFunction(&(p[1]), v, xplMsgJson);
+           int ret=function_call(&(p[1]), v, xplMsgJson);
            return ret;
         }
         break;
@@ -1054,7 +1034,7 @@ static int _evalStr(char *str, struct value_s *v, cJSON *xplMsgJson, char *calle
           {
              char *_value= j->valuestring;
              if(_value!=NULL)
-                setValueFromStr(v, _value);
+                value_setFromStr(v, _value);
              else
                 return -1;
           }
@@ -1083,9 +1063,9 @@ static int automator_timerCtrl(cJSON *parameters)
    struct value_s c, n;
 
     
-   if(command->type != cJSON_String || evalStr(command->valuestring, &c, NULL)<0 || c.type != 1 )
+   if(command->type != cJSON_String || automator_evalStr(command->valuestring, &c, NULL)<0 || c.type != 1 )
       return -1;
-   if(name->type != cJSON_String || evalStr(name->valuestring, &n, NULL)<0 || n.type != 1)
+   if(name->type != cJSON_String || automator_evalStr(name->valuestring, &n, NULL)<0 || n.type != 1)
       return -1;
 
 
@@ -1102,7 +1082,7 @@ static int automator_timerCtrl(cJSON *parameters)
       if(mode)
       {
          struct value_s m;
-         if(mode->type != cJSON_String || evalStr(mode->valuestring, &m, NULL)<0 || m.type != 1 )
+         if(mode->type != cJSON_String || automator_evalStr(mode->valuestring, &m, NULL)<0 || m.type != 1 )
             return -1;
 
          if(mea_strcmplower(m.val.strval, "alarm")==0)
@@ -1126,13 +1106,13 @@ static int automator_timerCtrl(cJSON *parameters)
          return -1;
 
       struct value_s v, u;
-      if(evalStr(value->valuestring, &v, NULL)<0 || v.val.floatval < 1.0 || v.type != 0 )
+      if(automator_evalStr(value->valuestring, &v, NULL)<0 || v.val.floatval < 1.0 || v.type != 0 )
          return -1;
 
       mea_strcpytrimlower(timername, n.val.strval);
       if(_mode==0)
       {
-         if(evalStr(unit->valuestring, &u, NULL)<0 || u.type != 1)
+         if(automator_evalStr(unit->valuestring, &u, NULL)<0 || u.type != 1)
             return -1;
 
          char timerunit[sizeof(u.val.strval)];
@@ -1194,13 +1174,13 @@ static int automator_setinputvalue(cJSON *parameters)
    cJSON *updatestate = cJSON_GetObjectItem(parameters, "updatestate");
 
    struct value_s n,v,u;
-   if(name->type != cJSON_String || evalStr(name->valuestring, &n, NULL)<0 || n.type != 1 )
+   if(name->type != cJSON_String || automator_evalStr(name->valuestring, &n, NULL)<0 || n.type != 1 )
       return -1;
-   if(value->type != cJSON_String || evalStr(value->valuestring, &v, NULL)<0)
+   if(value->type != cJSON_String || automator_evalStr(value->valuestring, &v, NULL)<0)
       return -1;
    if(updatestate)
    {
-      if(updatestate->type != cJSON_String || evalStr(updatestate->valuestring, &u, NULL)<0 || u.type != 2 )
+      if(updatestate->type != cJSON_String || automator_evalStr(updatestate->valuestring, &u, NULL)<0 || u.type != 2 )
          return -1;
       _updatestate = u.val.booleanval;
    }
@@ -1239,7 +1219,7 @@ int automator_sendxpl2(cJSON *parameters)
    {
       struct value_s v;
    
-      if(evalStr(e->valuestring, &v, NULL)==0)
+      if(automator_evalStr(e->valuestring, &v, NULL)==0)
       {
          // type de message
          if(strcmp(e->string, XPLMSGTYPE_STR_C)==0)
@@ -1274,7 +1254,7 @@ int automator_sendxpl2(cJSON *parameters)
          else
          {
             char s[sizeof(v.val.strval)];
-            valueToStr(&v, s, sizeof(v.val.strval), INT | HIGHLOW);
+            value_toStr(&v, s, sizeof(v.val.strval), INT | HIGHLOW);
             int n=sprintf(&(xplBodyStr[xplBodyStrPtr]),"%s=%s\n",e->string,s);
             xplBodyStrPtr+=n;
          }
@@ -1299,7 +1279,7 @@ int automator_sendxpl2(cJSON *parameters)
 }
 
 
-int automator_play_output_rules(cJSON *rules)
+int automator_playOutputRules(cJSON *rules)
 {
 #if DEBUGFLAG_AUTOMATOR > 0
    _automatorServer_fn = (char *)__func__;
@@ -1351,7 +1331,7 @@ int automator_play_output_rules(cJSON *rules)
                   actionFlag=1; 
                break;
             default:
-               automator_rule_debug_info_print(e, "Incorrect output rule condition - not rise, fall, change or new (rule removed)");
+               automator_printRuleDebugInfo(e, "Incorrect output rule condition - not rise, fall, change or new (rule removed)");
                cJSON *c;
                c=e;
                e=e->next;
@@ -1423,19 +1403,8 @@ next_iteration: {}
    return xplout_cntr;
 }
 
-/*
-int automator_getValue(cJSON *value, struct value_s *v, cJSON *xplMsgJson)
-{
-   _automatorServer_fn = (char *)__func__;
-   int ret=0;
 
-   ret=evalStr(value->valuestring, v, xplMsgJson);
-   
-   return ret;
-}
-*/
-
-static void automator_rule_debug_info_print(cJSON *rule, char *msg)
+static void automator_printRuleDebugInfo(cJSON *rule, char *msg)
 {
 #if DEBUGFLAG_AUTOMATOR > 0
    _automatorServer_fn = (char *)__func__;
@@ -1500,7 +1469,8 @@ struct moveforward_dest_s {
 
 struct moveforward_dest_s *moveforward_dests = NULL;
 
-int automator_match_inputs_rules(cJSON *rules, cJSON *xplMsgJson)
+//int automator_match_inputs_rules(cJSON *rules, cJSON *xplMsgJson)
+int automator_matchInputsRules(cJSON *rules, cJSON *xplMsgJson)
 {
 #if DEBUGFLAG_AUTOMATOR > 0
    _automatorServer_fn = (char *)__func__;
@@ -1550,7 +1520,7 @@ int automator_match_inputs_rules(cJSON *rules, cJSON *xplMsgJson)
       
       if(!name || !value)
       {
-         automator_rule_debug_info_print(e, "incomplete rule, no name or value (rule removed)");
+         automator_printRuleDebugInfo(e, "incomplete rule, no name or value (rule removed)");
 
          // pas de nom ou pas de valeur, pas la peine de relire à chaque fois, on supprime la règle.
          cJSON *c = e;
@@ -1561,11 +1531,11 @@ int automator_match_inputs_rules(cJSON *rules, cJSON *xplMsgJson)
          continue;
       }
       DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s (%s) : RULE - %s\n", DEBUG_STR, __func__, name->valuestring);
-      int ret=evalStr(value->valuestring, &res, xplMsgJson);
+      int ret=automator_evalStr(value->valuestring, &res, xplMsgJson);
       if(ret<0)
       {
          DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s (%s) :    [%s] incorrect value\n",  DEBUG_STR, __func__, value->valuestring);
-         automator_rule_debug_info_print(e, "incorrect rule value (rule removed)");
+         automator_printRuleDebugInfo(e, "incorrect rule value (rule removed)");
 
          cJSON *c = NULL;
          c=e;
@@ -1596,7 +1566,7 @@ int automator_match_inputs_rules(cJSON *rules, cJSON *xplMsgJson)
             cJSON *value2 = cJSON_GetObjectItem(c, "value2");
             if(!value1 || !op || !value2)
             {
-               automator_rule_debug_info_print(e, "incorrect condition, check JSON (rule removed)");
+               automator_printRuleDebugInfo(e, "incorrect condition, check JSON (rule removed)");
 
                cJSON *c = e;
                e=e->next;
@@ -1610,7 +1580,7 @@ int automator_match_inputs_rules(cJSON *rules, cJSON *xplMsgJson)
             operator=getComparator(op->valuestring);
             if(operator<0)
             {
-               automator_rule_debug_info_print(e, "incorrect condition, unknown operator (rule removed)");
+               automator_printRuleDebugInfo(e, "incorrect condition, unknown operator (rule removed)");
 
                cJSON *c = e;
                e=e->next;
@@ -1620,10 +1590,9 @@ int automator_match_inputs_rules(cJSON *rules, cJSON *xplMsgJson)
                goto next_loop;
             }
 
-            if(evalStr(value1->valuestring, &val1, xplMsgJson)<0)
-            // if(automator_getValue(value1, &val1, xplMsgJson)<0)
+            if(automator_evalStr(value1->valuestring, &val1, xplMsgJson)<0)
             {
-               automator_rule_debug_info_print(e, "incorrect value1, in condition (rule removed)");
+               automator_printRuleDebugInfo(e, "incorrect value1, in condition (rule removed)");
 
                cJSON *c = e;
                e=e->next;
@@ -1633,10 +1602,9 @@ int automator_match_inputs_rules(cJSON *rules, cJSON *xplMsgJson)
                goto next_loop;
             }
             
-            if(evalStr(value2->valuestring, &val2, xplMsgJson)<0)
-            // if(automator_getValue(value2, &val2, xplMsgJson)<0)
+            if(automator_evalStr(value2->valuestring, &val2, xplMsgJson)<0)
             {
-               automator_rule_debug_info_print(e, "incorrect value2, in condition (rule removed)");
+               automator_printRuleDebugInfo(e, "incorrect value2, in condition (rule removed)");
 
                cJSON *c = e;
                e=e->next;
@@ -1647,7 +1615,7 @@ int automator_match_inputs_rules(cJSON *rules, cJSON *xplMsgJson)
             }
 
             // comparaison
-            int cmpr=valueCmp(&val1, operator, &val2);
+            int cmpr=value_cmp(&val1, operator, &val2);
             if(cmpr < 1)
             {
                match=0;
@@ -2009,9 +1977,9 @@ struct inputs_table_s *_automator_add_to_inputs_table(char *_name, struct value_
       enum input_state_e state = UNKNOWN;
       if(update_state == 1)
       { 
-         if((e->v.type == v->type) && v->type!=1)
+         if((e->v.type == v->type) && v->type!=VALUE_STRING)
          {
-            if(e->v.type == 0) // double
+            if(e->v.type == VALUE_FLOAT) // double
             {
                if(e->v.val.floatval == v->val.floatval)
                   state=STAY;
@@ -2030,7 +1998,7 @@ struct inputs_table_s *_automator_add_to_inputs_table(char *_name, struct value_
                   state=FALL;
             }
          }
-         else if((e->v.type == v->type) && v->type==1)
+         else if((e->v.type == v->type) && v->type==VALUE_STRING)
          {
             if(strcmp(e->v.val.strval, v->val.strval)==0)
                state=STAY;
@@ -2038,7 +2006,26 @@ struct inputs_table_s *_automator_add_to_inputs_table(char *_name, struct value_
                state=CHANGE;
          }
          else
-            state=TYPECHANGE;
+         {
+            if(v->type == VALUE_STRING)
+            {
+               state=TYPECHANGE;
+            }
+            else if(v->type == VALUE_FLOAT)
+            {
+               if(v->val.floatval == 0.0)
+                  state=FALL;
+               else
+                  state=RISE;
+            }
+            else if(v->type == VALUE_BOOLEAN)
+            {
+               if(v->val.booleanval == 0)
+                  state=FALL;
+               else
+                  state=RISE;
+            }
+         }
       }
       e->v.type=v->type;
       if(v->type == 0)
@@ -2202,7 +2189,6 @@ char *automator_inputs_table_to_json_string_alloc()
 }
 
 
-
 #ifdef DEBUG
 static int automator_print_inputs_table()
 {
@@ -2220,7 +2206,7 @@ static int automator_print_inputs_table()
    for(s=inputs_table; s != NULL; s=s->hh.next)
    {
       fprintf(stderr,"rule %s: ", s->name);
-      valuePrint(&(s->v));
+      value_print(&(s->v));
       fprintf(stderr," (%d)\n", s->state);
    }
 
@@ -2303,7 +2289,7 @@ int inputs_table_init(cJSON *rules)
 
       if(!name || !value)
       {
-         automator_rule_debug_info_print(e, "incomplete rule, no name or value (rule removed)");
+         automator_printRuleDebugInfo(e, "incomplete rule, no name or value (rule removed)");
 
          cJSON *c = e;
          e=e->next;
@@ -2324,6 +2310,27 @@ int inputs_table_init(cJSON *rules)
 }
 
 
+int16_t myGetVarId(char *str, void *userdata, int16_t *id)
+{
+   _automatorServer_fn = (char *)__func__;
+   uint32_t _id = 0;
+   int16_t retour = 0;
+
+   retour=(int16_t)input_getId(str, &_id);
+
+   *id=(int16_t)_id;
+
+   return retour;
+}
+
+
+int16_t myGetVarVal(int16_t id, void *userdata, double *d)
+{
+   _automatorServer_fn = (char *)__func__;
+   return input_getFloatValueById((uint32_t)id, d);
+}
+
+
 int automator_init(char *rulesfile)
 {
 #if DEBUGFLAG_AUTOMATOR > 0
@@ -2331,10 +2338,10 @@ int automator_init(char *rulesfile)
 #endif
    startupStatus=1;
 
-   idNameAssocsClean();
+   input_cleanIdNameAssocs();
    mea_eval_clean_stack_cache();
    mea_eval_setGetVarCallBacks(&myGetVarId, &myGetVarVal, NULL);
-   initFunctionsIndex();
+   function_initIndex();
 
    if(inputs_table)
    {

@@ -53,10 +53,8 @@ if(!isset($_SESSION['logged_in']))
 <script type="text/javascript" src="lib/highstock-4.2.3/js/highstock.js"></script>
 <script type="text/javascript" src="lib/highcharts-4.2.3/js/highcharts-more.js"></script>
 <script type="text/javascript" src="lib/highcharts-4.2.3/js/modules/solid-gauge.js"></script>
-<!--
 <script type="text/javascript" src="lib/highcharts-4.2.3/js/modules/exporting.js"></script>
 <script type="text/javascript" src="lib/highcharts-4.2.3/js/modules/offline-exporting.js"></script>
--->
 <script type="text/javascript" src="lib/highcharts-4.2.3/js/modules/no-data-to-display.js"></script>
 <script type="text/javascript" src="lib/highcharts-4.2.3/js/themes/grid-light.js"></script>
 
@@ -74,6 +72,7 @@ if(!isset($_SESSION['logged_in']))
 <script type="text/javascript" src="controllers/common/tabspagecontroller.js"></script>
 <script type="text/javascript" src="controllers/common/filechoosercontroller.js"></script>
 <script type="text/javascript" src="controllers/common/filechooseruploadercontroller.js"></script>
+<script type="text/javascript" src="controllers/common/permmemcontroller.js"></script>
 
 <script type="text/javascript" src="widgets/meawidget.js"></script>
 
@@ -164,6 +163,12 @@ function resizeDiv()
 jQuery(document).ready(function() {
    $.ajaxSetup({ cache: false });
 
+   Highcharts.setOptions({
+      global: {
+         useUTC: false
+      }
+   });
+
    resizeDiv();
    $(window).resize(function() {
       resizeDiv();
@@ -193,8 +198,13 @@ jQuery(document).ready(function() {
    
    // controleur d'habilitation
    credentialController = new CredentialController("models/get_auth.php");
+
+   // controleur memoire
+   permMemController = new PermMemController();
+
    // initialisation du contrôle de vues
    viewsController = new ViewsController();   
+
    // initialisation et lancement des communications "live"
    liveComController = new LiveComController(socketio_port);
    
@@ -204,7 +214,6 @@ jQuery(document).ready(function() {
          function() {liveComUnavailable(destview);}
    );
 
-   Highcharts.setOptions({global: { useUTC: false } });
 
    $('#mea-layout').layout('panel','center').panel({
       onResize: function() {

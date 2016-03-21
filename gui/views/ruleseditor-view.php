@@ -31,6 +31,8 @@ jQuery(document).ready(function() {
 
    domenu_re = ctrlr_rulesEditor.domenu.bind(ctrlr_rulesEditor);
 
+   page4_ctrlr.addLeaveViewsCallbacks(ctrlr_rulesEditor.leaveViewCallback.bind(ctrlr_rulesEditor));
+
    ctrlr_rulesEditor.start();
 });
 </script>

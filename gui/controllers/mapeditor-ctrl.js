@@ -657,6 +657,15 @@ MapEditorController.prototype.start = function()
 {
    var _this = this;
 
+   var state = permMemController.get("mapEditor_state");
+   if(state != false) {
+      _this.mapState = state;
+   }
+   var map = permMemController.get("mapEditor_map");
+   if(map != false) {
+      _this.loadFrom(map);
+   }
+
    $(document).on("MeaCleanView", _this.cleanexit);
 
    var evnt = "unactivatetab_" + translationController.toLocalC('map editor');
@@ -768,8 +777,11 @@ MapEditorController.prototype.loadFrom = function(s)
 {
    var _this = this;
 
-   _this.propertiesPanel.window('close');
-   _this.toolsPanel.window('close');
+   if(_this.mapState != 'edit')
+   {
+      _this.propertiesPanel.window('close');
+      _this.toolsPanel.window('close');
+   }
 
    $('div[id^="Widget_"]').each(function(){
       $(this).empty();
@@ -861,7 +873,9 @@ MapEditorController.prototype.load_map = function(name, type, checkflag)
       });
    }
 
-   return __load_map(name, type, checkflag);
+   var map = __load_map(name, type, checkflag);
+
+   return map;
 };
 
 
@@ -1611,7 +1625,7 @@ MapEditorController.prototype.__aut_listener=function(message)
 };
 
 
-MapEditorController.prototype._loadWidgets = function(list)
+MapEditorController.prototype._loadWidgets = function(list, afterLoadCallback)
 {
    var _this = this;
 
@@ -1661,10 +1675,16 @@ MapEditorController.prototype._loadWidgets = function(list)
                });
             });
             p=accordion.accordion('select',0);
-            
+         
+            if(afterLoadCallback != false) 
+               afterLoadCallback(); 
          }
          else
             load_widgets(list, i);
+      }).fail(function( jqxhr, textStatus, exception ) {
+         console.log("can't load '"+list[i]+"': "+textStatus);
+         i=i-1;
+         load_widgets(list, i);
       });
    }
 
@@ -1674,14 +1694,16 @@ MapEditorController.prototype._loadWidgets = function(list)
 }
 
 
-MapEditorController.prototype.loadWidgets = function(list)
+MapEditorController.prototype.loadWidgets = function(list, afterLoadCallback)
 {
+   afterLoadCallback = typeof afterLoadCallback !== 'undefined' ? afterLoadCallback : false;
+
    var _this = this;
 
    $.get("models/get_files_list.php", { type: "widget" }, function(response) {
       if(response.iserror === false)
       {
-         _this._loadWidgets(response.values); 
+         _this._loadWidgets(response.values, afterLoadCallback); 
       }
       else
       {
@@ -1694,6 +1716,18 @@ MapEditorController.prototype.loadWidgets = function(list)
          msg: _this._toLocalC("communication error")+' ('+textStatus+')'
       });
   });
+}
 
+
+MapEditorController.prototype.leaveViewCallback = function()
+{
+   var _this = this;
+
+   var s = {};
+
+   _this.saveTo(s);
+
+   permMemController.add("mapEditor_map", s);
+   permMemController.add("mapEditor_state", this.mapState);
 }
 
