@@ -35,6 +35,7 @@ function MeaWidget_chart4(name, group, type)
          }
       }
    };
+
    this.params["parameters"]["sensor1"] = this.sensors;
    this.params["parameters"]["sensor2"] = this.sensors;
    this.params["parameters"]["sensor3"] = this.sensors;

@@ -20,6 +20,7 @@ int mea_datetime_startAlarm(char *name, time_t date);
 int mea_datetime_startAlarm2(char *name, time_t date, datetime_timer_callback_f f, void *userdata);
       
 int mea_datetime_stopTimer(char *name);
+int mea_datetime_removeAllTimers();
 
 void mea_getTime(struct timespec *t);
 

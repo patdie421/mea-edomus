@@ -15,8 +15,10 @@ header('Content-type: application/json');
 
 inform_and_exit_if_not_admin();
 
+error_log("|".$_GET['name']."|");
+
 if(!isset($_GET['name']) || !isset($_GET['files'])){
-    echo json_encode(array('iserror'=>true, "result"=>"KO", "errno"=>2, "errMsg"=>"parameters error" ));
+    echo json_encode(array('iserror'=>true, "result"=>"KO", "errno"=>2, "errMsg"=>"parameters error ..." ));
     exit(1);
 }else{
     $name=$_GET['name'];

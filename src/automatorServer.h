@@ -62,8 +62,10 @@ int         automatorServer_timer_wakeup(char *name, void *userdata);
 int         automatorServer_send_all_inputs();
 
 void        setAutomatorRulesFile(char *file);
+char       *getAutomatorRulesFile();
 int         start_automatorServer(int my_id, void *data, char *errmsg, int l_errmsg);
 int         stop_automatorServer(int my_id, void *data, char *errmsg, int l_errmsg);
 int         restart_automatorServer(int my_id, void *data, char *errmsg, int l_errmsg);
+
 
 #endif

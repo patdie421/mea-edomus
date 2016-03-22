@@ -9,7 +9,21 @@ function MeaWidget_sgauge(name, group, type)
    this.toWidgetsJarAs(name, group, type);
    this.sgaugeName = "sgauge";
 
-   this.params["values"]["value"]=0;
+   this.automator_vars =  {
+      "val" : "",
+      "editor": {
+         "type":"combobox",
+         "options": {
+             panelMinWidth:300,
+             valueField:'name',
+             textField:'name',
+             groupField:'group',
+             method:'get',
+             url:'models/get_automator_variables.php'
+         }
+      }
+   };
+   this.params["values"]["value"] = this.automator_vars;
    this.params["parameters"]["title"] = '';
    this.params["parameters"]["unit"] = '';
    this.params["parameters"]["min"] = 0;

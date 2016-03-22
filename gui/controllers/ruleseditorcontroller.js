@@ -62,6 +62,10 @@ RulesEditorController.prototype.start = function()
    if(data != false) {
       _this.editor.setValue(data, -1);
    }
+
+   var current_file = permMemController.get("rulesEditor_current_file");
+   if(current_file != false)
+      _this.current_file = current_file;
 };
 
 
@@ -112,19 +116,24 @@ RulesEditorController.prototype.open = function(name, type, checkflag)
 };
 
 
-RulesEditorController.prototype.saveas = function(name, type, checkflag)
+RulesEditorController.prototype.saveas = function(name, type, checkflag, afterSave)
 {
    var _this = this;
 
-   _this.current_file=name;
+   afterSave = typeof afterSave !== 'undefined' ? afterSave : false;
 
    var data = _this.editor.getValue();
 
+   _this.current_file=name;
    $.post("models/put_file.php", { type: type, name: name, file: data }, function(response) {
       if(response.iserror===false)
-         _this.current_file=name;
+      {
+         if(afterSave != false)
+            afterSave();
+      }   
       else
       {
+         _this.current_file=false;
          $.messager.alert(_this._toLocalC('error'), _this._toLocalC("can't save file")+ " (" + _this._toLocal('server message')+_this._localDoubleDot()+response.errMsg+")", 'error');
       }
    }).done(function() {
@@ -172,9 +181,11 @@ RulesEditorController.prototype.delete = function(name, type, checkflag)
 }
 
 
-RulesEditorController.prototype.domenu = function(action)
+RulesEditorController.prototype.domenu = function(action, afterAction)
 {
    var _this = this;
+
+   afterAction = typeof afterAction !== 'undefined' ? afterAction : false;
 
    var __open_srules = _this.open.bind(_this);
    var __saveas_srules = _this.saveas.bind(_this);
@@ -197,14 +208,16 @@ RulesEditorController.prototype.domenu = function(action)
 
       case 'save':
          if(_this.current_file!=false)
-            __saveas_srules(_this.current_file,"srules",false);
+            __saveas_srules(_this.current_file,"srules",false, afterAction);
          else
-            _this.ctrlr_filechooser.open(_this._toLocalC("choose rules sources ..."), _this._toLocalC("save as")+_this._localDoubleDot(), _this._toLocalC("save as"), _this._toLocalC("cancel"), "srules", true, false, _this._toLocalC("file exist, overhide it ?"), __saveas_srules);
+            _this.ctrlr_filechooser.open(_this._toLocalC("choose rules sources ..."), _this._toLocalC("save as")+_this._localDoubleDot(), _this._toLocalC("save as"), _this._toLocalC("cancel"), "srules", true, false, _this._toLocalC("file exist, overhide it ?"), __saveas_srules, afterAction);
          break;
 
       case 'delete':
             _this.ctrlr_filechooser.open(_this._toLocalC("choose rules sources ..."), _this._toLocalC("delete")+_this._localDoubleDot(), _this._toLocalC("delete"), _this._toLocalC("cancel"), "srules", false, false, "", __delete_srules);
          break;
+      case 'buildactivate':
+           _this.buildactivate();
       default:
          break;
    }
@@ -218,4 +231,118 @@ RulesEditorController.prototype.leaveViewCallback = function()
    var data = _this.editor.getValue();
 
    permMemController.add("rulesEditor_data", data);
+   permMemController.add("rulesEditor_current_file", this.current_file);
+}
+
+
+RulesEditorController.prototype.buildactivate = function()
+{
+   var _this = this;
+
+   var __restart_automator = function(r)
+   {
+      if(r==true)
+      {
+         var isadmin = _this._isAdmin();
+
+         if(isadmin != true)
+            return -1;
+
+         $.ajax({
+            url: 'CMD/automatorrestart.php',
+            async: true,
+            type: 'GET',
+            dataType: 'json',
+            success: function(data){
+               if(data.iserror == true)
+               {
+                  $.messager.show({
+                     title: _this._toLocalC('error')+_controlPanel._localDoubleDot(),
+                     msg: _this._toLocalC('automator stop/start error')+' ('+textStatus+')',
+                  });
+               }
+            },
+            error: function(jqXHR, textStatus, errorThrown ){
+               $.messager.show({
+                  title: _this._toLocalC('error')+_controlPanel._localDoubleDot(),
+                  msg: _this._toLocalC('server or communication error')+' ('+textStatus+')',
+               });
+            }
+         });
+      }
+   }
+
+   var __activate_rules = function(name)
+   {
+      $.get("models/apply_rules.php", { name: name }, function(response) {
+         if(response.iserror === false)
+         {
+            var old_ok = $.messager.defaults.ok;
+            var old_cancel = $.messager.defaults.cancel;
+
+            $.messager.defaults.ok = 'Do it';
+            $.messager.defaults.cancel = 'later';
+            $.messager.confirm(_this._toLocalC('apply rules ?'), _this._toLocalC('rules succesfull applied')+'. '+_this._toLocalC("would you commit it (restart automator)")+'.', __restart_automator);
+            $.messager.defaults.ok = old_ok;
+            $.messager.defaults.cancel = old_cancel;
+         }
+         else
+         {
+            $.messager.alert(_this._toLocalC('error'),
+                             _this._toLocalC("can't apply rules")+_this._localDoubleDot()+response.errMsg,
+                             'error');
+         }
+      }).done(function() {
+      }).fail(function(jqXHR, textStatus, errorThrown) {
+         $.messager.show({
+            title:_this._toLocalC('error')+_this._localDoubleDot(),
+            msg: _this._toLocalC("server or communication error")+' ('+textStatus+')'
+         });
+      });
+   }
+
+   __buildactivate_rules = function(name)
+   {
+      function basename(file) {
+         return file.split('/').reverse()[0];
+      }
+
+      var files = [];
+      files.push(name);
+
+      $.get("models/build_rules.php", { name: name, files: files }, function(response) {
+         if(response.iserror === false)
+         {
+             __activate_rules(name);
+         }
+         else
+         {
+            if(response.file && response.line)
+            {
+               $.messager.alert(_this._toLocalC('error'),
+                                _this._toLocalC('compilation error')+_this._localDoubleDot()+response.message+
+                                '.<BR><BR><div align=center>file: '+basename(response.file).slice(0, -7)+"<BR>line: "+response.line+"</div>",
+                                'error');
+            }
+            else
+            {
+               $.messager.alert(_this._toLocalC('error'),
+                                _this._toLocalC('compilation error')+_this._localDoubleDot()+response.errMsg,
+                                'error');
+            }
+         }
+      }).done(function() {
+      }).fail(function(jqXHR, textStatus, errorThrown) {
+         $.messager.show({
+            title:_this._toLocalC('error')+_this._localDoubleDot(),
+            msg: _this._toLocalC("server or communication error")+' ('+textStatus+')'
+         });
+      });
+   }
+
+   var afterSave = function() {
+      __buildactivate_rules(_this.current_file);
+   }
+
+   _this.domenu('save', afterSave);
 }

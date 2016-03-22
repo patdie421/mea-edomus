@@ -48,6 +48,8 @@ jQuery(document).ready(function() {
          <div onclick="javascript:domenu_re('saveas')"><?php mea_toLocalC('save as'); ?></div>
          <div class="menu-sep"></div>
          <div onclick="javascript:domenu_re('delete')"><?php mea_toLocalC('delete'); ?></div>
+         <div class="menu-sep"></div>
+         <div onclick="javascript:domenu_re('buildactivate')"><?php mea_toLocalC('build and activate'); ?></div>
       </div>
    </div>
    <div id="myeditor" style="width:100%;height:0px;display:none"></div>

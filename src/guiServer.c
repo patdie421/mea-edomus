@@ -433,6 +433,49 @@ gui_api_next:
 #endif
 
 
+int gui_restart_automator(struct mg_connection *conn, char *phpsessid, char *_php_sessions_path)
+{
+   const struct mg_request_info *request_info = mg_get_request_info(conn);
+   char errmsg[80];
+
+      // on récupère le session_id PHP
+   if(!phpsessid[0] || _phpsessid_check_loggedin_and_admin(phpsessid, _php_sessions_path)!=1)
+   {
+      _httpErrno(conn, REQUESTERRNO_NOTAUTHORIZED, NULL); // pas habilité
+      return 1;
+   }
+/*
+   if(_automatorServer_monitoring_id<0)
+   {
+      _httpErrno(conn, REQUESTERRNO_OPERERR, "no automator instance");
+      return 1;
+   }
+
+   int automator_id = _automatorServer_monitoring_id;
+
+   int ret=process_stop(automator_id, errmsg, sizeof(errmsg));
+   if(ret != 0 && ret != 1)
+   {
+      _httpErrno(conn, REQUESTERRNO_OPERERR, "can't stop automator");
+      return 1;
+   }
+   else
+   {
+      sleep(1);
+      ret=process_start(automator_id, errmsg, sizeof(errmsg));
+      if(ret != 0 && ret != 1)
+      {
+         _httpErrno(conn, REQUESTERRNO_OPERERR, "can't start automator");
+         return 1;
+      }
+   }
+*/
+   automator_reload_rules_from_file(getAutomatorRulesFile());
+
+   _httpErrno(conn, 0, NULL);
+}
+
+
 int gui_startstop_cmnd(struct mg_connection *conn, char *phpsessid, char *_php_sessions_path)
 {
    const struct mg_request_info *request_info = mg_get_request_info(conn);
@@ -707,6 +750,10 @@ static int _begin_request_handler(struct mg_connection *conn)
    else if(strlen((char *)request_info->uri)==18 && mea_strncmplower("/CMD/automator.php",(char *)request_info->uri,18)==0)
    {
       return gui_automator_cmnd(conn, phpsessid, _php_sessions_path);
+   }
+   else if(strlen((char *)request_info->uri)==25 && mea_strncmplower("/CMD/automatorrestart.php",(char *)request_info->uri,25)==0)
+   {
+      return gui_restart_automator(conn, phpsessid, _php_sessions_path);
    }
    else if(strlen((char *)request_info->uri)==16 && mea_strncmplower("/CMD/xplsend.php",(char *)request_info->uri,16)==0)
    {

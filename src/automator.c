@@ -133,6 +133,7 @@ struct inputs_table_s
    UT_hash_handle hh;
 };
 
+
 struct inputs_id_name_assoc_s
 {
    uint32_t id;
@@ -143,6 +144,7 @@ struct inputs_id_name_assoc_s
 
 struct inputs_table_s *inputs_table = NULL;
 pthread_mutex_t inputs_table_lock = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t rules_lock = PTHREAD_MUTEX_INITIALIZER;
 
 struct inputs_id_name_assoc_s *inputs_id_name_assoc = NULL;
 
@@ -1291,7 +1293,12 @@ int automator_playOutputRules(cJSON *rules)
       return -1;
    }
 
-   double start=mea_now();
+   double start = 0.0;
+
+   pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&rules_lock);
+   pthread_mutex_lock(&rules_lock);
+
+   start=mea_now();
 
    cJSON *e=rules->child;
    while(e) // balayage des règles
@@ -1369,6 +1376,9 @@ next_rule:
       e=e->next;
 next_iteration: {}
    }
+
+   pthread_mutex_unlock(&rules_lock);
+   pthread_cleanup_pop(0);
 
    double now=mea_now();
 
@@ -1483,9 +1493,13 @@ int automator_matchInputsRules(cJSON *rules, cJSON *xplMsgJson)
       return -1;
    }
 
-   mea_getTime(&last_update_time);
+   double start = 0;
 
-   double start=mea_now();
+   pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&rules_lock);
+   pthread_mutex_lock(&rules_lock);
+
+   mea_getTime(&last_update_time);
+   start=mea_now();
 
    char *source=NULL;
    char *schema=NULL;
@@ -1530,7 +1544,9 @@ int automator_matchInputsRules(cJSON *rules, cJSON *xplMsgJson)
 
          continue;
       }
+      
       DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s (%s) : RULE - %s\n", DEBUG_STR, __func__, name->valuestring);
+
       int ret=automator_evalStr(value->valuestring, &res, xplMsgJson);
       if(ret<0)
       {
@@ -1545,7 +1561,6 @@ int automator_matchInputsRules(cJSON *rules, cJSON *xplMsgJson)
 
          continue;
       }
-
       if(res.type==1 && strcmp(res.val.strval,"<LABEL>")==0)
       {
          match=0;
@@ -1739,6 +1754,9 @@ int automator_matchInputsRules(cJSON *rules, cJSON *xplMsgJson)
 next_loop:{}
 //      cntr++;
    }
+
+   pthread_mutex_unlock(&rules_lock);
+   pthread_cleanup_pop(0);
 
    double now=mea_now();
 
@@ -1971,6 +1989,7 @@ struct inputs_table_s *_automator_add_to_inputs_table(char *_name, struct value_
 
    pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&inputs_table_lock);
    pthread_mutex_lock(&inputs_table_lock);
+
    HASH_FIND_STR(inputs_table, _name, e);
    if(e)
    {
@@ -2039,7 +2058,10 @@ struct inputs_table_s *_automator_add_to_inputs_table(char *_name, struct value_
       if(t)
          memcpy(&(e->last_update), t, sizeof(struct timespec)); 
       else
-         memset(&(e->last_update), 0, sizeof(struct timespec));
+      {
+         e->last_update.tv_sec = 0;
+         e->last_update.tv_nsec = 0;
+      }
 
       if(state!=STAY)
          send_change(_name, v, t);
@@ -2066,8 +2088,6 @@ struct inputs_table_s *_automator_add_to_inputs_table(char *_name, struct value_
 
       if(t)
          memcpy(&(s->last_update), t, sizeof(struct timespec));
-      else
-         memset(&(s->last_update), 0, sizeof(struct timespec));
 
       HASH_ADD_STR(inputs_table, name, s);
 
@@ -2273,6 +2293,153 @@ cJSON *automator_load_rules_from_file(char *file)
 }
 
 
+int inputs_table_sync(cJSON *rules)
+{
+#if DEBUGFLAG_AUTOMATOR > 0
+   _automatorServer_fn = (char *)__func__;
+#endif
+   if(!rules)
+      return -1;
+   struct inputs_table_s *old_inputs_table = inputs_table ;
+
+   inputs_table = NULL;
+
+   pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&inputs_table_lock);
+   pthread_mutex_lock(&inputs_table_lock);
+   
+   struct inputs_table_s *oe = NULL, *ne = NULL, *tmp = NULL;
+
+   cJSON *e=rules->child;
+   while(e) // balayage des règles
+   {
+      cJSON *name    = cJSON_GetObjectItem(e,"name");
+      cJSON *value   = cJSON_GetObjectItem(e,"value");
+
+      if(!name || !value)
+      {
+         automator_printRuleDebugInfo(e, "incomplete rule, no name or value (rule removed)");
+
+         cJSON *c = e;
+         e=e->next;
+         c=cJSON_DetachItemFromItem(rules, c);
+         cJSON_Delete(c);
+      }
+      else
+      {
+         struct inputs_table_s *s=NULL;
+
+         HASH_FIND_STR(inputs_table, name->valuestring, ne);
+         if(!ne)
+         {
+            HASH_FIND_STR(old_inputs_table, name->valuestring, oe);
+            if(oe)
+            {
+               s = oe;
+               HASH_DEL(old_inputs_table, oe);
+            }
+            else
+            {
+               s=(struct inputs_table_s *)malloc(sizeof(struct inputs_table_s));
+
+               strncpy(s->name, name->valuestring, sizeof(s->name));
+               s->name[sizeof(s->name)-1]=0;
+               s->id=-1;
+               s->state=NEW;
+               s->last_update.tv_sec = 0;
+               s->last_update.tv_nsec = 0;
+               s->v.type=1;
+               strcpy(s->v.val.strval, "N/A");
+
+               send_change(s->name, &(s->v), NULL);
+            }
+            HASH_ADD_STR(inputs_table, name, s);
+         }
+
+         e=e->next;
+      }
+   }
+
+   HASH_ITER(hh, old_inputs_table, oe, tmp)
+   {
+      if(oe)
+      {
+         HASH_DEL(old_inputs_table, oe);
+         free(oe);
+      }
+   }
+   old_inputs_table = NULL;
+
+   if(moveforward_dests)
+   {
+      struct moveforward_dest_s  *current=NULL, *tmp=NULL;
+
+      HASH_ITER(hh, moveforward_dests, current, tmp)
+      {
+         HASH_DEL(moveforward_dests, current);
+         free(current);
+      }
+      moveforward_dests = NULL;
+   }
+
+   pthread_mutex_unlock(&inputs_table_lock);
+   pthread_cleanup_pop(0);
+
+   return 0;
+}
+
+
+int automator_reload_rules_from_file(char *rulesfile)
+{
+#if DEBUGFLAG_AUTOMATOR > 0
+   _automatorServer_fn = (char *)__func__;
+#endif
+   int ret = -1;
+   pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&rules_lock);
+   pthread_mutex_lock(&rules_lock);
+
+   cJSON *prev_rules = _rules;   
+   cJSON *prev_inputs_rules = _inputs_rules;
+   cJSON *prev_output_rules = _outputs_rules;
+
+   _rules = NULL;
+   _inputs_rules = NULL;
+   _outputs_rules = NULL;
+
+   _rules = automator_load_rules_from_file(rulesfile);
+   if(_rules)
+   {
+      _inputs_rules = cJSON_GetObjectItem(_rules, "inputs");
+      _outputs_rules = cJSON_GetObjectItem(_rules, "outputs");
+
+      inputs_table_sync(_inputs_rules);
+
+      cJSON_Delete(prev_rules);
+
+      mea_eval_clean_stack_cache();
+      mea_datetime_removeAllTimers();
+
+      automator_print_inputs_table();
+
+      startupStatus=1;
+
+      ret=0;
+   }
+   else
+   {
+      _rules = prev_rules;
+      _inputs_rules = prev_inputs_rules;
+      _outputs_rules = prev_output_rules;
+
+      ret=-1;
+   }
+   
+   pthread_mutex_unlock(&rules_lock);
+   pthread_cleanup_pop(0);
+
+   return ret;
+}
+
+
 int inputs_table_init(cJSON *rules)
 {
 #if DEBUGFLAG_AUTOMATOR > 0
@@ -2342,6 +2509,8 @@ int automator_init(char *rulesfile)
    mea_eval_clean_stack_cache();
    mea_eval_setGetVarCallBacks(&myGetVarId, &myGetVarVal, NULL);
    function_initIndex();
+
+   mea_datetime_removeAllTimers();
 
    if(inputs_table)
    {

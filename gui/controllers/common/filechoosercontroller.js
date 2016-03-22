@@ -50,7 +50,7 @@ FileChooserController.prototype = {
       return html;
    },
 
-   _loadDialog: function(id, _type, response, displayext)
+   _loadDialog: function(id, _type, response, displayext,__do_param)
    {
       var _this = this;
 
@@ -62,7 +62,7 @@ FileChooserController.prototype = {
          lines: false,
          onDblClickRow: function(index, field) {
             $('#'+id+"_filename").textbox('setValue', field.f2);
-            __do(response.values);
+            __do(response.values, __do_param);
          },
          onClickRow: function(index, field) {
             $('#'+id+"_filename").textbox('setValue', field.f2);
@@ -80,11 +80,12 @@ FileChooserController.prototype = {
       div_files.datalist({data: files});
    },
 
-   open: function(_title, _title2, _buttonOKText, _buttonCancelText, _type, _checkflag, _mustexist, _checkmsg, _do)
+   open: function(_title, _title2, _buttonOKText, _buttonCancelText, _type, _checkflag, _mustexist, _checkmsg, _do, _do_param)
    {
       var _this = this;
       id=_this.id;
-      __do = function(files) 
+
+      __do = function(files, __do_param) 
       {
          name = $('#'+id+"_filename").val();
          if(name==="")
@@ -100,20 +101,20 @@ FileChooserController.prototype = {
                $.messager.confirm('Confirm', _checkmsg, function(r) {
                   if (r) {
                      _this.close();
-                     _do(name, _type, true);
+                     _do(name, _type, true, __do_param);
                   }
                });
             }
             else
             {
                _this.close();
-               _do(name, _type, false); 
+               _do(name, _type, false, __do_param); 
             }
          }
          else
          {
             _this.close();
-            _do(name, _type, false);
+            _do(name, _type, false, __do_param);
          }
       };
       $.get("models/get_files_list.php", { type: _type }, function(response) {
@@ -142,7 +143,7 @@ FileChooserController.prototype = {
                   handler:function() {
                      if(!$('#'+id+'_fm').form('validate'))
                         return -1;
-                     __do(response.values);
+                     __do(response.values, _do_param);
                   }
                }, {
                   text: _buttonCancelText,
@@ -154,7 +155,7 @@ FileChooserController.prototype = {
                onClose: function() { _this.clean(); },
             });
 
-            _this._loadDialog(id, _type, response, _this.showext);
+            _this._loadDialog(id, _type, response, _this.showext, _do_param);
             $('#'+id).dialog("open");
          }
       });

@@ -85,9 +85,10 @@ try
 {
    while($row = $request->fetch(PDO::FETCH_OBJ))
    {
+      $description = $row->sensor_description;
       if(strlen($description)>0)
       {
-         $text =  $row->sensor_name." - ".$row->description;
+         $text =  $row->sensor_name." - ".$description;
       }
       else
       {

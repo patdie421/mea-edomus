@@ -537,13 +537,13 @@ MapEditorController.prototype.propertiesPanel_init = function()
          var __this = this;
          var ed = $(__this).propertygrid('getEditor', { index:i, field:'value'});
          var cell = $(ed.target);
-
-         // pour traiter le cas des combobox
+         var cb = false;
+         // pour traiter le cas des COMBOBOX
          if(ed.type == 'combobox')
          {
             try
             {
-               var cb = cell;
+               cb = cell;
                var old=cb.combobox('getValue');
                cb.combobox({
                   onSelect: function()
@@ -552,7 +552,9 @@ MapEditorController.prototype.propertiesPanel_init = function()
                      cb.combobox({
                         onSelect: function() { }
                      });
-                  }
+                  },
+                  onHidePanel: function() { $(__this).propertygrid('endEdit', i); }
+//                  onChange: function(n,o) { console.log(n+" "+o); }
                });
                cb.combobox('setValue', old);
                cell = cell.combobox('textbox');
@@ -560,7 +562,7 @@ MapEditorController.prototype.propertiesPanel_init = function()
             catch(e) {};
          }
 
-         cell.bind('keyup', function(e) { c = e.keyCode || e.which(); if(c == 13) { $(__this).propertygrid('endEdit', i); } });
+         cell.bind('keydown', function(e) { c = e.keyCode || e.which(); if(c == 13 || c == 9) {  $(__this).propertygrid('endEdit', i); } });
       },
       onEndEdit:function(index,row) {
          var __this = this;
@@ -577,7 +579,8 @@ MapEditorController.prototype.propertiesPanel_init = function()
             }
             catch(e) {};
          }
-         cell.unbind('keyup');
+
+         cell.unbind('keydown');
          cell.blur();
          $(__this).propertygrid('unselectAll');
 
@@ -626,21 +629,34 @@ MapEditorController.prototype.newWidgetData = function(newid, type, x, y, zi, p)
      });
    }
    catch(e) {};
- 
+/* 
    try {
       $.each(p.data().widgetparams.values, function(i,val) {
          mea_widgetdata.push({"name":i, "value":"", "group":"data links (inputs)", "editor":"text", "type":val});
       });
    }
    catch(e) {};
+*/
+   try {
+      $.each(p.data().widgetparams.values, function(i,val) {
+         if(val !== null && typeof val === 'object')
+         {
+            mea_widgetdata.push({"name":i, "value": val.val, "group":"data links (inputs)", "editor": val.editor });
+         }
+         else
+            mea_widgetdata.push({"name":i, "value":"", "group":"data links (inputs)", "editor":"text", "type":val});
+      });
+   }
+   catch(e) {};
+
  
    try {
       $.each(p.data().widgetparams.variables, function(i,val) {
          mea_widgetdata.push({"name":i, "value":val, "group":"variables", "editor":"empty", "type":""});
       });
    }
-
    catch(e) {};
+
    try {
       $.each(p.data().widgetparams.actions, function(i,val) {
          mea_widgetdata.push({"name":i, "value":val, "group":"actions", "editor":"text", "type":""});
@@ -664,6 +680,9 @@ MapEditorController.prototype.start = function()
    var map = permMemController.get("mapEditor_map");
    if(map != false) {
       _this.loadFrom(map);
+      var current_file = permMemController.get("mapEditor_current_file");
+      if(current_file != false)
+         _this.current_file = current_file;
    }
 
    $(document).on("MeaCleanView", _this.cleanexit);
@@ -1729,5 +1748,6 @@ MapEditorController.prototype.leaveViewCallback = function()
 
    permMemController.add("mapEditor_map", s);
    permMemController.add("mapEditor_state", this.mapState);
+   permMemController.add("mapEditor_current_file", this.current_file);
 }
 

@@ -67,6 +67,12 @@ void set_automatorServer_isnt_running(void *data)
 }
 
 
+char *getAutomatorRulesFile()
+{
+   return rules_file;
+}
+
+
 void setAutomatorRulesFile(char *file)
 {
    if(rules_file)

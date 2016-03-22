@@ -10,7 +10,23 @@ function MeaWidget_pastille(name, group, type)
 
    this.valueName = "value";
 
-   this.params["values"][this.valueName] = "";
+   this.automator_vars =  {
+      "val" : "",
+      "editor": {
+         "type":"combobox",
+         "options": {
+             panelMinWidth:300,
+             valueField:'name',
+             textField:'name',
+             groupField:'group',
+             method:'get',
+             url:'models/get_automator_variables.php'
+         }
+      }
+   };
+
+//   this.params["values"][this.valueName] = "";
+   this.params["values"][this.valueName] = this.automator_vars;
 }
 
 

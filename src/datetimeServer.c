@@ -543,18 +543,55 @@ int mea_datetime_startTimer2(char *name, long duration, enum datetime_timer_unit
 }
 
 
+int mea_datetime_removeAllTimers()
+{
+   int retour = 0;
+
+   struct mea_datetime_timer_s *e = NULL, *tmp = NULL;
+
+   pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&timeServer_startTimer_lock);
+   pthread_mutex_lock(&timeServer_startTimer_lock);
+
+   HASH_ITER(hh, mea_datetime_timers_list, e, tmp)
+   {
+      HASH_DEL(mea_datetime_timers_list, e);
+      free(e);
+      e=NULL;
+   }
+
+   mea_datetime_timers_list=NULL;
+
+   pthread_cond_broadcast(&timerServer_startTimer_cond);
+
+stopTimer_clean_exit:
+   pthread_mutex_unlock(&timeServer_startTimer_lock);
+   pthread_cleanup_pop(0);
+
+   return retour;
+}
+
+
 int mea_datetime_removeTimer(char *name)
 {
    struct mea_datetime_timer_s *e;
-
+   int ret = 0;
+   pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&timeServer_startTimer_lock);
+   pthread_mutex_lock(&timeServer_startTimer_lock);
 
    HASH_FIND_STR(mea_datetime_timers_list, name, e);
    if(e)
+   {
       HASH_DEL(mea_datetime_timers_list, e);
+      free(e);
+      e=NULL;
+   }
    else
-      return -1;
+      ret=-1;
 
-   return 0;
+   pthread_mutex_unlock(&timeServer_startTimer_lock);
+   pthread_cleanup_pop(0);
+
+   return ret;
 }
 
 
