@@ -16,10 +16,10 @@ function MeaWidget_sgauge(name, group, type)
          "options": {
              panelMinWidth:300,
              valueField:'name',
-             textField:'name',
+             textField:'text',
              groupField:'group',
              method:'get',
-             url:'models/get_automator_variables.php'
+             url:'models/get_automator_variables.php',
          }
       }
    };

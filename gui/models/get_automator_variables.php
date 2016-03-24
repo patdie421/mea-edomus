@@ -95,6 +95,7 @@ if(is_dir($path))
       {
          $val = [
             "name" => $key,
+            "text" => $key,
             "group" => $value
          ];
          $rows[]=$val;

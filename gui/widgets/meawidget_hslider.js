@@ -2,6 +2,7 @@ extendClass(MeaWidget_hslider, MeaWidget);
 
 var meaWidget_hslider = new MeaWidget_hslider("MeaWidget_hslider", "basic", "hslider");
 
+
 function MeaWidget_hslider(name, group, type)
 {
    MeaWidget_hslider.superConstructor.call(this);
@@ -9,8 +10,24 @@ function MeaWidget_hslider(name, group, type)
    this.toWidgetsJarAs(name, group, type);
    this.hsliderName = "hslider";
 
+   this.automator_vars =  {
+      "val" : "",
+      "editor": {
+         "type":"combobox",
+         "options": {
+             panelMinWidth:300,
+             valueField:'name',
+             textField:'name',
+             groupField:'group',
+             method:'get',
+             url:'models/get_automator_variables.php'
+         }
+      }
+   };
+   this.params["values"]["value"] = this.automator_vars;
+//   this.params["values"]["value"]=0;
+
    this.params["variables"][this.hsliderName+"_value"]=0;
-   this.params["values"]["value"]=0;
    this.params["actions"][this.hsliderName] = '';
    this.params["parameters"]["unit"] = '';
    this.params["parameters"]["min"] = 0;

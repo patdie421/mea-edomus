@@ -88,24 +88,13 @@ function MapEditorController(container, map, propertiesPanel, actionPanel, newPa
    _this.map.bind('contextmenu', _this.open_context_menu);
 
    _this.draggable_options = {
-//      delay: 250,
       onBeforeDrag: function(e)
       {
          _this._updateProperties($(this).attr('id'));
-      /*
-         zindex = $(this).css("z-index");
-         if(zindex != _this.current_zindex)
-         $(this).css("z-index", ++_this.current_zindex);
-      */
       },
 
       onStartDrag: function(e)
       {
-      /*
-         zindex = $(this).css("z-index");
-         if(zindex != _this.current_zindex)
-         $(this).css("z-index", ++_this.current_zindex);
-      */
          $(this).hide();
          $('body').append($(this));
          $(this).draggable('proxy').addClass('dp');
@@ -180,7 +169,6 @@ function MapEditorController(container, map, propertiesPanel, actionPanel, newPa
       onDrag: function(e) {
          var d = e.data;
          var id=$(e.data.target).attr('mea_widget');
-//         _this.constrain(e, $("#"+id+"_drag"), $("#"+id+"_model"));
          _this.constrain(e, $("#"+id+"_drag"), $(e.data.target));
       }
    };
@@ -300,7 +288,7 @@ MapEditorController.prototype.widgetsPanel_init = function()
          _this._updateProperties(newid);
 
          meaWidgetsJar[type].init(newid); 
-         meaWidgetsJar[type].disabled(newid, true); 
+//         meaWidgetsJar[type].disabled(newid, true); 
 
          $(this).removeClass('over');
          $(this).addClass('notover');
@@ -349,7 +337,6 @@ MapEditorController.prototype.propertiesPanel_init = function()
       columns:[[
                {field:'name', title:'name', width:150, sortable:false},
                {field:'value', title:'value', width: 250, formatter:
-                     
                   function(value,row,index) {
                      try
                      {
@@ -526,62 +513,58 @@ MapEditorController.prototype.propertiesPanel_init = function()
          var __this = this;
          $(__this).propertygrid('beginEdit', index);
          var ed = $(__this).propertygrid('getEditor', { index:index, field:'value'});
-         $(ed.target).focus().val($(ed.target).val()); // pour positionner le curseur à la fin du champ
+         var cell = $(ed.target);
+         if(ed.type == 'combobox') // traitement spéficifique des COMBOBOX
+         {
+            cell = cell.combobox('textbox');
+         }
+         cell.focus().val($(ed.target).val()); // pour positionner le curseur à la fin du champ
       },
       onBeforeEdit:function(index, row) {
          if(row.group=="actions")
             return false;
       },
-      onBeginEdit:function(index) {
-         var i = index;
+      onBeginEdit:function(i) {
          var __this = this;
          var ed = $(__this).propertygrid('getEditor', { index:i, field:'value'});
          var cell = $(ed.target);
          var cb = false;
-         // pour traiter le cas des COMBOBOX
+
+         // traitement spéficifique des COMBOBOX
          if(ed.type == 'combobox')
          {
             try
             {
                cb = cell;
-               var old=cb.combobox('getValue');
-               cb.combobox({
-                  onSelect: function()
-                  {
-                     $(__this).propertygrid('endEdit', i);
-                     cb.combobox({
-                        onSelect: function() { }
-                     });
-                  },
-                  onHidePanel: function() { $(__this).propertygrid('endEdit', i); }
-//                  onChange: function(n,o) { console.log(n+" "+o); }
-               });
-               cb.combobox('setValue', old);
+               var options = cb.combobox('options');
+               options.keyHandler.enter = function(e) {
+                  $(__this).propertygrid('endEdit', i);
+               };
+               options.onSelect = function(r) {
+                  setTimeout(function() { $(__this).propertygrid('endEdit', i); }, 1); // pour eviter un conflit ...
+               };
                cell = cell.combobox('textbox');
             }
-            catch(e) {};
+            catch(e) { console.log(e.message); };
          }
-
          cell.bind('keydown', function(e) { c = e.keyCode || e.which(); if(c == 13 || c == 9) {  $(__this).propertygrid('endEdit', i); } });
       },
-      onEndEdit:function(index,row) {
+      onEndEdit:function(i,row,changes) {
          var __this = this;
-         var i = index;
          if(row.group=="actions")
             return true;
          var ed = $(__this).propertygrid('getEditor', { index:i, field:'value'});
+         $(__this).propertygrid('unselectAll');
          var cell = $(ed.target);
-         if(ed.type == 'combobox')
+
+         if(ed.type == 'combobox') // traitement spéficifique des COMBOBOX
          {
-            try
-            {
-               cell = cell.combobox('textbox');
-            }
-            catch(e) {};
+            cell = cell.combobox('textbox');
          }
 
          cell.unbind('keydown');
-         cell.blur();
+         cell.off('flur');
+
          $(__this).propertygrid('unselectAll');
 
          var rows = $(__this).propertygrid('getRows');
@@ -589,6 +572,32 @@ MapEditorController.prototype.propertiesPanel_init = function()
          meaWidgetsJar[rows[1].value].init(rows[0].value);
          meaWidgetsJar[rows[1].value].disabled(rows[0].value, true); 
       },
+      onAfterEdit: function(index, row, changes) {
+         var __this = this;
+         try
+         {
+            if(row.editor.options.checkIsJsonValue === true )
+            {
+               try
+               {
+                  JSON.parse(row.value);
+               }
+               catch(e)
+               {
+                  row.value="";
+                  $(__this).propertygrid('updateRow',{ index: index, row: row  });
+/*
+                  var data=$(__this).propertygrid('getData');
+                  data.rows[index].value="";
+                  $(__this).propertygrid('loadData',data);
+*/
+               }
+            }
+         }
+         catch(e) {};
+      },
+      onCancelEdit: function(index, row) {
+      }
    });
 }
 
@@ -622,6 +631,7 @@ MapEditorController.prototype.newWidgetData = function(newid, type, x, y, zi, p)
       });
    }
    catch(e) {};
+
  
    try {
       $.each(p.data().widgetparams.labels, function(i,val) {
@@ -629,22 +639,16 @@ MapEditorController.prototype.newWidgetData = function(newid, type, x, y, zi, p)
      });
    }
    catch(e) {};
-/* 
-   try {
-      $.each(p.data().widgetparams.values, function(i,val) {
-         mea_widgetdata.push({"name":i, "value":"", "group":"data links (inputs)", "editor":"text", "type":val});
-      });
-   }
-   catch(e) {};
-*/
+
+
    try {
       $.each(p.data().widgetparams.values, function(i,val) {
          if(val !== null && typeof val === 'object')
          {
-            mea_widgetdata.push({"name":i, "value": val.val, "group":"data links (inputs)", "editor": val.editor });
+            mea_widgetdata.push({"name":i, "value": val.val, "group":"data links (inputs)", "editor": val.editor, "type":"text" });
          }
          else
-            mea_widgetdata.push({"name":i, "value":"", "group":"data links (inputs)", "editor":"text", "type":val});
+            mea_widgetdata.push({"name":i, "value":"", "group":"data links (inputs)", "editor":"text", "type":"text"});
       });
    }
    catch(e) {};
@@ -684,6 +688,9 @@ MapEditorController.prototype.start = function()
       if(current_file != false)
          _this.current_file = current_file;
    }
+
+   if(_this.mapState == 'edit')
+      _this._toEditMode();
 
    $(document).on("MeaCleanView", _this.cleanexit);
 
@@ -827,11 +834,6 @@ MapEditorController.prototype.loadFrom = function(s)
       _this.map.css("background", "url('"+_this.imagepath+"/"+_this.bgimage+"') no-repeat");
       _this.map.css("background-size", "cover");
    }
-//   else
-//   {
-//      _this.map.css("background", '');
-//      _this.map.css("background-size", '');
-//   }
 
    _this.objid=0;
    _this.current_zindex=0;
@@ -1067,6 +1069,51 @@ MapEditorController.prototype.load_image = function(name, type, checkflag)
 }
 
 
+MapEditorController.prototype._toEditMode = function()
+{
+   var _this = this;
+
+      $('div[id^="Widget_"]').each(function(){
+         var data = $(this).prop('mea-widgetdata');
+         meaWidgetsJar[data[1].value].init(data[0].value, true);
+         meaWidgetsJar[data[1].value].disabled(data[0].value, true);
+         p = $(this);
+         p.draggable('enable');
+         var drag_zone = p.find('[class="mea_dragzone_for_resizable"]');
+         if(drag_zone.length)
+         {
+            p.draggable({ handle: drag_zone });
+
+            var resizable_params = {
+               onStartResize: function(e) { },
+               onResize: function(e) {
+               },
+               onStopResize: function(e) {
+                  var data   = $(this).prop('mea-widgetdata');
+                  var i=getValueIndex(data, "width");
+                  if(i)
+                     data[i]["value"]=p.width();
+                  i=getValueIndex(data, "height");
+                  if(i)
+                     data[i]["value"]=p.height();
+                  _this._updateProperties(data[0].value);
+               }
+            };
+
+            var i = getValueIndex(data, "minHeight");
+            if(i)
+               resizable_params['minHeight'] = data[i]["value"];
+            var i = getValueIndex(data, "minWidth");
+            if(i)
+               resizable_params['minWidth'] = data[i]["value"];;
+
+            p.resizable(resizable_params);
+         }
+         $(this).bind('contextmenu', _this.open_widget_menu);
+      });
+};
+
+
 MapEditorController.prototype._context_menu = function(action, w)
 {
    var _this = this;
@@ -1137,7 +1184,7 @@ MapEditorController.prototype._context_menu = function(action, w)
 
          if(_this.mapState == 'edit') {
             _this.mapState = 'view';
-            _this.mapContextMenu.menu('setText', { target: item.target, text: 'to edition mode'});
+            _this.mapContextMenu.menu('setText', { target: item.target, text: 'to edition mode' });
             var _tmp = {};
             _this.toolsPanel.window('close');
             _this.propertiesPanel.window('close');
@@ -1149,6 +1196,8 @@ MapEditorController.prototype._context_menu = function(action, w)
             _this.mapState = 'edit';
             _this.mapContextMenu.menu('setText', { target:item.target, text: 'to view mode'});
             _this.toolsPanel.window('open');
+            _this._toEditMode();
+/*
             $('div[id^="Widget_"]').each(function(){
                var data = $(this).prop('mea-widgetdata');
                meaWidgetsJar[data[1].value].init(data[0].value, true);
@@ -1187,6 +1236,7 @@ MapEditorController.prototype._context_menu = function(action, w)
                }
                $(this).bind('contextmenu', _this.open_widget_menu);
             });
+*/
          }
          break;
    }
@@ -1214,10 +1264,13 @@ MapEditorController.prototype._updateProperties = function(id)
       var h = $('#div_properties').height();
       if(h>100)
       {
-         _this.propertiesPanel.window('resize', { height: h+40 });
-         return true;
+         try {
+            _this.propertiesPanel.window('resize', { height: h+40 });
+            return true;
+         }
+         catch(e) {};
       }
-      setTimeout(_resize, 25);
+      setTimeout(_resize, 5);
       return false;
    }
 
@@ -1713,7 +1766,7 @@ MapEditorController.prototype._loadWidgets = function(list, afterLoadCallback)
 }
 
 
-MapEditorController.prototype.loadWidgets = function(list, afterLoadCallback)
+MapEditorController.prototype.loadWidgets = function(afterLoadCallback)
 {
    afterLoadCallback = typeof afterLoadCallback !== 'undefined' ? afterLoadCallback : false;
 
@@ -1749,5 +1802,10 @@ MapEditorController.prototype.leaveViewCallback = function()
    permMemController.add("mapEditor_map", s);
    permMemController.add("mapEditor_state", this.mapState);
    permMemController.add("mapEditor_current_file", this.current_file);
+
+   this.mapContextMenu.menu('destroy');
+   this.widgetContextMenu.menu('destroy');
+
+   $(".sp-container").remove();
 }
 

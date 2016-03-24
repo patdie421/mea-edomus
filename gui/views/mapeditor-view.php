@@ -16,9 +16,7 @@ if($isadmin !=0 && $isadmin != 98) : ?>
    exit(1);
 endif;
 ?>
-
 <script type="text/javascript" src="controllers/mapeditor-ctrl.js"></script>
-
 <style type="text/css">
 .drag {
 }
@@ -44,13 +42,6 @@ endif;
 
 <script>
 jQuery(document).ready(function() {
-   var list = [
-      "../widgets/meawidget_value.js",
-      "../widgets/meawidget_slider.js",
-      "../widgets/meawidget_pastille.js",
-      "../widgets/meawidget_button.js"
-   ];
-
    ctrlr_mapEditor = new MapEditorController(
       "panel_me",
       "map_me",
@@ -78,7 +69,7 @@ jQuery(document).ready(function() {
    var xplEditorOk     = ctrlr_mapEditor._xplEditorOk.bind(ctrlr_mapEditor);
    var xplEditorCancel = ctrlr_mapEditor._xplEditorCancel.bind(ctrlr_mapEditor);
 
-   ctrlr_mapEditor.loadWidgets(list, ctrlr_mapEditor.start.bind(ctrlr_mapEditor));
+   ctrlr_mapEditor.loadWidgets(ctrlr_mapEditor.start.bind(ctrlr_mapEditor));
 
    $("#button_up_actions_win_me").on('click', xplEditorUp);
    $("#button_down_actions_win_me").on('click', xplEditorDown);
@@ -122,11 +113,11 @@ jQuery(document).ready(function() {
 </script>
 <div class="easyui-panel" style="position:absolute;width:100%;height:100%;overflow:hidden" data-options="border:false">
    <div id="panel_me" class="scrolling" style="position:absolute;width:100%;height:100%;overflow:scroll;background:#EEEEEE">
-   <div id="map_me" style="width:1920px;height:1080px;position:relative;overflow:auto;border:1px solid #555555;background:#FFFFFF">
+      <div id="map_me" style="width:1920px;height:1080px;position:relative;overflow:auto;border:1px solid #555555;background:#FFFFFF">
       </div>
-   <div id="widgets_container" style="display:none"></div>
-</div>
-</div>
+      <div id="widgets_container" style="display:none">
+      </div>
+   </div>
 
 
 <div id="map_cm_me" class="easyui-menu" style="width:180px;display:hidden;">
@@ -266,4 +257,5 @@ jQuery(document).ready(function() {
 <div id="ft_action_win_me" style="text-align:right;padding:5px;display:hidden">
    <a id="button_ok_ft_action_win_me"      href="javascript:void(0)" class="easyui-linkbutton" style="width=50px;" data-options="iconCls:'icon-ok'"><?php mea_toLocalC('ok');?></a>
    <a id="button_cancel_ft_action_win_me", href="javascript:void(0)" class="easyui-linkbutton" style="width=50px;" data-options="iconCls:'icon-cancel'"><?php mea_toLocalC('cancel');?></a>
+</div>
 </div>

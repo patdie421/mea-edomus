@@ -32,6 +32,7 @@ function MeaWidget_chart4(name, group, type)
              groupField:'group',
              method:'get',
              url:'models/get_mysql_sensors_list.php',
+             checkIsJsonValue: true
          }
       }
    };

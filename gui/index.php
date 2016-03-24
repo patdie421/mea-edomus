@@ -47,9 +47,6 @@ if(!isset($_SESSION['logged_in']))
 
 <script src="lib/bgrins-spectrum/spectrum.js" type="text/javascript"></script>
 
-<!--
-<script type="text/javascript" src="lib/highcharts-4.2.3/js/highcharts.js"></script>
--->
 <script type="text/javascript" src="lib/highstock-4.2.3/js/highstock.js"></script>
 <script type="text/javascript" src="lib/highcharts-4.2.3/js/highcharts-more.js"></script>
 <script type="text/javascript" src="lib/highcharts-4.2.3/js/modules/solid-gauge.js"></script>

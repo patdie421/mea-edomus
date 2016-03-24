@@ -9,8 +9,23 @@ function MeaWidget_switch(name, group, type)
    this.toWidgetsJarAs(name, group, type);
    this.switchName = "switch";
 
+   this.automator_vars =  {
+      "val" : "",
+      "editor": {
+         "type":"combobox",
+         "options": {
+             panelMinWidth:300,
+             valueField:'name',
+             textField:'name',
+             groupField:'group',
+             method:'get',
+             url:'models/get_automator_variables.php'
+         }
+      }
+   };
+   this.params["values"]["value"] = this.automator_vars;
+//   this.params["values"]["value"]=true;
    this.params["variables"][this.switchName+"_value"]=true;
-   this.params["values"]["value"]=true;
    this.params["actions"][this.switchName] = '';
 }
 
