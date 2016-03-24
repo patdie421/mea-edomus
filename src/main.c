@@ -488,7 +488,7 @@ int main(int argc, const char * argv[])
 #define __MEA_DEBUG_ON__ 1
 #ifdef __MEA_DEBUG_ON__
    debug_on();
-   set_verbose_level(5);
+   set_verbose_level(10);
 #else
    debug_off();
    set_verbose_level(2);
