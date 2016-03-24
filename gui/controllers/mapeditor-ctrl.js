@@ -852,6 +852,22 @@ MapEditorController.prototype.loadFrom = function(s)
          _this.objid = _objid;
       if(zi > _this.current_zindex)
          _this.current_zindex=zi;
+
+      var l = $('#'+id+" [name]"); 
+      var name = $('#'+id).attr("name");
+      if(name !== false && name !== 'undefined')
+         l=l.add($('#'+id));
+
+      $.each(l, function() {
+         if(l.attr("mea_notooltip")!='true')
+         {
+            $(this).tooltip({
+               position: 'bottom',
+               showDelay: 1000,
+               content:"<span style='font-size:8px'>N/A</span>"
+            });
+         }
+      });
    });
 
    _this.automatorSendAllInputs();
@@ -1073,44 +1089,46 @@ MapEditorController.prototype._toEditMode = function()
 {
    var _this = this;
 
-      $('div[id^="Widget_"]').each(function(){
-         var data = $(this).prop('mea-widgetdata');
-         meaWidgetsJar[data[1].value].init(data[0].value, true);
-         meaWidgetsJar[data[1].value].disabled(data[0].value, true);
-         p = $(this);
-         p.draggable('enable');
-         var drag_zone = p.find('[class="mea_dragzone_for_resizable"]');
-         if(drag_zone.length)
-         {
-            p.draggable({ handle: drag_zone });
+   $('div[id^="Widget_"]').each(function(){
+      var data = $(this).prop('mea-widgetdata');
+      meaWidgetsJar[data[1].value].init(data[0].value, true);
+      meaWidgetsJar[data[1].value].disabled(data[0].value, true);
+      p = $(this);
+      p.draggable('enable');
+      var drag_zone = p.find('[class="mea_dragzone_for_resizable"]');
+      if(drag_zone.length)
+      {
+         p.draggable({ handle: drag_zone });
 
-            var resizable_params = {
-               onStartResize: function(e) { },
-               onResize: function(e) {
-               },
-               onStopResize: function(e) {
-                  var data   = $(this).prop('mea-widgetdata');
-                  var i=getValueIndex(data, "width");
-                  if(i)
-                     data[i]["value"]=p.width();
-                  i=getValueIndex(data, "height");
-                  if(i)
-                     data[i]["value"]=p.height();
-                  _this._updateProperties(data[0].value);
-               }
-            };
+         var resizable_params = {
+            onStartResize: function(e) { },
+            onResize: function(e) {
+            },
+            onStopResize: function(e) {
+               var data   = $(this).prop('mea-widgetdata');
+               var i=getValueIndex(data, "width");
+               if(i)
+                  data[i]["value"]=p.width();
+               i=getValueIndex(data, "height");
+               if(i)
+                  data[i]["value"]=p.height();
+               _this._updateProperties(data[0].value);
+            }
+         };
 
-            var i = getValueIndex(data, "minHeight");
-            if(i)
-               resizable_params['minHeight'] = data[i]["value"];
-            var i = getValueIndex(data, "minWidth");
-            if(i)
-               resizable_params['minWidth'] = data[i]["value"];;
+         var i = getValueIndex(data, "minHeight");
+         if(i)
+            resizable_params['minHeight'] = data[i]["value"];
+         var i = getValueIndex(data, "minWidth");
+         if(i)
+            resizable_params['minWidth'] = data[i]["value"];;
 
-            p.resizable(resizable_params);
-         }
-         $(this).bind('contextmenu', _this.open_widget_menu);
-      });
+         p.resizable(resizable_params);
+      }
+      $(this).bind('contextmenu', _this.open_widget_menu);
+
+      p.find("[name]").tooltip('destroy');
+   });
 };
 
 
@@ -1197,46 +1215,6 @@ MapEditorController.prototype._context_menu = function(action, w)
             _this.mapContextMenu.menu('setText', { target:item.target, text: 'to view mode'});
             _this.toolsPanel.window('open');
             _this._toEditMode();
-/*
-            $('div[id^="Widget_"]').each(function(){
-               var data = $(this).prop('mea-widgetdata');
-               meaWidgetsJar[data[1].value].init(data[0].value, true);
-               meaWidgetsJar[data[1].value].disabled(data[0].value, true);
-               p = $(this);
-               p.draggable('enable');
-               var drag_zone = p.find('[class="mea_dragzone_for_resizable"]');
-               if(drag_zone.length)
-               {
-                  p.draggable({ handle: drag_zone });
-
-                  var resizable_params = {
-                     onStartResize: function(e) { },
-                     onResize: function(e) {
-                     },
-                     onStopResize: function(e) {
-                        var data   = $(this).prop('mea-widgetdata');
-                        var i=getValueIndex(data, "width");
-                        if(i)
-                           data[i]["value"]=p.width();
-                        var i=getValueIndex(data, "height");
-                        if(i)
-                           data[i]["value"]=p.height();
-                        _this._updateProperties(data[0].value);
-                     }
-                  };
-
-                  var i = getValueIndex(data, "minHeight");
-                  if(i)
-                     resizable_params['minHeight'] = data[i]["value"];
-                  var i = getValueIndex(data, "minWidth");
-                  if(i)
-                     resizable_params['minWidth'] = data[i]["value"];;
-
-                  p.resizable(resizable_params);
-               }
-               $(this).bind('contextmenu', _this.open_widget_menu);
-            });
-*/
          }
          break;
    }
@@ -1628,7 +1606,41 @@ MapEditorController.prototype.__aut_listener=function(message)
    try {
       $.each(data, function(i,x) {
          var val=x["v"];
-//         console.log(i+" "+val+" "+x["t"]);
+
+         $.each(_this.map.find('[name="'+i+'"]'), function() {
+            var v = val;
+            var _formater = $(this).attr('mea_valueformater');
+            if(_formater) {
+               try {
+                  var str = meaFormaters[_formater](val, $(this));
+                  if(str!==false)
+                     v=str;
+               }
+               catch(e) { console.log( "meaFormater: "+e.message ); }
+            }
+
+            if($(this).is('label'))
+            {
+               $(this).text(v);
+            }
+            else if($(this).is('input'))
+            {
+               $(this).val(v);
+            }
+            else if($(this).is('div'))
+            {
+            }
+
+            if($(this).attr("mea_notooltip")!='true')
+            {
+               var t = "N/A";
+               if(val !== t)
+                  t = x["t"];
+               try { $(this).tooltip('update', "<span style='font-size:8px'>"+t+"</span>"); }  catch(e) { console.log("tooltip: "+e.message); };
+            }
+         });
+
+/*
          $.each(_this.map.find('label[name="'+i+'"]'), function() {
             var _formater = $(this).attr('mea_valueformater');
             if(_formater) {
@@ -1644,11 +1656,10 @@ MapEditorController.prototype.__aut_listener=function(message)
             }
             if($(this).attr("mea_notooltip")!='true')
             { 
-               $(this).tooltip({
-                  position: 'bottom',
-                  showDelay: 1000,
-                  content:"<span style='font-size:8px'>"+x["t"]+"</span>"
-               });
+               var t = "N/A";
+               if(val !== t)
+                  t = x["t"];
+               $(this).tooltip('update', "<span style='font-size:8px'>"+t+"</span>");
             }
          });
 
@@ -1666,11 +1677,10 @@ MapEditorController.prototype.__aut_listener=function(message)
             }
             if($(this).prop("mea_notooltip")!='true')
             {
-               $(this).tooltip({
-                  position: 'bottom',
-                  showDelay: 1000,
-                  content:"<span style='font-size:8px'>"+x["t"]+"</span>"
-               });
+               var t = "N/A";
+               if(val !== t)
+                  t = x["t"];
+               $(this).tooltip('update', "<span style='font-size:8px'>"+t+"</span>");
             }
          });
 
@@ -1683,16 +1693,17 @@ MapEditorController.prototype.__aut_listener=function(message)
             var t=$(this).attr("mea_notooltip");
             if($(this).attr("mea_notooltip")!='true')
             {
-               $(this).tooltip({
-                  position: 'bottom',
-                  showDelay: 1000,
-                  content:"<span style='font-size:8px'>"+x["t"]+"</span>"
-               });
+               var t = "N/A";
+               if(val !== t)
+                  t = x["t"];
+               $(this).tooltip('update', "<span style='font-size:8px'>"+t+"</span>");
             }
          });
+*/
       });
    }
    catch(ex) {
+      console.log(ex.message);
    }
 };
 
@@ -1746,7 +1757,7 @@ MapEditorController.prototype._loadWidgets = function(list, afterLoadCallback)
                   meaFormaters[i]=val;
                });
             });
-            p=accordion.accordion('select',0);
+            p=accordion.accordion('select', 0);
          
             if(afterLoadCallback != false) 
                afterLoadCallback(); 
@@ -1807,5 +1818,6 @@ MapEditorController.prototype.leaveViewCallback = function()
    this.widgetContextMenu.menu('destroy');
 
    $(".sp-container").remove();
+   $(".tooltip").remove();
 }
 
