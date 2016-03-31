@@ -39,7 +39,7 @@ RulesEditorController.prototype.start = function()
    });
    $("#"+_this.editordiv).height($("#"+_this.editorzone).height()-35);
 
-   $(document).on( "CenterResize", function( event, arg1, arg2 ) {
+   $(document).on( "MeaCenterResize", function( event, arg1, arg2 ) {
       setTimeout( function() {
          $("#"+_this.editordiv).height($("#"+_this.editorzone).height()-35);
          _this.editor.resize();

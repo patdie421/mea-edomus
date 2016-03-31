@@ -296,7 +296,7 @@ MeaWidget_gauge.prototype.getHtmlIcon = function()
 {
    var _this = this;
 
-   var html="<div id='"+_this.type+"' class='drag' style='width: 50px; height: 50px; background:rgb(180, 95, 6);'></div>";
+   var html="<div id='"+_this.type+"' class='drag' style='width: 80px; height: 80px; background:rgb(6, 180, 95);'></div>";
 
    return html;
 }

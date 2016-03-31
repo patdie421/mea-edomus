@@ -111,7 +111,7 @@ MeaWidget_slider.prototype.getHtmlIcon = function()
 {
    var _this = this;
 
-   var html="<div id='"+_this.type+"' class='drag' style='width: 50px; height: 50px; background-image: url(\"/widgets/slider1.png\");'></div>";
+   var html="<div id='"+_this.type+"' class='drag' style='width: 80px; height: 80px; background-image: url(\"/widgets/slider1.png\");'></div>";
    return html;
 }
 

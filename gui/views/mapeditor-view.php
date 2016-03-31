@@ -16,6 +16,7 @@ if($isadmin !=0 && $isadmin != 98) : ?>
    exit(1);
 endif;
 ?>
+<script type="text/javascript" src="controllers/map-ctrl.js"></script>
 <script type="text/javascript" src="controllers/mapeditor-ctrl.js"></script>
 <style type="text/css">
 .drag {
@@ -32,8 +33,8 @@ endif;
 }
 .widgetIcon{
    float:left;
-   width:50px;
-   height:50px;
+   width:80px;
+   height:80px;
    margin:2px;
    border:1px solid red;
    overflow:hidden;
@@ -45,7 +46,8 @@ jQuery(document).ready(function() {
    ctrlr_mapEditor = new MapEditorController(
       "panel_me",
       "map_me",
-      "properties_win_me",
+      "widgets_container_me",
+      "widgetsPanel_win_me",
       "actions_win_me",
       "new_win_me",
       "map_cm_me",
@@ -113,20 +115,23 @@ jQuery(document).ready(function() {
 </script>
 <div class="easyui-panel" style="position:absolute;width:100%;height:100%;overflow:hidden" data-options="border:false">
    <div id="panel_me" class="scrolling" style="position:absolute;width:100%;height:100%;overflow:scroll;background:#EEEEEE">
+<!--
       <div id="map_me" style="width:1920px;height:1080px;position:relative;overflow:auto;border:1px solid #555555;background:#FFFFFF">
+-->
+      <div id="map_me" style="width:1920px;height:1080px;position:relative;overflow:auto;background:#FFFFFF">
       </div>
-      <div id="widgets_container" style="display:none">
+      <div id="widgets_container_me" style="display:none">
       </div>
    </div>
 
 
 <div id="map_cm_me" class="easyui-menu" style="width:180px;display:hidden;">
-   <div id="map_cm_me_mode" name="toggle" onclick="javascript:ctrlr_mapEditor._context_menu('toggle')">to view mode</div>
+   <div id="map_cm_me_mode" name="toggle" onclick="javascript:ctrlr_mapEditor._context_menu('toggle')"><?php mea_toLocalC('to view mode');?></div>
    <div class="menu-sep"></div>
    <div>
-      <span>grid</span>
+      <span><?php mea_toLocalC('grid');?></span>
       <div style="width:180px">
-         <div onclick="javascript:ctrlr_mapEditor._context_menu('gridnone')">none</div>
+         <div onclick="javascript:ctrlr_mapEditor._context_menu('gridnone')"><?php mea_toLocalC('none');?></div>
          <div onclick="javascript:ctrlr_mapEditor._context_menu('grid5x5')">5 x 5</div>
          <div onclick="javascript:ctrlr_mapEditor._context_menu('grid10x10')">10 x 10</div>
          <div onclick="javascript:ctrlr_mapEditor._context_menu('grid20x20')">20 x 20</div>
@@ -134,41 +139,41 @@ jQuery(document).ready(function() {
       </div>
    </div>
    <div>
-      <span>background</span>
+      <span><?php mea_toLocalC('background');?></span>
       <div style="width:180px">
          <div id="spectrum1">color</div>
-         <div onclick="javascript:ctrlr_mapEditor._context_menu('backgroundi')">image</div>
+         <div onclick="javascript:ctrlr_mapEditor._context_menu('backgroundi')"><?php mea_toLocalC('image');?></div>
       </div>
    </div>
 
    <div class="menu-sep"></div>
    <div>
-      <span>map</span>
+      <span><?php mea_toLocalC('map');?></span>
       <div style="width:180px">
-         <div onclick="javascript:ctrlr_mapEditor._context_menu('new', 'new_win_me')">new</div>
-         <div onclick="javascript:ctrlr_mapEditor._context_menu('load')">load</div>
-         <div onclick="javascript:ctrlr_mapEditor._context_menu('save')">save</div>
-         <div onclick="javascript:ctrlr_mapEditor._context_menu('saveas')">save as</div>
+         <div onclick="javascript:ctrlr_mapEditor._context_menu('new', 'new_win_me')"><?php mea_toLocalC('new');?></div>
+         <div onclick="javascript:ctrlr_mapEditor._context_menu('load')"><?php mea_toLocalC('load');?></div>
+         <div onclick="javascript:ctrlr_mapEditor._context_menu('save')"><?php mea_toLocalC('save');?></div>
+         <div onclick="javascript:ctrlr_mapEditor._context_menu('saveas')"><?php mea_toLocalC('save as');?></div>
          <div class="menu-sep"></div>
-         <div onclick="javascript:ctrlr_mapEditor._context_menu('delete')">delete</div>
+         <div onclick="javascript:ctrlr_mapEditor._context_menu('delete')"><?php mea_toLocalC('delete');?></div>
       </div>
    </div>
 </div>
 
 
 <div id="widget_cm_me" class="easyui-menu" style="width:120px;display:hidden">
-   <div onclick="javascript:ctrlr_mapEditor._widget_menu('properties')">properties</div>
+   <div onclick="javascript:ctrlr_mapEditor._widget_menu('properties')"><?php mea_toLocalC('properties');?></div>
    <div class="menu-sep"></div>
-   <div onclick="javascript:ctrlr_mapEditor._widget_menu('delete')">remove</div>
+   <div onclick="javascript:ctrlr_mapEditor._widget_menu('delete')"><?php mea_toLocalC('remove');?></div>
    <div class="menu-sep"></div>
-   <div onclick="javascript:ctrlr_mapEditor._widget_menu('background')">background</div>
-   <div onclick="javascript:ctrlr_mapEditor._widget_menu('backward')">backward</div>
-   <div onclick="javascript:ctrlr_mapEditor._widget_menu('forward')">forward</div>
-   <div onclick="javascript:ctrlr_mapEditor._widget_menu('forground')">forground</div>
+   <div onclick="javascript:ctrlr_mapEditor._widget_menu('background')"><?php mea_toLocalC('background');?></div>
+   <div onclick="javascript:ctrlr_mapEditor._widget_menu('backward')"><?php mea_toLocalC('backward');?></div>
+   <div onclick="javascript:ctrlr_mapEditor._widget_menu('forward')"><?php mea_toLocalC('forward');?></div>
+   <div onclick="javascript:ctrlr_mapEditor._widget_menu('forground')"><?php mea_toLocalC('forground');?></div>
 </div>
 
 
-<div id='widgetsPanel_win_me' class='easyui-window win_me' title='Widgets' style='width:210px;height:500px'>
+<div id='widgetsPanel_win_me' class='easyui-window win_me' title='Widgets' style='width:190px;height:500px'>
    <div id='panel_widgetsPanel_win_me' style='width:100%;height:100%;position:relative;overflow:auto'>
       <div id='accordion_widgetsPanel_win_me' class='easyui-accordion' style='width:100%;height:100%;'>
       </div>
@@ -188,7 +193,7 @@ jQuery(document).ready(function() {
       <tr>
          <td align="center" colspan="3">
             <select id="select_new_win_me" class="easyui-combobox" style="width:160px;" data-options="editable:false">
-               <option value='custom'>custom</option>
+               <option value='custom'><?php mea_toLocalC('custom');?></option>
                <option value='{"width":"1024", "height":"768"}'>1024 x 768</option>
                <option value='{"width":"1280", "height":"720"}'>1280 x 720 (720 p/i)</option>
                <option value='{"width":"1920", "height":"1080"}'>1920 x 1080 (1080 p/i)</option>
@@ -200,9 +205,9 @@ jQuery(document).ready(function() {
       </tr>
 
       <tr>
-         <td align="center">width</td>
+         <td align="center"><?php mea_toLocalC('width');?></td>
          <td></td>
-         <td align="center">height</td>
+         <td align="center"><?php mea_toLocalC('height');?></td>
       </tr>
 
       <tr>
@@ -222,9 +227,9 @@ jQuery(document).ready(function() {
 <div id="actions_win_me" class="easyui-window win_me" style="position:relative;width:500px;height:360px;overflow:hidden" data-options="title:'xPL send parameters',modal:true,closed:true,footer:'#ft_action_win_me'">
    <table cellpadding="5" style="width:100%">
       <tr>
-         <td align="center">Name</td>
+         <td align="center"><?php mea_toLocalC('name');?></td>
          <td></td>
-         <td align="center">Value</td>
+         <td align="center"><?php mea_toLocalC('value');?></td>
       </tr>
       <tr>
          <td align="center">

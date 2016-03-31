@@ -43,6 +43,12 @@ else if($type=='map')
    $subpath="maps";
    $extention="map";
 }
+else if($type=='menu')
+{
+   $param="GUIPATH";
+   $subpath="maps";
+   $extention="menu";
+}
 else
 {
    echo json_encode(array('iserror'=>true, "result"=>"KO", "errno"=>3, "errMsg"=>"type unknown" ));

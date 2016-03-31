@@ -199,7 +199,7 @@ RulesManagerController.prototype.start = function()
 
    $("#"+_this.panel).height($("#"+_this.zone).height()-35);
 
-   $(document).on( "CenterResize", function( event, arg1, arg2 ) {
+   $(document).on( "MeaCenterResize", function( event, arg1, arg2 ) {
       setTimeout( function() {
          $("#"+_this.panel).panel('resize',{
             height: $("#"+_this.zone).height()-35,
@@ -215,7 +215,8 @@ RulesManagerController.prototype.start = function()
       $("#"+_this.panel).panel('resize',{
          height: $("#"+_this.zone).height()-35,
          width: $("#"+_this.zone).width() });
-      ctrlr_rulesManager.refresh();
+      //ctrlr_rulesManager.refresh();
+      _this.refresh();
    });
 
 
@@ -247,7 +248,8 @@ RulesManagerController.prototype._domenu = function(action)
    {
       case 'new':
          _this.current_file=false;
-         $('#'+_this.sources_selected).empty();
+         //$('#'+_this.sources_selected).empty();
+         $('#'+_this.sources_selected).datalist({data:[]});
          _this.load_sources(_this.sources_to_select, function() {}, function() {});
          break;
       case 'save':
@@ -363,30 +365,6 @@ RulesManagerController.prototype.update_select = function()
    });
 }
 
-/*
-RulesManagerController.prototype.load_select = function(_selectid, _type, after_load, on_error)
-{
-   $.get("models/get_files_list.php", { type: _type }, function(response) {
-      if(response.iserror === false)
-      {
-         $('#'+_selectid).empty();
-         for(var i in response.values)
-            $('#'+_selectid).append(new Option(response.values[i].slice(0, -(_type.length+1)), i));
-         after_load();
-      }
-      else
-      {
-         on_error();
-      }
-   }).done(function() {
-   }).fail(function(jqXHR, textStatus, errorThrown) {
-      $.messager.show({
-         title:_this._toLocalC('error')+_this._localDoubleDot(),
-         msg: _this._toLocalC("communication error")+' ('+textStatus+')'
-      });
-   });
-};
-*/
 
 RulesManagerController.prototype.load_datalist = function(_selectid, _type, after_load, on_error)
 {

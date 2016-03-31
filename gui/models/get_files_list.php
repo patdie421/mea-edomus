@@ -76,6 +76,12 @@ else if($type=='map')
    $subpath="maps";
    $extentions=array("map");
 }
+else if($type=='menu')
+{
+   $param="GUIPATH";
+   $subpath="maps";
+   $extentions=array("menu");
+}
 else if($type=='img')
 {
    $param="GUIPATH";

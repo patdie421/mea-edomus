@@ -70,6 +70,7 @@ if(!isset($_SESSION['logged_in']))
 <script type="text/javascript" src="controllers/common/filechoosercontroller.js"></script>
 <script type="text/javascript" src="controllers/common/filechooseruploadercontroller.js"></script>
 <script type="text/javascript" src="controllers/common/permmemcontroller.js"></script>
+<script type="text/javascript" src="controllers/common/orderedFileslistselector.js"></script>
 
 <script type="text/javascript" src="widgets/meawidget.js"></script>
 
@@ -111,6 +112,7 @@ function liveComUnavailable(destview)
    viewsController.addView(translationController.toLocalC('rules editor'),'page4.php','page4_tab');
    viewsController.addView(translationController.toLocalC('rules manager'),'page4.php','page4_tab');
    viewsController.addView(translationController.toLocalC('map editor'),'page4.php','page4_tab');
+   viewsController.addView(translationController.toLocalC('maps set editor'),'page4.php','page4_tab');
 
    if(destview=="" || typeof(viewController.views[destview])=="undefined")
       destview=translationController.toLocalC('sensors/actuators');
@@ -137,6 +139,7 @@ function liveComAvailable(s,destview)
    viewsController.addView(translationController.toLocalC('rules editor'),'page4.php','page4_tab');
    viewsController.addView(translationController.toLocalC('rules manager'),'page4.php','page4_tab');
    viewsController.addView(translationController.toLocalC('map editor'),'page4.php','page4_tab');
+   viewsController.addView(translationController.toLocalC('maps set editor'),'page4.php','page4_tab');
 
    if(destview=="" || typeof(viewsController.views[destview])=="undefined")
       destview=translationController.toLocalC('indicators');
@@ -211,10 +214,10 @@ jQuery(document).ready(function() {
          function() {liveComUnavailable(destview);}
    );
 
-
+   // propagation d'évenement sur le paneau central
    $('#mea-layout').layout('panel','center').panel({
       onResize: function() {
-         $(document).trigger( "CenterResize", [ "", "" ] );
+         $(document).trigger( "MeaCenterResize", [ "", "" ] );
       },
       onBeforeLoad: function() {
          $(document).trigger( "MeaCleanView", [ "", "" ] );
@@ -275,6 +278,7 @@ a.meamenu:hover {
                   <div><a href="#" class="meamenu" onclick="javascript:viewsController.displayView(translationController.toLocalC('rules manager'),'page4.php','page4_tab')"><?php mea_toLocalC('rules manager'); ?></a></div>
                   <div><a href="#" class="meamenu" onclick="javascript:viewsController.displayView(translationController.toLocalC('rules editor'),'page4.php','page4_tab')"><?php mea_toLocalC('rules editor'); ?></a></div>
                   <div><a href="#" class="meamenu" onclick="javascript:viewsController.displayView(translationController.toLocalC('map editor'),'page4.php','page4_tab')"><?php mea_toLocalC('map editor'); ?></a></div>
+                  <div><a href="#" class="meamenu" onclick="javascript:viewsController.displayView(translationController.toLocalC('maps set editor'),'page4.php','page4_tab')"><?php mea_toLocalC('maps set editor'); ?></a></div>
                </div>
 
                <div title="<?php mea_toLocalC('preferences'); ?>" style="overflow:auto;padding:10px;">

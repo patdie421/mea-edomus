@@ -21,55 +21,35 @@ $.fn.datagrid.defaults.editors.empty = {
 };
 
 
-function getValueIndex(data, n) {
-   var found = false;
+extendClass(MapEditorController, MapController);
 
-   $.each(data, function(i, val) {
-      if(val.name == n) {
-         found = i;
-         return false;
-      }
-   });
-
-   if(found !== false)
-      return found;
-   else
-      return false;
-}
-
-
-function MapEditorController(container, map, propertiesPanel, actionPanel, newPanel, mapContextMenu, widgetContextMenu)
+function MapEditorController(container, map, widgets_container, widgetsPanelWin, actionPanel, newPanel, mapContextMenu, widgetContextMenu)
 {
-   MapEditorController.superConstructor.call(this);
+   MapEditorController.superConstructor.call(this, container, map, widgets_container, mapContextMenu);
 
-   this.container =         $('#'+container);
-   this.map =               $('#'+map);
+//   this.propertiesPanel =   $('#'+propertiesPanel);
    this.actionPanel =       $('#'+actionPanel);
    this.newPanel =          $('#'+newPanel);
-   this.propertiesPanel =   $('#'+propertiesPanel);
-   this.mapContextMenu =    $('#'+mapContextMenu);
    this.widgetContextMenu = $('#'+widgetContextMenu);
+
+   this.widgetPanelWinId =  widgetsPanelWin;
 
    this.toolsPanel = false;
    this.toolsPanelState = 'closed';
    this.propertiesPanelState = 'closed';
 
-   this.current_file=false;
    this.ctrlr_filechooser = new FileChooserController("#"+container);
    this.ctrlr_fileuploaderchooser = new FileChooserUploaderController("#"+container);
 
    this.saved = {};
 
-   this.imagepath = '/images';
-   this.bgimage = false;
-   this.bgcolor = false;
-
    this.current_zindex=this.max_zIndex(map);
+   this.objid = 10;
+
    this.grid = 10;
    this.mea_mouse_x = -1;
    this.mea_mouse_y = -1;
    this.dragDropEntered = false;
-   this.objid = 10;
    this.timeout = false;
    this.resize_in_progress = false; 
    this.mapState = 'edit';
@@ -112,10 +92,11 @@ function MapEditorController(container, map, propertiesPanel, actionPanel, newPa
          var offset = _this.map.offset();
          var l      = d.left - offset.left - 1;
          var t      = d.top - offset.top - 1;
+//         var l      = d.left - offset.left + 1;
+//         var t      = d.top - offset.top;
 
          data[2].value = l;
          data[3].value = t;
-//         data[4].value = ++_this.current_zindex;
 
          var  p = _this.createFromWidgetdata(data, true);
          p.draggable('enable');
@@ -177,14 +158,12 @@ function MapEditorController(container, map, propertiesPanel, actionPanel, newPa
    _this.widgetsPanel_init();
 }
 
-extendClass(MapEditorController, CommonController);
-
 
 MapEditorController.prototype.widgetsPanel_init = function()
 {
    var _this = this;
 
-   var widgetsPanelId = "widgetsPanel_win_me";
+   var widgetsPanelId = _this.widgetPanelWinId;
    $('#accordion_'+widgetsPanelId).accordion({
       fit: true,
       animate:false,
@@ -238,6 +217,8 @@ MapEditorController.prototype.widgetsPanel_init = function()
          var type=$(source).attr("id");
          var l=$("#"+type+"_drag").offset().left-1;
          var t=$("#"+type+"_drag").offset().top-1;
+//         var l=$("#"+type+"_drag").offset().left+1;
+//         var t=$("#"+type+"_drag").offset().top;
          var zi=++_this.current_zindex;
          var newid = "Widget_"+type+"_"+_this.objid;
          var offset = _this.map.offset();
@@ -288,7 +269,6 @@ MapEditorController.prototype.widgetsPanel_init = function()
          _this._updateProperties(newid);
 
          meaWidgetsJar[type].init(newid); 
-//         meaWidgetsJar[type].disabled(newid, true); 
 
          $(this).removeClass('over');
          $(this).addClass('notover');
@@ -334,29 +314,32 @@ MapEditorController.prototype.propertiesPanel_init = function()
    _this.propertiesPanel.append("<DIV id='div_properties' style='width:100%;height:auto;position:relative'><TABLE id='tbl_properties' style='width:100%'></TABLE></DIV>");
    _this.propertiesTbl = $("#tbl_properties");
    _this.propertiesTbl.propertygrid({
+
       columns:[[
                {field:'name', title:'name', width:150, sortable:false},
                {field:'value', title:'value', width: 250, formatter:
                   function(value,row,index) {
+                     // pour un affichage propre par rapport à la grille (oui je sais c'est de la triche ...)
+                     if(row.name==="x")
+                        return value+2;
+                     if(row.name==="y")
+                        return value+1;
+                     // fin pour affichage propre ...
                      try
                      {
                         var v = JSON.parse(value);
-
                         if(typeof(v.text2) !== 'undefined')
-                        {
                            return v.text2;
-                        }
                         else if(typeof(v.text) !== 'undefined')
-                        {
                            return v.text;
-                        }
                      }
-                     catch(e) {}
+                     catch(e) { }
 
                      return value;
                   }
                }
               ]],
+
       showGroup:true,
       border:false,
       scrollbarSize:0,
@@ -586,11 +569,6 @@ MapEditorController.prototype.propertiesPanel_init = function()
                {
                   row.value="";
                   $(__this).propertygrid('updateRow',{ index: index, row: row  });
-/*
-                  var data=$(__this).propertygrid('getData');
-                  data.rows[index].value="";
-                  $(__this).propertygrid('loadData',data);
-*/
                }
             }
          }
@@ -677,6 +655,8 @@ MapEditorController.prototype.start = function()
 {
    var _this = this;
 
+   _this.createWidgetsPanel();
+
    var state = permMemController.get("mapEditor_state");
    if(state != false) {
       _this.mapState = state;
@@ -689,8 +669,16 @@ MapEditorController.prototype.start = function()
          _this.current_file = current_file;
    }
 
+   var item = _this.mapContextMenu.menu('getItem', $('#'+_this.mapContextMenu.attr('id')+'_mode')[0]);
    if(_this.mapState == 'edit')
+   {
+      _this.mapContextMenu.menu('setText', { target: item.target, text: _this._toLocalC('to view mode') });
       _this._toEditMode();
+   }
+   else
+   {
+      _this.mapContextMenu.menu('setText', { target: item.target, text: _this._toLocalC('to edition mode') });
+   }
 
    $(document).on("MeaCleanView", _this.cleanexit);
 
@@ -724,11 +712,13 @@ MapEditorController.prototype._cleanexit = function()
 
    $(document).off("MeaCleanView", _this.cleanexit);
 
-   var evnt = "unactivatetab_" + translationController.toLocalC('map editor');
+//   var evnt = "unactivatetab_" + translationController.toLocalC('map editor');
+   var evnt = "unactivatetab_" + _this.toLocalC('map editor');
    evnt=evnt.replace(/[^a-zA-Z0-9]/g,'_');
    $(document).off(evnt);
 
-   var evnt = "activatetab_" + translationController.toLocalC('map editor');
+//   var evnt = "activatetab_" + translationController.toLocalC('map editor');
+   var evnt = "activatetab_" + _this.toLocalC('map editor');
    evnt=evnt.replace(/[^a-zA-Z0-9]/g,'_');
    $(document).off(evnt);
 
@@ -740,6 +730,12 @@ MapEditorController.prototype._cleanexit = function()
    _this.newPanel.window('destroy');
    _this.actionPanel.window('close');
    _this.actionPanel.window('destroy');
+
+   this.mapContextMenu.menu('destroy');
+   this.widgetContextMenu.menu('destroy');
+
+   $(".sp-container").remove();
+   $(".tooltip").remove();
 
    return true;
 }
@@ -799,144 +795,6 @@ MapEditorController.prototype.createFromWidgetdata = function(obj, d)
 }
 
 
-MapEditorController.prototype.loadFrom = function(s)
-{
-   var _this = this;
-
-   if(_this.mapState != 'edit')
-   {
-      _this.propertiesPanel.window('close');
-      _this.toolsPanel.window('close');
-   }
-
-   $('div[id^="Widget_"]').each(function(){
-      $(this).empty();
-      $(this).remove();
-   });
-
-   _this.map.css("background", '');
-   _this.map.css("background-size", '');
-
-   _this.map.width(s['width']);
-   _this.map.height(s['height']);
-   _this.bgimage=s['bgimage'];
-    if(s['grid'])
-      _this.grid=s['grid'];
-
-   if(s['bgcolor'])
-      _this.bgcolor=s['bgcolor'];
-   else
-      _this.bgcolor="#FFFFFF";
-   _this.map.css("background-color", _this.bgcolor);
-
-   if(_this.bgimage)
-   {
-      _this.map.css("background", "url('"+_this.imagepath+"/"+_this.bgimage+"') no-repeat");
-      _this.map.css("background-size", "cover");
-   }
-
-   _this.objid=0;
-   _this.current_zindex=0;
-   $.each(s['widgets'], function(i, obj) {
-      var id   = obj[0].value;
-      var zi   = obj[4].value;
-
-      _this.createFromWidgetdata(obj, false);
-
-      var _objid = id.match(/\d+$/);
-      if(_objid)
-         _objid=parseInt(_objid[0]);
-      else
-         _objid=0;
-      if(_objid > _this.objid)
-         _this.objid = _objid;
-      if(zi > _this.current_zindex)
-         _this.current_zindex=zi;
-
-      var l = $('#'+id+" [name]"); 
-      var name = $('#'+id).attr("name");
-      if(name !== false && name !== 'undefined')
-         l=l.add($('#'+id));
-
-      $.each(l, function() {
-         if(l.attr("mea_notooltip")!='true')
-         {
-            $(this).tooltip({
-               position: 'bottom',
-               showDelay: 1000,
-               content:"<span style='font-size:8px'>N/A</span>"
-            });
-         }
-      });
-   });
-
-   _this.automatorSendAllInputs();
-}
-
-
-MapEditorController.prototype.load_map = function(name, type, checkflag)
-{
-   var _this = this;
-   saved = false;
-   var __load_map = function(name, type, checkflag)
-   {
-      _this.current_file=name;
-      if(checkflag === true)
-         return;
-
-      $.get("models/get_file.php", { type: type, name: name }, function(response) {
-         if(response.iserror===false)
-         {
-            try {
-               var item = _this.mapContextMenu.menu('getItem', $('#'+_this.mapContextMenu.attr('id')+'_mode')[0]);
-               _this.mapState = 'view';
-               _this.mapContextMenu.menu('setText', { target: item.target, text: 'to edition mode'});
-
-               _this.loadFrom(JSON.parse(response.file));
-
-            }
-            catch(e) {};
-         }
-         else
-         {
-            console.log(JSON.stringify(response));
-         }
-      }).done(function() {
-      }).fail(function(jqXHR, textStatus, errorThrown) {
-         $.messager.show({
-            title:_this._toLocalC('error')+_this._localDoubleDot(),
-            msg: _this._toLocalC("communication error")+' ('+textStatus+')'
-         });
-      });
-   }
-
-   var map = __load_map(name, type, checkflag);
-
-   return map;
-};
-
-
-MapEditorController.prototype.automatorSendAllInputs = function()
-{
-   var _this = this;
-
-   $.post("CMD/automator.php", { cmnd: "sendallinputs" }, function(response) {
-      if(response.iserror===false)
-      {
-      }
-      else
-      {
-      }
-   }).done(function() {
-   }).fail(function(jqXHR, textStatus, errorThrown) {
-      $.messager.show({
-         title:_this._toLocalC('error')+_this._localDoubleDot(),
-         msg: _this._toLocalC("communication error")+' ('+textStatus+')'
-      });
-   });
-}
-
-
 MapEditorController.prototype.save_map = function(name, type, checkflag)
 {
    var _this = this;
@@ -990,18 +848,16 @@ MapEditorController.prototype._delete_map = function(name, type)
     });
 }
 
-
-function isNormalInteger(str) {
-    return /^\+?(0|[1-9]\d*)$/.test(str);
-}
-
-
-MapEditorController.prototype.newMap = function() {
+MapEditorController.prototype.new_map = function() {
    var _this = this;
 
    var newWin = _this.newPanel;
    var newWinId = newWin.attr('id');
    var map =  _this.map;
+
+   function isNormalInteger(str) {
+      return /^\+?(0|[1-9]\d*)$/.test(str);
+   }
 
    $("#input_width_"+newWinId).textbox({disabled: false});
    $("#input_height_"+newWinId).textbox({disabled: false});
@@ -1028,8 +884,6 @@ MapEditorController.prototype.newMap = function() {
 
       var w = $("#input_width_"+newWinId).textbox("getText");
       var h = $("#input_height_"+newWinId).textbox("getText");
-
-//      console.log(w+" x "+h);
 
       if(!isNormalInteger(w) || !isNormalInteger(h))
          return;
@@ -1067,7 +921,7 @@ MapEditorController.prototype.newMap = function() {
 
      var item = _this.mapContextMenu.menu('getItem', $('#'+_this.mapContextMenu.attr('id')+'_mode')[0]);
      _this.mapState = 'edit';
-     _this.mapContextMenu.menu('setText', { target:item.target, text: 'to view mode'});
+     _this.mapContextMenu.menu('setText', { target:item.target, text: _this._toLocalC('to view mode') });
      _this.toolsPanel.window('open');
 
      newWin.window('close');
@@ -1159,7 +1013,7 @@ MapEditorController.prototype._context_menu = function(action, w)
          break;
 
       case 'new':
-         _this.newMap(w);
+         _this.new_map(w);
          break;
 
       case 'backgroundi':
@@ -1168,8 +1022,13 @@ MapEditorController.prototype._context_menu = function(action, w)
          break;
 
       case 'load':
+         _this.mapState = 'view';
          var __load_map = _this.load_map.bind(_this);
          _this.ctrlr_filechooser.open(_this._toLocalC("choose map ..."), _this._toLocalC("load")+_this._localDoubleDot(), _this._toLocalC("load"), _this._toLocalC("cancel"), "map", true, true, _this._toLocalC("file does not exist, new file ?"), __load_map);
+         _this.propertiesPanel.window('close');
+         _this.toolsPanel.window('close');
+         var item = _this.mapContextMenu.menu('getItem', $('#'+_this.mapContextMenu.attr('id')+'_mode')[0]);
+         _this.mapContextMenu.menu('setText', { target: item.target, text: 'to edition mode'});
          break;
 
       case 'save':
@@ -1202,7 +1061,7 @@ MapEditorController.prototype._context_menu = function(action, w)
 
          if(_this.mapState == 'edit') {
             _this.mapState = 'view';
-            _this.mapContextMenu.menu('setText', { target: item.target, text: 'to edition mode' });
+            _this.mapContextMenu.menu('setText', { target: item.target, text: _this._toLocalC('to edition mode') });
             var _tmp = {};
             _this.toolsPanel.window('close');
             _this.propertiesPanel.window('close');
@@ -1212,7 +1071,7 @@ MapEditorController.prototype._context_menu = function(action, w)
          }
          else {
             _this.mapState = 'edit';
-            _this.mapContextMenu.menu('setText', { target:item.target, text: 'to view mode'});
+            _this.mapContextMenu.menu('setText', { target:item.target, text: _this._toLocalC('to view mode') });
             _this.toolsPanel.window('open');
             _this._toEditMode();
          }
@@ -1372,6 +1231,64 @@ MapEditorController.prototype._constrain = function(e, drag, model)
    var t_min = offset.top;
 
    var l_max = 0;
+   if(_this.container.width() <= _this.map.width())
+      l_max = _this.container.width()+offset.left;
+   else
+      l_max = _this.map.width()+offset.left;
+
+   var t_max = 0;
+   if(_this.container.height() <= _this.map.height())
+      t_max = _this.container.height()+offset.top;
+   else
+      t_max = _this.map.height()+offset.top;
+
+   clearTimeout(_this.timeout);
+
+   if (d.left < l_min)
+   {
+      _this.container.scrollLeft(_this.container.scrollLeft() - 25);
+      _this.timeout=setTimeout(_this.scroll, 50);
+      d.left = offset.left;
+   }
+
+   if (d.top < t_min)
+   {
+      _this.container.scrollTop(_this.container.scrollTop() - 25);
+      _this.timeout=setTimeout(_this.scroll, 50);
+      d.top = offset.top;
+   }
+
+   if (d.left + model.width() > l_max)
+   {
+      _this.container.scrollLeft(_this.container.scrollLeft() + 25);
+      _this.timeout=setTimeout(_this.scroll, 50);
+      d.left = l_max - model.width();
+   }
+
+   if (d.top + model.height() > t_max)
+   {
+      _this.container.scrollTop(_this.container.scrollTop() + 25);
+      _this.timeout=setTimeout(_this.scroll, 150);
+      d.top = t_max - model.height();
+   }
+
+   d.top = _this.repair(d.top);
+   d.left = _this.repair(d.left);
+}
+
+/*
+MapEditorController.prototype._constrain = function(e, drag, model)
+{
+   var _this = this;
+
+   var d = e.data;
+   var offset = _this.container.offset();
+   var offset_map = _this.map.offset();
+
+   var l_min = offset.left;
+   var t_min = offset.top;
+
+   var l_max = 0;
    if(_this.container.outerWidth() <= _this.map.outerWidth())
       l_max = _this.container.outerWidth()+offset.left;
    else
@@ -1416,7 +1333,7 @@ MapEditorController.prototype._constrain = function(e, drag, model)
    d.top = _this.repair(d.top);
    d.left = _this.repair(d.left);
 }
-
+*/
 
 MapEditorController.prototype._getmousepos_handler = function( event ) {
    var _this = this;
@@ -1447,7 +1364,8 @@ MapEditorController.prototype.open_widget_menu = function(e)
    if(!id)
       id = $(_this).attr('id');
 
-   _me._open_widget_menu(id, e.pageX, e.pageY);
+   if(_me)
+      _me._open_widget_menu(id, e.pageX, e.pageY);
 
    return false;
 }
@@ -1465,44 +1383,76 @@ MapEditorController.prototype._open_context_menu = function(e)
 }
 
 
-MapEditorController.prototype.addWidget = function(type)
+MapEditorController.prototype.createWidgetsPanel = function()
 {
    var _this = this;
 
-   $("#"+type).draggable({
-      proxy: function(source) {
-         var p = $("#"+type+"_model").clone().attr('id', type+'_drag');
-         $(p).css("z-index", 999999);
-         p.appendTo('body');
-         
-         return p;
-      },
-      revert:true,
-      cursor:'auto',
+   var accordion = $('#accordion_'+_this.toolsPanel.attr('id'));
 
-      onDrag: function(e) {
-         if(_this.dragDropEntered === true) {
-            var id=$(e.data.target).attr('id');
-            _this.constrain(e, $("#"+id+"_drag"), $("#"+id+"_model"));
-         }
-      },
-
-      onStopDrag: function(e) {
-         var __this = this; 
-
-         $(__this).draggable('options').cursor='auto';
-         $('body').unbind('mousemove',  _this.getmousepos_handler);
-      },
-
-      onStartDrag:function(e){
-         var __this = this;
-         meaWidgetsJar[type].init(type+'_drag');
-         $(__this).draggable('options').cursor='not-allowed';
-         $(__this).draggable('proxy').addClass('dp');
-         $('body').mousemove(_this.getmousepos_handler);
-         _this.dragDropEntered = false;
+   $.each(meaWidgetsJar, function(i,obj) {
+      var p = accordion.accordion('getPanel', obj.getGroup());
+      if(!p) {
+         accordion.accordion('add', {
+            title: obj.getGroup(),
+            content: "<div id='grp_"+obj.getGroup()+"'></div>",
+            selected: false
+         });
+         p = accordion.accordion('getPanel', obj.getGroup());
       }
+      p.append("<div id='_tip_"+obj.getType()+"'class='widgetIcon'>"+obj.getHtmlIcon()+"</div>");
+      var style = obj.getStyle();
+      if(style)
+         _this.widgets_container.append("<style>"+style+"</style>");
+
+      if(obj.getTip()!==false) {
+         $('#_tip_'+obj.getType()).tooltip({position: 'right',
+            content: '<span style="color:#fff">'+obj.getTip()+'</span>',
+            onShow: function(){
+               $(this).tooltip('tip').css({
+                  backgroundColor: '#666',
+                  borderColor: '#666'
+               });
+            }
+         });
+      }
+
+      var type = obj.getType();
+      $("#"+type).draggable({
+         proxy: function(source) {
+            var p = $("#"+type+"_model").clone().attr('id', type+'_drag');
+            $(p).css("z-index", 999999);
+            p.appendTo('body');
+
+            return p;
+         },
+         revert:true,
+         cursor:'auto',
+
+         onDrag: function(e) {
+            if(_this.dragDropEntered === true) {
+               var id=$(e.data.target).attr('id');
+               _this.constrain(e, $("#"+id+"_drag"), $("#"+id+"_model"));
+            }
+         },
+
+         onStopDrag: function(e) {
+            var __this = this;
+
+            $(__this).draggable('options').cursor='auto';
+            $('body').unbind('mousemove',  _this.getmousepos_handler);
+         },
+
+         onStartDrag:function(e){
+            var __this = this;
+            meaWidgetsJar[type].init(type+'_drag');
+            $(__this).draggable('options').cursor='not-allowed';
+            $(__this).draggable('proxy').addClass('dp');
+            $('body').mousemove(_this.getmousepos_handler);
+            _this.dragDropEntered = false;
+         }
+      });
    });
+   accordion.accordion('select', 0);
 }
 
 
@@ -1595,213 +1545,6 @@ MapEditorController.prototype._xplEditorUp = function()
 }
 
 
-MapEditorController.prototype.__aut_listener=function(message)
-{
-   var _this = this;
-
-   if(_this.mapState=='edit')
-      return;
-
-   var data = jQuery.parseJSON(message);
-   try {
-      $.each(data, function(i,x) {
-         var val=x["v"];
-
-         $.each(_this.map.find('[name="'+i+'"]'), function() {
-            var v = val;
-            var _formater = $(this).attr('mea_valueformater');
-            if(_formater) {
-               try {
-                  var str = meaFormaters[_formater](val, $(this));
-                  if(str!==false)
-                     v=str;
-               }
-               catch(e) { console.log( "meaFormater: "+e.message ); }
-            }
-
-            if($(this).is('label'))
-            {
-               $(this).text(v);
-            }
-            else if($(this).is('input'))
-            {
-               $(this).val(v);
-            }
-            else if($(this).is('div'))
-            {
-            }
-
-            if($(this).attr("mea_notooltip")!='true')
-            {
-               var t = "N/A";
-               if(val !== t)
-                  t = x["t"];
-               try { $(this).tooltip('update', "<span style='font-size:8px'>"+t+"</span>"); }  catch(e) { console.log("tooltip: "+e.message); };
-            }
-         });
-
-/*
-         $.each(_this.map.find('label[name="'+i+'"]'), function() {
-            var _formater = $(this).attr('mea_valueformater');
-            if(_formater) {
-               var str = '';
-               str = meaFormaters[_formater](val);
-               if(str!==false)
-                  $(this).text(str);
-               else
-                  $(this).text(val);
-            }
-            else {
-               $(this).text(val);
-            }
-            if($(this).attr("mea_notooltip")!='true')
-            { 
-               var t = "N/A";
-               if(val !== t)
-                  t = x["t"];
-               $(this).tooltip('update', "<span style='font-size:8px'>"+t+"</span>");
-            }
-         });
-
-         $.each(_this.map.find('input[name="'+i+'"]'), function() {
-            var _formater = $(this).attr('mea_valueformater');
-            if(_formater) {
-               var str = meaFormaters[_formater](val);
-               if(str!==false)
-                  $(this).val(str);
-               else
-                  $(this).val(val);
-            }
-            else {
-               $(this).val(val);
-            }
-            if($(this).prop("mea_notooltip")!='true')
-            {
-               var t = "N/A";
-               if(val !== t)
-                  t = x["t"];
-               $(this).tooltip('update', "<span style='font-size:8px'>"+t+"</span>");
-            }
-         });
-
-         $.each(_this.map.find('div[name="'+i+'"]'), function() {
-            var _formater = $(this).attr('mea_valueformater');
-            if(_formater)
-               meaFormaters[_formater](val, $(this));
-            else
-               $(this).html(val);
-            var t=$(this).attr("mea_notooltip");
-            if($(this).attr("mea_notooltip")!='true')
-            {
-               var t = "N/A";
-               if(val !== t)
-                  t = x["t"];
-               $(this).tooltip('update', "<span style='font-size:8px'>"+t+"</span>");
-            }
-         });
-*/
-      });
-   }
-   catch(ex) {
-      console.log(ex.message);
-   }
-};
-
-
-MapEditorController.prototype._loadWidgets = function(list, afterLoadCallback)
-{
-   var _this = this;
-
-   function load_widgets(list, i)
-   {
-      $.getScript("../widgets/"+list[i], function(data, textStatus, jqxhr) {
-         if(jqxhr.status == 200)
-            console.log(list[i]+": loaded");
-         else
-            console.log(list[i]+": error - "+textStatus);
-         i=i-1;
-         if(i<0)
-         {
-            var accordion = $('#accordion_'+_this.toolsPanel.attr('id'));
-            $.each(meaWidgetsJar, function(i,obj) {
-               var p = accordion.accordion('getPanel', obj.getGroup());
-               if(!p) {
-                  accordion.accordion('add', {
-	             title: obj.getGroup(),
-	             content: "<div id='grp_"+obj.getGroup()+"'></div>",
-	             selected: false
-                  });
-                  p = accordion.accordion('getPanel', obj.getGroup());
-               }
-               p.append("<div id='_tip_"+obj.getType()+"'class='widgetIcon'>"+obj.getHtmlIcon()+"</div>");
-               var style = obj.getStyle();
-               if(style)
-                  $('#widgets_container').append("<style>"+style+"</style>");
-               $('#widgets_container').append(obj.getHtml());
-
-               if(obj.getTip()!==false) {
-                  $('#_tip_'+obj.getType()).tooltip({position: 'right',
-                     content: '<span style="color:#fff">'+obj.getTip()+'</span>',
-                     onShow: function(){
-                        $(this).tooltip('tip').css({
-                           backgroundColor: '#666',
-                           borderColor: '#666'
-                        });
-                     }
-                  });
-               }
-
-               ctrlr_mapEditor.addWidget(obj.getType());
-
-               $.each(obj.getFormaters(), function(i,val) {
-                  meaFormaters[i]=val;
-               });
-            });
-            p=accordion.accordion('select', 0);
-         
-            if(afterLoadCallback != false) 
-               afterLoadCallback(); 
-         }
-         else
-            load_widgets(list, i);
-      }).fail(function( jqxhr, textStatus, exception ) {
-         console.log("can't load '"+list[i]+"': "+textStatus);
-         i=i-1;
-         load_widgets(list, i);
-      });
-   }
-
-   var i=list.length-1;
-
-   load_widgets(list, i);
-}
-
-
-MapEditorController.prototype.loadWidgets = function(afterLoadCallback)
-{
-   afterLoadCallback = typeof afterLoadCallback !== 'undefined' ? afterLoadCallback : false;
-
-   var _this = this;
-
-   $.get("models/get_files_list.php", { type: "widget" }, function(response) {
-      if(response.iserror === false)
-      {
-         _this._loadWidgets(response.values, afterLoadCallback); 
-      }
-      else
-      {
-         $.messager.alert(_this._toLocalC('error'), _this._toLocalC("No widget found")+ " (" + _this._toLocal('server message')+_this._localDoubleDot()+response.errMsg+")", 'error');
-      }
-   }).done(function() {
-   }).fail(function(jqXHR, textStatus, errorThrown) {
-      $.messager.show({
-         title:_this._toLocalC('error')+_this._localDoubleDot(),
-         msg: _this._toLocalC("communication error")+' ('+textStatus+')'
-      });
-  });
-}
-
-
 MapEditorController.prototype.leaveViewCallback = function()
 {
    var _this = this;
@@ -1813,11 +1556,4 @@ MapEditorController.prototype.leaveViewCallback = function()
    permMemController.add("mapEditor_map", s);
    permMemController.add("mapEditor_state", this.mapState);
    permMemController.add("mapEditor_current_file", this.current_file);
-
-   this.mapContextMenu.menu('destroy');
-   this.widgetContextMenu.menu('destroy');
-
-   $(".sp-container").remove();
-   $(".tooltip").remove();
 }
-

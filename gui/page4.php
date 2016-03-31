@@ -8,7 +8,7 @@ session_start();
 
 <script>
 jQuery(document).ready(function(){
-
+/*
 function page4leaveCallback()
 {
    var _this = this;
@@ -17,8 +17,7 @@ function page4leaveCallback()
       cb(); 
    }
 }
-
-
+*/
 <?php
    if(isset($_REQUEST['view'])) {
       echo "var destview=\""; echo $_REQUEST['view']; echo "\";\n";
@@ -37,19 +36,24 @@ function page4leaveCallback()
    page4_ctrlr.linkToCredentialController(credentialController); // pour la gestion des habilitations
    page4_ctrlr.start(destview);
 
+   // pour l'installation des callbacks
    page4_ctrlr.leaveViewsCallbacks = [];
+
    page4_ctrlr.leaveCallback = function page4leaveCallback()
    {
       for(var i in this.leaveViewsCallbacks) {
          this.leaveViewsCallbacks[i]();
       }
+      $("#page4_tab").remove();
    }
    page4_ctrlr.addLeaveViewsCallbacks = function(cb) {
       this.leaveViewsCallbacks.push(cb);
    };
    var page4leaveCallback = page4_ctrlr.leaveCallback.bind(page4_ctrlr);
+
    viewsController.removePageChangeCallback("page4.php");
    viewsController.addPageChangeCallback("page4.php", page4leaveCallback);
+   // fin callbacks
 
    s=liveComController.getSocketio();
    if(s!=null) {
@@ -65,4 +69,5 @@ function page4leaveCallback()
     <div id="<?php mea_toLocalC('rules manager'); ?>" title="<?php mea_toLocalC('rules manager'); ?>" href="views/rulesmanager-view.php"></div>
     <div id="<?php mea_toLocalC('rules editor'); ?>" title="<?php mea_toLocalC('rules editor'); ?>" href="views/ruleseditor-view.php"></div>
     <div id="<?php mea_toLocalC('map editor'); ?>" title="<?php mea_toLocalC('map editor'); ?>" href="views/mapeditor-view.php"></div>
+    <div id="<?php mea_toLocalC('maps set editor'); ?>" title="<?php mea_toLocalC('maps set editor'); ?>" href="views/mapsseteditor-view.php"></div>
 </div>

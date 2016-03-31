@@ -52,7 +52,7 @@ MeaWidget_box.prototype.getHtmlIcon = function()
 {
    var _this = this;
 
-   var html="<div id='"+_this.type+"' class='drag' style='width:48px;height:48px;line-height:48px;text-align:center;background-color:\"#FFFFFF\";'> \
+   var html="<div id='"+_this.type+"' class='drag' style='width:78px;height:78px;line-height:78px;text-align:center;background-color:\"#FFFFFF\";'> \
                 <div style='margin:auto;vertical-align:middle;display:inline-block;width:40px;height:20px;line-height:20px;background-color:yellow;'>box</div> \
              </div>";
 

@@ -88,7 +88,7 @@ MeaWidget_value.prototype.getHtmlIcon = function()
 {
    var _this = this;
 
-   var html="<div id='"+_this.type+"' class='drag' style='width:50px;height:50px;line-height:50px;text-align:center;background-color:\"#FFFFFF\";'>value</div>";
+   var html="<div id='"+_this.type+"' class='drag' style='width:80px;height:80px;line-height:80px;text-align:center;background-color:\"#FFFFFF\";'>value</div>";
 
    return html;
 }

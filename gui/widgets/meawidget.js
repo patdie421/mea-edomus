@@ -17,6 +17,7 @@ meaFormaters["float"]   = function(x) {
    }
 };
 
+
 function MeaWidget(name, groupe, type)
 {
    this.type="undefined";
@@ -27,11 +28,17 @@ function MeaWidget(name, groupe, type)
    this.params["actions"] = {};
    this.params["parameters"] = {};
    this.params["positions"] = {};
+
+   this.mapsController = false;
 }
 
 
 MeaWidget.prototype = {
    init: function(id) {
+   },
+
+   setMapsController: function(ctrlr) {
+      this.mapsController = ctrlr;
    },
 
    update: function(id, row) {
@@ -42,7 +49,7 @@ MeaWidget.prototype = {
 
    getHtmlIcon: function() {
       var _this = this;
-      var html="<div id='"+_this.type+"' class='drag' style='width: 50px; height: 50px; border:1px solid red; background-color: #FFFFFF;'></div>";
+      var html="<div id='"+_this.type+"' class='drag' style='width: 80px; height: 80px; border:1px solid red; background-color: #FFFFFF;'></div>";
 
       return html;
    },
