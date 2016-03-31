@@ -67,7 +67,7 @@ IndicatorsTableController.prototype.load=function()
          var ret=_indicatorsTable.build(data);
          if(ret<=0)
          {
-            console.log("erreur");
+            console.log("error");
             // mettre un not available ...
          }
       },

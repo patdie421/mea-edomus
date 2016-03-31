@@ -43,16 +43,16 @@ ControlPanel.prototype.load=function() {
                   continue;
                if(data[key]['group']==0)
                {
-                  _controlPanel.add_row(_controlPanel.table_processes, key, data[key]['desc'], data[key]['pid'], "start", _controlPanel.startTask, "stop", _controlPanel.stopTask);
+                  _controlPanel.add_row(_controlPanel.table_processes, key, data[key]['desc'], data[key]['pid'], _controlPanel._toLocalC("start"), _controlPanel.startTask, _controlPanel._toLocalC("stop"), _controlPanel.stopTask);
                }
                else if(data[key]['group']==2)
                {
-                  _controlPanel.add_row(_controlPanel.table_reload, key, data[key]['desc'], data[key]['pid'], "reload", _controlPanel.reloadTask, null, null);
+                  _controlPanel.add_row(_controlPanel.table_reload, key, data[key]['desc'], data[key]['pid'], _controlPanel._toLocalC("reload"), _controlPanel.reloadTask, null, null);
                }
                else if(data[key]['group']==1)
                {
                   nb++;
-                  _controlPanel.add_row(_controlPanel.table_interfaces, key, data[key]['desc'], data[key]['pid'], "start", _controlPanel.startTask, "stop", _controlPanel.stopTask);
+                  _controlPanel.add_row(_controlPanel.table_interfaces, key, data[key]['desc'], data[key]['pid'], _controlPanel._toLocalC("start"), _controlPanel.startTask, _controlPanel._toLocalC("stop"), _controlPanel.stopTask);
                }
             }
             if(nb==0)

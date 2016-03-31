@@ -60,7 +60,7 @@ function formValidation_ty()
    // vérification controle de surface
    if(!$('#fm_ty').form('validate'))
    {
-      $.messager.alert(translationController.toLocalC('error')+translationController.localDoubleDot(),translationController.toLocalC('one or more mandatory field(s) is/are empty'),'error');
+      $.messager.alert(translationController.toLocalC('error')+translationController.localDoubleDot(),translationController.toLocalC('one or more mandatory fields are empty'),'error');
       return false;
    }
 

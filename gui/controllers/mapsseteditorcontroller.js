@@ -90,7 +90,7 @@ MapsSetEditorController.prototype.save = function(name, type, checkflag, userdat
             userdata.getCallback(name, data, userdata.userdata);
       }
       else
-         $.messager.alert(_this._toLocalC('error'), _this._toLocalC("Can't save file")+ " (" + _this._toLocal('server message')+_this._localDoubleDot()+response.errMsg+")", 'error');
+         $.messager.alert(_this._toLocalC('error'), _this._toLocalC("can't save file")+ " (" + _this._toLocal('server message')+_this._localDoubleDot()+response.errMsg+")", 'error');
    });
 }
 
@@ -167,19 +167,19 @@ MapsSetEditorController.prototype._domenu = function(action)
          if(_this.current_file!=false)
             __save_menu(_this.current_file, "menu", false);
          else
-            _this.ctrlr_filechooser.open(_this._toLocalC("choose menu definition ..."), _this._toLocalC("save as")+_this._localDoubleDot(), _this._toLocalC("save"), _this._toLocalC("cancel"), "menu", true, false, _this._toLocalC("file exist, overhide it ?"), __save_menu, { getCallback: function(name, selected, userdata) { _this.current_file = name; }, callbackData: ""});
+            _this.ctrlr_filechooser.open(_this._toLocalC("choose maps set name ..."), _this._toLocalC("save as")+_this._localDoubleDot(), _this._toLocalC("save"), _this._toLocalC("cancel"), "menu", true, false, _this._toLocalC("file exist, overhide it ?"), __save_menu, { getCallback: function(name, selected, userdata) { _this.current_file = name; }, callbackData: ""});
          break;
 
       case 'load':
-         _this.ctrlr_filechooser.open(_this._toLocalC("choose menu definition ..."), _this._toLocalC("load")+_this._localDoubleDot(), _this._toLocalC("load"), _this._toLocalC("cancel"), "menu", true, true, _this._toLocalC("file does not exist, new file ?"), __load_menu, { setCallback: function(name, selected, userdata) { _this.current_file = name; }, callbackData: "" });
+         _this.ctrlr_filechooser.open(_this._toLocalC("choose maps set ..."), _this._toLocalC("load")+_this._localDoubleDot(), _this._toLocalC("load"), _this._toLocalC("cancel"), "menu", true, true, _this._toLocalC("file does not exist, new file ?"), __load_menu, { setCallback: function(name, selected, userdata) { _this.current_file = name; }, callbackData: "" });
          break;
 
       case 'saveas':
-         _this.ctrlr_filechooser.open(_this._toLocalC("choose menu definition ..."), _this._toLocalC("save as"), _this._toLocalC("save as"), _this._toLocalC("cancel"), "menu", true, false, _this._toLocalC("file exist, overhide it ?"), __save_menu, { getCallback: function(name, selected, userdata) { _this.current_file = name; }, callbackData: ""});
+         _this.ctrlr_filechooser.open(_this._toLocalC("choose maps set name ..."), _this._toLocalC("save as"), _this._toLocalC("save as"), _this._toLocalC("cancel"), "menu", true, false, _this._toLocalC("file exist, overhide it ?"), __save_menu, { getCallback: function(name, selected, userdata) { _this.current_file = name; }, callbackData: ""});
          break;
 
       case 'delete':
-         _this.ctrlr_filechooser.open(_this._toLocalC("choose menu definition to delete ..."), _this._toLocalC("delete"), _this._toLocalC("delete"), _this._toLocalC("cancel"), "menu", false, false, "", __del_menu);
+         _this.ctrlr_filechooser.open(_this._toLocalC("choose map set to delete ..."), _this._toLocalC("delete"), _this._toLocalC("delete"), _this._toLocalC("cancel"), "menu", false, false, "", __del_menu);
          break;
    }
 }

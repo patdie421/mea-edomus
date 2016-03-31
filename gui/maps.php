@@ -51,6 +51,7 @@ session_start();
 ?>
 
 <script type="text/javascript" src="controllers/map-ctrl.js"></script>
+<script type="text/javascript" src="controllers/navigationpanelcontroller.js"></script>
 
 <script type="text/javascript">
 
@@ -74,216 +75,27 @@ function overflow(s)
    }
 }
 
-var menu_data = false;
-var current_map = false;
-
-
-function getMapIndex(map, menu_data)
-{
-   var found = false;
-   $.each(menu_data.list, function(i, value) {
-      if(value==map)
-      {
-         found = i;
-         return false;
-      }
-   });
-   return found;
-}
-
-
-function getMapPrevIndex(map, menu_data)
-{
-   var i=getMapIndex(map, menu_data);
-   if(i===false)
-      return false;
-
-   if(i===0)
-      i=menu_data.list.length-1;
-   else
-      --i;
-
-   return i;
-}
-
-
-function getMapNextIndex(map, menu_data)
-{
-   var i=getMapIndex(map, menu_data);
-   if(i===false)
-      return false;
-
-   if(i===menu_data.list.length-1)
-      i=0;
-   else
-      ++i;
-
-   return i;
-}
-
-
-function set_mapselection(map, menu_data)
-{
-   var v=getMapIndex(map, menu_data);
-   if(v!==false)
-      $("#mapselection").combobox('setValue', v);
-}
-
-
-function init_menu(menudef, done, error, userdata)
-{
-   $("#bleft").linkbutton({
-      iconCls: 'icon-mealeftarrow',
-   }).bind('click', function() {
-      var i=getMapPrevIndex(current_map, menu_data);
-      if(i!==false)
-      {
-         try {
-            ctrlr_map.load_map(menu_data.list[i],"map",false);
-            current_map = menu_data.list[i];
-            set_mapselection(menu_data.list[i], menu_data)
-         }
-         catch(e) {console.log(e.message);};
-      }
-   });
-
-   $("#bright").linkbutton({
-      iconCls: 'icon-mearightarrow',
-   }).bind('click', function() {
-      var i=getMapNextIndex(current_map, menu_data);
-      if(i!==false)
-      {
-         try {
-            ctrlr_map.load_map(menu_data.list[i],"map",false);
-            current_map = menu_data.list[i];
-            set_mapselection(menu_data.list[i], menu_data)
-         }
-         catch(e) {console.log(e.message);};
-      }
-   });
-
-   $("#shortcut1").linkbutton({
-   });
-
-   $("#shortcut2").linkbutton({
-   });
-
-   $("#shortcut3").linkbutton({
-   });
-
-   $("#shortcut4").linkbutton({
-   });
-
-   $("#mapselection").combobox({
-   });
-
-   var type="menu";
-   $.get("models/get_file.php", { name: menudef, type: type }, function(response) {
-      if(response.iserror === false)
-      {
-         var combolist = [];
-         menu_data = JSON.parse(response.file);
-
-         for(var i in menu_data.list)
-         {
-            combolist.push({f1: i, f2:menu_data.list[i]});
-         }
-         $("#mapselection").combobox({
-            valueField:'f1',
-            textField:'f2',
-            data: combolist,
-            onSelect: function(record) 
-            {
-               try {
-                  ctrlr_map.load_map(record.f2,"map",false);
-                  current_map = record.f2;
-                  set_mapselection(current_map, menu_data);
-               } catch(e) { console.log(e.message); }
-            }
-         });
-
-         $.each(["1","2","3","4"], function(i, value) {
-            var sc = "shortcut"+value;
-            if(menu_data[sc])
-            {
-               $("#"+sc).linkbutton({text: menu_data[sc], disabled: false});
-               $("#"+sc).bind('click', function() {
-                  try {
-                     ctrlr_map.load_map(menu_data[sc],"map",false);
-                     current_map = menu_data[sc];
-                     set_mapselection(current_map, menu_data);
-                  } catch(e) { console.log(e.message); }
-               });
-            }
-            else
-            {
-               $("#"+sc).linkbutton({text: "", disabled: true});
-            } 
-         });
-
-         if(done)
-            done(menu_data, userdata);
-      }
-      else
-      {
-      }
-   }).done(function() {
-   }).fail(function(jqXHR, textStatus, errorThrown) {
-      console.log(textStatus);
-      if(error)
-         error(userdata)
-/*
-      $.messager.show({
-         title:_this._toLocalC('error')+_this._localDoubleDot(),
-         msg: _this._toLocalC("communication error")+' ('+textStatus+')'
-      });
-*/
-   });
-}
-
 
 jQuery(document).ready(function(){
    $.ajaxSetup({ cache: false });
 
+var map = false;
+var mapsset = false;
+
 <?php
-   $IP=getenv('REMOTE_ADDR');
+//   $IP=getenv('REMOTE_ADDR');
    echo "LANG='$LANG';";
 
-   if(isset($_REQUEST['view'])) {
-      echo "var destview=\""; echo $_REQUEST['view']; echo "\";\n";
+   if(isset($_REQUEST['map'])) {
+      echo "map=\""; echo $_REQUEST['map']; echo "\";\n";
    }
-   else {
-      echo "var destview=\"\";\n";
+
+   if(isset($_REQUEST['mapsset'])) {
+      echo "mapsset=\""; echo $_REQUEST['mapsset']; echo "\";\n";
    }
+
    echo "var socketio_port="; echo $IOSOCKET_PORT; echo ";\n";
 ?>
-
-   var html =
-   "<div style='width: 100%; display: table;'>" +
-      "<div style='display: table-row'>" +
-         "<div style='display: table-cell; height:100%; width: 34px; text-align: center; vertical-align: middle;'>" +
-            "<a id='bleft' href='javascript:void(0)' style='width:30px;height:30px'></a>" +
-         "</div>" +
-         "<div style='display: table-cell; height:100%; width:86px; text-align: center; vertical-align: middle;'>" +
-            "<a id='shortcut1' href='javascript:void(0)' style='width:82px;'>MAP1</a>" +
-         "</div>" +
-         "<div style='display: table-cell; height:100%; width:86px; text-align: center; vertical-align: middle;'>" +
-            "<a id='shortcut2' href='javascript:void(0)' style='width:82px;'>MAP2</a>" +
-         "</div>" +
-         "<div style='display: table-cell; height:100%; width:86px; text-align: center; vertical-align: middle;'>" +
-            "<a id='shortcut3' href='javascript:void(0)' style='width:82px;'>MAP3</a>" +
-         "</div>" +
-         "<div style='display: table-cell; height:100%; width:86px; text-align: center; vertical-align: middle;'>" +
-            "<a id='shortcut4' href='javascript:void(0)' style='width:82px;'>MAP4</a>" +
-         "</div>" +
-         "<div style='display: table-cell; height:100%; text-align: center; vertical-align: middle;'>" +
-            "<input id=mapselection style='width:150px'>" +
-         "</div>" +
-         "<div style='display: table-cell; height:100%; width: 34px; text-align: center; vertical-align: middle;'>" +
-            "<a id='bright' href='javascript:void(0)' style='width:30px;height:30px'></a>" +
-         "</div>" +
-      "</div>" +
-   "</div>";
 
    //
    // initialisation des controleurs
@@ -301,7 +113,7 @@ jQuery(document).ready(function(){
 
    // lancement du controleur de communication live (si possible)
    liveComController.start(
-   function(s){
+   function(s) {
       ctrlr_map = new MapController(
          "container_mp",
          "map_mp",
@@ -320,70 +132,29 @@ jQuery(document).ready(function(){
       }
 
       var filechooser = new FileChooserController("#container_mp");
+
+      var navigationPanel = new NavigationPanelController(ctrlr_map);
+      navigationPanel.linkToTranslationController(translationController);
+      var navigationPanelInit = navigationPanel.init.bind(navigationPanel);
  
-      var old_x = -1, old_y = -1;
-      var timer = false;
-      var on = false;
-
       ctrlr_map.loadWidgets(function() {
-         filechooser.open(ctrlr_map._toLocalC("choose maps set ..."),
-            ctrlr_map._toLocalC("open"),
-            ctrlr_map._toLocalC("open"),
-            ctrlr_map._toLocalC("cancel"),
-            "menu",
-            false,
-            false,
-            "",
-            function(name, type, checkflag) {
-               $('body').bind('mousemove click', function(e) {
-                  var x = e.pageX;
-                  var y = e.pageY;
-                  if(x != old_x || y != old_y || e.type == "click")
-                  {
-                     if(on === false)
-                     {
-                        $('#dd').fadeIn('fast');
-                        $('html').css({ cursor: '' });
-                        on=true;
-                     }
-
-                     if(timer !== false)
-                        clearTimeout(timer);
-                        timer=setTimeout(function() {
-                           $("#mapselection").combobox('hidePanel');
-                           $('#dd').fadeOut('slow');
-                           $('html').css({ cursor: 'none' });
-                           on=false;
-                        }, 5000);
-
-                     old_x = x;
-                     old_y = y;
-                  }
-               });
-               $('body').append("<div id='dd' class='navpanel' style='display:hidden'>"+html+"</div>");
-               $('#dd').draggable({ });
-            
-               init_menu(name,
-                         function(maps_set, userdata) {
-                            if(maps_set["list"].length)
-                            {
-                               if(maps_set["defaultmap"])
-                               {
-                                  current_map = maps_set["defaultmap"];
-                               }
-                               else
-                               {
-                                  current_map = maps_set["list"][0];
-                               }
-                               ctrlr_map.load_map(current_map,"map",false);
-                               set_mapselection(current_map, menu_data);
-                            }
-                            // $('html').css({ cursor: 'none' });
-                         },
-                         function(userdata) {
-                         },
-                         false);
-         });
+         if(mapsset === false)
+         {
+            filechooser.open(ctrlr_map._toLocalC("choose maps set ..."),
+               ctrlr_map._toLocalC("open"),
+               ctrlr_map._toLocalC("open"),
+               ctrlr_map._toLocalC("cancel"),
+               "menu",
+               false,
+               false,
+               "",
+               navigationPanelInit,
+               false);
+         }
+         else
+         {
+            navigationPanel.init(mapsset, "menu", false, map);  
+         }
       });
    },
    function() { console.log("socketio error"); }
@@ -403,8 +174,6 @@ jQuery(document).ready(function(){
    width:600px;
    height:50px;
    line-height:50px;
-   top: 50px;
-   left: 800px;
    opacity: 0.7;
    background-color:#ccc; 
    border-radius: 5px;

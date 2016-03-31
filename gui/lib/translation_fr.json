@@ -56,10 +56,80 @@
       "un ou plusieurs champs obligatoires ne sont pas correctement renseignés",
 
 
+   "inputs/outputs" :
+      "entrées/sorties",
+   "preferences" :
+      "préférences",
+
+   "indicators" :
+      "indicateurs",
+   "indicator" :
+      "indicateur",
+   "indicator(s)" :
+      "indicateur(s)",
+   "value" :
+      "valeur",
+   "services status" :
+      "états des services",
+
+   "interface(s) status" :
+      "interface(s) : état(s)",
+   "reload interface(s) configuration(s)" :
+      "interface(s) : rechargement de la configuration",
+   "mea-edomus processes status" :
+      "états des processus mea-edomus",
+
+   "start" : 
+      "démarrer",
+   "stop" :
+      "arrêter",
+   "reload" :
+      "recharger",
+
+   "add" :
+      "ajouter",
+   "edit/view" :
+      "voir/modifier",
+   "name" :
+      "nom",
+   "sensors/actuators" :
+      "capteurs/actionneurs",
+   "locations" :
+      "lieux", 
+   "location" :
+      "lieu",
+   "state" :
+      "état",
+   "recorded" :
+      "enregistré",
+   "device" :
+      "équipement",
+   "type of type" :
+      "type du type", 
+   "parameters" :
+      "paramètres",
+   "type id" :
+      "id type",
+   "updating" :
+      "modifier",
+   "enabled" :
+      "activé",
+   "disabled" :
+      "désactivé",
+
+   "choose maps to use":
+      "selectionnez les vues à utiliser",
+   "default map and menu sortcuts":
+      "definissez la vue par défaut et les racourcis",
+   "default map":
+      "vue par défaut",
+   "short cut":
+      "racourci",
+
    "automator" :
       "automate",
    "rules manager" :
-      "gestion des règles",
+      "gestion avancée des règles",
    "rules editor" :
       "edition des règles",
    "rules" :
@@ -109,6 +179,15 @@
    "can't delete rules source file" :
       "impossible de supprimer le fichier \"source\" de règle",
 
+   "maps" :
+      "vues",
    "map editor" :
-      "editeur de carte"
+      "editeur de vues",
+   "to view mode" :
+      "vers mode visualisation",
+   "to edition mode" :
+      "vers mode edition",
+
+   "maps set editor" :
+      "editeur de jeu de vues"
 }

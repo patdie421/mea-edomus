@@ -261,7 +261,7 @@ jQuery(document).ready(function() {
                         </tr>
                         <tr>
                            <td align="right">
-                              <label><?php mea_toLocalC('short cut '); mea_toLocalC_2d('1') ?></label>
+                              <label><?php mea_toLocalC('short cut'); mea_toLocalC_2d(' 1') ?></label>
                            </td>
                            <td>
                               <input id=sc1 style='width:150px'>
@@ -269,7 +269,7 @@ jQuery(document).ready(function() {
                         </tr>
                         <tr>
                            <td align="right">
-                              <label><?php mea_toLocalC('short cut '); mea_toLocalC_2d('2') ?></label>
+                              <label><?php mea_toLocalC('short cut'); mea_toLocalC_2d(' 2') ?></label>
                            </td>
                            <td>
                               <input id=sc2 style='width:150px'>
@@ -277,7 +277,7 @@ jQuery(document).ready(function() {
                         </tr>
                         <tr>
                            <td align="right">
-                              <label><?php mea_toLocalC('short cut '); mea_toLocalC_2d('3') ?></label>
+                              <label><?php mea_toLocalC('short cut'); mea_toLocalC_2d(' 3') ?></label>
                            </td>
                            <td>
                               <input id=sc3 style='width:150px'>
@@ -285,7 +285,7 @@ jQuery(document).ready(function() {
                         </tr>
                         <tr>
                            <td align="right">
-                              <label><?php mea_toLocalC('short cut '); mea_toLocalC_2d('4') ?></label>
+                              <label><?php mea_toLocalC('short cut'); mea_toLocalC_2d(' 4') ?></label>
                            </td>
                            <td>
                               <input id=sc4 style='width:150px'>

@@ -111,8 +111,9 @@ function liveComUnavailable(destview)
 
    viewsController.addView(translationController.toLocalC('rules editor'),'page4.php','page4_tab');
    viewsController.addView(translationController.toLocalC('rules manager'),'page4.php','page4_tab');
-   viewsController.addView(translationController.toLocalC('map editor'),'page4.php','page4_tab');
-   viewsController.addView(translationController.toLocalC('maps set editor'),'page4.php','page4_tab');
+
+   viewsController.addView(translationController.toLocalC('map editor'),'page5.php','page5_tab');
+   viewsController.addView(translationController.toLocalC('maps set editor'),'page5.php','page5_tab');
 
    if(destview=="" || typeof(viewController.views[destview])=="undefined")
       destview=translationController.toLocalC('sensors/actuators');
@@ -138,8 +139,9 @@ function liveComAvailable(s,destview)
 
    viewsController.addView(translationController.toLocalC('rules editor'),'page4.php','page4_tab');
    viewsController.addView(translationController.toLocalC('rules manager'),'page4.php','page4_tab');
-   viewsController.addView(translationController.toLocalC('map editor'),'page4.php','page4_tab');
-   viewsController.addView(translationController.toLocalC('maps set editor'),'page4.php','page4_tab');
+
+   viewsController.addView(translationController.toLocalC('map editor'),'page5.php','page5_tab');
+   viewsController.addView(translationController.toLocalC('maps set editor'),'page5.php','page5_tab');
 
    if(destview=="" || typeof(viewsController.views[destview])=="undefined")
       destview=translationController.toLocalC('indicators');
@@ -262,25 +264,29 @@ a.meamenu:hover {
          <div region="west" split="true" collapsible="false" title="" style="width:200px;">
             <div id="aa" class="easyui-accordion" data-options="animate:false,border:false" style="width:100%;">
             
-               <div id='forlivecom' title="<?php mea_toLocalC('supervision'); ?>" data-options="selected:true" style="overflow:auto;padding:10px;">
-                  <div><a href="#" class="meamenu" onclick="javascript:viewsController.displayView(translationController.toLocalC('indicators'),'page1.php','page1_tab')"><?php mea_toLocalC('indicators'); ?></a></div>
-                  <div><a href="#" class="meamenu" onclick="javascript:viewsController.displayView(translationController.toLocalC('services'),'page1.php','page1_tab')"><?php mea_toLocalC('services'); ?></a></div>
+               <div title="<?php mea_toLocalC('maps'); ?>" style="overflow:auto;padding:10px;">
+                  <div><a href="#" class="meamenu" onclick="javascript: window.location='maps.php'"><?php mea_toLocalC('full screen maps'); ?></a></div>
+                  <div><a href="#" class="meamenu" onclick="javascript:viewsController.displayView(translationController.toLocalC('map editor'),'page5.php','page5_tab')"><?php mea_toLocalC('map editor'); ?></a></div>
+                  <div><a href="#" class="meamenu" onclick="javascript:viewsController.displayView(translationController.toLocalC('maps set editor'),'page5.php','page5_tab')"><?php mea_toLocalC('maps set editor'); ?></a></div>
                </div>
-               
-               <div title="<?php mea_toLocalC('configuration'); ?>" style="overflow:auto;padding:10px;">
+
+               <div title="<?php mea_toLocalC('automator'); ?>" style="overflow:auto;padding:10px;">
+                  <div><a href="#" class="meamenu" onclick="javascript:viewsController.displayView(translationController.toLocalC('rules manager'),'page4.php','page4_tab')"><?php mea_toLocalC('rules manager'); ?></a></div>
+                  <div><a href="#" class="meamenu" onclick="javascript:viewsController.displayView(translationController.toLocalC('rules editor'),'page4.php','page4_tab')"><?php mea_toLocalC('rules editor'); ?></a></div>
+               </div>
+
+               <div title="<?php mea_toLocalC('inputs/outputs'); ?>" style="overflow:auto;padding:10px;">
                   <div><a href="#" class="meamenu" onclick="javascript:viewsController.displayView(translationController.toLocalC('sensors/actuators'),'page2.php','page2_tab')"><?php mea_toLocalC('sensors/actuators'); ?></a></div>
                   <div><a href="#" class="meamenu" onclick="javascript:viewsController.displayView(translationController.toLocalC('interfaces'),'page2.php','page2_tab')"><?php mea_toLocalC('interfaces'); ?></a></div>
                   <div><a href="#" class="meamenu" onclick="javascript:viewsController.displayView(translationController.toLocalC('types'),'page2.php','page2_tab')"><?php mea_toLocalC('types'); ?></a></div>
                   <div><a href="#" class="meamenu" onclick="javascript:viewsController.displayView(translationController.toLocalC('locations'),'page2.php','page2_tab')"><?php mea_toLocalC('locations'); ?></a></div>
                </div>
 
-               <div title="<?php mea_toLocalC('automator'); ?>" style="overflow:auto;padding:10px;">
-                  <div><a href="#" class="meamenu" onclick="javascript:viewsController.displayView(translationController.toLocalC('rules manager'),'page4.php','page4_tab')"><?php mea_toLocalC('rules manager'); ?></a></div>
-                  <div><a href="#" class="meamenu" onclick="javascript:viewsController.displayView(translationController.toLocalC('rules editor'),'page4.php','page4_tab')"><?php mea_toLocalC('rules editor'); ?></a></div>
-                  <div><a href="#" class="meamenu" onclick="javascript:viewsController.displayView(translationController.toLocalC('map editor'),'page4.php','page4_tab')"><?php mea_toLocalC('map editor'); ?></a></div>
-                  <div><a href="#" class="meamenu" onclick="javascript:viewsController.displayView(translationController.toLocalC('maps set editor'),'page4.php','page4_tab')"><?php mea_toLocalC('maps set editor'); ?></a></div>
+               <div id='forlivecom' title="<?php mea_toLocalC('supervision'); ?>" data-options="selected:true" style="overflow:auto;padding:10px;">
+                  <div><a href="#" class="meamenu" onclick="javascript:viewsController.displayView(translationController.toLocalC('indicators'),'page1.php','page1_tab')"><?php mea_toLocalC('indicators'); ?></a></div>
+                  <div><a href="#" class="meamenu" onclick="javascript:viewsController.displayView(translationController.toLocalC('services'),'page1.php','page1_tab')"><?php mea_toLocalC('services'); ?></a></div>
                </div>
-
+               
                <div title="<?php mea_toLocalC('preferences'); ?>" style="overflow:auto;padding:10px;">
                   <div><a href="#" class="meamenu" onclick="javascript:viewsController.displayView(translationController.toLocalC('application'),'page3.php','page3_tab')"><?php mea_toLocalC('application'); ?></a></div>
                   <div><a href="#" class="meamenu" onclick="javascript:viewsController.displayView(translationController.toLocalC('users'),'page3.php','page3_tab')"><?php mea_toLocalC('users'); ?></a></div>

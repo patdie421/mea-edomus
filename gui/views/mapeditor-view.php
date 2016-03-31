@@ -52,10 +52,12 @@ jQuery(document).ready(function() {
       "new_win_me",
       "map_cm_me",
       "widget_cm_me");
+   console.log(ctrlr_mapEditor);   
    ctrlr_mapEditor.linkToTranslationController(translationController); 
+   console.log(ctrlr_mapEditor);   
    ctrlr_mapEditor.linkToCredentialController(credentialController); 
 
-   page4_ctrlr.addLeaveViewsCallbacks(ctrlr_mapEditor.leaveViewCallback.bind(ctrlr_mapEditor));
+   page5_ctrlr.addLeaveViewsCallbacks(ctrlr_mapEditor.leaveViewCallback.bind(ctrlr_mapEditor));
 
    var s=liveComController.getSocketio();
    if(s!=null) {

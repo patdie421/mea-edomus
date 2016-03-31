@@ -82,7 +82,7 @@ function formValidation_sa() {
    // vérification controle de surface
    if(!$('#fm_sa').form('validate'))
    {
-      $.messager.alert(translationController.toLocalC('error')+translationController.localDoubleDot(),translationController.toLocalC('one or more mandatory field(s) is/are empty'),'error');
+      $.messager.alert(translationController.toLocalC('error')+translationController.localDoubleDot(),translationController.toLocalC('one or more mandatory fields are empty'),'error');
 
       return false;
    }
@@ -201,7 +201,7 @@ jQuery(document).ready(function(){
 
 
 <div id="dlg_sa" class="easyui-dialog" style="width:500px;height:450px;padding:10px 20px" modal="true" closed="true" buttons="#dlg_buttons_sa" data-options="onOpen: updateComboBoxsData_sa">
-    <div class="ftitle"><?php mea_toLocalC('Capteurs / Actionneurs'); ?></div>
+    <div class="ftitle"><?php mea_toLocalC('sensors/actuators'); ?></div>
     <form id="fm_sa" method="post" novalidate>
         <div class="fitem">
             <label><?php mea_toLocalC_2d('name'); ?></label>
