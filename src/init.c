@@ -504,7 +504,7 @@ int16_t populateMeaUsers(sqlite3 *sqlite3_param_db)
 {
    char *sql_usersTable[] = {
       "DELETE FROM 'users' WHERE name='admin'",
-      "INSERT INTO 'users' (name, password, description, profil, flag) VALUES ('admin','admin','Default administrator','1','1')",
+      "INSERT INTO 'users' (name, password, description, profil, flag, language) VALUES ('admin','admin','Default administrator','1','1', 'default')",
       NULL
    };
 
