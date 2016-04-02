@@ -93,7 +93,8 @@ $SQL="SELECT users.id as id,
              users.password as password,
              users.description as description,
              users.profil as profil,
-             users.flag as flag
+             users.flag as flag,
+             users.language as language
       FROM users
       ORDER BY $sort $order
       LIMIT $offset, $rows";

@@ -1,9 +1,17 @@
 <?php
 include_once('lib/configs.php');
+include_once('lib/php/auth_utils.php');
+
+session_start();
+if(isset($_SESSION['language']))
+{
+   $LANG=$_SESSION['language'];
+}
 include_once('lib/php/translation.php');
 include_once('lib/php/$LANG/translation.php');
 mea_loadTranslationData($LANG,'');
-session_start();
+
+$isadmin = check_admin();
 ?>
 
 <script>
@@ -65,11 +73,14 @@ function page4leaveCallback()
 });
 </script>
 
+
 <div id="page4_tab" class="easyui-tabs" border=false fit=true>
+<?php
+if($isadmin==0) :?>
     <div id="<?php mea_toLocalC('rules manager'); ?>" title="<?php mea_toLocalC('rules manager'); ?>" href="views/rulesmanager-view.php"></div>
     <div id="<?php mea_toLocalC('rules editor'); ?>" title="<?php mea_toLocalC('rules editor'); ?>" href="views/ruleseditor-view.php"></div>
-<!--
-    <div id="<?php mea_toLocalC('map editor'); ?>" title="<?php mea_toLocalC('map editor'); ?>" href="views/mapeditor-view.php"></div>
-    <div id="<?php mea_toLocalC('maps set editor'); ?>" title="<?php mea_toLocalC('maps set editor'); ?>" href="views/mapsseteditor-view.php"></div>
--->
+<?else : ?>
+    <div id="<?php mea_toLocalC('rules editor'); ?>" title="<?php mea_toLocalC('rules viewer'); ?>" href="views/ruleseditor-view.php"></div>
+<?php
+endif?>
 </div>

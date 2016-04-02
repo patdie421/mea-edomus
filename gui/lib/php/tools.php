@@ -55,10 +55,10 @@ function endsWith($haystack, $needle) {
     return $needle === "" || (($temp = strlen($haystack) - strlen($needle)) >= 0 && strpos($haystack, $needle, $temp) !== FALSE);
 }
 
-
 function getParamVal($db, $param)
 {
-//   $response=array();
+   $response=array();
+
    try {
       $file_db = new PDO($db);
    }

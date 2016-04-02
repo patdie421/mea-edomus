@@ -37,7 +37,7 @@ $file_db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 $file_db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION); // ERRMODE_WARNING | ERRMODE_EXCEPTION | ERRMODE_SILENT
 
 try {
-    $SQL="SELECT id, flag, profil FROM users WHERE name=\"$user_name\" AND password=\"$user_password\"";
+    $SQL="SELECT id, flag, profil, language FROM users WHERE name=\"$user_name\" AND password=\"$user_password\"";
 
     $stmt = $file_db->prepare($SQL);
     $stmt->execute();
@@ -51,6 +51,7 @@ try {
 header('Content-type: application/json');
 
 if($result){
+/*
     try {
         $id=$result[0]['id'];
         $session_id=session_id();
@@ -62,7 +63,7 @@ if($result){
         $file_db=null;
         exit(1);
     }
-
+*/
     $_SESSION['userid']=$user_name;
     $_SESSION['profil']=(int)$result[0]['profil'];
     if($result[0]['flag']!=1)
@@ -70,6 +71,7 @@ if($result){
     else
         $_SESSION['change_passwd_flag']=1;
     $_SESSION['flag']=$result[0]['flag'];
+    $_SESSION['language']=$result[0]['language'];
     
     echo json_encode(array("retour"=>1, "flag"=>$result[0]['flag']));
 }else{

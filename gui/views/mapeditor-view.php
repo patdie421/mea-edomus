@@ -1,11 +1,15 @@
 <?php
 include_once('../lib/configs.php');
-include_once('../lib/php/translation.php');
-include_once('../lib/php/$LANG/translation.php');
 include_once('../lib/php/auth_utils.php');
-mea_loadTranslationData($LANG,'../');
 
 session_start();
+if(isset($_SESSION['language']))
+{
+   $LANG=$_SESSION['language'];
+}
+include_once('../lib/php/translation.php');
+include_once('../lib/php/$LANG/translation.php');
+mea_loadTranslationData($LANG,'../');
 
 $isadmin = check_admin();
 if($isadmin !=0 && $isadmin != 98) : ?>
@@ -196,9 +200,9 @@ jQuery(document).ready(function() {
          <td align="center" colspan="3">
             <select id="select_new_win_me" class="easyui-combobox" style="width:160px;" data-options="editable:false">
                <option value='custom'><?php mea_toLocalC('custom');?></option>
-               <option value='{"width":"1024", "height":"768"}'>1024 x 768</option>
-               <option value='{"width":"1280", "height":"720"}'>1280 x 720 (720 p/i)</option>
-               <option value='{"width":"1920", "height":"1080"}'>1920 x 1080 (1080 p/i)</option>
+               <option value='{"width":"1024", "height":"767"}'>1024 x 768</option>
+               <option value='{"width":"1280", "height":"719"}'>1280 x 720 (720 p/i)</option>
+               <option value='{"width":"1920", "height":"1079"}'>1920 x 1080 (1080 p/i)</option>
             </select>
          </td> 
       </tr>

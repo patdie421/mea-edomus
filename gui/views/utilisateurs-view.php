@@ -1,11 +1,15 @@
 <?php
 include_once('../lib/configs.php');
-include_once('../lib/php/translation.php');
-include_once('../lib/php/$LANG/translation.php');
 include_once('../lib/php/auth_utils.php');
-mea_loadTranslationData($LANG,'../');
 
 session_start();
+if(isset($_SESSION['language']))
+{
+   $LANG=$_SESSION['language'];
+}
+include_once('../lib/php/translation.php');
+include_once('../lib/php/$LANG/translation.php');
+mea_loadTranslationData($LANG,'../');
 
 $isadmin = check_admin();
 if($isadmin !=0 && $isadmin != 98) : ?>
@@ -27,6 +31,7 @@ function strProfile_us(val,row)
    {
       case  '0': return translationController.toLocalC("user");
       case  '1': return translationController.toLocalC("administrator");
+      case  '2': return translationController.toLocalC("maps only");
    }
 }
 
@@ -87,6 +92,7 @@ jQuery(document).ready(function(){
 
    // lien spécifique avec la vue (paramètre optionnel du controleur
    ctrlr_us.setButtonsAnimation('b_edit_us', 'b_del_us');
+
 <?php
 if($isadmin==0) : ?>
    ctrlr_us.setValidate(formValidation_us);
@@ -138,6 +144,7 @@ endif; ?>
                <th data-options="field:'password',width:10,hidden:true"><?php mea_toLocalC('password'); ?></th>
                <th data-options="field:'description',width:200,align:'left'"><?php mea_toLocalC('description'); ?></th>
                <th data-options="field:'profil',width:50,align:'center',formatter:strProfile_us"><?php mea_toLocalC('profile'); ?></th>
+               <th data-options="field:'language',width:50,align:'center'"><?php mea_toLocalC('language'); ?></th>
                <th data-options="field:'flag',width:10,hidden:true"><?php mea_toLocalC('flag'); ?></th>
             </tr>
          </thead>
@@ -150,7 +157,7 @@ endif; ?>
 <?php
    if($isadmin == 0) : ?>
       <a href="#" class="easyui-linkbutton" id="b_add_us" iconCls="icon-add" plain="true" onclick="ctrlr_us.add();"><?php mea_toLocalC('add'); ?></a>
-      <a href="#" class="easyui-linkbutton" id="b_edit_us" iconCls="icon-edit" plain="true" onclick="ctrlr_us.edit();"><?php mea_toLocalC('view/edit'); ?></a>
+      <a href="#" class="easyui-linkbutton" id="b_edit_us" iconCls="icon-edit" plain="true" onclick="ctrlr_us.edit();"><?php mea_toLocalC('edit/view'); ?></a>
       <a href="#" class="easyui-linkbutton" id="b_del_us" iconCls="icon-remove" plain="true" onclick="ctrlr_us.del();"><?php mea_toLocalC('delete'); ?></a>
 <?php
    else : ?>
@@ -175,7 +182,7 @@ endif; ?>
         </div>
 
         <div class="fitem">
-            <label><?php mea_toLocalC_2d('password confirmation'); ?></label>
+            <label><?php mea_toLocalC_2d('confirmation'); ?></label>
             <input id="password2" name="password" class="easyui-textbox editable_us" style="width:100px;" type="password" data-options="required:true,validType:'password_validation',missingMessage:translationController.toLocalC('confirmation password is mandatory')">
         </div>
 <?php
@@ -189,8 +196,18 @@ endif; ?>
             <select class="easyui-combobox editable_us" name="profil" data-options="required:true,editable:false,panelHeight:105" style="width:120px;">
                <option value=0><?php mea_toLocalC('user'); ?></option>
                <option value=1><?php mea_toLocalC('administrator'); ?></option>
+               <option value=2><?php mea_toLocalC('maps only'); ?></option>
             </select>
         </div>
+       
+        <div class="fitem">
+            <label><?php mea_toLocalC_2d('language'); ?></label>
+            <select class="easyui-combobox editable_us" name="language" data-options="required:true,editable:false,panelHeight:105" style="width:120px;">
+               <option value="default"><?php mea_toLocalC('default (en)'); ?></option>
+               <option value="fr"><?php mea_toLocalC('français (fr)'); ?></option>
+            </select>
+        </div>
+ 
         <div class="fitem">
             <label><?php mea_toLocalC_2d('password option'); ?></label>
             <select class="easyui-combobox readonly_us" name="flag" data-options="required:true,editable:false,panelHeight:105" style="width:120px;">

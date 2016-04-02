@@ -1,19 +1,55 @@
 <?php
 include_once('lib/configs.php');
+$DEBUG_ON=1;
+if(isset($DEBUG_ON) && ($DEBUG_ON == 1))
+{
+   ob_start();
+   print_r($_REQUEST);
+   $debug_msg = ob_get_contents();
+   ob_end_clean();
+   error_log($debug_msg);
+}
+
+$autologin=False;
+if(isset($_REQUEST['autologin']))
+{
+   $autologin=$_REQUEST['autologin'];
+}
+
+session_start();
+
+if(isset($_SESSION['language']))
+{
+   $LANG=$_SESSION['language'];
+}
 include_once('lib/php/translation.php');
 include_once('lib/php/$LANG/translation.php');
 mea_loadTranslationData($LANG,'');
-session_start();
 ?>
 
 <!DOCTYPE html>
-<html style="width:100px;margin:0">
+
+<?php
+// contrôle et redirections
+if(!isset($_SESSION['logged_in']))
+{
+    $dest=$_SERVER['PHP_SELF'];
+    if($autologin<>False)
+       echo "<script>window.location = \"login.php?dest=$dest&autologin=$autologin\";</script>";
+    else
+       echo "<script>window.location = \"login.php?dest=$dest\";</script>";
+    exit();
+}
+?>
+
+<html style="overflow: hidden">
 <head>
    <title>
    <?php echo $TITRE_APPLICATION;?>
    </title>
    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-   <meta name="viewport" content="width=device-width, initial-scale=0.99">
+   <meta name="viewport" content="width=device-width, initial-scale=1, minimun-scale=1.0, maximun-scale=1.0, user-scalable=no">
+   <meta name="apple-mobile-web-app-capable" content="yes" />
    <meta name="description" content="domotique DIY !">
 
    <link rel="stylesheet" type="text/css" href="lib/jquery-easyui-1.4.4/themes/default/easyui.css">
@@ -32,6 +68,19 @@ session_start();
    <script type="text/javascript" src="lib/highcharts-4.2.3/js/modules/offline-exporting.js"></script>
    <script type="text/javascript" src="lib/highcharts-4.2.3/js/modules/no-data-to-display.js"></script>
    <script type="text/javascript" src="lib/highcharts-4.2.3/js/themes/grid-light.js"></script>
+
+   <style>
+      html,body{ margin:0;padding:0;height:100%;width:100%; }
+div::-webkit-scrollbar {
+    -webkit-appearance: none;
+    width: 7px;
+}
+div::-webkit-scrollbar-thumb {
+    border-radius: 4px;
+    background-color: rgba(0,0,0,.5);
+    -webkit-box-shadow: 0 0 1px rgba(255,255,255,.5);
+}
+   </style>
 </head>
 
 <script type="text/javascript" src="models/common/models-utils.js"></script>
@@ -57,12 +106,29 @@ session_start();
 
 function toAdmin()
 {
-   window.location = "login.php";
+   window.location = "index.php";
+}
+
+
+function logout()
+{
+   $.get('models/destroy_php_session.php',
+      {},
+      function(data){
+      },
+      "json"
+   )
+   .always(function(){ window.location = "login.php"; });
 }
 
 
 function overflow(s)
 {
+   console.log($('body').outerWidth()+" "+$('body').outerHeight());
+   console.log($('body').innerWidth()+" "+$('body').innerHeight());
+   console.log($("#container_mp").outerWidth()+" "+$("#container_mp").outerHeight());
+   console.log($("#container_mp").offset().top+" "+$("#container_mp").offset().left);
+   
    if(s=='hidden')
    {
       $("#container_mp").removeClass('mp_overflow_scroll');
@@ -81,6 +147,14 @@ jQuery(document).ready(function(){
 
 var map = false;
 var mapsset = false;
+
+Highcharts.setOptions({
+    chart: {
+        style: {
+            fontFamily: 'sans-serif'
+        }
+    }
+});
 
 <?php
 //   $IP=getenv('REMOTE_ADDR');
@@ -101,6 +175,7 @@ var mapsset = false;
    // initialisation des controleurs
    //
    // pour la traduction
+
    translationController = new TranslationController();
    translationController.loadDictionaryFromJSON("lib/translation_"+LANG+".json");
    extend_translation(translationController);
@@ -126,7 +201,7 @@ var mapsset = false;
 
       if(s!=null) {
          var aut_listener=ctrlr_map.__aut_listener.bind(ctrlr_map);
-          s.on('aut', aut_listener);
+         s.on('aut', aut_listener);
       }
       else {
       }
@@ -138,6 +213,8 @@ var mapsset = false;
       var navigationPanelInit = navigationPanel.init.bind(navigationPanel);
  
       ctrlr_map.loadWidgets(function() {
+         setInterval(function(){$.post('models/refresh_php_session.php');},600000);
+
          if(mapsset === false)
          {
             filechooser.open(ctrlr_map._toLocalC("choose maps set ..."),
@@ -156,6 +233,15 @@ var mapsset = false;
             navigationPanel.init(mapsset, "menu", false, map);  
          }
       });
+
+      $(window).on('orientationchange', function(e) {
+         navigationPanel.redraw();
+         $.mobile.changePage(window.location.href, {
+            allowSamePageTransition: true,
+            transition: 'none',
+            reloadPage: true
+         });
+      });
    },
    function() { console.log("socketio error"); }
    );
@@ -164,10 +250,10 @@ var mapsset = false;
 </script>
 <style>
 .mp_overflow_hidden {
-   overflow: hidden;
+   overflow-x: hidden;
 }
 .mp_overflow_scroll {
-   overflow: scroll;
+   overflow-x: scroll;
 }
 
 .navpanel {
@@ -181,23 +267,27 @@ var mapsset = false;
    z-index: 1000;
 }
 </style>
-<body style="width:100%;height:100%;margin:0;padding:0;overflow:hidden">
-
-   <div id="container_mp" class='mp_overflow_scroll' style="position:absolute;width:100%;height:100%;background:#EEEEEE">
+<body style="overflow:hidden;position:fixed">
+   <div id="container_mp" class='mp_overflow_hidden' style="position:absolute;width:100%;height:100%;background:#EEEEEE">
       <div id="map_mp" style="position:relative;overflow:auto;background:#FFFFFF">
       </div>
    </div> 
 
-   <div id="widgets_container_mp" style="display:none"></div>
+   <div id="widgets_container_mp" style="display:none">
+   </div>
 
    <div id="map_cm_mp" class="easyui-menu" style="width:180px;display:hidden;">
+<!--
       <div onclick="javascript:ctrlr_map._context_menu('load')">load</div>
+-->
+      <div onclick="javascript:window.location='maps.php'">load</div>
       <div class="menu-sep"></div>
       <div onclick="javascript:overflow('hidden')">overflow:hidden</div>
       <div onclick="javascript:overflow('scroll')">overflow:scroll</div>
       <div class="menu-sep"></div>
       <div onclick="javascript:toAdmin()">admin</div>
+      <div class="menu-sep"></div>
+      <div onclick="javascript:logout()">logout</div>
    </div>
-
 </body>
 </html>

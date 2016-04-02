@@ -33,18 +33,28 @@ function FileChooserController(attachement)
 extendClass(FileChooserController, MeaObject);
 
 FileChooserController.prototype = {
-   _getHtml: function()
+   _getHtml: function(max_x, max_y)
    {
+      var _this=this;
+      var id=_this.id;
+
+      var w=max_x-55;
+      var h=max_y-200;
+      if(h<400)
+         h=max_y-170;
+      h=h-5; 
+
       html="<div id='"+id+"' style=\"padding:10px 20px\"> \
-               <div id='"+id+"_title' class='ftitle'></div> \
-                  <form id='"+id+"_fm' method='post' data-options=\"novalidate:false\"> \
-                     <div class='fitem'> \
-                        <div id='"+id+"_files' style='width:295px;height:200px'></div> \
-                     </div> \
-                     <div class='fitem' style=\"padding-top:10px;\"> \
-                        <input id='"+id+"_filename' style=\"width:100%;\"> \
-                     </div> \
-                  </form> \
+               <div id='"+id+"_title' class='ftitle'> \
+               </div> \
+               <form id='"+id+"_fm' method='post' data-options=\"novalidate:false\"> \
+                  <div class='fitem'> \
+                     <div id='"+id+"_files' style='width:"+w+"px;height:"+h+"px'></div> \
+                  </div> \
+                  <div class='fitem' style=\"padding-top:10px;\"> \
+                     <input id='"+id+"_filename' style=\"width:100%;\"> \
+                  </div> \
+               </form> \
             </div>";
 
       return html;
@@ -117,12 +127,22 @@ FileChooserController.prototype = {
             _do(name, _type, false, __do_param);
          }
       };
+
+      var max_x=$('body').width();
+      var max_y=$('body').height();
+      var w=350;
+      var h=400;
+      if(max_x<350)
+         w=300;
+      if(max_y<400)
+         h=280;
+
       $.get("models/get_files_list.php", { type: _type }, function(response) {
          if(response.iserror === false)
          {
             $('#'+id).empty();
             $('#'+id).remove();
-            html=_this._getHtml();
+            html=_this._getHtml(w,h);
 
             $('body').append(html);
             $('#'+id+'_title').text(_title2);
@@ -131,11 +151,13 @@ FileChooserController.prototype = {
 
             $('#'+id).dialog({
                title: _title,
-               width: 350,
-               height: 400,
+               width: w,
+               height: h,
                closed: false,
                cache: false,
                modal: true,
+//               left:0,
+//               top:0,
                buttons:[
                {
                   text: _buttonOKText,

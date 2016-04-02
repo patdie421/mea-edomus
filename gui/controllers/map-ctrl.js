@@ -38,7 +38,8 @@ function MapController(container, map, widgets_container, mapContextMenu)
 
    var _this = this;
 
-   _this.map.bind('contextmenu', _this.open_context_menu);
+//   _this.map.bind('contextmenu', _this.open_context_menu);
+   $('body').bind('contextmenu', _this.open_context_menu);
 }
 
 extendClass(MapController, CommonController);

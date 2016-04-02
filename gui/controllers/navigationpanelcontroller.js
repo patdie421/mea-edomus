@@ -71,6 +71,25 @@ NavigationPanelController.prototype.set_mapselection = function(map)
 }
 
 
+NavigationPanelController.prototype.redraw = function()
+{
+
+   var np=$("#navpanel");
+   var x=np.offset().left;
+   var y=np.offset().top;
+
+   var _top=y;
+   var _left=x;
+
+   if(y >  window.innerHeight)
+      var _top = window.innerHeight - 50 - 50;
+   if(x >  window.innerWidth)
+      var _left = window.innerWidth - 600 - 50;
+
+   np.offset({ top: _top, left: _left });   
+}
+
+
 NavigationPanelController.prototype.initNavigationBar = function(mapSetName, done, error, userdata)
 {
    var _this = this;
@@ -105,8 +124,10 @@ NavigationPanelController.prototype.initNavigationBar = function(mapSetName, don
    var _top = window.innerHeight - 50 - 50;
    var _left = window.innerWidth - 600 - 50;
 
-   $('body').append("<div id='dd' class='navpanel' style='display:hidden; top:"+_top+"px; left:"+_left+"px;'>"+html+"</div>");
-   $('#dd').draggable({ });
+   $('#navpanel').remove();
+
+   $('body').append("<div id='navpanel' class='navpanel' style='display:hidden; top:"+_top+"px; left:"+_left+"px;'>"+html+"</div>");
+   $('#navpanel').draggable({ });
 
    $("#bleft").linkbutton({
       iconCls: 'icon-mealeftarrow',
@@ -255,7 +276,7 @@ NavigationPanelController.prototype.init = function(mapsSet_name, type, checkfla
       {
          if(_this.on === false)
          {
-            $('#dd').fadeIn('fast');
+            $('#navpanel').fadeIn('fast');
             $('body').css({ cursor: 'auto' });
             _this.on=true;
          }
@@ -265,7 +286,7 @@ NavigationPanelController.prototype.init = function(mapsSet_name, type, checkfla
 
          _this.timer=setTimeout(function() {
             $("#mapselection").combobox('hidePanel');
-            $('#dd').fadeOut('slow');
+            $('#navpanel').fadeOut('slow');
             $('body').css({ cursor: 'none' });
             _this.on=false;
          }, 5000);

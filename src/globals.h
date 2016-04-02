@@ -48,7 +48,7 @@
 #define COLLECTOR_ID          28
 #define MAX_LIST_SIZE         29
 
-#define CURRENT_PARAMS_DB_VERSION 9
+#define CURRENT_PARAMS_DB_VERSION 10
 sqlite3 *get_sqlite3_param_db();
 
 // voir ou mettre

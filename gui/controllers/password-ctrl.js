@@ -23,6 +23,9 @@ PasswordController.prototype.login = function(userid,password,destination,chgPas
          function(data) {
             if(data.retour==1) {
                if(data.flag==1) {
+                  if(chgPasswordDest === false)
+                     window.location = "/login.php";
+               
                   $.messager.alert(_controller._toLocalC("first login ..."),_controller._toLocalC("password must be changed !"), 'info', function(){
                      window.location = chgPasswordDest;
                   });

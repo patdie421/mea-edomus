@@ -38,6 +38,7 @@ $description = $_REQUEST['description'];
 $password = $_REQUEST['password'];
 $profil = $_REQUEST['profil'];
 $flag = $_REQUEST['flag'];
+$language = $_REQUEST['language'];
 
 // connexion à la db
 try {
@@ -58,7 +59,8 @@ $SQL= "UPDATE users SET "
         ."password=:password,"
         ."description=:description,"
         ."profil=:profil,"
-        ."flag=:flag "
+        ."flag=:flag, "
+        ."language=:language "
      ."WHERE id=:id";
 try{
    $stmt = $file_db->prepare($SQL);
@@ -69,6 +71,7 @@ try{
          ":description" => $description,
          ":profil"      => $profil,
          ":flag"        => $flag,
+         ":language"    => $language,
          ":id"          => $id
       )
    );

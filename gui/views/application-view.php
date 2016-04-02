@@ -1,11 +1,15 @@
 <?php
 include_once('../lib/configs.php');
-include_once('../lib/php/translation.php');
-include_once('../lib/php/$LANG/translation.php');
 include_once('../lib/php/auth_utils.php');
-mea_loadTranslationData($LANG,'../');
 
 session_start();
+if(isset($_SESSION['language']))
+{
+   $LANG=$_SESSION['language'];
+}
+include_once('../lib/php/translation.php');
+include_once('../lib/php/$LANG/translation.php');
+mea_loadTranslationData($LANG,'../');
 
 $isadmin = check_admin();
 if($isadmin !=0 && $isadmin != 98) : ?>
@@ -148,7 +152,7 @@ endif; ?>
               <col width="30%">
               <tr>
                  <td align="right">
-                    <label for="DBSERVER" id="mysqlserver">Server name/address:</label>
+                    <label for="DBSERVER" id="mysqlserver"><?php mea_toLocalC_2d('Server name/address');?></label>
                  </td>
                  <td>
                     <input name="DBSERVER" id="DBSERVER" style="height:25px; width:100%;" class="easyui-textbox editable_ap" />

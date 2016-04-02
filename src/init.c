@@ -486,7 +486,7 @@ int16_t createMeaTables(sqlite3 *sqlite3_param_db)
       "CREATE TABLE sensors_actuators(id INTEGER PRIMARY KEY,id_sensor_actuator INTEGER,id_type INTEGER,id_interface INTERGER,name TEXT,description TEXT,id_location INTEGER,parameters TEXT,state INTEGER, todbflag INTEGER, deleted_flag INTEGER)",
       "CREATE TABLE types(id INTEGER PRIMARY KEY,id_type INTEGER,name TEXT,description TEXT,parameters TEXT,flag INTEGER,typeoftype INTEGER)",
       "CREATE TABLE sessions (id INTEGER PRIMARY KEY, userid TEXT, sessionid INTEGER, lastaccess DATETIME)",
-      "CREATE TABLE users (id INTEGER PRIMARY KEY, id_user INTEGER, name TEXT, password TEXT, description TEXT, profil INTEGER, flag INTEGER)",
+      "CREATE TABLE users (id INTEGER PRIMARY KEY, id_user INTEGER, name TEXT, password TEXT, description TEXT, profil INTEGER, language TEXT, flag INTEGER)",
       NULL
    };
 
@@ -1222,6 +1222,36 @@ exit_updateMeaEdomus:
 
 
 // une fonction pour chaque changement de version.
+int16_t upgrade_params_db_from_9_to_10(sqlite3 *sqlite3_param_db, struct upgrade_params_s *upgrade_params)
+{
+ int ret;
+ char *err = NULL;
+ char sql[256];
+ int16_t n;
+
+   VERBOSE(5) mea_log_printf ("%s (%s) : passage de la version 9 à la version 10\n",INFO_STR,__func__);
+
+   // ajout d'une colonne à la table des utilisateurs
+   ret = sqlite3_exec(sqlite3_param_db, "ALTER TABLE users ADD COLUMN language TEXT", NULL, NULL, &err);
+   if( ret != SQLITE_OK )
+   {
+      VERBOSE(9) mea_log_printf ("%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
+      sqlite3_free(err);
+   }
+
+   ret = sqlite3_exec(sqlite3_param_db, "UPDATE 'application_parameters' set value = '10' WHERE key = 'PARAMSDBVERSION'", NULL, NULL, &err);
+   if( ret != SQLITE_OK )
+   {
+      VERBOSE(9) mea_log_printf ("%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
+      sqlite3_free(err);
+      return -1;
+   }
+
+   return 0;
+}
+
+
+// une fonction pour chaque changement de version.
 int16_t upgrade_params_db_from_8_to_9(sqlite3 *sqlite3_param_db, struct upgrade_params_s *upgrade_params)
 {
  int ret;
@@ -1691,6 +1721,7 @@ upgrade_params_db_from_x_to_y_f upgrade_params_db_from_x_to_y[]= {
    upgrade_params_db_from_6_to_7,
    upgrade_params_db_from_7_to_8,
    upgrade_params_db_from_8_to_9,
+   upgrade_params_db_from_9_to_10,
    NULL };
 
 

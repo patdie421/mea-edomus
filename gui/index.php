@@ -3,10 +3,16 @@
 //  PAGE PRINCIPALE (VIEW) : home page
 //
 include_once('lib/configs.php');
+include_once('lib/php/auth_utils.php');
+
+session_start();
+if(isset($_SESSION['language']))
+{
+   $LANG=$_SESSION['language'];
+}
 include_once('lib/php/translation.php');
 include_once('lib/php/$LANG/translation.php');
 mea_loadTranslationData($LANG,'');
-session_start();
 ?>
 
 <!DOCTYPE html>
@@ -15,11 +21,19 @@ session_start();
 // contrôle et redirections
 if(!isset($_SESSION['logged_in']))
 {
-    $dest=$_SERVER['PHP_SELF'];
-    echo "<script>window.location = \"login.php?dest=$dest\";</script>";
-    exit();
+   $dest=$_SERVER['PHP_SELF'];
+   echo "<script>window.location = \"login.php?dest=$dest\";</script>";
+   exit();
 }
+
+if(check_map_only() == 0)
+{
+   echo "<script>window.location = \"maps.php\";</script>";
+}
+
+$isadmin = check_admin();
 ?>
+
 
 <html>
 <head>
@@ -53,8 +67,10 @@ if(!isset($_SESSION['logged_in']))
 <script type="text/javascript" src="lib/highcharts-4.2.3/js/modules/exporting.js"></script>
 <script type="text/javascript" src="lib/highcharts-4.2.3/js/modules/offline-exporting.js"></script>
 <script type="text/javascript" src="lib/highcharts-4.2.3/js/modules/no-data-to-display.js"></script>
-<script type="text/javascript" src="lib/highcharts-4.2.3/js/themes/grid-light.js"></script>
-
+<script type="text/javascript" src="lib/highcharts-4.2.3/js/themes/grid-light2.js"></script>
+<!--
+<script type="text/javascript" src="lib/highcharts-4.2.3/js/themes/grid.js"></script>
+-->
 <!-- Chargement des modules et objets communs -->
 <script type="text/javascript" src="models/common/models-utils.js"></script>
 
@@ -109,11 +125,21 @@ function liveComUnavailable(destview)
    viewsController.addView(translationController.toLocalC('application'),'page3.php','page3_tab');
    viewsController.addView(translationController.toLocalC('users'),'page3.php','page3_tab');
 
+<?php
+if($isadmin==0) :?>
    viewsController.addView(translationController.toLocalC('rules editor'),'page4.php','page4_tab');
    viewsController.addView(translationController.toLocalC('rules manager'),'page4.php','page4_tab');
+<?else : ?>
+   viewsController.addView(translationController.toLocalC('rules viewer'),'page4.php','page4_tab');
+<?php
+endif?>
 
+<?php
+if($isadmin==0) :?>
    viewsController.addView(translationController.toLocalC('map editor'),'page5.php','page5_tab');
    viewsController.addView(translationController.toLocalC('maps set editor'),'page5.php','page5_tab');
+<?php
+endif?>
 
    if(destview=="" || typeof(viewController.views[destview])=="undefined")
       destview=translationController.toLocalC('sensors/actuators');
@@ -137,11 +163,21 @@ function liveComAvailable(s,destview)
    viewsController.addView(translationController.toLocalC('application'),'page3.php','page3_tab');
    viewsController.addView(translationController.toLocalC('users'),'page3.php','page3_tab');
 
+<?php
+if($isadmin==0) :?>
    viewsController.addView(translationController.toLocalC('rules editor'),'page4.php','page4_tab');
    viewsController.addView(translationController.toLocalC('rules manager'),'page4.php','page4_tab');
+<?else : ?>
+   viewsController.addView(translationController.toLocalC('rules viewer'),'page4.php','page4_tab');
+<?php
+endif?>
 
+<?php
+if($isadmin==0) :?>
    viewsController.addView(translationController.toLocalC('map editor'),'page5.php','page5_tab');
    viewsController.addView(translationController.toLocalC('maps set editor'),'page5.php','page5_tab');
+<?php
+endif?>
 
    if(destview=="" || typeof(viewsController.views[destview])=="undefined")
       destview=translationController.toLocalC('indicators');
@@ -190,6 +226,7 @@ jQuery(document).ready(function() {
    }
    echo "var socketio_port="; echo $IOSOCKET_PORT; echo ";\n";
 ?>
+   console.log("LANG="+LANG);
    //
    // initialisation des controleurs
    //
@@ -266,13 +303,24 @@ a.meamenu:hover {
             
                <div title="<?php mea_toLocalC('maps'); ?>" style="overflow:auto;padding:10px;">
                   <div><a href="#" class="meamenu" onclick="javascript: window.location='maps.php'"><?php mea_toLocalC('full screen maps'); ?></a></div>
+<?php
+if($isadmin==0) :?>
                   <div><a href="#" class="meamenu" onclick="javascript:viewsController.displayView(translationController.toLocalC('map editor'),'page5.php','page5_tab')"><?php mea_toLocalC('map editor'); ?></a></div>
                   <div><a href="#" class="meamenu" onclick="javascript:viewsController.displayView(translationController.toLocalC('maps set editor'),'page5.php','page5_tab')"><?php mea_toLocalC('maps set editor'); ?></a></div>
+<?php
+endif?>
                </div>
 
                <div title="<?php mea_toLocalC('automator'); ?>" style="overflow:auto;padding:10px;">
-                  <div><a href="#" class="meamenu" onclick="javascript:viewsController.displayView(translationController.toLocalC('rules manager'),'page4.php','page4_tab')"><?php mea_toLocalC('rules manager'); ?></a></div>
+<?php
+if($isadmin==0) :?>
                   <div><a href="#" class="meamenu" onclick="javascript:viewsController.displayView(translationController.toLocalC('rules editor'),'page4.php','page4_tab')"><?php mea_toLocalC('rules editor'); ?></a></div>
+                  <div><a href="#" class="meamenu" onclick="javascript:viewsController.displayView(translationController.toLocalC('rules manager'),'page4.php','page4_tab')"><?php mea_toLocalC('rules manager'); ?></a></div>
+<?php
+else : ?>
+                  <div><a href="#" class="meamenu" onclick="javascript:viewsController.displayView(translationController.toLocalC('rules viewer'),'page4.php','page4_tab')"><?php mea_toLocalC('rules viewer'); ?></a></div>
+<?php
+endif?>
                </div>
 
                <div title="<?php mea_toLocalC('inputs/outputs'); ?>" style="overflow:auto;padding:10px;">

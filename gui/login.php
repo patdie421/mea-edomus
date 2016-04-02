@@ -1,9 +1,13 @@
 <?php
 include_once('lib/configs.php');
+session_start();
+if(isset($_SESSION['language']))
+{
+   $LANG=$_SESSION['language'];
+}
 include_once('lib/php/translation.php');
 include_once('lib/php/$LANG/translation.php');
 mea_loadTranslationData($LANG,'');
-session_start();
 ?>
 
 <!DOCTYPE html>
@@ -30,11 +34,12 @@ session_start();
 
 <script type="text/javascript" src="controllers/common/meaobject.js"></script>
 <script type="text/javascript" src="controllers/common/commoncontroller.js"></script>
-<script type="text/javascript" src="controllers/common/translationcontroller.js"></script>
 <script type="text/javascript" src="controllers/common/credentialcontroller.js"></script>
-
+<?php if(!isset($_REQUEST['autologin'])) :?>
+<script type="text/javascript" src="controllers/common/translationcontroller.js"></script>
+<?php endif ?>
 <!-- surcharge des méthodes du controleur de traduction spécifiques à une langue donnée -->
-<?php
+<?php if(!isset($_REQUEST['autologin']))
    echo "<script type='text/javascript' src='lib/js/".$LANG."/mea-translation.js'></script>"; // extension
 ?>
 
@@ -44,7 +49,7 @@ session_start();
 <?php echo "LANG='$LANG';"; ?>
 var chgPasswordDest="";
 var destination="";
-
+var autologin=false;
 
 function login()
 {
@@ -55,23 +60,49 @@ function login()
 jQuery(document).ready(function(){
    $.ajaxSetup({ cache: false });
 
+<?php
+if(!isset($_REQUEST['autologin'])) :?>
    translationController = new TranslationController();
    translationController.loadDictionaryFromJSON("lib/translation_"+LANG+".json");
    extend_translation(translationController);
-   
+<?php
+endif ?>
+
    // controleur d'habilitation
    credentialController = new CredentialController("models/get_auth.php");
 
    passwordController = new PasswordController('models/login.php','models/set_password.php');
-   passwordController.linkToTranslationController(translationController);
    passwordController.linkToCredentialController(credentialController);
 
+<?php
+if(!isset($_REQUEST['autologin'])) :?>
+   passwordController.linkToTranslationController(translationController);
+<?php
+endif ?>
+
+<?php
+   if(isset($_REQUEST['autologin']))
+   {
+      echo "autologin = \"".($_REQUEST['autologin'])."\";\n"; 
+   }
+?>
+
+<?php
+if(isset($_REQUEST['autologin'])) :?>
+   passwordController.login(autologin, autologin, destination, false);
+<?php
+else: ?>
+   $("#loginpanel").show();
    userid = $("#userid");
    passwd = $("#passwd");
-  
+
    userid.textbox('textbox').on('keydown', function(e) {
-      if(e.keyCode == 13)
-         passwd.textbox('textbox').focus();
+      console.log("ICI");
+      if(e.keyCode == 13 || e.keyCode == 9)
+      {
+         e.preventDefault();
+         passwd.textbox('clear').textbox('textbox').focus();
+      }
    });
 
    passwd.textbox('textbox').on('keydown', function(e) {
@@ -86,21 +117,31 @@ jQuery(document).ready(function(){
          echo "?view=$view";
       }
       echo "\";\n";
-      
-      echo "destination = \"index.php";
-      if(isset($_REQUEST['view']))
-      {
-         echo "?view="; echo $_REQUEST['view'];
+
+      if(isset($_REQUEST['dest'])) {
+         echo "destination = \"".($_REQUEST['dest']);
+      }
+      else
+      {     
+         echo "destination = \"index.php";
+         if(isset($_REQUEST['view']))
+         {
+            echo "?view="; echo $_REQUEST['view'];
+         }
       }
       echo "\";\n";
    ?>
-
    $('#login').click(login);
+<?php
+endif
+?>
 });
 </script>
 
 <body>
-   <div style="min-width:950px;min-height:650px;margin:10px;text-align:center;">
+<?php
+if(!isset($_REQUEST['autologin'])) :?>
+   <div id="loginpanel" style="min-width:950px;min-height:650px;margin:10px;text-align:center;display:hidden">
       <div>
          <div style="display:inline-block">
             <img src="lib/logo-mea-eDomus.png" border="0" align="center" width=500px/>
@@ -120,5 +161,8 @@ jQuery(document).ready(function(){
          </div>
       </div>
    </div>
+<?php
+endif
+?>
 </body>
 </html>

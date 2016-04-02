@@ -787,7 +787,7 @@ static int function_call(char *str, struct value_s *v, cJSON *xplMsgJson)
             if(ret==0 && r.type==1)
             {
                int state = 0;
-                  state = mea_datetime_getTimerState(r.val.strval);
+               state = mea_datetime_getTimerState(r.val.strval);
                v->type=2;
                if(state == TIMER_FALLED)
                   v->val.booleanval=1;

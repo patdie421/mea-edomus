@@ -299,7 +299,7 @@ try
       $request = $db->query($sql_c);
       while($row = $request->fetch(PDO::FETCH_OBJ))
       {
-         $rows[]="[".$row->tms.",".number_format($row->avg,2)."]"; 
+         $rows[]="[".$row->tms.",".number_format($row->avg,2,'.','')."]"; 
       }
    }
 
@@ -308,13 +308,14 @@ try
       $request = $db->query($sql);
       while($row = $request->fetch(PDO::FETCH_OBJ))
       {
-         $rows[]="[".$row->tms.",".number_format($row->avg,2)."]";
+         $rows[]="[".$row->tms.",".number_format($row->avg,2,'.','')."]";
       }
    }
 
    $rows[]="[".(time()*1000).",null]";
 
 //   echo "console.log(' start = $start, end = $end, startTime = $startTime, endTime = $endTime ');\n"; 
+//   error_log("{id: $id, data: [\n" . join(",\n", $rows) ."\n]}");
    echo $callback ."({id: $id, data: [\n" . join(",\n", $rows) ."\n]});"; 
 }
 catch(PDOException $e)

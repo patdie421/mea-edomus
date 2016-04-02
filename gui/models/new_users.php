@@ -34,6 +34,7 @@ $description = $_REQUEST['description'];
 $password = $_REQUEST['password'];
 $profil = $_REQUEST['profil'];
 $flag = $_REQUEST['flag'];
+$language = $_REQUEST['language'];
 
 
 // connexion à la db
@@ -65,8 +66,8 @@ catch (PDOException $e) {
 }
 $next_id=$next_id+1;
 
-$SQL="INSERT INTO users (id_user, name, password, description, profil, flag) "
-    ."VALUES('$next_id', '$name', '$password', '$description', '$profil', '$flag')";
+$SQL="INSERT INTO users (id_user, name, password, description, profil, flag, language) "
+    ."VALUES('$next_id', '$name', '$password', '$description', '$profil', '$flag', '$language')";
 
 try {
    $request = $file_db->query($SQL);

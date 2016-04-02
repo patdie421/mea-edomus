@@ -1,9 +1,13 @@
 <?php
 include_once('lib/configs.php');
+session_start();
+if(isset($_SESSION['language']))
+{
+   $LANG=$_SESSION['language'];
+}
 include_once('lib/php/translation.php');
 include_once('lib/php/$LANG/translation.php');
 mea_loadTranslationData($LANG,'');
-session_start();
 ?>
 
 <html>

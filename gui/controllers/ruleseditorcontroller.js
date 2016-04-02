@@ -1,4 +1,4 @@
-function RulesEditorController(_editorzone, _editordiv, _menu, _contextmenu)
+function RulesEditorController(_editorzone, _editordiv, _menu)
 {
    RulesEditorController.superConstructor.call(this);
 
@@ -7,7 +7,7 @@ function RulesEditorController(_editorzone, _editordiv, _menu, _contextmenu)
    this.editorzone = _editorzone;
    this.editordiv = _editordiv;
    this.menu = _menu;
-   this.contextmenu = _contextmenu;
+//   this.contextmenu = _contextmenu;
 
    this.editor = ace.edit(this.editordiv);
    this.editor.setOption("fixedWidthGutter", true);
@@ -16,7 +16,6 @@ function RulesEditorController(_editorzone, _editordiv, _menu, _contextmenu)
    this.editor.session.setTabSize(3);
    this.editor.session.setUseSoftTabs(true);
    this.editor.setOptions({ fontFamily: "'Lucida Console', Monaco, monospace" });
-
    this.ctrlr_filechooser = new FileChooserController("#"+this.editorzone);
 }
 
@@ -93,6 +92,7 @@ RulesEditorController.prototype.open = function(name, type, checkflag)
 {
    var _this = this;
 
+
    _this.current_file=name;
    if(checkflag === true)
       return;
@@ -101,6 +101,10 @@ RulesEditorController.prototype.open = function(name, type, checkflag)
       if(response.iserror===false)
       {
          _this.editor.setValue(response.file, -1);
+         if(_this._isAdmin()!==true)
+            _this.editor.setReadOnly(true);
+         else
+            _this.editor.setReadOnly(false);
       }
       else
       {
@@ -121,6 +125,9 @@ RulesEditorController.prototype.saveas = function(name, type, checkflag, afterSa
    var _this = this;
 
    afterSave = typeof afterSave !== 'undefined' ? afterSave : false;
+
+   if(_this._isAdmin()!==true)
+      return;
 
    var data = _this.editor.getValue();
 
@@ -149,6 +156,9 @@ RulesEditorController.prototype.saveas = function(name, type, checkflag, afterSa
 RulesEditorController.prototype.delete = function(name, type, checkflag)
 {
    var _this = this;
+
+   if(_this._isAdmin()!==true)
+      return;
 
    var _delete_rules = function() {
       $.post("models/del_file.php", { name: name, type: type }, function(response) {

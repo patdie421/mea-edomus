@@ -1,11 +1,16 @@
 <?php
 include_once('../lib/configs.php');
-include_once('../lib/php/translation.php');
-include_once('../lib/php/$LANG/translation.php');
 include_once('../lib/php/auth_utils.php');
-mea_loadTranslationData($LANG,'../');
 
 session_start();
+if(isset($_SESSION['language']))
+{
+   $LANG=$_SESSION['language'];
+}
+include_once('../lib/php/translation.php');
+include_once('../lib/php/$LANG/translation.php');
+mea_loadTranslationData($LANG,'../');
+
 $isadmin = check_admin();
 if($isadmin !=0 && $isadmin != 98) : ?>
 <script>

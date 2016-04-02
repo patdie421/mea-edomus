@@ -11,7 +11,7 @@ function FileChooserUploaderController(attachement)
 extendClass(FileChooserUploaderController, FileChooserController);
 
 //                     <select name='"+id+"_selectfiles' id='"+id+"_selectfiles' size='12' style=\"width:305px;font-family:verdana,helvetica,arial,sans-serif;font-size:12px;\"></select> \
-FileChooserUploaderController.prototype._getHtml = function()
+FileChooserUploaderController.prototype._getHtml = function(max_x, max_y)
 {
    html="<div id='"+id+"' style=\"padding:10px 20px \"> \
             <iframe id='"+id+"_iframe' name='"+id+"_iframe' height='0' width='0' frameborder='0'></iframe> \
