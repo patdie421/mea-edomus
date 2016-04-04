@@ -169,11 +169,23 @@ MapController.prototype.loadFrom = function(s)
          l=l.add($('#'+id));
       l.each(function(o) {
          if($(this).attr("mea_notooltip")!='true')
-         {
+         { 
+            var tt = $(this);
             $(this).tooltip({
                position: 'bottom',
                showDelay: 1000,
-               content:"<span style='font-size:8px'>N/A</span>"
+               content:"<span style='font-size:8px'>N/A</span>",
+               onShow: function() {
+                  tt.ttTimeout = setTimeout(function() {
+                     tt.tooltip('hide');
+                  },
+                  3500);
+               },
+               onHide: function() {
+                  if(tt.ttTimeout !== "undefined")
+                     clearTimeout(tt.ttTimeout);
+                  delete tt.ttTimeout;
+               }
             });
          }
       });

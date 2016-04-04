@@ -27,12 +27,30 @@
       "selectionnées",
    "apply" :
       "appliquer",
+   "file" :
+      "fichier",
+   "line" :
+      "ligne",
    "build" :
       "compiler",
    "deleting" :
       "suppression de",
    "communication error" :
       "erreur de communication",
+   "server or communication error" :
+      "erreur du serveur ou de communication",
+   "compilation error" :
+      "erreur de compilation",
+   "can't apply rules" :
+      "impossible d'appliquer les règles",
+   "would you commit it" :
+      "voulez-vous les appliquer",
+   "do it" :
+      "procéder",
+   "later" :
+      "plus tard",
+   "activation error" :
+      "erreur d'activation",
    "server message" :
       "message du serveur",
    "can't save file" :
@@ -113,8 +131,8 @@
       "nom de la base",
    "user password" :
       "mot de passe",
-   "inputs/outputs" :
-      "entrées/sorties",
+   "I/O configuration" :
+      "configuration des E/S",
    "preferences" :
       "préférences",
    "types list unavailable" :
@@ -285,14 +303,14 @@
       "choisissez les règles à supprimer ...",
    "choose rules to apply ..." :
       "choisissez les règles à appliquer ...",
-
    "choose rules sources ..." :
       "chosissier un fichier \"source\" de règles ...",
    "rules source file ..." :
       "fichier \"source\" de règles ...",
    "can't delete rules source file" :
       "impossible de supprimer le fichier \"source\" de règle",
-
+   "build and activate" :
+      "compiler et activer",
    "custom" :
       "personnalisée",
    "maps" :

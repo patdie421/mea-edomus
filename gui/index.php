@@ -117,7 +117,7 @@ function liveComUnavailable(destview)
    $('#mea-layout').layout('collapse','south'); // console masquée
    $('#console').text(translationController.toLocalC('No live information available !')); // un peu d'info quand même
    
-   viewsController.addView(translationController.toLocalC('sensors/actuators'),'page2.php','page2_tab');
+viewsController.addView(translationController.toLocalC('sensors/actuators'),'page2.php','page2_tab');
    viewsController.addView(translationController.toLocalC('interfaces'),'page2.php','page2_tab');
    viewsController.addView(translationController.toLocalC('types'),'page2.php','page2_tab');
    viewsController.addView(translationController.toLocalC('locations'),'page2.php','page2_tab');
@@ -323,7 +323,7 @@ else : ?>
 endif?>
                </div>
 
-               <div title="<?php mea_toLocalC('inputs/outputs'); ?>" style="overflow:auto;padding:10px;">
+               <div title="<?php mea_toLocalC('I/O configuration'); ?>" style="overflow:auto;padding:10px;">
                   <div><a href="#" class="meamenu" onclick="javascript:viewsController.displayView(translationController.toLocalC('sensors/actuators'),'page2.php','page2_tab')"><?php mea_toLocalC('sensors/actuators'); ?></a></div>
                   <div><a href="#" class="meamenu" onclick="javascript:viewsController.displayView(translationController.toLocalC('interfaces'),'page2.php','page2_tab')"><?php mea_toLocalC('interfaces'); ?></a></div>
                   <div><a href="#" class="meamenu" onclick="javascript:viewsController.displayView(translationController.toLocalC('types'),'page2.php','page2_tab')"><?php mea_toLocalC('types'); ?></a></div>

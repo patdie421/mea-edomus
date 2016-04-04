@@ -56,32 +56,91 @@ if(!isset($_SESSION['logged_in']))
    <link rel="stylesheet" type="text/css" href="lib/jquery-easyui-1.4.4/themes/icon.css">
    <link rel="stylesheet" type="text/css" href="lib/jquery-easyui-1.4.4/themes/color.css">
    <link rel="stylesheet" type="text/css" href="lib/mea-edomus.css">
-
-   <script type="text/javascript" src="lib/jquery-easyui-1.4.4/jquery.min.js"></script>
-   <script type="text/javascript" src="lib/jquery-easyui-1.4.4/jquery.easyui.min.js"></script>
-   <script type="text/javascript" src="lib/noty-2.2.10/js/noty/packaged/jquery.noty.packaged.min.js"></script>
-
-   <script type="text/javascript" src="lib/highstock-4.2.3/js/highstock.js"></script>
-   <script type="text/javascript" src="lib/highcharts-4.2.3/js/highcharts-more.js"></script>
-   <script type="text/javascript" src="lib/highcharts-4.2.3/js/modules/solid-gauge.js"></script>
-   <script type="text/javascript" src="lib/highcharts-4.2.3/js/modules/exporting.js"></script>
-   <script type="text/javascript" src="lib/highcharts-4.2.3/js/modules/offline-exporting.js"></script>
-   <script type="text/javascript" src="lib/highcharts-4.2.3/js/modules/no-data-to-display.js"></script>
-   <script type="text/javascript" src="lib/highcharts-4.2.3/js/themes/grid-light.js"></script>
-
    <style>
       html,body{ margin:0;padding:0;height:100%;width:100%; }
-div::-webkit-scrollbar {
-    -webkit-appearance: none;
-    width: 7px;
-}
-div::-webkit-scrollbar-thumb {
-    border-radius: 4px;
-    background-color: rgba(0,0,0,.5);
-    -webkit-box-shadow: 0 0 1px rgba(255,255,255,.5);
-}
+
+      div::-webkit-scrollbar {
+          -webkit-appearance: none;
+          width: 7px;
+      }
+      div::-webkit-scrollbar-thumb {
+          border-radius: 4px;
+          background-color: rgba(0,0,0,.5);
+          -webkit-box-shadow: 0 0 1px rgba(255,255,255,.5);
+      }
+      .mp_overflow_hidden {
+         overflow-x: hidden;
+      }
+      .mp_overflow_scroll {
+         overflow-x: scroll;
+      }
+      .mp_navpanel {
+         width:600px;
+         height:50px;
+         line-height:50px;
+         opacity: 0.7;
+         background-color:#ccc;
+         border-radius: 5px;
+         position: relative;
+         z-index: 1000;
+      }
+      .spinner {
+          background-position: center center;
+          background-repeat: no-repeat;
+          border-color:transparent;
+          border-radius: 50%;
+          opacity: .7;
+      }
+      .spinner.large {
+          height: 30px; width: 30px;
+          background: url("lib/wait.gif");
+      }
    </style>
 </head>
+<body style="overflow:hidden;position:fixed">
+   <div id="container_mp" class='mp_overflow_hidden' style="position:absolute;width:100%;height:100%;background:#EEEEEE">
+      <div id="map_wait_mp">
+         <div style="position:absolute;top:40%;left:40%;height:20%;width:20%;display:table">
+            <div style="display:table-cell;text-align:center;vertical-align: middle;">
+               <div class="spinner large">
+               </div>
+            </div>
+         </div>
+      </div>
+      <div id="map_mp" style="position:relative;overflow:auto;background:#FFFFFF">
+      </div>
+   </div>
+
+   <div id="widgets_container_mp" style="display:none">
+   </div>
+
+   <div id="map_cm_mp" class="easyui-menu" style="width:180px;display:hidden;">
+<!--
+      <div onclick="javascript:ctrlr_map._context_menu('load')">load</div>
+-->
+      <div onclick="javascript:window.location='maps.php'">load</div>
+      <div class="menu-sep"></div>
+      <div onclick="javascript:overflow('hidden')">overflow:hidden</div>
+      <div onclick="javascript:overflow('scroll')">overflow:scroll</div>
+      <div class="menu-sep"></div>
+      <div onclick="javascript:toAdmin()">admin</div>
+      <div class="menu-sep"></div>
+      <div onclick="javascript:logout()">logout</div>
+   </div>
+</body>
+
+<script type="text/javascript" src="lib/jquery-easyui-1.4.4/jquery.min.js"></script>
+<script type="text/javascript" src="lib/jquery-easyui-1.4.4/jquery.easyui.min.js"></script>
+<script type="text/javascript" src="lib/noty-2.2.10/js/noty/packaged/jquery.noty.packaged.min.js"></script>
+
+<script type="text/javascript" src="lib/highstock-4.2.3/js/highstock.js"></script>
+<script type="text/javascript" src="lib/highstock-4.2.3/js/highcharts-more.js"></script>
+<script type="text/javascript" src="lib/highstock-4.2.3/js/modules/solid-gauge.js"></script>
+<script type="text/javascript" src="lib/highstock-4.2.3/js/modules/exporting.js"></script>
+<script type="text/javascript" src="lib/highstock-4.2.3/js/modules/offline-exporting.js"></script>
+<script type="text/javascript" src="lib/highstock-4.2.3/js/modules/no-data-to-display.js"></script>
+<script type="text/javascript" src="lib/highstock-4.2.3/js/themes/grid-light2.js"></script>
+
 
 <script type="text/javascript" src="models/common/models-utils.js"></script>
 
@@ -248,46 +307,4 @@ Highcharts.setOptions({
 });
 
 </script>
-<style>
-.mp_overflow_hidden {
-   overflow-x: hidden;
-}
-.mp_overflow_scroll {
-   overflow-x: scroll;
-}
-
-.navpanel {
-   width:600px;
-   height:50px;
-   line-height:50px;
-   opacity: 0.7;
-   background-color:#ccc; 
-   border-radius: 5px;
-   position: relative;
-   z-index: 1000;
-}
-</style>
-<body style="overflow:hidden;position:fixed">
-   <div id="container_mp" class='mp_overflow_hidden' style="position:absolute;width:100%;height:100%;background:#EEEEEE">
-      <div id="map_mp" style="position:relative;overflow:auto;background:#FFFFFF">
-      </div>
-   </div> 
-
-   <div id="widgets_container_mp" style="display:none">
-   </div>
-
-   <div id="map_cm_mp" class="easyui-menu" style="width:180px;display:hidden;">
-<!--
-      <div onclick="javascript:ctrlr_map._context_menu('load')">load</div>
--->
-      <div onclick="javascript:window.location='maps.php'">load</div>
-      <div class="menu-sep"></div>
-      <div onclick="javascript:overflow('hidden')">overflow:hidden</div>
-      <div onclick="javascript:overflow('scroll')">overflow:scroll</div>
-      <div class="menu-sep"></div>
-      <div onclick="javascript:toAdmin()">admin</div>
-      <div class="menu-sep"></div>
-      <div onclick="javascript:logout()">logout</div>
-   </div>
-</body>
 </html>
