@@ -142,6 +142,7 @@ function MapEditorController(container, map, widgets_container, widgetsPanelWin,
          var p = $(this).clone().attr('id', '_drag').attr('id2', $(source).attr('id'));
          p.prop('_me', _this);
          p.bind('contextmenu', _this.open_widget_menu);
+         p.css("z-index", 999999);
          p.appendTo('body');
          p.show();
 
@@ -194,6 +195,16 @@ MapEditorController.prototype.widgetsPanel_init = function()
       },
       onClose: function() {
          _this.toolsPanelState = 'closed';
+      },
+      onResize: function(w,h)
+      {
+         var _h=h, _w=w;
+         if(_w<210)
+            _w=210;
+         if(_h<400)
+            _h=400;
+          if(h!==_h || w!==_w)
+            _this.toolsPanel.window('resize', { width:_w, height:_h });
       }
    });
 
@@ -1366,10 +1377,16 @@ MapEditorController.prototype.createWidgetsPanel = function()
       }
 
       var type = obj.getType();
+      var model = $("#"+type+"_model");
+      var dx = - model.width() / 2;
+      var dy = - model.height() / 2;
       $("#"+type).draggable({
+         deltaX: dx,
+         deltaY: dy,
          proxy: function(source) {
-            var p = $("#"+type+"_model").clone().attr('id', type+'_drag');
-            $(p).css("z-index", 999999);
+            var p = model.clone().attr('id', type+'_drag');
+            p.css("z-index", 999999);
+            p.css('cursor','move');
             p.appendTo('body');
 
             return p;
@@ -1380,7 +1397,7 @@ MapEditorController.prototype.createWidgetsPanel = function()
          onDrag: function(e) {
             if(_this.dragDropEntered === true) {
                var id=$(e.data.target).attr('id');
-               _this.constrain(e, $("#"+id+"_drag"), $("#"+id+"_model"));
+               _this.constrain(e, $("#"+id+"_drag"), model);
             }
          },
 
@@ -1395,7 +1412,6 @@ MapEditorController.prototype.createWidgetsPanel = function()
             var __this = this;
             meaWidgetsJar[type].init(type+'_drag');
             $(__this).draggable('options').cursor='not-allowed';
-//            $(__this).draggable('proxy').addClass('dp');
             $('body').mousemove(_this.getmousepos_handler);
             _this.dragDropEntered = false;
          }

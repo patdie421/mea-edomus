@@ -1,6 +1,5 @@
 extendClass(MeaWidget_value, MeaWidget);
 
-
 var meaWidget_value = new MeaWidget_value("MeaWidget_value", "basic", "value");
 
 function MeaWidget_value(name, group, type)
@@ -12,8 +11,23 @@ function MeaWidget_value(name, group, type)
    this.valueName = "value";
    this.valueUnit = "unit";
 
-   this.params["values"][this.valueName] = "";
-   this.params["labels"][this.valueUnit] = this.valueUnit;
+   this.automator_vars =  {
+      "val" : "",
+      "editor": {
+         "type":"combobox",
+         "options": {
+             panelMinWidth:300,
+             valueField:'name',
+             textField:'name',
+             groupField:'group',
+             method:'get',
+             url:'models/get_automator_variables.php'
+         }
+      }
+   };
+
+   this.params["values"][this.valueName] = this.automator_vars;;
+   this.params["labels"][this.valueUnit] = "";
    this.params["parameters"]["low alarm"] = "";
    this.params["parameters"]["high alarm"] = "";
 }
@@ -84,11 +98,17 @@ MeaWidget_value.prototype.getFormaters = function()
 }
 
 
+MeaWidget_value.prototype.getTip = function()
+{
+   return "simple value + unit with alarm";
+}
+
+
 MeaWidget_value.prototype.getHtmlIcon = function()
 {
    var _this = this;
 
-   var html="<div id='"+_this.type+"' class='drag' style='width:80px;height:80px;line-height:80px;text-align:center;background-color:\"#FFFFFF\";'>value</div>";
+   var html="<div id='"+_this.type+"' class='drag' style='width:80px;height:80px;line-height:80px;background-image:url(/widgets/meawidget_value.png);'></div>";
 
    return html;
 }
@@ -101,6 +121,7 @@ var style = "\
    border-style: dotted; \
    border-width: 1px; \
    border-color: gray; \
+   opacity: 0.5; \
 } \
 .mea_value_enabled { \
    border-style: solid; \
@@ -134,7 +155,7 @@ var html = " \
          <label class = 'mea-value'\
                 mea_widgetvaluename='"+ _this.valueName +"' \
                 mea_valueformater='float' style='font-size:18px'> \
-            value \
+            ?.?? \
          </label> \
       </div> \
       <div style='float:right;width:40px;height:23px;line-height:23px;padding:0;overflow:hidden'> \

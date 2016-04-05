@@ -189,7 +189,7 @@ MeaWidget_sgauge.prototype.mksgauge = function(widget, data)
                    var v = Highcharts.numberFormat((this.y) /100 * (max - min) + min, 2);
                    return "<div style='text-align:center'>" +
                              "<span style='font-size:16px;color:" + ((Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black') + "'>" +
-                             v + unit +
+                             v +
                              "</span>" +
                           "</div>";
                 }
@@ -274,7 +274,7 @@ MeaWidget_sgauge.prototype.getHtmlIcon = function()
 {
    var _this = this;
 
-   var html="<div id='"+_this.type+"' class='drag' style='width: 80px; height: 80px; background:rgb(180, 95, 60);'></div>";
+   var html="<div id='"+_this.type+"' class='drag' style='width: 80px; height: 80px; background-image:url(/widgets/meawidget_sgauge.png);'></div>";
 
    return html;
 }

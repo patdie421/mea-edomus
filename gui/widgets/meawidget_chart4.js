@@ -315,10 +315,12 @@ MeaWidget_chart4.prototype.getStyle = function()
 {
 var style = 
 ".mea_chart4_disabled {" +
-   "background-color: rgb(243, 243, 243);" +
+   "background:url('/widgets/cross.svg') rgb(243, 243, 243);" +
+   "background-size:100% 100%;" +
    "border-style: dotted;" +
    "border-width: 1px;" +
    "border-color: gray;" +
+   "opacity: 0.5;" +
 "}" +
 ".mea_chart4_enabled {" + 
    "background-color: rgb(243, 243, 243);" +
@@ -328,10 +330,8 @@ var style =
    "opacity: 1;" +
 "}" +
 ".mea_chart4_bg_disabled {" +
-   "background:url('/widgets/meawidget_chart.svg') rgb(243, 243, 243);" +
    "background-repeat:no-repeat;" +
    "background-position:center;" +
-   "background-size:contain;" +
 "}" +
 ".mea_chart4_bg_enabled {" +
 "}";
@@ -343,7 +343,7 @@ MeaWidget_chart4.prototype.getHtmlIcon = function()
 {
    var _this = this;
 
-   var html="<div id='"+_this.type+"' class='drag' style='width: 80px; height: 80px; background:rgb(180, 95, 60);'></div>";
+   var html="<div id='"+_this.type+"' class='drag' style='width: 80px; height: 80px; background-image:url(/widgets/meawidget_chart4.png);'></div>";
 
    return html;
 }
@@ -361,7 +361,7 @@ var html =
      "data-widgetparams='"+JSON.stringify(_this.params)+"' " +
 ">" +
    "<div style='postion:relative;height:100%;width:100%;display:table;'>" +
-      "<div style='height:25px;width:100%;display:table-row;'></div>" + 
+      "<div style='height:25px;width:100%;display:table-row;text-align:center'></div>" + 
       "<div style='height:100%;width:100%;display:table-row;'>" +
          "<div class='mea_chart4_bg_disabled' mea_widgetvaluename='"+_this.chartName+"' style='height:100%;width:100%;display:block'>" +
          "</div>" +

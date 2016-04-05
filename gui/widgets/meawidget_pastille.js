@@ -115,6 +115,12 @@ return style;
 }
 
 
+MeaWidget_pastille.prototype.getTip = function()
+{
+   return "red/green badge";
+}
+
+
 MeaWidget_pastille.prototype.getHtml = function()
 {
 var _this = this;

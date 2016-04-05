@@ -64,6 +64,7 @@ MeaWidget_switch.prototype.init = function(id)
 
    s.switchbutton({
       checked: true,
+      disabled: true,
       onText:  'I',
       offText: 'O',
       onChange: function(checked) {
@@ -146,7 +147,7 @@ MeaWidget_switch.prototype.getHtmlIcon = function()
 {
    var _this = this;
 
-   var html="<div id='"+_this.type+"' class='drag' style='width: 80px; height: 80px; background:blue;'></div>";
+   var html="<div id='"+_this.type+"' class='drag' style='width: 80px; height: 80px; background-image:url(/widgets/meawidget_switch.png);'></div>";
    return html;
 }
 

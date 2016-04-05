@@ -174,7 +174,7 @@ MeaWidget_hslider.prototype.getHtmlIcon = function()
 {
    var _this = this;
 
-   var html="<div id='"+_this.type+"' class='drag' style='width: 80px; height: 80px; background:purple;'></div>";
+   var html="<div id='"+_this.type+"' class='drag' style='width: 80px; height: 80px;  background-image:url(/widgets/meawidget_hslider.png);'></div>";
 
    return html;
 }
