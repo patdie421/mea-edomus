@@ -30,6 +30,7 @@ TabsPageController.prototype.start=function(tabName)
       },
       selected: tabName
    });
+
    $('#'+_tabsPageController.tabs_id).tabs('select', tabName);
 };
  

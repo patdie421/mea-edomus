@@ -78,7 +78,7 @@ function MapEditorController(container, map, widgets_container, widgetsPanelWin,
       {
          $(this).hide();
          $('body').append($(this));
-         $(this).draggable('proxy').addClass('dp');
+//         $(this).draggable('proxy').addClass('dp');
          $('body').mousemove(_this.getmousepos_handler);
       },
 
@@ -91,10 +91,10 @@ function MapEditorController(container, map, widgets_container, widgetsPanelWin,
          var data   = $(this).prop('mea-widgetdata');
          var id     = data[0].value;
          var offset = _this.map.offset();
-         var l      = d.left - offset.left - 1;
-         var t      = d.top - offset.top - 1;
-//         var l      = d.left - offset.left + 1;
-//         var t      = d.top - offset.top;
+//         var l      = d.left - offset.left - 1;
+//         var t      = d.top - offset.top - 1;
+         var l      = d.left - offset.left;
+         var t      = d.top - offset.top;
 
          data[2].value = l;
          data[3].value = t;
@@ -216,10 +216,10 @@ MapEditorController.prototype.widgetsPanel_init = function()
       onDrop:function(e,source) {
          _this.objid++;
          var type=$(source).attr("id");
-         var l=$("#"+type+"_drag").offset().left-1;
-         var t=$("#"+type+"_drag").offset().top-1;
-//         var l=$("#"+type+"_drag").offset().left+1;
-//         var t=$("#"+type+"_drag").offset().top;
+//         var l=$("#"+type+"_drag").offset().left-1;
+//         var t=$("#"+type+"_drag").offset().top-1;
+         var l=$("#"+type+"_drag").offset().left;
+         var t=$("#"+type+"_drag").offset().top;
          var zi=++_this.current_zindex;
          var newid = "Widget_"+type+"_"+_this.objid;
          var offset = _this.map.offset();
@@ -321,11 +321,13 @@ MapEditorController.prototype.propertiesPanel_init = function()
                {field:'value', title: _this._toLocalC('value'), width: 250, formatter:
                   function(value,row,index) {
                      // pour un affichage propre par rapport à la grille (oui je sais c'est de la triche ...)
+                     /*
                      if(row.name==="x")
                         return value+2;
                      if(row.name==="y")
                         return value+1;
                      // fin pour affichage propre ...
+                     */
                      try
                      {
                         var v = JSON.parse(value);
@@ -1180,20 +1182,24 @@ MapEditorController.prototype.max_zIndex = function(div)
 }
 
 
-MapEditorController.prototype.repair = function(v)
+MapEditorController.prototype.repair = function(v,dec,s)
 {
    var _this = this;
-
    if(_this.grid == 1)
       return v;
 
-   var r = parseInt(v/_this.grid) * _this.grid;
+   var vb = v-dec+s;
+   var vt = vb % _this.grid;
 
-   if (Math.abs(v % _this.grid) > (_this.grid / 2)) {
-      r += v > 0 ? _this.grid : -_this.grid;
+//   var r = parseInt(vb/_this.grid) * _this.grid;
+   var r = (vb - vt);
+//   if (Math.abs(vb % _this.grid) > (_this.grid / 2)) {
+   if (vt > (_this.grid / 2)) {
+//      r += vb > 0 ? _this.grid : -_this.grid;
+      r += _this.grid;
    }
 
-   return r;
+   return r+dec-s;
 }
 
 
@@ -1273,68 +1279,10 @@ MapEditorController.prototype._constrain = function(e, drag, model)
       d.top = t_max - model.height();
    }
 
-   d.top = _this.repair(d.top);
-   d.left = _this.repair(d.left);
+   d.top = _this.repair(d.top, offset.top, _this.container.scrollTop());
+   d.left = _this.repair(d.left, offset.left, _this.container.scrollLeft());
 }
 
-/*
-MapEditorController.prototype._constrain = function(e, drag, model)
-{
-   var _this = this;
-
-   var d = e.data;
-   var offset = _this.container.offset();
-   var offset_map = _this.map.offset();
-
-   var l_min = offset.left;
-   var t_min = offset.top;
-
-   var l_max = 0;
-   if(_this.container.outerWidth() <= _this.map.outerWidth())
-      l_max = _this.container.outerWidth()+offset.left;
-   else
-      l_max = _this.map.outerWidth()+offset.left;
-
-   var t_max = 0;
-   if(_this.container.outerHeight() <= _this.map.outerHeight())
-      t_max = _this.container.outerHeight()+offset.top;
-   else
-      t_max = _this.map.outerHeight()+offset.top;
-
-   clearTimeout(_this.timeout);
-
-   if (d.left < l_min)
-   {
-      _this.container.scrollLeft(_this.container.scrollLeft() - 25);
-      _this.timeout=setTimeout(_this.scroll, 50);
-      d.left = offset.left;
-   }
-
-   if (d.top < t_min)
-   {
-      _this.container.scrollTop(_this.container.scrollTop() - 25);
-      _this.timeout=setTimeout(_this.scroll, 50);
-      d.top = offset.top;
-   }
-
-   if (d.left + model.outerWidth() > l_max)
-   {
-      _this.container.scrollLeft(_this.container.scrollLeft() + 25);
-      _this.timeout=setTimeout(_this.scroll, 50);
-      d.left = l_max - model.outerWidth();
-   }
-
-   if (d.top + model.outerHeight() > t_max)
-   {
-      _this.container.scrollTop(_this.container.scrollTop() + 25);
-      _this.timeout=setTimeout(_this.scroll, 150);
-      d.top = t_max - model.outerHeight();
-   }
-
-   d.top = _this.repair(d.top);
-   d.left = _this.repair(d.left);
-}
-*/
 
 MapEditorController.prototype._getmousepos_handler = function( event ) {
    var _this = this;
@@ -1447,7 +1395,7 @@ MapEditorController.prototype.createWidgetsPanel = function()
             var __this = this;
             meaWidgetsJar[type].init(type+'_drag');
             $(__this).draggable('options').cursor='not-allowed';
-            $(__this).draggable('proxy').addClass('dp');
+//            $(__this).draggable('proxy').addClass('dp');
             $('body').mousemove(_this.getmousepos_handler);
             _this.dragDropEntered = false;
          }

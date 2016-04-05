@@ -16,6 +16,10 @@ function GridController(params)
    this.__b_enable=function() { return true; };
    this.__b_disable=function() { return true; };
    this.__animationInit=function() { return true; };
+
+//   var pg = $('#'+this._grid_id).datagrid('getPager');
+//   console.log(pg);
+//   pg.pagination({afterPageText: "de {pages}"});
 }
 
 extendClass(GridController, CommonController);

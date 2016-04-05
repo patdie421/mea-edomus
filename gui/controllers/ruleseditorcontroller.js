@@ -268,7 +268,7 @@ RulesEditorController.prototype.buildactivate = function()
                {
                   $.messager.show({
                      title: _this._toLocalC('error')+_controlPanel._localDoubleDot(),
-                     msg: _this._toLocalC('automator stop/start error')+' ('+textStatus+')',
+                     msg: _this._toLocalC('activation error')+' ('+textStatus+')',
                   });
                }
             },
@@ -290,9 +290,9 @@ RulesEditorController.prototype.buildactivate = function()
             var old_ok = $.messager.defaults.ok;
             var old_cancel = $.messager.defaults.cancel;
 
-            $.messager.defaults.ok = 'Do it';
-            $.messager.defaults.cancel = 'later';
-            $.messager.confirm(_this._toLocalC('apply rules ?'), _this._toLocalC('rules succesfull applied')+'. '+_this._toLocalC("would you commit it (restart automator)")+'.', __restart_automator);
+            $.messager.defaults.ok = _this._toLocal('Do it');
+            $.messager.defaults.cancel = _this._toLocal('later');
+            $.messager.confirm(_this._toLocalC('apply rules ?'), _this._toLocalC('rules succesfull applied')+'. '+_this._toLocalC("would you commit it")+'?', __restart_automator);
             $.messager.defaults.ok = old_ok;
             $.messager.defaults.cancel = old_cancel;
          }
@@ -331,7 +331,7 @@ RulesEditorController.prototype.buildactivate = function()
             {
                $.messager.alert(_this._toLocalC('error'),
                                 _this._toLocalC('compilation error')+_this._localDoubleDot()+response.message+
-                                '.<BR><BR><div align=center>file: '+basename(response.file).slice(0, -7)+"<BR>line: "+response.line+"</div>",
+                                '.<BR><BR><div align=center>'+_this._toLocal('file')+_this._localDoubleDot()+basename(response.file).slice(0, -7)+'<BR>'+_this._toLocal('line')+_this._localDoubleDot()+response.line+"</div>",
                                 'error');
             }
             else

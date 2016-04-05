@@ -131,6 +131,22 @@
       "nom de la base",
    "user password" :
       "mot de passe",
+   "password" :
+      "mot de passe",
+   "confirmation" :
+      "confirmation",
+   "language" :
+      "langue",
+   "profile" :
+      "profil",
+   "password option" :
+      "option de connexion",
+   "of {pages}" :
+      "sur {pages}",
+   "loading..." :
+      "chargement...",
+   "displaying {from} to {to} of {total} items" :
+      "éléments de {from} à {to} d'un total de {total}",
    "I/O configuration" :
       "configuration des E/S",
    "preferences" :

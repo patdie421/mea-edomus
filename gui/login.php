@@ -6,7 +6,7 @@ if(isset($_SESSION['language']))
    $LANG=$_SESSION['language'];
 }
 include_once('lib/php/translation.php');
-include_once('lib/php/$LANG/translation.php');
+include_once('lib/php/'.$LANG.'/translation.php');
 mea_loadTranslationData($LANG,'');
 ?>
 
@@ -14,11 +14,16 @@ mea_loadTranslationData($LANG,'');
 
 <html>
 <head>
+   <style>
+      html,body{ margin:0;padding:0;height:100%;width:100%; }
+   </style>
    <title>
    <?php echo $TITRE_APPLICATION;?>
    </title>
    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-   <meta name="viewport" content="width=device-width, initial-scale=0.99">
+   <meta name="viewport" content="width=device-width, initial-scale=1, minimun-scale=1.0, maximun-scale=1.0, user-scalable=no">
+   <meta name="apple-mobile-web-app-capable" content="yes" />
+
    <meta name="description" content="domotique DIY !">
 
    <link rel="stylesheet" type="text/css" href="lib/jquery-easyui-1.4.4/themes/default/easyui.css">
@@ -141,25 +146,29 @@ endif
 <body>
 <?php
 if(!isset($_REQUEST['autologin'])) :?>
-   <div id="loginpanel" style="min-width:950px;min-height:650px;margin:10px;text-align:center;display:hidden">
-      <div>
-         <div style="display:inline-block">
-            <img src="lib/logo-mea-eDomus.png" border="0" align="center" width=500px/>
+   <div id="loginpanel" style="position:absolute;width:100%;height:100%;display:hidden">
+   <div style="postition:absolute;display:table;width:100%;height:100%">
+      <div style="display:table-cell;text-align:center;vertical-align:middle;">
+         <div>
+            <div style="display:inline-block">
+               <img src="lib/logo-mea-eDomus.png" border="0" align="center" width=360px/>
+            </div>
+         </div>
+         <div style="display:inline-block;margin-top:10px">
+            <div class="easyui-panel" title="<?php mea_toLocalC('Login to system'); ?>" style="width:360px;padding:20px 20px 20px 20px;margin:0 auto">
+               <div style="margin-bottom:10px">
+                  <input id="userid" class="easyui-textbox" autocapitalize="off" autocorrect="off" style="width:100%;height:35px;padding:12px;" data-options="prompt:'<?php mea_toLocalC('user id'); ?>',iconCls:'icon-man',iconWidth:38">
+               </div>
+               <div style="margin-bottom:20px">
+                  <input id="passwd" class="easyui-textbox" type="password" style="width:100%;height:35px;padding:12px" data-options="prompt:'<?php mea_toLocalC('password'); ?>',iconCls:'icon-lock',iconWidth:38">
+               </div>
+               <a href="#" id="login" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" style="padding:5px 0px;width:100%;">
+                  <span style="font-size:14px;"><?php mea_toLocalC('login'); ?></span>
+               </a>
+            </div>
          </div>
       </div>
-      <div style="display:inline-block;margin-top:75px">
-         <div class="easyui-panel" title="<?php mea_toLocalC('Login to system'); ?>" style="width:400px;padding:30px 70px 20px 70px;margin:0 auto">
-            <div style="margin-bottom:10px">
-               <input id="userid" class="easyui-textbox" autocapitalize="off" autocorrect="off" style="width:100%;height:40px;padding:12px;" data-options="prompt:'<?php mea_toLocalC('user id'); ?>',iconCls:'icon-man',iconWidth:38">
-            </div>
-            <div style="margin-bottom:20px">
-               <input id="passwd" class="easyui-textbox" type="password" style="width:100%;height:40px;padding:12px" data-options="prompt:'<?php mea_toLocalC('password'); ?>',iconCls:'icon-lock',iconWidth:38">
-            </div>
-            <a href="#" id="login" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" style="padding:5px 0px;width:100%;">
-               <span style="font-size:14px;"><?php mea_toLocalC('login'); ?></span>
-            </a>
-         </div>
-      </div>
+   </div>
    </div>
 <?php
 endif

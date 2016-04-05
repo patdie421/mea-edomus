@@ -11,7 +11,7 @@ if(isset($_SESSION['language']))
    $LANG=$_SESSION['language'];
 }
 include_once('lib/php/translation.php');
-include_once('lib/php/$LANG/translation.php');
+include_once('lib/php/'.$LANG.'/translation.php');
 mea_loadTranslationData($LANG,'');
 ?>
 
@@ -41,7 +41,8 @@ $isadmin = check_admin();
    <?php echo $TITRE_APPLICATION;?>
    </title>
    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-   <meta name="viewport" content="width=device-width, initial-scale=0.99">
+   <meta name="viewport" content="width=device-width, initial-scale=1, minimun-scale=1.0, maximun-scale=1.0, user-scalable=no">
+   <meta name="apple-mobile-web-app-capable" content="yes" />
    <meta name="description" content="domotique DIY !">
    <link rel="stylesheet" type="text/css" href="lib/jquery-easyui-1.4.4/themes/default/easyui.css">
    <link rel="stylesheet" type="text/css" href="lib/jquery-easyui-1.4.4/themes/icon.css">
@@ -55,6 +56,9 @@ $isadmin = check_admin();
 <script type="text/javascript" src="lib/jquery-easyui-1.4.4/jquery.min.js"></script>
 
 <script type="text/javascript" src="lib/jquery-easyui-1.4.4/jquery.easyui.min.js"></script>
+<?php
+echo '<script type="text/javascript" src="lib/jquery-easyui-1.4.4/locale/easyui-lang-'.$LANG.'.js"></script>'
+?>
 <script type="text/javascript" src="lib/jquery-easyui-datagridview/datagrid-groupview.js"></script>
 
 <script type="text/javascript" src="lib/noty-2.2.10/js/noty/packaged/jquery.noty.packaged.min.js"></script>
@@ -226,7 +230,6 @@ jQuery(document).ready(function() {
    }
    echo "var socketio_port="; echo $IOSOCKET_PORT; echo ";\n";
 ?>
-   console.log("LANG="+LANG);
    //
    // initialisation des controleurs
    //
@@ -234,7 +237,9 @@ jQuery(document).ready(function() {
    translationController = new TranslationController();
    translationController.loadDictionaryFromJSON("lib/translation_"+LANG+".json");
    extend_translation(translationController);
-   
+
+   $.fn.panel.defaults.loadingMessage=translationController.toLocalC("Loading...");
+
    // controleur d'habilitation
    credentialController = new CredentialController("models/get_auth.php");
 
@@ -262,6 +267,7 @@ jQuery(document).ready(function() {
          $(document).trigger( "MeaCleanView", [ "", "" ] );
       }
    });
+
 });
 </script>
 

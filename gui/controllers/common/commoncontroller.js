@@ -65,7 +65,9 @@ CommonController.prototype = {
       var _localDoubleDot = null;
       try {
          _localDoubleDot = translationController.localDoubleDot;
+         _localDoubleDot();
          this._localDoubleDot = _localDoubleDot.bind(translationController);
+         this._localDoubleDot();
       }
       catch(e) {
          console.log("probably bad object");

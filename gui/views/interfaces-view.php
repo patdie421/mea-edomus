@@ -8,7 +8,7 @@ if(isset($_SESSION['language']))
    $LANG=$_SESSION['language'];
 }
 include_once('../lib/php/translation.php');
-include_once('../lib/php/$LANG/translation.php');
+include_once('../lib/php/'.$LANG.'/translation.php');
 mea_loadTranslationData($LANG,'../');
 
 $isadmin = check_admin();
@@ -100,6 +100,11 @@ endif; ?>
 
   // activation du controleur
    ctrlr_in.start();
+
+   var pg = $("#table_in").datagrid('getPager');
+   var options = pg.pagination('options');
+   options.afterPageText=ctrlr_in._toLocal("of {pages}");
+   options.displayMsg=ctrlr_in._toLocalC("Displaying {from} to {to} of {total} items");
 });
 </script>
 

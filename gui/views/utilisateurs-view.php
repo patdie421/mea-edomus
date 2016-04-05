@@ -8,7 +8,7 @@ if(isset($_SESSION['language']))
    $LANG=$_SESSION['language'];
 }
 include_once('../lib/php/translation.php');
-include_once('../lib/php/$LANG/translation.php');
+include_once('../lib/php/'.$LANG.'/translation.php');
 mea_loadTranslationData($LANG,'../');
 
 $isadmin = check_admin();
@@ -104,6 +104,12 @@ endif; ?>
    
    // activation du controleur
    ctrlr_us.start();
+
+   var pg = $("#table_us").datagrid('getPager');
+   var options = pg.pagination('options');
+   options.afterPageText=ctrlr_us._toLocal("of {pages}");
+   options.displayMsg=ctrlr_us._toLocalC("Displaying {from} to {to} of {total} items");
+   console.log(pg);
 });
 </script>
 
@@ -129,7 +135,7 @@ endif; ?>
              style="width:100%;height:100%"
              border="false"
              pagination="true"
-             pageSize=20
+             pageSize=50
              pageList=[20,50,100]
              idField="id"
              fitColumns="true"
@@ -192,7 +198,7 @@ endif; ?>
             <input name="description" class="easyui-textbox editable_us" data-options="multiline:true" style="width:270px;height:50px">
         </div>
         <div class="fitem">
-            <label><?php mea_toLocalC_2d('profil'); ?></label>
+            <label><?php mea_toLocalC_2d('profile'); ?></label>
             <select class="easyui-combobox editable_us" name="profil" data-options="required:true,editable:false,panelHeight:105" style="width:120px;">
                <option value=0><?php mea_toLocalC('user'); ?></option>
                <option value=1><?php mea_toLocalC('administrator'); ?></option>

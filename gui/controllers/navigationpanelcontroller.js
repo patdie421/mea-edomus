@@ -126,7 +126,7 @@ NavigationPanelController.prototype.initNavigationBar = function(mapSetName, don
 
    $('#navpanel').remove();
 
-   $('body').append("<div id='navpanel' class='navpanel' style='display:hidden; top:"+_top+"px; left:"+_left+"px;'>"+html+"</div>");
+   $('body').append("<div id='navpanel' class='mp_navpanel' style='display:hidden; top:"+_top+"px; left:"+_left+"px;'>"+html+"</div>");
    $('#navpanel').draggable({ });
 
    $("#bleft").linkbutton({

@@ -8,7 +8,7 @@ if(isset($_SESSION['language']))
    $LANG=$_SESSION['language'];
 }
 include_once('../lib/php/translation.php');
-include_once('../lib/php/$LANG/translation.php');
+include_once('../lib/php/'.$LANG.'/translation.php');
 mea_loadTranslationData($LANG,'../');
 
 $isadmin = check_admin();
@@ -51,8 +51,9 @@ endif; ?>
 jQuery(document).ready(function(){
    applicationPrefsController = new ApplicationPrefsController();
    fileselector = new FSSelector("models/get_dir.php");
-   
+
    applicationPrefsController.linkToTranslationController(translationController);
+   console.log("1:{"+applicationPrefsController._localDoubleDot()+"}");
 
 <?php
    if($isadmin!=0) : ?>

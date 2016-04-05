@@ -8,7 +8,7 @@ if(isset($_SESSION['language']))
    $LANG=$_SESSION['language'];
 }
 include_once('../lib/php/translation.php');
-include_once('../lib/php/$LANG/translation.php');
+include_once('../lib/php/'.$LANG.'/translation.php');
 mea_loadTranslationData($LANG,'../');
 
 $isadmin = check_admin();
@@ -49,6 +49,11 @@ function formValidation_lo() {
 
    // vérification unicité (nom du lieu)
    return ctrlr_lo.nameExist(name,id);
+
+   var pg = $("#table_lo").datagrid('getPager');
+   var options = pg.pagination('options');
+   options.afterPageText=ctrlr_lo._toLocal("of {pages}");
+   options.displayMsg=ctrlr_lo._toLocalC("Displaying {from} to {to} of {total} items");
 }
 <?php
 endif;
