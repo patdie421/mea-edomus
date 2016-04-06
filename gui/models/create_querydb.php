@@ -36,7 +36,6 @@ try{
 $file_db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 $file_db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION); // ERRMODE_WARNING | ERRMODE_EXCEPTION | ERRMODE_SILENT
 
-error_log(getcwd ( ));
 $filename = $QUERYDB_SQL;
 if(!$file = fopen($filename, "r")) {
     $err=error_get_last();

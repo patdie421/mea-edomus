@@ -123,37 +123,11 @@ catch(PDOException $e)
 }
 
 
-/*
-for($i=0;$i<10;$i++) {
-    $SQL="UPDATE application_parameters set value=\"".$_GET[$fields[$i]]."\" WHERE key=\"".$fields[$i]."\"";
-    try {    
-        $stmt = $file_db->prepare($SQL);
-        $stmt->execute();
-    }
-    catch(PDOException $e)
-    {
-        $error_msg=$e->getMessage();
-        $response["iserror"]=true;
-        $response["errno"]=3;
-        $response["errorMsg"]=$error_msg;
-        // pour compatibilité
-        $response["result"]="KO"; // pour la compatibilité
-        $response["error"]=2; // pour la compatibilité      
-        $response["error_msg"]=$response["errorMsg"]; // pour la compatibilité
-        // fin pour compatibilité
-        echo json_encode($response);
-        $file_db=null;
-        exit(1);
-    }
-}
-*/
-  
 $response["iserror"]=false;
 // pour compatibilité
 $response["retour"]="OK"; // pour la compatibilité
 // fin pour compatibilité
 echo json_encode($response);
 
-error_log("DONE");
 
 $file_db = null;

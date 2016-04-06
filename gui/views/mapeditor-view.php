@@ -179,8 +179,8 @@ jQuery(document).ready(function() {
 </div>
 
 
-<div id='widgetsPanel_win_me' class='easyui-window win_me' title='Widgets' style='width:190px;height:500px'>
-   <div id='panel_widgetsPanel_win_me' style='width:100%;height:100%;position:relative;overflow:auto'>
+<div id='widgetsPanel_win_me' class='easyui-window win_me' title='Widgets' style='width:210px;height:500px'>
+   <div id='panel_widgetsPanel_win_me' style='width:100%;height:100%;position:relative;overflow:hidden'>
       <div id='accordion_widgetsPanel_win_me' class='easyui-accordion' style='width:100%;height:100%;'>
       </div>
    </div>

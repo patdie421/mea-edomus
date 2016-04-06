@@ -1,15 +1,18 @@
 <?php
 include_once('lib/configs.php');
 session_start();
+
 if(isset($_SESSION['language']))
 {
    $LANG=$_SESSION['language'];
 }
-include_once('lib/php/translation.php');
-include_once('lib/php/'.$LANG.'/translation.php');
-mea_loadTranslationData($LANG,'');
+error_log("ICI:[".$LANG."]");
+//include_once('lib/php/translation.php');
+//include_once('lib/php/'.$LANG.'/translation.php');
+//mea_loadTranslationData($LANG,'');
 ?>
 
+<!DOCTYPE html>
 <html>
 <head>
    <title>
@@ -100,10 +103,8 @@ jQuery(document).ready(function(){
    passwordController.linkToTranslationController(translationController);
    passwordController.linkToCredentialController(credentialController);
   
-   console.log("tralala");
    $('#change').click(change);
    $('#cancel').click(cancel);
-   console.log("lalaire");
 
 });
 

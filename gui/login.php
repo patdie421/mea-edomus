@@ -15,7 +15,7 @@ mea_loadTranslationData($LANG,'');
 <html>
 <head>
    <style>
-      html,body{ margin:0;padding:0;height:100%;width:100%; }
+      html,body{ margin:0px;padding:0px;height:100%;width:100%; }
    </style>
    <title>
    <?php echo $TITRE_APPLICATION;?>
@@ -143,7 +143,7 @@ endif
 });
 </script>
 
-<body>
+<body style="margin:0;padding:0;width:100%;">
 <?php
 if(!isset($_REQUEST['autologin'])) :?>
    <div id="loginpanel" style="position:absolute;width:100%;height:100%;display:hidden">

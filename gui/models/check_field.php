@@ -75,8 +75,6 @@ try {
         $SQL="SELECT count(*) AS exist FROM $table WHERE $index=\"$value\"";
     }
 
-    error_log($SQL);
-    
     $stmt = $file_db->prepare($SQL);
     $stmt->execute();
     $result = $stmt->fetchAll();
@@ -85,7 +83,6 @@ try {
     $file_db=null;
     exit(1);
 }
-error_log($result[0]['exist']);
 $exist=$result[0]['exist'];
 
 header('Content-type: application/json');

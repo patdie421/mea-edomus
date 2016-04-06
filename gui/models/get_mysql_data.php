@@ -290,8 +290,8 @@ if(($startTime != False) && ($endTime != False))
 */
 
 $rows = array();
-error_log($sql);
-error_log($sql_c);
+//error_log($sql);
+//error_log($sql_c);
 try
 {
    if($sql_c != False)
@@ -314,8 +314,6 @@ try
 
    $rows[]="[".(time()*1000).",null]";
 
-//   echo "console.log(' start = $start, end = $end, startTime = $startTime, endTime = $endTime ');\n"; 
-//   error_log("{id: $id, data: [\n" . join(",\n", $rows) ."\n]}");
    echo $callback ."({id: $id, data: [\n" . join(",\n", $rows) ."\n]});"; 
 }
 catch(PDOException $e)

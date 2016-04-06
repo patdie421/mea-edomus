@@ -43,10 +43,6 @@ if(!isset($_SESSION['change_passwd_flag']))
 
 $user_name=$_SESSION['userid'];
 
-error_log($user_name);
-error_log($new_password);
-error_log($old_password);
-
 
 if(isset($_SESSION['logged_in']))
 {
@@ -63,7 +59,6 @@ if(isset($_SESSION['logged_in']))
 //    $SQL_UPDATE="UPDATE users SET password=\"$new_password\", flag=0 WHERE name=\"$user_name\"";
 }
 
-error_log($SQL);
 try {
     $file_db = new PDO($PARAMS_DB_PATH);
 }catch (PDOException $e){

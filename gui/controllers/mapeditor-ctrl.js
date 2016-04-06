@@ -78,7 +78,6 @@ function MapEditorController(container, map, widgets_container, widgetsPanelWin,
       {
          $(this).hide();
          $('body').append($(this));
-//         $(this).draggable('proxy').addClass('dp');
          $('body').mousemove(_this.getmousepos_handler);
       },
 
@@ -91,8 +90,6 @@ function MapEditorController(container, map, widgets_container, widgetsPanelWin,
          var data   = $(this).prop('mea-widgetdata');
          var id     = data[0].value;
          var offset = _this.map.offset();
-//         var l      = d.left - offset.left - 1;
-//         var t      = d.top - offset.top - 1;
          var l      = d.left - offset.left;
          var t      = d.top - offset.top;
 
@@ -227,18 +224,17 @@ MapEditorController.prototype.widgetsPanel_init = function()
       onDrop:function(e,source) {
          _this.objid++;
          var type=$(source).attr("id");
-//         var l=$("#"+type+"_drag").offset().left-1;
-//         var t=$("#"+type+"_drag").offset().top-1;
-         var l=$("#"+type+"_drag").offset().left;
-         var t=$("#"+type+"_drag").offset().top;
+         var _drag_offset = $("#"+type+"_drag").offset();
+         var l=_drag_offset.left;
+         var t=_drag_offset.top;
          var zi=++_this.current_zindex;
          var newid = "Widget_"+type+"_"+_this.objid;
-         var offset = _this.map.offset();
+         var _map_offset = _this.map.offset();
 
 
          var p = $("#"+type+"_model").clone().attr('id', newid);
-         var mea_widgetdata = _this.newWidgetData(newid, type, l - offset.left, t - offset.top, zi, p);
-         p.css({top: t - offset.top, left: l - offset.left});
+         var mea_widgetdata = _this.newWidgetData(newid, type, l - _map_offset.left, t - _map_offset.top, zi, p);
+         p.css({top: t - _map_offset.top, left: l - _map_offset.left});
          p.css("z-index", zi);
          p.prop('_me', _this);
          p.bind('contextmenu', _this.open_widget_menu);
@@ -331,14 +327,6 @@ MapEditorController.prototype.propertiesPanel_init = function()
                {field:'name', title: _this._toLocalC('name'), width:150, sortable:false},
                {field:'value', title: _this._toLocalC('value'), width: 250, formatter:
                   function(value,row,index) {
-                     // pour un affichage propre par rapport à la grille (oui je sais c'est de la triche ...)
-                     /*
-                     if(row.name==="x")
-                        return value+2;
-                     if(row.name==="y")
-                        return value+1;
-                     // fin pour affichage propre ...
-                     */
                      try
                      {
                         var v = JSON.parse(value);
@@ -568,6 +556,13 @@ MapEditorController.prototype.propertiesPanel_init = function()
          meaWidgetsJar[rows[1].value].update(row);
          meaWidgetsJar[rows[1].value].init(rows[0].value);
          meaWidgetsJar[rows[1].value].disabled(rows[0].value, true); 
+
+         var p= $('#'+rows[0].value);
+         var drag_zone = p.find('[class="mea_dragzone_for_resizable"]');
+         console.log("ICI:"+drag_zone);
+         if(drag_zone.length)
+            p.draggable({ handle: drag_zone });
+
       },
       onAfterEdit: function(index, row, changes) {
          var __this = this;
@@ -1354,7 +1349,7 @@ MapEditorController.prototype.createWidgetsPanel = function()
       if(!p) {
          accordion.accordion('add', {
             title: obj.getGroup(),
-            content: "<div id='grp_"+obj.getGroup()+"'></div>",
+//            content: "<div id='grp_"+obj.getGroup()+"'></div>",
             selected: false
          });
          p = accordion.accordion('getPanel', obj.getGroup());
