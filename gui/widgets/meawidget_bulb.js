@@ -103,8 +103,8 @@ MeaWidget_bulb.prototype.getStyle = function()
 {
 var style = "\
 .mea_bulb { \
-   width:120px; \
-   height:120px; \
+   width:100px; \
+   height:100px; \
    background-size:100% 100%; \
 } \
 .mea_bulb_off { \
@@ -146,7 +146,7 @@ var html = "\
      mea_widget='"+_this.type+"' \
      class='mea-widget mea_bulb_disabled' \
      data-widgetparams='"+JSON.stringify(_this.params)+"' \
-     style ='width:120px;height:120px;position:absolute;' \
+     style ='width:100px;height:100px;position:absolute;' \
 > \
    <div class='ui-widget-content' \
         style='width:100%;height:100%;text-align:center;'> \
