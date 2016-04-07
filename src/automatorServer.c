@@ -99,7 +99,6 @@ mea_error_t automatorServer_add_msg(cJSON *msg_json)
       return ERROR;
 
    e->type=1;
-//   e->msg=msg;
    e->msg_json = msg_json;
 
    pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&automator_msg_queue_lock);
@@ -121,13 +120,6 @@ mea_error_t automatorServer_add_msg(cJSON *msg_json)
 automatorServer_add_msg_clean_exit:
    if(e)
    {
-/*
-      if(e->msg)
-      {
-         xPL_releaseMessage(e->msg);
-         e->msg=NULL;
-      }
-*/
       if(e->msg_json)
       {
          cJSON_Delete(e->msg_json);
@@ -168,7 +160,6 @@ int automatorServer_timer_wakeup(char *name, void *userdata)
 
    e->type=2;
    e->msg_json=NULL;
-//   e->msg=NULL;
 
    pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&automator_msg_queue_lock);
    pthread_mutex_lock(&automator_msg_queue_lock);
@@ -344,7 +335,6 @@ void *_automator_thread(void *data)
 */ 
 
          automator_matchInputsRules(_inputs_rules, e->msg_json);
-//         automator_match_inputs_rules(_inputs_rules, e->msg);
 
          int n=automator_playOutputRules(_outputs_rules);
          if(n>0)
@@ -363,14 +353,6 @@ void *_automator_thread(void *data)
             if(e->type == 1) // l'élément sorti était un message xpl (pas un timer)
             {
                automator_xplin_indicator++;
-/*
-               if(e->msg)
-               {
-                  // liberer le message
-                  xPL_releaseMessage(e->msg);
-                  e->msg=NULL;
-               }
-*/
                if(e->msg_json)
                {
                   cJSON_Delete(e->msg_json);
@@ -469,13 +451,6 @@ void automator_msg_queue_free_queue_elem(void *d)
    automator_msg_t *e=(automator_msg_t *)d;
    if(e)
    {
-/*
-      if(e->msg)
-      {
-         xPL_releaseMessage(e->msg);
-         e->msg=NULL;
-      }
-*/
       if(e->msg_json)
       {
          cJSON_Delete(e->msg_json);

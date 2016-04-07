@@ -83,7 +83,7 @@ cd $SOURCE/package/tmp
 tar cf $SOURCE/package/mea-edomus.tar *
 
 cd $SOURCE/package
-tar cjf $SOURCE/package/mea-edomus.tar.pkg.bz2 mea-edomus.tar install.sh
+tar cjf $SOURCE/package/mea-edomus.tar.pkg.bz2 mea-edomus.tar install.sh update.sh
 
 #rm mea-edomus.tar > /dev/null 2>&1
 #rm -r $SOURCE/package/tmp > /dev/null 2>&1
