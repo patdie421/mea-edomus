@@ -20,13 +20,16 @@ LDFLAGS = -lm -ldl -lpthread
 
 .DEFAULT_GOAL = all
 
-all: .deps enoceanpairing enoceanlogger
+all: .deps enoceanlogger enoceanpairing2
 
 .deps:
 	@mkdir -p .deps
 
-enoceanpairing: enocean_pairing.o
+enoceanpairing: enocean_pairing.o $(MEALIB)
 	$(CC) $(LDFLAGS) enocean_pairing.o $(MEALIB) -o $@
+
+enoceanpairing2: enocean_pairing2.o $(MEALIB)
+	$(CC) $(LDFLAGS) enocean_pairing2.o $(MEALIB) -o $@
 
 enoceanlogger: enocean_logger.o
 	$(CC) $(LDFLAGS) enocean_logger.o -o $@

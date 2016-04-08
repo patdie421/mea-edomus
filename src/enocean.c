@@ -26,11 +26,6 @@
 #include "mea_verbose.h"
 #include "mea_queue.h"
 
-int16_t _enocean_response = -1;
-uint8_t _enocean_response_packet[256];
-uint16_t _enocean_response_packet_l;
-unsigned long _enocean_request_timestamp = 0;
-uint8_t _enocean_response_err = 0;
 
 typedef struct enocean_queue_elem_s
 {
@@ -44,11 +39,11 @@ typedef struct enocean_queue_elem_s
 void     enocean_close(enocean_ed_t *ed);
 void     _enocean_free_queue_elem(void *d); // pour vider_file2
 void    *_enocean_thread(void *args);
-uint16_t enocean_get_local_addr(enocean_ed_t *ed, uint32_t *addr, int16_t *nerr);
+//uint16_t enocean_get_local_addr(enocean_ed_t *ed, uint32_t *addr, int16_t *nerr);
 uint32_t _enocean_calc_addr(uint8_t a, uint8_t b, uint8_t c, uint8_t d);
 
 
-unsigned long millis()
+unsigned long _enocean_millis()
 {
   struct timeval tv;
   gettimeofday(&tv,NULL);
@@ -57,7 +52,7 @@ unsigned long millis()
 }
 
 
-unsigned long diffMillis(unsigned long chrono, unsigned long now)
+unsigned long _enocean_diffMillis(unsigned long chrono, unsigned long now)
 {
    return now >= chrono ? now - chrono : ULONG_MAX - chrono + now;
 }
@@ -124,14 +119,19 @@ int16_t enocean_init(enocean_ed_t *ed, char *dev)
    fprintf(stderr,"ENOCEAN : %x\n", (unsigned int)ed->read_thread);
 
    ed->id=-1;
-   if(enocean_get_local_addr(ed, &ed->id,&nerr)<0) // pas de reponse correct
+   ed->in_buffer.packet_l = 0;
+   ed->in_buffer.timestamp = 0;
+   ed->in_buffer.err = 0;
+
+//   if(enocean_get_baseid(ed, &ed->id,&nerr)<0) // pas de reponse correct
+   if(enocean_get_chipid(ed, &ed->id,&nerr)<0)
    {
       enocean_close(ed);
       free(ed->queue);
       ed->queue=NULL;
       return -1;
    }
-   
+
    return ed->fd;
 }
 
@@ -235,12 +235,12 @@ int16_t enocean_remove_data_callback(enocean_ed_t *ed)
 
 
 void enocean_close(enocean_ed_t *ed)
+/**
+ * \brief     fermeture d'une communication avec un contrôleur enocean
+ * \details   arrête le thead de gestion de la communication, ménage dans ed et fermeture du "fichier".
+ * \param     ad   descripteur de communication comio
+ */
 {
-   /**
-    * \brief     fermeture d'une communication avec un contrôleur enocean
-    * \details   arrête le thead de gestion de la communication, ménage dans ed et fermeture du "fichier".
-    * \param     ad   descripteur de communication comio
-    */
    pthread_cancel(ed->read_thread);
    pthread_join(ed->read_thread, NULL);
    
@@ -339,12 +339,12 @@ on_error_exit_uart_read:
 
 int16_t _enocean_process_data(uint16_t *step, uint8_t c, uint8_t *data, uint16_t *l_data, int16_t *nerr)
 {
- static uint16_t i=0;
- static uint8_t  enocean_data[0xFFFF];
- static uint16_t enocean_dataPtr = 0;
- static uint16_t enocean_data_l=0,enocean_optional_l=0;
- static uint8_t  crc8h = 0, crc8d = 0;
- static uint8_t  enocean_packet_type = 0;
+   static uint16_t i=0;
+   static uint8_t  enocean_data[0xFFFF];
+   static uint16_t enocean_dataPtr = 0;
+   static uint16_t enocean_data_l=0,enocean_optional_l=0;
+   static uint8_t  crc8h = 0, crc8d = 0;
+   static uint8_t  enocean_packet_type = 0;
 
    *nerr=ENOCEAN_ERR_NOERR;
    switch(*step)
@@ -470,7 +470,7 @@ on_error_exit_enocean_process_data:
 
 
 int16_t _enocean_read_packet(int16_t fd, uint8_t *data, uint16_t *l_data, int16_t *nerr)
-{
+{ 
    int ret=0;
    uint16_t step=0;
    
@@ -489,6 +489,7 @@ int16_t _enocean_read_packet(int16_t fd, uint8_t *data, uint16_t *l_data, int16_
       rc=_enocean_uart_read(fd, ENOCEAN_TIMEOUT_DELAY1_MS, nerr);
       if(rc<0)
       {
+         *l_data=0;
          return -1;
       }
       else
@@ -526,6 +527,7 @@ int16_t _enocean_read_packet(int16_t fd, uint8_t *data, uint16_t *l_data, int16_
          else
          {
             // pour toutes autres erreurs on s'arrête
+            *l_data=0;
             return -1;
          }
       }
@@ -539,7 +541,7 @@ int16_t _enocean_read_packet(int16_t fd, uint8_t *data, uint16_t *l_data, int16_
       }
    }
    *nerr=ENOCEAN_ERR_UNKNOWN;
-
+   *l_data=0;
    return -1;
 }
 
@@ -673,7 +675,7 @@ int16_t _enocean_build_radio_erp1_packet(uint8_t rorg, uint32_t source, uint32_t
 
 int16_t enocean_send_packet(enocean_ed_t *ed, uint8_t *packet, uint16_t l_packet, uint8_t *response, uint16_t *l_response, int16_t *nerr)
 {
-   int16_t return_val=-1;
+   int16_t ret=-1;
    
    pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(ed->write_lock) );
    pthread_mutex_lock(&(ed->write_lock));
@@ -683,61 +685,64 @@ int16_t enocean_send_packet(enocean_ed_t *ed, uint8_t *packet, uint16_t l_packet
    gettimeofday(&tv, NULL);
    ts.tv_sec = tv.tv_sec + 1;
    ts.tv_nsec = 0;
-   
-   int retour=write(ed->fd,packet,l_packet);
-   if(retour!=-1)
+  
+   int wr=write(ed->fd,packet,l_packet);
+   if(wr!=-1)
    {
-      _enocean_request_timestamp = millis();
       pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(ed->sync_lock) );
-      
       pthread_mutex_lock(&(ed->sync_lock));
 
-      _enocean_response = -1;
-      _enocean_response_packet_l=0;
+      // préparation du buffer pour la réponse
+      ed->in_buffer.timestamp = _enocean_millis();
+      ed->in_buffer.packet_l=0;
+      ed->in_buffer.err=0;
      
-      int ret=pthread_cond_timedwait(&ed->sync_cond, &ed->sync_lock, &ts);
-      if(ret)
+      int pr=pthread_cond_timedwait(&ed->sync_cond, &ed->sync_lock, &ts);
+      if(pr)
       {
          if(ret!=ETIMEDOUT)
             *nerr=ENOCEAN_ERR_SYS;
          else
             *nerr=ENOCEAN_ERR_TIMEOUT;
          *l_response = 0;
-         return_val=-1;
+         ret=-1;
       }
       else
       {
-         if(_enocean_response_err != 0)
+         if(ed->in_buffer.err == 0)
          {
-            return_val = _enocean_response;
-            uint16_t i;
-            for(i=0;i<*l_response && i<_enocean_response_packet_l;i++)
-               response[i]=_enocean_response_packet[i];
+            int16_t i = 0;
+            for(i=0;i<*l_response && i< ed->in_buffer.packet_l;i++)
+            {
+               response[i]= ed->in_buffer.packet[i];
+            }
             *l_response=i;
+            ret = 0;
          }
          else
          {
-            *nerr = _enocean_response_err;
-            return_val = -1;
+            *nerr = ed->in_buffer.err;
+            ret = -1;
          }
       }
+      pthread_mutex_unlock(&(ed->sync_lock));
       pthread_cleanup_pop(0);
    }
    else
    {
       *l_response=0;
       *nerr=ENOCEAN_ERR_SYS;
-      return_val=-1;
+      ret=-1;
    }
    
    pthread_mutex_unlock(&(ed->write_lock));
    pthread_cleanup_pop(0);
 
-   return  return_val;
+   return  ret;
 }
 
 
-uint16_t enocean_get_local_addr(enocean_ed_t *ed, uint32_t *addr, int16_t *nerr)
+uint16_t enocean_get_chipid(enocean_ed_t *ed, uint32_t *chipid, int16_t *nerr)
 {
    uint8_t request[8];
    uint8_t response[40];
@@ -773,7 +778,8 @@ uint16_t enocean_get_local_addr(enocean_ed_t *ed, uint32_t *addr, int16_t *nerr)
    request[ptr++] = crc8d;
    
    *nerr=0;
-   if(enocean_send_packet(ed, request, ptr, response, &l_response, nerr)!=-1)
+   int r = enocean_send_packet(ed, request, ptr, response, &l_response, nerr);
+   if(r!=-1)
    {
       VERBOSE(5) {
          mea_log_printf("%s ENOCEAN_RD_VERSION : Description  = %s\n",INFO_STR,&response[23]);
@@ -783,7 +789,7 @@ uint16_t enocean_get_local_addr(enocean_ed_t *ed, uint32_t *addr, int16_t *nerr)
          mea_log_printf("%s ENOCEAN_RD_VERSION : Chip Version = %02d, %02d, %02d, %02d\n",INFO_STR,response[19],response[20],response[21],response[22]);
       }
 
-      *addr = _enocean_calc_addr(response[15],response[16],response[17],response[18]);
+      *chipid = _enocean_calc_addr(response[15],response[16],response[17],response[18]);
    }
    else
    {
@@ -794,7 +800,282 @@ uint16_t enocean_get_local_addr(enocean_ed_t *ed, uint32_t *addr, int16_t *nerr)
 }
 
 
-int16_t enocean_send_radio_erp1_packet(enocean_ed_t *ed, uint8_t rorg, uint32_t source, uint32_t dest, uint8_t *data, uint16_t l_data, uint8_t status, int16_t *nerr)
+uint16_t enocean_learning_onoff(enocean_ed_t *ed, int onoff, int16_t *nerr)
+{
+   uint8_t request[14];
+   uint8_t reponse[40];
+   uint16_t l_reponse=sizeof(reponse);
+
+   uint16_t ptr=0;
+   uint8_t crc8h=0, crc8d=0;
+
+   request[ptr++] = 0x55;
+
+   // longueur données
+   request[ptr++] = 0;
+   crc8h = proc_crc8(crc8h, 0);
+   request[ptr++] = 6;
+   crc8h = proc_crc8(crc8h, 6);
+
+   // longueur données optionnelles
+   request[ptr++] = 1;
+   crc8h = proc_crc8(crc8h, 1);
+
+   // type de packet
+   request[ptr++] = ENOCEAN_COMMON_COMMAND;
+   crc8h = proc_crc8(crc8h, ENOCEAN_COMMON_COMMAND);
+
+   // CRC8H
+   request[ptr++] = crc8h;
+
+   // donnée
+   request[ptr++] = 23; // CO_WR_LEARNMODE = 23
+   crc8d = proc_crc8(crc8d, 23);
+  
+   if(onoff != 0) 
+      request[ptr] = 1; // Enable : 1 = start Learn mode
+   else
+      request[ptr] = 0; // Enable : 0 = stop Learn mode
+
+   crc8d = proc_crc8(crc8d, request[ptr]);
+   ptr++;
+
+   for(int i=0;i<4;i++) // Timeout : 0 => valeur par defaut : 60 s (60000 ms)
+   {
+      request[ptr++] = 0;
+      crc8d = proc_crc8(crc8d, 0);
+   }
+
+   request[ptr++] = 0xFF; // channel : 0xFF (Next channel relative ??? cf https://github.com/aschwith/smarthome/blob/master/enocean/__init__.py) 
+   crc8d = proc_crc8(crc8d, 0xFF);
+
+   // CRC8D
+   request[ptr++] = crc8d;
+
+   *nerr=0;
+   l_reponse=40;
+   if(enocean_send_packet(ed, request, ptr, reponse, &l_reponse, nerr)!=-1)
+   {
+      VERBOSE(5) {
+         // traiter ici la réponse
+         mea_log_printf("%s RESPONSE = %d %x\n",INFO_STR, reponse[6], reponse[6]);
+      }
+   }
+   else
+   {
+      return -1;
+   }
+
+   return 0;
+}
+
+
+uint16_t enocean_sa_learning_onoff(enocean_ed_t *ed, int onoff, int16_t *nerr)
+{
+   int ret = -1;
+   uint8_t request[40];
+   uint8_t response[40];
+   uint16_t l_response=sizeof(response);
+
+   uint16_t ptr=0;
+   uint8_t crc8h=0, crc8d=0;
+
+   request[ptr++] = 0x55;
+
+   // longueur données
+   request[ptr++] = 0;
+   crc8h = proc_crc8(crc8h, 0);
+   request[ptr++] = 7;
+   crc8h = proc_crc8(crc8h, 7);
+
+   // longueur données optionnelles
+   request[ptr++] = 0;
+   crc8h = proc_crc8(crc8h, 0);
+
+   // type de packet
+   request[ptr++] = ENOCEAN_SMART_ACK_COMMAND;
+   crc8h = proc_crc8(crc8h, ENOCEAN_SMART_ACK_COMMAND);
+
+   // CRC8H
+   request[ptr++] = crc8h;
+
+   // donnée
+   request[ptr++] = 1; // SA_WR_LEARNMODE = 1
+   crc8d = proc_crc8(crc8d, 1);
+
+   if(onoff != 0)
+      request[ptr] = 1; // Enable : 1 = start Learn mode
+   else
+      request[ptr] = 0; // Enable : 0 = stop Learn mode
+   crc8d = proc_crc8(crc8d, request[ptr]);
+   ptr++;
+/*
+   request[ptr++] = 1;
+   crc8d = proc_crc8(crc8d, 1);
+*/
+   request[ptr++] = 0; // Simple learnmode
+   crc8d = proc_crc8(crc8d, 0);
+
+   for(int i=0;i<4;i++) // Timeout : 0 => valeur par defaut : 60 s (60000 ms)
+   {
+      request[ptr++] = 0;
+      crc8d = proc_crc8(crc8d, 0);
+   }
+
+   // CRC8D
+   request[ptr++] = crc8d;
+
+   *nerr=0;
+   if(enocean_send_packet(ed, request, ptr, response, &l_response, nerr)!=-1)
+   {
+      VERBOSE(5) {
+         // traiter ici la réponse
+         mea_log_printf("%s RESPONSE = %d\n",INFO_STR, response[6]);
+         ret=response[6];
+      }
+   }
+   else
+   {
+      ret=-1;
+   }
+
+   return ret;
+}
+
+
+uint16_t enocean_sa_confirm_learn_response(enocean_ed_t *ed, uint16_t response_time, uint16_t confirm, int16_t *nerr)
+{
+/*
+   uint8_t request[8];
+   uint8_t response[40];
+   uint16_t l_response=sizeof(response);
+
+   uint16_t ptr=0;
+   uint8_t crc8h=0, crc8d=0;
+
+   request[ptr++] = 0x55;
+
+   // longueur données
+   request[ptr++] = 0;
+   crc8h = proc_crc8(crc8h, 0);
+   request[ptr++] = 4;
+   crc8h = proc_crc8(crc8h, 4);
+
+   // longueur données optionnelles
+   request[ptr++] = 0;
+   crc8h = proc_crc8(crc8h, 0);
+
+   // packet response
+   request[ptr++] = ENOCEAN_RESPONSE;
+   crc8h = proc_crc8(crc8h, ENOCEAN_RESPONSE);
+
+   // CRC8H
+   request[ptr++] = crc8h;
+
+   // donnée
+   request[ptr++] = 0; // RET_OK = 0
+   crc8d = proc_crc8(crc8d, 23);
+
+   // response time
+   uint8_t rt = (response_time >> 8) & 0xFF;
+   request[ptr++] = rt;
+   crc8d = proc_crc8(crc8d, rt);
+   rt = response_time & 0xFF;
+   request[ptr++] = rt;
+   crc8d = proc_crc8(crc8d, rt);
+
+   request[ptr++] = confirm & 0xFF;
+   crc8d = proc_crc8(crc8d, confirm & 0xFF);
+
+   for(int i=0;i<4;i++) // Timeout : 0 => valeur par defaut : 60 s (60000 ms)
+   {
+      request[ptr++] = 0;
+      crc8d = proc_crc8(crc8d, 0);
+   }
+
+   // CRC8D
+   request[ptr++] = crc8d;
+
+   *nerr=0;
+   if(enocean_send_packet(ed, request, ptr, response, &l_response, nerr)!=-1)
+   {
+      VERBOSE(5) {
+         // traiter ici la réponse
+         mea_log_printf("%s RESPONSE = %d\n",INFO_STR, response[6]);
+      }
+   }
+   else
+   {
+      return -1;
+   }
+*/
+   return 0;
+}
+
+
+uint16_t enocean_get_baseid(enocean_ed_t *ed, uint32_t *baseid, int16_t *nerr)
+{
+   uint8_t request[8];
+   uint8_t response[40];
+   uint16_t l_response=sizeof(response);
+
+   uint16_t ptr=0;
+   uint8_t crc8h=0, crc8d=0;
+
+   request[ptr++] = 0x55;
+
+   // longueur données
+   request[ptr++] = 0;
+   crc8h = proc_crc8(crc8h, 0);
+   request[ptr++] = 1;
+   crc8h = proc_crc8(crc8h, 1);
+
+   // longueur données optionnelles
+   request[ptr++] = 0;
+   crc8h = proc_crc8(crc8h, 0);
+
+   // type de packet
+   request[ptr++] = ENOCEAN_COMMON_COMMAND;
+   crc8h = proc_crc8(crc8h, ENOCEAN_COMMON_COMMAND);
+
+   // CRC8H
+   request[ptr++] = crc8h;
+
+   // donnée
+   request[ptr++] = 8; // CO_RD_IDBASE = 8 
+   crc8d = proc_crc8(crc8d, 8);
+
+   // CRC8D
+   request[ptr++] = crc8d;
+
+   *nerr=0;
+   if(enocean_send_packet(ed, request, ptr, response, &l_response, nerr)!=-1)
+   {
+      VERBOSE(5) {
+         // traiter ici la réponse
+         if(response[6]==0)
+         {
+            mea_log_printf("%s CO_RD_IDBASE : BASEID    = %02x-%02x-%02x-%02x\n",INFO_STR,response[7],response[8],response[9],response[10]);
+            mea_log_printf("%s CO_RD_IDBASE : REMAINING = %d\n",INFO_STR, response[8]);
+
+            *baseid = _enocean_calc_addr(response[7],response[8],response[9],response[10]);
+         }
+         else
+         {
+            return -1;
+         }
+      }
+   }
+   else
+   {
+      return -1;
+   }
+
+   return 0;
+}
+
+
+int16_t enocean_send_radio_erp1_packet(enocean_ed_t *ed, uint8_t rorg, uint32_t source, uint32_t dec_id, uint32_t dest, uint8_t *data, uint16_t l_data, uint8_t status, int16_t *nerr)
 {
    uint8_t packet[64];
    uint16_t l_packet = sizeof(packet);
@@ -803,7 +1084,7 @@ int16_t enocean_send_radio_erp1_packet(enocean_ed_t *ed, uint8_t rorg, uint32_t 
    
    int16_t return_val=-1;
          
-   if(_enocean_build_radio_erp1_packet(rorg, source, dest, data, l_data, status, packet, &l_packet)<0)
+   if(_enocean_build_radio_erp1_packet(rorg, source + dec_id, dest, data, l_data, status, packet, &l_packet)<0)
       return -1;
    
    return_val=enocean_send_packet(ed, packet, l_packet, response, &l_response, nerr);
@@ -924,21 +1205,30 @@ void *_enocean_thread(void *args)
                   ed->enocean_callback(packet,l_packet, addr, ed->enocean_callback_data);
                }
                break;
+            case ENOCEAN_EVENT:
+               if(ed->enocean_callback)
+               {
+                  ed->enocean_callback(packet,l_packet, 0, ed->enocean_callback_data);
+               }
+               break;
             case ENOCEAN_RESPONSE:
                 pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(ed->sync_lock) );
                 pthread_mutex_lock(&ed->sync_lock);
-                if( diffMillis(_enocean_request_timestamp, millis()) < 500)
+
+                unsigned long now = _enocean_millis();
+                if( _enocean_diffMillis(ed->in_buffer.timestamp, now) < 500)
                 {
-                   _enocean_response = packet[6];
-                   _enocean_response_packet_l = l_packet;
-                   for(int i=0;i<sizeof(_enocean_response_packet) && i<l_packet;i++)
-                      _enocean_response_packet[i]=packet[i];
-                   _enocean_response_err = 0;
+                   ed->in_buffer.packet_l = l_packet;
+                   for(int i=0;i<sizeof(ed->in_buffer.packet) && i<l_packet;i++)
+                   {
+                      ed->in_buffer.packet[i]=packet[i];
+                   }
+                   ed->in_buffer.err = 0;
                 }
                 else
                 {
-                   _enocean_response_packet_l = 0;
-                   _enocean_response_err=ENOCEAN_ERR_TIMEOUT;
+                   ed->in_buffer.packet_l = 0;
+                   ed->in_buffer.err=ENOCEAN_ERR_TIMEOUT;
                 }
                 pthread_cond_broadcast(&ed->sync_cond);
                 pthread_mutex_unlock(&ed->sync_lock);

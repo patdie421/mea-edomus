@@ -108,7 +108,6 @@ def mea_enoceanData(data):
 
    try:
       id_sensor=data["device_id"]
-      verbose(1, "DEBUG (", fn_name, ") - id_sensor=", id_sensor)
       packet=data["data"]
       l_packet=data["l_data"]
       parameters=data["device_parameters"]
@@ -121,10 +120,6 @@ def mea_enoceanData(data):
 
    device1=0
    device2=0
-   try:
-      device=paramsDict["xpldevice"];
-   except:
-      device=-1;
 
    if packet[4]==1: # ENOCEAN_RADIO_ERP1
       if packet[6]==0xF6:
@@ -164,11 +159,22 @@ def mea_enoceanData(data):
                   mem["button1"]=button1Num
                   mem["button2"]=button2Num
 
-                  xplMsg=mea_utils.xplMsgNew("me", "*", "xpl-trig", "sensor", "basic")
-                  mea_utils.xplMsgAddValue(xplMsg,"device", data["device_name"].lower())
-                  mea_utils.xplMsgAddValue(xplMsg,"current", mem["current"])
-                  mea_utils.xplMsgAddValue(xplMsg,"type", "input")
-                  mea_utils.xplMsgAddValue(xplMsg,"last",mem["last"])
-                  mea.xplSendMsg(xplMsg)
+                  internal=-1
+                  if(device!=-1):
+                     try:
+                        internal=int(paramsDict["internal"])
+                     except:
+                        internal=0
+                     broadcastXplDirectControlBasic(internal, paramsDict["channel"], button1Num, button2Num, device);
                   return True
+#            else: # bouton relache
+#               if mem["button1"] != -1:
+#                  verbose(2, "Relachement de : ", mem["button1"])
+#               if mem["button2"] != -1:
+#                  verbose(2, "Relachement de : ", mem["button2"])
+#               mem["button1"]=-1
+#               mem["button2"]=-1
+#               verbose(2,"Nb boutons appuyes = ", (packet[7] & 0b11100000) >> 5)
+#               verbose(2,"Energy bow = ", (packet[7] & 0b00010000) >> 4)
+#               return True
    return False

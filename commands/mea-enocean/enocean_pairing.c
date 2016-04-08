@@ -146,7 +146,7 @@ int main(int argc, char *argv[])
       exit(1);
    }
 
-   if(enocean_get_local_addr(ed, &addr, &nerr) != -1)
+   if(enocean_get_baseid(ed, &addr, &nerr) != -1)
    {
       // data: AI appuyé, status: T21=1, NU=1
       if(build_erp1_rps_broadcast_packet(addr,0b00010000, 0b00001100, packet, sizeof(packet))!=-1)
@@ -188,7 +188,7 @@ int main(int argc, char *argv[])
    }
    else
    {
-      fprintf(stderr,"enocean_get_local_addr error: %d\n", nerr);
+      fprintf(stderr,"enocean_get_baseid error: %d\n", nerr);
       ret=1;
 //      goto main_clean_exit;
    }
