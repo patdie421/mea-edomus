@@ -40,7 +40,7 @@ void     enocean_close(enocean_ed_t *ed);
 void     _enocean_free_queue_elem(void *d); // pour vider_file2
 void    *_enocean_thread(void *args);
 //uint16_t enocean_get_local_addr(enocean_ed_t *ed, uint32_t *addr, int16_t *nerr);
-uint32_t _enocean_calc_addr(uint8_t a, uint8_t b, uint8_t c, uint8_t d);
+uint32_t enocean_calc_addr(uint8_t a, uint8_t b, uint8_t c, uint8_t d);
 
 
 unsigned long _enocean_millis()
@@ -123,8 +123,8 @@ int16_t enocean_init(enocean_ed_t *ed, char *dev)
    ed->in_buffer.timestamp = 0;
    ed->in_buffer.err = 0;
 
-//   if(enocean_get_baseid(ed, &ed->id,&nerr)<0) // pas de reponse correct
-   if(enocean_get_chipid(ed, &ed->id,&nerr)<0)
+   if(enocean_get_baseid(ed, &ed->id,&nerr)<0) // pas de reponse correct
+//   if(enocean_get_chipid(ed, &ed->id,&nerr)<0)
    {
       enocean_close(ed);
       free(ed->queue);
@@ -567,6 +567,11 @@ int16_t _enocean_build_radio_erp1_packet(uint8_t rorg, uint32_t source, uint32_t
             return -1;
          break;
 
+      case ENOCEAN_UTE_TELEGRAM:
+         if(l_data != 7)
+            return -1;
+         break;
+
       case ENOCEAN_VLD_TELEGRAM:
          if(!l_data || l_data > 14)
             return -1;
@@ -789,7 +794,7 @@ uint16_t enocean_get_chipid(enocean_ed_t *ed, uint32_t *chipid, int16_t *nerr)
          mea_log_printf("%s ENOCEAN_RD_VERSION : Chip Version = %02d, %02d, %02d, %02d\n",INFO_STR,response[19],response[20],response[21],response[22]);
       }
 
-      *chipid = _enocean_calc_addr(response[15],response[16],response[17],response[18]);
+      *chipid = enocean_calc_addr(response[15],response[16],response[17],response[18]);
    }
    else
    {
@@ -928,11 +933,11 @@ uint16_t enocean_sa_learning_onoff(enocean_ed_t *ed, int onoff, int16_t *nerr)
    *nerr=0;
    if(enocean_send_packet(ed, request, ptr, response, &l_response, nerr)!=-1)
    {
-      VERBOSE(5) {
+//      VERBOSE(5) {
          // traiter ici la réponse
          mea_log_printf("%s RESPONSE = %d\n",INFO_STR, response[6]);
-         ret=response[6];
-      }
+//      }
+      ret=response[6];
    }
    else
    {
@@ -945,8 +950,7 @@ uint16_t enocean_sa_learning_onoff(enocean_ed_t *ed, int onoff, int16_t *nerr)
 
 uint16_t enocean_sa_confirm_learn_response(enocean_ed_t *ed, uint16_t response_time, uint16_t confirm, int16_t *nerr)
 {
-/*
-   uint8_t request[8];
+   uint8_t request[40];
    uint8_t response[40];
    uint16_t l_response=sizeof(response);
 
@@ -1008,7 +1012,6 @@ uint16_t enocean_sa_confirm_learn_response(enocean_ed_t *ed, uint16_t response_t
    {
       return -1;
    }
-*/
    return 0;
 }
 
@@ -1058,7 +1061,7 @@ uint16_t enocean_get_baseid(enocean_ed_t *ed, uint32_t *baseid, int16_t *nerr)
             mea_log_printf("%s CO_RD_IDBASE : BASEID    = %02x-%02x-%02x-%02x\n",INFO_STR,response[7],response[8],response[9],response[10]);
             mea_log_printf("%s CO_RD_IDBASE : REMAINING = %d\n",INFO_STR, response[8]);
 
-            *baseid = _enocean_calc_addr(response[7],response[8],response[9],response[10]);
+            *baseid = enocean_calc_addr(response[7],response[8],response[9],response[10]);
          }
          else
          {
@@ -1075,7 +1078,7 @@ uint16_t enocean_get_baseid(enocean_ed_t *ed, uint32_t *baseid, int16_t *nerr)
 }
 
 
-int16_t enocean_send_radio_erp1_packet(enocean_ed_t *ed, uint8_t rorg, uint32_t source, uint32_t dec_id, uint32_t dest, uint8_t *data, uint16_t l_data, uint8_t status, int16_t *nerr)
+int16_t enocean_send_radio_erp1_packet(enocean_ed_t *ed, uint8_t rorg, uint32_t source, uint32_t sub_id, uint32_t dest, uint8_t *data, uint16_t l_data, uint8_t status, int16_t *nerr)
 {
    uint8_t packet[64];
    uint16_t l_packet = sizeof(packet);
@@ -1084,13 +1087,14 @@ int16_t enocean_send_radio_erp1_packet(enocean_ed_t *ed, uint8_t rorg, uint32_t 
    
    int16_t return_val=-1;
          
-   if(_enocean_build_radio_erp1_packet(rorg, source + dec_id, dest, data, l_data, status, packet, &l_packet)<0)
+   if(_enocean_build_radio_erp1_packet(rorg, source + sub_id, dest, data, l_data, status, packet, &l_packet)<0)
       return -1;
    
    return_val=enocean_send_packet(ed, packet, l_packet, response, &l_response, nerr);
-   if(return_val!=-1)
+   if(return_val==0)
    {
-   // voir s'il y a d'autre données à lire pour ce type de packet
+      return_val = response[6];
+      // voir s'il y a d'autre données à lire pour ce type de packet
    }
    else
    {
@@ -1148,7 +1152,7 @@ int _enocean_reopen(enocean_ed_t *ed)
 }
 
 
-uint32_t _enocean_calc_addr(uint8_t a, uint8_t b, uint8_t c, uint8_t d)
+uint32_t enocean_calc_addr(uint8_t a, uint8_t b, uint8_t c, uint8_t d)
 {
    uint32_t addr = 0;
    
@@ -1172,7 +1176,7 @@ uint32_t _enocean_get_addr_from_packet(uint8_t *data, int16_t l_data)
    {
 //      int16_t addr_index = 5 + (data[1] << 8) + data[2] - 4;
       int16_t addr_index = (data[1] << 8) + data[2] + 1;
-      addr = _enocean_calc_addr(data[addr_index],data[addr_index+1],data[addr_index+2],data[addr_index+3]);
+      addr = enocean_calc_addr(data[addr_index],data[addr_index+1],data[addr_index+2],data[addr_index+3]);
    }
    
    return addr;

@@ -30,6 +30,8 @@
 #define ENOCEAN_4BS_TELEGRAM       0xA5
 #define ENOCEAN_VLD_TELEGRAM       0xD2
 
+#define ENOCEAN_UTE_TELEGRAM       0xD4
+
 // Response
 #define ENOCEAN_RET_OK             0x00
 #define ENOCEAN_RET_ERROR          0x01
@@ -96,6 +98,8 @@ void          enocean_close(enocean_ed_t *ed);
 void          enocean_clean_ed(enocean_ed_t *ed);
 void          enocean_free_ed(enocean_ed_t *ed);
 enocean_ed_t *enocean_new_ed();
+
+uint32_t enocean_calc_addr(uint8_t a, uint8_t b, uint8_t c, uint8_t d);
 
 uint16_t enocean_get_chipid(enocean_ed_t *ed, uint32_t *chipid, int16_t *nerr);
 uint16_t enocean_get_baseid(enocean_ed_t *ed, uint32_t *baseid, int16_t *nerr);

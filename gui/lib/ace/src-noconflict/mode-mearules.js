@@ -23,9 +23,13 @@ var MearulesHighlightRules = function() {
     );
 
     var builtinFunctions = (
-        "$timer|$date|$time|$calcn|$xplmsgdata|$now|$sunrise|$sunset|$tohlstr|$totfstr"
+        "$startup|$exist|$rise|$fall|$stay|$change|$timerstatus|$timer|$date|$time|$calcn|$xplmsgdata|$now|$sunrise|$sunset|$twilightstart|$twilightend|$tohlstr|$totfstr"
     );
 
+    var builtinActions = (
+//        "xPLSend|timerCtrl|setInput|resetState"
+        "xPLSend|timerCtrl|resetState"
+    );
     var specialsMapper = this.createKeywordMapper({
         "keyword": specials
     }, "identifier", true);
@@ -36,7 +40,8 @@ var MearulesHighlightRules = function() {
     }, "identifier", true);
 
     var keywordMapper2 = this.createKeywordMapper({
-        "keyword.other": keywords2
+        "keyword.other": keywords2,
+        "support.function": builtinActions
     }, "indentifier", true);
 
     var booleanMapper = this.createKeywordMapper({
@@ -45,6 +50,10 @@ var MearulesHighlightRules = function() {
 
     var functionMapper = this.createKeywordMapper({
        "support.function": builtinFunctions
+    }, "identifier", true);
+
+    var actionMapper = this.createKeywordMapper({
+       "support.function": builtinActions
     }, "identifier", true);
 
     this.$rules = {

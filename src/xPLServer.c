@@ -5,7 +5,6 @@
 //
 //
 
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -41,7 +40,7 @@ extern Bool xPL_sendRawMessage(String, int);
 #define XPL_WD 1
 #ifdef XPL_WD
 char *xplWDMsg = NULL;
-int xplWDMsg_l = -1;
+int   xplWDMsg_l = -1;
 
 mea_timer_t xPLnoMsgReceivedTimer;
 #endif
@@ -56,7 +55,7 @@ xPL_ServicePtr xPLService = NULL;
 char *xpl_vendorID=NULL;
 char *xpl_deviceID=NULL;
 char *xpl_instanceID=NULL;
-char xpl_source[36]="";
+char xpl_my_addr[36]="";
 
 // gestion du thread et des indicateurs
 pthread_t *_xPLServer_thread_id;
@@ -78,7 +77,8 @@ pthread_mutex_t xplRespQueue_sync_lock;
 int             _xPLServer_mutex_initialized=0;
 
 
-void _cmndXPLMessageHandler(xPL_MessagePtr theMessage, xPL_ObjectPtr userValue);
+// void _cmndXPLMessageHandler(xPL_MessagePtr theMessage, xPL_ObjectPtr userValue);
+void _rawXPLMessageHandler(String s, int l, xPL_ObjectPtr userdata);
 
 
 void set_xPLServer_isnt_running(void *data)
@@ -92,7 +92,7 @@ void clean_xPLServer(void *data)
    xPL_ServicePtr tmp = xPLService;
    xPLService = NULL;
  
-   xPL_removeMessageListener(_cmndXPLMessageHandler);
+   xPL_removeRawListener(_rawXPLMessageHandler);
 
    xPL_setServiceEnabled(tmp, FALSE);
    xPL_releaseService(tmp);
@@ -106,7 +106,7 @@ void clean_xPLServer(void *data)
 #endif
 }
 
-
+/*
 cJSON *mea_xPL2JSON(xPL_MessagePtr msg)
 {
    char str[256];
@@ -126,14 +126,16 @@ cJSON *mea_xPL2JSON(xPL_MessagePtr msg)
          msgtype=XPL_TRIG_STR_C;
          break;
    }
+
    cJSON_AddItemToObject(msg_json, XPLMSGTYPE_STR_C, cJSON_CreateString(msgtype));
+   cJSON_AddItemToObject(msg_json, XPLSOURCE_STR_C, cJSON_CreateString(xpl_my_addr));
 
-   cJSON_AddItemToObject(msg_json, XPLSOURCE_STR_C, cJSON_CreateString(xpl_source));
-
-   strcpy(str,"*");
    if (!xPL_isBroadcastMessage(msg))
       sprintf(str,"%s-%s.%s", xPL_getTargetVendor(msg), xPL_getTargetDeviceID(msg), xPL_getTargetInstanceID(msg));
-   cJSON_AddItemToObject(msg_json, XPLTARGET_STR_C, cJSON_CreateString("*"));
+   else
+      strcpy(str,"*");
+
+   cJSON_AddItemToObject(msg_json, XPLTARGET_STR_C, cJSON_CreateString(str));
 
    sprintf(str,"%s.%s", xPL_getSchemaClass(msg), xPL_getSchemaType(msg));
    cJSON_AddItemToObject(msg_json, XPLSCHEMA_STR_C, cJSON_CreateString(str));
@@ -149,7 +151,7 @@ cJSON *mea_xPL2JSON(xPL_MessagePtr msg)
 
    return msg_json;
 }
-
+*/
 
 uint32_t mea_getXplRequestId() // rajouter un verrou ...
 {
@@ -189,9 +191,9 @@ char *mea_setXPLInstanceID(char *value)
 }
 
 
-char *mea_getXPLSource()
+char *mea_getMyXPLAddr()
 {
-   return xpl_source;
+   return xpl_my_addr;
 }
 
 
@@ -238,7 +240,7 @@ int mea_sendXplMsgJson(cJSON *xplMsgJson)
    char xplBodyStr[2048] = "";
    int xplBodyStrPtr = 0;
 
-   source = xpl_source;
+   source = xpl_my_addr;
    target="*";
 
    while(e)
@@ -298,7 +300,7 @@ uint16_t mea_sendXPLMessage2(cJSON *xplMsgJson)
          sscanf(str, "%*[^-]-%[^.].%*s", deviceID);
    }
 
-   if(deviceID[0]!=0 && strcmp(deviceID,INTERNAL_STR_C)==0) // source interne => dispatching sans passer par le réseau
+   if(deviceID[0]!=0 && strcmp(deviceID, INTERNAL_STR_C)==0) // source interne => dispatching sans passer par le réseau
    {
       dispatchXPLMessageToInterfaces2(xplMsgJson);
       return 0;
@@ -398,7 +400,7 @@ cJSON *mea_readXPLResponse2(int id)
                   // et on fait le menage avant de sortir
                   free(e);
                   e=NULL;
-                  xplRespQueue->current->d=NULL; // pour evite le bug
+                  xplRespQueue->current->d=NULL; // pour evite un bug (mais je sais plus lequel ...)
                   mea_queue_remove_current(xplRespQueue);
                   goto readFromQueue_return;
                }
@@ -422,7 +424,7 @@ readFromQueue_return:
    return xplMsgJson;
 }
 
-
+/*
 int16_t displayXPLMsg(xPL_MessagePtr theMessage)
 {
    char xpl_source[48];
@@ -455,8 +457,9 @@ int16_t displayXPLMsg(xPL_MessagePtr theMessage)
    fprintf(MEA_STDERR, "}\n");
    return 0;
 }
+*/
 
-
+/*
 void _cmndXPLMessageHandler(xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
 {
    process_update_indicator(_xplServer_monitoring_id, xpl_server_xplin_str, ++xplin_indicator);
@@ -488,6 +491,11 @@ void _cmndXPLMessageHandler(xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
 
    // on envoie tous les messages à l'automate (à lui de filtrer ...)
    cJSON *xplMsgJson_interfaces = mea_xPL2JSON(theMessage);
+
+   char *s = cJSON_Print(xplMsgJson_interfaces);
+   fprintf(stderr,"C:%s\n", s);
+   free(s);
+
    cJSON *xplMsgJson_automator = cJSON_Duplicate(xplMsgJson_interfaces, 1);
 
    if(xplMsgJson_automator)
@@ -506,7 +514,7 @@ void _cmndXPLMessageHandler(xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
 
    dispatchXPLMessageToInterfaces2(xplMsgJson_interfaces);
 }
-
+*/
 
 void _flushExpiredXPLResponses()
 {
@@ -554,7 +562,9 @@ int16_t set_xpl_address(char **params_list)
    mea_setXPLVendorID(params_list[VENDOR_ID]);
    mea_setXPLDeviceID(params_list[DEVICE_ID]);
    mea_setXPLInstanceID(params_list[INSTANCE_ID]);
-   
+  
+   sprintf(xpl_my_addr,"%s-%s.%s", xpl_vendorID, xpl_deviceID, xpl_instanceID);
+ 
    return 0;
 }
 
@@ -564,6 +574,167 @@ void _xplRespQueue_free_queue_elem(void *d)
    xplRespQueue_elem_t *e=(xplRespQueue_elem_t *)d;
    cJSON_Delete(e->msgjson);
    e->msgjson=NULL;
+}
+
+
+cJSON *xPLParser(const char* xplmsg, char *xpl_type, char *xpl_schema, char *xpl_source, char *xpl_target)
+{
+   int y, z, c;
+   int w;
+   char xpl_section[35];
+   char xpl_name[17];
+   char xpl_value[129];
+
+//   char xpl_target[35];
+
+#define XPL_IN_SECTION 0
+#define XPL_IN_NAME 1
+#define XPL_IN_VALUE 2
+   int   s1=0;
+   cJSON *msg_json = cJSON_CreateObject();
+
+   w = XPL_IN_SECTION;
+   z = 0;
+   y = strlen(xplmsg);
+
+   for (c=0;c<y;c++) {
+
+      switch(w) {
+         case XPL_IN_SECTION:
+            if((xplmsg[c] != 10) && (z != 34)) {
+               xpl_section[z]=xplmsg[c];
+               ++z;
+            }
+            else {
+               ++c;
+               ++c;
+               ++w;
+               xpl_section[z]='\0';
+               if(s1==0)
+               {
+                  if(xpl_type)
+                     strcpy(xpl_type, xpl_section);
+                  cJSON_AddItemToObject(msg_json, XPLMSGTYPE_STR_C, cJSON_CreateString(xpl_section));
+               }
+               else if(s1==1)
+               {
+                  if(xpl_schema)
+                  strcpy(xpl_schema, xpl_section);
+                  cJSON_AddItemToObject(msg_json, XPLSCHEMA_STR_C, cJSON_CreateString(xpl_section));
+               }
+               ++s1;
+               z=0;
+            }
+            break;
+         case XPL_IN_NAME:
+            if((xplmsg[c] != '=') && (xplmsg[c] != '!') && (z != 16)) {
+               if(z<16) {
+                  xpl_name[z]=xplmsg[c];
+                  ++z;
+               }
+            }
+            else {
+               ++w;
+               xpl_name[z]='\0';
+               z=0;
+            }
+            break;
+         case XPL_IN_VALUE:
+            if((xplmsg[c] != 10) && (z != 128)) {
+               if(z<128) {
+                  xpl_value[z]=xplmsg[c];
+                  ++z;
+               }
+            }
+            else {
+               ++w;
+               xpl_value[z]='\0';
+               z=0;
+               if(s1==1)
+               {
+                  if(strcmp(xpl_name, "source") == 0)
+                  {
+                     if(xpl_source)
+                        strcpy(xpl_source, xpl_value);
+                     cJSON_AddItemToObject(msg_json, XPLSOURCE_STR_C, cJSON_CreateString(xpl_value));
+                  }
+                  else if(strcmp(xpl_name, "target") == 0)
+                  {
+                     strcpy(xpl_target, xpl_value);
+                     cJSON_AddItemToObject(msg_json, XPLTARGET_STR_C, cJSON_CreateString(xpl_value));
+                  }
+               }
+               else if(s1==2)
+               {
+                  cJSON_AddItemToObject(msg_json,  xpl_name, cJSON_CreateString(xpl_value));
+               }
+
+               if(xplmsg[c+1] != '}') {
+                  w=XPL_IN_NAME;
+               }
+               else {
+                  w=XPL_IN_SECTION;
+                  ++c;
+                  ++c;
+               }
+            }
+            break;
+      }
+   }
+
+   return msg_json; 
+}
+
+
+void _rawXPLMessageHandler(String s, int l, xPL_ObjectPtr userdata)
+{
+   char type[35];
+   char schema[35];
+   char source[35];
+   char target[35];
+
+   process_update_indicator(_xplServer_monitoring_id, xpl_server_xplin_str, ++xplin_indicator);
+
+   cJSON *msg_json = xPLParser(s, type, schema, source, target);
+   if(msg_json != NULL)
+   {
+      DEBUG_SECTION {
+         char *s = cJSON_Print(msg_json);
+         fprintf(stderr,"%s\n", s);
+         free(s);
+      }
+#ifdef XPL_WD
+      mea_start_timer(&xPLnoMsgReceivedTimer);
+#endif
+
+      DEBUG_SECTION {
+         int fromMe=-1;
+         if(strcmp(source, xpl_my_addr) == 0)
+            fromMe=0;
+
+         if(strcmp(schema,"watchdog.basic")== 0 && fromMe == 0)
+         {
+            DEBUG_SECTION mea_log_printf("%s (%s) : watchdog xpl\n", DEBUG_STR, __func__);
+         }
+      }
+
+      // on envoie tous les messages à l'automate (à lui de filtrer ...)
+      cJSON *xplMsgJson_automator = cJSON_Duplicate(msg_json, 1);
+      if(msg_json)
+      {
+         if(automatorServer_add_msg(xplMsgJson_automator)==ERROR)
+         {
+            DEBUG_SECTION mea_log_printf("%s (%s) : to automator error\n", DEBUG_STR, __func__);
+         }
+      }
+
+      // pour les autres on filtre un peu avant de transmettre pour traitement
+      // on ne traite que les cmnd au niveau des interfaces
+      if(strcmp(type, XPL_CMND_STR_C) != 0)
+         return;
+
+      dispatchXPLMessageToInterfaces2(msg_json);
+   }
 }
 
 
@@ -581,13 +752,15 @@ void *xPLServer_thread(void *data)
    xPLService = xPL_createService(xpl_vendorID, xpl_deviceID, xpl_instanceID);
    if(!xPLService)
       return NULL;
-   sprintf(xpl_source,"%s-%s.%s", xpl_vendorID, xpl_deviceID, xpl_instanceID);
+//   sprintf(xpl_source,"%s-%s.%s", xpl_vendorID, xpl_deviceID, xpl_instanceID);
+//   sprintf(xpl_my_addr,"%s-%s.%s", xpl_vendorID, xpl_deviceID, xpl_instanceID);
 
    xPL_setRespondingToBroadcasts(xPLService, TRUE);
    xPL_setServiceVersion(xPLService, XPL_VERSION);
    xPL_setHeartbeatInterval(xPLService, 5000); // en milliseconde
 
-   xPL_addMessageListener(_cmndXPLMessageHandler, NULL);
+//   xPL_addMessageListener(_cmndXPLMessageHandler, NULL);
+   xPL_addRawListener(_rawXPLMessageHandler, NULL);
 
 #ifdef XPL_WD
    mea_timer_t xPLWDSendMsgTimer;
@@ -596,8 +769,8 @@ void *xPLServer_thread(void *data)
 
    char *_xplWDMsg = "xpl-trig\n{\nhop=1\nsource=%s\ntarget=%s\n}\nwatchdog.basic\n{\ninterval=10\n}\n";
 
-   xplWDMsg=malloc(strlen(_xplWDMsg)-4 + 2*strlen(xpl_source) + 1);
-   xplWDMsg_l = sprintf(xplWDMsg,_xplWDMsg,xpl_source,xpl_source);
+   xplWDMsg=malloc(strlen(_xplWDMsg)-4 + 2*strlen(xpl_my_addr) + 1);
+   xplWDMsg_l = sprintf(xplWDMsg, _xplWDMsg, xpl_my_addr, xpl_my_addr); // message pour moi meme ...
 
    mea_start_timer(&xPLnoMsgReceivedTimer);
    mea_start_timer(&xPLWDSendMsgTimer);
@@ -720,7 +893,7 @@ int stop_xPLServer(int my_id, void *data,  char *errmsg, int l_errmsg)
    if(_xPLServer_thread_id)
    {
       pthread_cancel(*_xPLServer_thread_id);
-      int counter=100;
+      int counter=1000; // une seconde max pour s'arrêter proprement
       int stopped=-1;
       while(counter--)
       {
@@ -735,7 +908,7 @@ int stop_xPLServer(int my_id, void *data,  char *errmsg, int l_errmsg)
          }
       }
 
-      DEBUG_SECTION mea_log_printf("%s (%s) : %s, fin après %d itération(s)\n",DEBUG_STR, __func__,xpl_server_name_str,100-counter);
+      DEBUG_SECTION mea_log_printf("%s (%s) : %s, end after %d loop(s)\n",DEBUG_STR, __func__,xpl_server_name_str,1000-counter);
       ret=stopped;
    }
 
@@ -759,7 +932,6 @@ int stop_xPLServer(int my_id, void *data,  char *errmsg, int l_errmsg)
    }   
 
    xPL_shutdown();
-//   fprintf(stderr, "xPL_shutdown\n");
 
    if(ret==0)
    {
@@ -777,14 +949,14 @@ int stop_xPLServer(int my_id, void *data,  char *errmsg, int l_errmsg)
 
 int start_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg)
 {
-   struct xplServer_start_stop_params_s *xplServer_start_stop_params = (struct xplServer_start_stop_params_s *)data;
+   struct xplServer_start_stop_params_s *xplServer_params = (struct xplServer_start_stop_params_s *)data;
    char err_str[256];
    
-   if(!set_xpl_address(xplServer_start_stop_params->params_list))
+   if(!set_xpl_address(xplServer_params->params_list))
    {
       _xplServer_monitoring_id=my_id;
 
-      xPL_setBroadcastInterface(xplServer_start_stop_params->params_list[INTERFACE]);
+      xPL_setBroadcastInterface(xplServer_params->params_list[INTERFACE]);
 
       int16_t xPL_initialize_done = 0;
       int16_t xPL_initialize_cntr = 0;
@@ -793,7 +965,7 @@ int start_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg)
          if ( !xPL_initialize(xPL_getParsedConnectionType()) )
          {
             xPL_initialize_cntr++;
-            if(xPL_initialize_cntr > 10)
+            if(xPL_initialize_cntr > 5)
             {
                VERBOSE(1) {
                   mea_log_printf("%s (%s) : xPL_initialize - error\n",ERROR_STR,__func__);

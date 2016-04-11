@@ -94,13 +94,11 @@ def mea_xplCmndMsg(data):
             verbose(2, "ERROR (", fn_name, ") - invalid request (", body["request"],")")
             return False
          mea_utils.xplMsgAddValue(xplMsg,"type","input")
+         mea.xplSendMsg(xplMsg)
+         return True
       except:
          verbose(2, "ERROR (", fn_name, ") - can't create xpl message")
          return False
-
-      mea.xplSendMsg(xplMsg)
-      return True
-
    return False
 
 

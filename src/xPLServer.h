@@ -58,7 +58,8 @@ char          *mea_getXPLInstanceID();
 char          *mea_getXPLDeviceID();
 char          *mea_getXPLVendorID();
 
-char          *mea_getXPLSource();
+//char          *mea_getXPLSource();
+char          *mea_getMyXPLAddr();
 
 uint16_t       mea_sendXPLMessage2(cJSON *xplMsgJson);
 cJSON         *mea_readXPLResponse(int id);

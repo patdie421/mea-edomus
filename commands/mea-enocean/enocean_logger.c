@@ -27,6 +27,8 @@
 #define ENOCEAN_4BS_TELEGRAM       0xA5
 #define ENOCEAN_VLD_TELEGRAM       0xD2
 
+#define ENOCEAN_UTE_TELEGRAM       0xD4
+
 // Response
 #define ENOCEAN_RET_OK             0x00
 #define ENOCEAN_RET_NOT_SUPPORTED  0x02
@@ -524,7 +526,49 @@ int main(int argc, char *argv[])
          {
             switch(data[6])
             {
-               case 0xF6:
+               case ENOCEAN_UTE_TELEGRAM:
+                  /*
+                     00 0x55  85 Synchro
+                     01 0x00   0 Header1 Data Lenght 
+                     02 0x0d  13 Header2 Data Lenght
+                     03 0x07   7 Header3 Optionnal lenght
+                     04 0x01   1 Header4 Packet type
+                     05 0xfd 253 CRC8H
+                     06 0xd4 212 RORG : UTE
+                     07 0xa0 160 (0b10100000)
+                     08 0x02   2 Number of indifidual channel to be taught in
+                     09 0x46  70 Manufacturer-ID (8LSB)
+                     10 0x00   0 Manufacturer-ID (3MSB)
+                     11 0x12  18 TYPE
+                     12 0x01   1 FUNC
+                     13 0xd2 210 RORG
+                     14 0x01   1 ID1
+                     15 0x94 148 ID2
+                     16 0xc9 201 ID3
+                     17 0x40  64 ID4
+                     18 0x00   0 (status)
+                     19 0x01   1 (number sub telegram)
+                     20 0xFF 255 Optionnal2 Destination ID
+                     21 0xFF 255 Optionnal3 Destination ID
+                     22 0xFF 255 Optionnal4 Destination ID
+                     23 0xFF 255 Optionnal5 Destination ID
+                     24 0x3d  61 Optionnal6 Dbm
+                     25 0x00   0 Optionnal7 Security level
+                     26 0xde 222 CRC8D
+                  */
+                  fprintf(stderr, "=== RPS Telegram D4 (UTE)  ===\n");
+                  fprintf(stderr, "Adresse   : %02x-%02x-%02x-%02x\n", data[14], data[15], data[16], data[17]);
+                  fprintf(stderr, "EEP       : %02x-%02x-%02x\n", data[13], data[12], data[11]);
+                  fprintf(stderr, "num chnnl : %d\n", data[8]);
+                  uint8_t operation = (data[7] & 0b10000000) >> 7;
+                  uint8_t response  = (data[7] & 0b01000000) >> 6;
+                  uint8_t request   = (data[7] & 0b00110000) >> 4;
+                  uint8_t cmnd      = (data[7] & 0b00001111);
+
+                  fprintf(stderr, "op: %u, rs: %u, rq: %u, cm: %u\n", operation, response, request, cmnd); 
+                  break;
+
+               case ENOCEAN_RPS_TELEGRAM:
                   /* Exemple "Trame d'un bouton"
                      00 0x55  85 Synchro
                      01 0x00   0 Header1 Data Lenght
@@ -539,7 +583,7 @@ int main(int argc, char *argv[])
                      10 0x86 134 Data5 ID3
                      11 0x71 113 Data6 ID4
                      12 0x30  48 Data7 Status
-                     13 0x02   2 Optionnal1 Number sub telegramme
+                     13 0x02   2 Optionnal1 Number sub telegram
                      14 0xFF 255 Optionnal2 Destination ID
                      15 0xFF 255 Optionnal3 Destination ID
                      16 0xFF 255 Optionnal4 Destination ID

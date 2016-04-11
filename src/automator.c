@@ -154,7 +154,7 @@ extern Bool xPL_sendRawMessage(String, int);
 
 static int automator_print_inputs_table();
 static struct inputs_table_s *automator_add_to_inputs_table(char *name, struct value_s *v, struct timespec *t);
-static struct inputs_table_s *_automator_add_to_inputs_table(char *name, struct value_s *v, struct timespec *t, int16_t updatestate);
+static struct inputs_table_s *_automator_add_to_inputs_table(char *name, struct value_s *v, struct timespec *t, int16_t updatestate, int16_t forcestate);
 static int reset_inputs_table_change_flag();
 static int automator_evalStr(char *str, struct value_s *v, cJSON *xplMsgJson);
 
@@ -546,10 +546,10 @@ static int input_getEdge(char *expr, int direction,  struct value_s *v, cJSON *x
 #if DEBUGFLAG_AUTOMATOR > 0
    _automatorServer_fn = (char *)__func__;
 #endif
-   if((direction==CHANGE ||
-       direction==RISE   ||
-       direction==STAY   ||
-       direction==NEW    ||
+   if((direction==CHANGE  ||
+       direction==RISE    ||
+       direction==STAY    ||
+       direction==NEW     ||
        direction==FALL)  &&
       expr[0]!=0)
    {
@@ -1189,9 +1189,38 @@ static int automator_setinputvalue(cJSON *parameters)
  
    mea_getTime(&last_update_time);
  
-   _automator_add_to_inputs_table(n.val.strval, &v, &last_update_time, _updatestate);
+   _automator_add_to_inputs_table(n.val.strval, &v, &last_update_time, _updatestate, -1);
     
    return 0;  
+}
+
+
+static int automator_setunknownstate(cJSON *parameters)
+{
+#if DEBUGFLAG_AUTOMATOR > 0
+   _automatorServer_fn = (char *)__func__;
+#endif
+   int16_t _updatestate = 1;
+   struct timespec last_update_time;
+   int16_t state = UNKNOWN;
+
+   if(parameters==NULL || parameters->child==NULL)
+      return -1;
+
+   cJSON *name = cJSON_GetObjectItem(parameters, "name");
+   if(!name)
+      return -1;
+
+   struct value_s n;
+
+   if(name->type != cJSON_String || automator_evalStr(name->valuestring, &n, NULL)<0 || n.type != 1 )
+      return -1;
+
+   mea_getTime(&last_update_time);
+
+   _automator_add_to_inputs_table(n.val.strval, NULL, &last_update_time, 1, state);
+
+   return 0;
 }
 
 
@@ -1370,6 +1399,8 @@ int automator_playOutputRules(cJSON *rules)
             automator_timerCtrl(parameters);
          else if(mea_strcmplower(action->valuestring, "setInput")==0)
             automator_setinputvalue(parameters);
+         else if(mea_strcmplower(action->valuestring, "resetState")==0)
+            automator_setunknownstate(parameters);
       } 
 
 next_rule:
@@ -1979,7 +2010,7 @@ int automator_send_all_inputs()
 }
 
 
-struct inputs_table_s *_automator_add_to_inputs_table(char *_name, struct value_s *v, struct timespec *t, int16_t update_state)
+struct inputs_table_s *_automator_add_to_inputs_table(char *_name, struct value_s *v, struct timespec *t, int16_t update_state, int16_t force_state)
 {
 #if DEBUGFLAG_AUTOMATOR > 0
    _automatorServer_fn = (char *)__func__;
@@ -1993,14 +2024,27 @@ struct inputs_table_s *_automator_add_to_inputs_table(char *_name, struct value_
    HASH_FIND_STR(inputs_table, _name, e);
    if(e)
    {
+      if(v == NULL)
+         v = &(e->v);
       enum input_state_e state = UNKNOWN;
       if(update_state == 1)
       { 
-         if((e->v.type == v->type) && v->type!=VALUE_STRING)
+         if(force_state != -1)
+         {
+            state = force_state;
+         }
+         else if((e->v.type == v->type) && v->type!=VALUE_STRING)
          {
             if(e->v.type == VALUE_FLOAT) // double
             {
-               if(e->v.val.floatval == v->val.floatval)
+               if( e->state == UNKNOWN )
+               {
+                  if( v->val.floatval <= 0)
+                     state=FALL;
+                  else
+                     state=RISE;
+               } 
+               else if( e->v.val.floatval == v->val.floatval )
                   state=STAY;
                else if(e->v.val.floatval < v->val.floatval)
                   state=RISE;
@@ -2009,7 +2053,14 @@ struct inputs_table_s *_automator_add_to_inputs_table(char *_name, struct value_
             }
             else // boolean
             {
-               if(e->v.val.booleanval == v->val.booleanval)
+               if( e->state == UNKNOWN )
+               {
+                  if( v->val.booleanval == 0)
+                     state = FALL;
+                  else
+                     state = RISE;
+               }
+               else if(e->v.val.booleanval == v->val.booleanval)
                   state=STAY;
                else if(e->v.val.booleanval < v->val.booleanval)
                   state=RISE;
@@ -2019,7 +2070,9 @@ struct inputs_table_s *_automator_add_to_inputs_table(char *_name, struct value_
          }
          else if((e->v.type == v->type) && v->type==VALUE_STRING)
          {
-            if(strcmp(e->v.val.strval, v->val.strval)==0)
+            if( e->state == UNKNOWN )
+               state=CHANGE;
+            else if(strcmp(e->v.val.strval, v->val.strval)==0)
                state=STAY;
             else
                state=CHANGE;
@@ -2063,37 +2116,45 @@ struct inputs_table_s *_automator_add_to_inputs_table(char *_name, struct value_
          e->last_update.tv_nsec = 0;
       }
 
-      if(state!=STAY)
+      if(e->state == UNKNOWN)
+      if(state!=STAY && state!=UNKNOWN)
          send_change(_name, v, t);
 
       ret=e;
    }
    else
    {
-      struct inputs_table_s *s=(struct inputs_table_s *)malloc(sizeof(struct inputs_table_s));
-      strncpy(s->name, _name, sizeof(s->name));
-      s->name[sizeof(s->name)-1]=0;
-      s->id=-1;
-      s->v.type=v->type;
-      if(v->type == 0)
-         s->v.val.floatval = v->val.floatval;
-      if(v->type == 1)
-         strcpy(s->v.val.strval, v->val.strval);
-      if(v->type == 2)
-         s->v.val.booleanval = v->val.booleanval;
-      if(update_state == 1)
-         s->state=NEW;
+      if(v != NULL)
+      {
+         struct inputs_table_s *s=(struct inputs_table_s *)malloc(sizeof(struct inputs_table_s));
+         strncpy(s->name, _name, sizeof(s->name));
+         s->name[sizeof(s->name)-1]=0;
+         s->id=-1;
+         s->v.type=v->type;
+         if(v->type == 0)
+            s->v.val.floatval = v->val.floatval;
+         if(v->type == 1)
+            strcpy(s->v.val.strval, v->val.strval);
+         if(v->type == 2)
+            s->v.val.booleanval = v->val.booleanval;
+         if(force_state != -1)
+            s->state=force_state;
+         else if(update_state == 1)
+            s->state=NEW;
+         else
+            s->state=UNKNOWN;
+
+         if(t)
+            memcpy(&(s->last_update), t, sizeof(struct timespec));
+
+         HASH_ADD_STR(inputs_table, name, s);
+
+         send_change(_name, v, t);
+
+         ret=s;
+      }
       else
-         s->state=UNKNOWN;
-
-      if(t)
-         memcpy(&(s->last_update), t, sizeof(struct timespec));
-
-      HASH_ADD_STR(inputs_table, name, s);
-
-      send_change(_name, v, t);
-
-      ret=s;
+         ret = NULL;
    }
    pthread_mutex_unlock(&inputs_table_lock);
    pthread_cleanup_pop(0);
@@ -2107,7 +2168,7 @@ static inline struct inputs_table_s *automator_add_to_inputs_table(char *_name, 
 #if DEBUGFLAG_AUTOMATOR > 0
    _automatorServer_fn = (char *)__func__;
 #endif
-   return _automator_add_to_inputs_table(_name, v, t, 1);
+   return _automator_add_to_inputs_table(_name, v, t, 1, -1);
 }
 
 
@@ -2116,7 +2177,7 @@ static inline struct inputs_table_s *automator_add_to_inputs_table_noupdate(char
 #if DEBUGFLAG_AUTOMATOR > 0
    _automatorServer_fn = (char *)__func__;
 #endif
-   return _automator_add_to_inputs_table(_name, v, t, 0);
+   return _automator_add_to_inputs_table(_name, v, t, 0, -1);
 }
 
 
@@ -2131,8 +2192,12 @@ int automator_reset_inputs_change_flags()
    pthread_mutex_lock(&inputs_table_lock);
 
    for(s=inputs_table; s != NULL; s=s->hh.next)
-      s->state=STAY;
-
+   {
+      if(s->state != UNKNOWN && s->state != NEW)
+      {
+         s->state=STAY;
+      }
+   }
    pthread_mutex_unlock(&inputs_table_lock);
    pthread_cleanup_pop(0);
 
