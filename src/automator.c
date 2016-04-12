@@ -1399,7 +1399,7 @@ int automator_playOutputRules(cJSON *rules)
             automator_timerCtrl(parameters);
          else if(mea_strcmplower(action->valuestring, "setInput")==0)
             automator_setinputvalue(parameters);
-         else if(mea_strcmplower(action->valuestring, "resetState")==0)
+         else if(mea_strcmplower(action->valuestring, "clearState")==0)
             automator_setunknownstate(parameters);
       } 
 
@@ -2116,7 +2116,6 @@ struct inputs_table_s *_automator_add_to_inputs_table(char *_name, struct value_
          e->last_update.tv_nsec = 0;
       }
 
-      if(e->state == UNKNOWN)
       if(state!=STAY && state!=UNKNOWN)
          send_change(_name, v, t);
 

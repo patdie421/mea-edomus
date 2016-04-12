@@ -29,12 +29,12 @@ PyObject *mea_module=NULL;
 static PyObject *mea_api_getMemory(PyObject *self, PyObject *args);
 static PyObject *mea_sendAtCmdAndWaitResp(PyObject *self, PyObject *args);
 static PyObject *mea_sendAtCmd(PyObject *self, PyObject *args);
-static PyObject *mea_sendEnoceanPacketAndWaitResp(PyObject *self, PyObject *args);
-static PyObject *mea_enoceanCRC(PyObject *self, PyObject *args);
+//static PyObject *mea_sendEnoceanPacketAndWaitResp(PyObject *self, PyObject *args);
+//static PyObject *mea_enoceanCRC(PyObject *self, PyObject *args);
+static PyObject *mea_sendEnoceanRadioErp1Packet(PyObject *self, PyObject *args);
 static PyObject *mea_xplGetVendorID();
 static PyObject *mea_xplGetDeviceID();
 static PyObject *mea_xplGetInstanceID();
-//static PyObject *mea_xplSendMsg(PyObject *self, PyObject *args);
 static PyObject *mea_xplSendMsg2(PyObject *self, PyObject *args);
 static PyObject *mea_addDataToSensorsValuesTable(PyObject *self, PyObject *args);
 static PyObject *mea_write(PyObject *self, PyObject *args);
@@ -45,8 +45,9 @@ static PyMethodDef MeaMethods[] = {
    {"getMemory",                    mea_api_getMemory,                METH_VARARGS, "Return a dictionary"},
    {"sendXbeeCmdAndWaitResp",       mea_sendAtCmdAndWaitResp,         METH_VARARGS, "Envoie d'une commande AT et recupere la reponse"},
    {"sendXbeeCmd",                  mea_sendAtCmd,                    METH_VARARGS, "Envoie d'une commande AT sans attendre de reponse"},
-   {"sendEnoceanPacketAndWaitResp", mea_sendEnoceanPacketAndWaitResp, METH_VARARGS, "Envoie un packet et recupere la reponse"},
-   {"enoceanCRC",                   mea_enoceanCRC,                   METH_VARARGS, "Envoie un packet et recupere la reponse"},
+//   {"sendEnoceanPacketAndWaitResp", mea_sendEnoceanPacketAndWaitResp, METH_VARARGS, "Envoie un packet et recupere la reponse"},
+//   {"enoceanCRC",                   mea_enoceanCRC,                   METH_VARARGS, "calcule d'un CRC enocean"},
+   {"sendEnoceanRadioErp1Packet",   mea_sendEnoceanRadioErp1Packet,   METH_VARARGS, "Envoie un message ERP1"},
    {"xplGetVendorID",               mea_xplGetVendorID,               METH_VARARGS, "VendorID"},
    {"xplGetDeviceID",               mea_xplGetDeviceID,               METH_VARARGS, "DeviceID"},
    {"xplGetInstanceID",             mea_xplGetInstanceID,             METH_VARARGS, "InstanceID"},
@@ -168,6 +169,76 @@ static PyObject *mea_enoceanCRC(PyObject *self, PyObject *args)
    return PyLong_FromLong((unsigned long)_crc);
    
 mea_enoceanCRC_arg_err:
+   PyErr_BadArgument();
+   return NULL;
+}
+
+
+// sendEnoceanRadioErp1Packet(enocean_ed, rorg, sub_id, dest_addr, buffer);
+static PyObject *mea_sendEnoceanRadioErp1Packet(PyObject *self, PyObject *args)
+{
+   PyObject *arg;
+   enocean_ed_t *ed;
+   int16_t nerr;
+   int16_t ret;
+
+   // récupération des paramètres et contrôle des types
+   if(PyTuple_Size(args)!=5)
+      goto mea_sendEnoceanRadioErp1Packet_arg_err;
+
+   // enocean_ed
+   arg=PyTuple_GetItem(args, 0);
+   if(PyLong_Check(arg))
+      ed=(enocean_ed_t *)PyLong_AsLong(arg);
+   else
+      goto mea_sendEnoceanRadioErp1Packet_arg_err;
+
+   // rorg
+   uint32_t rorg;
+   arg=PyTuple_GetItem(args, 1);
+   if(PyNumber_Check(arg))
+      rorg=(uint32_t)PyLong_AsLong(arg);
+   else
+      goto mea_sendEnoceanRadioErp1Packet_arg_err;
+
+   // sub_id
+   uint32_t sub_id;
+   arg=PyTuple_GetItem(args, 2);
+   if(PyNumber_Check(arg))
+      sub_id=(uint32_t)PyLong_AsLong(arg);
+   else
+      goto mea_sendEnoceanRadioErp1Packet_arg_err;
+
+   // dest addr
+   uint32_t dest_addr;
+   arg=PyTuple_GetItem(args, 3);
+   if(PyNumber_Check(arg))
+      dest_addr=(uint32_t)PyLong_AsLong(arg);
+   else
+      goto mea_sendEnoceanRadioErp1Packet_arg_err;
+
+   Py_buffer py_packet;
+   arg=PyTuple_GetItem(args, 4);
+   if(PyObject_CheckBuffer(arg))
+   {
+      ret=PyObject_GetBuffer(arg, &py_packet, PyBUF_SIMPLE);
+      if(ret<0)
+         goto mea_sendEnoceanRadioErp1Packet_arg_err;
+   }
+   else
+      goto  mea_sendEnoceanRadioErp1Packet_arg_err;
+
+   // enocean_send_radio_erp1_packet(enocean_ed_t *ed, uint8_t rorg, uint32_t source, uint32_t sub_id, uint32_t dest, uint8_t *data, uint16_t l_data, uint8_t status, int16_t *nerr)
+   ret = enocean_send_radio_erp1_packet(ed, rorg, ed->id, sub_id, dest_addr, py_packet.buf, py_packet.len, 0, &nerr);
+
+   // réponse
+   PyObject *t=PyTuple_New(2);
+   PyTuple_SetItem(t, 0, PyLong_FromLong(ret));
+   PyTuple_SetItem(t, 1, PyLong_FromLong(nerr));
+
+   return t;
+
+mea_sendEnoceanRadioErp1Packet_arg_err:
    PyErr_BadArgument();
    return NULL;
 }

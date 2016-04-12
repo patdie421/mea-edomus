@@ -28,7 +28,7 @@ var MearulesHighlightRules = function() {
 
     var builtinActions = (
 //        "xPLSend|timerCtrl|setInput|resetState"
-        "xPLSend|timerCtrl|resetState"
+        "xPLSend|timerCtrl|clearState"
     );
     var specialsMapper = this.createKeywordMapper({
         "keyword": specials

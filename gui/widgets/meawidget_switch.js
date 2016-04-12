@@ -23,6 +23,10 @@ function MeaWidget_switch(name, group, type)
          }
       }
    };
+
+   this.params["parameters"]["on string"] = "true";
+   this.params["parameters"]["off string"] = "false";
+
    this.params["values"]["value"] = this.automator_vars;
 //   this.params["values"]["value"]=true;
    this.params["variables"][this.switchName+"_value"]=true;
@@ -68,7 +72,14 @@ MeaWidget_switch.prototype.init = function(id)
       onText:  'I',
       offText: 'O',
       onChange: function(checked) {
-         _this.setValue(data, _this.switchName+"_value", checked);
+         var v = false;
+
+         if(checked == true)
+            v=_this.getValue(data, "on string", false);
+         else
+            v=_this.getValue(data, "off string", false);
+         _this.setValue(data, _this.switchName+"_value", v);
+
          if(s.prop('mea_action_flag')!==false)
          {
             _this.doAction(_this.switchName, data);

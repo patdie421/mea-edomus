@@ -669,6 +669,8 @@ MapEditorController.prototype.start = function()
    var state = permMemController.get("mapEditor_state");
    if(state != false) {
       _this.mapState = state;
+      if(state !== 'edit')
+         _this.toolsPanel.window('close'); 
    }
    var map = permMemController.get("mapEditor_map");
    if(map != false) {

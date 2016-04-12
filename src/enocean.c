@@ -639,8 +639,8 @@ int16_t _enocean_build_radio_erp1_packet(uint8_t rorg, uint32_t source, uint32_t
    
    // données optionnelles
    // num subtelegram
-   packet[ptr++] = 3;
-   crc8d = proc_crc8(crc8d, 3);
+   packet[ptr++] = 1;
+   crc8d = proc_crc8(crc8d, 1);
 
    // ajout adresse destination
    addr = dest;
@@ -670,7 +670,7 @@ int16_t _enocean_build_radio_erp1_packet(uint8_t rorg, uint32_t source, uint32_t
    packet[ptr++] = 0;
    crc8d = proc_crc8(crc8d, 0);
    
-   packet[ptr] = crc8d;
+   packet[ptr++] = crc8d;
    
    *l_packet=ptr;
    
@@ -687,11 +687,8 @@ int16_t enocean_send_packet(enocean_ed_t *ed, uint8_t *packet, uint16_t l_packet
 
    struct timeval tv;
    struct timespec ts;
-   gettimeofday(&tv, NULL);
-   ts.tv_sec = tv.tv_sec + 1;
-   ts.tv_nsec = 0;
   
-   int wr=write(ed->fd,packet,l_packet);
+   int wr=write(ed->fd, packet, l_packet);
    if(wr!=-1)
    {
       pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(ed->sync_lock) );
@@ -702,10 +699,14 @@ int16_t enocean_send_packet(enocean_ed_t *ed, uint8_t *packet, uint16_t l_packet
       ed->in_buffer.packet_l=0;
       ed->in_buffer.err=0;
      
+      gettimeofday(&tv, NULL);
+      ts.tv_sec = tv.tv_sec + 2;
+      ts.tv_nsec = 0;
       int pr=pthread_cond_timedwait(&ed->sync_cond, &ed->sync_lock, &ts);
       if(pr)
       {
-         if(ret!=ETIMEDOUT)
+         fprintf(stderr,"pr=%d\n", pr);
+         if(pr!=ETIMEDOUT)
             *nerr=ENOCEAN_ERR_SYS;
          else
             *nerr=ENOCEAN_ERR_TIMEOUT;
@@ -1089,7 +1090,9 @@ int16_t enocean_send_radio_erp1_packet(enocean_ed_t *ed, uint8_t rorg, uint32_t 
          
    if(_enocean_build_radio_erp1_packet(rorg, source + sub_id, dest, data, l_data, status, packet, &l_packet)<0)
       return -1;
-   
+
+//   for(int i=0;i<l_packet;i++)
+//      fprintf(stderr,"%02d %02x %03d\n", i, packet[i], packet[i]); 
    return_val=enocean_send_packet(ed, packet, l_packet, response, &l_response, nerr);
    if(return_val==0)
    {

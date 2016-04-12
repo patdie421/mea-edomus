@@ -177,7 +177,11 @@ MapController.prototype.loadFrom = function(s)
                content:"<span style='font-size:8px'>N/A</span>",
                onShow: function() {
                   tt.ttTimeout = setTimeout(function() {
-                     tt.tooltip('hide');
+                     try
+                     {
+                        tt.tooltip('hide');
+                     }
+                     catch(e) { console.log("tt.tooltip('hide') : "+e.message); }
                   },
                   3500);
                },

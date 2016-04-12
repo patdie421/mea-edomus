@@ -321,6 +321,8 @@ static int _netatmo_parse_station_data_json(char *response, char *station_id, st
             {
                strcpy(station_data->id, _id->valuestring);
                strcpy(station_data->name, station_name->valuestring);
+//               fprintf(stderr,"id:   %s\n", _id->valuestring);
+//               fprintf(stderr,"name: %s\n", station_name->valuestring);
                e = device;
                break;
             }
@@ -353,9 +355,14 @@ static int _netatmo_parse_station_data_json(char *response, char *station_id, st
    {
       cJSON *_id=cJSON_GetObjectItem(m, "_id");
       cJSON *module_name=cJSON_GetObjectItem(m, "module_name");
-      cJSON *battery_vp = cJSON_GetObjectItem(m, "battery_vp");
-      cJSON *data_type=cJSON_GetObjectItem(m, "data_type");
       cJSON *type=cJSON_GetObjectItem(m, "type");
+
+      fprintf(stderr,"id:   %s\n", _id->valuestring);
+      fprintf(stderr,"name: %s\n", module_name->valuestring);
+      fprintf(stderr,"type: %s\n", type->valuestring);
+
+      cJSON *data_type=cJSON_GetObjectItem(m, "data_type");
+      cJSON *battery_vp = cJSON_GetObjectItem(m, "battery_vp");
       cJSON *dashboard_data = cJSON_GetObjectItem(m, "dashboard_data");
 
       if(_id && data_type && module_name && dashboard_data && battery_vp)

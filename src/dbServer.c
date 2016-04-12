@@ -787,7 +787,7 @@ uint16_t sync_mysql_sqlite3_locations_tables(unsigned int location_id)
 }
 
 
-int get_keyid_of_sensor_in_mysql_db(unsigned int sensor_id)
+int exist_sensorid_in_mysql_db(unsigned int sensor_id)
 {
    int ret;
    char sql_query[255];
@@ -831,7 +831,7 @@ uint16_t sync_mysql_sqlite3_sensors_tables(unsigned int sensor_id)
    if(!_md || !_md->conn)
       return -1;
 
-   if(get_keyid_of_sensor_in_mysql_db(sensor_id)==-1) // pas trouvé dans la base mysql, on le rajoute
+   if(exist_sensorid_in_mysql_db(sensor_id)==0) // pas trouvé dans la base mysql, on le rajoute
    {
       char name[40], description[256];
 

@@ -38,33 +38,6 @@ debug=0
 # 19 0x00   0 Optionnal7 Security level
 # 20 0x38  56 CRC8D
 
-def broadcastXplDirectControlBasic(internal, channel, b1, b2, device):
-   fn_name=sys._getframe().f_code.co_name
-   xplMsg=0
-   xplcurrent=0
-   xplsource=""
-   if(internal!=0):
-      xplsource="mea-internal.00000000" # destination interne (internal) sans attendre de reponse (00000000)
-   else:
-      xplsource="me"
-   xplMsg=mea_utils.xplMsgNew(xplsource, "*", "xpl-cmnd", "control", "basic")
-   mea_utils.xplMsgAddValue(xplMsg,"type","output")
-   mea_utils.xplMsgAddValue(xplMsg, "device", device)
-
-   if  ((b1 == 0 or b2 == 0) and channel == "A"): # AI
-      xplcurrent="high"
-   elif((b1 == 1 or b2 == 1) and channel == "A"): # AO
-      xplcurrent="low"
-   elif((b1 == 2 or b2 == 2) and channel == "B"): # BI
-      xplcurrent="high"
-   elif((b1 == 3 or b2 == 3) and channel == "B"): # BO
-      xplcurrent="low"
-   if(xplcurrent != 0):
-      mea_utils.xplMsgAddValue(xplMsg,"current",xplcurrent)
-      mea.xplSendMsg(xplMsg)
-
-
-
 def mea_xplCmndMsg(data):
    fn_name=sys._getframe().f_code.co_name
    try:

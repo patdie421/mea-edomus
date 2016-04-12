@@ -141,7 +141,6 @@ if(!isset($_SESSION['logged_in']))
 <script type="text/javascript" src="lib/highstock-4.2.3/js/modules/no-data-to-display.js"></script>
 <script type="text/javascript" src="lib/highstock-4.2.3/js/themes/grid-light2.js"></script>
 
-
 <script type="text/javascript" src="models/common/models-utils.js"></script>
 
 <script type="text/javascript" src="controllers/common/meaobject.js"></script>
@@ -208,6 +207,18 @@ var map = false;
 var mapsset = false;
 
 Highcharts.setOptions({
+
+    global: {
+      // timezoneOffset: +1,
+//       useUTC: false,
+       getTimezoneOffset: function (timestamp) {
+          return -3*60;
+//          var zone = 'Europe/Paris',
+//          timezoneOffset = -moment.tz(timestamp, zone).utcOffset();
+//          return timezoneOffset;
+       }
+    },
+
     chart: {
         style: {
             fontFamily: 'sans-serif'

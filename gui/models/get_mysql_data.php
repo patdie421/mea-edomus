@@ -180,11 +180,14 @@ else
 $sql=False;
 $sql_c=False;
 
+error_log("sensor_id: ".$sensor_id);
+
 if(($startTime_c != False) && ($endTime_c != False))
 {
    $s = gmstrftime('%Y-%m-%d %H:%M:%S', $startTime_c / 1000);
    $e = gmstrftime('%Y-%m-%d %H:%M:%S', $endTime_c / 1000);
 
+   error_log($s." ".$e);
 //   echo "console.log(' start_c = $s, end_c = $e ');\n";
    $sql_c="SELECT
          sensor_id AS id,
@@ -209,6 +212,7 @@ if(($startTime != False) && ($endTime != False))
 
    $s = gmstrftime('%Y-%m-%d %H:%M:%S', $startTime / 1000);
    $e = gmstrftime('%Y-%m-%d %H:%M:%S', $endTime / 1000);
+   error_log($s." ".$e);
 
 //   echo "console.log(' start = $s, end = $e, range = $range');\n";
    if($range < 3 * 24 * 3600 * 1000)
