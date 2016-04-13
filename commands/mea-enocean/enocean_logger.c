@@ -56,8 +56,8 @@
 #define ENOCEAN_NB_RETRY              5
 
 //#ifdef __linux__
-//int verbose_level = 10;
-int verbose_level = 2;
+int verbose_level = 10;
+//int verbose_level = 2;
 #define VERBOSE(v) if(v <= verbose_level)
 //#endif
 
@@ -567,6 +567,37 @@ int main(int argc, char *argv[])
 
                case ENOCEAN_UTE_TELEGRAM:
                   /*
+                     Trame inversée ... profil v2.5 ?
+                     data[000] = 0x55 (085)
+                     data[001] = 0x00 (000)
+                     data[002] = 0x0d (013)
+                     data[003] = 0x07 (007)
+                     data[004] = 0x01 (001)
+                     data[005] = 0xfd (253)
+                     data[006] = 0xd4 (212)
+                     data[007] = 0xd2 (210) -+ RORG
+                     data[008] = 0x01 (001)  | FUNC ?
+                     data[009] = 0x01 (001)  | TYPE ?
+                     data[010] = 0x00 (000)  | // b00000000 : MID LSB3 ?
+                     data[011] = 0x3e (062)  | // b00111110 : MID MSB8 ?
+                     data[012] = 0xff (255)  | // b11111111 All channel supported by the device
+                     data[013] = 0xa0 (160) -+ // b10100000 1=bidirectional, 0=response expected, 10=teach-in or delete, 0000=command:teach-in request
+                     data[014] = 0x01 (001) -+
+                     data[015] = 0x84 (132)  | address :
+                     data[016] = 0x5c (092)  | 01-84-5c-80
+                     data[017] = 0x80 (128) -+
+                     data[018] = 0x00 (000)
+                     data[019] = 0x01 (001)
+                     data[020] = 0xff (255)
+                     data[021] = 0xff (255)
+                     data[022] = 0xff (255)
+                     data[023] = 0xff (255)
+                     data[024] = 0x44 (068)
+                     data[025] = 0x00 (000)
+                     data[026] = 0x5a (090)
+                  */
+                  /*
+                     Trame standard
                      00 0x55  85 Synchro
                      01 0x00   0 Header1 Data Lenght 
                      02 0x0d  13 Header2 Data Lenght
@@ -595,16 +626,33 @@ int main(int argc, char *argv[])
                      25 0x00   0 Optionnal7 Security level
                      26 0xde 222 CRC8D
                   */
-                  VERBOSE(1) {
-                     fprintf(stderr, "=== RPS Telegram D4 (UTE)  ===\n");
-                     fprintf(stderr, "Adresse   : %02x-%02x-%02x-%02x\n", data[14], data[15], data[16], data[17]);
-                     fprintf(stderr, "EEP       : %02x-%02x-%02x\n", data[13], data[12], data[11]);
-                     fprintf(stderr, "num chnnl : %d\n", data[8]);
-                     uint8_t operation = (data[7] & 0b10000000) >> 7;
-                     uint8_t response  = (data[7] & 0b01000000) >> 6;
-                     uint8_t request   = (data[7] & 0b00110000) >> 4;
-                     uint8_t cmnd      = (data[7] & 0b00001111);
-                     fprintf(stderr, "op: %u, rs: %u, rq: %u, cm: %u\n", operation, response, request, cmnd); 
+                  if(data[7]!=0xD2)
+                  {
+                     VERBOSE(1) {
+                        fprintf(stderr, "=== RPS Telegram D4 (UTE)  ===\n");
+                        fprintf(stderr, "Adresse   : %02x-%02x-%02x-%02x\n", data[14], data[15], data[16], data[17]);
+                        fprintf(stderr, "EEP       : %02x-%02x-%02x\n", data[13], data[12], data[11]);
+                        fprintf(stderr, "num chnnl : %d\n", data[8]);
+                        uint8_t operation = (data[7] & 0b10000000) >> 7;
+                        uint8_t response  = (data[7] & 0b01000000) >> 6;
+                        uint8_t request   = (data[7] & 0b00110000) >> 4;
+                        uint8_t cmnd      = (data[7] & 0b00001111);
+                        fprintf(stderr, "op: %u, rs: %u, rq: %u, cm: %u\n", operation, response, request, cmnd); 
+                     }
+                  }
+                  else
+                  {
+                     VERBOSE(1) {
+                        fprintf(stderr, "=== RPS Telegram D4 (UTE) inverted ===\n");
+                        fprintf(stderr, "Adresse   : %02x-%02x-%02x-%02x\n", data[14], data[15], data[16], data[17]);
+                        fprintf(stderr, "EEP       : %02x-%02x-%02x\n", data[7], data[8], data[9]);
+                        fprintf(stderr, "num chnnl : %d\n", data[12]);
+                        uint8_t operation = (data[13] & 0b10000000) >> 7;
+                        uint8_t response  = (data[13] & 0b01000000) >> 6;
+                        uint8_t request   = (data[13] & 0b00110000) >> 4;
+                        uint8_t cmnd      = (data[13] & 0b00001111);
+                        fprintf(stderr, "op: %u, rs: %u, rq: %u, cm: %u\n", operation, response, request, cmnd);
+                     }
                   }
                   break;
 

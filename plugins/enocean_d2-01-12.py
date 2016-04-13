@@ -159,7 +159,7 @@ def mea_enoceanData(data):
                mea_utils.xplMsgAddValue(xplMsg,"device", data["device_name"].lower())
                mea_utils.xplMsgAddValue(xplMsg,"current", mem["current"])
                mea_utils.xplMsgAddValue(xplMsg,"type", "input")
-               mea_utils.xplMsgAddValue(xplMsg,"last",mem["last"])
+               mea_utils.xplMsgAddValue(xplMsg,"last", mem["last"])
                mea.xplSendMsg(xplMsg)
 
                return True

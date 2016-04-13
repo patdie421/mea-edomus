@@ -10,30 +10,44 @@
 #include <termios.h>
 
 #include "enocean.h"
+#include "mea_verbose.h"
 
 
-enocean_ed_t *ed=NULL;
+int usage(char *name)
+{
+   fprintf(stderr, "usage : %s /dev/<device> addr type channel value [reverse]\n", name);
+   exit(1);
+}
+
 
 int main(int argc, char *argv[])
 {
    char *dev; // ="/dev/ttyS0";
    int16_t enocean_fd = 0;
+   enocean_ed_t *ed=NULL;
 
    char *addr;
    char *type;
    int  channel;
    int  value;
-
+   int  reverse=0;
    char data[3];
  
    int16_t ret;
 
-   if(argc!=6)
-   {
-      fprintf(stderr, "usage : %s /dev/<device> addr type channel value\n", argv[0]);
-      exit(1);
-   }
+   verbose_level = 10;
+
+   if(argc!=6 && argc!=7)
+      usage(argv[0]);
  
+   if(argc==7)
+   {
+      if(strcmp(argv[6],"reverse")==0)
+         reverse=1;
+      else
+         usage(argv[0]);
+   }
+
    dev = argv[1];
    addr = argv[2];
    type = argv[3];
@@ -81,12 +95,27 @@ int main(int argc, char *argv[])
       exit(1);
    }
 
-   data[0]=0x01;
-   data[1]=channel && 0b11111;
-   data[2]=value && 0b1111111;
+   if(reverse == 0)
+   {
+      data[0]=0x01;
+      data[1]=channel && 0b11111;
+      data[2]=value && 0b1111111;
+   }
+   else
+   {
+      data[0]=value && 0b1111111;
+      data[1]=channel && 0b11111;
+      data[2]=0x01;
+   }
+
+   fprintf(stderr,"ed->id = %x\n", ed->id);
+   fprintf(stderr,"_addr  = %x\n", _addr);
+   fprintf(stderr,"data[0]= %x\n", data[0]);
+   fprintf(stderr,"data[1]= %x\n", data[1]);
+   fprintf(stderr,"data[2]= %x\n", data[2]);
 
    ret=enocean_send_radio_erp1_packet(ed, ENOCEAN_VLD_TELEGRAM, ed->id, 0, _addr, data, 3, 0, &nerr);
-   fprintf(stderr,"RESPONSE = %d\n", ret);
+   fprintf(stderr,"response = %d\n", ret);
 
    enocean_close(ed);
    enocean_free_ed(ed);

@@ -116,7 +116,11 @@ int16_t enocean_init(enocean_ed_t *ed, char *dev)
       ed->queue=NULL;
       return -1;
    }
-   fprintf(stderr,"ENOCEAN : %x\n", (unsigned int)ed->read_thread);
+
+   VERBOSE(9) {
+       mea_log_printf("%s (%s) : ENOCEAN thread_id = %x\n", INFO_STR, __func__,  (unsigned int)ed->read_thread);
+//      fprintf(stderr,"ENOCEAN : %x\n", (unsigned int)ed->read_thread);
+   }
 
    ed->id=-1;
    ed->in_buffer.packet_l = 0;
@@ -639,8 +643,8 @@ int16_t _enocean_build_radio_erp1_packet(uint8_t rorg, uint32_t source, uint32_t
    
    // données optionnelles
    // num subtelegram
-   packet[ptr++] = 1;
-   crc8d = proc_crc8(crc8d, 1);
+   packet[ptr++] = 3;
+   crc8d = proc_crc8(crc8d, 3);
 
    // ajout adresse destination
    addr = dest;
@@ -705,7 +709,6 @@ int16_t enocean_send_packet(enocean_ed_t *ed, uint8_t *packet, uint16_t l_packet
       int pr=pthread_cond_timedwait(&ed->sync_cond, &ed->sync_lock, &ts);
       if(pr)
       {
-         fprintf(stderr,"pr=%d\n", pr);
          if(pr!=ETIMEDOUT)
             *nerr=ENOCEAN_ERR_SYS;
          else
@@ -862,7 +865,7 @@ uint16_t enocean_learning_onoff(enocean_ed_t *ed, int onoff, int16_t *nerr)
    l_reponse=40;
    if(enocean_send_packet(ed, request, ptr, reponse, &l_reponse, nerr)!=-1)
    {
-      VERBOSE(5) {
+      VERBOSE(9) {
          // traiter ici la réponse
          mea_log_printf("%s RESPONSE = %d %x\n",INFO_STR, reponse[6], reponse[6]);
       }
@@ -934,10 +937,9 @@ uint16_t enocean_sa_learning_onoff(enocean_ed_t *ed, int onoff, int16_t *nerr)
    *nerr=0;
    if(enocean_send_packet(ed, request, ptr, response, &l_response, nerr)!=-1)
    {
-//      VERBOSE(5) {
-         // traiter ici la réponse
+      VERBOSE(9) {
          mea_log_printf("%s RESPONSE = %d\n",INFO_STR, response[6]);
-//      }
+      }
       ret=response[6];
    }
    else
@@ -1004,8 +1006,7 @@ uint16_t enocean_sa_confirm_learn_response(enocean_ed_t *ed, uint16_t response_t
    *nerr=0;
    if(enocean_send_packet(ed, request, ptr, response, &l_response, nerr)!=-1)
    {
-      VERBOSE(5) {
-         // traiter ici la réponse
+      VERBOSE(9) {
          mea_log_printf("%s RESPONSE = %d\n",INFO_STR, response[6]);
       }
    }
@@ -1055,20 +1056,18 @@ uint16_t enocean_get_baseid(enocean_ed_t *ed, uint32_t *baseid, int16_t *nerr)
    *nerr=0;
    if(enocean_send_packet(ed, request, ptr, response, &l_response, nerr)!=-1)
    {
-      VERBOSE(5) {
-         // traiter ici la réponse
          if(response[6]==0)
          {
-            mea_log_printf("%s CO_RD_IDBASE : BASEID    = %02x-%02x-%02x-%02x\n",INFO_STR,response[7],response[8],response[9],response[10]);
-            mea_log_printf("%s CO_RD_IDBASE : REMAINING = %d\n",INFO_STR, response[8]);
-
+            VERBOSE(9) {
+               mea_log_printf("%s CO_RD_IDBASE : BASEID    = %02x-%02x-%02x-%02x\n",INFO_STR,response[7],response[8],response[9],response[10]);
+               mea_log_printf("%s CO_RD_IDBASE : REMAINING = %d\n",INFO_STR, response[8]);
+            }
             *baseid = enocean_calc_addr(response[7],response[8],response[9],response[10]);
          }
          else
          {
             return -1;
          }
-      }
    }
    else
    {

@@ -10,21 +10,16 @@
 #include <termios.h>
 
 #include "enocean.h"
-
+#include "mea_verbose.h"
 
 int16_t learning_state = 0;
-
-int16_t enocean_exist(uint32_t addr)
-{
-   return 0;
-}
 
 int16_t device_found=-1;
 uint8_t device_data[40];
 uint16_t device_l_data=0;
 
 
-int16_t teachin(enocean_ed_t *ed, uint8_t *data, uint16_t l_data)
+int16_t teachinout(enocean_ed_t *ed, uint8_t *data, uint16_t l_data, int16_t teach)
 {
    char *operationStr = "???";
    char *responseStr  = "???";
@@ -72,7 +67,7 @@ int16_t teachin(enocean_ed_t *ed, uint8_t *data, uint16_t l_data)
         break;
       case 2:
         requestStr = "Teach-in or deletion of teach-in, not specified";
-        if(enocean_exist(addr)==0)
+        if(teach==0)
            resp_request = 0b01;
         else
            resp_request = 0b10;
@@ -113,6 +108,98 @@ int16_t teachin(enocean_ed_t *ed, uint8_t *data, uint16_t l_data)
    }
 }
 
+
+int16_t teachinout_reversed(enocean_ed_t *ed, uint8_t *data, uint16_t l_data, int16_t teach)
+{
+   char *operationStr = "???";
+   char *responseStr  = "???";
+   char *requestStr   = "???";
+   uint8_t operation  = (data[13] & 0b10000000) >> 7;
+   uint8_t response   = (data[13] & 0b01000000) >> 6;
+   uint8_t request    = (data[13] & 0b00110000) >> 4;
+   uint8_t cmnd       = (data[13] & 0b00001111);
+   uint32_t device_addr = enocean_calc_addr(data[14], data[15], data[16], data[17]);
+   uint32_t addr = ed->id;
+
+   uint8_t resp_request   = 0;
+   uint8_t resp_operation = 0;
+
+   switch(operation)
+   {
+      case 0:
+        operationStr = "Unidirectional";
+        break;
+      case 1:
+        operationStr = "Bidirectional";
+        break;
+   }
+   resp_operation = operation << 7;
+
+   switch(response)
+   {
+      case 0:
+        responseStr = "";
+        break;
+      case 1:
+        responseStr = "No";
+        break;
+   }
+
+   switch(request)
+   {
+      case 0:
+        requestStr = "Teach-in request";
+        resp_request = 0b01;
+        break;
+      case 1:
+        requestStr = "Teach-in deletion request";
+        resp_request = 0b10;
+        break;
+      case 2:
+        requestStr = "Teach-in or deletion of teach-in, not specified";
+        if(teach==0)
+           resp_request = 0b01;
+        else
+           resp_request = 0b10;
+        break;
+      case 3:
+        requestStr = "Not used";
+        break;
+   }
+   resp_request = resp_request << 4;
+
+   fprintf(stderr, "reversed !");
+   fprintf(stderr, "EEP        : %02x-%02x-%02x\n", data[7], data[8], data[9]);
+   fprintf(stderr, "nb channels: %d\n", data[12]);
+   fprintf(stderr, "op         : %u (%s communication)\n", operation, operationStr);
+   fprintf(stderr, "rs         : %u (%s EEP Teach-In-Response message expected)\n", response, responseStr);
+   fprintf(stderr, "rq         : %u (%s)\n", request, requestStr);
+   fprintf(stderr, "cmnd       : %u\n", cmnd);
+
+   if((request  != 3) &&
+      (response == 0) &&
+      (cmnd     == 0))
+   {
+      int16_t nerr = -1;
+
+      char resp[7];
+
+      resp[6]=data[7];   // (RORG)
+      resp[5]=data[8];   // (FUNC)
+      resp[4]=data[9];   // (TYPE)
+      resp[3]=data[10];  // (manufacturer-ID MSB)
+      resp[2]=data[11];  // (manufacturer-ID LSB)
+      resp[1]=data[12];  // (nb channel)
+      resp[0]=resp_operation+resp_request+1; // DB_6
+
+      int ret=enocean_send_radio_erp1_packet(ed, ENOCEAN_UTE_TELEGRAM, ed->id, 0, device_addr, resp, 7, 0, &nerr);
+      fprintf(stderr,"RESPONSE = %d\n", ret);
+
+      learning_state = 0;
+   }
+}
+
+
 int16_t learning_callback(uint8_t *data, uint16_t l_data, uint32_t addr, void *callbackdata)
 {
    int16_t nerr = 0;
@@ -121,7 +208,6 @@ int16_t learning_callback(uint8_t *data, uint16_t l_data, uint32_t addr, void *c
 
    if(learning_state == 0)
    {
-//      fprintf(stderr,"Not in learning mode\n");
       return -1;
    }
 
@@ -138,7 +224,7 @@ int16_t learning_callback(uint8_t *data, uint16_t l_data, uint32_t addr, void *c
          fprintf(stderr,"      PM Candidat ID    : %02x-%02x-%02x-%02x", data[14],data[15],data[16],data[17]);
          fprintf(stderr,"      Smart Ack ClientID: %02x-%02x-%02x-%02x", data[18],data[19],data[20],data[21]);
 
-         enocean_sa_confirm_learn_response(ed, 1000 /* ms */, 0, &nerr);
+         device_found=1;
       }
    }
    else if(data[4]==ENOCEAN_RADIO_ERP1)
@@ -174,7 +260,7 @@ int16_t learning_callback(uint8_t *data, uint16_t l_data, uint32_t addr, void *c
             fprintf(stderr, "=== RPS Telegram (F6) ===\n");
             fprintf(stderr, "Adresse    : %02x-%02x-%02x-%02x\n", data[8], data[9], data[10], data[11]);
 
-            learning_state = 0;
+            device_found=2;
          }
          break;
  
@@ -209,38 +295,36 @@ int16_t learning_callback(uint8_t *data, uint16_t l_data, uint32_t addr, void *c
             25 0x00   0 Optionnal7 Security level
             26 0xde 222 CRC8D
          */
-
-/*
-PACKET:
-00: 085 55
-01: 000 00
-02: 013 0d
-03: 007 07
-04: 001 01
-05: 253 fd
-06: 212 d4
-07: 145 91 // 1001 0001
-08: 002 02
-09: 070 46
-10: 000 00
-11: 018 12
-12: 001 01
-13: 210 d2
-14: 255 ff
-15: 238 ee
-16: 117 75
-17: 128 80
-18: 000 00
-19: 001 01
-20: 255 ff
-21: 238 ee
-22: 117 75
-23: 128 80
-24: 255 ff
-25: 000 00
-26: 061 3d
-*/
-
+         /*
+            Trame inversée ... profil v2.5 ?
+            data[000] = 0x55 (085)
+            data[001] = 0x00 (000)
+            data[002] = 0x0d (013)
+            data[003] = 0x07 (007)
+            data[004] = 0x01 (001)
+            data[005] = 0xfd (253)
+            data[006] = 0xd4 (212)
+            data[007] = 0xd2 (210) -+ RORG
+            data[008] = 0x01 (001)  | FUNC ?
+            data[009] = 0x01 (001)  | TYPE ?
+            data[010] = 0x00 (000)  | // b00000000 : MID LSB3 ?
+            data[011] = 0x3e (062)  | // b00111110 : MID MSB8 ?
+            data[012] = 0xff (255)  | // b11111111 All channel supported by the device
+            data[013] = 0xa0 (160) -+ // b10100000 1=bidirectional, 0=response expected, 10=teach-in or delete, 0000=command:teach-in request
+            data[014] = 0x01 (001)
+            data[015] = 0x84 (132)
+            data[016] = 0x5c (092)
+            data[017] = 0x80 (128)
+            data[018] = 0x00 (000)
+            data[019] = 0x01 (001)
+            data[020] = 0xff (255)
+            data[021] = 0xff (255)
+            data[022] = 0xff (255)
+            data[023] = 0xff (255)
+            data[024] = 0x44 (068)
+            data[025] = 0x00 (000)
+            data[026] = 0x5a (090)
+         */
             fprintf(stderr, "=== UTE Telegram (D4) ===\n");
             fprintf(stderr, "Adresse    : %02x-%02x-%02x-%02x\n", data[14], data[15], data[16], data[17]);
 
@@ -248,6 +332,7 @@ PACKET:
                device_data[i]=data[i];
 
             device_l_data=l_data;
+
             device_found=0;
          }
          break;
@@ -268,19 +353,37 @@ PACKET:
 
 enocean_ed_t *ed=NULL;
 
+int usage(char *name)
+{
+   fprintf(stderr, "usage : %s /dev/<device> teachin|teachout\n", name);
+   exit(1);
+}
+
+
 int main(int argc, char *argv[])
 {
    char *dev; // ="/dev/ttyS0";
    int16_t enocean_fd = 0;
    int16_t ret;
+   int16_t teach=-1;
+
+   verbose_level=1;
  
-   if(argc!=2)
+   if(argc!=3)
    {
-      fprintf(stderr, "usage : %s /dev/<device>\n", argv[0]);
+      usage(argv[0]);
       exit(1);
    }
  
    dev = argv[1];
+   if(strcmp(argv[2],"teachin")==0)
+      teach=0;
+   else if(strcmp(argv[2],"teachout")==0)
+      teach=1;
+   else
+   {
+      usage(argv[0]);
+   }
  
    uint8_t data[0xFFFF]; // taille maximum d'un packet ESP3 = 65536
    uint16_t l_data;
@@ -301,21 +404,36 @@ int main(int argc, char *argv[])
 //   ret=enocean_learning_onoff(ed, 1, &nerr);
    ret=enocean_sa_learning_onoff(ed, 1, &nerr);
    learning_state = 1;
+   int16_t teach_delay = 60;
    if(ret==0)
    {   
-      fprintf(stderr,"WAIT 60 SECONDS\n"); 
       int i=0; 
-      for(i=0;i<(60*10) && learning_state == 1;i++)
+      for(i=0;i<(teach_delay*10) && learning_state == 1;i++)
       {
          if(device_found==0)
          {
-            teachin(ed, device_data, device_l_data);
-            device_found=-1;
+            if(device_data[7]!=0xd2)
+               teachinout(ed, device_data, device_l_data, teach);
+            else
+               teachinout_reversed(ed, device_data, device_l_data, teach);
+         }
+         else if(device_found==1)
+         {
+            enocean_sa_confirm_learn_response(ed, 1000 /* ms */, 0, &nerr);
+
+            learning_state = 0;
+         }
+         else if(device_found==2)
+         {
+            learning_state = 0;
          }
          else
          {
             if(i%10==0)
-               fprintf(stderr,"%d\n", 60-i/10);
+            {
+               fprintf(stderr,"\rTEACHING REMAINING TIME: %3d s", teach_delay - i/10); 
+               fflush(stderr);
+            }
             usleep(100000);
          }
       }

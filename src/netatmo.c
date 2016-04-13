@@ -357,9 +357,9 @@ static int _netatmo_parse_station_data_json(char *response, char *station_id, st
       cJSON *module_name=cJSON_GetObjectItem(m, "module_name");
       cJSON *type=cJSON_GetObjectItem(m, "type");
 
-      fprintf(stderr,"id:   %s\n", _id->valuestring);
-      fprintf(stderr,"name: %s\n", module_name->valuestring);
-      fprintf(stderr,"type: %s\n", type->valuestring);
+//      fprintf(stderr,"id:   %s\n", _id->valuestring);
+//      fprintf(stderr,"name: %s\n", module_name->valuestring);
+//      fprintf(stderr,"type: %s\n", type->valuestring);
 
       cJSON *data_type=cJSON_GetObjectItem(m, "data_type");
       cJSON *battery_vp = cJSON_GetObjectItem(m, "battery_vp");
