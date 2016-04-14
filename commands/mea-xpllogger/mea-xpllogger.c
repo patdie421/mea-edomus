@@ -89,6 +89,7 @@ int16_t displayXPLMsg(xPL_MessagePtr theMessage)
       fprintf(stdout,"%s = %s",keyValuePtr->itemName, keyValuePtr->itemValue);
    }
    fprintf(stdout,"]\n");
+   fflush(stdout);
 
    last=now;
    return 0;

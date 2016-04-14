@@ -1084,14 +1084,19 @@ int16_t enocean_send_radio_erp1_packet(enocean_ed_t *ed, uint8_t rorg, uint32_t 
    uint16_t l_packet = sizeof(packet);
    uint8_t response[8];
    uint16_t l_response=sizeof(response);
-   
+    
    int16_t return_val=-1;
-         
+  
+   *nerr=0;
+       
    if(_enocean_build_radio_erp1_packet(rorg, source + sub_id, dest, data, l_data, status, packet, &l_packet)<0)
       return -1;
 
-//   for(int i=0;i<l_packet;i++)
-//      fprintf(stderr,"%02d %02x %03d\n", i, packet[i], packet[i]); 
+   VERBOSE(9)
+   {
+      for(int i=0;i<l_packet;i++)
+         fprintf(stderr,"%02d %02x %03d\n", i, packet[i], packet[i]); 
+   }
    return_val=enocean_send_packet(ed, packet, l_packet, response, &l_response, nerr);
    if(return_val==0)
    {

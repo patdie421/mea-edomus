@@ -18,8 +18,63 @@ int16_t device_found=-1;
 uint8_t device_data[40];
 uint16_t device_l_data=0;
 
+int16_t pairing_as_f60201(enocean_ed_t *ed, uint32_t addr_dec, uint32_t device_addr);
 
-int16_t teachinout(enocean_ed_t *ed, uint8_t *data, uint16_t l_data, int16_t teach)
+
+int16_t enocean_f6_02_01(enocean_ed_t *ed, uint32_t addr_dec, uint32_t device_addr, uint16_t channel, int16_t value)
+{
+      uint8_t data[1];
+      uint8_t status;
+      int16_t nerr;
+      int ret;
+
+      if(channel==0)
+      {
+         if(value!=0)
+            data[0]=0b00010000; // AI appuyé
+         else
+            data[0]=0b00110000; // A0 appuyé
+      }
+      else
+      {
+         if(value!=0)
+            data[0]=0b01010000; // BI appuyé
+         else
+            data[0]=0b01110000; // B0 appuyé
+      }
+      status=0b0110000; // status: T21=1, NU=1
+
+      ret=enocean_send_radio_erp1_packet(ed, ENOCEAN_RPS_TELEGRAM, ed->id+addr_dec, 0, device_addr, data, 1, status, &nerr);
+//      usleep(1000000/20);
+
+      data[0]=0b00000000;
+      status=0b00100000; // status: T21=1, NU=0
+      ret=enocean_send_radio_erp1_packet(ed, ENOCEAN_RPS_TELEGRAM, ed->id+addr_dec, 0, device_addr, data, 1, status, &nerr);
+}
+
+
+int16_t enocean_d2(enocean_ed_t *ed, uint32_t addr_dec, uint32_t device_addr, uint16_t channel, int16_t value, int16_t reverse)
+{
+   uint8_t data[3];
+   int16_t nerr;
+
+   if(reverse == 0)
+   {
+      data[0]=0x01;
+      data[1]=channel && 0b11111;
+      data[2]=value && 0b1111111;
+   }
+   else
+   {
+      data[0]=value && 0b1111111;
+      data[1]=channel && 0b11111;
+      data[2]=0x01;
+   }
+   return enocean_send_radio_erp1_packet(ed, ENOCEAN_VLD_TELEGRAM, ed->id, 0, device_addr, data, 3, 0, &nerr);
+}
+
+
+int16_t teachinout(enocean_ed_t *ed, int16_t addr_dec, uint8_t *data, uint16_t l_data, int16_t teach, int16_t asf60201)
 {
    char *operationStr = "???";
    char *responseStr  = "???";
@@ -85,31 +140,38 @@ int16_t teachinout(enocean_ed_t *ed, uint8_t *data, uint16_t l_data, int16_t tea
    fprintf(stderr, "rq         : %u (%s)\n", request, requestStr);
    fprintf(stderr, "cmnd       : %u\n", cmnd);
 
-   if((request  != 3) &&
-      (response == 0) &&
-      (cmnd     == 0))
+   if(asf60201==1)
    {
-      int16_t nerr = -1;
+      enocean_f6_02_01(ed, addr_dec, device_addr, 0, 1);
+   }
+   else
+   {
+      if((request  != 3) &&
+         (response == 0) &&
+         (cmnd     == 0))
+      {
+         int16_t nerr = -1;
 
-      char resp[7];
+         char resp[7];
 
-      resp[0]=resp_operation+resp_request+1; // DB_6
-      resp[1]=data[8];  // DB_5 (nb channel)
-      resp[2]=data[9];  // DB_4 (manufacturer-ID LSB)
-      resp[3]=data[10]; // DB_3 (manufacturer-ID MSB)
-      resp[4]=data[11]; // DB_2 (TYPE)
-      resp[5]=data[12]; // DB_1 (FUNC)
-      resp[6]=data[13]; // DB_0 (RORG)
+         resp[0]=resp_operation+resp_request+1; // DB_6
+         resp[1]=data[8];  // DB_5 (nb channel)
+         resp[2]=data[9];  // DB_4 (manufacturer-ID LSB)
+         resp[3]=data[10]; // DB_3 (manufacturer-ID MSB)
+         resp[4]=data[11]; // DB_2 (TYPE)
+         resp[5]=data[12]; // DB_1 (FUNC)
+         resp[6]=data[13]; // DB_0 (RORG)
 
-      int ret=enocean_send_radio_erp1_packet(ed, ENOCEAN_UTE_TELEGRAM, ed->id, 0, device_addr, resp, 7, 0, &nerr);
-      fprintf(stderr,"RESPONSE = %d\n", ret);
+         int ret=enocean_send_radio_erp1_packet(ed, ENOCEAN_UTE_TELEGRAM, ed->id, 0, device_addr, resp, 7, 0, &nerr);
+         fprintf(stderr,"RESPONSE = %d\n", ret);
 
-      learning_state = 0;
+         learning_state = 0;
+      }
    }
 }
 
 
-int16_t teachinout_reversed(enocean_ed_t *ed, uint8_t *data, uint16_t l_data, int16_t teach)
+int16_t teachinout_reversed(enocean_ed_t *ed, int16_t addr_dec, uint8_t *data, uint16_t l_data, int16_t teach, int16_t asf60201)
 {
    char *operationStr = "???";
    char *responseStr  = "???";
@@ -168,7 +230,7 @@ int16_t teachinout_reversed(enocean_ed_t *ed, uint8_t *data, uint16_t l_data, in
    }
    resp_request = resp_request << 4;
 
-   fprintf(stderr, "reversed !");
+   fprintf(stderr, "reversed !\n");
    fprintf(stderr, "EEP        : %02x-%02x-%02x\n", data[7], data[8], data[9]);
    fprintf(stderr, "nb channels: %d\n", data[12]);
    fprintf(stderr, "op         : %u (%s communication)\n", operation, operationStr);
@@ -176,26 +238,33 @@ int16_t teachinout_reversed(enocean_ed_t *ed, uint8_t *data, uint16_t l_data, in
    fprintf(stderr, "rq         : %u (%s)\n", request, requestStr);
    fprintf(stderr, "cmnd       : %u\n", cmnd);
 
-   if((request  != 3) &&
-      (response == 0) &&
-      (cmnd     == 0))
+   if(asf60201==1)
    {
-      int16_t nerr = -1;
+      enocean_f6_02_01(ed, addr_dec, device_addr, 0, 1);
+   }
+   else
+   {
+      if((request  != 3) &&
+         (response == 0) &&
+         (cmnd     == 0))
+      {
+         int16_t nerr = -1;
 
-      char resp[7];
+         char resp[7];
 
-      resp[6]=data[7];   // (RORG)
-      resp[5]=data[8];   // (FUNC)
-      resp[4]=data[9];   // (TYPE)
-      resp[3]=data[10];  // (manufacturer-ID MSB)
-      resp[2]=data[11];  // (manufacturer-ID LSB)
-      resp[1]=data[12];  // (nb channel)
-      resp[0]=resp_operation+resp_request+1; // DB_6
+         resp[0]=data[7];   // (RORG)
+         resp[1]=data[8];   // (FUNC)
+         resp[2]=data[9];   // (TYPE)
+         resp[3]=data[10];  // (manufacturer-ID 3MSB)
+         resp[4]=data[11];  // (manufacturer-ID 8LSB)
+         resp[5]=data[12];  // (nb channel)
+         resp[6]=resp_operation+resp_request+1 /* cmnd */; // DB_6
 
-      int ret=enocean_send_radio_erp1_packet(ed, ENOCEAN_UTE_TELEGRAM, ed->id, 0, device_addr, resp, 7, 0, &nerr);
-      fprintf(stderr,"RESPONSE = %d\n", ret);
+         int ret=enocean_send_radio_erp1_packet(ed, ENOCEAN_UTE_TELEGRAM, ed->id, addr_dec, device_addr, resp, 7, 0, &nerr);
+         fprintf(stderr,"RESPONSE = %d\n", ret);
 
-      learning_state = 0;
+         learning_state = 0;
+      }
    }
 }
 
@@ -296,7 +365,7 @@ int16_t learning_callback(uint8_t *data, uint16_t l_data, uint32_t addr, void *c
             26 0xde 222 CRC8D
          */
          /*
-            Trame inversée ... profil v2.5 ?
+            Trame inversée ... profil v2.5
             data[000] = 0x55 (085)
             data[001] = 0x00 (000)
             data[002] = 0x0d (013)
@@ -305,10 +374,10 @@ int16_t learning_callback(uint8_t *data, uint16_t l_data, uint32_t addr, void *c
             data[005] = 0xfd (253)
             data[006] = 0xd4 (212)
             data[007] = 0xd2 (210) -+ RORG
-            data[008] = 0x01 (001)  | FUNC ?
-            data[009] = 0x01 (001)  | TYPE ?
-            data[010] = 0x00 (000)  | // b00000000 : MID LSB3 ?
-            data[011] = 0x3e (062)  | // b00111110 : MID MSB8 ?
+            data[008] = 0x01 (001)  | FUNC 
+            data[009] = 0x01 (001)  | TYPE
+            data[010] = 0x00 (000)  | // b00000000 : MID MSB3
+            data[011] = 0x3e (062)  | // b00111110 : MID LSB8
             data[012] = 0xff (255)  | // b11111111 All channel supported by the device
             data[013] = 0xa0 (160) -+ // b10100000 1=bidirectional, 0=response expected, 10=teach-in or delete, 0000=command:teach-in request
             data[014] = 0x01 (001)
@@ -355,7 +424,7 @@ enocean_ed_t *ed=NULL;
 
 int usage(char *name)
 {
-   fprintf(stderr, "usage : %s /dev/<device> teachin|teachout\n", name);
+   fprintf(stderr, "usage : %s /dev/<device> teachin|teachout [asf60201]\n", name);
    exit(1);
 }
 
@@ -366,10 +435,10 @@ int main(int argc, char *argv[])
    int16_t enocean_fd = 0;
    int16_t ret;
    int16_t teach=-1;
-
+   int16_t asf60201=0;
    verbose_level=1;
  
-   if(argc!=3)
+   if(argc!=3 && argc!=4)
    {
       usage(argv[0]);
       exit(1);
@@ -383,6 +452,14 @@ int main(int argc, char *argv[])
    else
    {
       usage(argv[0]);
+   }
+
+   if(argc==4)
+   {
+      if(strcmp(argv[3], "asf60201")==0)
+         asf60201 = 1;
+      else
+         usage(argv[0]);
    }
  
    uint8_t data[0xFFFF]; // taille maximum d'un packet ESP3 = 65536
@@ -401,6 +478,8 @@ int main(int argc, char *argv[])
 
    enocean_set_data_callback2(ed, learning_callback, ed);
 
+   fprintf(stderr,"asf60201 = %d\n", asf60201);
+
 //   ret=enocean_learning_onoff(ed, 1, &nerr);
    ret=enocean_sa_learning_onoff(ed, 1, &nerr);
    learning_state = 1;
@@ -413,9 +492,11 @@ int main(int argc, char *argv[])
          if(device_found==0)
          {
             if(device_data[7]!=0xd2)
-               teachinout(ed, device_data, device_l_data, teach);
+               teachinout(ed, 0, device_data, device_l_data, teach, asf60201);
             else
-               teachinout_reversed(ed, device_data, device_l_data, teach);
+               teachinout_reversed(ed, 0, device_data, device_l_data, teach, asf60201);
+
+            learning_state = 0;
          }
          else if(device_found==1)
          {

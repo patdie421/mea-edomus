@@ -20,6 +20,66 @@ int usage(char *name)
 }
 
 
+int16_t enocean_f6_02_01(enocean_ed_t *ed, uint32_t addr_dec, uint32_t device_addr, uint16_t channel, int16_t value)
+{
+      uint8_t data[1];
+      uint8_t status;
+      int16_t nerr;
+      int ret;
+
+      if(channel==0)
+      {
+         if(value!=0)
+            data[0]=0b00010000; // AI appuyé
+         else
+            data[0]=0b00110000; // A0 appuyé
+      }
+      else
+      {
+         if(value!=0)
+            data[0]=0b01010000; // BI appuyé
+         else
+            data[0]=0b01110000; // B0 appuyé
+      }
+      status=0b0110000; // status: T21=1, NU=1
+
+      ret=enocean_send_radio_erp1_packet(ed, ENOCEAN_RPS_TELEGRAM, ed->id+addr_dec, 0, device_addr, data, 1, status, &nerr);
+//      usleep(1000000/20);
+
+      data[0]=0b00000000; 
+      status=0b00100000; // status: T21=1, NU=0
+      ret=enocean_send_radio_erp1_packet(ed, ENOCEAN_RPS_TELEGRAM, ed->id+addr_dec, 0, device_addr, data, 1, status, &nerr);
+}
+
+
+int16_t enocean_d2(enocean_ed_t *ed, uint32_t addr_dec, uint32_t device_addr, uint16_t channel, int16_t value, int16_t reverse)
+{
+   uint8_t data[3];
+   int16_t nerr;
+
+   if(reverse == 0)
+   {
+      data[0]=0x01;
+      data[1]=channel && 0b11111;
+      data[2]=value && 0b1111111;
+   }
+   else
+   {
+      data[0]=value && 0b1111111;
+      data[1]=channel && 0b11111;
+      data[2]=0x01;
+   }
+/*
+   fprintf(stderr,"ed->id = %x\n", ed->id);
+   fprintf(stderr,"_addr  = %x\n", _addr);
+   fprintf(stderr,"data[0]= %x\n", data[0]);
+   fprintf(stderr,"data[1]= %x\n", data[1]);
+   fprintf(stderr,"data[2]= %x\n", data[2]);
+*/
+   return enocean_send_radio_erp1_packet(ed, ENOCEAN_VLD_TELEGRAM, ed->id, 0, device_addr, data, 3, 0, &nerr);
+}
+
+
 int main(int argc, char *argv[])
 {
    char *dev; // ="/dev/ttyS0";
@@ -32,10 +92,11 @@ int main(int argc, char *argv[])
    int  value;
    int  reverse=0;
    char data[3];
+   int _type=-1;
  
    int16_t ret;
 
-   verbose_level = 10;
+   verbose_level = 2;
 
    if(argc!=6 && argc!=7)
       usage(argv[0]);
@@ -48,11 +109,9 @@ int main(int argc, char *argv[])
          usage(argv[0]);
    }
 
-   dev = argv[1];
-   addr = argv[2];
-   type = argv[3];
-   channel = atoi(argv[4]);
-   value = atoi(argv[5]);
+   dev     = argv[1];
+   addr    = argv[2];
+   type    = argv[3];
 
    int a,b,c,d, n;
 
@@ -64,11 +123,17 @@ int main(int argc, char *argv[])
    }
    uint32_t _addr = enocean_calc_addr(a, b, c, d);
 
-   if(strcmp(type,"d2")!=0 && strcmp(type,"D2")!=0)
+   if( strcmp(type,"d2")!=0 &&
+       strcmp(type, "f6-02-01")!=0 )
    {
       fprintf(stderr,"unknown type (%s)\n", type);
       exit(1);
    }
+
+   if(strcmp(type,"d2")==0)
+      _type=0;
+   else
+      _type=-1;
 
    ret=sscanf(argv[4],"%d%n\n",&channel, &n);
    if(ret!=1 || n!=strlen(argv[4]) || channel < 0)
@@ -86,6 +151,7 @@ int main(int argc, char *argv[])
 
    int16_t nerr = 0;
    ed = enocean_new_ed();
+  
    enocean_fd = enocean_init(ed, dev);
 
    if(enocean_fd<0)
@@ -95,29 +161,22 @@ int main(int argc, char *argv[])
       exit(1);
    }
 
-   if(reverse == 0)
+   ret=0;
+   if(_type==0)
    {
-      data[0]=0x01;
-      data[1]=channel && 0b11111;
-      data[2]=value && 0b1111111;
+      ret=enocean_d2(ed, 0, _addr, channel, value, reverse);
    }
    else
    {
-      data[0]=value && 0b1111111;
-      data[1]=channel && 0b11111;
-      data[2]=0x01;
+      if(channel < 2)
+         ret=enocean_f6_02_01(ed, 0, _addr, channel, value);
+      else
+         ret=-1;
    }
-
-   fprintf(stderr,"ed->id = %x\n", ed->id);
-   fprintf(stderr,"_addr  = %x\n", _addr);
-   fprintf(stderr,"data[0]= %x\n", data[0]);
-   fprintf(stderr,"data[1]= %x\n", data[1]);
-   fprintf(stderr,"data[2]= %x\n", data[2]);
-
-   ret=enocean_send_radio_erp1_packet(ed, ENOCEAN_VLD_TELEGRAM, ed->id, 0, _addr, data, 3, 0, &nerr);
-   fprintf(stderr,"response = %d\n", ret);
 
    enocean_close(ed);
    enocean_free_ed(ed);
+
+   exit(ret);
 }
 
