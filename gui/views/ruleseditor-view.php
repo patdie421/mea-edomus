@@ -28,7 +28,8 @@ jQuery(document).ready(function() {
    ctrlr_rulesEditor = new RulesEditorController(
       "myeditorzone",
       "myeditor",
-      "myeditormenu");
+      "myeditormenu",
+      "mn1_re");
    ctrlr_rulesEditor.linkToTranslationController(translationController);
    ctrlr_rulesEditor.linkToCredentialController(credentialController);
 
@@ -42,8 +43,8 @@ jQuery(document).ready(function() {
 
 <div id="myeditorzone" style="width:auto;height:100%;">
    <div id="myeditormenu" style="height:28px; width:100%;padding-top:6px;border-bottom:1px solid #95B8E7;display:none">
-      <a href="#" class="easyui-menubutton" data-options="menu:'#mm1'"><?php mea_toLocalC('rules'); ?></a>
-      <div id="mm1" style="width:150px; display:none">
+      <a href="#" class="easyui-menubutton" data-options="menu:'#mn1_re'"><?php mea_toLocalC('rules'); ?></a>
+      <div id="mn1_re" style="width:150px; display:none">
 <?php
 if($isadmin!=0) :?>
          <div onclick="javascript:domenu_re('open')"><?php mea_toLocalC('open'); ?></div>

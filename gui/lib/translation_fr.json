@@ -217,6 +217,12 @@
    "disabled" :
       "désactivé",
 
+   "display" :
+      "affichage",
+   "widgets panel" :
+      "outils",
+   "widgets properties" :
+      "propriétées",
    "choose maps to use":
       "selectionnez les vues à utiliser",
    "default map and menu sortcuts":

@@ -1,4 +1,4 @@
-function RulesEditorController(_editorzone, _editordiv, _menu)
+function RulesEditorController(_editorzone, _editordiv, _menu, _mn1)
 {
    RulesEditorController.superConstructor.call(this);
 
@@ -7,6 +7,8 @@ function RulesEditorController(_editorzone, _editordiv, _menu)
    this.editorzone = _editorzone;
    this.editordiv = _editordiv;
    this.menu = _menu;
+   this.mn1 = _mn1;
+
 //   this.contextmenu = _contextmenu;
 
    this.editor = ace.edit(this.editordiv);
@@ -242,6 +244,8 @@ RulesEditorController.prototype.leaveViewCallback = function()
 
    permMemController.add("rulesEditor_data", data);
    permMemController.add("rulesEditor_current_file", this.current_file);
+
+   $('#'+_this.mn1).remove();
 }
 
 

@@ -55,7 +55,10 @@ jQuery(document).ready(function() {
    ctrlr_rulesManager.linkToTranslationController(translationController); 
    ctrlr_rulesManager.linkToCredentialController(credentialController); 
 
-//   page4_ctrlr.addLeaveViewsCallbacks(function() { alert("leave rules manager"); } );
+   page4_ctrlr.addLeaveViewsCallbacks(function() { 
+      $('#mn1_rm').remove();
+      $('#mn2_rm').remove();
+   });
 
    domenu_rm = ctrlr_rulesManager.domenu.bind(ctrlr_rulesManager);
 
@@ -70,10 +73,10 @@ jQuery(document).ready(function() {
 
 <div id="rulemgrzone" style="width:auto;height:100%;">
    <div id="rulemgrmenu" style="height:28px; width:100%;padding-top:6px;border-bottom:1px solid #95B8E7;display:none">
-      <a href="#" class="easyui-menubutton" data-options="menu:'#mm1_rm'"><?php mea_toLocalC('rules set'); ?></a>
-      <a href="#" class="easyui-menubutton" data-options="menu:'#mm2_rm'"><?php mea_toLocalC('builded rules'); ?></a>
+      <a href="#" class="easyui-menubutton" data-options="menu:'#mn1_rm'"><?php mea_toLocalC('rules set'); ?></a>
+      <a href="#" class="easyui-menubutton" data-options="menu:'#mn2_rm'"><?php mea_toLocalC('builded rules'); ?></a>
 
-      <div id="mm1_rm" style="width:150px; display:none">
+      <div id="mn1_rm" style="width:150px; display:none">
          <div onclick="javascript:domenu_rm('new')"><?php mea_toLocalC('New'); ?></div>
          <div onclick="javascript:domenu_rm('load')"><?php mea_toLocalC('Load'); ?></div>
          <div onclick="javascript:domenu_rm('save')"><?php mea_toLocalC('Save'); ?></div>
@@ -85,7 +88,7 @@ jQuery(document).ready(function() {
          <div onclick="javascript:domenu_rm('build')"><?php mea_toLocalC('build'); ?></div>
 -->
       </div>
-      <div id="mm2_rm" style="width:150px; display:none">
+      <div id="mn2_rm" style="width:150px; display:none">
          <div onclick="javascript:domenu_rm('delete_builded')"><?php mea_toLocalC('delete'); ?></div>
          <div class="menu-sep"></div>
          <div onclick="javascript:domenu_rm('apply')"><?php mea_toLocalC('apply'); ?></div>

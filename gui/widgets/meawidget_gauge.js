@@ -176,6 +176,12 @@ MeaWidget_gauge.prototype.mkgauge = function(widget, data)
          }]
       },
 
+      plotOptions: {
+         gauge: {
+            animation: false
+         }
+      },
+
         // the value axis
       yAxis: {
          min: min,

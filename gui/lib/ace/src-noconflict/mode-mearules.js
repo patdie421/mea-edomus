@@ -11,7 +11,7 @@ var MearulesHighlightRules = function() {
     );
 
     var keywords1 = (
-        "is:|if:|onmatch:|do:|when:|with:"
+        "is:|if:|onmatch:|do:|when:|with:|elseis:"
     );
 
     var keywords2 = (

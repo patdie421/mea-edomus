@@ -407,6 +407,7 @@ static int value_print(struct value_s *v)
 
 enum function_e {
    F_NOW=0,
+   F_NOT,
    F_CALCN,
    F_EXIST,
    F_RISE,
@@ -444,6 +445,7 @@ struct function_def_s functionsList2[]={
    { "date", F_DATE, 4 },
    { "exist", F_EXIST, 5 },
    { "fall", F_FALL, 4 },
+   { "not", F_NOT, 3 },
    { "now", F_NOW, 3 },
    { "rise", F_RISE, 4 },
    { "startup", F_STARTUP, 7 },
@@ -706,6 +708,34 @@ static int function_call(char *str, struct value_s *v, cJSON *xplMsgJson)
             v->type=0;
             v->val.floatval=(double)t;
             retour=0;
+         }
+         break;
+      case F_NOT:
+         if(params[0]!=0)
+         {
+            struct value_s r;
+            struct inputs_table_s *e = NULL;
+
+            v->type=2;
+            v->val.booleanval=1;
+            int ret=automator_evalStr(params, &r, xplMsgJson);
+            if(ret==0)
+            {
+               if(r.type==1)
+               {
+                  if(r.val.strval[0] != 0)
+                     v->val.booleanval=0;
+               }
+               else if(r.type==0)
+               {
+                  if(r.val.floatval != 0.0)
+                     v->val.booleanval=0;
+               }
+               else if(r.type==2)
+                  if(r.val.booleanval != 0)
+                     v->val.booleanval=0;
+               retour=0;
+            }
          }
          break;
       case F_STARTUP:
@@ -1559,10 +1589,11 @@ int automator_matchInputsRules(cJSON *rules, cJSON *xplMsgJson)
       
       struct value_s res, val1, val2;
 
-      cJSON *name    = cJSON_GetObjectItem(e,"name");
-      cJSON *value   = cJSON_GetObjectItem(e,"value");
-      cJSON *onmatch = cJSON_GetObjectItem(e,"onmatch");
-      
+      cJSON *name     = cJSON_GetObjectItem(e,"name");
+      cJSON *value    = cJSON_GetObjectItem(e,"value");
+      cJSON *onmatch  = cJSON_GetObjectItem(e,"onmatch");
+      cJSON *altvalue = NULL;
+ 
       if(!name || !value)
       {
          automator_printRuleDebugInfo(e, "incomplete rule, no name or value (rule removed)");
@@ -1577,7 +1608,7 @@ int automator_matchInputsRules(cJSON *rules, cJSON *xplMsgJson)
       }
       
       DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s (%s) : RULE - %s\n", DEBUG_STR, __func__, name->valuestring);
-
+/*
       int ret=automator_evalStr(value->valuestring, &res, xplMsgJson);
       if(ret<0)
       {
@@ -1597,7 +1628,7 @@ int automator_matchInputsRules(cJSON *rules, cJSON *xplMsgJson)
          match=0;
          goto next_rule;
       }
-
+*/
       // évaluation des conditions
       cJSON *conditions=cJSON_GetObjectItem(e,"conditions");
       if(conditions!=NULL)
@@ -1665,7 +1696,7 @@ int automator_matchInputsRules(cJSON *rules, cJSON *xplMsgJson)
             if(cmpr < 1)
             {
                match=0;
-               goto next_rule;
+               break;
             }
 
             c=c->next;
@@ -1676,11 +1707,37 @@ int automator_matchInputsRules(cJSON *rules, cJSON *xplMsgJson)
          DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s (%s) :    NO CONDITION\n",  DEBUG_STR, __func__);
       }
 
-   next_rule:
-      if(match==1)
-      {
-         //DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s (%s) :    MATCH !\n", DEBUG_STR, __func__);
+      char *_value;
+      if(strcmp(value->valuestring,"<LABEL>")==0)
+         match=-1;
 
+      if(match==1)
+         _value = value->valuestring;
+      else
+      {
+         altvalue = cJSON_GetObjectItem(e,"altvalue");
+         if(altvalue)
+            _value = altvalue->valuestring;
+          else match=-1;
+      } 
+
+      int ret=automator_evalStr(_value, &res, xplMsgJson);
+      if(ret<0)
+      {
+         DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s (%s) :    [%s] incorrect value\n",  DEBUG_STR, __func__, _value);
+         automator_printRuleDebugInfo(e, "incorrect rule value (rule removed)");
+
+         cJSON *c = NULL;
+         c=e;
+         e=e->next;
+         c=cJSON_DetachItemFromItem(rules, c);
+         cJSON_Delete(c);
+
+         continue;
+      }
+
+      if(match>=0)
+      {
          if(strcmp(res.val.strval, "<NOP>")!=0)
          {
             automator_add_to_inputs_table(name->valuestring, &res, &last_update_time);
@@ -1689,7 +1746,10 @@ int automator_matchInputsRules(cJSON *rules, cJSON *xplMsgJson)
          {
             DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s (%s) :    Result discarded\n", DEBUG_STR, __func__);
          }
+      }
 
+      if(match==1)
+      {
          if(onmatch) // post action
          {
             char action[VALUE_MAX_STR_SIZE]="";

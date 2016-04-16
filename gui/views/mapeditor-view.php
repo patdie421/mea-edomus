@@ -55,10 +55,11 @@ jQuery(document).ready(function() {
       "actions_win_me",
       "new_win_me",
       "map_cm_me",
-      "widget_cm_me");
-   console.log(ctrlr_mapEditor);   
+      "widget_cm_me",
+      "mn1_me",
+      "mn2_me",
+      "displaymenu");
    ctrlr_mapEditor.linkToTranslationController(translationController); 
-   console.log(ctrlr_mapEditor);   
    ctrlr_mapEditor.linkToCredentialController(credentialController); 
 
    page5_ctrlr.addLeaveViewsCallbacks(ctrlr_mapEditor.leaveViewCallback.bind(ctrlr_mapEditor));
@@ -120,15 +121,46 @@ jQuery(document).ready(function() {
 
 </script>
 <div class="easyui-panel" style="position:absolute;width:100%;height:100%;overflow:hidden" data-options="border:false">
-   <div id="panel_me" class="scrolling" style="position:absolute;width:100%;height:100%;overflow:scroll;background:#EEEEEE">
+   <div style='postion:relative;height:100%;width:100%;display:table;'>
+      <div style='height:28px;width:100%;display:table-row;'>
+         <div id="menu_me" style="height:28px; width:100%;padding-top:6px;border-bottom:1px solid #95B8E7;">
+            <a href="#" class="easyui-menubutton" data-options="menu:'#mn1_me'"><?php mea_toLocalC('maps'); ?></a>
+            <a href="#" id="displaymenu" class="easyui-menubutton" data-options="menu:'#mn2_me'"><?php mea_toLocalC('display'); ?></a>
+
+            <div id="mn1_me" style="width:150px; display:none">
+               <div onclick="javascript:ctrlr_mapEditor._context_menu('new', 'new_win_me')"><?php mea_toLocalC('new');?></div>
+               <div onclick="javascript:ctrlr_mapEditor._context_menu('load')"><?php mea_toLocalC('load');?></div>
+               <div onclick="javascript:ctrlr_mapEditor._context_menu('save')"><?php mea_toLocalC('save');?></div>
+               <div onclick="javascript:ctrlr_mapEditor._context_menu('saveas')"><?php mea_toLocalC('save as');?></div>
+               <div class="menu-sep"></div>
+               <div onclick="javascript:ctrlr_mapEditor._context_menu('delete')"><?php mea_toLocalC('delete');?></div>
+            </div>
+            <div id="mn2_me" style="width:150px; display:none">
+               <div onclick="javascript:ctrlr_mapEditor._context_menu('tools')"><?php mea_toLocalC('widgets panel');?></div>
+               <div onclick="javascript:ctrlr_mapEditor._widget_menu('properties')"><?php mea_toLocalC('widgets properties');?></div>
+            </div>
+         </div>
+      </div>
+
+<!--
+      <div style='height:100%;width:100%;display:table-row;'>
+-->
+         <div id="panel_me" class="scrolling" style="position:absolute;width:100%;height:calc(100% - 35px);overflow:scroll;background:#EEEEEE;display:table-row">
 <!--
       <div id="map_me" style="width:1920px;height:1080px;position:relative;overflow:auto;border:1px solid #555555;background:#FFFFFF">
 -->
-      <div id="map_me" style="width:1920px;height:1080px;position:relative;overflow:auto;background:#FFFFFF">
+            <div id="map_me" style="width:1920px;height:1080px;position:relative;overflow:auto;background:#FFFFFF">
+            </div>
+         </div>
+<!--
       </div>
-      <div id="widgets_container_me" style="display:none">
-      </div>
+-->
    </div>
+
+
+   <div id="widgets_container_me" style="display:none">
+   </div>
+</div>
 
 
 <div id="map_cm_me" class="easyui-menu" style="width:180px;display:hidden;">
@@ -151,7 +183,7 @@ jQuery(document).ready(function() {
          <div onclick="javascript:ctrlr_mapEditor._context_menu('backgroundi')"><?php mea_toLocalC('image');?></div>
       </div>
    </div>
-
+<!--
    <div class="menu-sep"></div>
    <div>
       <span><?php mea_toLocalC('map');?></span>
@@ -164,6 +196,7 @@ jQuery(document).ready(function() {
          <div onclick="javascript:ctrlr_mapEditor._context_menu('delete')"><?php mea_toLocalC('delete');?></div>
       </div>
    </div>
+-->
 </div>
 
 

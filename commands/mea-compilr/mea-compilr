@@ -69,17 +69,25 @@ def rulesToJSON(file, verboseFlag, debugFlag, numFile, optimize, errortojson):
          continue              # passage à la ligne suivante
 
       # découpage de la ligne et contrôle du nombre d'élément
-      s=re.split('(is:|if:|onmatch:|do:|with:|when:)',line) # découpage suivant les 6 mots clés
+      s=re.split('(is:|if:|onmatch:|do:|with:|when:|elseis:)',line) # découpage suivant les 6 mots clés
+
       nb_elems=len(s)
-      if not nb_elems in [3, 5, 7]:
+      if not nb_elems in [3, 5, 7, 9]:
          printError(errortojson, 2, file, numLine, "malformed rule, check syntax")
          return False
+
+      if len(s[0])==0:
+         printError(errortojson, 2, file, numLine, "no rule name found, check syntax")
+         return False
+
       # "nettoyage" (suppression des blancs en debut et fin de chaine)  des éléments résultats du découpage
       for i in range(0, len(s)):
          s[i]=s[i].strip()
 
       toInput=False
       toOutput=False
+      isFound=False
+
       # récupération nom et valeur
       try:
          if s[1]=='is:':
@@ -104,7 +112,7 @@ def rulesToJSON(file, verboseFlag, debugFlag, numFile, optimize, errortojson):
             rule["file"]=numFile
             rule["line"]=numLine
       except:
-         printError(errortojson, 5, file, numLine, "unexpected error - ", sys.exc_info())
+         printError(errortojson, 5, file, numLine, "unexpected error - "+str(sys.exc_info()))
          return False
 
       if toInput==True:
@@ -112,6 +120,7 @@ def rulesToJSON(file, verboseFlag, debugFlag, numFile, optimize, errortojson):
          n=3
          if nb_elems>n:
             if s[n]=='if:':
+               isFound=True
                rule['conditions']=[]
                _conditions = s[n+1]
                if _conditions[:1]=='(' and _conditions[-1:]==')':
@@ -119,12 +128,28 @@ def rulesToJSON(file, verboseFlag, debugFlag, numFile, optimize, errortojson):
                   for i in conditionsList:
                      i=i.strip()
                      c=re.split('(==|!=|<=|>=|<|>)',i)
-                     rule['conditions'].append({ 'value1' : optimize_boolean(c[0].strip(), optimize), 'op' : c[1].strip(), 'value2' : optimize_boolean(c[2].strip(),optimize) })
+                     try:
+                        rule['conditions'].append({ 'value1' : optimize_boolean(c[0].strip(), optimize), 'op' : c[1].strip(), 'value2' : optimize_boolean(c[2].strip(),optimize) })
+                     except:
+                        printError(errortojson, 21, file, numLine, "operator error ("+i+")")
+                        return False
+                        
                else:
                   printError(errortojson, 6, file, numLine, "conditions error")
                   return False
                n=n+2
-         # onmatch
+
+         # elseis:
+         if nb_elems>n:
+            if s[n]=='elseis:':
+               if isFound == True:
+                  rule['altvalue']=optimize_boolean(s[n+1], optimize)
+                  n=n+2
+               else:
+                  printError(errortojson, 20, file, numLine, "elseis: without if:, check syntax")
+                  return False
+
+         # onmatch:
          if nb_elems>n:
             if s[n]=='onmatch:':
                rule['onmatch']=s[n+1]
@@ -177,7 +202,7 @@ def rulesToJSON(file, verboseFlag, debugFlag, numFile, optimize, errortojson):
          if toOutput == True:
             outputs_rules.append(rule)
       else:
-         printError(errortojson, 9, file, numLine, "not a rule, check syntax (probably 'if:' or 'onmatch:' dupplication, or if:/onmatch: inversion)'")
+         printError(errortojson, 9, file, numLine, "not a rule, check syntax (probably 'if:',  'elseis:' or 'onmatch:' dupplication, or if:/onmatch:/elseis: inversion)'")
          return False
 
    f.close()

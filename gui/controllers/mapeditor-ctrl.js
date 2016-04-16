@@ -24,14 +24,18 @@ $.fn.datagrid.defaults.editors.empty = {
 
 extendClass(MapEditorController, MapController);
 
-function MapEditorController(container, map, widgets_container, widgetsPanelWin, actionPanel, newPanel, mapContextMenu, widgetContextMenu)
+function MapEditorController(container, map, widgets_container, widgetsPanelWin, actionPanel, newPanel, mapContextMenu, widgetContextMenu, mn1, mn2, displayMenu)
 {
    MapEditorController.superConstructor.call(this, container, map, widgets_container, mapContextMenu);
 
 //   this.propertiesPanel =   $('#'+propertiesPanel);
    this.actionPanel =       $('#'+actionPanel);
+   this.propertiesPanel = false;
    this.newPanel =          $('#'+newPanel);
    this.widgetContextMenu = $('#'+widgetContextMenu);
+   this.mn1               = $('#'+mn1);
+   this.mn2               = $('#'+mn2);
+   this.displayMenu       = $('#'+displayMenu);
 
    this.widgetPanelWinId =  widgetsPanelWin;
 
@@ -68,6 +72,9 @@ function MapEditorController(container, map, widgets_container, widgetsPanelWin,
    _this.widgetContextMenu.menu({onHide: function() { _this.widgetContextMenu.attr('mea_eid', false); } });
    _this.map.bind('contextmenu', _this.open_context_menu);
 
+   _this.toolsPanelStateSave = '';
+   _this.propertiesPanelStateSave = '';
+
    _this.draggable_options = {
       onBeforeDrag: function(e)
       {
@@ -79,10 +86,20 @@ function MapEditorController(container, map, widgets_container, widgetsPanelWin,
          $(this).hide();
          $('body').append($(this));
          $('body').mousemove(_this.getmousepos_handler);
+
+         _this.toolsPanelStateSave = _this.toolsPanelState;
+         _this.propertiesPanelStateSave = _this.propertiesPanelState;
+         _this.toolsPanel.window('close');
+         _this.propertiesPanel.window('close');
       },
 
       onStopDrag: function(e)
       {
+         if(_this.toolsPanelStateSave!='closed')
+            _this.toolsPanel.window('open');
+         if(_this.propertiesPanelStateSave!='closed')
+            _this.propertiesPanel.window('open');
+
          var d = e.data;
 
          $('body').unbind('mousemove',  _this.getmousepos_handler);
@@ -170,8 +187,8 @@ MapEditorController.prototype.widgetsPanel_init = function()
    });
    _this.toolsPanel = $("#"+widgetsPanelId);
    _this.toolsPanel.window({
-      top:100,
-      left:100,
+      top:150,
+      left:50,
       collapsible: false,
       minimizable: false,
       maximizable: false,
@@ -742,8 +759,10 @@ MapEditorController.prototype._cleanexit = function()
    _this.actionPanel.window('close');
    _this.actionPanel.window('destroy');
 
-   this.mapContextMenu.menu('destroy');
-   this.widgetContextMenu.menu('destroy');
+   _this.mapContextMenu.menu('destroy');
+   _this.widgetContextMenu.menu('destroy');
+   _this.mn1.remove();
+   _this.mn2.remove();
 
    $(".sp-container").remove();
    $(".tooltip").remove();
@@ -1034,12 +1053,26 @@ MapEditorController.prototype._context_menu = function(action, w)
 
       case 'load':
          _this.mapState = 'view';
-         var __load_map = _this.load_map.bind(_this);
-         _this.ctrlr_filechooser.open(_this._toLocalC("choose map ..."), _this._toLocalC("load")+_this._localDoubleDot(), _this._toLocalC("load"), _this._toLocalC("cancel"), "map", true, true, _this._toLocalC("file does not exist, new file ?"), __load_map);
+         var __load_map_wrapper = function(name, type, checkflag)
+         {
+            var __load_map = _this.load_map.bind(_this);
+
+            __load_map(name, type, checkflag);
+
+            _this.displayMenu.hide();
+            _this.propertiesPanel.window('close');
+            _this.toolsPanel.window('close');
+
+            var item = _this.mapContextMenu.menu('getItem', $('#'+_this.mapContextMenu.attr('id')+'_mode')[0]);
+            _this.mapContextMenu.menu('setText', { target: item.target, text: _this._toLocalC('to edition mode') });
+         }
+         _this.ctrlr_filechooser.open(_this._toLocalC("choose map ..."), _this._toLocalC("load")+_this._localDoubleDot(), _this._toLocalC("load"), _this._toLocalC("cancel"), "map", true, true, _this._toLocalC("file does not exist, new file ?"), __load_map_wrapper);
+/*
          _this.propertiesPanel.window('close');
          _this.toolsPanel.window('close');
          var item = _this.mapContextMenu.menu('getItem', $('#'+_this.mapContextMenu.attr('id')+'_mode')[0]);
          _this.mapContextMenu.menu('setText', { target: item.target, text: _this._toLocalC('to edition mode') });
+*/
          break;
 
       case 'save':
@@ -1076,6 +1109,7 @@ MapEditorController.prototype._context_menu = function(action, w)
             var _tmp = {};
             _this.toolsPanel.window('close');
             _this.propertiesPanel.window('close');
+            _this.displayMenu.hide();
             _this.saveTo(_tmp);
             _this.loadFrom(_tmp);
             tmp = null;
@@ -1084,8 +1118,13 @@ MapEditorController.prototype._context_menu = function(action, w)
             _this.mapState = 'edit';
             _this.mapContextMenu.menu('setText', { target:item.target, text: _this._toLocalC('to view mode') });
             _this.toolsPanel.window('open');
+            _this.displayMenu.show();
             _this._toEditMode();
          }
+         break;
+
+      case 'tools':
+         _this.toolsPanel.window('open');
          break;
    }
 }
