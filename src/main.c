@@ -69,14 +69,14 @@ int nodejsServer_monitoring_id=-1;
 int automatorServer_monitoring_id=-1;
 int log_rotation_id=-1;
 
-mea_queue_t *interfaces=NULL;                  /*!< liste (file) des interfaces. Variable globale car doit être accessible par les gestionnaires de signaux. */
+mea_queue_t *interfaces=NULL;              /*!< liste (file) des interfaces. Variable globale car doit être accessible par les gestionnaires de signaux. */
 sqlite3 *sqlite3_param_db=NULL;            /*!< descripteur pour la base sqlite de paramétrage. */
 pthread_t *monitoringServer_thread=NULL;   /*!< Adresse du thread de surveillance interne. Variable globale car doit être accessible par les gestionnaires de signaux.*/
 
 long sigsegv_indicator = 0;
 
 uint16_t params_db_version=0;
-char *params_names[MAX_LIST_SIZE];          /*!< liste des noms (chaines) de paramètres dans la base sqlite3 de paramétrage.*/
+char *params_names[MAX_LIST_SIZE];         /*!< liste des noms (chaines) de paramètres dans la base sqlite3 de paramétrage.*/
 char *params_list[MAX_LIST_SIZE];          /*!< liste des valeurs de paramètres.*/
 
 pid_t automator_pid = 0;
@@ -107,7 +107,7 @@ void usage(char *cmd)
 //      "  --config, -c        : fichier de configuration (mea-edomus.ini peut contenir contient basepath, paramsdb et guiport). Les options de la ligne de commandes sont prioritaires sur le fichier de config.",
       "  --guiport, -g       : port tcp de l'ihm",
       "  --nodatabase, -b    : le gestionnaire de base de données n'est pas lancé (pas",
-      "                        d'historisation des données",
+      "                        d'historisation des données)",
       "  --verboselevel, -v  : niveau de détail des messages d'erreur (1 à 9)",
       "  --help, -h          : ce message",
       "",
@@ -383,23 +383,14 @@ static void error_handler(int signal_number)
       fprintf(stderr, "Error: in xPLServer, try to recover\n");
       longjmp(xPLServer_JumpBuffer, 1);
    }
+/*
    else if((_automatorServer_thread_id!=NULL) && pthread_equal(*_automatorServer_thread_id, pthread_self())!=0)
    {
       fprintf(stderr, "Error: in automator.c/automatorServer.c\n");
-#if DEBUGFLAG_AUTOMATOR > 0
-      fprintf(stderr, "Error: in function : %s\n", _automatorServer_fn);
-      if(strcmp(_automatorServer_fn, "_evalStr")==0)
-      {
-         fprintf(stderr, "Error: function caller : %s\n", _automatorEvalStrCaller);
-         fprintf(stderr, "Error: evalStr operation : %c\n", _automatorEvalStrOperation);
-         fprintf(stderr, "Error: evalStr str : %s\n", _automatorEvalStrArg);
-      }
-#endif
    }
-
+*/
    fprintf(stderr, "Error: aborting\n");
    fprintf(stderr, "Thread id : %x", (unsigned int)pthread_self());
-
    abort();
    exit(1);
 }
@@ -444,6 +435,7 @@ int main(int argc, const char * argv[])
    // activation du core dump
    struct rlimit core_limit = { RLIM_INFINITY, RLIM_INFINITY };
    assert( setrlimit( RLIMIT_CORE, &core_limit ) == 0 );
+
    // pour changer l'endroit ou sont les cores dump et donner un nom plus explicite
    // echo '/tmp/core_%e.%p' | sudo tee /proc/sys/kernel/core_pattern
 
@@ -787,8 +779,6 @@ int main(int argc, const char * argv[])
 #else
    mea_string_free_alloc_and_copy(&params_list[INTERFACE], "en0");
 #endif
-
-
    ret = read_all_application_parameters(sqlite3_param_db);
    if(ret)
    {
@@ -833,8 +823,6 @@ int main(int argc, const char * argv[])
    char log_file[255];
    int16_t n;
 
-//   dbgfd = fopen("/tmp/dbg.log", "r+");
-
    if(!params_list[LOG_PATH] || !strlen(params_list[LOG_PATH]))
    {
       params_list[LOG_PATH]=(char *)malloc(strlen("/var/log"));
@@ -874,7 +862,7 @@ int main(int argc, const char * argv[])
    DEBUG_SECTION mea_log_printf("INFO Starting MEA-EDOMUS %s\n",__MEA_EDOMUS_VERSION__);
 
    //
-   // initialisation gestions des signaux (arrêt de l'appli et réinitialisation
+   // initialisation gestions des signaux (arrêt de l'appli et réinitialisation)
    //
    signal(SIGINT,  _signal_STOP);
    signal(SIGQUIT, _signal_STOP);
@@ -1018,6 +1006,7 @@ int main(int argc, const char * argv[])
       clean_all_and_exit();
    }
    sleep(1);
+
    //
    // automatorServer
    //
@@ -1050,8 +1039,8 @@ int main(int argc, const char * argv[])
    process_set_type(interfaces_reload_task_id, TASK);
 
    //
-   // rotation des log 1x par jour
-   //
+   // rotation des log 1x par jour (0|0|*|*|* = à miniuit)
+   // 
    int log_rotation_id=process_register("LOGROTATION");
    process_set_start_stop(log_rotation_id, logfile_rotation_job, NULL, (void *)log_file, 1);
    process_set_type(log_rotation_id, JOB);
@@ -1060,8 +1049,6 @@ int main(int argc, const char * argv[])
    process_set_group(log_rotation_id, 7);
 
    // au démarrage : rotation des log.
-//   process_run_task(log_rotation_id, NULL, 0);
-
    VERBOSE(1) mea_log_printf("%s (%s) : MEA-EDOMUS %s starded\n", INFO_STR, __func__, __MEA_EDOMUS_VERSION__);
 
    time_t start_time;

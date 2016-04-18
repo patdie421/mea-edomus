@@ -39,10 +39,8 @@
 #ifdef XPL_WD
 char *xplWDMsg = NULL;
 int   xplWDMsg_l = -1;
-mea_timer_t xPLnoMsgReceivedTimer;
-#else
-mea_timer_t xPLnoMsgReceivedTimer;
 #endif
+mea_timer_t xPLnoMsgReceivedTimer;
 
 
 char *xpl_server_name_str="XPLSERVER";
@@ -105,12 +103,6 @@ void clean_xPLServer(void *data)
 #endif
 }
 
-/*
-int16_t mea_xPLServerIsActive()
-{
-   return _xPLServer_thread_is_running;
-}
-*/
 
 uint32_t mea_getXplRequestId() // rajouter un verrou ...
 {
@@ -447,8 +439,6 @@ cJSON *xPLParser(const char* xplmsg, char *xpl_type, char *xpl_schema, char *xpl
    char xpl_name[17];
    char xpl_value[129];
 
-//   char xpl_target[35];
-
 #define XPL_IN_SECTION 0
 #define XPL_IN_NAME 1
 #define XPL_IN_VALUE 2
@@ -565,11 +555,8 @@ void _rawXPLMessageHandler(char *s, int l)
          fprintf(stderr,"%s\n", s);
          free(s);
       }
-#ifdef XPL_WD
+
       mea_start_timer(&xPLnoMsgReceivedTimer);
-#else
-      mea_start_timer(&xPLnoMsgReceivedTimer);
-#endif
 
       DEBUG_SECTION {
          int fromMe=-1;
@@ -664,20 +651,20 @@ void *xPLServer_thread(void *data)
 
    xplWDMsg=malloc(strlen(_xplWDMsg)-4 + 2*strlen(xpl_my_addr) + 1);
    xplWDMsg_l = sprintf(xplWDMsg, _xplWDMsg, xpl_my_addr, xpl_my_addr); // message pour moi meme ...
+#endif
 
-   mea_start_timer(&xPLnoMsgReceivedTimer);
-   mea_start_timer(&xPLWDSendMsgTimer);
-#else
    mea_init_timer(&xPLnoMsgReceivedTimer, 30, 1);
    mea_start_timer(&xPLnoMsgReceivedTimer);
-#endif
 
    char data[0xFFFF];
    int l_data;
    mea_timer_t hbTimer;
 
-//   mea_init_timer(&hbTimer, xpl_interval*60, 1);
+#ifdef XPL_WD
+   mea_init_timer(&hbTimer, xpl_interval*60, 1);
+#else
    mea_init_timer(&hbTimer, 10, 1); // pour remplacer watchdog.basic
+#endif
    mea_start_timer(&hbTimer);
 
    do
@@ -710,7 +697,6 @@ void *xPLServer_thread(void *data)
          perror("");
       }
       
-//#ifdef XPL_WD
       if(mea_test_timer(&xPLnoMsgReceivedTimer)==0)
       {
          // pas de message depuis X secondes
