@@ -53,6 +53,7 @@ mea_string_utils.c \
 mea_timer.c  \
 mea_verbose.c \
 serial.c \
+mea_xpl.c \
 xbee.c 
 
 OBJECTS=$(addprefix $(TECHNO).objects/, $(SOURCES:.c=.o))

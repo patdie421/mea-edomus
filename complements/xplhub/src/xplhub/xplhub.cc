@@ -64,7 +64,7 @@ char mesg[MAX_MESSAGE_SIZE+1] = "";
 #define MAX_MESSAGE_ITEMS 99
 xpl_msg_struc xpl_msg[MAX_MESSAGE_ITEMS+1], *pxpl_msg=&xpl_msg[0];
 
-#define MAX_PORT_CONNECTS 50
+#define MAX_PORT_CONNECTS 100
 xpl_hub_struc xplhub[MAX_PORT_CONNECTS];
 
 
@@ -304,12 +304,15 @@ int main(int argc, char* argv[])
             xpl_hub_interval=atoi(xpl_param);
             if(xpl_hub_interval<5) { xpl_hub_interval=5; }
             if(xpl_hub_interval>30) { xpl_hub_interval=30; }
-            strcpy(xpl_hub_ip,inet_ntoa(FromName.sin_addr));
+
+//            strcpy(xpl_hub_ip,inet_ntoa(FromName.sin_addr));
+
             xPLValue("REMOTE-IP",xpl_param, pxpl_msg, xpl_msg_index);
             strcpy(xpl_hub_ip,xpl_param);
+
             xPLValue("PORT",xpl_param, pxpl_msg, xpl_msg_index);
             xpl_hub_port=atoi(xpl_param);
-            if((strcmp(xplmyip,xpl_hub_ip)==0) && (xpl_hub_port!=0)) {
+            if((strcmp(xplmyip, xpl_hub_ip)==0) && (xpl_hub_port!=0)) {
                // it is local, update timer or add new
                xpl_hub_match=0;
                for(c=0;c<MAX_PORT_CONNECTS;c++) {
@@ -333,7 +336,7 @@ int main(int argc, char* argv[])
                         c=MAX_PORT_CONNECTS;
                      }
                   }
-               }	
+               }
             }
          }
          for(c=0;c<MAX_PORT_CONNECTS;c++) {

@@ -22,12 +22,15 @@ MYPATH=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
 SOURCES=$(shell echo *.c)
 OBJECTS=$(SOURCES:.c=.o)
-EXECUTABLE=mea-xpllogger2
+EXECUTABLE=mea-xpllogger mea-xpllogger2
 
 all: $(SOURCES) $(EXECUTABLE)
 
-$(EXECUTABLE): $(OBJECTS)
-	$(CC) $(LDFLAGS) $(OBJECTS) $(MEALIB) -o $@
+mea-xpllogger: mea-xpllogger.o
+	$(CC) $(LDFLAGS) mea-xpllogger.o $(MEALIB) -o $@
+
+mea-xpllogger2: mea-xpllogger2.o
+	$(CC) $(LDFLAGS) mea-xpllogger2.o $(MEALIB) -o $@
 
 clean:
 	-rm -f $(OBJECTS)
