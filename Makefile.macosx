@@ -7,7 +7,6 @@ DEBUGFLAGS  = -D__DEBUG_ON__
 CFLAGS      = -std=c99 \
               -D_BSD_SOURCE \
               -O2 \
-              -I./src/xPLLib-mac \
               -I/usr/local/mysql/include \
               -I/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7 \
               $(DEBUGFLAGS)
@@ -22,7 +21,7 @@ LDFLAGS     = -L/usr/local/mysql/lib \
 
 MYPATH=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
-SOURCES=$(shell echo src/*.c src/xPLLib-mac/*.c)
+SOURCES=$(shell echo src/*.c)
 OBJECTS=$(SOURCES:.c=.o)
 #OBJECTS=$(addprefix $(TECHNO).objects/, $(SOURCES:.c=.o))
 
