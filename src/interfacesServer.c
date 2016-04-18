@@ -87,7 +87,7 @@ void dispatchXPLMessageToInterfaces2(cJSON *xplMsgJson)
                fprintf(stderr,"ICI1-1\n");
                interface_type_001_t *i001 = (interface_type_001_t *)(iq->context);
                if(i001->monitoring_id>-1 && process_is_running(i001->monitoring_id) && i001->xPL_callback2)
-                  i001->xPL_callback2(xplMsgJson, (xPL_ObjectPtr)i001);
+                  i001->xPL_callback2(xplMsgJson, (void *)i001);
                fprintf(stderr,"ICI1-2\n");
                break;
             }
@@ -97,7 +97,7 @@ void dispatchXPLMessageToInterfaces2(cJSON *xplMsgJson)
                fprintf(stderr,"ICI2-1\n");
                interface_type_002_t *i002 = (interface_type_002_t *)(iq->context);
                if(i002->monitoring_id>-1 && process_is_running(i002->monitoring_id) && i002->xPL_callback2)
-                  i002->xPL_callback2(xplMsgJson, (xPL_ObjectPtr)i002);
+                  i002->xPL_callback2(xplMsgJson, (void *)i002);
                fprintf(stderr,"ICI2-2\n");
                break;
             }
@@ -106,7 +106,7 @@ void dispatchXPLMessageToInterfaces2(cJSON *xplMsgJson)
             {
                interface_type_003_t *i003 = (interface_type_003_t *)(iq->context);
                if(i003->monitoring_id>-1 && process_is_running(i003->monitoring_id) && i003->xPL_callback2)
-                  i003->xPL_callback2(xplMsgJson, (xPL_ObjectPtr)i003);
+                  i003->xPL_callback2(xplMsgJson, (void *)i003);
                break;
             }
 
@@ -114,7 +114,7 @@ void dispatchXPLMessageToInterfaces2(cJSON *xplMsgJson)
             {
                interface_type_004_t *i004 = (interface_type_004_t *)(iq->context);
                if(i004->monitoring_id>-1 && process_is_running(i004->monitoring_id) && i004->xPL_callback2)
-                  i004->xPL_callback2(xplMsgJson, (xPL_ObjectPtr)i004);
+                  i004->xPL_callback2(xplMsgJson, (void *)i004);
                break;
             }
 
@@ -122,7 +122,7 @@ void dispatchXPLMessageToInterfaces2(cJSON *xplMsgJson)
             {
                interface_type_005_t *i005 = (interface_type_005_t *)(iq->context);
                if(i005->monitoring_id>-1 && process_is_running(i005->monitoring_id) && i005->xPL_callback2)
-                  i005->xPL_callback2(xplMsgJson, (xPL_ObjectPtr)i005);
+                  i005->xPL_callback2(xplMsgJson, (void *)i005);
                break;
             }
 
@@ -131,7 +131,7 @@ void dispatchXPLMessageToInterfaces2(cJSON *xplMsgJson)
                fprintf(stderr,"ICI6-1\n");
                interface_type_006_t *i006 = (interface_type_006_t *)(iq->context);
                if(i006->monitoring_id>-1 && process_is_running(i006->monitoring_id) && i006->xPL_callback2)
-                  i006->xPL_callback2(xplMsgJson, (xPL_ObjectPtr)i006);
+                  i006->xPL_callback2(xplMsgJson, (void *)i006);
                fprintf(stderr,"ICI6-2\n");
                break;
             }

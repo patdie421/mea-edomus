@@ -15,7 +15,6 @@ LDFLAGS     = -lmysqlclient \
               -lpthread \
               -lm \
               -ldl \
-              -lxPL \
               -lsqlite3 \
               -lpython2.7 \
               -lrt \

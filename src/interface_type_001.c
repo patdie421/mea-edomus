@@ -70,7 +70,7 @@ void set_interface_type_001_isnt_running(void *data)
 // xPLSend -c sensor.request -m cmnd request=current device=CONSO type=POWER => dernière puissance instantannée
 // xPLSend -c sensor.request -m cmnd request=current device=CONSO type=ENERGY => valeur du compteur ERDF
 //
-int16_t interface_type_001_xPL_callback2(cJSON *xplMsgJson, xPL_ObjectPtr userValue)
+int16_t interface_type_001_xPL_callback2(cJSON *xplMsgJson, void *userValue)
 {
    char *schema = NULL, *device = NULL, *type = NULL;
    cJSON *j=NULL;

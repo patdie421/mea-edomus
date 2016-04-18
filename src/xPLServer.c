@@ -1,5 +1,4 @@
 //
-//  xPLServer.c
 //
 //  Created by Patrice DIETSCH on 17/10/12.
 //
@@ -32,16 +31,16 @@
 #include "mea_sockets_utils.h"
 #include "notify.h"
 #include "cJSON.h"
+#include "mea_xpl.h"
 
 #define XPL_VERSION "0.1a2"
 
-extern Bool xPL_sendRawMessage(String, int);
-
-#define XPL_WD 1
+//#define XPL_WD 1
 #ifdef XPL_WD
 char *xplWDMsg = NULL;
 int   xplWDMsg_l = -1;
-
+mea_timer_t xPLnoMsgReceivedTimer;
+#else
 mea_timer_t xPLnoMsgReceivedTimer;
 #endif
 
@@ -49,24 +48,34 @@ mea_timer_t xPLnoMsgReceivedTimer;
 char *xpl_server_name_str="XPLSERVER";
 char *xpl_server_xplin_str="XPLIN";
 char *xpl_server_xplout_str="XPLOUT";
+char *xpl_server_senderr_str="XPLSENDERR";
+char *xpl_server_readerr_str="XPLREADERR";
 
 // gestion du service xPL
-xPL_ServicePtr xPLService = NULL;
 char *xpl_vendorID=NULL;
 char *xpl_deviceID=NULL;
 char *xpl_instanceID=NULL;
-char xpl_my_addr[36]="";
+char  xpl_my_addr[36]="";
 
 // gestion du thread et des indicateurs
 pthread_t *_xPLServer_thread_id;
-jmp_buf xPLServer_JumpBuffer;
-int xPLServer_longjmp_flag = 0;
-int _xplServer_monitoring_id = -1;
+jmp_buf    xPLServer_JumpBuffer;
+int        xPLServer_longjmp_flag = 0;
+int       _xplServer_monitoring_id = -1;
 volatile sig_atomic_t _xPLServer_thread_is_running=0;
+
+int   xpl_sd=-1;
+int   xpl_sdb=-1;
+int   xpl_port=-1;
+char  xpl_ip[40];
+struct sockaddr_in *xpl_broadcastAddr=NULL;
+char  xpl_interface[255]="";
+char  xpl_interval=1; // valeur minimum
 
 long xplin_indicator = 0;
 long xplout_indicator = 0;
-
+long xplsenderr_indicator = 0;
+long xplreaderr_indicator = 0;
 
 // gestion de des messages xpl internes
 uint32_t requestId = 1;
@@ -76,9 +85,7 @@ pthread_cond_t  xplRespQueue_sync_cond;
 pthread_mutex_t xplRespQueue_sync_lock;
 int             _xPLServer_mutex_initialized=0;
 
-
-// void _cmndXPLMessageHandler(xPL_MessagePtr theMessage, xPL_ObjectPtr userValue);
-void _rawXPLMessageHandler(String s, int l, xPL_ObjectPtr userdata);
+void _rawXPLMessageHandler(char *data, int l_data);
 
 
 void set_xPLServer_isnt_running(void *data)
@@ -89,14 +96,6 @@ void set_xPLServer_isnt_running(void *data)
 
 void clean_xPLServer(void *data)
 {
-   xPL_ServicePtr tmp = xPLService;
-   xPLService = NULL;
- 
-   xPL_removeRawListener(_rawXPLMessageHandler);
-
-   xPL_setServiceEnabled(tmp, FALSE);
-   xPL_releaseService(tmp);
-
 #ifdef XPL_WD
    if(xplWDMsg)
    {
@@ -107,49 +106,9 @@ void clean_xPLServer(void *data)
 }
 
 /*
-cJSON *mea_xPL2JSON(xPL_MessagePtr msg)
+int16_t mea_xPLServerIsActive()
 {
-   char str[256];
-   char *msgtype="";
-
-   cJSON *msg_json = cJSON_CreateObject();
-
-   switch(xPL_getMessageType(msg))
-   {
-      case xPL_MESSAGE_COMMAND:
-         msgtype=XPL_CMND_STR_C;
-         break;
-      case xPL_MESSAGE_STATUS:
-         msgtype=XPL_STAT_STR_C;
-         break;
-      case xPL_MESSAGE_TRIGGER:
-         msgtype=XPL_TRIG_STR_C;
-         break;
-   }
-
-   cJSON_AddItemToObject(msg_json, XPLMSGTYPE_STR_C, cJSON_CreateString(msgtype));
-   cJSON_AddItemToObject(msg_json, XPLSOURCE_STR_C, cJSON_CreateString(xpl_my_addr));
-
-   if (!xPL_isBroadcastMessage(msg))
-      sprintf(str,"%s-%s.%s", xPL_getTargetVendor(msg), xPL_getTargetDeviceID(msg), xPL_getTargetInstanceID(msg));
-   else
-      strcpy(str,"*");
-
-   cJSON_AddItemToObject(msg_json, XPLTARGET_STR_C, cJSON_CreateString(str));
-
-   sprintf(str,"%s.%s", xPL_getSchemaClass(msg), xPL_getSchemaType(msg));
-   cJSON_AddItemToObject(msg_json, XPLSCHEMA_STR_C, cJSON_CreateString(str));
-
-   xPL_NameValueListPtr body = xPL_getMessageBody(msg);
-   int n = xPL_getNamedValueCount(body);
-   for (int16_t i = 0; i < n; i++)
-   {
-      xPL_NameValuePairPtr keyValuePtr = xPL_getNamedValuePairAt(body, i);
-      if (keyValuePtr->itemValue != NULL && keyValuePtr->itemName != NULL)
-          cJSON_AddItemToObject(msg_json,  keyValuePtr->itemName, cJSON_CreateString(keyValuePtr->itemValue));
-   }
-
-   return msg_json;
+   return _xPLServer_thread_is_running;
 }
 */
 
@@ -215,12 +174,6 @@ char *mea_getXPLVendorID()
 }
 
 
-xPL_ServicePtr mea_getXPLServicePtr()
-{
-   return xPLService;
-}
-
-
 int mea_sendXplMsgJson(cJSON *xplMsgJson)
 {
    if(xplMsgJson==NULL)
@@ -272,8 +225,9 @@ int mea_sendXplMsgJson(cJSON *xplMsgJson)
 
    if(n>0)
    {
-      xPL_sendRawMessage(msg, n);
-
+      int ret=mea_xPLSendMessage(xpl_sdb, xpl_broadcastAddr, msg, n);
+      if(ret<0)
+         process_update_indicator(_xplServer_monitoring_id, xpl_server_senderr_str, ++xplsenderr_indicator); 
       return 0;
    }
    return -1;
@@ -284,7 +238,6 @@ uint16_t mea_sendXPLMessage2(cJSON *xplMsgJson)
 {
    char *str = NULL;
    char deviceID[17]="";
-   xPL_MessagePtr newXPLMsg = NULL;
    xplRespQueue_elem_t *e;
    cJSON *j = NULL;
 
@@ -424,97 +377,6 @@ readFromQueue_return:
    return xplMsgJson;
 }
 
-/*
-int16_t displayXPLMsg(xPL_MessagePtr theMessage)
-{
-   char xpl_source[48];
-   char xpl_schema[48];
-   char xpl_destination[48];
-
-   snprintf(xpl_source,sizeof(xpl_source),"%s-%s.%s", xPL_getSourceVendor(theMessage), xPL_getSourceDeviceID(theMessage), xPL_getSourceInstanceID(theMessage));
-   if(xPL_isBroadcastMessage(theMessage))
-   {
-      strcpy(xpl_destination, "*");
-   }
-   else
-   {
-      snprintf(xpl_destination,sizeof(xpl_destination),"%s-%s.%s", xPL_getTargetVendor(theMessage), xPL_getTargetDeviceID(theMessage), xPL_getTargetInstanceID(theMessage));
-   }
-
-   snprintf(xpl_schema,sizeof(xpl_schema),"%s.%s", xPL_getSchemaClass(theMessage), xPL_getSchemaType(theMessage));
-
-   mea_log_printf("%s (%s) : source = %s, destination = %s, schema = %s, body = {", DEBUG_STR, __func__, xpl_source, xpl_destination, xpl_schema);
-
-   xPL_NameValueListPtr xpl_body = xPL_getMessageBody(theMessage);
-   int n = xPL_getNamedValueCount(xpl_body);
-   for (int16_t i = 0; i < n; i++)
-   {
-      xPL_NameValuePairPtr keyValuePtr = xPL_getNamedValuePairAt(xpl_body, i);
-      if(i)
-         fprintf(MEA_STDERR,", ");
-      fprintf(MEA_STDERR, "%s = %s",keyValuePtr->itemName, keyValuePtr->itemValue);
-   }
-   fprintf(MEA_STDERR, "}\n");
-   return 0;
-}
-*/
-
-/*
-void _cmndXPLMessageHandler(xPL_MessagePtr theMessage, xPL_ObjectPtr userValue)
-{
-   process_update_indicator(_xplServer_monitoring_id, xpl_server_xplin_str, ++xplin_indicator);
-
-#ifdef XPL_WD
-   mea_start_timer(&xPLnoMsgReceivedTimer);
-#endif
-   char *schema_type, *schema_class, *vendor, *deviceID, *instanceID;
-   schema_class = xPL_getSchemaClass(theMessage);
-   schema_type  = xPL_getSchemaType(theMessage);
-   vendor       = xPL_getSourceVendor(theMessage);
-   deviceID     = xPL_getSourceDeviceID(theMessage);
-   instanceID   = xPL_getSourceInstanceID(theMessage);
-
-   int fromMe=-1;
-   if( strcmp(vendor,     xpl_vendorID)   ==  0 &&
-       strcmp(deviceID,   xpl_deviceID)   == 0 &&
-       strcmp(instanceID, xpl_instanceID) == 0)
-      fromMe=0;
-
-//   DEBUG_SECTION  displayXPLMsg(theMessage);
-   
-   if(mea_strcmplower(schema_class, get_token_string_by_id(XPL_WATCHDOG_ID)) == 0 &&
-      mea_strcmplower(schema_type, get_token_string_by_id(XPL_BASIC_ID)) == 0 &&
-      fromMe==0)
-   {
-//      DEBUG_SECTION mea_log_printf("%s (%s) : watchdog xpl\n", DEBUG_STR, __func__);
-   }
-
-   // on envoie tous les messages à l'automate (à lui de filtrer ...)
-   cJSON *xplMsgJson_interfaces = mea_xPL2JSON(theMessage);
-
-   char *s = cJSON_Print(xplMsgJson_interfaces);
-   fprintf(stderr,"C:%s\n", s);
-   free(s);
-
-   cJSON *xplMsgJson_automator = cJSON_Duplicate(xplMsgJson_interfaces, 1);
-
-   if(xplMsgJson_automator)
-   {
-      if(automatorServer_add_msg(xplMsgJson_automator)==ERROR)
-      {
-         DEBUG_SECTION mea_log_printf("%s (%s) : to automator error\n", DEBUG_STR, __func__);
-      }
-   }
-
-   // pour les autres on filtre un peu avant de transmettre pour traitement
-   // on ne traite que les cmnd au niveau des interfaces
-   if(xPL_getMessageType(theMessage)!=xPL_MESSAGE_COMMAND)
-      return;
-
-
-   dispatchXPLMessageToInterfaces2(xplMsgJson_interfaces);
-}
-*/
 
 void _flushExpiredXPLResponses()
 {
@@ -535,11 +397,11 @@ void _flushExpiredXPLResponses()
                cJSON_Delete(e->msgjson);
                free(e);
                e=NULL;
-               mea_queue_remove_current(xplRespQueue); // remove current passe sur le suivant
-               DEBUG_SECTION mea_log_printf("%s (%s) : responses queue was flushed\n",DEBUG_STR,__func__);
+               mea_queue_remove_current(xplRespQueue); // remove current passe au le suivant
+               DEBUG_SECTION mea_log_printf("%s (%s) : a response queue was flushed\n", DEBUG_STR, __func__);
             }
             else
-            mea_queue_next(xplRespQueue);
+               mea_queue_next(xplRespQueue);
          }
          else
             break;
@@ -686,7 +548,7 @@ cJSON *xPLParser(const char* xplmsg, char *xpl_type, char *xpl_schema, char *xpl
 }
 
 
-void _rawXPLMessageHandler(String s, int l, xPL_ObjectPtr userdata)
+void _rawXPLMessageHandler(char *s, int l)
 {
    char type[35];
    char schema[35];
@@ -704,6 +566,8 @@ void _rawXPLMessageHandler(String s, int l, xPL_ObjectPtr userdata)
          free(s);
       }
 #ifdef XPL_WD
+      mea_start_timer(&xPLnoMsgReceivedTimer);
+#else
       mea_start_timer(&xPLnoMsgReceivedTimer);
 #endif
 
@@ -738,45 +602,83 @@ void _rawXPLMessageHandler(String s, int l, xPL_ObjectPtr userdata)
 }
 
 
+int16_t mea_xPLSendMessage2(char *data, int l_data)
+{
+   if(xpl_sdb < 0 || xpl_broadcastAddr == NULL)
+   {
+      DEBUG_SECTION mea_log_printf("%s (%s) : xplServer not ready (data=%s)\n", data);
+      return -1;
+   }
+
+   int ret=mea_xPLSendMessage(xpl_sdb, xpl_broadcastAddr, data, l_data);
+   if(ret<0)
+      process_update_indicator(_xplServer_monitoring_id, xpl_server_senderr_str, ++xplsenderr_indicator);
+}
+
+
 void *xPLServer_thread(void *data)
 {
+   int16_t nerr;
+
    pthread_cleanup_push( (void *)set_xPLServer_isnt_running, (void *)NULL );
    pthread_cleanup_push( (void *)clean_xPLServer, (void *)NULL);
    
    xPLServer_longjmp_flag = 0;
-   _xPLServer_thread_is_running=1;
-   process_heartbeat(_xplServer_monitoring_id); // 1er heartbeat après démarrage.
    
-//   xPL_setDebugging(TRUE); // xPL en mode debug
-   
-   xPLService = xPL_createService(xpl_vendorID, xpl_deviceID, xpl_instanceID);
-   if(!xPLService)
+   if(strlen(xpl_interface)==0)
       return NULL;
-//   sprintf(xpl_source,"%s-%s.%s", xpl_vendorID, xpl_deviceID, xpl_instanceID);
-//   sprintf(xpl_my_addr,"%s-%s.%s", xpl_vendorID, xpl_deviceID, xpl_instanceID);
 
-   xPL_setRespondingToBroadcasts(xPLService, TRUE);
-   xPL_setServiceVersion(xPLService, XPL_VERSION);
-   xPL_setHeartbeatInterval(xPLService, 5000); // en milliseconde
+   // ouverture des communications udp
+   xpl_sd=mea_xPLConnectHub(&xpl_port);
+   if(xpl_sd<0)
+      return NULL;
+   xpl_broadcastAddr=(struct sockaddr_in *)malloc(sizeof(struct sockaddr_in));
+   if(!xpl_broadcastAddr)
+   {
+      close(xpl_sd);
+      return NULL;
+   }
+   xpl_sdb=mea_xPLConnectBroadcast(xpl_interface, xpl_ip, sizeof(xpl_ip)-1, xpl_broadcastAddr);
+   if(xpl_sdb<0)
+   {
+      free(xpl_broadcastAddr);
+      xpl_broadcastAddr=NULL;
+      close(xpl_sd);
+      xpl_sd=-1;
+      xpl_sdb=-1;
+      return NULL;
+   }
 
-//   xPL_addMessageListener(_cmndXPLMessageHandler, NULL);
-   xPL_addRawListener(_rawXPLMessageHandler, NULL);
+   _xPLServer_thread_is_running=1; // c'est bon, on a démarré
+
+   process_heartbeat(_xplServer_monitoring_id); // 1er heartbeat après démarrage.
+
+   mea_xPLSendHbeat(xpl_sdb, xpl_broadcastAddr, xpl_ip, xpl_port, XPL_VERSION, xpl_my_addr, "app", xpl_interval);
 
 #ifdef XPL_WD
+   char *_xplWDMsg = "xpl-trig\n{\nhop=1\nsource=%s\ntarget=%s\n}\nwatchdog.basic\n{\ninterval=10\n}\n";
+
    mea_timer_t xPLWDSendMsgTimer;
    mea_init_timer(&xPLnoMsgReceivedTimer, 30, 1);
    mea_init_timer(&xPLWDSendMsgTimer, 10, 1);
-
-   char *_xplWDMsg = "xpl-trig\n{\nhop=1\nsource=%s\ntarget=%s\n}\nwatchdog.basic\n{\ninterval=10\n}\n";
 
    xplWDMsg=malloc(strlen(_xplWDMsg)-4 + 2*strlen(xpl_my_addr) + 1);
    xplWDMsg_l = sprintf(xplWDMsg, _xplWDMsg, xpl_my_addr, xpl_my_addr); // message pour moi meme ...
 
    mea_start_timer(&xPLnoMsgReceivedTimer);
    mea_start_timer(&xPLWDSendMsgTimer);
+#else
+   mea_init_timer(&xPLnoMsgReceivedTimer, 30, 1);
+   mea_start_timer(&xPLnoMsgReceivedTimer);
 #endif
 
-   xPL_setServiceEnabled(xPLService, TRUE);
+   char data[0xFFFF];
+   int l_data;
+   mea_timer_t hbTimer;
+
+//   mea_init_timer(&hbTimer, xpl_interval*60, 1);
+   mea_init_timer(&hbTimer, 10, 1); // pour remplacer watchdog.basic
+   mea_start_timer(&hbTimer);
 
    do
    {
@@ -788,21 +690,40 @@ void *xPLServer_thread(void *data)
 
       pthread_testcancel();
       process_heartbeat(_xplServer_monitoring_id); // heartbeat après chaque boucle
+
+      if(mea_test_timer(&hbTimer)==0)
+      {
+         mea_xPLSendHbeat(xpl_sdb, xpl_broadcastAddr, xpl_ip, xpl_port, XPL_VERSION, xpl_my_addr, "app", xpl_interval);
+      }
+
+      l_data = sizeof(data);
+      int ret=mea_xPLReadMessage(xpl_sd, 500, data, &l_data, &nerr);
+      data[l_data]=0;
+      if(ret>=0)
+      {
+         if(l_data>0)
+            _rawXPLMessageHandler(data, l_data);
+      }
+      else
+      {
+         process_update_indicator(_xplServer_monitoring_id, xpl_server_readerr_str, ++xplreaderr_indicator);
+         perror("");
+      }
       
-#ifdef XPL_WD
+//#ifdef XPL_WD
       if(mea_test_timer(&xPLnoMsgReceivedTimer)==0)
       {
          // pas de message depuis X secondes
          VERBOSE(2) {
-            mea_log_printf("%s (%s) : no xPL message since 30 seconds, but we should have one ... I send me three !\n", ERROR_STR, __func__);
+            mea_log_printf("%s (%s) : no xPL message since 30 seconds, but we should have one ... I send me three or more !\n", ERROR_STR, __func__);
             mea_log_printf("%s (%s) : watchdog_recovery forced ...\n", ERROR_STR, __func__);
          }
          process_forced_watchdog_recovery(_xplServer_monitoring_id);
       }
-      
+#ifdef XPL_WD
       if(mea_test_timer(&xPLWDSendMsgTimer)==0) // envoie d'un message toutes les X secondes
       {
-         xPL_sendRawMessage(xplWDMsg, xplWDMsg_l);
+         mea_xPLSendMessage(xpl_sdb, xpl_broadcastAddr, xplWDMsg, xplWDMsg_l);
       }
 #endif
 
@@ -816,8 +737,6 @@ void *xPLServer_thread(void *data)
          else
             compteur++;
       }
-
-      xPL_processMessages(500);
 
       _flushExpiredXPLResponses();
    }
@@ -923,6 +842,24 @@ int stop_xPLServer(int my_id, void *data,  char *errmsg, int l_errmsg)
    pthread_mutex_unlock(&(xplRespQueue_sync_lock));
    pthread_cleanup_pop(0);
 
+
+   if(xpl_sd>=0)
+   {
+      close(xpl_sd);
+      xpl_sd=-1;
+   }
+   if(xpl_sdb>=0)
+   {
+      mea_xPLSendHbeat(xpl_sdb, xpl_broadcastAddr, xpl_ip, xpl_port, XPL_VERSION, xpl_my_addr, "end", xpl_interval);
+      close(xpl_sdb);
+      xpl_sd=-1;
+   }
+   if(xpl_broadcastAddr)
+   {
+      free(xpl_broadcastAddr);
+      xpl_broadcastAddr=NULL;
+   }
+
    _xplServer_monitoring_id=-1;
 
    if(_xPLServer_thread_id)
@@ -930,8 +867,6 @@ int stop_xPLServer(int my_id, void *data,  char *errmsg, int l_errmsg)
       free(_xPLServer_thread_id);
       _xPLServer_thread_id=NULL;
    }   
-
-   xPL_shutdown();
 
    if(ret==0)
    {
@@ -954,32 +889,8 @@ int start_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg)
    
    if(!set_xpl_address(xplServer_params->params_list))
    {
+      strcpy(xpl_interface, xplServer_params->params_list[INTERFACE]);
       _xplServer_monitoring_id=my_id;
-
-      xPL_setBroadcastInterface(xplServer_params->params_list[INTERFACE]);
-
-      int16_t xPL_initialize_done = 0;
-      int16_t xPL_initialize_cntr = 0;
-      do
-      {
-         if ( !xPL_initialize(xPL_getParsedConnectionType()) )
-         {
-            xPL_initialize_cntr++;
-            if(xPL_initialize_cntr > 5)
-            {
-               VERBOSE(1) {
-                  mea_log_printf("%s (%s) : xPL_initialize - error\n",ERROR_STR,__func__);
-               }
-               mea_notify_printf('E', "%s Can't be launched - xPL_initialize error.\n", xpl_server_name_str);
-               return -1;
-            }
-            sleep(1);
-         }
-         else
-            xPL_initialize_done = 1;
-      }
-      while(xPL_initialize_done == 0);
-
       _xPLServer_thread_id=xPLServer();
 
       if(_xPLServer_thread_id==NULL)

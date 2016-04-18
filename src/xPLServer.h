@@ -13,7 +13,6 @@
 #include <setjmp.h>
 #include <pthread.h>
 
-#include "xPL.h"
 #include "cJSON.h"
 
 extern char *xpl_vendorID;
@@ -24,6 +23,8 @@ extern char xpl_source[];
 extern char *xpl_server_name_str;
 extern char *xpl_server_xplin_str;
 extern char *xpl_server_xplout_str;
+extern char *xpl_server_senderr_str;
+extern char *xpl_server_readerr_str;
 
 extern pthread_t *_xPLServer_thread_id;
 extern pthread_mutex_t _xPLServer_xPL_lock;
@@ -45,10 +46,10 @@ struct xplServer_start_stop_params_s
 };
 
 
-typedef int16_t (*xpl2_f)(cJSON *xplMsgJson, xPL_ObjectPtr userValue);
+typedef int16_t (*xpl2_f)(cJSON *xplMsgJson, void *userdata);
 
 
-xPL_ServicePtr mea_getXPLServicePtr();
+//xPL_ServicePtr mea_getXPLServicePtr();
 
 char          *mea_setXPLVendorID(char *value);
 char          *mea_setXPLDeviceID(char *value);
@@ -64,6 +65,7 @@ char          *mea_getMyXPLAddr();
 uint16_t       mea_sendXPLMessage2(cJSON *xplMsgJson);
 cJSON         *mea_readXPLResponse(int id);
 uint32_t       mea_getXplRequestId();
+//int16_t        mea_xPLServerIsActive();
 
 /*
 extern xPL_MessagePtr xPL_AllocMessage();
@@ -74,8 +76,10 @@ int           start_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg)
 int           stop_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg);
 int           restart_xPLServer(int my_id, void *data, char *errmsg, int l_errmsg);
 
-int16_t       displayXPLMsg(xPL_MessagePtr theMessage);
+//int16_t       displayXPLMsg(xPL_MessagePtr theMessage);
 
-cJSON        *mea_xPL2JSON(xPL_MessagePtr msg);
+//cJSON        *mea_xPL2JSON(xPL_MessagePtr msg);
 int           mea_sendXplMsgJson(cJSON *xplMsgJson);
+
+int16_t       mea_xPLSendMessage2(char *data, int l_data);
 #endif

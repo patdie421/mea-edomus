@@ -15,6 +15,7 @@
 #include <signal.h>
 #include <string.h>
 #include <pthread.h>
+#include <errno.h>
 
 #include "xPLServer.h"
 #include "mea_verbose.h"

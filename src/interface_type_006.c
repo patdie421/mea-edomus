@@ -199,7 +199,8 @@ void set_interface_type_006_isnt_running(void *data)
 }
 
 
-int16_t _interface_type_006_xPL_callback2(cJSON *xplMsgJson, xPL_ObjectPtr userValue)
+//int16_t _interface_type_006_xPL_callback2(cJSON *xplMsgJson, xPL_ObjectPtr userValue)
+int16_t _interface_type_006_xPL_callback2(cJSON *xplMsgJson, void *userValue)
 {
    char *device;
    int ret;

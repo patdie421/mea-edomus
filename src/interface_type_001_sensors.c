@@ -189,11 +189,6 @@ int16_t interface_type_001_sensors_process_traps2(int16_t numTrap, char *data, i
       *(sensor->nbtrap)=*(sensor->nbtrap)+1;
       
       char value[20];
-      xPL_ServicePtr servicePtr;
-      
-      servicePtr=mea_getXPLServicePtr();
-      if(!servicePtr)
-         return 1;
 
       if(data[0]==0)
       {
@@ -349,7 +344,7 @@ interface_type_001_sensors_valid_and_malloc_sensor_clean_exit:
 }
 
 
-mea_error_t interface_type_001_sensors_process_xpl_msg_(interface_type_001_t *i001, xPL_ServicePtr theService, xPL_MessagePtr msg, char *device, char *type)
+//mea_error_t interface_type_001_sensors_process_xpl_msg_(interface_type_001_t *i001, xPL_ServicePtr theService, xPL_MessagePtr msg, char *device, char *type)
 /**
   * \brief     Traite les demandes xpl de retransmission de la valeur courrante ("sensor.request/request=current") pour interface_type_001
   * \details   La demande sensor.request peut être de la forme est de la forme :
@@ -368,6 +363,7 @@ mea_error_t interface_type_001_sensors_process_xpl_msg_(interface_type_001_t *i0
   * \param     device              le périphérique à interroger ou NULL
   * \param     device              le type à interroger ou NULL
   * \return    ERROR en cas d'erreur, NOERROR sinon  */  
+/*
 {
    mea_queue_t *sensors_list=i001->sensors_list;
    struct sensor_s *sensor;
@@ -511,7 +507,7 @@ mea_error_t interface_type_001_sensors_process_xpl_msg_(interface_type_001_t *i0
    }
    return NOERROR;
 }
-
+*/
 
 mea_error_t interface_type_001_sensors_process_xpl_msg2(interface_type_001_t *i001, cJSON *xplMsgJson, char *device, char *type)
 /**
@@ -759,30 +755,25 @@ int16_t interface_type_001_sensors_poll_inputs2(interface_type_001_t *i001)
                if(sensor->todbflag == 1)
                   dbServer_add_data_to_sensors_values(sensor->sensor_id, (double)sensor->computed_val, unit, (double)sensor->val, "");
 
-               xPL_ServicePtr servicePtr = mea_getXPLServicePtr();
-               if(servicePtr)
-               {
-                  char str[256];
+               char str[256];
 
+               cJSON *xplMsgJson = cJSON_CreateObject();
+               cJSON_AddItemToObject(xplMsgJson, XPLMSGTYPE_STR_C, cJSON_CreateString(XPL_TRIG_STR_C));
+               sprintf(str,"%s.%s", get_token_string_by_id(XPL_SENSOR_ID), get_token_string_by_id(XPL_BASIC_ID));
+               cJSON_AddItemToObject(xplMsgJson, XPLSCHEMA_STR_C, cJSON_CreateString(str));
+               cJSON_AddItemToObject(xplMsgJson, get_token_string_by_id(XPL_DEVICE_ID), cJSON_CreateString(sensor->name));
+               cJSON_AddItemToObject(xplMsgJson, get_token_string_by_id(XPL_TYPE_ID), cJSON_CreateString(get_token_string_by_id(XPL_POWER_ID)));
+               sprintf(str,"%0.1f",sensor->computed_val);
+               cJSON_AddItemToObject(xplMsgJson, get_token_string_by_id(XPL_CURRENT_ID), cJSON_CreateString(str));
+               sprintf(str,"%0.1f",computed_last);
+               cJSON_AddItemToObject(xplMsgJson, get_token_string_by_id(XPL_LAST_ID), cJSON_CreateString(str));
 
-                  cJSON *xplMsgJson = cJSON_CreateObject();
-                  cJSON_AddItemToObject(xplMsgJson, XPLMSGTYPE_STR_C, cJSON_CreateString(XPL_TRIG_STR_C));
-                  sprintf(str,"%s.%s", get_token_string_by_id(XPL_SENSOR_ID), get_token_string_by_id(XPL_BASIC_ID));
-                  cJSON_AddItemToObject(xplMsgJson, XPLSCHEMA_STR_C, cJSON_CreateString(str));
-                  cJSON_AddItemToObject(xplMsgJson, get_token_string_by_id(XPL_DEVICE_ID), cJSON_CreateString(sensor->name));
-                  cJSON_AddItemToObject(xplMsgJson, get_token_string_by_id(XPL_TYPE_ID), cJSON_CreateString(get_token_string_by_id(XPL_POWER_ID)));
-                  sprintf(str,"%0.1f",sensor->computed_val);
-                  cJSON_AddItemToObject(xplMsgJson, get_token_string_by_id(XPL_CURRENT_ID), cJSON_CreateString(str));
-                  sprintf(str,"%0.1f",computed_last);
-                  cJSON_AddItemToObject(xplMsgJson, get_token_string_by_id(XPL_LAST_ID), cJSON_CreateString(str));
+               // Broadcast the message
+               mea_sendXPLMessage2(xplMsgJson);
 
-                  // Broadcast the message
-                  mea_sendXPLMessage2(xplMsgJson);
-
-                  (i001->indicators.nbsensorsxplsent)++;
+               (i001->indicators.nbsensorsxplsent)++;
                
-                  cJSON_Delete(xplMsgJson);   
-               }
+               cJSON_Delete(xplMsgJson);   
             }
          }
          else

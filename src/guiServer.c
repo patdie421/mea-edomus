@@ -19,6 +19,7 @@
 #include <sys/stat.h>
 #include <signal.h>
 #include <sys/wait.h>
+#include <errno.h>
 
 #include "globals.h"
 #include "consts.h"

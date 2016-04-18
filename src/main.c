@@ -997,7 +997,7 @@ int main(int argc, const char * argv[])
       VERBOSE(1) mea_log_printf("%s (%s) : can't start python plugin server\n",ERROR_STR,__func__);
       clean_all_and_exit();
    }
-   sleep(2);
+   sleep(1);
 
    //
    // xPLServer
@@ -1010,12 +1010,14 @@ int main(int argc, const char * argv[])
    process_set_watchdog_recovery(xplServer_monitoring_id, restart_xPLServer, (void *)(&xplServer_start_stop_params));
    process_add_indicator(xplServer_monitoring_id, xpl_server_xplin_str, 0);
    process_add_indicator(xplServer_monitoring_id, xpl_server_xplout_str, 0);
+   process_add_indicator(xplServer_monitoring_id, xpl_server_senderr_str, 0);
+   process_add_indicator(xplServer_monitoring_id, xpl_server_readerr_str, 0);
    if(process_start(xplServer_monitoring_id, NULL, 0)<0)
    {
       VERBOSE(1) mea_log_printf("%s (%s) : can't start xpl server\n",ERROR_STR,__func__);
       clean_all_and_exit();
    }
-
+   sleep(1);
    //
    // automatorServer
    //

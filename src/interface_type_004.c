@@ -136,10 +136,6 @@ int16_t sendAllxPLTrigger(interface_type_004_t *i004)
    if(current == NULL)
       return -1;
    
-   xPL_ServicePtr servicePtr = mea_getXPLServicePtr();
-   if(servicePtr == NULL)
-      return -1;
- 
    cJSON *currentLight=current->child;
    while(currentLight)
    {
@@ -184,10 +180,6 @@ int16_t whatChange(interface_type_004_t *i004)
    if(current == NULL || last == NULL)
       return -1;
    
-   xPL_ServicePtr servicePtr = mea_getXPLServicePtr();
-   if(servicePtr == NULL)
-      return -1;
- 
    cJSON *currentLight=current->child;
    cJSON *lastLight = NULL;
    while(currentLight)
@@ -446,7 +438,7 @@ int16_t interface_type_004_xPL_actuator2(interface_type_004_t *i004, cJSON *xplM
 }
 
 
-int16_t interface_type_004_xPL_sensor(interface_type_004_t *i004, xPL_ServicePtr theService, xPL_MessagePtr msg, char *device, char *type)
+//int16_t interface_type_004_xPL_sensor(interface_type_004_t *i004, xPL_ServicePtr theService, xPL_MessagePtr msg, char *device, char *type)
 /**
  * \brief     Traite les demandes xpl de retransmission de la valeur courrante ("sensor.request/request=current") pour interface_type_004
  * \details   La demande sensor.request peut être de la forme est de la forme :
@@ -464,6 +456,7 @@ int16_t interface_type_004_xPL_sensor(interface_type_004_t *i004, xPL_ServicePtr
  * \param     device              le périphérique à interroger ou NULL
  * \param     device              le type à interroger ou NULL
  * \return    ERROR en cas d'erreur, NOERROR sinon  */
+/*
 {
    //   int type_id = -1;
    struct lightsListElem_s *e = NULL;
@@ -501,7 +494,7 @@ int16_t interface_type_004_xPL_sensor(interface_type_004_t *i004, xPL_ServicePtr
    
    return ret;
 }
-
+*/
 
 int16_t interface_type_004_xPL_sensor2(interface_type_004_t *i004, cJSON *xplMsgJson, char *device, char *type)
 /**
@@ -560,7 +553,8 @@ int16_t interface_type_004_xPL_sensor2(interface_type_004_t *i004, cJSON *xplMsg
 }
 
 
-int16_t interface_type_004_xPL_callback2(cJSON *xplMsgJson, xPL_ObjectPtr userValue)
+//int16_t interface_type_004_xPL_callback2(cJSON *xplMsgJson, xPL_ObjectPtr userValue)
+int16_t interface_type_004_xPL_callback2(cJSON *xplMsgJson, void * userValue)
 {
    char *schema = NULL, *device = NULL, *type = NULL;
    cJSON *j=NULL;

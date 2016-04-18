@@ -92,25 +92,23 @@ int16_t interface_type_001_counters_process_traps2(int16_t numTrap, char *buff, 
          mea_start_timer(&(counter->trap_timer)); // réinitialisation du timer à chaque trap
 
          char value[20];
-         xPL_ServicePtr servicePtr = mea_getXPLServicePtr();
-         if(servicePtr)
-         {
-            char str[256];
-            cJSON *xplMsgJson = cJSON_CreateObject();
-            cJSON_AddItemToObject(xplMsgJson, XPLMSGTYPE_STR_C, cJSON_CreateString(XPL_TRIG_STR_C));
-            sprintf(str,"%s.%s", get_token_string_by_id(XPL_SENSOR_ID), get_token_string_by_id(XPL_BASIC_ID));
-            cJSON_AddItemToObject(xplMsgJson, XPLSCHEMA_STR_C, cJSON_CreateString(str));
-            cJSON_AddItemToObject(xplMsgJson, get_token_string_by_id(XPL_DEVICE_ID), cJSON_CreateString(counter->name));
-            cJSON_AddItemToObject(xplMsgJson, get_token_string_by_id(XPL_TYPE_ID), cJSON_CreateString(get_token_string_by_id(XPL_POWER_ID)));
-            cJSON_AddItemToObject(xplMsgJson, get_token_string_by_id(XPL_CURRENT_ID), cJSON_CreateString(value));
+         char str[256];
 
-            // Broadcast the message
-            mea_sendXPLMessage2(xplMsgJson);
+         cJSON *xplMsgJson = cJSON_CreateObject();
+         cJSON_AddItemToObject(xplMsgJson, XPLMSGTYPE_STR_C, cJSON_CreateString(XPL_TRIG_STR_C));
+         sprintf(str,"%s.%s", get_token_string_by_id(XPL_SENSOR_ID), get_token_string_by_id(XPL_BASIC_ID));
+         cJSON_AddItemToObject(xplMsgJson, XPLSCHEMA_STR_C, cJSON_CreateString(str));
+         cJSON_AddItemToObject(xplMsgJson, get_token_string_by_id(XPL_DEVICE_ID), cJSON_CreateString(counter->name));
+         cJSON_AddItemToObject(xplMsgJson, get_token_string_by_id(XPL_TYPE_ID), cJSON_CreateString(get_token_string_by_id(XPL_POWER_ID)));
+         cJSON_AddItemToObject(xplMsgJson, get_token_string_by_id(XPL_CURRENT_ID), cJSON_CreateString(value));
+
+         // Broadcast the message
+         mea_sendXPLMessage2(xplMsgJson);
  
-            *(counter->nbxplout)=*(counter->nbxplout)+1;
+         *(counter->nbxplout)=*(counter->nbxplout)+1;
 
-            cJSON_Delete(xplMsgJson);
-         }
+         cJSON_Delete(xplMsgJson);
+
          VERBOSE(9) {
             char now[30];
             strftime(now,30,"%d/%m/%y;%H:%M:%S",localtime(&tv.tv_sec));
@@ -208,27 +206,23 @@ valid_and_malloc_counter_clean_exit:
 void counter_to_xpl2(interface_type_001_t *i001, struct electricity_counter_s *counter)
 {
    char value[20];
-   
-   xPL_ServicePtr servicePtr = mea_getXPLServicePtr();
-   if(servicePtr)
-   {
-      char str[256];
-      cJSON *xplMsgJson = cJSON_CreateObject();
-      cJSON_AddItemToObject(xplMsgJson, XPLMSGTYPE_STR_C, cJSON_CreateString(XPL_TRIG_STR_C));
-      sprintf(str,"%s.%s", get_token_string_by_id(XPL_SENSOR_ID), get_token_string_by_id(XPL_BASIC_ID));
-      cJSON_AddItemToObject(xplMsgJson, XPLSCHEMA_STR_C, cJSON_CreateString(str));
-      cJSON_AddItemToObject(xplMsgJson, get_token_string_by_id(XPL_TYPE_ID), cJSON_CreateString(get_token_string_by_id(XPL_ENERGY_ID)));
-      cJSON_AddItemToObject(xplMsgJson, get_token_string_by_id(XPL_DEVICE_ID), cJSON_CreateString(counter->name));
-      sprintf(str,"%d",counter->kwh_counter);
-      cJSON_AddItemToObject(xplMsgJson, get_token_string_by_id(XPL_CURRENT_ID), cJSON_CreateString(str));
+   char str[256];
 
-      // Broadcast the message
-      mea_sendXPLMessage2(xplMsgJson);
+   cJSON *xplMsgJson = cJSON_CreateObject();
+   cJSON_AddItemToObject(xplMsgJson, XPLMSGTYPE_STR_C, cJSON_CreateString(XPL_TRIG_STR_C));
+   sprintf(str,"%s.%s", get_token_string_by_id(XPL_SENSOR_ID), get_token_string_by_id(XPL_BASIC_ID));
+   cJSON_AddItemToObject(xplMsgJson, XPLSCHEMA_STR_C, cJSON_CreateString(str));
+   cJSON_AddItemToObject(xplMsgJson, get_token_string_by_id(XPL_TYPE_ID), cJSON_CreateString(get_token_string_by_id(XPL_ENERGY_ID)));
+   cJSON_AddItemToObject(xplMsgJson, get_token_string_by_id(XPL_DEVICE_ID), cJSON_CreateString(counter->name));
+   sprintf(str,"%d",counter->kwh_counter);
+   cJSON_AddItemToObject(xplMsgJson, get_token_string_by_id(XPL_CURRENT_ID), cJSON_CreateString(str));
 
-      (i001->indicators.nbcountersxplsent)++;
+   // Broadcast the message
+   mea_sendXPLMessage2(xplMsgJson);
 
-      cJSON_Delete(xplMsgJson);
-   }
+   (i001->indicators.nbcountersxplsent)++;
+
+   cJSON_Delete(xplMsgJson);
 }
 
 
@@ -377,7 +371,7 @@ mea_error_t interface_type_001_counters_process_xpl_msg2(interface_type_001_t *i
 
       if(!device || mea_strcmplower(device,counter->name)==0)
       {
-         xPL_MessagePtr cntrMessageStat ;
+//         xPL_MessagePtr cntrMessageStat;
          char value[20];
          char *unit;
          
@@ -447,26 +441,22 @@ int16_t interface_type_001_counters_poll_inputs2(interface_type_001_t *i001)
          counter->last_power=counter->power;
          counter->power=0;
 
-         // envoyer un message xpl 0W
-         xPL_ServicePtr servicePtr = mea_getXPLServicePtr();
-         if(servicePtr)
-         {
-            char str[256];
-            cJSON *xplMsgJson = cJSON_CreateObject();
-            cJSON_AddItemToObject(xplMsgJson, XPLMSGTYPE_STR_C, cJSON_CreateString(XPL_TRIG_STR_C));
-            sprintf(str,"%s.%s", get_token_string_by_id(XPL_SENSOR_ID), get_token_string_by_id(XPL_BASIC_ID));
-            cJSON_AddItemToObject(xplMsgJson, XPLSCHEMA_STR_C, cJSON_CreateString(str));
-            cJSON_AddItemToObject(xplMsgJson, get_token_string_by_id(XPL_DEVICE_ID), cJSON_CreateString(counter->name));
-            cJSON_AddItemToObject(xplMsgJson, get_token_string_by_id(XPL_TYPE_ID), cJSON_CreateString(get_token_string_by_id(XPL_POWER_ID)));
-            cJSON_AddItemToObject(xplMsgJson, get_token_string_by_id(XPL_CURRENT_ID), cJSON_CreateString("0"));
+         // envoyer un message xpl 
+         char str[256];
+         cJSON *xplMsgJson = cJSON_CreateObject();
+         cJSON_AddItemToObject(xplMsgJson, XPLMSGTYPE_STR_C, cJSON_CreateString(XPL_TRIG_STR_C));
+         sprintf(str,"%s.%s", get_token_string_by_id(XPL_SENSOR_ID), get_token_string_by_id(XPL_BASIC_ID));
+         cJSON_AddItemToObject(xplMsgJson, XPLSCHEMA_STR_C, cJSON_CreateString(str));
+         cJSON_AddItemToObject(xplMsgJson, get_token_string_by_id(XPL_DEVICE_ID), cJSON_CreateString(counter->name));
+         cJSON_AddItemToObject(xplMsgJson, get_token_string_by_id(XPL_TYPE_ID), cJSON_CreateString(get_token_string_by_id(XPL_POWER_ID)));
+         cJSON_AddItemToObject(xplMsgJson, get_token_string_by_id(XPL_CURRENT_ID), cJSON_CreateString("0"));
 
-            // Broadcast the message
-            mea_sendXPLMessage2(xplMsgJson);
+         // Broadcast the message
+         mea_sendXPLMessage2(xplMsgJson);
 
-            (i001->indicators.nbcountersxplsent)++;
+         (i001->indicators.nbcountersxplsent)++;
 
-            cJSON_Delete(xplMsgJson);
-         }
+         cJSON_Delete(xplMsgJson);
       }
       
       pthread_mutex_unlock(&(counter->lock));

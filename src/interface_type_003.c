@@ -113,7 +113,8 @@ void _enocean_data_free_queue_elem(void *d)
 }
 
 
-int16_t _interface_type_003_xPL_callback2(cJSON *xplMsgJson, xPL_ObjectPtr userValue)
+//int16_t _interface_type_003_xPL_callback2(cJSON *xplMsgJson, xPL_ObjectPtr userValue)
+int16_t _interface_type_003_xPL_callback2(cJSON *xplMsgJson, void *userValue)
 {
    char *device = NULL;
    int ret = -1;

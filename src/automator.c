@@ -40,6 +40,7 @@
 #include "mea_string_utils.h"
 #include "mea_eval.h"
 #include "mea_sockets_utils.h"
+#include "mea_xpl.h"
 
 #include "cJSON.h"
 #include "uthash.h"
@@ -149,8 +150,6 @@ pthread_mutex_t rules_lock = PTHREAD_MUTEX_INITIALIZER;
 struct inputs_id_name_assoc_s *inputs_id_name_assoc = NULL;
 
 static int startupStatus = 1;
-
-extern Bool xPL_sendRawMessage(String, int);
 
 static int automator_print_inputs_table();
 static struct inputs_table_s *automator_add_to_inputs_table(char *name, struct value_s *v, struct timespec *t);
@@ -1332,7 +1331,7 @@ int automator_sendxpl2(cJSON *parameters)
 
    if(n>0)
    {
-      xPL_sendRawMessage(msg, n);
+      mea_xPLSendMessage2(msg, n);
       return 0;
    }
 
