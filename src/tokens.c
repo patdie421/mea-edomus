@@ -393,10 +393,7 @@ void init_tokens()
       l=strlen(s->str);
       if(l>_token_max_string_size)
          _token_max_string_size=l;
-/*
-      HASH_ADD_KEYPTR( hh_token_by_string, tokens_hash_by_string, tokens_list[i].str, strlen(tokens_list[i].str), s );
-      HASH_ADD_KEYPTR( hh_token_by_id, tokens_hash_by_id, &(tokens_list[i].id), sizeof(tokens_list[i].id), s );
-*/
+
       HASH_ADD_KEYPTR( hh_token_by_string, tokens_hash_by_string, s->str, strlen(s->str), s );
       HASH_ADD_KEYPTR( hh_token_by_id, tokens_hash_by_id, &(s->token->id), sizeof(s->token->id), s );
    }

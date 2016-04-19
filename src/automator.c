@@ -1717,9 +1717,10 @@ int automator_matchInputsRules(cJSON *rules, cJSON *xplMsgJson)
          altvalue = cJSON_GetObjectItem(e,"altvalue");
          if(altvalue)
             _value = altvalue->valuestring;
-          else match=-1;
+          else
+             match=-1;
       } 
-
+/*
       int ret=automator_evalStr(_value, &res, xplMsgJson);
       if(ret<0)
       {
@@ -1734,9 +1735,24 @@ int automator_matchInputsRules(cJSON *rules, cJSON *xplMsgJson)
 
          continue;
       }
-
+*/
       if(match>=0)
       {
+         int ret=automator_evalStr(_value, &res, xplMsgJson);
+         if(ret<0)
+         {
+            DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s (%s) : [%s] incorrect value\n",  DEBUG_STR, __func__, _value);
+            automator_printRuleDebugInfo(e, "incorrect rule value (rule removed)");
+
+            cJSON *c = NULL;
+            c=e;
+            e=e->next;
+            c=cJSON_DetachItemFromItem(rules, c);
+            cJSON_Delete(c);
+
+            continue;
+         }
+
          if(strcmp(res.val.strval, "<NOP>")!=0)
          {
             automator_add_to_inputs_table(name->valuestring, &res, &last_update_time);
@@ -1772,7 +1788,6 @@ int automator_matchInputsRules(cJSON *rules, cJSON *xplMsgJson)
             }
             else if(strcmp(action, "moveforward")==0 && *p_onmatch)
             {
-//               struct value_s r;
                cJSON *_e = NULL;
                int flag=0;
                struct moveforward_dest_s *md = NULL;

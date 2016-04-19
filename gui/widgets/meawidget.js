@@ -147,7 +147,6 @@ MeaWidget.prototype = {
       this.group=group;
       this.type=type;
 
-//      meaWidgetsJar[this.ident]=this;
       meaWidgetsJar[this.type]=this;
    },
 

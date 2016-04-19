@@ -42,7 +42,6 @@ struct tokens_strings_da_s
    char *high_str_c;
    char *device_id_str_c;
    char *device_name_str_c;
-//   char *device_type_id_str_c;
    char *device_localtion_id_str_c;
    char *device_interface_name_str_c;
    char *device_interface_type_name_str_c;
@@ -51,7 +50,6 @@ struct tokens_strings_da_s
    char *todbflag_str_c;
    char *addr_l_str_c;
    char *addr_h_str_c;
-//   char *interface_id_str_c;
    char *interface_type_id_str_c;
    char *interface_name_str_c;
    char *interface_state_str_c;
@@ -127,6 +125,7 @@ extern struct tokens_strings_da_s *tokens_string_da;
 #define XPL_PULSE_STR_C                  tokens_string_da->xpl_pulse_str_c
 #define XPL_CONTROLBASIC_STR_C           tokens_string_da->xpl_controlbasic_str_c
 #define XPL_SENSORREQUEST_STR_C          tokens_string_da->xpl_sensorrequest_str_c
+
 #else
 
 #define DEVICE_PARAMETERS_STR_C          get_token_string_by_id(DEVICE_PARAMETERS_ID)
@@ -180,6 +179,7 @@ extern struct tokens_strings_da_s *tokens_string_da;
 #define XPL_PULSE_STR_C                  get_token_string_by_id(XPL_PULSE_ID)
 #define XPL_CONTROLBASIC_STR_C           get_token_string_by_id(XPL_CONTROLBASIC_ID)
 #define XPL_SENSORREQUEST_STR_C          get_token_string_by_id(XPL_SENSORREQUEST_ID)
+
 #endif
 
 int16_t init_strings_da();

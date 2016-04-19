@@ -122,10 +122,15 @@ function MapEditorController(container, map, widgets_container, widgetsPanelWin,
             p.draggable({ handle: drag_zone });
 
             var resizable_params = {
-               onStartResize: function(e) { },
+               onStartResize: function(e) {
+                  on_start_resize(e.data, this, p);
+               },
                onResize: function(e) {
+                  on_resize(e.data,_this.grid);
                },
                onStopResize: function(e) {
+                  on_stop_resize(e.data,_this.grid,p,this.offset_top,this.offset_left)
+
                   var data   = $(this).prop('mea-widgetdata');
                   var i=getValueIndex(data, "width");
                   if(i)
@@ -172,6 +177,84 @@ function MapEditorController(container, map, widgets_container, widgetsPanelWin,
 
    _this.propertiesPanel_init();
    _this.widgetsPanel_init();
+}
+
+
+function on_resize(d,g)
+{
+   var c=d.dir;
+
+   if(c[0]=='w' || c[1]=='w')
+   {
+      var l = d.left;
+      d.left = Math.floor(d.left / g) * g;
+      l = l-d.left;
+      d.width = d.width + l;
+   }
+
+   if(c[0]=='n')
+   {
+      var t = d.top;
+      d.top  = Math.floor(d.top / g) * g;
+      t = t-d.top;
+      d.height = d.height + t;
+   }
+   if(c[0]=='e' || c[1]=='e')
+      d.width  = Math.floor(d.width  / g) * g + 2;
+
+   if(c[0]=='s')
+      d.height = Math.floor(d.height / g) * g + 2;
+}
+
+
+function on_stop_resize(d,g,p,ot,ol)
+{
+   var c = d.dir;
+
+   if(c[0]=='w' || c[1]=='w')
+   {
+      var l = d.left;
+      d.left = Math.floor(d.left / g) * g;
+      l = l-d.left;
+      p.width(d.width+l-2);
+   }
+
+   if(c[0]=='n')
+   {
+      var t = d.top;
+      d.top  = Math.floor(d.top / g) * g;
+      t = t-d.top;
+      p.height(d.height+t-2);
+   }
+
+   if(c[0]=='e' || c[1]=='e')
+   {
+      d.width  = Math.floor(d.width  / g) * g;
+      p.width(d.width);
+   }
+
+   if(c[0]=='s')
+   {
+      d.height = Math.floor(d.height / g) * g;
+      p.height(d.height);
+   }
+
+   p.offset({top: d.top+ot, left:d.left+ol});
+}
+
+
+function on_start_resize(d, o, p)
+{
+   var c=d.dir;
+
+   o.offset_top  = p.offset().top  - p.position().top;
+   o.offset_left = p.offset().left - p.position().left;
+
+   if(c[0]=='s')
+      d.height = d.height + 2;
+
+   if(c[0]=='e' || c[1]=='e')
+      d.width  = d.width  + 2;
 }
 
 
@@ -265,10 +348,15 @@ MapEditorController.prototype.widgetsPanel_init = function()
             p.draggable({ handle: drag_zone });
 
             var resizable_params = {
-               onStartResize: function(e) { },
+               onStartResize: function(e) {
+                  on_start_resize(e.data, this, p);
+               },
                onResize: function(e) {
+                  on_resize(e.data,_this.grid);
                },
                onStopResize: function(e) {
+                  on_stop_resize(e.data,_this.grid,p,this.offset_top,this.offset_left)
+
                   var data   = $(this).prop('mea-widgetdata');
                   var i=getValueIndex(data, "width");
                   if(i)
@@ -576,7 +664,6 @@ MapEditorController.prototype.propertiesPanel_init = function()
 
          var p= $('#'+rows[0].value);
          var drag_zone = p.find('[class="mea_dragzone_for_resizable"]');
-         console.log("ICI:"+drag_zone);
          if(drag_zone.length)
             p.draggable({ handle: drag_zone });
 
@@ -985,10 +1072,15 @@ MapEditorController.prototype._toEditMode = function()
          p.draggable({ handle: drag_zone });
 
          var resizable_params = {
-            onStartResize: function(e) { },
+            onStartResize: function(e) {
+               on_start_resize(e.data, this, p);
+            },
             onResize: function(e) {
+               on_resize(e.data,_this.grid);
             },
             onStopResize: function(e) {
+               on_stop_resize(e.data,_this.grid,p,this.offset_top,this.offset_left)
+
                var data   = $(this).prop('mea-widgetdata');
                var i=getValueIndex(data, "width");
                if(i)
