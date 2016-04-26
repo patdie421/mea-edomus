@@ -3,7 +3,7 @@ CC = gcc
 
 TECHNO=linux
 # -DASPLUGIN \
-DEBUGFLAGS  = -g -D__DEBUG_ON__
+DEBUGFLAGS = -g -D__DEBUG_ON__
 
 MYPATH=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
@@ -15,7 +15,7 @@ EXECUTABLE=mea-edomus
 
 INTERFACES=type_001 type_002 type_003 type_004 type_005 type_006
 INTERFACES_PATH=$(addprefix src/interfaces/, $(INTERFACES))
-INTERFACES_CFLAG=$(addprefix -I, $(INTERFACES_PATH))
+INTERFACES_INCLUDES=$(addprefix -I, $(INTERFACES_PATH))
 INTERFACES_OBJECTS=$(addsuffix /$(TECHNO).objects/*.o, $(INTERFACES_PATH))
 
 CFLAGS      = -std=c99 \
@@ -25,7 +25,7 @@ CFLAGS      = -std=c99 \
               -I/usr/include/mysql \
               -I/usr/include/python2.7 \
               -I$(MYPATH)/src \
-               $(INTERFACES_CFLAG) \
+               $(INTERFACES_INCLUDES) \
                $(DEBUGFLAGS)
 
 LDFLAGS     = -lmysqlclient \
@@ -38,14 +38,11 @@ LDFLAGS     = -lmysqlclient \
               -lcurl \
               -rdynamic
 
-# OBJECTS=$(addprefix $(TECHNO).objects/, $(SOURCES:.c=.o))
-
-all: .deps interfaces $(TECHNO).objects $(SOURCES) $(EXECUTABLE)
+all: .deps $(TECHNO).objects interfaces $(SOURCES) $(EXECUTABLE)
 
 interfaces:
-	for i in $(INTERFACES_PATH) ; \
+	@for i in $(INTERFACES_PATH) ; \
 	do \
-	   echo $$i ;\
 	   $(MAKE) -C $$i -f build.mk TECHNO=$(TECHNO) BASEDIR=$(MYPATH) CC=$(CC); \
 	done
 
