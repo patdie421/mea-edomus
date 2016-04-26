@@ -124,6 +124,12 @@ int start_interface_type_004(int my_id, void *data, char *errmsg, int l_errmsg);
 int stop_interface_type_004(int my_id, void *data, char *errmsg, int l_errmsg);
 int restart_interface_type_004(int my_id, void *data, char *errmsg, int l_errmsg);
 int16_t check_status_interface_type_004(interface_type_004_t *i004);
+
+xpl2_f get_xPLCallback_interface_type_004(void *ixxx);
+int get_monitoring_id_interface_type_004(void *ixxx);
+int set_xPLCallback_interface_type_004(void *ixxx, xpl2_f cb);
+int set_monitoring_id_interface_type_004(void *ixxx, int id);
+
 interface_type_004_t *malloc_and_init_interface_type_004(sqlite3 *sqlite3_param_db, int id_interface, char *name, char *dev, char *parameters, char *description);
 int clean_interface_type_004(interface_type_004_t *i004);
 

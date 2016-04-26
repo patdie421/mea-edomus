@@ -12,6 +12,8 @@
 #include <inttypes.h>
 #include <sqlite3.h>
 
+#include "xPLServer.h"
+
 #include "mea_queue.h"
 #include "dbServer.h"
 #include "cJSON.h"
@@ -25,6 +27,25 @@
 
 extern char *sql_select_device_info;
 extern char *sql_select_interface_info;
+
+typedef void * (*malloc_and_init_interface_f)(sqlite3 *, int, char *, char *, char *, char *);
+typedef int    (*get_monitoring_id_f)(void *);
+typedef int    (*set_monitoring_id_f)(void *, int);
+typedef xpl2_f (*get_xPLCallback_f)(void *);
+typedef int    (*set_xPLCallback_f)(void *, xpl2_f);
+typedef int    (*clean_f)(void *);
+
+struct interfacesServer_interfaceFns_s {
+   malloc_and_init_interface_f malloc_and_init_interface;
+
+   get_monitoring_id_f get_monitoring_id;
+   set_monitoring_id_f set_monitoring_id;
+   get_xPLCallback_f get_xPLCallback;
+   set_xPLCallback_f set_xPLCallback;
+
+   clean_f clean;
+};
+
 
 typedef struct interfaces_queue_elem_s
 {

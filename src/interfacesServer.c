@@ -36,6 +36,10 @@
 #include "interface_type_005.h"
 #include "interface_type_006.h"
 
+struct interfacesServer_interfaceFns_s interfacesFns[6];
+
+int interfaces_types[] = { INTERFACE_TYPE_001, INTERFACE_TYPE_002, INTERFACE_TYPE_003, INTERFACE_TYPE_004, INTERFACE_TYPE_005, INTERFACE_TYPE_006, 0};
+ 
 mea_queue_t *_interfaces=NULL;
 
 pthread_rwlock_t interfaces_queue_rwlock;
@@ -73,13 +77,30 @@ void dispatchXPLMessageToInterfaces2(cJSON *xplMsgJson)
 
    pthread_cleanup_push( (void *)pthread_rwlock_unlock, (void *)&interfaces_queue_rwlock);
    pthread_rwlock_rdlock(&interfaces_queue_rwlock);
-   
+
    if(_interfaces && _interfaces->nb_elem)
    {
       mea_queue_first(_interfaces);
       while(1)
       {
          mea_queue_current(_interfaces, (void **)&iq);
+
+         int i=0;
+         for(;interfaces_types[i];i++)
+         {
+            if(interfaces_types[i]==iq->type)
+            {
+               int monitoring_id = interfacesFns[i].get_monitoring_id(iq->context);
+               if(monitoring_id>-1 && process_is_running(monitoring_id))
+               { 
+                  xpl2_f xPL_callback2 = interfacesFns[i].get_xPLCallback(iq->context);
+                  if(xPL_callback2)
+                     xPL_callback2(xplMsgJson, iq->context);
+               }
+               break;
+            }
+         }
+/* 
          switch (iq->type)
          {
             case INTERFACE_TYPE_001:
@@ -139,6 +160,7 @@ void dispatchXPLMessageToInterfaces2(cJSON *xplMsgJson)
             default:
                break;
          }
+*/
          ret=mea_queue_next(_interfaces);
          if(ret<0)
             break;
@@ -165,6 +187,43 @@ void stop_interfaces()
       while(_interfaces->nb_elem)
       {
          mea_queue_out_elem(_interfaces, (void **)&iq);
+
+         int i=0;
+         for(;interfaces_types[i];i++)
+         {
+            if(interfaces_types[i]==iq->type)
+            {
+               int monitoring_id = interfacesFns[i].get_monitoring_id(iq->context);
+               if(monitoring_id>-1 && process_is_running(monitoring_id))
+               {
+                  interfacesFns[i].set_xPLCallback(iq->context, NULL);
+
+                  int monitoring_id = interfacesFns[i].get_monitoring_id(iq->context);
+
+                  if(monitoring_id!=-1)
+                  {
+                     void *start_stop_params = process_get_data_ptr(monitoring_id);
+
+                     process_stop(monitoring_id, NULL, 0);
+                     process_unregister(monitoring_id);
+
+                     interfacesFns[i].set_monitoring_id(iq->context, -1);
+
+                     if(start_stop_params)
+                     {
+                        free(start_stop_params);
+                        start_stop_params=NULL;
+                     }
+                  }
+                  interfacesFns[i].clean(iq->context);
+                  free(iq->context);
+                  iq->context=NULL;
+               }
+               break;
+            }
+         }
+
+/*
          switch (iq->type)
          {
             case INTERFACE_TYPE_001:
@@ -345,6 +404,7 @@ void stop_interfaces()
             default:
                break;
          }
+*/
          free(iq);
          iq=NULL;
       }
@@ -359,6 +419,53 @@ void stop_interfaces()
 }
 
 
+int16_t load_interfaces_fns()
+{
+   // interface_type_001
+   interfacesFns[0].malloc_and_init_interface = (malloc_and_init_interface_f)&malloc_and_init_interface_type_001;
+   interfacesFns[0].get_monitoring_id = (get_monitoring_id_f)&get_monitoring_id_interface_type_001;
+   interfacesFns[0].get_xPLCallback = (get_xPLCallback_f)&get_xPLCallback_interface_type_001;
+   interfacesFns[0].clean = (clean_f)&clean_interface_type_001;
+   interfacesFns[0].set_monitoring_id = (set_monitoring_id_f)&set_monitoring_id_interface_type_001;
+   interfacesFns[0].set_xPLCallback = (set_xPLCallback_f)&set_xPLCallback_interface_type_001;
+
+   interfacesFns[1].malloc_and_init_interface = (malloc_and_init_interface_f)&malloc_and_init_interface_type_002;
+   interfacesFns[1].get_monitoring_id = (get_monitoring_id_f)&get_monitoring_id_interface_type_002;
+   interfacesFns[1].get_xPLCallback = (get_xPLCallback_f)&get_xPLCallback_interface_type_002;
+   interfacesFns[1].clean = (clean_f)&clean_interface_type_002;
+   interfacesFns[1].set_monitoring_id = (set_monitoring_id_f)&set_monitoring_id_interface_type_002;
+   interfacesFns[1].set_xPLCallback = (set_xPLCallback_f)&set_xPLCallback_interface_type_002;
+
+   interfacesFns[2].malloc_and_init_interface = (malloc_and_init_interface_f)&malloc_and_init_interface_type_003;
+   interfacesFns[2].get_monitoring_id = (get_monitoring_id_f)&get_monitoring_id_interface_type_003;
+   interfacesFns[2].get_xPLCallback = (get_xPLCallback_f)&get_xPLCallback_interface_type_003;
+   interfacesFns[2].clean = (clean_f)&clean_interface_type_003;
+   interfacesFns[2].set_monitoring_id = (set_monitoring_id_f)&set_monitoring_id_interface_type_003;
+   interfacesFns[2].set_xPLCallback = (set_xPLCallback_f)&set_xPLCallback_interface_type_003;
+
+   interfacesFns[3].malloc_and_init_interface = (malloc_and_init_interface_f)&malloc_and_init_interface_type_004;
+   interfacesFns[3].get_monitoring_id = (get_monitoring_id_f)&get_monitoring_id_interface_type_004;
+   interfacesFns[3].get_xPLCallback = (get_xPLCallback_f)&get_xPLCallback_interface_type_004;
+   interfacesFns[3].clean = (clean_f)&clean_interface_type_004;
+   interfacesFns[3].set_monitoring_id = (set_monitoring_id_f)&set_monitoring_id_interface_type_004;
+   interfacesFns[3].set_xPLCallback = (set_xPLCallback_f)&set_xPLCallback_interface_type_004;
+
+   interfacesFns[4].malloc_and_init_interface = (malloc_and_init_interface_f)&malloc_and_init_interface_type_005;
+   interfacesFns[4].get_monitoring_id = (get_monitoring_id_f)&get_monitoring_id_interface_type_005;
+   interfacesFns[4].get_xPLCallback = (get_xPLCallback_f)&get_xPLCallback_interface_type_005;
+   interfacesFns[4].clean = (clean_f)&clean_interface_type_005;
+   interfacesFns[4].set_monitoring_id = (set_monitoring_id_f)&set_monitoring_id_interface_type_005;
+   interfacesFns[4].set_xPLCallback = (set_xPLCallback_f)&set_xPLCallback_interface_type_005;
+
+   interfacesFns[5].malloc_and_init_interface = (malloc_and_init_interface_f)&malloc_and_init_interface_type_006;
+   interfacesFns[5].get_monitoring_id = (get_monitoring_id_f)&get_monitoring_id_interface_type_006;
+   interfacesFns[5].get_xPLCallback = (get_xPLCallback_f)&get_xPLCallback_interface_type_006;
+   interfacesFns[5].clean = (clean_f)&clean_interface_type_006;
+   interfacesFns[5].set_monitoring_id = (set_monitoring_id_f)&set_monitoring_id_interface_type_006;
+   interfacesFns[5].set_xPLCallback = (set_xPLCallback_f)&set_xPLCallback_interface_type_006;
+}
+
+
 mea_queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
 {
    char sql[255];
@@ -368,7 +475,9 @@ mea_queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
    interfaces_queue_elem_t *iq;
 
    pthread_rwlock_init(&interfaces_queue_rwlock, NULL);
-   
+  
+   load_interfaces_fns();
+ 
    sprintf(sql,"SELECT * FROM interfaces");
    ret = sqlite3_prepare_v2(sqlite3_param_db,sql,strlen(sql)+1,&stmt,NULL);
    if(ret)
@@ -421,16 +530,32 @@ mea_queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
             {
                goto start_interfaces_clean_exit;
             }
+            iq->context = NULL;
 
             int monitoring_id=-1;
-
+            int i=0;
+            for(;interfaces_types[i];i++)
+            {
+               if(interfaces_types[i]==id_type)
+               {
+                  void *ptr = interfacesFns[i].malloc_and_init_interface(sqlite3_param_db, id_interface, (char *)name, (char *)dev, (char *)parameters, (char *)description);
+                  if(ptr)
+                  {
+                     iq->context=ptr;
+                     monitoring_id = interfacesFns[i].get_monitoring_id(ptr);                      
+                  }
+                  break;
+               }
+            }
+/*
             switch(id_type)
             {
                case INTERFACE_TYPE_001:
                {
                   interface_type_001_t *i001;
-                  
-                  i001=malloc_and_init_interface_type_001(sqlite3_param_db, id_interface, (char *)name, (char *)dev, (char *)parameters, (char *)description);
+                 
+                  i001=(interface_type_001_t *)interfacesFns[0].malloc_and_init_interface(sqlite3_param_db, id_interface, (char *)name, (char *)dev, (char *)parameters, (char *)description);
+//                  i001=malloc_and_init_interface_type_001(sqlite3_param_db, id_interface, (char *)name, (char *)dev, (char *)parameters, (char *)description);
                   if(i001 == NULL)
                      break;
                   iq->context=i001;
@@ -442,7 +567,8 @@ mea_queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                {
                   interface_type_002_t *i002;
 
-                  i002=malloc_and_init_interface_type_002(sqlite3_param_db, id_interface, (char *)name, (char *)dev, (char *)parameters, (char *)description);
+                  i002=(interface_type_002_t *)interfacesFns[1].malloc_and_init_interface(sqlite3_param_db, id_interface, (char *)name, (char *)dev, (char *)parameters, (char *)description);
+//                  i002=malloc_and_init_interface_type_002(sqlite3_param_db, id_interface, (char *)name, (char *)dev, (char *)parameters, (char *)description);
                   if(i002 == NULL)
                      break;
                   iq->context=i002;
@@ -454,7 +580,8 @@ mea_queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                {
                   interface_type_003_t *i003;
 
-                  i003=malloc_and_init_interface_type_003(sqlite3_param_db, id_interface, (char *)name, (char *)dev, (char *)parameters, (char *)description);
+                  i003=(interface_type_003_t *)interfacesFns[2].malloc_and_init_interface(sqlite3_param_db, id_interface, (char *)name, (char *)dev, (char *)parameters, (char *)description);
+//                  i003=malloc_and_init_interface_type_003(sqlite3_param_db, id_interface, (char *)name, (char *)dev, (char *)parameters, (char *)description);
                   if(i003 == NULL)
                      break;
                   iq->context=i003;
@@ -466,7 +593,8 @@ mea_queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                {
                   interface_type_004_t *i004;
 
-                  i004=malloc_and_init_interface_type_004(sqlite3_param_db, id_interface, (char *)name, (char *)dev, (char *)parameters, (char *)description);
+                  i004=(interface_type_004_t *)interfacesFns[3].malloc_and_init_interface(sqlite3_param_db, id_interface, (char *)name, (char *)dev, (char *)parameters, (char *)description);
+//                  i004=malloc_and_init_interface_type_004(sqlite3_param_db, id_interface, (char *)name, (char *)dev, (char *)parameters, (char *)description);
                   if(i004 == NULL)
                      break;
                   iq->context=i004;
@@ -478,7 +606,8 @@ mea_queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                {
                   interface_type_005_t *i005;
 
-                  i005=malloc_and_init_interface_type_005(sqlite3_param_db, id_interface, (char *)name, (char *)dev, (char *)parameters, (char *)description);
+                  i005=(interface_type_005_t *)interfacesFns[4].malloc_and_init_interface(sqlite3_param_db, id_interface, (char *)name, (char *)dev, (char *)parameters, (char *)description);
+//                  i005=malloc_and_init_interface_type_005(sqlite3_param_db, id_interface, (char *)name, (char *)dev, (char *)parameters, (char *)description);
                   if(i005 == NULL)
                      break;
                   iq->context=i005;
@@ -490,7 +619,8 @@ mea_queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                {
                   interface_type_006_t *i006;
 
-                  i006=malloc_and_init_interface_type_006(sqlite3_param_db, id_interface, (char *)name, (char *)dev, (char *)parameters, (char *)description);
+                  i006=(interface_type_006_t *)interfacesFns[5].malloc_and_init_interface(sqlite3_param_db, id_interface, (char *)name, (char *)dev, (char *)parameters, (char *)description);
+//                  i006=malloc_and_init_interface_type_006(sqlite3_param_db, id_interface, (char *)name, (char *)dev, (char *)parameters, (char *)description);
                   if(i006 == NULL)
                      break;
                   iq->context=i006;
@@ -501,7 +631,7 @@ mea_queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                default:
                   break;
             }
-
+*/
             if(monitoring_id!=-1)
             {
                iq->type=id_type;

@@ -1149,6 +1149,56 @@ int16_t get_huesystem_connection_parameters(char *device, char *server, uint16_t
 }
 
 
+xpl2_f get_xPLCallback_interface_type_004(void *ixxx)
+{
+   interface_type_004_t *i004 = (interface_type_004_t *)ixxx;
+
+   if(i004 == NULL)
+      return NULL;
+   else
+      return i004->xPL_callback2;
+}
+
+
+int get_monitoring_id_interface_type_004(void *ixxx)
+{
+   interface_type_004_t *i004 = (interface_type_004_t *)ixxx;
+
+   if(i004 == NULL)
+      return -1;
+   else
+      return i004->monitoring_id;
+}
+
+
+int set_xPLCallback_interface_type_004(void *ixxx, xpl2_f cb)
+{
+   interface_type_004_t *i004 = (interface_type_004_t *)ixxx;
+
+   if(i004 == NULL)
+      return -1;
+   else
+   {
+      i004->xPL_callback2 = cb;
+      return 0;
+   }
+}
+
+
+int set_monitoring_id_interface_type_004(void *ixxx, int id)
+{
+   interface_type_004_t *i004 = (interface_type_004_t *)ixxx;
+
+   if(i004 == NULL)
+      return -1;
+   else
+   {
+      i004->monitoring_id = id;
+      return 0;
+   }
+}
+
+
 interface_type_004_t *malloc_and_init_interface_type_004(sqlite3 *sqlite3_param_db, int id_interface, char *name, char *dev, char *parameters, char *description)
 {
    interface_type_004_t *i004=NULL;

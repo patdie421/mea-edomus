@@ -697,6 +697,56 @@ int clean_interface_type_006(interface_type_006_t *i006)
 }
 
 
+xpl2_f get_xPLCallback_interface_type_006(void *ixxx)
+{
+   interface_type_006_t *i006 = (interface_type_006_t *)ixxx;
+
+   if(i006 == NULL)
+      return NULL;
+   else
+      return i006->xPL_callback2;
+}
+
+
+int get_monitoring_id_interface_type_006(void *ixxx)
+{
+   interface_type_006_t *i006 = (interface_type_006_t *)ixxx;
+
+   if(i006 == NULL)
+      return -1;
+   else
+      return i006->monitoring_id;
+}
+
+
+int set_xPLCallback_interface_type_006(void *ixxx, xpl2_f cb)
+{
+   interface_type_006_t *i006 = (interface_type_006_t *)ixxx;
+
+   if(i006 == NULL)
+      return -1;
+   else
+   {
+      i006->xPL_callback2 = cb;
+      return 0;
+   }
+}
+
+
+int set_monitoring_id_interface_type_006(void *ixxx, int id)
+{
+   interface_type_006_t *i006 = (interface_type_006_t *)ixxx;
+
+   if(i006 == NULL)
+      return -1;
+   else
+   {
+      i006->monitoring_id = id;
+      return 0;
+   }
+}
+
+
 interface_type_006_t *malloc_and_init_interface_type_006(sqlite3 *sqlite3_param_db, int id_interface, char *name, char *dev, char *parameters, char *description)
 {
    interface_type_006_t *i006;
