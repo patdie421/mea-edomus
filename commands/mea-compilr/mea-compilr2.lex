@@ -55,7 +55,6 @@ special         <{identifiant}>
 "break"         { return ACTION_BREAK; }
 "continue"      { return ACTION_CONTINUE; }
 "moveforward"   { return ACTION_MOVEFORWARD; }
-":end"             { return NL; }
 {newline}       { line_offset = 0; /*yylineno++;*/ }
 
 {blancs}        { }
@@ -74,4 +73,4 @@ special         <{identifiant}>
 {parenthese_f}  { return PARENTHESE_F; }
 {virgule}       { return VIRGULE; }
 
-.               { printf("Error line %d [%s]\n", yylineno, yytext); return ERROR; }
+.               { /* printf("Error line %d [%s]\n", yylineno, yytext); */ return ERROR; }

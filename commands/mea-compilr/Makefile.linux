@@ -20,10 +20,8 @@ EXECUTABLE=mea-compilr
 
 all: $(SOURCES) $(EXECUTABLE)
 
-$(EXECUTABLE): cJSON.o lex.yy.o y.tab.o
+$(EXECUTABLE): cJSON.o y.tab.o lex.yy.o
 	$(CC) cJSON.o lex.yy.o y.tab.o $(LDFLAGS) -o $@
-
-# yacc -d mea-compilr2.yacc ; lex mea-compilr2.lex ; gcc -std=gnu99 cJSON.c lex.yy.c y.tab.c -lfl -lm -o mea-compilr2
 
 y.tab.c: mea-compilr2.yacc
 	$(YACC) -d mea-compilr2.yacc

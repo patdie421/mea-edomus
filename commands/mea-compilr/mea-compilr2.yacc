@@ -9,17 +9,22 @@
 
 #include "cJSON.h"
 
-// #define free my_free
-
-// defini dans lex
+/* allouees/definies dans/par lex (mea-compilr2.lex) */
 extern int yylineno;
 extern int file_offset;
 extern int line_offset;
 extern char *yytext;
 extern FILE *yyin;
 
+/* globales */
+// 
 char *current_file = NULL;
 cJSON *rulesSet = NULL;
+FILE *fdi = NULL;
+FILE *fdo = NULL;
+int nbInput = 0;
+int nbOutput = 0;
+int filenum = 0;
 
 // options de la ligne de commande
 int indent_flag = 0;
@@ -31,24 +36,15 @@ char output_file[255] = "";
 char rules_path[255] = "";
 char rulesset_file[255] = "";
 
-FILE *fdi = NULL;
-FILE *fdo = NULL;
-int nbInput = 0;
-int nbOutput = 0;
-int filenum = 0;
-
-// functions prototypes
+/* prototypes de fonctions */
 int yylex (void);
 int yyerror(char *s);
-int indent(FILE *fd, int nb);
-int space(FILE *fd, int nb);
-int nl(FILE *fd);
-void printError(int errortojson, int num, char *file, int line, int column, char *near, char *text);
 
-void my_free(void *p)
-{
-   fprintf(stderr,"%p %s\n", p, p);
-}
+int nl(FILE *fd);
+int space(FILE *fd, int nb);
+int indent(FILE *fd, int nb);
+
+void printError(int errortojson, int num, char *file, int line, int column, char *near, char *text);
 
 %}
 
@@ -56,6 +52,8 @@ void my_free(void *p)
    char *str;
 };
 
+
+/* valeurs */
 %token  <str> NOMBRE
 %token  <str> IDENTIFIANT
 %token  <str> CHAINE
@@ -64,16 +62,25 @@ void my_free(void *p)
 %token  <str> SPECIAL
 %token  <str> BOOL
 
+/* opérateurs */
 %token  <str> OPERATOR_EQ
 %token  <str> OPERATOR_NE
 %token  <str> OPERATOR_GE
 %token  <str> OPERATOR_LE
 %token  <str> OPERATOR_GT
 %token  <str> OPERATOR_LW
+%token  <str> AFFECTATION
+
+/* séparateurs */
 %token  <str> CROCHET_O
 %token  <str> CROCHET_F
 %token  <str> ACCOLADE_O
 %token  <str> ACCOLADE_F
+%token  <str> PARENTHESE_O
+%token  <str> PARENTHESE_F
+%token  <str> VIRGULE
+
+/* instruction du langage */
 %token  <str> INSTRUCTION_IS
 %token  <str> INSTRUCTION_DO
 %token  <str> INSTRUCTION_WITH
@@ -82,19 +89,20 @@ void my_free(void *p)
 %token  <str> INSTRUCTION_ONMATCH
 %token  <str> INSTRUCTION_ONNOTMATCH
 %token  <str> INSTRUCTION_WHEN
-%token  <str> AFFECTATION
-%token  <str> EDGE
+
+/* mot clés "actions" */
 %token  <str> ACTION_BREAK
 %token  <str> ACTION_CONTINUE
 %token  <str> ACTION_MOVEFORWARD
-%token  <str> PARENTHESE_O
-%token  <str> PARENTHESE_F
-%token  <str> VIRGULE
-%token  <str> NL
+
+/* conditions */
 %token  <str> FALL
 %token  <str> RISE
 %token  <str> CHANGE
+
+/* erreur */
 %token  <str> ERROR
+
 
 %type <str> Valeur Fonction Fonction_parametres;
 %type <str> Condition Operateur
@@ -107,36 +115,36 @@ Rules:
   ;
 
 Rule:
-    Input_rule  { nl(fdi); indent(fdi, 2); fputc('}', fdi); /* nl(fdi); */}
-  | Output_rule { nl(fdo); indent(fdo, 2); fputc('}', fdo); /* nl(fdo); */}
+    InputRule  { nl(fdi); indent(fdi, 2); fputc('}', fdi); /* nl(fdi); */}
+  | OutputRule { nl(fdo); indent(fdo, 2); fputc('}', fdo); /* nl(fdo); */}
   ;
 
-Input_rule:
-    Is_bloc Onmatch_bloc
-  | Is_bloc If_bloc Onmatch_bloc Onnotmatch_bloc
-  | Is_bloc If_bloc Elseis_bloc Onmatch_bloc Onnotmatch_bloc
+InputRule:
+    IsBloc OnmatchBloc
+  | IsBloc IfBloc OnmatchBloc OnnotmatchBloc
+  | IsBloc IfBloc ElseisBloc OnmatchBloc OnnotmatchBloc
   ;
 
-Output_rule:
-  Do_bloc
+OutputRule:
+  DoBloc
 
-Onmatch_bloc:
-  | INSTRUCTION_ONMATCH { fputc(',', fdi); nl(fdi); indent(fdi,3); fputs("\"onmatch\":", fdi); space(fdi, 1); } Match_actions
+OnmatchBloc:
+  | INSTRUCTION_ONMATCH { fputc(',', fdi); nl(fdi); indent(fdi,3); fputs("\"onmatch\":", fdi); space(fdi, 1); } MatchActions
   ;
   
-Onnotmatch_bloc:
-  | INSTRUCTION_ONNOTMATCH { fputc(',', fdi); nl(fdi); indent(fdi, 3); fputs("\"onnotmatch\":", fdi); space(fdi, 1); } Match_actions
+OnnotmatchBloc:
+  | INSTRUCTION_ONNOTMATCH { fputc(',', fdi); nl(fdi); indent(fdi, 3); fputs("\"onnotmatch\":", fdi); space(fdi, 1); } MatchActions
   ;
 
-Match_actions:
+MatchActions:
     ACTION_BREAK { fputs("\"break\"", fdi); }
   | ACTION_CONTINUE { fputs("\"continue\"", fdi); }
   | ACTION_MOVEFORWARD IDENTIFIANT { fprintf(fdi, "\"moveforward %s\"", $2); } 
   ;
 
-Do_bloc:
-    DoIdentifiant INSTRUCTION_DO DoActionIdentifiant INSTRUCTION_WITH PARENTHESE_O { fputc(',',fdo); nl(fdo); indent(fdo, 3); fputs("\"parameters\":", fdo), space(fdo, 1), fputc('{', fdo); nl(fdo); } DoActionParametres { nl(fdo); indent(fdo, 3); fputc('}', fdo); } PARENTHESE_F INSTRUCTION_WHEN DoCondition { space(fdo, 1); fputc('}', fdo); }
-  ;
+DoBloc:
+    DoIdentifiant INSTRUCTION_DO DoAction INSTRUCTION_WITH PARENTHESE_O { fputc(',',fdo); nl(fdo); indent(fdo, 3); fputs("\"parameters\":", fdo); space(fdo, 1); fputc('{', fdo); nl(fdo); } DoActionParametres { nl(fdo); indent(fdo, 3); fputc('}', fdo); } PARENTHESE_F INSTRUCTION_WHEN DoCondition { space(fdo, 1); fputc('}', fdo); }
+    ; 
 
 DoIdentifiant:
     IDENTIFIANT {
@@ -171,16 +179,16 @@ DoIdentifiant:
                    }
                 }
 
-DoActionIdentifiant:
+DoAction:
     IDENTIFIANT { fputc(',',fdo); nl(fdo); indent(fdo, 3); fputs( "\"action\":", fdo); space(fdo, 1); fprintf(fdo, "\"%s\"", $1); }
 
 DoCondition:
-   DoConditionIdentifiant Edge
+   DoConditionIdentifiant DoEdge
 
 DoConditionIdentifiant:
     IDENTIFIANT { fputc(',',fdo); nl(fdo); indent(fdo, 3); fputs("\"condition\":",fdo); space(fdo, 1); fputc('{',fdo); space(fdo,1); fprintf(fdo,"\"%s\":", $1); space(fdo, 1); }
 
-Edge:
+DoEdge:
     RISE   { fprintf(fdo, "1"); }
   | FALL   { fprintf(fdo, "2"); }
   | CHANGE { fprintf(fdo, "3"); }
@@ -194,8 +202,7 @@ DoActionParametre:
     IDENTIFIANT AFFECTATION Valeur { indent(fdo, 4); fprintf(fdo, "\"%s\": \"%s\"", $1, $3); free($3); }
   ;
 
- 
-Is_bloc:
+IsBloc:
     IDENTIFIANT INSTRUCTION_IS Valeur  {
                                           if(nbInput>0)
                                           {
@@ -285,11 +292,11 @@ Is_bloc:
                                        }
   ;
 
-If_bloc:
+IfBloc:
     INSTRUCTION_IF PARENTHESE_O { fputc(',',fdi); nl(fdi); indent(fdi, 3); fputs("\"conditions\":[", fdi); nl(fdi); } Conditions PARENTHESE_F { nl(fdi); indent(fdi, 3); fputc(']', fdi); }
   ;
 
-Elseis_bloc:
+ElseisBloc:
     INSTRUCTION_ELSEIS Valeur { fputc(',',fdi); nl(fdi); indent(fdi, 3); fputs("\"altvalue\":", fdi); space(fdi, 1); fprintf(fdi, "\"%s\"", $2); free($2); }
   ;
  
@@ -536,6 +543,7 @@ int main(int argc, const char * argv[])
   } 
 
 
+  // récupération des noms de fichier de la ligne de commandes
   char **files = NULL;
   int nb_files = argc - optind;
 
@@ -563,6 +571,7 @@ int main(int argc, const char * argv[])
   }
 
 
+  // récupération des noms de fichier d'un rulesset
   if(rulesset_file[0])
   {
      #define RS_BLOCKSIZE 200 
@@ -638,8 +647,7 @@ int main(int argc, const char * argv[])
 
   }
 
-
-  if(!files)
+  if(!files) // pas de fichier trouvé
   {
      printError(jsonerror_flag, 255, "N/A", 0, 0, "N/A", "no input file");
      if(jsonerror_flag == 0)
@@ -647,6 +655,7 @@ int main(int argc, const char * argv[])
   }
 
 
+  // récupération du nom de fichier de sortie
   if(output_file[0]==0)
      out = stdout;
   else
@@ -667,6 +676,7 @@ int main(int argc, const char * argv[])
   }
 
 
+  // traitement des fichiers
   for(filenum=0;files[filenum];filenum++)
   {
      if(verbose_flag == 1) fprintf(stderr,"Processing file : %s\n", files[filenum]);
@@ -741,7 +751,7 @@ int main(int argc, const char * argv[])
      }
      fclose(fdi);
 
-     unlink(ifname);
+     unlink(ifname); // suppression du fichier temporaire
   }
   nl(out);
   indent(out,1);
@@ -769,19 +779,15 @@ int main(int argc, const char * argv[])
         fgets(line, sizeof(line)-1, fdo);
         fputs(line, out);
      }
-     unlink(ofname);
+     unlink(ofname); // suppression du fichier temporaire
   }
   nl(out);
   indent(out,1);
   fputc(']',out);
 
-  if(files)
+  // noms des fichiers
+  if(files && debug_flag == 1)
   {
-/*
-     "files": [
-        "/data/mea-edomus/lib/mea-rules/rec1.srules"
-     ],
-*/
      fputc(',', out);
      nl(out);
      indent(out, 1);
