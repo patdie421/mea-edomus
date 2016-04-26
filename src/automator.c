@@ -53,10 +53,10 @@
 # ce comportement par défaut est modifiée par "onmatch:" (break, continue, moveforward, ...)
 #
 # syntaxe d'une règle d'entréee :
-# <inputname> is: <value> | <"<NOP>"> | <"<LABEL>">
-# <inputname> is: <value> | <"<NOP>"> if: ( <condition1> [, condition2] ... [, conditionN])
-# <inputname> is: <value> | <"<NOP>"> onmatch: <matchvalue>
-# <inputname> is: <value> | <"<NOP>"> if: ( <condition1> [, condition2] ... [, conditionN]) onmatch: <matchvalue>
+# <inputname> is: <value> | <"<DISPLAY> some text to display"> | <"<NOVAL>"> | <"<LABEL>">
+# <inputname> is: <value> | <"<DISPLAY> some text to display"> | <"<NOVAL>"> if: ( <condition1> [, condition2] ... [, conditionN])
+# <inputname> is: <value> | <"<DISPLAY> some text to display"> | <"<NOVAL>"> onmatch: <matchvalue>
+# <inputname> is: <value> | <"<DISPLAY> some text to display"> | <"<NOVAL>"> if: ( <condition1> [, condition2] ... [, conditionN]) [onmatch: <matchvalue>] [onnotmatch: <matchvalue>]
 #
 # avec :
 # <value> :
@@ -66,7 +66,7 @@
 #   &boolean (&true, &false, &high, &low)
 #   $function[]
 #
-# D1 is: <NOP>     if: (schema == 'hbeat.app') onmatch: break
+# D1 is: <NOVAL>     if: (schema == 'hbeat.app') onmatch: break
 # V1 is: #1
 # V2 is: #2.1      if: (source == 'mea-edomus.home', schema == 'sensor.basic', device == 'BUTTON3', current == #2) onmatch: break
 # V2 is: #10       if: (source == 'mea-edomus.home', schema == 'sensor.basic', device == 'BUTTON3', current > #3, current < #5) onmatch: continue
@@ -159,6 +159,8 @@ static int automator_evalStr(char *str, struct value_s *v, cJSON *xplMsgJson);
 
 static void automator_printRuleDebugInfo(cJSON *rule, char *msg);
 static cJSON *cJSON_DetachItemFromItem(cJSON *item, cJSON *e);
+
+int16_t myGetVarId(char *str, void *userdata, int16_t *id);
 
 time_t automator_now = 0;
 
@@ -415,6 +417,7 @@ enum function_e {
    F_STAY,
    F_CHANGE,
    F_DATE,
+   F_SECOND,
    F_TIME,
    F_TIMER,
    F_TIMERSTATUS,
@@ -447,6 +450,7 @@ struct function_def_s functionsList2[]={
    { "not", F_NOT, 3 },
    { "now", F_NOW, 3 },
    { "rise", F_RISE, 4 },
+   { "second", F_SECOND, 6 },
    { "startup", F_STARTUP, 7 },
    { "stay", F_STAY, 4 },
    { "sunrise", F_SUNRISE, 7 },
@@ -613,7 +617,9 @@ int input_getId(char *name, uint32_t *id)
         struct inputs_id_name_assoc_s *a;
         a=(struct inputs_id_name_assoc_s *)malloc(sizeof(struct inputs_id_name_assoc_s));
         if(a==NULL)
+        {
            ret=-1;
+        }
         else
         {
            a->id=e->id;
@@ -622,6 +628,7 @@ int input_getId(char *name, uint32_t *id)
            ret=0;
         }
      }
+
      if(ret==0)
         *id=e->id;
    }
@@ -643,6 +650,11 @@ int input_getFloatValueById(uint32_t id, double *d)
    pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&inputs_table_lock);
    pthread_mutex_lock(&inputs_table_lock);
    HASH_FIND_INT(inputs_id_name_assoc, &id, a);
+/*
+   fprintf(stderr,"id(%d) = ", id);
+   value_print(&(a->elem->v));
+   fprintf(stderr,"\n");
+*/
    if(a == NULL)
       ret=-1;
    else
@@ -680,6 +692,20 @@ void input_cleanIdNameAssocs()
 }
 
 
+void input_resetIds()
+{
+#if DEBUGFLAG_AUTOMATOR > 0
+   _automatorServer_fn = (char *)__func__;
+#endif
+   struct inputs_table_s *current, *tmp;
+
+   HASH_ITER(hh, inputs_table, current, tmp)
+   {
+      current->id = -1;
+   }
+}
+
+
 #define MAX_STR_FUNCTION_SIZE 4096 
 
 static int function_call(char *str, struct value_s *v, cJSON *xplMsgJson)
@@ -713,7 +739,7 @@ static int function_call(char *str, struct value_s *v, cJSON *xplMsgJson)
          if(params[0]!=0)
          {
             struct value_s r;
-            struct inputs_table_s *e = NULL;
+            // struct inputs_table_s *e = NULL;
 
             v->type=2;
             v->val.booleanval=1;
@@ -737,6 +763,42 @@ static int function_call(char *str, struct value_s *v, cJSON *xplMsgJson)
             }
          }
          break;
+      case F_SECOND:
+      {
+         int ret = 0;
+         int mod = 0;
+         struct value_s r;
+
+         if(params[0]!=0)
+         {
+            ret=automator_evalStr(params, &r, xplMsgJson);
+            if(ret<0)
+            {
+               retour = 1;
+               break;
+            }
+
+            if(r.type == 0 && r.val.floatval>= 2)
+            {
+               mod = (int)r.val.floatval;
+            }
+            else
+            {
+               retour = 1;
+               break;
+            }
+
+         }
+
+         v->type=0;
+         if(mod>1)
+            v->val.floatval=(double)((mea_datetime_time(NULL) % 60) % mod);
+         else
+            v->val.floatval=(double)(mea_datetime_time(NULL) % 60);
+         retour=0;
+
+         break;
+      }
       case F_STARTUP:
          if(params[0]==0)
          {
@@ -765,15 +827,17 @@ static int function_call(char *str, struct value_s *v, cJSON *xplMsgJson)
             {
                char *p=&(params[1]);
                params[l_params]=0; 
-
-               if(mea_eval_calc_numeric_by_cache(p, &d)==0)
+               int ret=mea_eval_calc_numeric_by_cache(p, &d);
+               if(ret==0)
                {
                   v->type=0;
                   v->val.floatval=(double)d;
                   retour = 0;
                }
                else
+               {
                   retour = 1;
+               }
             }
          }
          break;
@@ -1030,22 +1094,36 @@ static int automator_evalStr(char *str, struct value_s *v, cJSON *xplMsgJson)
              ret=1;
           pthread_mutex_unlock(&inputs_table_lock);
           pthread_cleanup_pop(0);
+/*
+          if(strcmp(name, "EVERY10S")==0)
+          {
+             fprintf(stderr,"OUT %s = ",name);
+             value_print(v);
+             fprintf(stderr,"\n");
+          }
+*/
           if(ret==1)
              return 1;
         }
         break;
      case '<':
         {
+/*
            int l=strlen(p);
            if(p[l-1]!='>')
               return -1; 
-
-           if(l==5 && strncmp(&(p[1]),"NOP",3)==0)
+*/
+           if(strncmp(&(p[1]),"NOVAL>",6)==0)
            {
               strcpy(v->val.strval, p);
               v->type=1;
            }
-           else if(l==7 && strncmp(&(p[1]),"LABEL",5)==0)
+           else if(strncmp(&(p[1]),"LABEL>",6)==0)
+           {
+              strcpy(v->val.strval, p);
+              v->type=1;
+           }
+           else if(strncmp(&(p[1]), "DISPLAY>", 7)==0)
            {
               strcpy(v->val.strval, p);
               v->type=1;
@@ -1584,14 +1662,16 @@ int automator_matchInputsRules(cJSON *rules, cJSON *xplMsgJson)
    cJSON *e=rules->child;
    while(e) // balayage des règles
    {
-      int match=1;
+      int match=1; // on part du principe que ça va matcher ...
       
       struct value_s res, val1, val2;
 
       cJSON *name     = cJSON_GetObjectItem(e,"name");
       cJSON *value    = cJSON_GetObjectItem(e,"value");
       cJSON *onmatch  = cJSON_GetObjectItem(e,"onmatch");
+      cJSON *onnotmatch  = cJSON_GetObjectItem(e,"onnotmatch");
       cJSON *altvalue = NULL;
+      cJSON *onaction = NULL;
  
       if(!name || !value)
       {
@@ -1606,28 +1686,16 @@ int automator_matchInputsRules(cJSON *rules, cJSON *xplMsgJson)
          continue;
       }
       
-      DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s (%s) : RULE - %s\n", DEBUG_STR, __func__, name->valuestring);
-/*
-      int ret=automator_evalStr(value->valuestring, &res, xplMsgJson);
-      if(ret<0)
+      // si <LABEL> on passe
+      if(strncmp(value->valuestring,"<LABEL>",7)==0)
       {
-         DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s (%s) :    [%s] incorrect value\n",  DEBUG_STR, __func__, value->valuestring);
-         automator_printRuleDebugInfo(e, "incorrect rule value (rule removed)");
-
-         cJSON *c = NULL;
-         c=e;
          e=e->next;
-         c=cJSON_DetachItemFromItem(rules, c);
-         cJSON_Delete(c);
 
          continue;
       }
-      if(res.type==1 && strcmp(res.val.strval,"<LABEL>")==0)
-      {
-         match=0;
-         goto next_rule;
-      }
-*/
+
+      DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s (%s) : RULE - %s\n", DEBUG_STR, __func__, name->valuestring);
+
       // évaluation des conditions
       cJSON *conditions=cJSON_GetObjectItem(e,"conditions");
       if(conditions!=NULL)
@@ -1694,11 +1762,11 @@ int automator_matchInputsRules(cJSON *rules, cJSON *xplMsgJson)
             int cmpr=value_cmp(&val1, operator, &val2);
             if(cmpr < 1)
             {
-               match=0;
-               break;
+               match=0; // ça ne match pas
+               break; // pas la peine de tester les autres conditions
             }
 
-            c=c->next;
+            c=c->next; // on passe à la condition suivante
          }
       }
       else
@@ -1706,37 +1774,22 @@ int automator_matchInputsRules(cJSON *rules, cJSON *xplMsgJson)
          DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s (%s) :    NO CONDITION\n",  DEBUG_STR, __func__);
       }
 
+      // récupération de la "valeur" à affecter à la règle (celle de is: ou elseis: en fonction de match)
       char *_value;
-      if(strcmp(value->valuestring,"<LABEL>")==0)
-         match=-1;
-
       if(match==1)
          _value = value->valuestring;
       else
       {
          altvalue = cJSON_GetObjectItem(e,"altvalue");
          if(altvalue)
+         {
             _value = altvalue->valuestring;
-          else
-             match=-1;
-      } 
-/*
-      int ret=automator_evalStr(_value, &res, xplMsgJson);
-      if(ret<0)
-      {
-         DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s (%s) :    [%s] incorrect value\n",  DEBUG_STR, __func__, _value);
-         automator_printRuleDebugInfo(e, "incorrect rule value (rule removed)");
-
-         cJSON *c = NULL;
-         c=e;
-         e=e->next;
-         c=cJSON_DetachItemFromItem(rules, c);
-         cJSON_Delete(c);
-
-         continue;
+         }
+         else
+            match=-1; // pas matché et pas de valeur alternative
       }
-*/
-      if(match>=0)
+      
+      if(match>=0) // une valeur de is: ou de elseis: à évaluer
       {
          int ret=automator_evalStr(_value, &res, xplMsgJson);
          if(ret<0)
@@ -1753,8 +1806,19 @@ int automator_matchInputsRules(cJSON *rules, cJSON *xplMsgJson)
             continue;
          }
 
-         if(strcmp(res.val.strval, "<NOP>")!=0)
+         if(strncmp(res.val.strval, "<DISPLAY>", 8)==0)
          {
+            int i=9;
+            for(;res.val.strval[i] && res.val.strval[i]==' ';i++);
+            mea_log_printf("%s (AUTOMATOR MESSAGE) : \"%s\"\n", INFO_STR, &(res.val.strval[i]));
+         }
+         else if(strncmp(res.val.strval, "<NOVAL>", 7)!=0)
+         {
+/*
+            fprintf(stderr,"%s = ", name->valuestring);
+            value_print(&res);
+            fprintf(stderr,"\n");
+*/
             automator_add_to_inputs_table(name->valuestring, &res, &last_update_time);
          }
          else
@@ -1763,101 +1827,107 @@ int automator_matchInputsRules(cJSON *rules, cJSON *xplMsgJson)
          }
       }
 
+
       if(match==1)
+         onaction = onmatch;
+      else
+         onaction = onnotmatch;
+      
+      if(onaction) // une postaction ?
       {
-         if(onmatch) // post action
+         char action[VALUE_MAX_STR_SIZE]="";
+         char action_l=sizeof(action)-1;
+         char *p_action = action;
+         char *p_onaction = onaction->valuestring;
+         // découpage de la chaine
+         while(*p_onaction && *p_onaction!=' ' && action_l)
          {
-            char action[VALUE_MAX_STR_SIZE]="";
-            char action_l=sizeof(action)-1;
-            char *p_action  = action;
-            char *p_onmatch = onmatch->valuestring;
-            // découpage de la chaine
-            while(*p_onmatch && *p_onmatch!=' ' && action_l)
-            {
-               *p_action=tolower(*p_onmatch);
-               ++p_action;
-               ++p_onmatch;
-               --action_l;
-            }
-            *p_action=0;
- 
-            if(strcmp(action, "break")==0 && !(*p_onmatch))
-               break;
-            else if(strcmp(action, "continue")==0 && !(*p_onmatch))
-            {
-            }
-            else if(strcmp(action, "moveforward")==0 && *p_onmatch)
-            {
-               cJSON *_e = NULL;
-               int flag=0;
-               struct moveforward_dest_s *md = NULL;
+            *p_action=tolower(*p_onaction);
+            ++p_action;
+            ++p_onaction;
+            --action_l;
+         }
+         *p_action=0; // terminaison de la chaine
 
-               // supprime les blancs en début de p_onmatch
-               while(*p_onmatch && *p_onmatch==' ') ++p_onmatch;
+         if(strcmp(action, "break")==0 && !(*p_onaction))
+         {
+            break; // on arrête l'évaluation des règles d'entrées
+         }
+         else if(strcmp(action, "continue")==0 && !(*p_onaction))
+         {
+            continue;
+         }
+         else if(strcmp(action, "moveforward")==0 && *p_onaction)
+         {
+            cJSON *_e = NULL;
+            int flag=0;
+            struct moveforward_dest_s *md = NULL;
 
-               if(*p_onmatch)
+            // supprime les blancs avant le parametre de moveforward
+            while(*p_onaction && *p_onaction==' ') ++p_onaction;
+
+            if(*p_onaction)
+            {
+               int16_t notCacheMoveForwardFlag = 0;
+               HASH_FIND_STR(moveforward_dests, p_onaction, md);
+               if(md)
                {
-                  int16_t notCacheMoveForwardFlag = 0;
-                  HASH_FIND_STR(moveforward_dests, p_onmatch, md);
-                  if(md) // on va vérifier qu'on fait bien un saut en avant
+                  cJSON *numc = cJSON_GetObjectItem(e, "num");
+                  cJSON *numn = cJSON_GetObjectItem(md->e, "num");
+                  // on va vérifier qu'on fait bien un saut en avant
+                  if( numc->type != cJSON_Number ||
+                      numn->type != cJSON_Number ||
+                      numn->valueint <= numc->valueint)
+                     notCacheMoveForwardFlag = 1;
+               }
+              
+               // on recherche la destination si elle n'a pas été trouvée dans le cache 
+               if( !md /* pas dans le cache c'est sur ... */
+                  || notCacheMoveForwardFlag == 1) /* dans le cache mais pas saut en avant */ 
+               { 
+                  // on balaye les règles restante
+                  _e = e->next;
+                  while(_e)
                   {
-                     cJSON *numc = cJSON_GetObjectItem(e, "num");
-                     cJSON *numn = cJSON_GetObjectItem(md->e, "num");
-                     if( numc->type != cJSON_Number ||
-                         numn->type != cJSON_Number ||
-                         numn->valueint <= numc->valueint)
-                        notCacheMoveForwardFlag = 1;
-                  }
-                  
-                  if(!md || notCacheMoveForwardFlag == 1)
-                  { 
-                     _e = e->next;
-                     while(_e)
+                     if(cJSON_GetObjectItem(_e,"name") && strcmp(cJSON_GetObjectItem(_e,"name")->valuestring, p_onaction)==0)
                      {
-                        if(cJSON_GetObjectItem(_e,"name") && strcmp(cJSON_GetObjectItem(_e,"name")->valuestring, p_onmatch)==0)
+                        if(notCacheMoveForwardFlag == 0)
                         {
-                           if(notCacheMoveForwardFlag == 0)
+                           md = (struct moveforward_dest_s *)malloc(sizeof(struct moveforward_dest_s));
+                           if(md)
                            {
-                              md = (struct moveforward_dest_s *)malloc(sizeof(struct moveforward_dest_s));
-                              if(md)
-                              {
-                                 strcpy(md->rule, p_onmatch);
-                                 md->e=_e;
-                                 HASH_ADD_STR(moveforward_dests, rule, md);
-                              } 
-                           }
-                           e=_e; // règle en avant trouvée, on y va
-                           
-                           flag=1;
-                           break;
+                              strcpy(md->rule, p_onaction);
+                              md->e=_e;
+                              HASH_ADD_STR(moveforward_dests, rule, md);
+                           } 
                         }
-                        _e=_e->next;
+                        e=_e; // règle en avant trouvée, on y va
+                        
+                        flag=1;
+                        break;
                      }
-                     if(flag==1)
-                        continue; 
+                     _e=_e->next;
                   }
-                  else
-                  {
-                     e=md->e;
-                     continue;
-                  }
+                  if(flag==1)
+                     continue; 
                }
                else
-                  break; // erreur
+               {
+                  e=md->e;
+                  continue;
+               }
             }
             else
-            {
-            // erreur
-            } 
+               break; // erreur
          }
+         else
+         {
+         // erreur
+         } 
       }
-      else
-      {
-         DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s (%s) :    NOT MATCH !\n", DEBUG_STR, __func__);
-      }
+
       e=e->next;
-next_loop:{}
-//      cntr++;
+next_loop: {}
    }
 
    pthread_mutex_unlock(&rules_lock);
@@ -2094,7 +2164,14 @@ struct inputs_table_s *_automator_add_to_inputs_table(char *_name, struct value_
 
    pthread_cleanup_push((void *)pthread_mutex_unlock, (void *)&inputs_table_lock);
    pthread_mutex_lock(&inputs_table_lock);
-
+/*
+   if(strcmp(_name, "EVERY10S") == 0)
+   {
+      fprintf(stderr,"IN: %s = ", _name);
+      value_print(v);
+      fprintf(stderr,"\n");
+   }
+*/
    HASH_FIND_STR(inputs_table, _name, e);
    if(e)
    {
@@ -2554,6 +2631,8 @@ int automator_reload_rules_from_file(char *rulesfile)
       cJSON_Delete(prev_rules);
 
       mea_eval_clean_stack_cache();
+      input_cleanIdNameAssocs();
+      input_resetIds();
       mea_datetime_removeAllTimers();
 
       automator_print_inputs_table();
@@ -2622,7 +2701,6 @@ int16_t myGetVarId(char *str, void *userdata, int16_t *id)
    int16_t retour = 0;
 
    retour=(int16_t)input_getId(str, &_id);
-
    *id=(int16_t)_id;
 
    return retour;

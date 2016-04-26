@@ -61,7 +61,7 @@ int mea_notify(char *hostname, int port, char *notif_str, char notif_type)
    return ret;
 }
 
-
+/*
 int _notify( char *hostname, int port, char *notif_str, char notif_type)
 {
    int ret;
@@ -82,7 +82,7 @@ int _notify( char *hostname, int port, char *notif_str, char notif_type)
 
    return ret;
 }
-
+*/
 
 int mea_notify_printf(int notif_type, char const* fmt, ...)
 {
@@ -100,6 +100,7 @@ int mea_notify_printf(int notif_type, char const* fmt, ...)
    
    va_end(args);
 
-   return _notify(localhost_const, _port, notif_str, notif_type);
+//   return _notify(localhost_const, _port, notif_str, notif_type);
+   return mea_notify(localhost_const, _port, notif_str, notif_type);
 }
 

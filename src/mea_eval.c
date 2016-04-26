@@ -80,6 +80,7 @@ static int mea_eval_getOperatorN(char *str, char **newptr)
       case '-':
       case '*':
       case '/':
+      case '%':
          *newptr=p+1;
          return(*p);
    }
@@ -165,9 +166,10 @@ static enum mea_eval_token_type_id_e mea_eval_getToken(char *str, char **newptr,
                if(_getVarId != NULL)
                {
                   int16_t id = 0;
-
-                  if(_getVarId != NULL && _getVarId(name, mea_eval_userdata, &id)<0)
+                  if(_getVarId(name, mea_eval_userdata, &id)<0)
+                  {
                      return -1;
+                  }
                   v->var_id=id;
                }
                p++;
@@ -219,6 +221,11 @@ static int mea_eval_doOperationN(double *d, double d1, int op, double d2)
              return -1;
          *d=d1/d2;
          break;
+      case '%':
+          if(d2==0.0)
+             return -1;
+         *d=(double)((long)d1 % (long)d2);
+         break;
       case '*':
          *d=d1*d2;
          break;
@@ -241,6 +248,7 @@ static int mea_eval_getOperatorPriorityN(int op)
          return 1;
       case '*':
       case '/':
+      case '%':
          return 2;
       default:
          return -1;
@@ -817,13 +825,12 @@ void mea_eval_clean_stack_cache()
 int mea_eval_calc_numeric_by_cache(char *expr, double *d)
 {
    char *p;
-   int16_t err;
+   int16_t err=0;
 
    int stack_ptr=0;
    struct mea_eval_stack_s *stack = NULL;
 
    stack = mea_eval_getStackFromCache(expr, &stack_ptr, &err);
-
    if(err == 0 && stack == NULL)
    {
       stack=mea_eval_buildStack_alloc(expr, &p, &err, &stack_ptr);
@@ -842,9 +849,12 @@ int mea_eval_calc_numeric_by_cache(char *expr, double *d)
    }
 
    if(!stack)
+   {
       return -1;
+   }
 
-   return mea_eval_calcn(stack, stack_ptr, d);
+   int ret = mea_eval_calcn(stack, stack_ptr, d);
+   return ret;
 }
 #endif
 
