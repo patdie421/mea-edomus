@@ -12,10 +12,13 @@
 #include <sqlite3.h>
 
 #include "enocean.h"
+
+#include "interfacesServer.h"
 #include "dbServer.h"
 #include "xPLServer.h"
 #include "pythonPluginServer.h"
 
+#define INTERFACE_TYPE_003 300
 
 typedef struct enocean_data_queue_elem_s
 {
@@ -74,8 +77,11 @@ xpl2_f get_xPLCallback_interface_type_003(void *ixxx);
 int get_monitoring_id_interface_type_003(void *ixxx);
 int set_xPLCallback_interface_type_003(void *ixxx, xpl2_f cb);
 int set_monitoring_id_interface_type_003(void *ixxx, int id);
+int get_type_interface_type_003();
 
 interface_type_003_t *malloc_and_init_interface_type_003(sqlite3 *sqlite3_param_db, int id_interface, char *name, char *dev, char *parameters, char *description);
 int clean_interface_type_003(interface_type_003_t *i003);
+
+int get_fns_interface_type_003(struct interfacesServer_interfaceFns_s *interfacesFns);
 
 #endif

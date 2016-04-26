@@ -15,10 +15,11 @@
 #include <signal.h>
 #include "uthash.h"
 #include "cJSON.h"
+
+#include "interfacesServer.h"
 #include "xPLServer.h"
 
-#include "interface_type_004.h"
-
+#define INTERFACE_TYPE_004 400
 
 extern char *interface_type_004_xplin_str;
 extern char *interface_type_004_xplout_str;
@@ -129,9 +130,11 @@ xpl2_f get_xPLCallback_interface_type_004(void *ixxx);
 int get_monitoring_id_interface_type_004(void *ixxx);
 int set_xPLCallback_interface_type_004(void *ixxx, xpl2_f cb);
 int set_monitoring_id_interface_type_004(void *ixxx, int id);
+int get_type_interface_type_004();
 
 interface_type_004_t *malloc_and_init_interface_type_004(sqlite3 *sqlite3_param_db, int id_interface, char *name, char *dev, char *parameters, char *description);
 int clean_interface_type_004(interface_type_004_t *i004);
 
+int get_fns_interface_type_004(struct interfacesServer_interfaceFns_s *interfacesFns);
 
 #endif

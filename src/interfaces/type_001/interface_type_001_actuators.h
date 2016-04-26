@@ -8,6 +8,8 @@
 #ifndef __interface_type_001_actuators_h
 #define __interface_type_001_actuators_h
 
+#include <string.h>
+
 #include "cJSON.h"
 #include "mea_timer.h"
 #include "interface_type_001.h"

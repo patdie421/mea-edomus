@@ -11,10 +11,12 @@
 #include <Python.h>
 #include <sqlite3.h>
 
+#include "interfacesServer.h"
 #include "dbServer.h"
 #include "xPLServer.h"
 #include "pythonPluginServer.h"
 
+#define INTERFACE_TYPE_006 465
 
 struct interface_type_006_indicators_s
 {
@@ -69,8 +71,11 @@ xpl2_f get_xPLCallback_interface_type_006(void *ixxx);
 int get_monitoring_id_interface_type_006(void *ixxx);
 int set_xPLCallback_interface_type_006(void *ixxx, xpl2_f cb);
 int set_monitoring_id_interface_type_006(void *ixxx, int id);
+int get_type_interface_type_006();
 
 interface_type_006_t *malloc_and_init_interface_type_006(sqlite3 *sqlite3_param_db, int id_interface, char *name, char *dev, char *parameters, char *description);
 int clean_interface_type_006(interface_type_006_t *i006);
+
+int get_fns_interface_type_006(struct interfacesServer_interfaceFns_s *interfacesFns);
 
 #endif

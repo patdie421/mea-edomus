@@ -17,6 +17,10 @@
 #include <signal.h>
 #include <sqlite3.h>
 
+#include <dlfcn.h>
+
+#include "globals.h"
+
 #include "mea_string_utils.h"
 #include "mea_queue.h"
 #include "mea_verbose.h"
@@ -33,20 +37,15 @@
 #include "interface_type_002.h"
 #include "interface_type_003.h"
 #include "interface_type_004.h"
-#include "interface_type_005.h"
+#include "interfaces/type_005/interface_type_005.h"
 #include "interface_type_006.h"
 
-struct interfacesServer_interfaceFns_s interfacesFns[6];
+struct interfacesServer_interfaceFns_s interfacesFns[7];
 
-int interfaces_types[] = { INTERFACE_TYPE_001, INTERFACE_TYPE_002, INTERFACE_TYPE_003, INTERFACE_TYPE_004, INTERFACE_TYPE_005, INTERFACE_TYPE_006, 0};
- 
 mea_queue_t *_interfaces=NULL;
 
 pthread_rwlock_t interfaces_queue_rwlock;
 
-//char *sql_select_device_info="SELECT sensors_actuators.id_sensor_actuator, sensors_actuators.id_location, sensors_actuators.state, sensors_actuators.parameters, types.parameters, sensors_actuators.id_type, lower(sensors_actuators.name), lower(interfaces.name), interfaces.id_type, (SELECT lower(types.name) FROM types WHERE types.id_type = interfaces.id_type), interfaces.dev FROM sensors_actuators INNER JOIN interfaces ON sensors_actuators.id_interface = interfaces.id_interface INNER JOIN types ON sensors_actuators.id_type = types.id_type";
-//char *sql_select_device_info="SELECT sensors_actuators.id_sensor_actuator, sensors_actuators.id_location, sensors_actuators.state, sensors_actuators.parameters, types.parameters, sensors_actuators.id_type, lower(sensors_actuators.name), lower(interfaces.name), interfaces.id_type, (SELECT lower(types.name) FROM types WHERE types.id_type = interfaces.id_type), interfaces.dev, sensors_actuators.todbflag FROM sensors_actuators INNER JOIN interfaces ON sensors_actuators.id_interface = interfaces.id_interface INNER JOIN types ON sensors_actuators.id_type = types.id_type";
-//char *sql_select_device_info="SELECT sensors_actuators.id_sensor_actuator, sensors_actuators.id_location, sensors_actuators.state, sensors_actuators.parameters, types.parameters, sensors_actuators.id_type, lower(sensors_actuators.name), lower(interfaces.name), interfaces.id_type, (SELECT lower(types.name) FROM types WHERE types.id_type = interfaces.id_type), interfaces.dev, sensors_actuators.todbflag, types.typeoftype, sensors_actuators.id_interface FROM sensors_actuators INNER JOIN interfaces ON sensors_actuators.id_interface = interfaces.id_interface INNER JOIN types ON sensors_actuators.id_type = types.id_type";
 char *sql_select_device_info="SELECT \
 sensors_actuators.id_sensor_actuator, \
 sensors_actuators.id_location, \
@@ -65,6 +64,29 @@ sensors_actuators.id_interface \
 FROM sensors_actuators INNER JOIN interfaces ON sensors_actuators.id_interface = interfaces.id_interface INNER JOIN types ON sensors_actuators.id_type = types.id_type" ;
 
 char *sql_select_interface_info="SELECT * FROM interfaces";
+
+void *interface_type_005_lib = NULL;
+
+
+int send_reload( char *hostname, int port)
+{
+   int ret;
+   int s;
+   char reload_str[80];
+   
+   if(mea_socket_connect(&s, hostname, port)<0)
+      return -1;
+   
+   int reload_str_l=strlen(reload_str)+4;
+   char message[2048];
+   sprintf(message,"$$$%c%cREL:%s###", (char)(reload_str_l%128), (char)(reload_str_l/128), reload_str);
+
+   ret = mea_socket_send(&s, message, reload_str_l+12);
+
+   close(s);
+
+   return ret;
+}
 
 
 void dispatchXPLMessageToInterfaces2(cJSON *xplMsgJson)
@@ -86,9 +108,11 @@ void dispatchXPLMessageToInterfaces2(cJSON *xplMsgJson)
          mea_queue_current(_interfaces, (void **)&iq);
 
          int i=0;
-         for(;interfaces_types[i];i++)
+
+         for(;interfacesFns[i].get_type;i++)
          {
-            if(interfaces_types[i]==iq->type)
+            int type=interfacesFns[i].get_type();
+            if(type==iq->type)
             {
                int monitoring_id = interfacesFns[i].get_monitoring_id(iq->context);
                if(monitoring_id>-1 && process_is_running(monitoring_id))
@@ -100,67 +124,7 @@ void dispatchXPLMessageToInterfaces2(cJSON *xplMsgJson)
                break;
             }
          }
-/* 
-         switch (iq->type)
-         {
-            case INTERFACE_TYPE_001:
-            {
-               fprintf(stderr,"ICI1-1\n");
-               interface_type_001_t *i001 = (interface_type_001_t *)(iq->context);
-               if(i001->monitoring_id>-1 && process_is_running(i001->monitoring_id) && i001->xPL_callback2)
-                  i001->xPL_callback2(xplMsgJson, (void *)i001);
-               fprintf(stderr,"ICI1-2\n");
-               break;
-            }
 
-            case INTERFACE_TYPE_002:
-            {
-               fprintf(stderr,"ICI2-1\n");
-               interface_type_002_t *i002 = (interface_type_002_t *)(iq->context);
-               if(i002->monitoring_id>-1 && process_is_running(i002->monitoring_id) && i002->xPL_callback2)
-                  i002->xPL_callback2(xplMsgJson, (void *)i002);
-               fprintf(stderr,"ICI2-2\n");
-               break;
-            }
-
-            case INTERFACE_TYPE_003:
-            {
-               interface_type_003_t *i003 = (interface_type_003_t *)(iq->context);
-               if(i003->monitoring_id>-1 && process_is_running(i003->monitoring_id) && i003->xPL_callback2)
-                  i003->xPL_callback2(xplMsgJson, (void *)i003);
-               break;
-            }
-
-            case INTERFACE_TYPE_004:
-            {
-               interface_type_004_t *i004 = (interface_type_004_t *)(iq->context);
-               if(i004->monitoring_id>-1 && process_is_running(i004->monitoring_id) && i004->xPL_callback2)
-                  i004->xPL_callback2(xplMsgJson, (void *)i004);
-               break;
-            }
-
-            case INTERFACE_TYPE_005:
-            {
-               interface_type_005_t *i005 = (interface_type_005_t *)(iq->context);
-               if(i005->monitoring_id>-1 && process_is_running(i005->monitoring_id) && i005->xPL_callback2)
-                  i005->xPL_callback2(xplMsgJson, (void *)i005);
-               break;
-            }
-
-            case INTERFACE_TYPE_006:
-            {
-               fprintf(stderr,"ICI6-1\n");
-               interface_type_006_t *i006 = (interface_type_006_t *)(iq->context);
-               if(i006->monitoring_id>-1 && process_is_running(i006->monitoring_id) && i006->xPL_callback2)
-                  i006->xPL_callback2(xplMsgJson, (void *)i006);
-               fprintf(stderr,"ICI6-2\n");
-               break;
-            }
-
-            default:
-               break;
-         }
-*/
          ret=mea_queue_next(_interfaces);
          if(ret<0)
             break;
@@ -189,9 +153,10 @@ void stop_interfaces()
          mea_queue_out_elem(_interfaces, (void **)&iq);
 
          int i=0;
-         for(;interfaces_types[i];i++)
+         for(;interfacesFns[i].get_type;i++)
          {
-            if(interfaces_types[i]==iq->type)
+            int type=interfacesFns[i].get_type();
+            if(type==iq->type)
             {
                int monitoring_id = interfacesFns[i].get_monitoring_id(iq->context);
                if(monitoring_id>-1 && process_is_running(monitoring_id))
@@ -223,188 +188,6 @@ void stop_interfaces()
             }
          }
 
-/*
-         switch (iq->type)
-         {
-            case INTERFACE_TYPE_001:
-            {
-               interface_type_001_t *i001=(interface_type_001_t *)(iq->context);
-               
-               if(i001->xPL_callback2)
-                  i001->xPL_callback2=NULL;
-
-               if(i001->monitoring_id!=-1)
-               {
-                  struct interface_type_001_start_stop_params_s *interface_type_001_start_stop_params = (struct interface_type_001_start_stop_params_s *)process_get_data_ptr(i001->monitoring_id);
-                  process_stop(i001->monitoring_id, NULL, 0);
-                  process_unregister(i001->monitoring_id);
-                  i001->monitoring_id=-1;
-                  if(interface_type_001_start_stop_params)
-                  {
-                     free(interface_type_001_start_stop_params);
-                     interface_type_001_start_stop_params=NULL;
-                  }
-               }
-               clean_interface_type_001(i001);
-               free(i001);
-               i001=NULL;
-               break;
-            }
-
-            case INTERFACE_TYPE_002:
-            {
-               interface_type_002_t *i002=(interface_type_002_t *)(iq->context);
-               
-               if(i002->xPL_callback2)
-                  i002->xPL_callback2=NULL;
-               
-               if(i002->monitoring_id!=-1)
-               {
-                  struct interface_type_002_start_stop_params_s *interface_type_002_start_stop_params = (struct interface_type_002_start_stop_params_s *)process_get_data_ptr(i002->monitoring_id);
-                  process_stop(i002->monitoring_id, NULL, 0);
-                  process_unregister(i002->monitoring_id);
-                  i002->monitoring_id=-1;
-                  if(interface_type_002_start_stop_params)
-                  {
-                     free(interface_type_002_start_stop_params);
-                     interface_type_002_start_stop_params=NULL;
-                  }
-                  if(i002->parameters)
-                  {
-                     free(i002->parameters);
-                     i002->parameters=NULL;
-                  }
-               }
-               clean_interface_type_002(i002);
-               free(i002);
-               i002=NULL;
-               break;
-            }
-         
-            case INTERFACE_TYPE_003:
-            {
-               interface_type_003_t *i003=(interface_type_003_t *)(iq->context);
-               
-               if(i003->xPL_callback2)
-                  i003->xPL_callback2=NULL;
-               
-               if(i003->monitoring_id!=-1)
-               {
-                  struct interface_type_003_start_stop_params_s *interface_type_003_start_stop_params = (struct interface_type_003_start_stop_params_s *)process_get_data_ptr(i003->monitoring_id);
-                  process_stop(i003->monitoring_id, NULL, 0);
-                  process_unregister(i003->monitoring_id);
-                  i003->monitoring_id=-1;
-                  if(interface_type_003_start_stop_params)
-                  {
-                     free(interface_type_003_start_stop_params);
-                     interface_type_003_start_stop_params=NULL;
-                  }
-                  if(i003->parameters)
-                  {
-                     free(i003->parameters);
-                     i003->parameters=NULL;
-                  }
-               }
-               clean_interface_type_003(i003);
-               free(i003);
-               i003=NULL;
-               break;
-            }
-
-            case INTERFACE_TYPE_004:
-            {
-               interface_type_004_t *i004=(interface_type_004_t *)(iq->context);
-               
-               if(i004->xPL_callback2)
-                  i004->xPL_callback2=NULL;
-               
-               if(i004->monitoring_id!=-1)
-               {
-                  struct interface_type_004_start_stop_params_s *interface_type_004_start_stop_params = (struct interface_type_004_start_stop_params_s *)process_get_data_ptr(i004->monitoring_id);
-                  process_stop(i004->monitoring_id, NULL, 0);
-                  process_unregister(i004->monitoring_id);
-                  i004->monitoring_id=-1;
-                  if(interface_type_004_start_stop_params)
-                  {
-                     free(interface_type_004_start_stop_params);
-                     interface_type_004_start_stop_params=NULL;
-                  }
-                  if(i004->parameters)
-                  {
-                     free(i004->parameters);
-                     i004->parameters=NULL;
-                  }
-               }
-               clean_interface_type_004(i004);
-               free(i004);
-               i004=NULL;
-               break;
-            }
-
-            case INTERFACE_TYPE_005:
-            {
-               interface_type_005_t *i005=(interface_type_005_t *)(iq->context);
-               
-               if(i005->xPL_callback2)
-                  i005->xPL_callback2=NULL;
-               
-               if(i005->monitoring_id!=-1)
-               {
-                  struct interface_type_005_start_stop_params_s *interface_type_005_start_stop_params = (struct interface_type_005_start_stop_params_s *)process_get_data_ptr(i005->monitoring_id);
-                  process_stop(i005->monitoring_id, NULL, 0);
-                  process_unregister(i005->monitoring_id);
-                  i005->monitoring_id=-1;
-                  if(interface_type_005_start_stop_params)
-                  {
-                     free(interface_type_005_start_stop_params);
-                     interface_type_005_start_stop_params=NULL;
-                  }
-                  if(i005->parameters)
-                  {
-                     free(i005->parameters);
-                     i005->parameters=NULL;
-                  }
-               }
-               clean_interface_type_005(i005);
-               free(i005);
-               i005=NULL;
-               break;
-            }
-
-            case INTERFACE_TYPE_006:
-            {
-               interface_type_006_t *i006=(interface_type_006_t *)(iq->context);
-               
-               if(i006->xPL_callback2)
-                  i006->xPL_callback2=NULL;
-               
-               if(i006->monitoring_id!=-1)
-               {
-                  struct interface_type_006_start_stop_params_s *interface_type_006_start_stop_params = (struct interface_type_006_start_stop_params_s *)process_get_data_ptr(i006->monitoring_id);
-                  process_stop(i006->monitoring_id, NULL, 0);
-                  process_unregister(i006->monitoring_id);
-                  i006->monitoring_id=-1;
-                  if(interface_type_006_start_stop_params)
-                  {
-                     free(interface_type_006_start_stop_params);
-                     interface_type_006_start_stop_params=NULL;
-                  }
-                  if(i006->parameters)
-                  {
-                     free(i006->parameters);
-                     i006->parameters=NULL;
-                  }
-               }
-               clean_interface_type_006(i006);
-               free(i006);
-               i006=NULL;
-               break;
-            }
-
-            default:
-               break;
-         }
-*/
          free(iq);
          iq=NULL;
       }
@@ -419,15 +202,16 @@ void stop_interfaces()
 }
 
 
-int16_t load_interfaces_fns()
+int16_t load_interfaces_fns(char **params_list)
 {
-   // interface_type_001
+/*
    interfacesFns[0].malloc_and_init_interface = (malloc_and_init_interface_f)&malloc_and_init_interface_type_001;
    interfacesFns[0].get_monitoring_id = (get_monitoring_id_f)&get_monitoring_id_interface_type_001;
    interfacesFns[0].get_xPLCallback = (get_xPLCallback_f)&get_xPLCallback_interface_type_001;
    interfacesFns[0].clean = (clean_f)&clean_interface_type_001;
    interfacesFns[0].set_monitoring_id = (set_monitoring_id_f)&set_monitoring_id_interface_type_001;
    interfacesFns[0].set_xPLCallback = (set_xPLCallback_f)&set_xPLCallback_interface_type_001;
+   interfacesFns[0].get_type = (get_type_f)&get_type_interface_type_001;
 
    interfacesFns[1].malloc_and_init_interface = (malloc_and_init_interface_f)&malloc_and_init_interface_type_002;
    interfacesFns[1].get_monitoring_id = (get_monitoring_id_f)&get_monitoring_id_interface_type_002;
@@ -435,6 +219,7 @@ int16_t load_interfaces_fns()
    interfacesFns[1].clean = (clean_f)&clean_interface_type_002;
    interfacesFns[1].set_monitoring_id = (set_monitoring_id_f)&set_monitoring_id_interface_type_002;
    interfacesFns[1].set_xPLCallback = (set_xPLCallback_f)&set_xPLCallback_interface_type_002;
+   interfacesFns[1].get_type = (get_type_f)&get_type_interface_type_002;
 
    interfacesFns[2].malloc_and_init_interface = (malloc_and_init_interface_f)&malloc_and_init_interface_type_003;
    interfacesFns[2].get_monitoring_id = (get_monitoring_id_f)&get_monitoring_id_interface_type_003;
@@ -442,6 +227,7 @@ int16_t load_interfaces_fns()
    interfacesFns[2].clean = (clean_f)&clean_interface_type_003;
    interfacesFns[2].set_monitoring_id = (set_monitoring_id_f)&set_monitoring_id_interface_type_003;
    interfacesFns[2].set_xPLCallback = (set_xPLCallback_f)&set_xPLCallback_interface_type_003;
+   interfacesFns[2].get_type = (get_type_f)&get_type_interface_type_003;
 
    interfacesFns[3].malloc_and_init_interface = (malloc_and_init_interface_f)&malloc_and_init_interface_type_004;
    interfacesFns[3].get_monitoring_id = (get_monitoring_id_f)&get_monitoring_id_interface_type_004;
@@ -449,6 +235,7 @@ int16_t load_interfaces_fns()
    interfacesFns[3].clean = (clean_f)&clean_interface_type_004;
    interfacesFns[3].set_monitoring_id = (set_monitoring_id_f)&set_monitoring_id_interface_type_004;
    interfacesFns[3].set_xPLCallback = (set_xPLCallback_f)&set_xPLCallback_interface_type_004;
+   interfacesFns[3].get_type = (get_type_f)&get_type_interface_type_004;
 
    interfacesFns[4].malloc_and_init_interface = (malloc_and_init_interface_f)&malloc_and_init_interface_type_005;
    interfacesFns[4].get_monitoring_id = (get_monitoring_id_f)&get_monitoring_id_interface_type_005;
@@ -456,6 +243,7 @@ int16_t load_interfaces_fns()
    interfacesFns[4].clean = (clean_f)&clean_interface_type_005;
    interfacesFns[4].set_monitoring_id = (set_monitoring_id_f)&set_monitoring_id_interface_type_005;
    interfacesFns[4].set_xPLCallback = (set_xPLCallback_f)&set_xPLCallback_interface_type_005;
+   interfacesFns[4].get_type = (get_type_f)&get_type_interface_type_005;
 
    interfacesFns[5].malloc_and_init_interface = (malloc_and_init_interface_f)&malloc_and_init_interface_type_006;
    interfacesFns[5].get_monitoring_id = (get_monitoring_id_f)&get_monitoring_id_interface_type_006;
@@ -463,6 +251,47 @@ int16_t load_interfaces_fns()
    interfacesFns[5].clean = (clean_f)&clean_interface_type_006;
    interfacesFns[5].set_monitoring_id = (set_monitoring_id_f)&set_monitoring_id_interface_type_006;
    interfacesFns[5].set_xPLCallback = (set_xPLCallback_f)&set_xPLCallback_interface_type_006;
+   interfacesFns[5].get_type = (get_type_f)&get_type_interface_type_006;
+*/
+#ifdef ASPLUGIN
+   struct interfacesServer_interfaceFns_s fns;
+   get_fns_interface_f fn = NULL;
+   char interface_so[256];
+
+   snprintf(interface_so, sizeof(interface_so)-1,"%s/%s", params_list[PLUGINS_PATH], "interface_type_005.so");
+
+   interface_type_005_lib = dlopen(interface_so, RTLD_NOW);
+   if(interface_type_005_lib)
+   {
+      char *err;
+
+      fn=dlsym(interface_type_005_lib, "get_fns_interface");
+      err = dlerror();
+      if(err!=NULL)
+      {
+         fprintf(stderr,"ERROR: %s\n", err);
+      }
+   }
+   else
+   {
+      fprintf(stderr,"lib not loaded: %s\n", dlerror());
+   }
+#endif
+
+   get_fns_interface_type_001(&(interfacesFns[0]));
+   get_fns_interface_type_002(&(interfacesFns[1]));
+   get_fns_interface_type_003(&(interfacesFns[2]));
+   get_fns_interface_type_004(&(interfacesFns[3]));
+#ifdef ASPLUGIN
+   fn(interface_type_005_lib, &(interfacesFns[4]));
+   interfacesFns[4].lib = interface_type_005_lib; 
+#else
+   get_fns_interface_type_005(&(interfacesFns[4]));
+#endif
+   get_fns_interface_type_006(&(interfacesFns[5]));
+
+   
+   interfacesFns[6].get_type = NULL;
 }
 
 
@@ -476,10 +305,10 @@ mea_queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
 
    pthread_rwlock_init(&interfaces_queue_rwlock, NULL);
   
-   load_interfaces_fns();
+   load_interfaces_fns(params_list);
  
    sprintf(sql,"SELECT * FROM interfaces");
-   ret = sqlite3_prepare_v2(sqlite3_param_db,sql,strlen(sql)+1,&stmt,NULL);
+   ret = sqlite3_prepare_v2(sqlite3_param_db, sql, strlen(sql)+1, &stmt, NULL);
    if(ret)
    {
       sqlite3_close(sqlite3_param_db);
@@ -534,9 +363,10 @@ mea_queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
 
             int monitoring_id=-1;
             int i=0;
-            for(;interfaces_types[i];i++)
+            for(;interfacesFns[i].get_type;i++)
             {
-               if(interfaces_types[i]==id_type)
+               int type=interfacesFns[i].get_type();
+               if(type==id_type)
                {
                   void *ptr = interfacesFns[i].malloc_and_init_interface(sqlite3_param_db, id_interface, (char *)name, (char *)dev, (char *)parameters, (char *)description);
                   if(ptr)
@@ -547,91 +377,7 @@ mea_queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                   break;
                }
             }
-/*
-            switch(id_type)
-            {
-               case INTERFACE_TYPE_001:
-               {
-                  interface_type_001_t *i001;
-                 
-                  i001=(interface_type_001_t *)interfacesFns[0].malloc_and_init_interface(sqlite3_param_db, id_interface, (char *)name, (char *)dev, (char *)parameters, (char *)description);
-//                  i001=malloc_and_init_interface_type_001(sqlite3_param_db, id_interface, (char *)name, (char *)dev, (char *)parameters, (char *)description);
-                  if(i001 == NULL)
-                     break;
-                  iq->context=i001;
-                  monitoring_id=i001->monitoring_id;
-                  break;
-               }
-                 
-               case INTERFACE_TYPE_002:
-               {
-                  interface_type_002_t *i002;
 
-                  i002=(interface_type_002_t *)interfacesFns[1].malloc_and_init_interface(sqlite3_param_db, id_interface, (char *)name, (char *)dev, (char *)parameters, (char *)description);
-//                  i002=malloc_and_init_interface_type_002(sqlite3_param_db, id_interface, (char *)name, (char *)dev, (char *)parameters, (char *)description);
-                  if(i002 == NULL)
-                     break;
-                  iq->context=i002;
-                  monitoring_id=i002->monitoring_id;
-                  break;
-               }
-                  
-               case INTERFACE_TYPE_003:
-               {
-                  interface_type_003_t *i003;
-
-                  i003=(interface_type_003_t *)interfacesFns[2].malloc_and_init_interface(sqlite3_param_db, id_interface, (char *)name, (char *)dev, (char *)parameters, (char *)description);
-//                  i003=malloc_and_init_interface_type_003(sqlite3_param_db, id_interface, (char *)name, (char *)dev, (char *)parameters, (char *)description);
-                  if(i003 == NULL)
-                     break;
-                  iq->context=i003;
-                  monitoring_id=i003->monitoring_id;
-                  break;
-               }
-
-               case INTERFACE_TYPE_004:
-               {
-                  interface_type_004_t *i004;
-
-                  i004=(interface_type_004_t *)interfacesFns[3].malloc_and_init_interface(sqlite3_param_db, id_interface, (char *)name, (char *)dev, (char *)parameters, (char *)description);
-//                  i004=malloc_and_init_interface_type_004(sqlite3_param_db, id_interface, (char *)name, (char *)dev, (char *)parameters, (char *)description);
-                  if(i004 == NULL)
-                     break;
-                  iq->context=i004;
-                  monitoring_id=i004->monitoring_id;
-                  break;
-               }
-
-               case INTERFACE_TYPE_005:
-               {
-                  interface_type_005_t *i005;
-
-                  i005=(interface_type_005_t *)interfacesFns[4].malloc_and_init_interface(sqlite3_param_db, id_interface, (char *)name, (char *)dev, (char *)parameters, (char *)description);
-//                  i005=malloc_and_init_interface_type_005(sqlite3_param_db, id_interface, (char *)name, (char *)dev, (char *)parameters, (char *)description);
-                  if(i005 == NULL)
-                     break;
-                  iq->context=i005;
-                  monitoring_id=i005->monitoring_id;
-                  break;
-               }
-
-               case INTERFACE_TYPE_006:
-               {
-                  interface_type_006_t *i006;
-
-                  i006=(interface_type_006_t *)interfacesFns[5].malloc_and_init_interface(sqlite3_param_db, id_interface, (char *)name, (char *)dev, (char *)parameters, (char *)description);
-//                  i006=malloc_and_init_interface_type_006(sqlite3_param_db, id_interface, (char *)name, (char *)dev, (char *)parameters, (char *)description);
-                  if(i006 == NULL)
-                     break;
-                  iq->context=i006;
-                  monitoring_id=i006->monitoring_id;
-                  break;
-               }
-
-               default:
-                  break;
-            }
-*/
             if(monitoring_id!=-1)
             {
                iq->type=id_type;
@@ -674,27 +420,6 @@ start_interfaces_clean_exit:
    }
 
    return _interfaces;
-}
-
-
-int send_reload( char *hostname, int port)
-{
-   int ret;
-   int s;
-   char reload_str[80];
-   
-   if(mea_socket_connect(&s, hostname, port)<0)
-      return -1;
-   
-   int reload_str_l=strlen(reload_str)+4;
-   char message[2048];
-   sprintf(message,"$$$%c%cREL:%s###", (char)(reload_str_l%128), (char)(reload_str_l/128), reload_str);
-
-   ret = mea_socket_send(&s, message, reload_str_l+12);
-
-   close(s);
-
-   return ret;
 }
 
 

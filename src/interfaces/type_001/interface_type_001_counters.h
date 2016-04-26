@@ -12,6 +12,8 @@
 #include <pthread.h>
 #include <inttypes.h>
 
+#include "interface_type_001.h"
+
 #include "comio2.h"
 #include "dbServer.h"
 //#include "error.h"

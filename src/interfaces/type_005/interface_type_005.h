@@ -9,26 +9,37 @@
 #ifndef __interface_type_005_h
 #define __interface_type_005_h
 
+#ifdef ASPLUGIN
+#define NAME(f) f ## _ ## PLGN
+#else
+#define NAME(f) f
+#endif
+
 #include <inttypes.h>
 #include <pthread.h>
 #include <sqlite3.h>
 #include <signal.h>
 #include "uthash.h"
 #include "cJSON.h"
+
+#include "interfacesServer.h"
+
 #include "xPLServer.h"
 
 #include "mea_queue.h"
 #include "netatmo.h"
 
-extern char *interface_type_005_xplin_str;
-extern char *interface_type_005_xplout_str;
-extern char *interface_type_005_nbreaderror_str;
-extern char *interface_type_005_nbread_str;
+#define INTERFACE_TYPE_005 455
 
-#define I005_XPLIN  interface_type_005_xplin_str
-#define I005_XPLOUT interface_type_005_xplout_str
-#define I005_NBREADERROR interface_type_005_nbreaderror_str
-#define I005_NBREAD interface_type_005_nbread_str
+extern char *NAME(interface_type_005_xplin_str);
+extern char *NAME(interface_type_005_xplout_str);
+extern char *NAME(interface_type_005_nbreaderror_str);
+extern char *NAME(interface_type_005_nbread_str);
+
+#define I005_XPLIN  NAME(interface_type_005_xplin_str)
+#define I005_XPLOUT NAME(interface_type_005_xplout_str)
+#define I005_NBREADERROR NAME(interface_type_005_nbreaderror_str)
+#define I005_NBREAD NAME(interface_type_005_nbread_str)
 
 struct interface_type_005_indicators_s
 {
@@ -71,18 +82,16 @@ struct thread_interface_type_005_args_s {
    interface_type_005_t *i005;
 };
 
-int start_interface_type_005(int my_id, void *data, char *errmsg, int l_errmsg);
-int stop_interface_type_005(int my_id, void *data, char *errmsg, int l_errmsg);
-int restart_interface_type_005(int my_id, void *data, char *errmsg, int l_errmsg);
-int16_t check_status_interface_type_005(interface_type_005_t *i005);
 
-xpl2_f get_xPLCallback_interface_type_005(void *ixxx);
-int get_monitoring_id_interface_type_005(void *ixxx);
-int set_xPLCallback_interface_type_005(void *ixxx, xpl2_f cb);
-int set_monitoring_id_interface_type_005(void *ixxx, int id);
+xpl2_f NAME(get_xPLCallback_interface_type_005)(void *ixxx);
+int NAME(get_monitoring_id_interface_type_005)(void *ixxx);
+int NAME(set_xPLCallback_interface_type_005)(void *ixxx, xpl2_f cb);
+int NAME(set_monitoring_id_interface_type_005)(void *ixxx, int id);
+int NAME(get_type_interface_type_005)();
 
-interface_type_005_t *malloc_and_init_interface_type_005(sqlite3 *sqlite3_param_db, int id_interface, char *name, char *dev, char *parameters, char *description);
-int clean_interface_type_005(interface_type_005_t *i005);
+interface_type_005_t *NAME(malloc_and_init_interface_type_005)(sqlite3 *sqlite3_param_db, int id_interface, char *name, char *dev, char *parameters, char *description);
+int NAME(clean_interface_type_005)(interface_type_005_t *i005);
 
+int NAME(get_fns_interface_type_005)(struct interfacesServer_interfaceFns_s *interfacesFns);
 
 #endif

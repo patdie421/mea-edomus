@@ -11,15 +11,19 @@
 
 #include <sqlite3.h>
 #include <inttypes.h>
+#include <string.h>
+#include <signal.h>
 
 //#include "error.h"
 #include "mea_verbose.h"
 #include "mea_queue.h"
 #include "comio2.h"
+
+#include "interfacesServer.h"
 #include "dbServer.h"
 #include "xPLServer.h"
 
-#include "interface_type_001.h"
+#define INTERFACE_TYPE_001 100
 
 #define I001_XPLINNB     "NBXPLIN"
 #define I001_SNBTRAPS    "SNBTRAPS"
@@ -94,8 +98,11 @@ xpl2_f get_xPLCallback_interface_type_001(void *ixxx);
 int    set_xPLCallback_interface_type_001(void *ixxx, xpl2_f cb);
 int    get_monitoring_id_interface_type_001(void *ixxx);
 int    set_monitoring_id_interface_type_001(void *ixxx, int id);
+int    get_type_interface_type_001();
 
 interface_type_001_t *malloc_and_init_interface_type_001(sqlite3 *sqlite3_param_db, int id_interface, char *name, char *dev, char *parameters, char *description);
 int clean_interface_type_001(interface_type_001_t *i001);
+
+int get_fns_interface_type_001(struct interfacesServer_interfaceFns_s *interfacesFns);
 
 #endif

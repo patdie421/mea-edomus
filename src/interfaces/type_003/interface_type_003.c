@@ -698,6 +698,12 @@ int set_monitoring_id_interface_type_003(void *ixxx, int id)
 }
 
 
+int get_type_interface_type_003()
+{
+   return INTERFACE_TYPE_003;
+}
+
+
 interface_type_003_t *malloc_and_init_interface_type_003(sqlite3 *sqlite3_param_db, int id_interface, char *name, char *dev, char *parameters, char *description)
 {
    interface_type_003_t *i003;
@@ -1068,3 +1074,18 @@ clean_exit:
    
    return -1;
 }
+
+
+int get_fns_interface_type_003(struct interfacesServer_interfaceFns_s *interfacesFns)
+{
+   interfacesFns->malloc_and_init_interface = (malloc_and_init_interface_f)&malloc_and_init_interface_type_003;
+   interfacesFns->get_monitoring_id = (get_monitoring_id_f)&get_monitoring_id_interface_type_003;
+   interfacesFns->get_xPLCallback = (get_xPLCallback_f)&get_xPLCallback_interface_type_003;
+   interfacesFns->clean = (clean_f)&clean_interface_type_003;
+   interfacesFns->set_monitoring_id = (set_monitoring_id_f)&set_monitoring_id_interface_type_003;
+   interfacesFns->set_xPLCallback = (set_xPLCallback_f)&set_xPLCallback_interface_type_003;
+   interfacesFns->get_type = (get_type_f)&get_type_interface_type_003;
+
+   return 0;
+}
+

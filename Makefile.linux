@@ -2,23 +2,8 @@ SHELL = /bin/bash
 CC = gcc
 
 TECHNO=linux
-
+# -DASPLUGIN \
 DEBUGFLAGS  = -g -D__DEBUG_ON__
-CFLAGS      = -std=c99 \
-              -std=gnu99 \
-              -O3 \
-              -D_BSD_SOURCE \
-              -I/usr/include/mysql \
-              -I/usr/include/python2.7 \
-              $(DEBUGFLAGS)
-LDFLAGS     = -lmysqlclient \
-              -lpthread \
-              -lm \
-              -ldl \
-              -lsqlite3 \
-              -lpython2.7 \
-              -lrt \
-              -lcurl
 
 MYPATH=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
@@ -26,13 +11,51 @@ SOURCES=$(shell echo src/*.c)
 OBJECTS=$(SOURCES:.c=.o)
 EXECUTABLE=mea-edomus
 
-all: $(SOURCES) $(EXECUTABLE)
+INTERFACES=type_001 type_002 type_003 type_004 type_005 type_006
+INTERFACES_PATH=$(addprefix src/interfaces/, $(INTERFACES))
+INTERFACES_CFLAG=$(addprefix -I, $(INTERFACES_PATH))
+INTERFACES_OBJECTS=$(addsuffix /$(TECHNO).objects/*.o, $(INTERFACES_PATH))
+
+CFLAGS      = -std=c99 \
+              -std=gnu99 \
+              -O3 \
+              -D_BSD_SOURCE \
+              -I/usr/include/mysql \
+              -I/usr/include/python2.7 \
+              -I$(MYPATH)/src \
+               $(INTERFACES_CFLAG) \
+               $(DEBUGFLAGS)
+
+LDFLAGS     = -lmysqlclient \
+              -lpthread \
+              -lm \
+              -ldl \
+              -lsqlite3 \
+              -lpython2.7 \
+              -lrt \
+              -lcurl \
+              -rdynamic
+
+# OBJECTS=$(addprefix $(TECHNO).objects/, $(SOURCES:.c=.o))
+
+all: interfaces $(SOURCES) $(EXECUTABLE)
+
+interfaces:
+	for i in $(INTERFACES_PATH) ; \
+	do \
+	   echo $$i ;\
+	   $(MAKE) -C $$i -f build.mk TECHNO=$(TECHNO) BASEDIR=$(MYPATH) CC=$(CC); \
+	done
 
 $(EXECUTABLE): $(OBJECTS) 
-	$(CC) $(LDFLAGS) $(OBJECTS) -o $@
+	$(CC) $(LDFLAGS) $(OBJECTS) $(INTERFACES_OBJECTS) -o $@
 
 clean:
-	-rm -f $(OBJECTS)
+	-rm -f $(OBJECTS) $(INTERFACES_OBJECTS)
+	@for i in $(INTERFACES_PATH) ; \
+	do \
+	   $(MAKE) -C $$i -f build.mk TECHNO=$(TECHNO) BASEDIR=$(MYPATH) CC=$(CC) clean; \
+	done
 
 build-php-cgi:
 	make -C complements/php-cgi -f php-cgi.mk SOURCE=$(MYPATH)
