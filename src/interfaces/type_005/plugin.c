@@ -42,6 +42,9 @@ int get_fns_interface(void *lib, struct interfacesServer_interfaceFns_s *interfa
    }
    else
    {
+      interfacesFns->lib = lib;
+      interfacesFns->plugin_flag = 1;
+
       return -1;
    }
 }

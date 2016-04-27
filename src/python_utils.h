@@ -9,6 +9,8 @@
 #ifndef mea_eDomus_python_utils_h
 #define mea_eDomus_python_utils_h
 
+#include "cJSON.h"
+
 #define python_lock() \
    { \
    pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL); \

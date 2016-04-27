@@ -37,10 +37,28 @@
 #include "interface_type_002.h"
 #include "interface_type_003.h"
 #include "interface_type_004.h"
-#include "interfaces/type_005/interface_type_005.h"
+#include "interface_type_005.h"
 #include "interface_type_006.h"
 
-struct interfacesServer_interfaceFns_s interfacesFns[7];
+#define MAX_INTERFACES_PLUGINS 10
+
+struct interfacesServer_interfaceFns_s *interfacesFns;
+int interfacesFns_nb = 0;
+int interfacesFns_max = MAX_INTERFACES_PLUGINS;
+
+struct plugin_info_s {
+   int type;
+   char *name;
+};
+
+struct plugin_info_s plugins_list[]={
+   {INTERFACE_TYPE_003, "interface_type_003.so"},
+   {INTERFACE_TYPE_004, "interface_type_004.so"},
+   {INTERFACE_TYPE_005, "interface_type_005.so"},
+   {INTERFACE_TYPE_006, "interface_type_006.so"},
+   {-1, NULL}
+};
+
 
 mea_queue_t *_interfaces=NULL;
 
@@ -64,8 +82,6 @@ sensors_actuators.id_interface \
 FROM sensors_actuators INNER JOIN interfaces ON sensors_actuators.id_interface = interfaces.id_interface INNER JOIN types ON sensors_actuators.id_type = types.id_type" ;
 
 char *sql_select_interface_info="SELECT * FROM interfaces";
-
-void *interface_type_005_lib = NULL;
 
 
 int send_reload( char *hostname, int port)
@@ -138,6 +154,102 @@ void dispatchXPLMessageToInterfaces2(cJSON *xplMsgJson)
 }
 
 
+int16_t unload_interfaces_fns()
+{
+   for(int i=0; interfacesFns[i].get_type; i++)
+   {
+      if(interfacesFns[interfacesFns_nb].plugin_flag==1)
+      {
+         dlclose(interfacesFns[interfacesFns_nb].lib);
+         interfacesFns[interfacesFns_nb].lib=NULL;
+      }
+   }
+
+   return 0;
+}
+
+
+int16_t init_interfaces_fns(char **params_list)
+{
+   int i=0;
+   interfacesFns_nb=0;
+
+   get_fns_interface_type_001(&(interfacesFns[i++]));
+   get_fns_interface_type_002(&(interfacesFns[i++]));
+#ifndef ASPLUGIN
+   get_fns_interface_type_003(&(interfacesFns[i++]));
+   get_fns_interface_type_004(&(interfacesFns[i++]));
+   get_fns_interface_type_005(&(interfacesFns[i++]));
+   get_fns_interface_type_006(&(interfacesFns[i++]));
+#endif
+   interfacesFns_nb=i;
+   interfacesFns[interfacesFns_nb].get_type = NULL;
+}
+
+#ifdef ASPLUGIN
+int load_interface(int type, char **params_list)
+{
+   for(int i=0; interfacesFns[i].get_type; i++)
+   {
+      if(interfacesFns[i].get_type() == type)
+         return 0;
+   }
+  
+   for(int i=0; plugins_list[i].name; i++)
+   {
+      if(type == plugins_list[i].type)
+      {
+         struct interfacesServer_interfaceFns_s fns;
+         get_fns_interface_f fn = NULL;
+         char interface_so[256];
+
+         snprintf(interface_so, sizeof(interface_so)-1,"%s/%s", params_list[PLUGINS_PATH], plugins_list[i].name);
+
+         void *lib = dlopen(interface_so, RTLD_NOW | RTLD_GLOBAL);
+         if(lib)
+         {
+            char *err;
+
+            fn=dlsym(lib, "get_fns_interface");
+            err = dlerror();
+            if(err!=NULL)
+            {
+               VERBOSE(1) mea_log_printf("%s (%s) : dlsym - %s\n", ERROR_STR, __func__, err);
+               return -1;
+            }
+            else
+            {
+               if(interfacesFns_nb >= (interfacesFns_max-1))
+               {
+                  struct interfacesServer_interfaceFns_s *tmp;
+                  interfacesFns_max+=5;
+                  tmp = realloc(interfacesFns,  sizeof(struct interfacesServer_interfaceFns_s)*interfacesFns_max);
+                  if(tmp == NULL)
+                  {
+                     dlclose(lib);
+                     return -1;
+                  }
+                  interfacesFns = tmp;
+                  memset(&(interfacesFns[interfacesFns_nb+1]), 0, 5*sizeof(struct interfacesServer_interfaceFns_s));
+               }
+               fn(lib, &(interfacesFns[interfacesFns_nb]));
+               interfacesFns[interfacesFns_nb].lib = lib;
+               interfacesFns_nb++;
+               return 0;
+            }
+         }
+         else
+         {
+            VERBOSE(2) mea_log_printf("%s (%s) : dlopen - %s\n", ERROR_STR, __func__, dlerror);
+            return -1;
+         }
+         break;
+      }
+   } 
+   return -1;
+}
+#endif
+
 void stop_interfaces()
 {
    interfaces_queue_elem_t *iq;
@@ -194,104 +306,16 @@ void stop_interfaces()
       free(_interfaces);
       _interfaces=NULL;
    }
-   
+  
+   unload_interfaces_fns();
+
+   free(interfacesFns);
+   interfacesFns=NULL;
+ 
    pthread_rwlock_unlock(&interfaces_queue_rwlock);
    pthread_cleanup_pop(0);
    
    return;
-}
-
-
-int16_t load_interfaces_fns(char **params_list)
-{
-/*
-   interfacesFns[0].malloc_and_init_interface = (malloc_and_init_interface_f)&malloc_and_init_interface_type_001;
-   interfacesFns[0].get_monitoring_id = (get_monitoring_id_f)&get_monitoring_id_interface_type_001;
-   interfacesFns[0].get_xPLCallback = (get_xPLCallback_f)&get_xPLCallback_interface_type_001;
-   interfacesFns[0].clean = (clean_f)&clean_interface_type_001;
-   interfacesFns[0].set_monitoring_id = (set_monitoring_id_f)&set_monitoring_id_interface_type_001;
-   interfacesFns[0].set_xPLCallback = (set_xPLCallback_f)&set_xPLCallback_interface_type_001;
-   interfacesFns[0].get_type = (get_type_f)&get_type_interface_type_001;
-
-   interfacesFns[1].malloc_and_init_interface = (malloc_and_init_interface_f)&malloc_and_init_interface_type_002;
-   interfacesFns[1].get_monitoring_id = (get_monitoring_id_f)&get_monitoring_id_interface_type_002;
-   interfacesFns[1].get_xPLCallback = (get_xPLCallback_f)&get_xPLCallback_interface_type_002;
-   interfacesFns[1].clean = (clean_f)&clean_interface_type_002;
-   interfacesFns[1].set_monitoring_id = (set_monitoring_id_f)&set_monitoring_id_interface_type_002;
-   interfacesFns[1].set_xPLCallback = (set_xPLCallback_f)&set_xPLCallback_interface_type_002;
-   interfacesFns[1].get_type = (get_type_f)&get_type_interface_type_002;
-
-   interfacesFns[2].malloc_and_init_interface = (malloc_and_init_interface_f)&malloc_and_init_interface_type_003;
-   interfacesFns[2].get_monitoring_id = (get_monitoring_id_f)&get_monitoring_id_interface_type_003;
-   interfacesFns[2].get_xPLCallback = (get_xPLCallback_f)&get_xPLCallback_interface_type_003;
-   interfacesFns[2].clean = (clean_f)&clean_interface_type_003;
-   interfacesFns[2].set_monitoring_id = (set_monitoring_id_f)&set_monitoring_id_interface_type_003;
-   interfacesFns[2].set_xPLCallback = (set_xPLCallback_f)&set_xPLCallback_interface_type_003;
-   interfacesFns[2].get_type = (get_type_f)&get_type_interface_type_003;
-
-   interfacesFns[3].malloc_and_init_interface = (malloc_and_init_interface_f)&malloc_and_init_interface_type_004;
-   interfacesFns[3].get_monitoring_id = (get_monitoring_id_f)&get_monitoring_id_interface_type_004;
-   interfacesFns[3].get_xPLCallback = (get_xPLCallback_f)&get_xPLCallback_interface_type_004;
-   interfacesFns[3].clean = (clean_f)&clean_interface_type_004;
-   interfacesFns[3].set_monitoring_id = (set_monitoring_id_f)&set_monitoring_id_interface_type_004;
-   interfacesFns[3].set_xPLCallback = (set_xPLCallback_f)&set_xPLCallback_interface_type_004;
-   interfacesFns[3].get_type = (get_type_f)&get_type_interface_type_004;
-
-   interfacesFns[4].malloc_and_init_interface = (malloc_and_init_interface_f)&malloc_and_init_interface_type_005;
-   interfacesFns[4].get_monitoring_id = (get_monitoring_id_f)&get_monitoring_id_interface_type_005;
-   interfacesFns[4].get_xPLCallback = (get_xPLCallback_f)&get_xPLCallback_interface_type_005;
-   interfacesFns[4].clean = (clean_f)&clean_interface_type_005;
-   interfacesFns[4].set_monitoring_id = (set_monitoring_id_f)&set_monitoring_id_interface_type_005;
-   interfacesFns[4].set_xPLCallback = (set_xPLCallback_f)&set_xPLCallback_interface_type_005;
-   interfacesFns[4].get_type = (get_type_f)&get_type_interface_type_005;
-
-   interfacesFns[5].malloc_and_init_interface = (malloc_and_init_interface_f)&malloc_and_init_interface_type_006;
-   interfacesFns[5].get_monitoring_id = (get_monitoring_id_f)&get_monitoring_id_interface_type_006;
-   interfacesFns[5].get_xPLCallback = (get_xPLCallback_f)&get_xPLCallback_interface_type_006;
-   interfacesFns[5].clean = (clean_f)&clean_interface_type_006;
-   interfacesFns[5].set_monitoring_id = (set_monitoring_id_f)&set_monitoring_id_interface_type_006;
-   interfacesFns[5].set_xPLCallback = (set_xPLCallback_f)&set_xPLCallback_interface_type_006;
-   interfacesFns[5].get_type = (get_type_f)&get_type_interface_type_006;
-*/
-#ifdef ASPLUGIN
-   struct interfacesServer_interfaceFns_s fns;
-   get_fns_interface_f fn = NULL;
-   char interface_so[256];
-
-   snprintf(interface_so, sizeof(interface_so)-1,"%s/%s", params_list[PLUGINS_PATH], "interface_type_005.so");
-
-   interface_type_005_lib = dlopen(interface_so, RTLD_NOW);
-   if(interface_type_005_lib)
-   {
-      char *err;
-
-      fn=dlsym(interface_type_005_lib, "get_fns_interface");
-      err = dlerror();
-      if(err!=NULL)
-      {
-         fprintf(stderr,"ERROR: %s\n", err);
-      }
-   }
-   else
-   {
-      fprintf(stderr,"lib not loaded: %s\n", dlerror());
-   }
-#endif
-
-   get_fns_interface_type_001(&(interfacesFns[0]));
-   get_fns_interface_type_002(&(interfacesFns[1]));
-   get_fns_interface_type_003(&(interfacesFns[2]));
-   get_fns_interface_type_004(&(interfacesFns[3]));
-#ifdef ASPLUGIN
-   fn(interface_type_005_lib, &(interfacesFns[4]));
-   interfacesFns[4].lib = interface_type_005_lib; 
-#else
-   get_fns_interface_type_005(&(interfacesFns[4]));
-#endif
-   get_fns_interface_type_006(&(interfacesFns[5]));
-
-   
-   interfacesFns[6].get_type = NULL;
 }
 
 
@@ -304,8 +328,14 @@ mea_queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
    interfaces_queue_elem_t *iq;
 
    pthread_rwlock_init(&interfaces_queue_rwlock, NULL);
-  
-   load_interfaces_fns(params_list);
+
+   interfacesFns_max = MAX_INTERFACES_PLUGINS;
+   interfacesFns = (struct interfacesServer_interfaceFns_s *)malloc(sizeof(struct interfacesServer_interfaceFns_s) * interfacesFns_max);
+   if(interfacesFns == NULL)
+      return NULL;
+   memset(interfacesFns, 0, sizeof(struct interfacesServer_interfaceFns_s)*interfacesFns_max);
+
+   init_interfaces_fns(params_list);
  
    sprintf(sql,"SELECT * FROM interfaces");
    ret = sqlite3_prepare_v2(sqlite3_param_db, sql, strlen(sql)+1, &stmt, NULL);
@@ -363,6 +393,17 @@ mea_queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
 
             int monitoring_id=-1;
             int i=0;
+
+#ifdef ASPLUGIN
+            if(load_interface(id_type, params_list)<0)
+            {
+               VERBOSE(2) mea_log_printf("%s (%s) : can't load interface type %d\n", ERROR_STR, __func__, id_type);
+            }
+            else
+            {
+               VERBOSE(2) mea_log_printf("%s (%s) : new interface loaded (%d)\n", INFO_STR, __func__, id_type);
+            }
+#endif
             for(;interfacesFns[i].get_type;i++)
             {
                int type=interfacesFns[i].get_type();

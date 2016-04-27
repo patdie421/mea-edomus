@@ -1035,7 +1035,7 @@ int main(int argc, const char * argv[])
    interfaces=start_interfaces(params_list, sqlite3_param_db); // démarrage des interfaces
    int interfaces_reload_task_id=process_register("RELOAD"); // mise en place de la tâche de rechargement des paramètrages des interfaces
    process_set_group(interfaces_reload_task_id, 2);
-   process_set_start_stop(interfaces_reload_task_id , restart_interfaces, NULL, (void *)(&interfacesServerData), 1);
+   process_set_start_stop(interfaces_reload_task_id, restart_interfaces, NULL, (void *)(&interfacesServerData), 1);
    process_set_type(interfaces_reload_task_id, TASK);
 
    //

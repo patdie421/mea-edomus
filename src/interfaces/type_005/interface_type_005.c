@@ -905,7 +905,6 @@ static int NAME(interface_type_005_sendData)(interface_type_005_t *i005, struct 
    ret=NAME(interface_type_005_current_last)(sa_elem, type, str_value, str_last, &data4db, &data4db2, data4dbComp);
    if(ret==1)
    {
-      //_interface_type_005_send_xPL_sensor_basic(i005, xPL_MESSAGE_TRIGGER, sa_elem->name, type, str_value, str_last);
       NAME(_interface_type_005_send_xPL_sensor_basic2)(i005, XPL_TRIG_STR_C, sa_elem->name, type, str_value, str_last);
       if(sa_elem->todbflag==1)
          dbServer_add_data_to_sensors_values(sa_elem->id, data4db, 0, data4db2, data4dbComp);
@@ -1126,9 +1125,7 @@ void *NAME(_thread_interface_type_005)(void *thread_data)
 
       if(auth_flag!=0 && mea_test_timer(&getdata_timer)==0)
       {
-//         VERBOSE(9) mea_log_printf("%s (%s) : start getData", ERROR_STR, __func__);
          NAME(interface_type_005_getData)(i005);
-//         VERBOSE(9) mea_log_printf("%s (%s) : getData done", ERROR_STR, __func__);
       }
 
       sleep(5);
@@ -1143,9 +1140,6 @@ _thread_interface_type_005_clean_exit:
 
 xpl2_f NAME(get_xPLCallback_interface_type_005)(void *ixxx)
 {
-#ifdef ASPLUGIN
-   fprintf(stderr,"%s PLUGIN CALL\n", __func__);
-#endif
    interface_type_005_t *i005 = (interface_type_005_t *)ixxx;
 
    if(i005 == NULL)
@@ -1157,9 +1151,6 @@ xpl2_f NAME(get_xPLCallback_interface_type_005)(void *ixxx)
 
 int NAME(get_monitoring_id_interface_type_005)(void *ixxx)
 {
-#ifdef ASPLUGIN
-   fprintf(stderr,"%s PLUGIN CALL\n", __func__);
-#endif
    interface_type_005_t *i005 = (interface_type_005_t *)ixxx;
 
    if(i005 == NULL)
@@ -1171,9 +1162,6 @@ int NAME(get_monitoring_id_interface_type_005)(void *ixxx)
 
 int NAME(set_xPLCallback_interface_type_005)(void *ixxx, xpl2_f cb)
 {
-#ifdef ASPLUGIN
-   fprintf(stderr,"%s PLUGIN CALL\n", __func__);
-#endif
    interface_type_005_t *i005 = (interface_type_005_t *)ixxx;
 
    if(i005 == NULL)
@@ -1188,9 +1176,6 @@ int NAME(set_xPLCallback_interface_type_005)(void *ixxx, xpl2_f cb)
 
 int NAME(set_monitoring_id_interface_type_005)(void *ixxx, int id)
 {
-#ifdef ASPLUGIN
-   fprintf(stderr,"%s PLUGIN CALL\n", __func__);
-#endif
    interface_type_005_t *i005 = (interface_type_005_t *)ixxx;
 
    if(i005 == NULL)
@@ -1205,18 +1190,12 @@ int NAME(set_monitoring_id_interface_type_005)(void *ixxx, int id)
 
 int NAME(get_type_interface_type_005)()
 {
-#ifdef ASPLUGIN
-   fprintf(stderr,"%s PLUGIN CALL\n", __func__);
-#endif
    return INTERFACE_TYPE_005;
 }
 
 
 interface_type_005_t *NAME(malloc_and_init_interface_type_005)(sqlite3 *sqlite3_param_db, int id_interface, char *name, char *dev, char *parameters, char *description)
 {
-#ifdef ASPLUGIN
-   fprintf(stderr,"%s PLUGIN CALL\n", __func__);
-#endif
    interface_type_005_t *i005=NULL;
    
    i005=(interface_type_005_t *)calloc(1, sizeof(interface_type_005_t));
@@ -1290,9 +1269,6 @@ interface_type_005_t *NAME(malloc_and_init_interface_type_005)(sqlite3 *sqlite3_
 
 int NAME(clean_interface_type_005)(interface_type_005_t *i005)
 {
-#ifdef ASPLUGIN
-   fprintf(stderr,"%s PLUGIN CALL\n", __func__);
-#endif
    NAME(clean_queues)(&(i005->devices_list));
 
    if(i005->parameters)
@@ -1455,6 +1431,9 @@ int get_fns_interface_type_005(struct interfacesServer_interfaceFns_s *interface
    interfacesFns->set_monitoring_id = (set_monitoring_id_f)&set_monitoring_id_interface_type_005;
    interfacesFns->set_xPLCallback = (set_xPLCallback_f)&set_xPLCallback_interface_type_005;
    interfacesFns->get_type = (get_type_f)&get_type_interface_type_005;
+
+   interfacesFns->lib = NULL;
+   interfacesFns->plugin_flag = 0;
 
    return 0;
 }

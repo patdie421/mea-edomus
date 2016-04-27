@@ -8,39 +8,70 @@ endif
 
 SHELL = /bin/bash
 
+ifeq ($(ASPLUGIN), 1)
+LINUX_SONAME           = interface_type_004.so
+MACOSX_SONAME          = interface_type_004.dylib
+LINUX_ASPLUGIN_CFLAGS  = -DASPLUGIN
+LINUX_ASPLUGIN_LDFLAGS = -shared -Wl,--export-dynamic
+MACOSX_ASPLUGIN_CFLAGS = -DASPLUGIN
+MACOSX_ASPLUGIN_LDFLAGS=
+else
+LINUX_SONAME           =
+MACOSX_SONAME          =
+LINUX_ASPLUGIN_CFLAGS  =
+LINUX_ASPLUGIN_LDFLAGS =
+MACOSX_ASPLUGIN_CFLAGS =
+MACOSX_ASPLUGIN_LDFLAGS=
+endif
+
 DEBUGFLAGS  = -D__DEBUG_ON__
 ifeq ($(TECHNO), linux)
-   CFLAGS      = -std=c99 \
-                 -std=gnu99 \
+   SONAME      = $(LINUX_SONAME)
+   CFLAGS      = -std=gnu99 \
                  -D_BSD_SOURCE \
                  -O2 \
                  -DTECHNO_$(TECHNO) \
                  -I/usr/include/mysql \
                  -I/usr/include/python2.7 \
                  -I$(BASEDIR)/src \
-                 $(DEBUGFLAGS)
+                 $(DEBUGFLAGS) \
+                 $(LINUX_ASPLUGIN_CFLAGS)
+   LDFLAGS     = $(LINUX_ASPLUGIN_LDFLAGS)
 endif
 ifeq ($(TECHNO), macosx)
+   SONAME      = $(MACOSX_SONAME)
    CFLAGS      = -std=c99 \
                  -O2 \
                  -DTECHNO_$(TECHNO) \
                  -IxPLLib-mac \
                  -I/usr/local/mysql/include \
                  -I/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7 \
-                 $(DEBUGFLAGS)
+                 $(DEBUGFLAGS) \
+                 $(MACOSX_ASPLUGIN_CFLAGS)
+   LDFLAGS     = $(MACOSX_ASPLUGIN_LDFLAGS)
 endif
 
+ifeq ($(ASPLUGIN), 1)
+SOURCES=interface_type_004.c \
+philipshue.c \
+philipshue_color.c \
+plugin.c
+else
 SOURCES=interface_type_004.c \
 philipshue.c \
 philipshue_color.c
+endif
 
 OBJECTS=$(addprefix $(TECHNO).objects/, $(SOURCES:.c=.o))
 
-$(TECHNO).objects/%.o: %.c
+all: .deps $(TECHNO).objects $(OBJECTS) $(SONAME)
+
+$(SONAME): $(OBJECTS) 
+	@$(CC) $(LDFLAGS) $(OBJECTS) -o $(SONAME);
+
+$(TECHNO).objects/%.o: $(SOURCES)
 	@$(CC) $(INCLUDES) -c $(CFLAGS) -MM -MT $(TECHNO).objects/$*.o $*.c > .deps/$*.dep
 	$(CC) $(INCLUDES) -c $(CFLAGS) $*.c -o $(TECHNO).objects/$*.o
-
-all: .deps $(TECHNO).objects $(OBJECTS)
 
 .deps:
 	@mkdir -p .deps
@@ -49,6 +80,6 @@ $(TECHNO).objects:
 	@mkdir -p $(TECHNO).objects
 
 clean:
-	rm -f $(TECHNO).objects/*.o .deps/*.dep
+	rm -f $(TECHNO).objects/*.o .deps/*.dep $(SONAME)
  
 -include .deps/*.dep

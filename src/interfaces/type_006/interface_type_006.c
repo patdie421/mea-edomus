@@ -7,7 +7,7 @@
 //
 #include <Python.h>
 
-#include "interface_type_006.h"
+//#include "interface_type_006.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -45,17 +45,17 @@
 #include "interface_type_006.h"
 
 
-char *interface_type_006_senttoplugin_str="SENT2PLUGIN";
-char *interface_type_006_xplin_str="XPLIN";
-char *interface_type_006_xplout_str="XPLOUT";
-char *interface_type_006_serialin_str="SERIALIN";
-char *interface_type_006_serialout_str="SERIALOUT";
+char *NAME(interface_type_006_senttoplugin_str)="SENT2PLUGIN";
+char *NAME(interface_type_006_xplin_str)="XPLIN";
+char *NAME(interface_type_006_xplout_str)="XPLOUT";
+char *NAME(interface_type_006_serialin_str)="SERIALIN";
+char *NAME(interface_type_006_serialout_str)="SERIALOUT";
 
 
 typedef void (*thread_f)(void *);
 
 // parametres valide pour les capteurs ou actionneurs pris en compte par le type 2.
-char *valid_genericserial_plugin_params[]={"S:PLUGIN","S:PARAMETERS", NULL};
+char *NAME(valid_genericserial_plugin_params)[]={"S:PLUGIN","S:PARAMETERS", NULL};
 #define GENERICSERIAL_PLUGIN_PARAMS_PLUGIN      0
 #define GENERICSERIAL_PLUGIN_PARAMS_PARAMETERS  1
 
@@ -79,7 +79,13 @@ struct genericserial_thread_params_s
 };
 
 
-int interface_type_006_call_serialDataPre(struct genericserial_thread_params_s *params, void *data, int l_data)
+int NAME(start_interface_type_006)(int my_id, void *data, char *errmsg, int l_errmsg);
+int NAME(stop_interface_type_006)(int my_id, void *data, char *errmsg, int l_errmsg);
+int NAME(restart_interface_type_006)(int my_id, void *data, char *errmsg, int l_errmsg);
+int16_t NAME(check_status_interface_type_006)(interface_type_006_t *i006);
+
+
+int NAME(interface_type_006_call_serialDataPre)(struct genericserial_thread_params_s *params, void *data, int l_data)
 {
    int retour=-1;
    if(params->pFunc)
@@ -113,7 +119,7 @@ int interface_type_006_call_serialDataPre(struct genericserial_thread_params_s *
 }
 
 
-int interface_type_006_data_to_plugin(PyThreadState *myThreadState, int fd, sqlite3_stmt * stmt, int data_type, void *data, int l_data)
+int NAME(interface_type_006_data_to_plugin)(PyThreadState *myThreadState, int fd, sqlite3_stmt * stmt, int data_type, void *data, int l_data)
 {
    parsed_parameters_t *plugin_params=NULL;
    int nb_plugin_params;
@@ -121,7 +127,7 @@ int interface_type_006_data_to_plugin(PyThreadState *myThreadState, int fd, sqli
    int retour=-1;
    plugin_queue_elem_t *plugin_elem = NULL;
 
-   plugin_params=alloc_parsed_parameters((char *)sqlite3_column_text(stmt, 3), valid_genericserial_plugin_params, &nb_plugin_params, &err, 0);
+   plugin_params=alloc_parsed_parameters((char *)sqlite3_column_text(stmt, 3), NAME(valid_genericserial_plugin_params), &nb_plugin_params, &err, 0);
    if(!plugin_params || !plugin_params->parameters[GENERICSERIAL_PLUGIN_PARAMS_PLUGIN].value.s)
       goto interface_type_006_data_to_plugin_clean_exit;
 
@@ -191,7 +197,7 @@ interface_type_006_data_to_plugin_clean_exit:
 }
 
 
-void set_interface_type_006_isnt_running(void *data)
+void NAME(set_interface_type_006_isnt_running)(void *data)
 {
    interface_type_006_t *i006 = (interface_type_006_t *)data;
 
@@ -200,7 +206,7 @@ void set_interface_type_006_isnt_running(void *data)
 
 
 //int16_t _interface_type_006_xPL_callback2(cJSON *xplMsgJson, xPL_ObjectPtr userValue)
-int16_t _interface_type_006_xPL_callback2(cJSON *xplMsgJson, void *userValue)
+int16_t NAME(_interface_type_006_xPL_callback2)(cJSON *xplMsgJson, void *userValue)
 {
    char *device;
    int ret;
@@ -253,7 +259,7 @@ int16_t _interface_type_006_xPL_callback2(cJSON *xplMsgJson, void *userValue)
          parsed_parameters_t *plugin_params=NULL;
          int nb_plugin_params;
         
-         plugin_params=alloc_parsed_parameters((char *)sqlite3_column_text(stmt, 3), valid_genericserial_plugin_params, &nb_plugin_params, &err, 0);
+         plugin_params=alloc_parsed_parameters((char *)sqlite3_column_text(stmt, 3), NAME(valid_genericserial_plugin_params), &nb_plugin_params, &err, 0);
          if(!plugin_params || !plugin_params->parameters[GENERICSERIAL_PLUGIN_PARAMS_PLUGIN].value.s)
          {
             if(plugin_params)
@@ -311,7 +317,7 @@ int16_t _interface_type_006_xPL_callback2(cJSON *xplMsgJson, void *userValue)
    return 0;
 }
 
-void *_thread_interface_type_006_genericserial_data_cleanup(void *args)
+void NAME(*_thread_interface_type_006_genericserial_data_cleanup)(void *args)
 {
    struct genericserial_thread_params_s *params=(struct genericserial_thread_params_s *)args;
 
@@ -383,12 +389,12 @@ void *_thread_interface_type_006_genericserial_data_cleanup(void *args)
 }
 
 
-void *_thread_interface_type_006_genericserial_data(void *args)
+void *NAME(_thread_interface_type_006_genericserial_data)(void *args)
 {
    struct genericserial_thread_params_s *params=(struct genericserial_thread_params_s *)args;
 
-   pthread_cleanup_push( (void *)_thread_interface_type_006_genericserial_data_cleanup, (void *)params );
-   pthread_cleanup_push( (void *)set_interface_type_006_isnt_running, (void *)params->i006 );
+   pthread_cleanup_push( (void *)NAME(_thread_interface_type_006_genericserial_data_cleanup), (void *)params );
+   pthread_cleanup_push( (void *)NAME(set_interface_type_006_isnt_running), (void *)params->i006 );
    
    params->i006->thread_is_running=1;
    process_heartbeat(params->i006->monitoring_id);
@@ -444,11 +450,11 @@ void *_thread_interface_type_006_genericserial_data(void *args)
             if(mea_test_timer(&process_timer)==0)
             {
                process_heartbeat(params->i006->monitoring_id);
-               process_update_indicator(params->i006->monitoring_id, interface_type_006_senttoplugin_str, params->i006->indicators.senttoplugin);
-               process_update_indicator(params->i006->monitoring_id, interface_type_006_xplin_str, params->i006->indicators.xplin);
-               process_update_indicator(params->i006->monitoring_id, interface_type_006_xplout_str, params->i006->indicators.xplout);
-               process_update_indicator(params->i006->monitoring_id, interface_type_006_serialin_str, params->i006->indicators.serialin);
-               process_update_indicator(params->i006->monitoring_id, interface_type_006_serialout_str, params->i006->indicators.serialout);
+               process_update_indicator(params->i006->monitoring_id, NAME(interface_type_006_senttoplugin_str), params->i006->indicators.senttoplugin);
+               process_update_indicator(params->i006->monitoring_id, NAME(interface_type_006_xplin_str), params->i006->indicators.xplin);
+               process_update_indicator(params->i006->monitoring_id, NAME(interface_type_006_xplout_str), params->i006->indicators.xplout);
+               process_update_indicator(params->i006->monitoring_id, NAME(interface_type_006_serialin_str), params->i006->indicators.serialin);
+               process_update_indicator(params->i006->monitoring_id, NAME(interface_type_006_serialout_str), params->i006->indicators.serialout);
             }
 
             fd_set input_set;
@@ -501,7 +507,7 @@ void *_thread_interface_type_006_genericserial_data(void *args)
             params->i006->indicators.serialin+=buffer_ptr;
             buffer[buffer_ptr]=0;
 
-            int ret=interface_type_006_call_serialDataPre(params, (void *)buffer, buffer_ptr+1);
+            int ret=NAME(interface_type_006_call_serialDataPre)(params, (void *)buffer, buffer_ptr+1);
             if(ret!=0)
             {
                // transmettre buffer aux plugins
@@ -522,7 +528,7 @@ void *_thread_interface_type_006_genericserial_data(void *args)
                   
                      if(s==SQLITE_ROW)
                      {
-                        int ret=interface_type_006_data_to_plugin(params->myThreadState, params->i006->fd, stmt, GENERICSERIALDATA, (void *)buffer, buffer_ptr+1);
+                        int ret=NAME(interface_type_006_data_to_plugin)(params->myThreadState, params->i006->fd, stmt, GENERICSERIALDATA, (void *)buffer, buffer_ptr+1);
                         if(ret<0)
                         {
                            VERBOSE(5) mea_log_printf("%s (%s) : can't send to plugin\n", ERROR_STR, __func__);
@@ -566,7 +572,7 @@ _thread_interface_type_006_genericserial_data_clean_exit:
 }
 
 
-pthread_t *start_interface_type_006_genericserial_data_thread(interface_type_006_t *i006, sqlite3 *db,  parsed_parameters_t *interface_parameters, thread_f function)
+pthread_t *NAME(start_interface_type_006_genericserial_data_thread)(interface_type_006_t *i006, sqlite3 *db,  parsed_parameters_t *interface_parameters, thread_f function)
 {
    pthread_t *thread=NULL;
    struct genericserial_thread_params_s *params=NULL;
@@ -668,8 +674,10 @@ start_interface_type_006_genericserial_data_thread_clean_exit:
 }
 
 
-int clean_interface_type_006(interface_type_006_t *i006)
+int NAME(clean_interface_type_006)(void *ixxx)
 {
+   interface_type_006_t *i006 = (interface_type_006_t *)ixxx;
+
    if(i006->parameters)
    {
       free(i006->parameters);
@@ -697,7 +705,7 @@ int clean_interface_type_006(interface_type_006_t *i006)
 }
 
 
-xpl2_f get_xPLCallback_interface_type_006(void *ixxx)
+xpl2_f NAME(get_xPLCallback_interface_type_006)(void *ixxx)
 {
    interface_type_006_t *i006 = (interface_type_006_t *)ixxx;
 
@@ -708,7 +716,7 @@ xpl2_f get_xPLCallback_interface_type_006(void *ixxx)
 }
 
 
-int get_monitoring_id_interface_type_006(void *ixxx)
+int NAME(get_monitoring_id_interface_type_006)(void *ixxx)
 {
    interface_type_006_t *i006 = (interface_type_006_t *)ixxx;
 
@@ -719,7 +727,7 @@ int get_monitoring_id_interface_type_006(void *ixxx)
 }
 
 
-int set_xPLCallback_interface_type_006(void *ixxx, xpl2_f cb)
+int NAME(set_xPLCallback_interface_type_006)(void *ixxx, xpl2_f cb)
 {
    interface_type_006_t *i006 = (interface_type_006_t *)ixxx;
 
@@ -733,7 +741,7 @@ int set_xPLCallback_interface_type_006(void *ixxx, xpl2_f cb)
 }
 
 
-int set_monitoring_id_interface_type_006(void *ixxx, int id)
+int NAME(set_monitoring_id_interface_type_006)(void *ixxx, int id)
 {
    interface_type_006_t *i006 = (interface_type_006_t *)ixxx;
 
@@ -747,13 +755,13 @@ int set_monitoring_id_interface_type_006(void *ixxx, int id)
 }
 
 
-int get_type_interface_type_006()
+int NAME(get_type_interface_type_006)()
 {
    return INTERFACE_TYPE_006;
 }
 
 
-interface_type_006_t *malloc_and_init_interface_type_006(sqlite3 *sqlite3_param_db, int id_interface, char *name, char *dev, char *parameters, char *description)
+interface_type_006_t *NAME(malloc_and_init_interface_type_006)(sqlite3 *sqlite3_param_db, int id_interface, char *name, char *dev, char *parameters, char *description)
 {
    interface_type_006_t *i006;
                   
@@ -799,22 +807,22 @@ interface_type_006_t *malloc_and_init_interface_type_006(sqlite3 *sqlite3_param_
    i006_start_stop_params->i006=i006;
                   
    process_set_group(i006->monitoring_id, 1);
-   process_set_start_stop(i006->monitoring_id, start_interface_type_006, stop_interface_type_006, (void *)i006_start_stop_params, 1);
-   process_set_watchdog_recovery(i006->monitoring_id, restart_interface_type_006, (void *)i006_start_stop_params);
+   process_set_start_stop(i006->monitoring_id, NAME(start_interface_type_006), NAME(stop_interface_type_006), (void *)i006_start_stop_params, 1);
+   process_set_watchdog_recovery(i006->monitoring_id, NAME(restart_interface_type_006), (void *)i006_start_stop_params);
    process_set_description(i006->monitoring_id, (char *)description);
    process_set_heartbeat_interval(i006->monitoring_id, 60); // chien de garde au bout de 60 secondes sans heartbeat
 
-   process_add_indicator(i006->monitoring_id, interface_type_006_senttoplugin_str, 0);
-   process_add_indicator(i006->monitoring_id, interface_type_006_xplin_str, 0);
+   process_add_indicator(i006->monitoring_id, NAME(interface_type_006_senttoplugin_str), 0);
+   process_add_indicator(i006->monitoring_id, NAME(interface_type_006_xplin_str), 0);
 //   process_add_indicator(i006->monitoring_id, interface_type_006_xplout_str, 0);
-   process_add_indicator(i006->monitoring_id, interface_type_006_serialin_str, 0);
-   process_add_indicator(i006->monitoring_id, interface_type_006_serialout_str, 0);
+   process_add_indicator(i006->monitoring_id, NAME(interface_type_006_serialin_str), 0);
+   process_add_indicator(i006->monitoring_id, NAME(interface_type_006_serialout_str), 0);
 
    return i006;
 }
 
 
-int stop_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg)
+int NAME(stop_interface_type_006)(int my_id, void *data, char *errmsg, int l_errmsg)
 {
    if(!data)
       return -1;
@@ -868,7 +876,7 @@ int stop_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg)
 }
 
 
-int restart_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg)
+int NAME(restart_interface_type_006)(int my_id, void *data, char *errmsg, int l_errmsg)
 {
    process_stop(my_id, NULL, 0);
    sleep(5);
@@ -882,7 +890,7 @@ int16_t check_status_interface_type_006(interface_type_006_t *i006)
 }
 */
 
-int start_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg)
+int NAME(start_interface_type_006)(int my_id, void *data, char *errmsg, int l_errmsg)
 {
    char dev[81];
    char buff[80];
@@ -920,7 +928,7 @@ int start_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg)
    strncpy(start_stop_params->i006->real_dev, dev, sizeof( start_stop_params->i006->real_dev)-1);
    start_stop_params->i006->real_speed=speed;
 
-   interface_parameters=alloc_parsed_parameters(start_stop_params->i006->parameters, valid_genericserial_plugin_params, &interface_nb_parameters, &err, 0);
+   interface_parameters=alloc_parsed_parameters(start_stop_params->i006->parameters, NAME(valid_genericserial_plugin_params), &interface_nb_parameters, &err, 0);
    if(!interface_parameters || !interface_parameters->parameters[GENERICSERIAL_PLUGIN_PARAMS_PLUGIN].value.s)
    {
       if(interface_parameters)
@@ -965,9 +973,9 @@ int start_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg)
    xpl_callback_params->myThreadState=NULL;
 
    start_stop_params->i006->xPL_callback_data=xpl_callback_params;
-   start_stop_params->i006->xPL_callback2=_interface_type_006_xPL_callback2;
+   start_stop_params->i006->xPL_callback2=NAME(_interface_type_006_xPL_callback2);
 
-   start_stop_params->i006->thread=start_interface_type_006_genericserial_data_thread(start_stop_params->i006, start_stop_params->sqlite3_param_db, interface_parameters, (thread_f)_thread_interface_type_006_genericserial_data);
+   start_stop_params->i006->thread=NAME(start_interface_type_006_genericserial_data_thread)(start_stop_params->i006, start_stop_params->sqlite3_param_db, interface_parameters, (thread_f)NAME(_thread_interface_type_006_genericserial_data));
    
    if(start_stop_params->i006->thread!=0)
    {
@@ -983,7 +991,7 @@ int start_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg)
 clean_exit:
    if(start_stop_params->i006->thread)
    {
-      stop_interface_type_006(start_stop_params->i006->monitoring_id, start_stop_params, NULL, 0);
+      NAME(stop_interface_type_006)(start_stop_params->i006->monitoring_id, start_stop_params, NULL, 0);
    }
    
    if(interface_parameters)
@@ -1003,7 +1011,7 @@ clean_exit:
    return -1;
 }
 
-
+#ifndef ASPLUGIN
 int get_fns_interface_type_006(struct interfacesServer_interfaceFns_s *interfacesFns)
 {
    interfacesFns->malloc_and_init_interface = (malloc_and_init_interface_f)&malloc_and_init_interface_type_006;
@@ -1014,5 +1022,9 @@ int get_fns_interface_type_006(struct interfacesServer_interfaceFns_s *interface
    interfacesFns->set_xPLCallback = (set_xPLCallback_f)&set_xPLCallback_interface_type_006;
    interfacesFns->get_type = (get_type_f)&get_type_interface_type_006;
 
+   interfacesFns->lib = NULL;
+   interfacesFns->plugin_flag = 0;
+
    return 0;
 }
+#endif

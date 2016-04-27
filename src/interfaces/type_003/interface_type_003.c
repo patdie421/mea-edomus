@@ -44,15 +44,15 @@
 #include "interface_type_003.h"
 
 
-char *interface_type_003_senttoplugin_str="SENT2PLUGIN";
-char *interface_type_003_xplin_str="XPLIN";
-char *interface_type_003_enoceandatain_str="ENOCEANIN";
+char *NAME(interface_type_003_senttoplugin_str)="SENT2PLUGIN";
+char *NAME(interface_type_003_xplin_str)="XPLIN";
+char *NAME(interface_type_003_enoceandatain_str)="ENOCEANIN";
 
 
 typedef void (*thread_f)(void *);
 
 // parametres valide pour les capteurs ou actionneurs pris en compte par le type 2.
-char *valid_enocean_plugin_params[]={"S:PLUGIN","S:PARAMETERS", NULL};
+char *NAME(valid_enocean_plugin_params)[]={"S:PLUGIN","S:PARAMETERS", NULL};
 #define ENOCEAN_PLUGIN_PARAMS_PLUGIN      0
 #define ENOCEAN_PLUGIN_PARAMS_PARAMETERS  1
 
@@ -91,14 +91,20 @@ struct enocean_thread_params_s
 };
 
 
-void set_interface_type_003_isnt_running(void *data)
+int NAME(start_interface_type_003)(int my_id, void *data, char *errmsg, int l_errmsg);
+int NAME(stop_interface_type_003)(int my_id, void *data, char *errmsg, int l_errmsg);
+int NAME(restart_interface_type_003)(int my_id, void *data, char *errmsg, int l_errmsg);
+int16_t NAME(check_status_interface_type_003)(interface_type_003_t *i003);
+
+
+void NAME(set_interface_type_003_isnt_running)(void *data)
 {
    interface_type_003_t *i003 = (interface_type_003_t *)data;
    i003->thread_is_running=0;
 }
 
 
-void _enocean_data_free_queue_elem(void *d)
+void NAME(_enocean_data_free_queue_elem)(void *d)
 {
    enocean_data_queue_elem_t *e=(enocean_data_queue_elem_t *)d;
    
@@ -114,7 +120,7 @@ void _enocean_data_free_queue_elem(void *d)
 
 
 //int16_t _interface_type_003_xPL_callback2(cJSON *xplMsgJson, xPL_ObjectPtr userValue)
-int16_t _interface_type_003_xPL_callback2(cJSON *xplMsgJson, void *userValue)
+int16_t NAME(_interface_type_003_xPL_callback2)(cJSON *xplMsgJson, void *userValue)
 {
    char *device = NULL;
    int ret = -1;
@@ -162,7 +168,7 @@ int16_t _interface_type_003_xPL_callback2(cJSON *xplMsgJson, void *userValue)
          parsed_parameters_t *plugin_params=NULL;
          int nb_plugin_params;
         
-         plugin_params=alloc_parsed_parameters((char *)sqlite3_column_text(stmt, 3), valid_enocean_plugin_params, &nb_plugin_params, &err, 0);
+         plugin_params=alloc_parsed_parameters((char *)sqlite3_column_text(stmt, 3), NAME(valid_enocean_plugin_params), &nb_plugin_params, &err, 0);
          if(!plugin_params || !plugin_params->parameters[ENOCEAN_PLUGIN_PARAMS_PLUGIN].value.s)
          {
             if(plugin_params)
@@ -230,7 +236,7 @@ int16_t _interface_type_003_xPL_callback2(cJSON *xplMsgJson, void *userValue)
 }
 
 
-int16_t _inteface_type_003_enocean_data_callback(uint8_t *data, uint16_t l_data, uint32_t enocean_addr, void *callbackdata)
+int16_t NAME(_inteface_type_003_enocean_data_callback)(uint8_t *data, uint16_t l_data, uint32_t enocean_addr, void *callbackdata)
 {
    struct timeval tv;
    struct enocean_callback_data_s *callback_data;
@@ -261,7 +267,7 @@ int16_t _inteface_type_003_enocean_data_callback(uint8_t *data, uint16_t l_data,
 }
 
 
-void *_thread_interface_type_003_enocean_data_cleanup(void *args)
+void *NAME(_thread_interface_type_003_enocean_data_cleanup)(void *args)
 {
    struct enocean_thread_params_s *params=(struct enocean_thread_params_s *)args;
 
@@ -286,7 +292,7 @@ void *_thread_interface_type_003_enocean_data_cleanup(void *args)
    }
    
    if(params->queue && params->queue->nb_elem>0) // on vide s'il y a quelque chose avant de partir
-      mea_queue_cleanup(params->queue, _enocean_data_free_queue_elem);
+      mea_queue_cleanup(params->queue, NAME(_enocean_data_free_queue_elem));
    
    if(params->queue)
    {
@@ -301,7 +307,7 @@ void *_thread_interface_type_003_enocean_data_cleanup(void *args)
 }
 
 
-void *_thread_interface_type_003_enocean_data(void *args)
+void *NAME(_thread_interface_type_003_enocean_data)(void *args)
 /**
  * \brief     Gestion des données asynchrones en provenances de equipement enocean
  * \details   Les data peuvent arriver n'importe quand, il sagit de pouvoir les traiter dès réceptions.
@@ -311,8 +317,8 @@ void *_thread_interface_type_003_enocean_data(void *args)
 {
    struct enocean_thread_params_s *params=(struct enocean_thread_params_s *)args;
 
-   pthread_cleanup_push( (void *)_thread_interface_type_003_enocean_data_cleanup, (void *)params );
-   pthread_cleanup_push( (void *)set_interface_type_003_isnt_running, (void *)params->i003 );
+   pthread_cleanup_push( (void *)NAME(_thread_interface_type_003_enocean_data_cleanup), (void *)params );
+   pthread_cleanup_push( (void *)NAME(set_interface_type_003_isnt_running), (void *)params->i003 );
    
    params->i003->thread_is_running=1;
    process_heartbeat(params->i003->monitoring_id);
@@ -340,9 +346,9 @@ void *_thread_interface_type_003_enocean_data(void *args)
          goto _thread_interface_type_003_enocean_data_clean_exit;
 
       process_heartbeat(params->i003->monitoring_id);
-      process_update_indicator(params->i003->monitoring_id, interface_type_003_senttoplugin_str, params->i003->indicators.senttoplugin);
-      process_update_indicator(params->i003->monitoring_id, interface_type_003_xplin_str, params->i003->indicators.xplin);
-      process_update_indicator(params->i003->monitoring_id, interface_type_003_enoceandatain_str, params->i003->indicators.enoceandatain);
+      process_update_indicator(params->i003->monitoring_id, NAME(interface_type_003_senttoplugin_str), params->i003->indicators.senttoplugin);
+      process_update_indicator(params->i003->monitoring_id, NAME(interface_type_003_xplin_str), params->i003->indicators.xplin);
+      process_update_indicator(params->i003->monitoring_id, NAME(interface_type_003_enoceandatain_str), params->i003->indicators.enoceandatain);
 
       pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)(&params->callback_lock) );
       pthread_mutex_lock(&params->callback_lock);
@@ -408,7 +414,7 @@ void *_thread_interface_type_003_enocean_data(void *args)
             {
                int err;
 
-               params->plugin_params=alloc_parsed_parameters((char *)sqlite3_column_text(params->stmt, 3), valid_enocean_plugin_params, &(params->nb_plugin_params), &err, 0);
+               params->plugin_params=alloc_parsed_parameters((char *)sqlite3_column_text(params->stmt, 3), NAME(valid_enocean_plugin_params), &(params->nb_plugin_params), &err, 0);
                if(!params->plugin_params || !params->plugin_params->parameters[ENOCEAN_PLUGIN_PARAMS_PLUGIN].value.s)
                {
                   if(params->plugin_params)
@@ -507,7 +513,7 @@ _thread_interface_type_003_enocean_data_clean_exit:
 }
 
 
-pthread_t *start_interface_type_003_enocean_data_thread(interface_type_003_t *i003, enocean_ed_t *ed, sqlite3 *db, thread_f function)
+pthread_t *NAME(start_interface_type_003_enocean_data_thread)(interface_type_003_t *i003, enocean_ed_t *ed, sqlite3 *db, thread_f function)
 /**  
  * \brief     Demarrage du thread de gestion des données (non solicitées) en provenance des enocean
  * \param     i003           descripteur de l'interface
@@ -563,7 +569,7 @@ pthread_t *start_interface_type_003_enocean_data_thread(interface_type_003_t *i0
    enocean_callback_data->callback_cond=&params->callback_cond;
    enocean_callback_data->queue=params->queue;
 
-   enocean_set_data_callback2(ed, _inteface_type_003_enocean_data_callback, (void *)enocean_callback_data);
+   enocean_set_data_callback2(ed, NAME(_inteface_type_003_enocean_data_callback), (void *)enocean_callback_data);
 
    thread=(pthread_t *)malloc(sizeof(pthread_t));
    if(!thread)
@@ -593,7 +599,7 @@ clean_exit:
    }
 
    if(params && params->queue && params->queue->nb_elem>0) // on vide s'il y a quelque chose avant de partir
-      mea_queue_cleanup(params->queue, _enocean_data_free_queue_elem);
+      mea_queue_cleanup(params->queue, NAME(_enocean_data_free_queue_elem));
 
    if(params)
    {
@@ -609,8 +615,10 @@ clean_exit:
 }
 
 
-int clean_interface_type_003(interface_type_003_t *i003)
+int NAME(clean_interface_type_003)(void *ixxx)
 {
+   interface_type_003_t *i003 = (interface_type_003_t *)ixxx;
+
    if(i003->parameters)
    {
       free(i003->parameters);
@@ -648,7 +656,7 @@ int clean_interface_type_003(interface_type_003_t *i003)
 }
 
 
-xpl2_f get_xPLCallback_interface_type_003(void *ixxx)
+xpl2_f NAME(get_xPLCallback_interface_type_003)(void *ixxx)
 {
    interface_type_003_t *i003 = (interface_type_003_t *)ixxx;
 
@@ -659,7 +667,7 @@ xpl2_f get_xPLCallback_interface_type_003(void *ixxx)
 }
 
 
-int get_monitoring_id_interface_type_003(void *ixxx)
+int NAME(get_monitoring_id_interface_type_003)(void *ixxx)
 {
    interface_type_003_t *i003 = (interface_type_003_t *)ixxx;
 
@@ -670,7 +678,7 @@ int get_monitoring_id_interface_type_003(void *ixxx)
 }
 
 
-int set_xPLCallback_interface_type_003(void *ixxx, xpl2_f cb)
+int NAME(set_xPLCallback_interface_type_003)(void *ixxx, xpl2_f cb)
 {
    interface_type_003_t *i003 = (interface_type_003_t *)ixxx;
 
@@ -684,7 +692,7 @@ int set_xPLCallback_interface_type_003(void *ixxx, xpl2_f cb)
 }
 
 
-int set_monitoring_id_interface_type_003(void *ixxx, int id)
+int NAME(set_monitoring_id_interface_type_003)(void *ixxx, int id)
 {
    interface_type_003_t *i003 = (interface_type_003_t *)ixxx;
 
@@ -698,13 +706,13 @@ int set_monitoring_id_interface_type_003(void *ixxx, int id)
 }
 
 
-int get_type_interface_type_003()
+int NAME(get_type_interface_type_003)()
 {
    return INTERFACE_TYPE_003;
 }
 
 
-interface_type_003_t *malloc_and_init_interface_type_003(sqlite3 *sqlite3_param_db, int id_interface, char *name, char *dev, char *parameters, char *description)
+interface_type_003_t *NAME(malloc_and_init_interface_type_003)(sqlite3 *sqlite3_param_db, int id_interface, char *name, char *dev, char *parameters, char *description)
 {
    interface_type_003_t *i003;
                   
@@ -749,20 +757,20 @@ interface_type_003_t *malloc_and_init_interface_type_003(sqlite3 *sqlite3_param_
    i003_start_stop_params->i003=i003;
                   
    process_set_group(i003->monitoring_id, 1);
-   process_set_start_stop(i003->monitoring_id, start_interface_type_003, stop_interface_type_003, (void *)i003_start_stop_params, 1);
-   process_set_watchdog_recovery(i003->monitoring_id, restart_interface_type_003, (void *)i003_start_stop_params);
+   process_set_start_stop(i003->monitoring_id, NAME(start_interface_type_003), NAME(stop_interface_type_003), (void *)i003_start_stop_params, 1);
+   process_set_watchdog_recovery(i003->monitoring_id, NAME(restart_interface_type_003), (void *)i003_start_stop_params);
    process_set_description(i003->monitoring_id, (char *)description);
    process_set_heartbeat_interval(i003->monitoring_id, 60); // chien de garde au bout de 60 secondes sans heartbeat
 
-   process_add_indicator(i003->monitoring_id, interface_type_003_senttoplugin_str, 0);
-   process_add_indicator(i003->monitoring_id, interface_type_003_xplin_str, 0);
-   process_add_indicator(i003->monitoring_id, interface_type_003_enoceandatain_str, 0);
+   process_add_indicator(i003->monitoring_id, NAME(interface_type_003_senttoplugin_str), 0);
+   process_add_indicator(i003->monitoring_id, NAME(interface_type_003_xplin_str), 0);
+   process_add_indicator(i003->monitoring_id, NAME(interface_type_003_enoceandatain_str), 0);
 
    return i003;
 }
 
 
-int stop_interface_type_003(int my_id, void *data, char *errmsg, int l_errmsg)
+int NAME(stop_interface_type_003)(int my_id, void *data, char *errmsg, int l_errmsg)
 /**
  * \brief     arrêt d'une interface de type 3
  * \details   RAZ de tous les structures de données et libération des zones de mémoires allouées
@@ -827,7 +835,7 @@ int stop_interface_type_003(int my_id, void *data, char *errmsg, int l_errmsg)
 }
 
 
-int restart_interface_type_003(int my_id, void *data, char *errmsg, int l_errmsg)
+int NAME(restart_interface_type_003)(int my_id, void *data, char *errmsg, int l_errmsg)
 {
    process_stop(my_id, NULL, 0);
    sleep(5);
@@ -835,7 +843,7 @@ int restart_interface_type_003(int my_id, void *data, char *errmsg, int l_errmsg
 }
 
 
-int16_t check_status_interface_type_003(interface_type_003_t *it003)
+int16_t NAME(check_status_interface_type_003)(interface_type_003_t *it003)
 /**  
  * \brief     indique si une anomalie a généré l'emission d'un signal SIGHUP
  * \param     i003           descripteur de l'interface
@@ -848,7 +856,7 @@ int16_t check_status_interface_type_003(interface_type_003_t *it003)
 }
 
 
-int start_interface_type_003(int my_id, void *data, char *errmsg, int l_errmsg)
+int NAME(start_interface_type_003)(int my_id, void *data, char *errmsg, int l_errmsg)
 /**
  * \brief     Demarrage d'une interface de type 3
  * \details   ouverture de la communication avec un USB300 ou équivalant, démarrage du thread de gestion des données
@@ -928,7 +936,7 @@ int start_interface_type_003(int my_id, void *data, char *errmsg, int l_errmsg)
    /*
     * exécution du plugin de paramétrage
     */
-   interface_parameters=alloc_parsed_parameters(start_stop_params->i003->parameters, valid_enocean_plugin_params, &interface_nb_parameters, &err, 0);
+   interface_parameters=alloc_parsed_parameters(start_stop_params->i003->parameters, NAME(valid_enocean_plugin_params), &interface_nb_parameters, &err, 0);
    if(!interface_parameters || !interface_parameters->parameters[ENOCEAN_PLUGIN_PARAMS_PLUGIN].value.s)
    {
       if(interface_parameters)
@@ -1017,7 +1025,7 @@ int start_interface_type_003(int my_id, void *data, char *errmsg, int l_errmsg)
    /*
     * Gestion des sous-interfaces
     */
-   start_stop_params->i003->thread=start_interface_type_003_enocean_data_thread(start_stop_params->i003, ed, start_stop_params->sqlite3_param_db, (thread_f)_thread_interface_type_003_enocean_data);
+   start_stop_params->i003->thread=NAME(start_interface_type_003_enocean_data_thread)(start_stop_params->i003, ed, start_stop_params->sqlite3_param_db, (thread_f)NAME(_thread_interface_type_003_enocean_data));
 
    //
    // gestion des demandes xpl : ajouter une zone de donnees specifique au callback xpl (pas simplement passe i003).
@@ -1037,7 +1045,7 @@ int start_interface_type_003(int my_id, void *data, char *errmsg, int l_errmsg)
    xpl_callback_params->myThreadState=NULL;
    
    start_stop_params->i003->xPL_callback_data=xpl_callback_params;
-   start_stop_params->i003->xPL_callback2=_interface_type_003_xPL_callback2;
+   start_stop_params->i003->xPL_callback2=NAME(_interface_type_003_xPL_callback2);
    
    VERBOSE(2) mea_log_printf("%s (%s) : %s %s.\n", INFO_STR, __func__, start_stop_params->i003->name, launched_successfully_str);
    mea_notify_printf('S', "%s %s", start_stop_params->i003->name, launched_successfully_str);
@@ -1049,7 +1057,7 @@ clean_exit:
       enocean_remove_data_callback(ed);
    
    if(start_stop_params->i003->thread)
-      stop_interface_type_003(start_stop_params->i003->monitoring_id, start_stop_params, NULL, 0);
+      NAME(stop_interface_type_003)(start_stop_params->i003->monitoring_id, start_stop_params, NULL, 0);
 
    
    if(interface_parameters)
@@ -1076,6 +1084,7 @@ clean_exit:
 }
 
 
+#ifndef ASPLUGIN
 int get_fns_interface_type_003(struct interfacesServer_interfaceFns_s *interfacesFns)
 {
    interfacesFns->malloc_and_init_interface = (malloc_and_init_interface_f)&malloc_and_init_interface_type_003;
@@ -1086,6 +1095,9 @@ int get_fns_interface_type_003(struct interfacesServer_interfaceFns_s *interface
    interfacesFns->set_xPLCallback = (set_xPLCallback_f)&set_xPLCallback_interface_type_003;
    interfacesFns->get_type = (get_type_f)&get_type_interface_type_003;
 
+   interfacesFns->lib = NULL;
+   interfacesFns->plugin_flag = 0;
+
    return 0;
 }
-
+#endif

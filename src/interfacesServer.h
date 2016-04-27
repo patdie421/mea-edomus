@@ -38,6 +38,7 @@ typedef int    (*get_type_f)();
 
 struct interfacesServer_interfaceFns_s {
    void *lib;
+   int plugin_flag;
    malloc_and_init_interface_f malloc_and_init_interface;
    get_monitoring_id_f get_monitoring_id;
    set_monitoring_id_f set_monitoring_id;

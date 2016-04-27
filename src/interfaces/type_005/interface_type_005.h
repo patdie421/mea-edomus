@@ -92,6 +92,8 @@ int NAME(get_type_interface_type_005)();
 interface_type_005_t *NAME(malloc_and_init_interface_type_005)(sqlite3 *sqlite3_param_db, int id_interface, char *name, char *dev, char *parameters, char *description);
 int NAME(clean_interface_type_005)(interface_type_005_t *i005);
 
-int NAME(get_fns_interface_type_005)(struct interfacesServer_interfaceFns_s *interfacesFns);
+#ifndef ASPLUGIN
+int get_fns_interface_type_005(struct interfacesServer_interfaceFns_s *interfacesFns);
+#endif
 
 #endif
