@@ -9,7 +9,6 @@
 #include <string.h>
 #include <inttypes.h>
 
-#include "mea_string_utils.h"
 #include "arduino_pins.h"
 
 struct arduino_digital_pins
@@ -61,7 +60,7 @@ int16_t mea_getArduinoPin(char *spin)
 {
    for(int i=0;arduino_uno_list[i].name;i++)
    {
-      if(mea_strcmplower(spin,arduino_uno_list[i].name)==0)
+      if(strcasecmp(spin,arduino_uno_list[i].name)==0)
          return arduino_uno_list[i].pin;
    }
    return -1;

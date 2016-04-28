@@ -6,7 +6,7 @@ ifndef TECHNO
 $(error - TECHNO is unset)
 endif
 
-NAME=mealib
+NAME=utilslib
 
 LIBNAME=$(NAME).a
 
@@ -52,12 +52,7 @@ mea_verbose.c \
 serial.c \
 mea_xpl.c
 
-SOURCES2=interfaces/drivers/enocean.c \
-interfaces/drivers/comio2.c
-
 OBJECTS=$(addprefix $(TECHNO).objects/, $(SOURCES:.c=.o))
-OBJECTS2=$(addprefix $(TECHNO).objects/, $(SOURCES2:.c=.o))
-OBJECTS2B=$(addprefix $(TECHNO).objects/, $(notdir $(SOURCES2:.c=.o)))
 
 $(TECHNO).objects/%.o: %.c
 	$(CC) $(INCLUDES) -c $(CFLAGS) $*.c -o $(TECHNO).objects/$(notdir $*.o)
@@ -67,7 +62,7 @@ all: $(TECHNO).objects $(LIBDIR)/$(LIBNAME)
 $(TECHNO).objects:
 	@mkdir -p $(TECHNO).objects
 
-$(LIBDIR)/$(LIBNAME): $(OBJECTS) $(OBJECTS2)
+$(LIBDIR)/$(LIBNAME): $(OBJECTS)
 	@mkdir -p $(LIBDIR)
 	rm -f $(LIBDIR)/$(LIBNAME)
 	ar q $(LIBDIR)/$(LIBNAME) $(OBJECTS) $(OBJECTS2B)
@@ -75,5 +70,3 @@ $(LIBDIR)/$(LIBNAME): $(OBJECTS) $(OBJECTS2)
 
 clean:
 	rm -f $(TECHNO).objects/*.o $(LIBDIR)/$(LIBNAME) .deps/*.dep
- 
--include .deps/*.dep

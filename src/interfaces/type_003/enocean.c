@@ -39,7 +39,6 @@ typedef struct enocean_queue_elem_s
 void     enocean_close(enocean_ed_t *ed);
 void     _enocean_free_queue_elem(void *d); // pour vider_file2
 void    *_enocean_thread(void *args);
-//uint16_t enocean_get_local_addr(enocean_ed_t *ed, uint32_t *addr, int16_t *nerr);
 uint32_t enocean_calc_addr(uint8_t a, uint8_t b, uint8_t c, uint8_t d);
 
 
@@ -119,7 +118,6 @@ int16_t enocean_init(enocean_ed_t *ed, char *dev)
 
    VERBOSE(9) {
        mea_log_printf("%s (%s) : ENOCEAN thread_id = %x\n", INFO_STR, __func__,  (unsigned int)ed->read_thread);
-//      fprintf(stderr,"ENOCEAN : %x\n", (unsigned int)ed->read_thread);
    }
 
    ed->id=-1;
@@ -918,10 +916,7 @@ uint16_t enocean_sa_learning_onoff(enocean_ed_t *ed, int onoff, int16_t *nerr)
       request[ptr] = 0; // Enable : 0 = stop Learn mode
    crc8d = proc_crc8(crc8d, request[ptr]);
    ptr++;
-/*
-   request[ptr++] = 1;
-   crc8d = proc_crc8(crc8d, 1);
-*/
+
    request[ptr++] = 0; // Simple learnmode
    crc8d = proc_crc8(crc8d, 0);
 
