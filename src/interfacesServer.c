@@ -51,6 +51,7 @@ struct plugin_info_s {
    char *name;
 };
 
+
 struct plugin_info_s plugins_list[]={
    {INTERFACE_TYPE_003, "interface_type_003.so"},
    {INTERFACE_TYPE_004, "interface_type_004.so"},
@@ -250,6 +251,7 @@ int load_interface(int type, char **params_list)
 }
 #endif
 
+
 void stop_interfaces()
 {
    interfaces_queue_elem_t *iq;
@@ -404,6 +406,7 @@ mea_queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                VERBOSE(2) mea_log_printf("%s (%s) : new interface loaded (%d)\n", INFO_STR, __func__, id_type);
             }
 #endif
+
             for(;interfacesFns[i].get_type;i++)
             {
                int type=interfacesFns[i].get_type();

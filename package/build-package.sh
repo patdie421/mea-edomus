@@ -39,7 +39,10 @@ tar cf - . | ( cd $SOURCE/package/tmp/lib/mea-gui ; tar xf - )
 
 cd $SOURCE/plugins
 tar cf - . | ( cd $SOURCE/package/tmp/lib/mea-plugins ; tar xf - )
-
+cd $SOURCE/src/interfaces
+cp type_*/interface*.so $SOURCE/package/tmp/lib/mea-plugins
+rm $SOURCE/package/tmp/lib/mea-plugins/*.pyc
+ 
 cp $SOURCE/linux/init.d/* $SOURCE/package/tmp/etc/init.d
 
 cp $SOURCE/mea-edomus $SOURCE/package/tmp/bin

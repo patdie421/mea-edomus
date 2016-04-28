@@ -21,6 +21,7 @@ ifeq ($(TECHNO), linux)
                  -DTECHNO_$(TECHNO) \
                  -I/usr/include/mysql \
                  -I/usr/include/python2.7 \
+                 -I$(BASEDIR)/src \
                  $(DEBUGFLAGS)
 endif
 ifeq ($(TECHNO), macosx)
@@ -30,20 +31,16 @@ ifeq ($(TECHNO), macosx)
                  -IxPLLib-mac \
                  -I/usr/local/mysql/include \
                  -I/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7 \
+                 -I$(BASEDIR)/src \
                  $(DEBUGFLAGS)
 endif
 
 LIBDIR=$(BASEDIR)/lib/$(NAME)/$(TECHNO)
 
-SOURCES=arduino_pins.c \
-cJSON.c \
-comio2.c \
+SOURCES= cJSON.c \
 consts.c \
-enocean.c  \
 notify.c  \
 parameters_utils.c  \
-philipshue.c  \
-philipshue_color.c  \
 processManager.c  \
 python_utils.c  \
 mea_queue.c  \
@@ -53,27 +50,27 @@ mea_string_utils.c \
 mea_timer.c  \
 mea_verbose.c \
 serial.c \
-mea_xpl.c \
-xbee.c 
+mea_xpl.c
+
+SOURCES2=interfaces/drivers/enocean.c \
+interfaces/drivers/comio2.c
 
 OBJECTS=$(addprefix $(TECHNO).objects/, $(SOURCES:.c=.o))
+OBJECTS2=$(addprefix $(TECHNO).objects/, $(SOURCES2:.c=.o))
+OBJECTS2B=$(addprefix $(TECHNO).objects/, $(notdir $(SOURCES2:.c=.o)))
 
 $(TECHNO).objects/%.o: %.c
-	@$(CC) $(INCLUDES) -c $(CFLAGS) -MM -MT $(TECHNO).objects/$*.o $*.c > .deps/$*.dep
-	$(CC) $(INCLUDES) -c $(CFLAGS) $*.c -o $(TECHNO).objects/$*.o
+	$(CC) $(INCLUDES) -c $(CFLAGS) $*.c -o $(TECHNO).objects/$(notdir $*.o)
 
-all: .deps $(TECHNO).objects $(LIBDIR)/$(LIBNAME)
-
-.deps:
-	@mkdir -p .deps
+all: $(TECHNO).objects $(LIBDIR)/$(LIBNAME)
 
 $(TECHNO).objects:
 	@mkdir -p $(TECHNO).objects
 
-$(LIBDIR)/$(LIBNAME): $(OBJECTS)
+$(LIBDIR)/$(LIBNAME): $(OBJECTS) $(OBJECTS2)
 	@mkdir -p $(LIBDIR)
 	rm -f $(LIBDIR)/$(LIBNAME)
-	ar q $(LIBDIR)/$(LIBNAME) $(OBJECTS)
+	ar q $(LIBDIR)/$(LIBNAME) $(OBJECTS) $(OBJECTS2B)
 	ranlib $(LIBDIR)/$(LIBNAME)
 
 clean:
