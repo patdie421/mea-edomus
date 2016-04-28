@@ -4,7 +4,9 @@ CC = gcc
 SOURCES=$(shell echo *.c)
 OBJECTS=$(SOURCES:.c=.o)
 
-MEAINCLUDESDIR=../../src
+UTILSINCLUDESDIR=../../src
+DRIVERSINCLUDESDIR=../../src/interfaces/drivers
+
 MEALIB=../../lib/mealib/linux/mealib.a
 
 DEBUGFLAGS = -g \
@@ -13,14 +15,15 @@ DEBUGFLAGS = -g \
 	-std=gnu99 \
 	-O2 \
 	-D_BSD_SOURCE \
-	-I$(MEAINCLUDESDIR) \
+	-I$(UTILSINCLUDESDIR) \
+	-I$(DRIVERSINCLUDESDIR) \
 	$(DEBUGFLAGS)
 
 LDFLAGS = -lm -ldl -lpthread
 
 .DEFAULT_GOAL = all
 
-all: .deps enoceanlogger enoceanpairing enoceanoutput
+all: enoceanlogger enoceanpairing enoceanoutput
 
 .deps:
 	@mkdir -p .deps
@@ -35,10 +38,7 @@ enoceanlogger: enocean_logger.o
 	$(CC) $(LDFLAGS) enocean_logger.o -o $@
 
 %.o: %.c
-	@$(CC) -c $(CFLAGS) -MM -MT $*.o $*.c > .deps/$*.dep
 	$(CC) -c $(CFLAGS) $*.c -o $@
 
 clean:
 	-rm -f $(OBJECTS)
-
--include .deps/*.dep

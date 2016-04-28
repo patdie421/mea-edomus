@@ -35,21 +35,20 @@ ifeq ($(TECHNO), macosx)
                  $(DEBUGFLAGS)
 endif
 
-LIBDIR=$(BASEDIR)/lib/$(NAME)/$(TECHNO)
+LIBDIR=$(BASEDIR)/lib/mealib/$(TECHNO)
 
 SOURCES= cJSON.c \
 consts.c \
 notify.c  \
-parameters_utils.c  \
 processManager.c  \
+sqlite3db_utils.c  \
+parameters_utils.c  \
 python_utils.c  \
 mea_queue.c  \
 mea_sockets_utils.c \
-sqlite3db_utils.c  \
 mea_string_utils.c \
 mea_timer.c  \
 mea_verbose.c \
-serial.c \
 mea_xpl.c
 
 OBJECTS=$(addprefix $(TECHNO).objects/, $(SOURCES:.c=.o))

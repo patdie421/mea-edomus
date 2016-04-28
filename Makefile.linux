@@ -94,13 +94,19 @@ build-xPL_Hub:
 build-package: $(EXECUTABLE)
 	package/build-package.sh $(MYPATH)
 
-build-commands: lib/mealib/$(TECHNO)/meaplib.a
+build-commands: lib/mealib/$(TECHNO)/mealib.a
 	make -C commands -f commands.mk BASEDIR=$(MYPATH) TECHNO=$(TECHNO)
   
-build-mealib: lib/mealib/$(TECHNO)/meaplib.a
+build-mealib: lib/mealib/$(TECHNO)/mealib.a
 
-lib/mealib/$(TECHNO)/meaplib.a:
-	make -C src -f library.mk BASEDIR=$(MYPATH) TECHNO=$(TECHNO)
+lib/mealib/$(TECHNO)/mealib.a: lib/mealib/$(TECHNO)/utilslib.a lib/mealib/$(TECHNO)/driverslib.a
+	ar -rcT lib/mealib/$(TECHNO)/mealib.a lib/mealib/$(TECHNO)/utilslib.a lib/mealib/$(TECHNO)/driverslib.a
+
+lib/mealib/$(TECHNO)/utilslib.a:
+	make -C src -f utilslib.mk BASEDIR=$(MYPATH) TECHNO=$(TECHNO)
+
+lib/mealib/$(TECHNO)/driverslib.a:
+	make -C src/interfaces/drivers -f driverslib.mk BASEDIR=$(MYPATH) TECHNO=$(TECHNO)
 
 $(TECHNO).objects:
 	@mkdir -p $(TECHNO).objects

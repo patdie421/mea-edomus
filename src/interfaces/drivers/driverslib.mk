@@ -34,7 +34,7 @@ ifeq ($(TECHNO), macosx)
                  $(DEBUGFLAGS)
 endif
 
-LIBDIR=$(BASEDIR)/lib/$(NAME)/$(TECHNO)
+LIBDIR=$(BASEDIR)/lib/mealib/$(TECHNO)
 
 SOURCES=arduino_pins.c \
 comio2.c \
