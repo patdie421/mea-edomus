@@ -114,6 +114,12 @@ struct thread_params_s
 };
 
 
+int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg);
+int stop_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg);
+int restart_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg);
+int16_t check_status_interface_type_002(interface_type_002_t *it002);
+
+
 void set_interface_type_002_isnt_running(void *data)
 {
    interface_type_002_t *i002 = (interface_type_002_t *)data;
@@ -1583,7 +1589,7 @@ clean_exit:
    return -1;
 }
 
-
+#ifndef ASPLUGIN
 int get_fns_interface_type_002(struct interfacesServer_interfaceFns_s *interfacesFns)
 {
    interfacesFns->malloc_and_init_interface = (malloc_and_init_interface_f)&malloc_and_init_interface_type_002;
@@ -1599,4 +1605,4 @@ int get_fns_interface_type_002(struct interfacesServer_interfaceFns_s *interface
 
    return 0;
 }
-
+#endif

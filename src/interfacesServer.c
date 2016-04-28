@@ -53,6 +53,7 @@ struct plugin_info_s {
 
 
 struct plugin_info_s plugins_list[]={
+   {INTERFACE_TYPE_002, "interface_type_002.so"},
    {INTERFACE_TYPE_003, "interface_type_003.so"},
    {INTERFACE_TYPE_004, "interface_type_004.so"},
    {INTERFACE_TYPE_005, "interface_type_005.so"},
@@ -176,8 +177,8 @@ int16_t init_interfaces_fns(char **params_list)
    interfacesFns_nb=0;
 
    get_fns_interface_type_001(&(interfacesFns[i++]));
-   get_fns_interface_type_002(&(interfacesFns[i++]));
 #ifndef ASPLUGIN
+   get_fns_interface_type_002(&(interfacesFns[i++]));
    get_fns_interface_type_003(&(interfacesFns[i++]));
    get_fns_interface_type_004(&(interfacesFns[i++]));
    get_fns_interface_type_005(&(interfacesFns[i++]));

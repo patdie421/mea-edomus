@@ -1,12 +1,13 @@
 #!/bin/bash
 
-if [ $# -ne 1 ]
+if [ $# -ne 2 ]
 then
-   echo "usage : $0 <SOURCE_BASEPATH>"
+   echo "usage : $0 <SOURCE_BASEPATH> <TECHNO>"
    exit 1
 fi
 
 SOURCE=$1
+TECHNO=$2
 
 if [ ! -d $SOURCE ]
 then
@@ -45,7 +46,7 @@ rm $SOURCE/package/tmp/lib/mea-plugins/*.pyc
  
 cp $SOURCE/linux/init.d/* $SOURCE/package/tmp/etc/init.d
 
-cp $SOURCE/mea-edomus $SOURCE/package/tmp/bin
+cp $SOURCE/mea-edomus.$TECHNO $SOURCE/package/tmp/bin/mea-edomus
 
 if [ -f $SOURCE/complements/php-cgi/src/php-5.5.16/sapi/cgi/php-cgi ]
 then
@@ -74,12 +75,32 @@ then
    cp $SOURCE/complements/xPL_Hub/install/init.d/xPLHub $SOURCE/package/tmp/etc/init.d
 fi
 
-strip $SOURCE/package/tmp/bin/*
-
 if [ -f $SOURCE/commands/mea-compilr/mea-compilr ]
 then
    cp $SOURCE/commands/mea-compilr/mea-compilr $SOURCE/package/tmp/bin
 fi
+
+if [ -f  $SOURCE/commands/mea-enocean/enoceanlogger ]
+then
+   cp $SOURCE/commands/mea-enocean/enoceanlogger $SOURCE/package/tmp/bin
+fi
+
+if [ -f  $SOURCE/commands/mea-enocean/enoceanpairing ]
+then
+   cp $SOURCE/commands/mea-enocean/enoceanpairing $SOURCE/package/tmp/bin
+fi
+
+if [ -f  $SOURCE/commands/mea-enocean/enoceanoutput ]
+then
+   cp $SOURCE/commands/mea-enocean/enoceanoutput $SOURCE/package/tmp/bin
+fi
+
+if [ -f  $SOURCE/commands/mea-xpllogger/mea-xpllogger ]
+then
+   cp $SOURCE/commands/mea-xpllogger/mea-xpllogger $SOURCE/package/tmp/bin
+fi
+
+strip $SOURCE/package/tmp/bin/*
 
 cd $SOURCE/package/tmp
 cd $SOURCE/package/tmp

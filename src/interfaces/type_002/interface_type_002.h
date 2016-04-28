@@ -90,12 +90,13 @@ typedef struct plugin_commissionning_queue_elem_s
    PyObject      *parameters;
 } plugin_commissionning_queue_elem_t;
 
-
+/*
 int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg);
 int stop_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg);
 //int restart_interface_type_002(int id);
 int restart_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg);
 int16_t check_status_interface_type_002(interface_type_002_t *it002);
+*/
 
 xpl2_f get_xPLCallback_interface_type_002(void *ixxx);
 int get_monitoring_id_interface_type_002(void *ixxx);
