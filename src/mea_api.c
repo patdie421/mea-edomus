@@ -18,6 +18,7 @@
 #include "mea_verbose.h"
 
 #include "python_utils.h"
+#include "interfacesServer.h"
 
 #include "mea_api.h"
 
@@ -39,15 +40,14 @@ static PyObject *mea_xplSendMsg2(PyObject *self, PyObject *args);
 static PyObject *mea_addDataToSensorsValuesTable(PyObject *self, PyObject *args);
 static PyObject *mea_write(PyObject *self, PyObject *args);
 static PyObject *mea_read(PyObject *self, PyObject *args);
+static PyObject *mea_interface_api(PyObject *self, PyObject *args);
 
 
 static PyMethodDef MeaMethods[] = {
    {"getMemory",                    mea_api_getMemory,                METH_VARARGS, "Return a dictionary"},
    {"sendXbeeCmdAndWaitResp",       mea_sendAtCmdAndWaitResp,         METH_VARARGS, "Envoie d'une commande AT et recupere la reponse"},
    {"sendXbeeCmd",                  mea_sendAtCmd,                    METH_VARARGS, "Envoie d'une commande AT sans attendre de reponse"},
-//   {"sendEnoceanPacketAndWaitResp", mea_sendEnoceanPacketAndWaitResp, METH_VARARGS, "Envoie un packet et recupere la reponse"},
-//   {"enoceanCRC",                   mea_enoceanCRC,                   METH_VARARGS, "calcule d'un CRC enocean"},
-   {"sendEnoceanRadioErp1Packet",   mea_sendEnoceanRadioErp1Packet,   METH_VARARGS, "Envoie un message ERP1"},
+//   {"sendEnoceanRadioErp1Packet",   mea_sendEnoceanRadioErp1Packet,   METH_VARARGS, "Envoie un message ERP1"},
    {"xplGetVendorID",               mea_xplGetVendorID,               METH_VARARGS, "VendorID"},
    {"xplGetDeviceID",               mea_xplGetDeviceID,               METH_VARARGS, "DeviceID"},
    {"xplGetInstanceID",             mea_xplGetInstanceID,             METH_VARARGS, "InstanceID"},
@@ -55,6 +55,7 @@ static PyMethodDef MeaMethods[] = {
    {"addDataToSensorsValuesTable",  mea_addDataToSensorsValuesTable,  METH_VARARGS, "Envoi des donnees dans la table sensors_values"},
    {"sendSerialData",               mea_write,                        METH_VARARGS, "Envoi des donnees vers une ligne serie"},
    {"receiveSerialData",            mea_read,                         METH_VARARGS, "recupere des donnees depuis une ligne serie"},
+   {"interfaceAPI",                 mea_interface_api,                METH_VARARGS, "appel api d'interface"},
    {NULL, NULL, 0, NULL}
 };
 
@@ -140,6 +141,75 @@ static uint32_t _indianConvertion(uint32_t val_x86)
 }
 
 
+static PyObject *mea_interface_api(PyObject *self, PyObject *args)
+{
+   PyObject *arg;
+
+   int id_driver=-1;
+   int id_interface=-1;
+   char *data=NULL;
+   int l_data=0;
+   int nb_args=0;
+   // récupération des paramètres et contrôle des types
+
+   nb_args=PyTuple_Size(args);
+   if(nb_args<3)
+      goto mea_interface_api_arg_err;
+
+   arg=PyTuple_GetItem(args, 0);
+   if(PyNumber_Check(arg))
+      id_driver=(int)PyLong_AsLong(arg);
+   else
+      goto mea_interface_api_arg_err;
+
+   arg=PyTuple_GetItem(args, 1);
+   if(PyNumber_Check(arg))
+      id_interface=(int)PyLong_AsLong(arg);
+   else
+      goto mea_interface_api_arg_err;
+
+   char *cmnd = NULL;
+   arg=PyTuple_GetItem(args, 2);
+   if(PyString_Check(arg))
+      cmnd=(char *)PyString_AsString(arg);
+   else
+      goto mea_interface_api_arg_err;
+
+   char err[255];
+   int16_t nerr;
+   PyObject *res = NULL;
+
+   int ret=interfacesServer_call_interface_api(id_driver, id_interface, cmnd, (void *)args, nb_args - 2, (void **)&res, &nerr, err, sizeof(err));
+   switch(ret)
+   {
+      case -252:
+      case -253:
+      case -254:
+         PyErr_SetString(PyExc_RuntimeError, err);
+         return NULL;
+         break;
+      case -255:
+         PyErr_BadArgument();
+         return NULL;
+         break;
+   }
+ 
+   PyObject *t=PyTuple_New(3);
+   PyTuple_SetItem(t, 0, PyLong_FromLong(ret));
+   PyTuple_SetItem(t, 1, PyLong_FromLong((long)nerr));
+   if(res == NULL)
+      res = PyLong_FromLong(0L);
+   PyTuple_SetItem(t, 2, res);
+
+   return t;
+
+mea_interface_api_arg_err:
+   PyErr_BadArgument();
+   return NULL;
+}
+
+
+/*
 static PyObject *mea_enoceanCRC(PyObject *self, PyObject *args)
 {
    PyObject *arg;
@@ -305,6 +375,7 @@ mea_sendEnoceanPacketAndWaitResp_arg_err:
    PyErr_BadArgument();
    return NULL;
 }
+*/
 
 
 static PyObject *mea_xplGetVendorID()

@@ -64,12 +64,6 @@ struct interface_type_006_data_s
    sqlite3 *sqlite3_param_db;
 };
 
-/*
-int start_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg);
-int stop_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg);
-int restart_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg);
-int16_t check_status_interface_type_006(interface_type_006_t *i006);
-*/
 
 xpl2_f NAME(get_xPLCallback_interface_type_006)(void *ixxx);
 int NAME(get_monitoring_id_interface_type_006)(void *ixxx);
@@ -77,7 +71,7 @@ int NAME(set_xPLCallback_interface_type_006)(void *ixxx, xpl2_f cb);
 int NAME(set_monitoring_id_interface_type_006)(void *ixxx, int id);
 int NAME(get_type_interface_type_006)();
 
-interface_type_006_t *NAME(malloc_and_init_interface_type_006)(sqlite3 *sqlite3_param_db, int id_interface, char *name, char *dev, char *parameters, char *description);
+interface_type_006_t *NAME(malloc_and_init_interface_type_006)(sqlite3 *sqlite3_param_db, int id_driver, int id_interface, char *name, char *dev, char *parameters, char *description);
 int NAME(clean_interface_type_006)(void *ixx);
 
 #ifndef ASPLUGIN

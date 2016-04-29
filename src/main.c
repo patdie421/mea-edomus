@@ -290,7 +290,7 @@ void clean_all_and_exit()
    {
       stop_interfaces();
    }
- 
+
    if(pythonPluginServer_monitoring_id!=-1)
    {
       process_stop(pythonPluginServer_monitoring_id, NULL, 0);

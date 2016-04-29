@@ -3,6 +3,7 @@
 //  Created by Patrice DIETSCH on 17/10/12.
 //
 //
+#include <Python.h>
 
 #include <stdio.h>
 #include <stdlib.h>

@@ -24,10 +24,10 @@ INTERFACES_CFLAGS=$(addprefix -I, $(INTERFACES_PATH))
 
 ifeq ($(ASPLUGIN), 1)
 INTERFACES_OBJECTS=$(addsuffix /$(TECHNO).objects/*.o, $(INTERFACES_NOTPLUGIN_PATH)) \
-src/interfaces/type_003/$(TECHNO).objects/enocean.o \
 src/interfaces/type_002/$(TECHNO).objects/xbee.o
-
 else
+$(shell rm $(MYPATH)/src/interfaces/type_*/$(TECHNO).objects/plugin.o)
+$(shell rm $(MYPATH)/src/interfaces/type_*/*.so)
 INTERFACES_OBJECTS=$(addsuffix /$(TECHNO).objects/*.o, $(INTERFACES_PATH))
 endif
 
@@ -59,6 +59,7 @@ LDFLAGS     = -lmysqlclient \
               -lrt \
               -lcurl \
               $(ASPLUGIN_LDFLAGS)
+
 
 all: .deps $(TECHNO).objects interfaces $(SOURCES) $(EXECUTABLE)
 

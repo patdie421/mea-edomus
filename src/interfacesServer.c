@@ -40,7 +40,7 @@
 #include "interface_type_005.h"
 #include "interface_type_006.h"
 
-#define MAX_INTERFACES_PLUGINS 10
+#define MAX_INTERFACES_PLUGINS 10 // au demarrage et pour les statics
 
 struct interfacesServer_interfaceFns_s *interfacesFns;
 int interfacesFns_nb = 0;
@@ -156,6 +156,44 @@ void dispatchXPLMessageToInterfaces2(cJSON *xplMsgJson)
 }
 
 
+void *get_context_by_interface_id(int driver_id, int interface_id)
+{
+   int ret;
+   void *context = NULL;
+   interfaces_queue_elem_t *iq;
+
+   if(interfacesFns[driver_id].get_interface_id == NULL)
+      return NULL;
+
+   pthread_cleanup_push( (void *)pthread_rwlock_unlock, (void *)&interfaces_queue_rwlock);
+   pthread_rwlock_rdlock(&interfaces_queue_rwlock);
+
+   if(_interfaces && _interfaces->nb_elem)
+   {
+      mea_queue_first(_interfaces);
+      while(1)
+      {
+         mea_queue_current(_interfaces, (void **)&iq);
+
+         if(iq && iq->context && interfacesFns[driver_id].get_interface_id(iq->context) == interface_id)
+         {
+            context = iq->context;
+            break; 
+         }
+
+         ret=mea_queue_next(_interfaces);
+         if(ret<0)
+            break;
+      }
+   }
+
+   pthread_rwlock_unlock(&interfaces_queue_rwlock);
+   pthread_cleanup_pop(0);
+
+   return context;
+}
+
+
 int16_t unload_interfaces_fns()
 {
    for(int i=0; interfacesFns[i].get_type; i++)
@@ -236,6 +274,7 @@ int load_interface(int type, char **params_list)
                }
                fn(lib, &(interfacesFns[interfacesFns_nb]));
                interfacesFns[interfacesFns_nb].lib = lib;
+               interfacesFns[interfacesFns_nb].type = type;
                interfacesFns_nb++;
                return 0;
             }
@@ -251,6 +290,34 @@ int load_interface(int type, char **params_list)
    return -1;
 }
 #endif
+
+
+//int16_t interfacesServer_call_interface_api(int id_driver, char *cmnd, PyObject * args, int nb_args, PyObject **res, char *err, int l_err)
+int16_t interfacesServer_call_interface_api(int id_driver, int id_interface, char *cmnd, void *args, int nb_args, void **res, int16_t *nerr, char *err, int l_err)
+{
+   if(interfacesFns[id_driver].api != NULL)
+   {
+      void *ixxx = NULL;
+
+      ixxx = get_context_by_interface_id(id_driver, id_interface);
+
+      if(ixxx)
+      {
+         return interfacesFns[id_driver].api(ixxx, cmnd, args, nb_args, res, nerr, err, l_err);
+      }
+      else
+      {
+         *nerr=-253;
+         strncpy(err,"interface context not found", l_err); 
+      }
+   }
+   else
+   {
+      *nerr=-252;
+      strncpy(err,"interface has no api", l_err);
+   }
+   return -1;
+}
 
 
 void stop_interfaces()
@@ -413,7 +480,7 @@ mea_queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                int type=interfacesFns[i].get_type();
                if(type==id_type)
                {
-                  void *ptr = interfacesFns[i].malloc_and_init_interface(sqlite3_param_db, id_interface, (char *)name, (char *)dev, (char *)parameters, (char *)description);
+                  void *ptr = interfacesFns[i].malloc_and_init(sqlite3_param_db, i, id_interface, (char *)name, (char *)dev, (char *)parameters, (char *)description);
                   if(ptr)
                   {
                      iq->context=ptr;

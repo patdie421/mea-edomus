@@ -139,7 +139,7 @@ int NAME(set_xPLCallback_interface_type_004)(void *ixxx, xpl2_f cb);
 int NAME(set_monitoring_id_interface_type_004)(void *ixxx, int id);
 int NAME(get_type_interface_type_004)();
 
-interface_type_004_t *NAME(malloc_and_init_interface_type_004)(sqlite3 *sqlite3_param_db, int id_interface, char *name, char *dev, char *parameters, char *description);
+interface_type_004_t *NAME(malloc_and_init_interface_type_004)(sqlite3 *sqlite3_param_db, int id_driver, int id_interface, char *name, char *dev, char *parameters, char *description);
 int NAME(clean_interface_type_004)(void *ixxx);
 
 #ifndef ASPLUGIN

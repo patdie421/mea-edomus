@@ -13,15 +13,12 @@
 #include <time.h>
 #include <sys/time.h>
 #include <signal.h>
-//#include <errno.h>
 #include "mea_verbose.h"
 #include <string.h>
 #include <pthread.h>
 
 #include "globals.h"
 #include "consts.h"
-//#include "error.h"
-//#include "debug.h"
 #include "mea_queue.h"
 #include "tokens.h"
 

@@ -69,7 +69,7 @@ struct callback_data_s // donnee "userdata" pour les callbacks
    PyThreadState   *mainThreadState;
    sqlite3         *param_db;
    xbee_xd_t       *xd;
-   mea_queue_t         *queue;
+   mea_queue_t     *queue;
    pthread_mutex_t *callback_lock;
    pthread_cond_t  *callback_cond;
 };
@@ -80,8 +80,9 @@ struct callback_commissionning_data_s
    PyThreadState  *mainThreadState;
    PyThreadState  *myThreadState;
    sqlite3        *param_db;
-   xbee_xd_t      *xd;
-   xbee_host_t    *local_xbee;
+//   xbee_xd_t      *xd;
+//   xbee_host_t    *local_xbee;
+   interface_type_002_t *i002;
    
    // indicateurs
    uint32_t       *commissionning_request;
@@ -357,7 +358,8 @@ int16_t _interface_type_002_xPL_callback2(cJSON *xplMsgJson, void *userValue)
    char sql[2048];
    sqlite3_stmt * stmt;
    
-   sprintf(sql,"%s WHERE sensors_actuators.deleted_flag <> 1 AND lower(sensors_actuators.name)='%s' AND sensors_actuators.state='1';", sql_select_device_info, device);
+//   sprintf(sql,"%s WHERE sensors_actuators.deleted_flag <> 1 AND lower(sensors_actuators.name)='%s' AND sensors_actuators.state='1';", sql_select_device_info, device);
+   sprintf(sql,"%s WHERE sensors_actuators.deleted_flag <> 1 AND lower(sensors_actuators.name)='%s' AND sensors_actuators.state='1' AND lower(interfaces.dev) LIKE \'%s://%%';", sql_select_device_info, device, interface->name);
    ret = sqlite3_prepare_v2(params_db, sql, strlen(sql)+1, &stmt, NULL);
    if(ret)
    {
@@ -478,7 +480,7 @@ mea_error_t _interface_type_002_commissionning_callback(int id, unsigned char *c
    char addr[18];
    // pourquoi ne pas utiliser addr_h et addr_l (snprintf(_addr,sizeof(_addr),"%08x-%08x",addr_h,addr_l))
    sprintf(addr,
-           //           "%02x%02x%02x%02x-%02x%02x%02x%02x",
+           // "%02x%02x%02x%02x-%02x%02x%02x%02x",
            printf_mask_addr,
            nd_resp->addr_64_h[0],
            nd_resp->addr_64_h[1],
@@ -493,7 +495,8 @@ mea_error_t _interface_type_002_commissionning_callback(int id, unsigned char *c
    
    char sql[1024];
    sqlite3_stmt * stmt;
-   sprintf(sql,"%s WHERE sensors_actuators.deleted_flag <> 1 AND interfaces.dev ='MESH://%s' AND interfaces.state='2';", sql_select_interface_info, addr);
+//   sprintf(sql,"%s WHERE sensors_actuators.deleted_flag <> 1 AND interfaces.dev ='MESH://%s' AND interfaces.state='2';", sql_select_interface_info, addr);
+   sprintf(sql,"%s WHERE sensors_actuators.deleted_flag <> 1 AND lower(interfaces.dev) ='%s://%s' AND interfaces.state='2';", sql_select_interface_info, callback_commissionning->i002->name, addr);
    
    int ret = sqlite3_prepare_v2(params_db,sql,strlen(sql)+1,&stmt,NULL);
    if(ret)
@@ -535,9 +538,9 @@ mea_error_t _interface_type_002_commissionning_callback(int id, unsigned char *c
             PyThreadState *tempState = PyThreadState_Swap(callback_commissionning->myThreadState);
             
             plugin_elem->aDict=stmt_to_pydict_interface(stmt);
-            mea_addLong_to_pydict(plugin_elem->aDict, get_token_string_by_id(ID_XBEE_ID), (long)callback_commissionning->xd);
-            mea_addLong_to_pydict(plugin_elem->aDict, "LOCAL_XBEE_ADDR_H", (long)callback_commissionning->local_xbee->l_addr_64_h);
-            mea_addLong_to_pydict(plugin_elem->aDict, "LOCAL_XBEE_ADDR_L", (long)callback_commissionning->local_xbee->l_addr_64_l);
+            mea_addLong_to_pydict(plugin_elem->aDict, get_token_string_by_id(ID_XBEE_ID), (long)callback_commissionning->i002->xd);
+            mea_addLong_to_pydict(plugin_elem->aDict, "LOCAL_XBEE_ADDR_H", (long)callback_commissionning->i002->local_xbee->l_addr_64_h);
+            mea_addLong_to_pydict(plugin_elem->aDict, "LOCAL_XBEE_ADDR_L", (long)callback_commissionning->i002->local_xbee->l_addr_64_l);
             
             if(plugin_params->parameters[XBEE_PLUGIN_PARAMS_PARAMETERS].value.s)
                mea_addString_to_pydict(plugin_elem->aDict, get_token_string_by_id(INTERFACE_PARAMETERS_ID), plugin_params->parameters[XBEE_PLUGIN_PARAMS_PARAMETERS].value.s);
@@ -709,7 +712,8 @@ void *_thread_interface_type_002_xbeedata(void *args)
                  e->addr_64_l[3]);
          VERBOSE(9) mea_log_printf("%s  (%s) : data from = %s received\n",INFO_STR, __func__, addr);
          
-         sprintf(sql,"%s WHERE interfaces.dev ='MESH://%s' AND sensors_actuators.deleted_flag <> 1 AND sensors_actuators.state='1';", sql_select_device_info, addr);
+//         sprintf(sql,"%s WHERE interfaces.dev ='MESH://%s' AND sensors_actuators.deleted_flag <> 1 AND sensors_actuators.state='1';", sql_select_device_info, addr);
+         sprintf(sql,"%s WHERE lower(interfaces.dev)=lower('%s://%s') AND sensors_actuators.deleted_flag <> 1 AND sensors_actuators.state='1';", sql_select_device_info, params->i002->name, addr);
          ret = sqlite3_prepare_v2(params_db,sql,strlen(sql)+1,&(params->stmt),NULL);
          if(ret)
          {
@@ -993,7 +997,7 @@ int get_type_interface_type_002()
 }
 
 
-interface_type_002_t *malloc_and_init_interface_type_002(sqlite3 *sqlite3_param_db, int id_interface, char *name, char *dev, char *parameters, char *description)
+interface_type_002_t *malloc_and_init_interface_type_002(sqlite3 *sqlite3_param_db, int id_driver, int id_interface, char *name, char *dev, char *parameters, char *description)
 {
    interface_type_002_t *i002;
                   
@@ -1039,7 +1043,6 @@ interface_type_002_t *malloc_and_init_interface_type_002(sqlite3 *sqlite3_param_
    i002->xd=NULL;
    i002->local_xbee=NULL;
    i002->thread=NULL;
-//   i002->xPL_callback=NULL;
    i002->xPL_callback2=NULL;
    i002->xPL_callback_data=NULL;
 
@@ -1072,8 +1075,6 @@ int clean_interface_type_002(interface_type_002_t *i002)
       i002->xPL_callback_data=NULL;
    }
    
-//   if(i002->xPL_callback)
-//      i002->xPL_callback=NULL;
    if(i002->xPL_callback2)
       i002->xPL_callback2=NULL;
    
@@ -1502,11 +1503,12 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
       mea_notify_printf('E', "%s can't be launched - %s.\n", start_stop_params->i002->name, err_str);
       goto clean_exit;
    }
-   commissionning_callback_params->xd=xd;
+//   commissionning_callback_params->xd=xd;
+   commissionning_callback_params->i002=start_stop_params->i002;
    commissionning_callback_params->param_db=start_stop_params->sqlite3_param_db;
    commissionning_callback_params->mainThreadState=NULL;
    commissionning_callback_params->myThreadState=NULL;
-   commissionning_callback_params->local_xbee=local_xbee;
+//   commissionning_callback_params->local_xbee=local_xbee;
    commissionning_callback_params->senttoplugin=&(start_stop_params->i002->indicators.senttoplugin); // indicateur requete vers plugin
    commissionning_callback_params->commissionning_request=&(start_stop_params->i002->indicators.commissionning_request); // indicateur nb demande commissionnement
    xbee_set_commissionning_callback2(xd, _interface_type_002_commissionning_callback, (void *)commissionning_callback_params);
@@ -1592,7 +1594,7 @@ clean_exit:
 #ifndef ASPLUGIN
 int get_fns_interface_type_002(struct interfacesServer_interfaceFns_s *interfacesFns)
 {
-   interfacesFns->malloc_and_init_interface = (malloc_and_init_interface_f)&malloc_and_init_interface_type_002;
+   interfacesFns->malloc_and_init = (malloc_and_init_f)&malloc_and_init_interface_type_002;
    interfacesFns->get_monitoring_id = (get_monitoring_id_f)&get_monitoring_id_interface_type_002;
    interfacesFns->get_xPLCallback = (get_xPLCallback_f)&get_xPLCallback_interface_type_002;
    interfacesFns->clean = (clean_f)&clean_interface_type_002;
@@ -1601,6 +1603,7 @@ int get_fns_interface_type_002(struct interfacesServer_interfaceFns_s *interface
    interfacesFns->get_type = (get_type_f)&get_type_interface_type_002;
 
    interfacesFns->lib = NULL;
+   interfacesFns->type = interfacesFns->get_type();
    interfacesFns->plugin_flag = 0;
 
    return 0;

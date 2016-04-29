@@ -49,6 +49,9 @@ def mea_xplCmndMsg(data):
    try:
       id_sensor=data["device_id"]
       parameters=data["device_parameters"]
+      id_driver=data["driver_id"]
+      id_api=data["api_key"]
+
    except:
       verbose(2, "ERROR (", fn_name, ") - device_id not found")
       return 0
@@ -85,8 +88,8 @@ def mea_xplCmndMsg(data):
               buf.append(channel & 0b11111)
               buf.append(current & 0b1111111)
 
-              # sendEnoceanRadioErp1Packet(enocean_ed, rorg, sub_id, dest_addr, buffer)
-              mea.sendEnoceanRadioErp1Packet(data["ID_ENOCEAN"], 0xD2, 0, data["ENOCEAN_ADDR"], buf)
+#              mea.sendEnoceanRadioErp1Packet(data["ID_ENOCEAN"], 0xD2, 0, data["ENOCEAN_ADDR"], buf)
+              mea.interfaceAPI(id_driver, api_key, "sendEnoceanRadioErp1Packet", data["ID_ENOCEAN"], 0xD2, 0, data["ENOCEAN_ADDR"], buf)
 
      except:
         verbose(2, "ERROR (", fn_name, ") - can't create enocean packet")

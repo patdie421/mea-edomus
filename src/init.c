@@ -15,6 +15,8 @@
 //  Created by Patrice Dietsch on 18/08/13.
 //
 //
+#include <Python.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>

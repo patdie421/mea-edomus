@@ -1,4 +1,4 @@
-#include "interface_type_005.h"
+#include <Python.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,6 +11,9 @@
 #include <sqlite3.h>
 #include <errno.h>
 #include <pthread.h>
+
+#include "interface_type_005.h"
+#include "interfacesServer.h"
 
 #include "mea_verbose.h"
 #include "mea_timer.h"
@@ -35,7 +38,6 @@
 
 #include "netatmo.h"
 
-#include "interfacesServer.h"
 
 
 enum device_type_e { THERMOSTAT, STATION };
@@ -1194,7 +1196,7 @@ int NAME(get_type_interface_type_005)()
 }
 
 
-interface_type_005_t *NAME(malloc_and_init_interface_type_005)(sqlite3 *sqlite3_param_db, int id_interface, char *name, char *dev, char *parameters, char *description)
+interface_type_005_t *NAME(malloc_and_init_interface_type_005)(sqlite3 *sqlite3_param_db, int id_driver, int id_interface, char *name, char *dev, char *parameters, char *description)
 {
    interface_type_005_t *i005=NULL;
    
@@ -1424,7 +1426,7 @@ start_interface_type_005_clean_exit:
 #else
 int get_fns_interface_type_005(struct interfacesServer_interfaceFns_s *interfacesFns)
 {
-   interfacesFns->malloc_and_init_interface = (malloc_and_init_interface_f)&malloc_and_init_interface_type_005;
+   interfacesFns->malloc_and_init = (malloc_and_init_f)&malloc_and_init_interface_type_005;
    interfacesFns->get_monitoring_id = (get_monitoring_id_f)&get_monitoring_id_interface_type_005;
    interfacesFns->get_xPLCallback = (get_xPLCallback_f)&get_xPLCallback_interface_type_005;
    interfacesFns->clean = (clean_f)&clean_interface_type_005;
@@ -1433,6 +1435,7 @@ int get_fns_interface_type_005(struct interfacesServer_interfaceFns_s *interface
    interfacesFns->get_type = (get_type_f)&get_type_interface_type_005;
 
    interfacesFns->lib = NULL;
+   interfacesFns->type = interfacesFns->get_type();
    interfacesFns->plugin_flag = 0;
 
    return 0;

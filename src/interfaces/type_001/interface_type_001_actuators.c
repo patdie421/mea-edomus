@@ -5,6 +5,7 @@
 //  Created by Patrice DIETSCH on 29/11/12.
 //
 //
+#include <Python.h>
 
 #include <stdio.h>
 #include <stdlib.h>

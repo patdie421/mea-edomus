@@ -761,7 +761,7 @@ int NAME(get_type_interface_type_006)()
 }
 
 
-interface_type_006_t *NAME(malloc_and_init_interface_type_006)(sqlite3 *sqlite3_param_db, int id_interface, char *name, char *dev, char *parameters, char *description)
+interface_type_006_t *NAME(malloc_and_init_interface_type_006)(sqlite3 *sqlite3_param_db, int id_driver, int id_interface, char *name, char *dev, char *parameters, char *description)
 {
    interface_type_006_t *i006;
                   
@@ -1014,7 +1014,7 @@ clean_exit:
 #ifndef ASPLUGIN
 int get_fns_interface_type_006(struct interfacesServer_interfaceFns_s *interfacesFns)
 {
-   interfacesFns->malloc_and_init_interface = (malloc_and_init_interface_f)&malloc_and_init_interface_type_006;
+   interfacesFns->malloc_and_init = (malloc_and_init_f)&malloc_and_init_interface_type_006;
    interfacesFns->get_monitoring_id = (get_monitoring_id_f)&get_monitoring_id_interface_type_006;
    interfacesFns->get_xPLCallback = (get_xPLCallback_f)&get_xPLCallback_interface_type_006;
    interfacesFns->clean = (clean_f)&clean_interface_type_006;
@@ -1023,6 +1023,7 @@ int get_fns_interface_type_006(struct interfacesServer_interfaceFns_s *interface
    interfacesFns->get_type = (get_type_f)&get_type_interface_type_006;
 
    interfacesFns->lib = NULL;
+   interfacesFns->type = interfacesFns->get_type();
    interfacesFns->plugin_flag = 0;
 
    return 0;
