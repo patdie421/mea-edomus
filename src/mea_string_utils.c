@@ -714,7 +714,7 @@ int mea_strlen_escaped(char *s)
 }
 
 
-#define ISOCTAL(c)	(ISDIGIT(c) && (c) != '8' && (c) != '9')
+#define ISOCTAL(c)	(isdigit(c) && (c) != '8' && (c) != '9')
 
 char *mea_unescape(char *result, char *data)
 {
@@ -725,10 +725,11 @@ char *mea_unescape(char *result, char *data)
 
    result[0]=0;
 
-   while (ch = *data++) != 0)
+   while ((ch = *data++) != 0)
    {
+      fprintf(stderr,"CH: %c\n",ch);
       if (ch == '\\') {
-	      if (ch = *data++) == 0)
+	      if ((ch = *data++) == 0)
 		      break;
 	         switch (ch)
 	         {
@@ -761,7 +762,7 @@ char *mea_unescape(char *result, char *data)
 	            case '5':
 	            case '6':
 	            case '7':
-		            for (oval = ch - '0', i = 0; i < 2 && ((ch = *data) != 0 && ISOCTAL(ch); i++, data++)
+		            for (oval = ch - '0', i = 0; i < 2 && ((ch = *data) != 0) && ISOCTAL(ch); i++, data++)
 		            {
 		               oval = (oval << 3) | (ch - '0');
 		            }
@@ -831,5 +832,9 @@ int main(int argc, char *argv[])
 
    mea_strncpytrim(s4, s2, 15);
    fprintf(stderr,"s4 = [%s]\n", s4);
+
+   mea_unescape(s4, "\\101\\102\\n");
+   fprintf(stderr,"S4=%s\n", s4);
+
 }
 #endif

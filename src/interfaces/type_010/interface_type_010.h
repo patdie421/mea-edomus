@@ -52,6 +52,7 @@ typedef struct interface_type_010_s
    enum direction_e direction;
    enum file_type_e file_type;
    char            *file_name;
+   char            *in_ext, *out_ext;
    int              file_desc_in;
    int              file_desc_out;
 

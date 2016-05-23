@@ -157,65 +157,97 @@ static int init_interface_type_010_data_source_pipe(interface_type_010_t *i010)
    int retour = 0;
    int ret = 0;
 
-   unlink(i010->file_name);
-   ret = mkfifo(i010->file_name, 0666);
-   if(ret != 0)
-   {
-      perror("");
-
-      return -1;
-   }
-
    i010->file_desc_in = -1;
    i010->file_desc_out = -1;
    
    if(i010->direction == DIR_IN || i010->direction == DIR_BOTH)
    {
-      int p=open(i010->file_name, O_RDWR | O_NONBLOCK);
-      if(p==-1)
+      char *fname = alloca(strlen(i010->file_name)+strlen(i010->in_ext)+1);
+      sprintf(fname,"%s%s", i010->file_name, i010->in_ext);
+
+      unlink(fname);
+
+      ret = mkfifo(fname, 0666);
+      if(ret != 0)
       {
-         perror("");
-
-         free(i010->line_buffer);
-         i010->line_buffer = NULL;
-         i010->line_buffer_l=0;
-
-         return -1;
+         VERBOSE(5) {
+            mea_log_printf("%s (%s) : mkfifo in - ", ERROR_STR, __func__);
+            perror("");
+         }
       }
       else
       {
-         i010->file_desc_in=p; 
+         int p=open(fname, O_RDWR | O_NONBLOCK);
+         if(p==-1)
+         {
+            VERBOSE(5) {
+               mea_log_printf("%s (%s) : open in - ", ERROR_STR, __func__);
+               perror("");
+            }
+
+            free(i010->line_buffer);
+            i010->line_buffer = NULL;
+            i010->line_buffer_l=0;
+
+            return -1;
+         }
+         else
+         {
+            i010->file_desc_in=p; 
+         }
       }
    }
 
 
    if(i010->direction == DIR_OUT || i010->direction == DIR_BOTH)
    {
-      int p=open(i010->file_name, O_RDWR | O_NONBLOCK);
-      if(p==-1)
+      char *fname = alloca(strlen(i010->file_name)+strlen(i010->out_ext)+1);
+      sprintf(fname,"%s%s", i010->file_name, i010->out_ext);
+
+      unlink(fname);
+
+      ret = mkfifo(fname, 0666);
+      if(ret != 0)
       {
-         perror("");
-
-         if(i010->file_desc_in != -1)
-         {
-            close(i010->file_desc_in);
-            i010->file_desc_in = -1;
+         VERBOSE(5) {
+            mea_log_printf("%s (%s) : mkfifo out - ", ERROR_STR, __func__);
+            perror("");
          }
-
-         free(i010->line_buffer);
-         i010->line_buffer = NULL;
-         i010->line_buffer_l=0;
-
-         return -1;
       }
       else
       {
-         i010->file_desc_out=p;
+         int p=open(fname, O_RDWR | O_NONBLOCK);
+         if(p==-1)
+         {
+            VERBOSE(5) {
+               mea_log_printf("%s (%s) : open out - ", ERROR_STR, __func__);
+               perror("");
+            }
+
+            if(i010->file_desc_in != -1)
+            {
+               close(i010->file_desc_in);
+               i010->file_desc_in = -1;
+            }
+
+            free(i010->line_buffer);
+            i010->line_buffer = NULL;
+            i010->line_buffer_l=0;
+
+            return -1;
+         }
+         else
+         {
+            i010->file_desc_out=p;
+         }
       }
    }
 
    if(i010->file_desc_out == -1 && i010->file_desc_in == -1)
    {
+      VERBOSE(5) {
+         mea_log_printf("%s (%s) : no fifo opend", ERROR_STR, __func__);
+      }
       return -1;
    }
 
@@ -329,7 +361,6 @@ int interface_type_010_data_preprocessor(interface_type_010_t *i010)
 
          PyObject *res=NULL;
          
-//         retour=mea_call_python_function2(i010->pFunc, aDict);
          mea_call_python_function3(i010->pFunc, aDict, &res);
 
          if(!res)
@@ -349,7 +380,6 @@ int interface_type_010_data_preprocessor(interface_type_010_t *i010)
                }
                else
                {
-                  //fprintf(stderr,"NEW DATA=%s\n", py_packet.buf);
                   if(py_packet.len >= i010->line_buffer_l)
                   {
                      int n=((py_packet.len / INC_LINE_BUFFER_SIZE) + 1) * INC_LINE_BUFFER_SIZE;
@@ -961,7 +991,12 @@ interface_type_010_t *malloc_and_init_interface_type_010(sqlite3 *sqlite3_param_
    i010->fstartstr = NULL;
    i010->fsize = 0;
    i010->direction = DIR_IN;
-
+   i010->in_ext = malloc(4);
+   if(i010->in_ext)
+      strcpy(i010->in_ext,"-in");
+   i010->out_ext = malloc(5);
+   if(i010->out_ext)
+      strcpy(i010->out_ext,"-out");
    i010->pModule = NULL;
    i010->pFunc = NULL;
    i010->pParams = NULL;
@@ -980,10 +1015,50 @@ interface_type_010_t *malloc_and_init_interface_type_010(sqlite3 *sqlite3_param_
    }
    else
    {
+      if(interface_params->parameters[INTERFACE_PARAMS_IN_EXT].label)
+      {
+         char *tmp = realloc(i010->in_ext, strlen(interface_params->parameters[INTERFACE_PARAMS_IN_EXT].value.s)+1);
+         if(tmp)
+         {
+            i010->in_ext=tmp;
+            strcpy(i010->in_ext, interface_params->parameters[INTERFACE_PARAMS_IN_EXT].value.s);
+         } 
+      }
+
+      if(interface_params->parameters[INTERFACE_PARAMS_OUT_EXT].label)
+      {
+         char *tmp = realloc(i010->out_ext, strlen(interface_params->parameters[INTERFACE_PARAMS_OUT_EXT].value.s)+1);
+         if(tmp)
+         {
+            i010->out_ext=tmp;
+            strcpy(i010->out_ext, interface_params->parameters[INTERFACE_PARAMS_OUT_EXT].value.s);
+         } 
+      }
+
       if(interface_params->parameters[INTERFACE_PARAMS_FSIZE].label)
       {
          if(interface_params->parameters[INTERFACE_PARAMS_FSIZE].value.i>0)
             i010->fsize=interface_params->parameters[INTERFACE_PARAMS_FSIZE].value.i;
+      }
+
+      if(interface_params->parameters[INTERFACE_PARAMS_DIRECTION].label)
+      {
+         if(mea_strcmplower(interface_params->parameters[INTERFACE_PARAMS_DIRECTION].value.s, "IN")==0)
+         {
+            i010->direction=DIR_IN;
+         }
+         else if(mea_strcmplower(interface_params->parameters[INTERFACE_PARAMS_DIRECTION].value.s, "OUT")==0)
+         {
+            i010->direction=DIR_OUT;
+         }
+         else if(mea_strcmplower(interface_params->parameters[INTERFACE_PARAMS_DIRECTION].value.s, "BOTH")==0)
+         {
+            i010->direction=DIR_BOTH;
+         }
+         else
+         {
+            fprintf(stderr,"DIR ERROR\n");
+         }
       }
 
       if(interface_params->parameters[INTERFACE_PARAMS_FDURATION].label)
@@ -1005,7 +1080,11 @@ interface_type_010_t *malloc_and_init_interface_type_010(sqlite3 *sqlite3_param_
          {
             i010->fstartstr=malloc(l+1);
             if(i010->fstartstr)
-               strcpy(i010->fstartstr, interface_params->parameters[INTERFACE_PARAMS_FSTARTSTR].value.s);
+            {
+//               strcpy(i010->fstartstr, interface_params->parameters[INTERFACE_PARAMS_FSTARTSTR].value.s);
+               mea_unescape(i010->fstartstr, interface_params->parameters[INTERFACE_PARAMS_FSTARTSTR].value.s);
+               i010->fstartstr = realloc(i010->fstartstr, strlen(i010->fstartstr)+1);
+            }
          }
       }
 
@@ -1016,7 +1095,11 @@ interface_type_010_t *malloc_and_init_interface_type_010(sqlite3 *sqlite3_param_
          {
             i010->fendstr=malloc(l+1);
             if(i010->fendstr)
-               strcpy(i010->fendstr, interface_params->parameters[INTERFACE_PARAMS_FENDSTR].value.s);
+            {
+//               strcpy(i010->fendstr, interface_params->parameters[INTERFACE_PARAMS_FENDSTR].value.s);
+               mea_unescape(i010->fendstr, interface_params->parameters[INTERFACE_PARAMS_FENDSTR].value.s);
+               i010->fendstr = realloc(i010->fendstr, strlen(i010->fendstr)+1);
+            }
          }
       }
 
@@ -1088,8 +1171,12 @@ void *_thread_interface_type_010(void *args)
    params->i010->thread_is_running=1;
    process_heartbeat(params->i010->monitoring_id);
 
+   PyEval_AcquireLock();
+
    params->i010->mainThreadState = PyThreadState_Get();
    params->i010->myThreadState   = PyThreadState_New(params->i010->mainThreadState->interp);
+
+   PyEval_ReleaseLock();
 
    if(params->i010->pModule)
    {
