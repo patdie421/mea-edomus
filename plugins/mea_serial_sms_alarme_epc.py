@@ -110,7 +110,8 @@ def _analyseData(s):
       return (alarm, False, date_time[0], date_time[1])
 
 
-def mea_serialData(data):
+#def mea_serialData(data):
+def mea_dataFromSensor(data):
    fn_name=str(sys._getframe().f_code.co_name) + "/" + __name__
 
    parameters=False

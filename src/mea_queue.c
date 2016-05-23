@@ -99,6 +99,7 @@ mea_error_t mea_queue_init(mea_queue_t *queue)
    if(!queue)
       return ERROR;
 
+   queue->clone_flag=0;
    queue->first=NULL;
    queue->last=NULL;
    queue->current=NULL;
@@ -110,6 +111,27 @@ mea_error_t mea_queue_init(mea_queue_t *queue)
    queue->index_order_f=NULL;
 #endif
    
+   return NOERROR;
+}
+
+
+mea_error_t mea_queue_clone(mea_queue_t *n, mea_queue_t *s)
+{
+   if(!s)
+      return ERROR;
+
+   n->clone_flag=1;
+   n->first=s->first;
+   n->last=s->last;
+   n->nb_elem=s->nb_elem;
+   n->current=NULL;
+
+#ifdef QUEUE_ENABLE_INDEX
+   n->index=NULL;
+   n->index_status=0;
+   n->index_order_f=NULL;
+#endif
+
    return NOERROR;
 }
 
@@ -200,7 +222,7 @@ mea_error_t mea_queue_cleanup(mea_queue_t *queue, mea_queue_free_data_f f)
       else 
          return NOERROR;
       
-      queue->nb_elem--;		
+      queue->nb_elem--;    
    }
 
 #ifdef QUEUE_ENABLE_INDEX

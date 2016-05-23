@@ -74,11 +74,11 @@ def mea_xplCmndMsg(data):
    return False
 
 
-def mea_serialData(data):
+# def mea_serialData(data):
+def mea_dataFromSensor(data):
    fn_name= __name__ + "/" + str(sys._getframe().f_code.co_name)
 
-   verbose(9, fn_name, "data=", data)
-
+#   verbose(9, fn_name, "data=", data)
    try:
       id_actuator=data["device_id"]
    except:
@@ -95,8 +95,7 @@ def mea_serialData(data):
       return False
 
    mem_actuator=mea.getMemory(id_actuator)
-   verbose(9, fn_name, "mem_actuator=", mem_actuator)
-   
+#   verbose(9, fn_name, "mem_actuator=", mem_actuator)
    if not 'msg' in mem_actuator or mem_actuator['msg']==False:
       return True
 

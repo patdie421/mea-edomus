@@ -381,7 +381,7 @@ static void error_handler(int signal_number)
    if((_xPLServer_thread_id!=NULL) && pthread_equal(*_xPLServer_thread_id, pthread_self())!=0)
    {
       fprintf(stderr, "Error: in xPLServer, try to recover\n");
-      longjmp(xPLServer_JumpBuffer, 1);
+//      longjmp(xPLServer_JumpBuffer, 1);
    }
 /*
    else if((_automatorServer_thread_id!=NULL) && pthread_equal(*_automatorServer_thread_id, pthread_self())!=0)

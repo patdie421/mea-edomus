@@ -153,23 +153,23 @@ static PyObject *mea_interface_api(PyObject *self, PyObject *args)
    // récupération des paramètres et contrôle des types
 
    nb_args=PyTuple_Size(args);
-   if(nb_args<3)
+   if(nb_args<2)
       goto mea_interface_api_arg_err;
-
+/*
    arg=PyTuple_GetItem(args, 0);
    if(PyNumber_Check(arg))
       id_driver=(int)PyLong_AsLong(arg);
    else
       goto mea_interface_api_arg_err;
-
-   arg=PyTuple_GetItem(args, 1);
+*/
+   arg=PyTuple_GetItem(args, 0);
    if(PyNumber_Check(arg))
       id_interface=(int)PyLong_AsLong(arg);
    else
       goto mea_interface_api_arg_err;
 
    char *cmnd = NULL;
-   arg=PyTuple_GetItem(args, 2);
+   arg=PyTuple_GetItem(args, 1);
    if(PyString_Check(arg))
       cmnd=(char *)PyString_AsString(arg);
    else
@@ -179,7 +179,7 @@ static PyObject *mea_interface_api(PyObject *self, PyObject *args)
    int16_t nerr;
    PyObject *res = NULL;
 
-   int ret=interfacesServer_call_interface_api(id_driver, id_interface, cmnd, (void *)args, nb_args - 2, (void **)&res, &nerr, err, sizeof(err));
+   int ret=interfacesServer_call_interface_api(id_interface, cmnd, (void *)args, nb_args - 2, (void **)&res, &nerr, err, sizeof(err));
    switch(ret)
    {
       case -252:

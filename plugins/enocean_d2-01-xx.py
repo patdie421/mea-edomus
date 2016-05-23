@@ -51,7 +51,7 @@ def mea_xplCmndMsg(data):
       parameters=data["device_parameters"]
       typeoftype=data["typeoftype"]
 
-      id_driver=data["driver_id"]
+#      id_driver=data["driver_id"]
       api_key=data["api_key"]
    except:
       verbose(2, "ERROR (", fn_name, ") - invalid data")
@@ -88,7 +88,8 @@ def mea_xplCmndMsg(data):
               buf.append(current & 0b1111111)
 
 #              mea.sendEnoceanRadioErp1Packet(data["ID_ENOCEAN"], 0xD2, 0, data["ENOCEAN_ADDR"], buf)
-              mea.interfaceAPI(id_driver, api_key, "sendEnoceanRadioErp1Packet", 0xD2, 0, data["ENOCEAN_ADDR"], buf)
+#              mea.interfaceAPI(id_driver, api_key, "sendEnoceanRadioErp1Packet", 0xD2, 0, data["ENOCEAN_ADDR"], buf)
+              mea.interfaceAPI(api_key, "sendEnoceanRadioErp1Packet", 0xD2, 0, data["ENOCEAN_ADDR"], buf)
 
               try:
                  if paramsDict["force_status"]=="yes":
@@ -97,7 +98,8 @@ def mea_xplCmndMsg(data):
                     buf.append(0x03)
                     buf.append(channel & 0b11111)
 #                    mea.sendEnoceanRadioErp1Packet(data["ID_ENOCEAN"], 0xD2, 0, data["ENOCEAN_ADDR"], buf)
-                    mea.interfaceAPI(id_driver, api_key, "sendEnoceanRadioErp1Packet", 0xD2, 0, data["ENOCEAN_ADDR"], buf)
+#                    mea.interfaceAPI(id_driver, api_key, "sendEnoceanRadioErp1Packet", 0xD2, 0, data["ENOCEAN_ADDR"], buf)
+                    mea.interfaceAPI(api_key, "sendEnoceanRadioErp1Packet", 0xD2, 0, data["ENOCEAN_ADDR"], buf)
               except Exception as e:
                  verbose(2, "ERROR (", fn_name, ") - can't query device: ", str(e)) 
                  pass
@@ -114,7 +116,8 @@ def mea_xplCmndMsg(data):
             buf.append(0x03);
             buf.append(channel & 0b11111);
 #            mea.sendEnoceanRadioErp1Packet(data["ID_ENOCEAN"], 0xD2, 0, data["ENOCEAN_ADDR"], buf)
-            mea.interfaceAPI(id_driver, api_key,"sendEnoceanRadioErp1Packet", 0xD2, 0, data["ENOCEAN_ADDR"], buf)
+#            mea.interfaceAPI(id_driver, api_key,"sendEnoceanRadioErp1Packet", 0xD2, 0, data["ENOCEAN_ADDR"], buf)
+            mea.interfaceAPI(api_key,"sendEnoceanRadioErp1Packet", 0xD2, 0, data["ENOCEAN_ADDR"], buf)
          except Exception as e:
             verbose(2, "ERROR (", fn_name, ") - can't query device: ", str(e))
             return False
@@ -128,7 +131,8 @@ def mea_xplCmndMsg(data):
    return False
 
 
-def mea_enoceanData(data):
+#def mea_enoceanData(data):
+def mea_dataFromSensor(data):
    fn_name=sys._getframe().f_code.co_name
 
    try:

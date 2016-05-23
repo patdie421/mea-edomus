@@ -102,7 +102,8 @@ def mea_xplCmndMsg(data):
    return False
 
 
-def mea_enoceanData(data):
+#def mea_enoceanData(data):
+def mea_dataFromSensor(data):
    fn_name=sys._getframe().f_code.co_name
 
    try:

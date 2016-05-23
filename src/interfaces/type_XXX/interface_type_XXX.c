@@ -70,7 +70,7 @@ void set_interface_type_XXX_isnt_running(void *data)
 }
 
 
-int16_t _interface_type_XXX_xPL_callback2(cJSON *xplMsgJson, void *userValue)
+int16_t _interface_type_XXX_xPL_callback2(cJSON *xplMsgJson, struct device_info_s *device_info, void *userValue)
 {
    char *device = NULL;
    int ret = -1;
@@ -81,45 +81,6 @@ int16_t _interface_type_XXX_xPL_callback2(cJSON *xplMsgJson, void *userValue)
 
    interface->indicators.xplin++;
 
-   cJSON *j = NULL;
-   j=cJSON_GetObjectItem(xplMsgJson, XPL_DEVICE_STR_C);
-   if(j)
-      device = j->valuestring;
-   if(!device)
-   {
-      return -1;
-   }
-
-   sqlite3 *params_db = params->param_db;
-   char sql[2048];
-   sqlite3_stmt * stmt;
-
-   sprintf(sql,"%s WHERE sensors_actuators.deleted_flag <> 1 AND lower(sensors_actuators.name)='%s' AND sensors_actuators.state='1';", sql_select_device_info, device);
-   ret = sqlite3_prepare_v2(params_db, sql, strlen(sql)+1, &stmt, NULL);
-   if(ret)
-   {
-      VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (params_db));
-      return -1;
-   }
-
-   while(1)
-   {
-      int s = sqlite3_step(stmt);
-      if (s == SQLITE_ROW)
-      {
-      // traiter ici le message en fonction des données des capteurs/actionneurs
-      }
-      else if (s == SQLITE_DONE)
-      {
-         sqlite3_finalize(stmt);
-         break;
-      }
-      else
-      {
-         sqlite3_finalize(stmt);
-         break; 
-      }
-   }
    return 0;
 }
 
@@ -160,7 +121,9 @@ xpl2_f get_xPLCallback_interface_type_XXX(void *ixxx)
    if(iXXX == NULL)
       return NULL;
    else
+   {
       return iXXX->xPL_callback2;
+   }
 }
 
 
@@ -335,6 +298,7 @@ void *_thread_interface_type_XXX(void *args)
       sleep(1);
 
       // traiter les données en provenance des périphériques
+      fprintf(stderr, "BOUCLE\n");
 
       pthread_testcancel();
    }
@@ -347,11 +311,11 @@ void *_thread_interface_type_XXX(void *args)
 pthread_t *start_interface_type_XXX_thread(interface_type_XXX_t *iXXX, void *fd, sqlite3 *db, thread_f thread_function)
 {
    pthread_t *thread=NULL;
-   struct thread_params_s *params=NULL;
+   struct thread_params_s *thread_params=NULL;
    struct callback_data_s *callback_data=NULL;
 
    thread_params=malloc(sizeof(struct thread_params_s));
-   if(!params)
+   if(!thread_params)
    {
       VERBOSE(2) {
          mea_log_printf("%s (%s) : %s - ", ERROR_STR, __func__, MALLOC_ERROR_STR);
@@ -467,6 +431,9 @@ int start_interface_type_XXX(int my_id, void *data, char *errmsg, int l_errmsg)
       goto clean_exit;
    }
    xpl_callback_params->param_db=start_stop_params->sqlite3_param_db;
+
+   start_stop_params->iXXX->xPL_callback_data=xpl_callback_params;
+   start_stop_params->iXXX->xPL_callback2=_interface_type_XXX_xPL_callback2;
 
    return 0;
 

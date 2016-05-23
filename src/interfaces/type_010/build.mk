@@ -9,8 +9,8 @@ endif
 SHELL = /bin/bash
 
 ifeq ($(ASPLUGIN), 1)
-LINUX_SONAME           = interface_type_XXX.so
-MACOSX_SONAME          = interface_type_XXX.dylib
+LINUX_SONAME           = interface_type_010.so
+MACOSX_SONAME          = interface_type_010.dylib
 LINUX_ASPLUGIN_CFLAGS  = -DASPLUGIN
 LINUX_ASPLUGIN_LDFLAGS = -shared -Wl,--export-dynamic
 MACOSX_ASPLUGIN_CFLAGS = -DASPLUGIN
@@ -52,10 +52,10 @@ ifeq ($(TECHNO), macosx)
 endif
 
 ifeq ($(ASPLUGIN), 1)
-SOURCES=interface_type_XXX.c \
+SOURCES=interface_type_010.c \
 plugin.c
 else
-SOURCES=interface_type_XXX.c
+SOURCES=interface_type_010.c
 endif
 
 OBJECTS=$(addprefix $(TECHNO).objects/, $(SOURCES:.c=.o))

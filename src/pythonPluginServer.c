@@ -233,13 +233,15 @@ mea_error_t call_pythonPlugin(char *module, int type, PyObject *data_dict)
          case COMMISSIONNING:
             fx="mea_commissionningRequest";
             break;
-         case ENOCEANDATA:
-            fx="mea_enoceanData";
+//         case ENOCEANDATA:
+//            fx="mea_enoceanData";
+//            break;
+//         case GENERICSERIALDATA:
+//            fx="mea_serialData";
+//            break;
+         case DATAFROMSENSOR:
+            fx="mea_dataFromSensor";
             break;
-         case GENERICSERIALDATA:
-            fx="mea_serialData";
-            break;
-
          default:
             return NOERROR;
       }

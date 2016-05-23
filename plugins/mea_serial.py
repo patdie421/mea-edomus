@@ -205,7 +205,8 @@ def mea_xplCmndMsg(data):
 ##
 # mea_serialData : traitement de données en provenance d'une ligne serie
 #
-def mea_serialData(data):
+#def mea_serialData(data):
+def mea_dataFromSensor(data):
    fn_name= __name__ + "/" + str(sys._getframe().f_code.co_name)
 
 #   verbose(9, "DEBUG (", fn_name, ") data = ", data)

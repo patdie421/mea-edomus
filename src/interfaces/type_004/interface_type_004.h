@@ -8,13 +8,13 @@
 
 #ifndef __interface_type_004_h
 #define __interface_type_004_h
-
+/*
 #ifdef ASPLUGIN
 #define NAME(f) f ## _ ## PLGN
 #else
 #define NAME(f) f
 #endif
-
+*/
 #include <inttypes.h>
 #include <pthread.h>
 #include <sqlite3.h>
@@ -27,13 +27,13 @@
 
 #define INTERFACE_TYPE_004 400
 
-extern char *NAME(interface_type_004_xplin_str);
-extern char *NAME(interface_type_004_xplout_str);
-extern char *NAME(interface_type_004_lightschanges_str);
+extern char *interface_type_004_xplin_str;
+extern char *interface_type_004_xplout_str;
+extern char *interface_type_004_lightschanges_str;
 
-#define I004_XPLIN  NAME(interface_type_004_xplin_str)
-#define I004_XPLOUT NAME(interface_type_004_xplout_str)
-#define I004_LIGHSCHANGES NAME(interface_type_004_lightschanges_str)
+#define I004_XPLIN  interface_type_004_xplin_str
+#define I004_XPLOUT interface_type_004_xplout_str
+#define I004_LIGHSCHANGES interface_type_004_lightschanges_str
 
 struct interface_type_004_indicators_s
 {
@@ -133,14 +133,14 @@ int restart_interface_type_004(int my_id, void *data, char *errmsg, int l_errmsg
 int16_t check_status_interface_type_004(interface_type_004_t *i004);
 */
 
-xpl2_f NAME(get_xPLCallback_interface_type_004)(void *ixxx);
-int NAME(get_monitoring_id_interface_type_004)(void *ixxx);
-int NAME(set_xPLCallback_interface_type_004)(void *ixxx, xpl2_f cb);
-int NAME(set_monitoring_id_interface_type_004)(void *ixxx, int id);
-int NAME(get_type_interface_type_004)();
+xpl2_f get_xPLCallback_interface_type_004(void *ixxx);
+int get_monitoring_id_interface_type_004(void *ixxx);
+int set_xPLCallback_interface_type_004(void *ixxx, xpl2_f cb);
+int set_monitoring_id_interface_type_004(void *ixxx, int id);
+int get_type_interface_type_004();
 
-interface_type_004_t *NAME(malloc_and_init_interface_type_004)(sqlite3 *sqlite3_param_db, int id_driver, int id_interface, char *name, char *dev, char *parameters, char *description);
-int NAME(clean_interface_type_004)(void *ixxx);
+interface_type_004_t *malloc_and_init_interface_type_004(sqlite3 *sqlite3_param_db, int id_driver, int id_interface, char *name, char *dev, char *parameters, char *description);
+int clean_interface_type_004(void *ixxx);
 
 #ifndef ASPLUGIN
 int get_fns_interface_type_004(struct interfacesServer_interfaceFns_s *interfacesFns);

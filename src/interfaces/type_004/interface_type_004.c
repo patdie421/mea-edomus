@@ -49,7 +49,7 @@
 // ./xPLSend -m cmnd -c control.basic device=lampe001 current=#FF0000 type=color
 
 //char *valid_hue_params[]={"S:HUELIGHT", "I:REACHABLE_USE", "S:HUEGROUP", "S:HUESCENE", NULL};
-char *NAME(valid_hue_params)[]={"S:HUELIGHT", "I:REACHABLE_USE", "S:HUEGROUP", NULL};
+char *valid_hue_params[]={"S:HUELIGHT", "I:REACHABLE_USE", "S:HUEGROUP", NULL};
 #define PARAMS_HUELIGH 0
 #define PARAMS_REACHABLE 1
 #define PARAMS_HUEGROUP 2
@@ -57,18 +57,18 @@ char *NAME(valid_hue_params)[]={"S:HUELIGHT", "I:REACHABLE_USE", "S:HUEGROUP", N
 
 #define DEBUG_FLAG 1
 
-char *NAME(interface_type_004_xplin_str)="XPLIN";
-char *NAME(interface_type_004_xplout_str)="XPLOUT";
-char *NAME(interface_type_004_lightschanges_str)="NBTRANSITIONS";
+char *interface_type_004_xplin_str="XPLIN";
+char *interface_type_004_xplout_str="XPLOUT";
+char *interface_type_004_lightschanges_str="NBTRANSITIONS";
 
 
-int NAME(start_interface_type_004)(int my_id, void *data, char *errmsg, int l_errmsg);
-int NAME(stop_interface_type_004)(int my_id, void *data, char *errmsg, int l_errmsg);
-int NAME(restart_interface_type_004)(int my_id, void *data, char *errmsg, int l_errmsg);
-int16_t NAME(check_status_interface_type_004)(interface_type_004_t *i004);
+int start_interface_type_004(int my_id, void *data, char *errmsg, int l_errmsg);
+int stop_interface_type_004(int my_id, void *data, char *errmsg, int l_errmsg);
+int restart_interface_type_004(int my_id, void *data, char *errmsg, int l_errmsg);
+int16_t check_status_interface_type_004(interface_type_004_t *i004);
 
 
-int16_t NAME(sendXPLLightState2)(interface_type_004_t *i004, char *xplMsgType, char *deviceName, int16_t newState, int16_t reachable, int16_t on, int16_t last)
+int16_t sendXPLLightState2(interface_type_004_t *i004, char *xplMsgType, char *deviceName, int16_t newState, int16_t reachable, int16_t on, int16_t last)
 {
    char *current_state_str;
    char *last_state_str;
@@ -135,7 +135,7 @@ int16_t NAME(sendXPLLightState2)(interface_type_004_t *i004, char *xplMsgType, c
 }
 
 
-int16_t NAME(sendAllxPLTrigger)(interface_type_004_t *i004)
+int16_t sendAllxPLTrigger(interface_type_004_t *i004)
 {
    cJSON *current = i004->currentHueLightsState;
    
@@ -168,7 +168,7 @@ int16_t NAME(sendAllxPLTrigger)(interface_type_004_t *i004)
             }
             state = state & onCurrent->valueint;
             
-            NAME(sendXPLLightState2)(i004, XPL_TRIG_STR_C, deviceName, state, reachableCurrent->valueint, onCurrent->valueint, -1);
+            sendXPLLightState2(i004, XPL_TRIG_STR_C, deviceName, state, reachableCurrent->valueint, onCurrent->valueint, -1);
          }
       }
       currentLight=currentLight->next;
@@ -178,7 +178,7 @@ int16_t NAME(sendAllxPLTrigger)(interface_type_004_t *i004)
 }
 
 
-int16_t NAME(whatChange)(interface_type_004_t *i004)
+int16_t whatChange(interface_type_004_t *i004)
 {
    cJSON *current = i004->currentHueLightsState;
    cJSON *last = i004->lastHueLightsState;
@@ -224,9 +224,9 @@ int16_t NAME(whatChange)(interface_type_004_t *i004)
                else
                   newState = onCurrent->valueint;
                if(newState != 0)
-                  NAME(sendXPLLightState2)(i004, XPL_TRIG_STR_C, deviceName, 1, reachableCurrent->valueint, onCurrent->valueint, 0);
+                  sendXPLLightState2(i004, XPL_TRIG_STR_C, deviceName, 1, reachableCurrent->valueint, onCurrent->valueint, 0);
                else
-                  NAME(sendXPLLightState2)(i004, XPL_TRIG_STR_C, deviceName, 0, reachableCurrent->valueint, onCurrent->valueint, 1);
+                  sendXPLLightState2(i004, XPL_TRIG_STR_C, deviceName, 0, reachableCurrent->valueint, onCurrent->valueint, 1);
                
                (i004->indicators.lightschanges)++;
             }
@@ -239,7 +239,7 @@ int16_t NAME(whatChange)(interface_type_004_t *i004)
 }
 
 
-int16_t NAME(interface_type_004_xPL_actuator2)(interface_type_004_t *i004, cJSON *xplMsgJson, char *device, char *type)
+int16_t interface_type_004_xPL_actuator2(interface_type_004_t *i004, cJSON *xplMsgJson, char *device, char *type)
 {
    int type_id = -1;
    int16_t ret=-1;
@@ -434,7 +434,7 @@ int16_t NAME(interface_type_004_xPL_actuator2)(interface_type_004_t *i004, cJSON
       {
          if(reachable_use==1)
             state = state & reachable;
-         NAME(sendXPLLightState2)(i004, XPL_TRIG_STR_C, sensor, state, reachable, on, -1);
+         sendXPLLightState2(i004, XPL_TRIG_STR_C, sensor, state, reachable, on, -1);
       }
 
       if(sensor)
@@ -502,7 +502,7 @@ int16_t NAME(interface_type_004_xPL_actuator2)(interface_type_004_t *i004, cJSON
 }
 */
 
-int16_t NAME(interface_type_004_xPL_sensor2)(interface_type_004_t *i004, cJSON *xplMsgJson, char *device, char *type)
+int16_t interface_type_004_xPL_sensor2(interface_type_004_t *i004, cJSON *xplMsgJson, char *device, char *type)
 /**
  * \brief     Traite les demandes xpl de retransmission de la valeur courrante ("sensor.request/request=current") pour interface_type_004
  * \details   La demande sensor.request peut être de la forme est de la forme :
@@ -553,13 +553,13 @@ int16_t NAME(interface_type_004_xPL_sensor2)(interface_type_004_t *i004, cJSON *
    pthread_cleanup_pop(0);
    
    if(ret==0)
-      NAME(sendXPLLightState2)(i004, XPL_STAT_STR_C, device, state, reachable, on, 0);
+      sendXPLLightState2(i004, XPL_STAT_STR_C, device, state, reachable, on, 0);
    
    return ret;
 }
 
 
-int16_t NAME(interface_type_004_xPL_callback2)(cJSON *xplMsgJson, void * userValue)
+int16_t interface_type_004_xPL_callback2(cJSON *xplMsgJson, struct device_info_s *device_info, void * userValue)
 {
    char *schema = NULL, *device = NULL, *type = NULL;
    cJSON *j=NULL;
@@ -601,7 +601,7 @@ int16_t NAME(interface_type_004_xPL_callback2)(cJSON *xplMsgJson, void * userVal
          VERBOSE(5) mea_log_printf("%s  (%s) : xPL message no type\n",INFO_STR,__func__);
          return -1;
       }
-      return NAME(interface_type_004_xPL_actuator2)(i004, xplMsgJson, device, type);
+      return interface_type_004_xPL_actuator2(i004, xplMsgJson, device, type);
    }
    else if(mea_strcmplower(schema, XPL_SENSORREQUEST_STR_C) == 0)
    {
@@ -620,21 +620,21 @@ int16_t NAME(interface_type_004_xPL_callback2)(cJSON *xplMsgJson, void * userVal
          VERBOSE(5) mea_log_printf("%s  (%s) : xPL message request!=current\n",INFO_STR,__func__);
          return -1;
       }
-      return NAME(interface_type_004_xPL_sensor2)(i004, xplMsgJson, device, type);
+      return interface_type_004_xPL_sensor2(i004, xplMsgJson, device, type);
    }
    
    return 0;
 }
 
 
-void NAME(set_interface_type_004_isnt_running)(void *data)
+void set_interface_type_004_isnt_running(void *data)
 {
    interface_type_004_t *i004 = (interface_type_004_t *)data;
    i004->thread_is_running=0;
 }
 
 
-void *NAME(_thread_interface_type_004)(void *thread_data)
+void *_thread_interface_type_004(void *thread_data)
 {
    struct thread_interface_type_004_args_s *args = (struct thread_interface_type_004_args_s *)thread_data;
    
@@ -648,7 +648,7 @@ void *NAME(_thread_interface_type_004)(void *thread_data)
    free(thread_data);
    thread_data=NULL;
   
-   pthread_cleanup_push( (void *)NAME(set_interface_type_004_isnt_running), (void *)i004 );
+   pthread_cleanup_push( (void *)set_interface_type_004_isnt_running, (void *)i004 );
    i004->thread_is_running=1;
    
    if(i004->allGroups)
@@ -698,11 +698,11 @@ void *NAME(_thread_interface_type_004)(void *thread_data)
          
          if(mea_test_timer(&sendAllxPLTriggerTimer)==0)
          {
-            NAME(sendAllxPLTrigger)(i004);
+            sendAllxPLTrigger(i004);
          }
          else if(i004->lastHueLightsState && i004->currentHueLightsState)
          {
-            NAME(whatChange)(i004);
+            whatChange(i004);
          }
          
          pthread_mutex_unlock(&(i004->lock));
@@ -765,7 +765,7 @@ _thread_interface_type_004_clean_exit:
 }
 
 
-int NAME(_interface_type_004_clean_configs_lists)(interface_type_004_t *i004)
+int _interface_type_004_clean_configs_lists(interface_type_004_t *i004)
 {
    if(i004->lightsListByHueName)
    {
@@ -839,7 +839,7 @@ int NAME(_interface_type_004_clean_configs_lists)(interface_type_004_t *i004)
 }
 
 
-int NAME(load_interface_type_004)(interface_type_004_t *i004, sqlite3 *db)
+int load_interface_type_004(interface_type_004_t *i004, sqlite3 *db)
 {
    sqlite3_stmt * stmt = NULL;
    char sql_request[255];
@@ -853,7 +853,7 @@ int NAME(load_interface_type_004)(interface_type_004_t *i004, sqlite3 *db)
 //   fprintf(stderr,"LOAD INTERFACE TYPE 004\n");
    
    // on vide d'abord les listes s'il y a déjà des données
-   NAME(_interface_type_004_clean_configs_lists)(i004);
+   _interface_type_004_clean_configs_lists(i004);
 
    // on récupère les capteurs/actionneurs déclaré dans la base
    sprintf(sql_request,"SELECT * FROM sensors_actuators WHERE sensors_actuators.deleted_flag <> 1 AND id_interface=%d AND sensors_actuators.state='1'", i004->id_interface);
@@ -878,7 +878,7 @@ int NAME(load_interface_type_004)(interface_type_004_t *i004, sqlite3 *db)
          const unsigned char *parameters=sqlite3_column_text(stmt, 7);
          int todbflag=sqlite3_column_int(stmt, 9);
          
-         hue_params=alloc_parsed_parameters((char *)parameters, NAME(valid_hue_params), &nb_hue_params, &nerr, 0);
+         hue_params=alloc_parsed_parameters((char *)parameters, valid_hue_params, &nb_hue_params, &nerr, 0);
          if(hue_params && nb_hue_params>0)
          {
 //            int params_test = (hue_params->parameters[PARAMS_HUELIGH].value.s != NULL) + (hue_params->parameters[PARAMS_HUEGROUP].value.s != NULL) + (hue_params->parameters[PARAMS_HUESCENE].value.s != NULL);
@@ -1111,7 +1111,7 @@ int NAME(load_interface_type_004)(interface_type_004_t *i004, sqlite3 *db)
    return 0;
    
 load_interface_type_004_clean_exit:
-   NAME(_interface_type_004_clean_configs_lists)(i004);
+   _interface_type_004_clean_configs_lists(i004);
    i004->xPL_callback2=NULL;
    if(hue_params)
    {
@@ -1122,7 +1122,7 @@ load_interface_type_004_clean_exit:
 }
 
 
-int16_t NAME(get_huesystem_connection_parameters)(char *device, char *server, uint16_t l_server, int *port, char *user, uint16_t l_user)
+int16_t get_huesystem_connection_parameters(char *device, char *server, uint16_t l_server, int *port, char *user, uint16_t l_user)
 {
    char _server[41];
    int  _port=0;
@@ -1154,7 +1154,7 @@ int16_t NAME(get_huesystem_connection_parameters)(char *device, char *server, ui
 }
 
 
-xpl2_f NAME(get_xPLCallback_interface_type_004)(void *ixxx)
+xpl2_f get_xPLCallback_interface_type_004(void *ixxx)
 {
    interface_type_004_t *i004 = (interface_type_004_t *)ixxx;
 
@@ -1165,7 +1165,7 @@ xpl2_f NAME(get_xPLCallback_interface_type_004)(void *ixxx)
 }
 
 
-int NAME(get_monitoring_id_interface_type_004)(void *ixxx)
+int get_monitoring_id_interface_type_004(void *ixxx)
 {
    interface_type_004_t *i004 = (interface_type_004_t *)ixxx;
 
@@ -1176,7 +1176,7 @@ int NAME(get_monitoring_id_interface_type_004)(void *ixxx)
 }
 
 
-int NAME(set_xPLCallback_interface_type_004)(void *ixxx, xpl2_f cb)
+int set_xPLCallback_interface_type_004(void *ixxx, xpl2_f cb)
 {
    interface_type_004_t *i004 = (interface_type_004_t *)ixxx;
 
@@ -1190,7 +1190,7 @@ int NAME(set_xPLCallback_interface_type_004)(void *ixxx, xpl2_f cb)
 }
 
 
-int NAME(set_monitoring_id_interface_type_004)(void *ixxx, int id)
+int set_monitoring_id_interface_type_004(void *ixxx, int id)
 {
    interface_type_004_t *i004 = (interface_type_004_t *)ixxx;
 
@@ -1204,13 +1204,13 @@ int NAME(set_monitoring_id_interface_type_004)(void *ixxx, int id)
 }
 
 
-int NAME(get_type_interface_type_004)()
+int get_type_interface_type_004()
 {
    return INTERFACE_TYPE_004;
 }
 
 
-interface_type_004_t *NAME(malloc_and_init_interface_type_004)(sqlite3 *sqlite3_param_db, int id_driver, int id_interface, char *name, char *dev, char *parameters, char *description)
+interface_type_004_t *malloc_and_init_interface_type_004(sqlite3 *sqlite3_param_db, int id_driver, int id_interface, char *name, char *dev, char *parameters, char *description)
 {
    interface_type_004_t *i004=NULL;
    
@@ -1278,20 +1278,20 @@ interface_type_004_t *NAME(malloc_and_init_interface_type_004)(sqlite3 *sqlite3_
    i004_start_stop_params->i004=i004;
    
    process_set_group(i004->monitoring_id, 1);
-   process_set_start_stop(i004->monitoring_id, NAME(start_interface_type_004), NAME(stop_interface_type_004), (void *)i004_start_stop_params, 1);
-   process_set_watchdog_recovery(i004->monitoring_id, NAME(restart_interface_type_004), (void *)i004_start_stop_params);
+   process_set_start_stop(i004->monitoring_id, start_interface_type_004, stop_interface_type_004, (void *)i004_start_stop_params, 1);
+   process_set_watchdog_recovery(i004->monitoring_id, restart_interface_type_004, (void *)i004_start_stop_params);
    process_set_description(i004->monitoring_id, (char *)description);
    process_set_heartbeat_interval(i004->monitoring_id, 60); // chien de garde au bout de 60 secondes sans heartbeat
    
-   process_add_indicator(i004->monitoring_id, NAME(interface_type_004_xplout_str), 0);
-   process_add_indicator(i004->monitoring_id, NAME(interface_type_004_xplin_str), 0);
-   process_add_indicator(i004->monitoring_id, NAME(interface_type_004_lightschanges_str), 0);
+   process_add_indicator(i004->monitoring_id, interface_type_004_xplout_str, 0);
+   process_add_indicator(i004->monitoring_id, interface_type_004_xplin_str, 0);
+   process_add_indicator(i004->monitoring_id, interface_type_004_lightschanges_str, 0);
    
    return i004;
 }
 
 
-int NAME(clean_interface_type_004)(void *ixxx)
+int clean_interface_type_004(void *ixxx)
 {
    interface_type_004_t *i004 = (interface_type_004_t *)ixxx;
 
@@ -1310,7 +1310,7 @@ int NAME(clean_interface_type_004)(void *ixxx)
       i004->thread=NULL;
    }
 
-   NAME(_interface_type_004_clean_configs_lists)(i004);
+   _interface_type_004_clean_configs_lists(i004);
 
    if(i004->lastHueLightsState)
    {
@@ -1334,7 +1334,7 @@ int NAME(clean_interface_type_004)(void *ixxx)
 }
 
 
-int NAME(stop_interface_type_004)(int my_id, void *data, char *errmsg, int l_errmsg)
+int stop_interface_type_004(int my_id, void *data, char *errmsg, int l_errmsg)
 {
    if(!data)
       return -1;
@@ -1375,7 +1375,7 @@ int NAME(stop_interface_type_004)(int my_id, void *data, char *errmsg, int l_err
 }
 
 
-int NAME(restart_interface_type_004)(int my_id, void *data, char *errmsg, int l_errmsg)
+int restart_interface_type_004(int my_id, void *data, char *errmsg, int l_errmsg)
 {
    process_stop(my_id, NULL, 0);
    sleep(5);
@@ -1383,7 +1383,7 @@ int NAME(restart_interface_type_004)(int my_id, void *data, char *errmsg, int l_
 }
 
 
-int16_t NAME(check_status_interface_type_004)(interface_type_004_t *it004)
+int16_t check_status_interface_type_004(interface_type_004_t *it004)
 /**
  * \brief     indique si une anomalie a généré l'emission d'un signal SIGHUP
  * \param     i004           descripteur de l'interface
@@ -1394,7 +1394,7 @@ int16_t NAME(check_status_interface_type_004)(interface_type_004_t *it004)
 }
 
 
-int NAME(start_interface_type_004)(int my_id, void *data, char *errmsg, int l_errmsg)
+int start_interface_type_004(int my_id, void *data, char *errmsg, int l_errmsg)
 {
    int16_t ret;
    
@@ -1409,7 +1409,7 @@ int NAME(start_interface_type_004)(int my_id, void *data, char *errmsg, int l_er
    
    if(start_stop_params->i004->loaded!=1) // les données sont elles déjà chargées ?
    {
-      ret=NAME(load_interface_type_004)(start_stop_params->i004, start_stop_params->sqlite3_param_db);
+      ret=load_interface_type_004(start_stop_params->i004, start_stop_params->sqlite3_param_db);
       if(ret<0)
       {
          VERBOSE(2) mea_log_printf("%s (%s) : can not load lights.\n", ERROR_STR,__func__);
@@ -1422,7 +1422,7 @@ int NAME(start_interface_type_004)(int my_id, void *data, char *errmsg, int l_er
    if(start_stop_params->i004->loaded==1)
    {
       // avec dev qui doit contenir "HTTP://<server>:<port>@<user>" ou "HTTP://<server>@<user>"
-      ret=NAME(get_huesystem_connection_parameters)((char *)start_stop_params->i004->dev, server, sizeof(server), &port, user, sizeof(user));
+      ret=get_huesystem_connection_parameters((char *)start_stop_params->i004->dev, server, sizeof(server), &port, user, sizeof(user));
       if(ret==-1)
       {
          VERBOSE(2) mea_log_printf("%s (%s) : unknow interface device - %s\n", ERROR_STR,__func__, start_stop_params->i004->dev);
@@ -1447,7 +1447,7 @@ int NAME(start_interface_type_004)(int my_id, void *data, char *errmsg, int l_er
    start_stop_params->i004->user[sizeof(start_stop_params->i004->user)-1]=0;
    start_stop_params->i004->port=port;
    
-   start_stop_params->i004->xPL_callback2=NAME(interface_type_004_xPL_callback2);
+   start_stop_params->i004->xPL_callback2=interface_type_004_xPL_callback2;
    
    interface_type_004_thread_id=(pthread_t *)malloc(sizeof(pthread_t));
    if(!interface_type_004_thread_id)
@@ -1456,7 +1456,7 @@ int NAME(start_interface_type_004)(int my_id, void *data, char *errmsg, int l_er
       goto start_interface_type_004_clean_exit;
    }
    
-   if(pthread_create (interface_type_004_thread_id, NULL, NAME(_thread_interface_type_004), (void *)interface_type_004_thread_args))
+   if(pthread_create (interface_type_004_thread_id, NULL, _thread_interface_type_004, (void *)interface_type_004_thread_args))
    {
       VERBOSE(2) mea_log_printf("%s (%s) : pthread_create - can't start thread\n",ERROR_STR,__func__);
       goto start_interface_type_004_clean_exit;

@@ -390,9 +390,9 @@ parsed_parameters_t *alloc_parsed_parameters(char *parameters_string, char *para
          *err=1; // erreur système, voir errno
       return NULL;
    }
-  
  
-   parsed_parameters->parameters=malloc(sizeof(parsed_parameter_t) * *nb_params);
+
+   parsed_parameters->parameters=malloc(sizeof(parsed_parameter_t) * (*nb_params));
    if(!parsed_parameters->parameters)
    {
       DEBUG_SECTION {
@@ -405,10 +405,9 @@ parsed_parameters_t *alloc_parsed_parameters(char *parameters_string, char *para
          *err=1; // erreur système, voir errno
       return NULL;
    }
-  
+ 
 
-
-   memset(parsed_parameters->parameters,0,sizeof(parsed_parameter_t) * *nb_params);
+   memset(parsed_parameters->parameters, 0, sizeof(parsed_parameter_t) * *nb_params);
    parsed_parameters->nb=*nb_params;
  
    while(1)

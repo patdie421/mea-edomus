@@ -25,6 +25,7 @@ typedef int (*mea_queue_compare_data_f)(void **, void **);
 
 typedef struct
 {
+   int clone_flag;
    struct mea_queue_elem *first;
    struct mea_queue_elem *last;
    struct mea_queue_elem *current;
@@ -38,6 +39,7 @@ typedef struct
 
 
 mea_error_t mea_queue_init(mea_queue_t *queue);
+mea_error_t mea_queue_clone(mea_queue_t *n, mea_queue_t *s);
 mea_error_t mea_queue_out_elem(mea_queue_t *queue, void **data);
 mea_error_t mea_queue_in_elem(mea_queue_t *queue, void *data);
 mea_error_t mea_queue_process_all_elem_data(mea_queue_t *queue, void (*f)(void *));

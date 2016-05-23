@@ -80,7 +80,7 @@ struct type005_sensor_actuator_queue_elem_s
 };
 
 
-char *NAME(valid_netatmo_sa_params)[]={"S:DEVICE_ID","S:MODULE_ID", "S:SENSOR", "S:ACTUATOR", "S:DEVICE_TYPE", NULL};
+char *valid_netatmo_sa_params[]={"S:DEVICE_ID","S:MODULE_ID", "S:SENSOR", "S:ACTUATOR", "S:DEVICE_TYPE", NULL};
 #define PARAMS_DEVICE_ID   0
 #define PARAMS_MODULE_ID   1
 #define PARAMS_SENSOR      2
@@ -91,18 +91,19 @@ enum netatmo_sensor_e { _TEMP, _RELAY_CMD, _BATTERY, _SETPOINT, _MODE, _TEMPERAT
 
 // enum netatmo_sensor_e { TEMPERATURE, RELAY_CMD, BATTERY, SETPOINT, MODE };
 
-char *NAME(interface_type_005_xplin_str)="XPLIN";
-char *NAME(interface_type_005_xplout_str)="XPLOUT";
-char *NAME(interface_type_005_nbreaderror_str)="NBREADERROR";
-char *NAME(interface_type_005_nbread_str)="NBREAD";
+char *interface_type_005_xplin_str="XPLIN";
+char *interface_type_005_xplout_str="XPLOUT";
+char *interface_type_005_nbreaderror_str="NBREADERROR";
+char *interface_type_005_nbread_str="NBREAD";
 
 
-int NAME(start_interface_type_005)(int my_id, void *data, char *errmsg, int l_errmsg);
-int NAME(stop_interface_type_005)(int my_id, void *data, char *errmsg, int l_errmsg);
-int NAME(restart_interface_type_005)(int my_id, void *data, char *errmsg, int l_errmsg);
-int16_t NAME(check_status_interface_type_005)(interface_type_005_t *i005);
+int start_interface_type_005(int my_id, void *data, char *errmsg, int l_errmsg);
+int stop_interface_type_005(int my_id, void *data, char *errmsg, int l_errmsg);
+int restart_interface_type_005(int my_id, void *data, char *errmsg, int l_errmsg);
+int16_t check_status_interface_type_005(interface_type_005_t *i005);
 
-static int16_t NAME(_interface_type_005_send_xPL_sensor_basic2)(interface_type_005_t *i005, char *xplmsgtype, char *name, char *type, char *str_value, char *str_last)
+
+static int16_t _interface_type_005_send_xPL_sensor_basic2(interface_type_005_t *i005, char *xplmsgtype, char *name, char *type, char *str_value, char *str_last)
 {
    char str[36];
    cJSON *xplMsgJson = cJSON_CreateObject();
@@ -123,7 +124,7 @@ static int16_t NAME(_interface_type_005_send_xPL_sensor_basic2)(interface_type_0
 }
 
 
-static struct type005_sensor_actuator_queue_elem_s *NAME(_find_sensor_actuator)(mea_queue_t *q, char *device)
+static struct type005_sensor_actuator_queue_elem_s *_find_sensor_actuator(mea_queue_t *q, char *device)
 {
    struct type005_device_queue_elem_s *d;
    struct type005_module_queue_elem_s *m;
@@ -152,7 +153,7 @@ static struct type005_sensor_actuator_queue_elem_s *NAME(_find_sensor_actuator)(
 }
 
 
-int16_t NAME(format_float_current_last)(char *str_current, char *str_last, char *format, double current, double last, double *d1)
+int16_t format_float_current_last(char *str_current, char *str_last, char *format, double current, double last, double *d1)
 {
    sprintf(str_current, format, current);
    if(last>=0.0)
@@ -163,7 +164,7 @@ int16_t NAME(format_float_current_last)(char *str_current, char *str_last, char 
 }
 
 
-int16_t NAME(interface_type_005_current_last)(struct type005_sensor_actuator_queue_elem_s *e,
+int16_t interface_type_005_current_last(struct type005_sensor_actuator_queue_elem_s *e,
                                         char *type,
                                         char *str_current,
                                         char *str_last,
@@ -307,7 +308,7 @@ int16_t NAME(interface_type_005_current_last)(struct type005_sensor_actuator_que
       case _RAIN:
          if(e->module->current->station.dataTypeFlags & RAIN_BIT)
          {
-            NAME(format_float_current_last)(str_current, str_last, "%4.0f", e->module->current->station.data[RAIN], e->module->last->station.data[RAIN], d1);
+            format_float_current_last(str_current, str_last, "%4.0f", e->module->current->station.data[RAIN], e->module->last->station.data[RAIN], d1);
             strcpy(type, "rain");
          }
          else
@@ -316,7 +317,7 @@ int16_t NAME(interface_type_005_current_last)(struct type005_sensor_actuator_que
       case _WINDANGLE:
          if(e->module->current->station.dataTypeFlags & WINDANGLE_BIT)
          {
-            NAME(format_float_current_last)(str_current, str_last, "%4.0f", e->module->current->station.data[WINDANGLE], e->module->last->station.data[WINDANGLE], d1);
+            format_float_current_last(str_current, str_last, "%4.0f", e->module->current->station.data[WINDANGLE], e->module->last->station.data[WINDANGLE], d1);
             strcpy(type, "angle");
          }
          else
@@ -325,7 +326,7 @@ int16_t NAME(interface_type_005_current_last)(struct type005_sensor_actuator_que
       case _WINDSTRENGTH:
          if(e->module->current->station.dataTypeFlags & WINDSTRENGTH_BIT)
          {
-            NAME(format_float_current_last)(str_current, str_last, "%4.0f", e->module->current->station.data[WINDSTRENGTH], e->module->last->station.data[WINDSTRENGTH], d1);
+            format_float_current_last(str_current, str_last, "%4.0f", e->module->current->station.data[WINDSTRENGTH], e->module->last->station.data[WINDSTRENGTH], d1);
             strcpy(type, "speed");
          }
          else
@@ -341,7 +342,7 @@ int16_t NAME(interface_type_005_current_last)(struct type005_sensor_actuator_que
 }
 
 
-int16_t NAME(interface_type_005_xPL_actuator2)(interface_type_005_t *i005,
+int16_t interface_type_005_xPL_actuator2(interface_type_005_t *i005,
                                          cJSON *xplMsgJson,
                                          char *device,
                                          struct type005_sensor_actuator_queue_elem_s *e)
@@ -429,7 +430,7 @@ int16_t NAME(interface_type_005_xPL_actuator2)(interface_type_005_t *i005,
 }
 
 
-int16_t NAME(interface_type_005_xPL_sensor2)(interface_type_005_t *i005,
+int16_t interface_type_005_xPL_sensor2(interface_type_005_t *i005,
                                        cJSON *xplMsgJson,
                                        char *device,
                                        struct type005_sensor_actuator_queue_elem_s *e)
@@ -439,11 +440,11 @@ int16_t NAME(interface_type_005_xPL_sensor2)(interface_type_005_t *i005,
    {
       char ntype[41], str_value[41], str_last[41];
 
-      if(NAME(interface_type_005_current_last)(e, ntype, str_value, str_last, NULL, NULL, NULL)<0)
+      if(interface_type_005_current_last(e, ntype, str_value, str_last, NULL, NULL, NULL)<0)
          return -1;
       else
       {
-         NAME(_interface_type_005_send_xPL_sensor_basic2)(i005, XPL_STAT_STR_C, e->name, ntype, str_value, str_last);
+         _interface_type_005_send_xPL_sensor_basic2(i005, XPL_STAT_STR_C, e->name, ntype, str_value, str_last);
          return 0;
       }
    }
@@ -455,7 +456,7 @@ int16_t NAME(interface_type_005_xPL_sensor2)(interface_type_005_t *i005,
 
 
 //int16_t interface_type_005_xPL_callback2(cJSON *xplMsgJson, xPL_ObjectPtr userValue)
-int16_t NAME(interface_type_005_xPL_callback2)(cJSON *xplMsgJson, void *userValue)
+int16_t interface_type_005_xPL_callback2(cJSON *xplMsgJson, struct device_info_s *device_info, void *userValue)
 {
    char *schema = NULL, *device = NULL, *type = NULL;
    cJSON *j;
@@ -471,6 +472,7 @@ int16_t NAME(interface_type_005_xPL_callback2)(cJSON *xplMsgJson, void *userValu
       return -1;
    }
    mea_strtolower(device);
+
 /*
    j=cJSON_GetObjectItem(xplMsgJson, "type");
    if(j)
@@ -492,7 +494,7 @@ int16_t NAME(interface_type_005_xPL_callback2)(cJSON *xplMsgJson, void *userValu
    }
    mea_strtolower(schema);
 
-   struct type005_sensor_actuator_queue_elem_s *elem=NAME(_find_sensor_actuator)(&(i005->devices_list), device);
+   struct type005_sensor_actuator_queue_elem_s *elem=_find_sensor_actuator(&(i005->devices_list), device);
    if(elem==NULL)
    {
       DEBUG_SECTION mea_log_printf("%s (%s) : %s not for me\n", INFO_STR, __func__, device);
@@ -504,7 +506,7 @@ int16_t NAME(interface_type_005_xPL_callback2)(cJSON *xplMsgJson, void *userValu
    
    if(mea_strcmplower(schema, XPL_CONTROLBASIC_STR_C) == 0)
    {
-      return NAME(interface_type_005_xPL_actuator2)(i005, xplMsgJson, device, elem);
+      return interface_type_005_xPL_actuator2(i005, xplMsgJson, device, elem);
    }
    else if(mea_strcmplower(schema, XPL_SENSORREQUEST_STR_C) == 0)
    {
@@ -524,14 +526,14 @@ int16_t NAME(interface_type_005_xPL_callback2)(cJSON *xplMsgJson, void *userValu
          return -1;
       }
 
-      return NAME(interface_type_005_xPL_sensor2)(i005, xplMsgJson, device, elem);
+      return interface_type_005_xPL_sensor2(i005, xplMsgJson, device, elem);
    }
    
    return 0;
 }
 
 
-int NAME(clean_queues)(mea_queue_t *q)
+int clean_queues(mea_queue_t *q)
 {
    struct type005_device_queue_elem_s *d;
    struct type005_module_queue_elem_s *m;
@@ -562,7 +564,7 @@ int NAME(clean_queues)(mea_queue_t *q)
 }
 
 
-int NAME(load_interface_type_005)(interface_type_005_t *i005, sqlite3 *db)
+int load_interface_type_005(interface_type_005_t *i005, sqlite3 *db)
 {
    sqlite3_stmt * stmt = NULL;
    char sql_request[255];
@@ -573,7 +575,7 @@ int NAME(load_interface_type_005)(interface_type_005_t *i005, sqlite3 *db)
 
    if(mea_queue_nb_elem(&(i005->devices_list))!=0)
    {
-      NAME(clean_queues)(&(i005->devices_list));
+      clean_queues(&(i005->devices_list));
    }
 
    sprintf(sql_request,"SELECT * FROM sensors_actuators WHERE id_interface=%d AND sensors_actuators.deleted_flag <> 1 AND sensors_actuators.state='1'", i005->id_interface);
@@ -604,7 +606,7 @@ int NAME(load_interface_type_005)(interface_type_005_t *i005, sqlite3 *db)
          const unsigned char *parameters=sqlite3_column_text(stmt, 7);
          int todbflag=sqlite3_column_int(stmt, 9);
 
-         netatmo_sa_params=alloc_parsed_parameters((char *)parameters, NAME(valid_netatmo_sa_params), &nb_netatmo_sa_params, &nerr, 0);
+         netatmo_sa_params=alloc_parsed_parameters((char *)parameters, valid_netatmo_sa_params, &nb_netatmo_sa_params, &nerr, 0);
          if(netatmo_sa_params &&
             netatmo_sa_params->parameters[PARAMS_DEVICE_ID].value.s &&
             netatmo_sa_params->parameters[PARAMS_MODULE_ID].value.s &&
@@ -883,19 +885,19 @@ load_interface_type_005_clean_queues:
    return 0;
 
 load_interface_type_005_clean_exit:
-   NAME(clean_queues)(&(i005->devices_list));
+   clean_queues(&(i005->devices_list));
    return -1;
 }
 
 
-void NAME(set_interface_type_005_isnt_running)(void *data)
+void set_interface_type_005_isnt_running(void *data)
 {
    interface_type_005_t *i005 = (interface_type_005_t *)data;
    i005->thread_is_running=0;
 }
 
 
-static int NAME(interface_type_005_sendData)(interface_type_005_t *i005, struct type005_sensor_actuator_queue_elem_s *sa_elem)
+static int interface_type_005_sendData(interface_type_005_t *i005, struct type005_sensor_actuator_queue_elem_s *sa_elem)
 {
    int ret=-1;
    char str_value[20], str_last[20], type[20];
@@ -904,10 +906,10 @@ static int NAME(interface_type_005_sendData)(interface_type_005_t *i005, struct 
    char data4dbComp[20]="";
                      
 //   VERBOSE(9) mea_log_printf("%s (%s) : start sendData\n", ERROR_STR, __func__);
-   ret=NAME(interface_type_005_current_last)(sa_elem, type, str_value, str_last, &data4db, &data4db2, data4dbComp);
+   ret=interface_type_005_current_last(sa_elem, type, str_value, str_last, &data4db, &data4db2, data4dbComp);
    if(ret==1)
    {
-      NAME(_interface_type_005_send_xPL_sensor_basic2)(i005, XPL_TRIG_STR_C, sa_elem->name, type, str_value, str_last);
+      _interface_type_005_send_xPL_sensor_basic2(i005, XPL_TRIG_STR_C, sa_elem->name, type, str_value, str_last);
       if(sa_elem->todbflag==1)
          dbServer_add_data_to_sensors_values(sa_elem->id, data4db, 0, data4db2, data4dbComp);
 //      VERBOSE(9) mea_log_printf("%s (%s) : sendData done\n", ERROR_STR, __func__);
@@ -921,7 +923,7 @@ static int NAME(interface_type_005_sendData)(interface_type_005_t *i005, struct 
 }
 
 
-static int NAME(interface_type_005_updateModuleData)(interface_type_005_t *i005,
+static int interface_type_005_updateModuleData(interface_type_005_t *i005,
                                               struct type005_module_queue_elem_s *m_elem,
                                               void *data, int l_data)
 {
@@ -940,7 +942,7 @@ static int NAME(interface_type_005_updateModuleData)(interface_type_005_t *i005,
       mea_queue_current(&(m_elem->sensors_actuators_list), (void **)&sa_elem);
 
       if(sa_elem->type==500)
-         NAME(interface_type_005_sendData)(i005, sa_elem);
+         interface_type_005_sendData(i005, sa_elem);
 
       mea_queue_next(&(m_elem->sensors_actuators_list));
    }
@@ -950,7 +952,7 @@ static int NAME(interface_type_005_updateModuleData)(interface_type_005_t *i005,
 }
 
 
-static int NAME(interface_type_005_getData)(interface_type_005_t *i005)
+static int interface_type_005_getData(interface_type_005_t *i005)
 {
    struct type005_device_queue_elem_s *d_elem;
    int ret = -1;
@@ -995,7 +997,7 @@ static int NAME(interface_type_005_getData)(interface_type_005_t *i005)
                   (i005->indicators.nbread)++;
 
 //                  VERBOSE(9) mea_log_printf("%s (%s) : call updateModuleData for %s (station)\n", DEBUG_STR, __func__, m_elem->module_id);
-                  NAME(interface_type_005_updateModuleData)(i005, m_elem, data,  sizeof(struct netatmo_data_s));
+                  interface_type_005_updateModuleData(i005, m_elem, data,  sizeof(struct netatmo_data_s));
                }
 
                mea_queue_next(&(d_elem->modules_list));
@@ -1021,7 +1023,7 @@ static int NAME(interface_type_005_getData)(interface_type_005_t *i005)
                (i005->indicators.nbread)++;
 
 //               VERBOSE(9) mea_log_printf("%s (%s) : call updateModuleData for %s (thermostat)\n", DEBUG_STR, __func__, m_elem->module_id);
-               NAME(interface_type_005_updateModuleData)(i005, m_elem, &data,  sizeof(data));
+               interface_type_005_updateModuleData(i005, m_elem, &data,  sizeof(data));
             }
             else
             {
@@ -1038,7 +1040,7 @@ static int NAME(interface_type_005_getData)(interface_type_005_t *i005)
 }
 
 
-void *NAME(_thread_interface_type_005)(void *thread_data)
+void *_thread_interface_type_005(void *thread_data)
 {
    struct thread_interface_type_005_args_s *args = (struct thread_interface_type_005_args_s *)thread_data;
    interface_type_005_t *i005=NULL;
@@ -1052,7 +1054,7 @@ void *NAME(_thread_interface_type_005)(void *thread_data)
       return NULL; 
  
    
-   pthread_cleanup_push( (void *)NAME(set_interface_type_005_isnt_running), (void *)i005 );
+   pthread_cleanup_push( (void *)set_interface_type_005_isnt_running, (void *)i005 );
    i005->thread_is_running=1;
 
    // à récupérer dans un fichier de config (dans etc de l'appli)
@@ -1127,7 +1129,7 @@ void *NAME(_thread_interface_type_005)(void *thread_data)
 
       if(auth_flag!=0 && mea_test_timer(&getdata_timer)==0)
       {
-         NAME(interface_type_005_getData)(i005);
+         interface_type_005_getData(i005);
       }
 
       sleep(5);
@@ -1140,7 +1142,7 @@ _thread_interface_type_005_clean_exit:
 }
 
 
-xpl2_f NAME(get_xPLCallback_interface_type_005)(void *ixxx)
+xpl2_f get_xPLCallback_interface_type_005(void *ixxx)
 {
    interface_type_005_t *i005 = (interface_type_005_t *)ixxx;
 
@@ -1151,7 +1153,7 @@ xpl2_f NAME(get_xPLCallback_interface_type_005)(void *ixxx)
 }
 
 
-int NAME(get_monitoring_id_interface_type_005)(void *ixxx)
+int get_monitoring_id_interface_type_005(void *ixxx)
 {
    interface_type_005_t *i005 = (interface_type_005_t *)ixxx;
 
@@ -1162,7 +1164,7 @@ int NAME(get_monitoring_id_interface_type_005)(void *ixxx)
 }
 
 
-int NAME(set_xPLCallback_interface_type_005)(void *ixxx, xpl2_f cb)
+int set_xPLCallback_interface_type_005(void *ixxx, xpl2_f cb)
 {
    interface_type_005_t *i005 = (interface_type_005_t *)ixxx;
 
@@ -1176,7 +1178,7 @@ int NAME(set_xPLCallback_interface_type_005)(void *ixxx, xpl2_f cb)
 }
 
 
-int NAME(set_monitoring_id_interface_type_005)(void *ixxx, int id)
+int set_monitoring_id_interface_type_005(void *ixxx, int id)
 {
    interface_type_005_t *i005 = (interface_type_005_t *)ixxx;
 
@@ -1190,13 +1192,13 @@ int NAME(set_monitoring_id_interface_type_005)(void *ixxx, int id)
 }
 
 
-int NAME(get_type_interface_type_005)()
+int get_type_interface_type_005()
 {
    return INTERFACE_TYPE_005;
 }
 
 
-interface_type_005_t *NAME(malloc_and_init_interface_type_005)(sqlite3 *sqlite3_param_db, int id_driver, int id_interface, char *name, char *dev, char *parameters, char *description)
+interface_type_005_t *malloc_and_init_interface_type_005(sqlite3 *sqlite3_param_db, int id_driver, int id_interface, char *name, char *dev, char *parameters, char *description)
 {
    interface_type_005_t *i005=NULL;
    
@@ -1255,23 +1257,23 @@ interface_type_005_t *NAME(malloc_and_init_interface_type_005)(sqlite3 *sqlite3_
    i005_start_stop_params->i005=i005;
    
    process_set_group(i005->monitoring_id, 1);
-   process_set_start_stop(i005->monitoring_id, NAME(start_interface_type_005), NAME(stop_interface_type_005), (void *)i005_start_stop_params, 1);
-   process_set_watchdog_recovery(i005->monitoring_id, NAME(restart_interface_type_005), (void *)i005_start_stop_params);
+   process_set_start_stop(i005->monitoring_id, start_interface_type_005, stop_interface_type_005, (void *)i005_start_stop_params, 1);
+   process_set_watchdog_recovery(i005->monitoring_id, restart_interface_type_005, (void *)i005_start_stop_params);
    process_set_description(i005->monitoring_id, (char *)description);
    process_set_heartbeat_interval(i005->monitoring_id, 60); // chien de garde au bout de 60 secondes sans heartbeat
    
-   process_add_indicator(i005->monitoring_id, NAME(interface_type_005_xplout_str), 0);
-   process_add_indicator(i005->monitoring_id, NAME(interface_type_005_xplin_str), 0);
-   process_add_indicator(i005->monitoring_id, NAME(interface_type_005_nbreaderror_str), 0);
-   process_add_indicator(i005->monitoring_id, NAME(interface_type_005_nbread_str), 0);
+   process_add_indicator(i005->monitoring_id, interface_type_005_xplout_str, 0);
+   process_add_indicator(i005->monitoring_id, interface_type_005_xplin_str, 0);
+   process_add_indicator(i005->monitoring_id, interface_type_005_nbreaderror_str, 0);
+   process_add_indicator(i005->monitoring_id, interface_type_005_nbread_str, 0);
    
    return i005;
 }
 
 
-int NAME(clean_interface_type_005)(interface_type_005_t *i005)
+int clean_interface_type_005(interface_type_005_t *i005)
 {
-   NAME(clean_queues)(&(i005->devices_list));
+   clean_queues(&(i005->devices_list));
 
    if(i005->parameters)
    {
@@ -1291,7 +1293,7 @@ int NAME(clean_interface_type_005)(interface_type_005_t *i005)
 }
 
 
-int NAME(stop_interface_type_005)(int my_id, void *data, char *errmsg, int l_errmsg)
+int stop_interface_type_005(int my_id, void *data, char *errmsg, int l_errmsg)
 {
    if(!data)
       return -1;
@@ -1322,7 +1324,7 @@ int NAME(stop_interface_type_005)(int my_id, void *data, char *errmsg, int l_err
       }
       DEBUG_SECTION mea_log_printf("%s (%s) : %s, fin après %d itération(s)\n", DEBUG_STR, __func__, start_stop_params->i005->name, 100-counter);
 
-      NAME(clean_interface_type_005)(start_stop_params->i005);
+      clean_interface_type_005(start_stop_params->i005);
    }
    
    mea_notify_printf('S', "%s %s", start_stop_params->i005->name, stopped_successfully_str);
@@ -1331,7 +1333,7 @@ int NAME(stop_interface_type_005)(int my_id, void *data, char *errmsg, int l_err
 }
 
 
-int NAME(restart_interface_type_005)(int my_id, void *data, char *errmsg, int l_errmsg)
+int restart_interface_type_005(int my_id, void *data, char *errmsg, int l_errmsg)
 {
    process_stop(my_id, NULL, 0);
    sleep(5);
@@ -1339,7 +1341,7 @@ int NAME(restart_interface_type_005)(int my_id, void *data, char *errmsg, int l_
 }
 
 
-int16_t NAME(check_status_interface_type_005)(interface_type_005_t *it005)
+int16_t check_status_interface_type_005(interface_type_005_t *it005)
 /**
  * \brief     indique si une anomalie a généré l'emission d'un signal SIGHUP
  * \param     i005           descripteur de l'interface
@@ -1350,7 +1352,7 @@ int16_t NAME(check_status_interface_type_005)(interface_type_005_t *it005)
 }
 
 
-int NAME(start_interface_type_005)(int my_id, void *data, char *errmsg, int l_errmsg)
+int start_interface_type_005(int my_id, void *data, char *errmsg, int l_errmsg)
 {
    pthread_t *interface_type_005_thread_id=NULL; // descripteur du thread
    struct thread_interface_type_005_args_s *interface_type_005_thread_args=NULL; // parametre à transmettre au thread
@@ -1359,7 +1361,7 @@ int NAME(start_interface_type_005)(int my_id, void *data, char *errmsg, int l_er
 
    start_stop_params->i005->xPL_callback2=NULL;
 
-   if(NAME(load_interface_type_005)(start_stop_params->i005, start_stop_params->sqlite3_param_db)<0)
+   if(load_interface_type_005(start_stop_params->i005, start_stop_params->sqlite3_param_db)<0)
       return -1;
  
    interface_type_005_thread_args=malloc(sizeof(struct thread_interface_type_005_args_s));
@@ -1389,14 +1391,14 @@ int NAME(start_interface_type_005)(int my_id, void *data, char *errmsg, int l_er
       goto start_interface_type_005_clean_exit;
    }
 
-   if(pthread_create (interface_type_005_thread_id, NULL, NAME(_thread_interface_type_005), (void *)interface_type_005_thread_args))
+   if(pthread_create (interface_type_005_thread_id, NULL, _thread_interface_type_005, (void *)interface_type_005_thread_args))
    {
       VERBOSE(2) mea_log_printf("%s (%s) : pthread_create - can't start thread\n",ERROR_STR,__func__);
       goto start_interface_type_005_clean_exit;
    }
    fprintf(stderr, "INTERFACE_TYPE_005 : %x\n", (unsigned int)*interface_type_005_thread_id);
 
-   start_stop_params->i005->xPL_callback2=NAME(interface_type_005_xPL_callback2);
+   start_stop_params->i005->xPL_callback2=interface_type_005_xPL_callback2;
    start_stop_params->i005->thread=interface_type_005_thread_id;
 
    pthread_detach(*interface_type_005_thread_id);

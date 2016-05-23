@@ -11,6 +11,7 @@
 
 #include "cJSON.h"
 #include "xPL.h"
+#include "interfacesServer.h"
 
 #include "mea_verbose.h"
 #include "tokens.h"
@@ -82,6 +83,45 @@ void mea_addpydict_to_pydict(PyObject *data_dict, char *key, PyObject *adict)
 {
    PyDict_SetItemString(data_dict, key, adict);
    Py_DECREF(adict);
+}
+
+
+PyObject *mea_device_info_to_pydict_device(struct device_info_s *device_info)
+{
+   PyObject *data_dict=NULL;
+
+   data_dict=PyDict_New();
+   if(!data_dict)
+      return NULL;
+/*
+   char *parameters;
+   char *interface_dev;
+   uint16_t interface_type_id;
+*/
+   //uint16_t id;
+   mea_addLong_to_pydict(data_dict, get_token_string_by_id(DEVICE_ID_ID), device_info->id);
+   //char *name;
+   mea_addString_to_pydict(data_dict, get_token_string_by_id(DEVICE_NAME_ID), device_info->name);
+   //uint16_t state;
+   mea_addLong_to_pydict(data_dict, get_token_string_by_id(DEVICE_STATE_ID), device_info->state);
+   //uint16_t type_id;
+   mea_addLong_to_pydict(data_dict, get_token_string_by_id(DEVICE_TYPE_ID_ID), device_info->type_id);
+   //uint16_t location_id;
+   mea_addLong_to_pydict(data_dict, get_token_string_by_id(DEVICE_LOCATION_ID_ID), device_info->location_id);
+   //uint16_t interface_id;
+   mea_addLong_to_pydict(data_dict, get_token_string_by_id(INTERFACE_ID_ID), device_info->interface_id);
+   //char *interface_name;
+   mea_addString_to_pydict(data_dict, get_token_string_by_id(DEVICE_INTERFACE_NAME_ID), device_info->interface_name);
+   //char *type_name;
+   mea_addString_to_pydict(data_dict, get_token_string_by_id(DEVICE_INTERFACE_TYPE_NAME_ID), device_info->type_name);
+   //char *type_parameters;
+   mea_addString_to_pydict(data_dict, get_token_string_by_id(DEVICE_TYPE_PARAMETERS_ID), device_info->type_parameters);
+   //uint16_t todbflag;
+   mea_addLong_to_pydict(data_dict, get_token_string_by_id(TODBFLAG_ID), device_info->todbflag);
+   //uint16_t typeoftype_id;
+   mea_addLong_to_pydict(data_dict, get_token_string_by_id(TYPEOFTYPE_ID), device_info->typeoftype_id);
+
+   return data_dict;
 }
 
 
@@ -158,6 +198,48 @@ PyObject *mea_stmt_to_pydict(sqlite3_stmt * stmt)
 }
 
 
+int mea_call_python_function3(PyObject *pFunc, PyObject *plugin_params_dict, PyObject **res)
+{
+   PyObject *pArgs, *pValue=NULL;
+   int retour=0;
+
+   if (pFunc && PyCallable_Check(pFunc))
+   {
+      pArgs = PyTuple_New(1);
+      Py_INCREF(plugin_params_dict); // PyTuple_SetItem va voler la référence, on en rajoute une pour pouvoir ensuite faire un Py_DECREF
+      PyTuple_SetItem(pArgs, 0, plugin_params_dict);
+
+      pValue = PyObject_CallObject(pFunc, pArgs); // appel du plugin
+      if (pValue != NULL)
+      {
+         *res=pValue;
+         retour=0;
+      }
+      else
+      {
+         if (PyErr_Occurred())
+         {
+            VERBOSE(5) {
+               mea_log_printf("%s (%s) : python error - ", ERROR_STR, __func__ );
+               PyErr_Print();
+               fprintf(MEA_STDERR, "\n");
+            }
+            PyErr_Clear();
+            retour=-1;
+         }
+         *res=NULL;
+      }
+      Py_DECREF(pArgs);
+
+      return retour;
+   }
+   else
+   {
+      return -1;
+   }
+}
+
+
 int mea_call_python_function2(PyObject *pFunc, PyObject *plugin_params_dict)
 {
    PyObject *pArgs, *pValue=NULL;
@@ -199,14 +281,52 @@ int mea_call_python_function2(PyObject *pFunc, PyObject *plugin_params_dict)
 }
 
 
-int mea_call_python_function(char *plugin_name, char *plugin_func, PyObject *plugin_params_dict)
+
+int mea_call_python_function_from_module(PyObject *module, char *plugin_func, PyObject *plugin_params_dict)
 {
-   PyObject *pName, *pModule, *pFunc;
-   int retour=-1;
+   int retour=0;
+   PyErr_Clear();
+
+   if(!module)
+   {
+      VERBOSE(5) mea_log_printf("%s (%s) : not found\n", ERROR_STR, __func__);
+      retour=-1;
+   }
+   else
+   {
+      PyObject *pFunc = PyObject_GetAttrString(module, plugin_func);
+      if(pFunc)
+      {
+         retour=mea_call_python_function2(pFunc, plugin_params_dict);
+
+         Py_XDECREF(pFunc);
+      }
+      else
+      {
+         VERBOSE(5) mea_log_printf("%s (%s) : %s not fount\n", ERROR_STR, __func__, plugin_func);
+         retour=-1;
+      }
+   }
 
    PyErr_Clear();
+
+   return retour;
+}
+
+
+int mea_call_python_function(char *plugin_name, char *plugin_func, PyObject *plugin_params_dict)
+{
+   PyObject *pName = NULL, *pModule = NULL;
+   int retour=-1;
+
    pName = PyString_FromString(plugin_name);
+   if(!pName)
+   {
+      return -1;
+   }
+
    pModule = PyImport_Import(pName);
+/*
    if(!pModule)
    {
       VERBOSE(5) mea_log_printf("%s (%s) : %s not found\n", ERROR_STR, __func__, plugin_name);
@@ -224,9 +344,15 @@ int mea_call_python_function(char *plugin_name, char *plugin_func, PyObject *plu
       }
       Py_XDECREF(pFunc);
    }
-   Py_XDECREF(pModule);
+*/
+   if(pModule)
+   {
+      retour=mea_call_python_function_from_module(pModule, plugin_func, plugin_params_dict);
+
+      Py_XDECREF(pModule);
+   }
+
    Py_DECREF(pName);
-   PyErr_Clear();
 
    return retour;
 }

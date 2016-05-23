@@ -42,11 +42,11 @@ int get_fns_interface(void *lib, struct interfacesServer_interfaceFns_s *interfa
       interfacesFns->api = (api_f)dlsym(lib, "api_interface_type_003");
       if(!interfacesFns->api)
          fprintf(stderr,"api: %s\n", dlerror());
-
+/*
       interfacesFns->get_interface_id = (get_interface_id_f)dlsym(lib, "get_interface_id_interface_type_003");
       if(!interfacesFns->get_interface_id)
          fprintf(stderr,"get_interface_id: %s\n", dlerror());
-
+*/
       interfacesFns->plugin_flag = 1;
       interfacesFns->lib = lib; 
 

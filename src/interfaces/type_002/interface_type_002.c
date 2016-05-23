@@ -326,7 +326,7 @@ PyObject *stmt_to_pydict_interface(sqlite3_stmt * stmt)
 
 
 //int16_t _interface_type_002_xPL_callback2(cJSON *xplMsgJson, xPL_ObjectPtr userValue)
-int16_t _interface_type_002_xPL_callback2(cJSON *xplMsgJson, void *userValue)
+int16_t _interface_type_002_xPL_callback2(cJSON *xplMsgJson, struct device_info_s *device_info, void *userValue)
 {
    char *device;
    int ret;

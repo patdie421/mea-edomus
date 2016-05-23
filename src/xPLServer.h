@@ -46,7 +46,7 @@ struct xplServer_start_stop_params_s
 };
 
 
-typedef int16_t (*xpl2_f)(cJSON *xplMsgJson, void *userdata);
+// typedef int16_t (*xpl2_f)(cJSON *xplMsgJson, void *userdata);
 
 
 //xPL_ServicePtr mea_getXPLServicePtr();
