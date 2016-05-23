@@ -714,6 +714,69 @@ int mea_strlen_escaped(char *s)
 }
 
 
+#define ISOCTAL(c)	(ISDIGIT(c) && (c) != '8' && (c) != '9')
+
+char *mea_unescape(char *result, char *data)
+{
+   int ch;
+   int result_ptr = 0;
+   int oval;
+   int i;
+
+   result[0]=0;
+
+   while (ch = *data++) != 0)
+   {
+      if (ch == '\\') {
+	      if (ch = *data++) == 0)
+		      break;
+	         switch (ch)
+	         {
+	            case 'a':				/* \a -> audible bell */
+		            ch = '\a';
+		            break;
+	            case 'b':				/* \b -> backspace */
+		            ch = '\b';
+		            break;
+	            case 'f':				/* \f -> formfeed */
+		            ch = '\f';
+		            break;
+	            case 'n':				/* \n -> newline */
+		            ch = '\n';
+		            break;
+	            case 'r':				/* \r -> carriagereturn */
+		            ch = '\r';
+		            break;
+	            case 't':				/* \t -> horizontal tab */
+		            ch = '\t';
+		            break;
+	            case 'v':				/* \v -> vertical tab */
+		            ch = '\v';
+		            break;
+	            case '0':				/* \nnn -> ASCII value */
+	            case '1':
+	            case '2':
+	            case '3':
+	            case '4':
+	            case '5':
+	            case '6':
+	            case '7':
+		            for (oval = ch - '0', i = 0; i < 2 && ((ch = *data) != 0 && ISOCTAL(ch); i++, data++)
+		            {
+		               oval = (oval << 3) | (ch - '0');
+		            }
+		            ch = oval;
+		            break;
+	            default:				/* \any -> any */
+		            break;
+	       }
+	   }
+      result[result_ptr++]=ch;
+   }
+   result[result_ptr]=0;
+   return (result);
+}
+
 #ifdef MEA_STRING_UTILS_MODULE_TEST
 int main(int argc, char *argv[])
 {
