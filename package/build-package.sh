@@ -25,6 +25,7 @@ mkdir -p $SOURCE/package/tmp/lib
 mkdir -p $SOURCE/package/tmp/lib/mea-gui
 mkdir -p $SOURCE/package/tmp/lib/mea-gui/maps
 mkdir -p $SOURCE/package/tmp/lib/mea-plugins
+mkdir -p $SOURCE/package/tmp/lib/mea-drivers
 mkdir -p $SOURCE/package/tmp/lib/mea-rules
 mkdir -p $SOURCE/package/tmp/etc
 mkdir -p $SOURCE/package/tmp/etc/init.d
@@ -40,9 +41,10 @@ tar cf - . | ( cd $SOURCE/package/tmp/lib/mea-gui ; tar xf - )
 
 cd $SOURCE/plugins
 tar cf - . | ( cd $SOURCE/package/tmp/lib/mea-plugins ; tar xf - )
-cd $SOURCE/src/interfaces
-cp type_*/interface*.so $SOURCE/package/tmp/lib/mea-plugins
 rm $SOURCE/package/tmp/lib/mea-plugins/*.pyc
+
+cd $SOURCE/src/interfaces
+cp type_*/interface*.so $SOURCE/package/tmp/lib/mea-drivers
  
 cp $SOURCE/linux/init.d/* $SOURCE/package/tmp/etc/init.d
 

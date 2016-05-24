@@ -647,7 +647,7 @@ void *xPLServer_thread(void *data)
    char *_xplWDMsg = "xpl-trig\n{\nhop=1\nsource=%s\ntarget=%s\n}\nwatchdog.basic\n{\ninterval=10\n}\n";
 
    mea_timer_t xPLWDSendMsgTimer;
-   mea_init_timer(&xPLnoMsgReceivedTimer, 30, 1);
+//   mea_init_timer(&xPLnoMsgReceivedTimer, 30, 1);
    mea_init_timer(&xPLWDSendMsgTimer, 10, 1);
 
    xplWDMsg=malloc(strlen(_xplWDMsg)-4 + 2*strlen(xpl_my_addr) + 1);

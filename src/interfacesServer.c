@@ -419,7 +419,7 @@ int load_interface(int type, char **params_list)
          get_fns_interface_f fn = NULL;
          char interface_so[256];
 
-         snprintf(interface_so, sizeof(interface_so)-1,"%s/%s", params_list[PLUGINS_PATH], plugins_list[i].name);
+         snprintf(interface_so, sizeof(interface_so)-1,"%s/%s", params_list[DRIVERS_PATH], plugins_list[i].name);
          void *lib = dlopen(interface_so, RTLD_NOW | RTLD_GLOBAL);
          if(lib)
          {

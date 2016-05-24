@@ -727,7 +727,6 @@ char *mea_unescape(char *result, char *data)
 
    while ((ch = *data++) != 0)
    {
-      fprintf(stderr,"CH: %c\n",ch);
       if (ch == '\\') {
 	      if ((ch = *data++) == 0)
 		      break;

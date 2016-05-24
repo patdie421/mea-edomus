@@ -595,12 +595,21 @@ static int process_interface_type_010_data(interface_type_010_t *i010, sqlite3 *
    struct timeval timeout;
    char buffer[255];
 
+   mea_timer_t timer;
+   mea_init_timer(&timer, 10, 1);
+   mea_start_timer(&timer);
+
    /* Initialize the file descriptor set. */
    FD_ZERO(&set);
    FD_SET(i010->file_desc_in, &set);
    int ret = 0;
    do
    {
+      if(mea_test_timer(&timer)==0)
+      {
+         break;
+      }
+
       /* Initialize the timeout data structure. */
       if(i010->fduration <= 0)
       {
@@ -1396,13 +1405,6 @@ int start_interface_type_010(int my_id, void *data, char *errmsg, int l_errmsg)
    return 0;
 
 clean_exit:
-/*
-   if(xpl_callback_params)
-   {
-      free(xpl_callback_params);
-      xpl_callback_params=NULL;
-   }
-*/
    clean_interface_type_010_data_source(start_stop_params->i010);
 
    return -1; 

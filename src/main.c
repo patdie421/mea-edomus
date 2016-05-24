@@ -133,6 +133,7 @@ void usage(char *cmd)
       "  --guipath, -G       (défaut : basepath/lib/mea-gui)",
       "  --logpath, -L       (défaut : basepath/var/log ou /var/log si basepath=/usr)",
       "  --pluginspath, -A   (défaut : basepath/lib/mea-plugins)",
+      "  --driverspath, -x   (défaut : basepath/lib/mea-drivers)",
       "  --rulesfilespath, -R(défaut : basepath/lib/rules)",
       "  --rulesfile, -r     (défaut : basepath/lib/rules/automator.rules)",
       "  --bufferdb, -B      (défaut : basepath/var/db/queries.db ou",
@@ -198,6 +199,7 @@ void init_param_names(char *param_names[])
    param_names[GUI_PATH]             = "GUIPATH";
    param_names[LOG_PATH]             = "LOGPATH";
    param_names[PLUGINS_PATH]         = "PLUGINPATH";
+   param_names[DRIVERS_PATH]         = "DRIVERSPATH";
    param_names[SQLITE3_DB_BUFF_PATH] = "BUFFERDB";
    param_names[MYSQL_DB_SERVER]      = "DBSERVER";
    param_names[MYSQL_DB_PORT]        = "DBPORT";
@@ -456,6 +458,7 @@ int main(int argc, const char * argv[])
       {"guipath",           required_argument, 0,  GUI_PATH             }, // 'G'
       {"logpath",           required_argument, 0,  LOG_PATH             }, // 'L'
       {"pluginspath",       required_argument, 0,  PLUGINS_PATH         }, // 'A'
+      {"driverspath",       required_argument, 0,  DRIVERS_PATH         }, // 'x'
       {"bufferdbpath",      required_argument, 0,  SQLITE3_DB_BUFF_PATH }, // 'B'
       {"dbserver",          required_argument, 0,  MYSQL_DB_SERVER      }, // 'D'
       {"dbport",            required_argument, 0,  MYSQL_DB_PORT        }, // 'P'
@@ -528,7 +531,7 @@ int main(int argc, const char * argv[])
    int option_index = 0; // getopt_long function need int
    int c; // getopt_long function need int
 //   while ((c = getopt_long(argc, (char * const *)argv, "bhiaup:d:c:C:H:s:G:L:A:B:D:P:N:U:W:V:E:S:v:g:j:J:k:I:", long_options, &option_index)) != -1)
-   while ((c = getopt_long(argc, (char * const *)argv, "bhiaup:d:C:H:s:G:L:A:B:D:P:N:U:W:V:E:S:v:g:j:J:k:I:", long_options, &option_index)) != -1)
+   while ((c = getopt_long(argc, (char * const *)argv, "bhiaup:d:C:H:s:G:L:A:B:D:P:N:U:W:V:E:S:v:g:j:J:k:I:x:", long_options, &option_index)) != -1)
    {
       switch (c)
       {
@@ -573,7 +576,7 @@ int main(int argc, const char * argv[])
             _b=1;
             break;
 
-            case 'i':
+         case 'i':
             c=-1;
             _i=1;
             break;
@@ -614,6 +617,10 @@ int main(int argc, const char * argv[])
             
          case 'A':
             c=PLUGINS_PATH;
+            break;
+            
+         case 'x':
+            c=DRIVERS_PATH;
             break;
             
          case 'B':

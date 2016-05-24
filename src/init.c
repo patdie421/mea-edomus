@@ -1,5 +1,4 @@
 /**
-   OPTION=--nodejspath=\"$BASEPATH/bin/node\"
  * \file      init.c
  * \author    patdie421
  * \version   0.1
@@ -249,6 +248,7 @@ int16_t checkInstallationPaths(char *base_path, int16_t try_to_create_flag)
   *            BASEPATH/etc
   *            BASEPATH/lib
   *            BASEPATH/lib/plugins
+  *            BASEPATH/lib/drivers
   *            BASEPATH/var
   *            BASEPATH/var/db
   *            BASEPATH/var/log
@@ -259,6 +259,7 @@ int16_t checkInstallationPaths(char *base_path, int16_t try_to_create_flag)
   *            /etc
   *            /usr/lib
   *            /usr/lib/mea-plugins
+  *            /usr/lib/mea-drivers
   *            /var
   *            /var/db
   *            /var/log
@@ -271,8 +272,8 @@ int16_t checkInstallationPaths(char *base_path, int16_t try_to_create_flag)
   * \return    0 si l'installation est ok, -1 = erreur bloquante, -2 = au moins un répertoire n'existe pas
   */
 {
-    const char *default_paths_list[]={NULL,"bin","etc","lib","lib/mea-plugins","var","var/db","var/log","var/sessions","lib/mea-gui","lib/mea-rules", NULL};
-    const char *usr_paths_list[]={"/etc","/usr/lib/mea-plugins","/var/db","/var/log","/tmp","/usr/lib/mea-gui","/usr/lib/mea-rules", NULL};
+    const char *default_paths_list[]={NULL,"bin","etc","lib","lib/mea-drivers","lib/mea-plugins","var","var/db","var/log","var/sessions","lib/mea-gui","lib/mea-rules", NULL};
+    const char *usr_paths_list[]={"/etc","/usr/lib/mea-plugins","/usr/lib/mea-drivers","/var/db","/var/log","/tmp","/usr/lib/mea-gui","/usr/lib/mea-rules", NULL};
     
     char **paths_list;
     
@@ -925,6 +926,7 @@ int16_t autoInit(char **params_list, char **keys)
    _construct_path(params_list,   PHPSESSIONS_PATH,  p_str,                 sessions_str);
    _construct_path(params_list,   GUI_PATH,          params_list[MEA_PATH], "lib/mea-gui");
    _construct_path(params_list,   PLUGINS_PATH,      params_list[MEA_PATH], "lib/mea-plugins");
+   _construct_path(params_list,   DRIVERS_PATH,      params_list[MEA_PATH], "lib/mea-drivers");
    _construct_path(params_list,   RULES_FILE,        params_list[MEA_PATH], "lib/mea-rules/automator.rules");
    _construct_path(params_list,   RULES_FILES_PATH,  params_list[MEA_PATH], "lib/mea-rules");
    _construct_path(params_list,   LOG_PATH,          p_str,                 "var/log");
@@ -1038,6 +1040,7 @@ int16_t interactiveInit(char **params_list, char **keys)
    
    _read_path(params_list,   GUI_PATH,         params_list[MEA_PATH], "lib/mea-gui",     "PATH to gui directory");
    _read_path(params_list,   PLUGINS_PATH,     params_list[MEA_PATH], "lib/mea-plugins", "PATH to plugins directory");
+   _read_path(params_list,   DRIVERS_PATH,     params_list[MEA_PATH], "lib/mea-plugins", "PATH to interfaces drivers directory");
    _read_path(params_list,   RULES_FILE,       params_list[MEA_PATH], "lib/mea-rules/automator.rules", "automator executable rules file");
    _read_path(params_list,   RULES_FILES_PATH, params_list[MEA_PATH], "lib/mea-rules", "automator rules sources files");
    _read_path(params_list,   PHPCGI_PATH,      params_list[MEA_PATH], "bin",             "PATH to 'php-cgi' directory");
@@ -1220,6 +1223,45 @@ exit_updateMeaEdomus:
    if(sqlite3_param_db)
         sqlite3_close(sqlite3_param_db);
    return retcode;
+}
+
+
+// une fonction pour chaque changement de version.
+int16_t upgrade_params_db_from_10_to_11(sqlite3 *sqlite3_param_db, struct upgrade_params_s *upgrade_params)
+{
+ int ret;
+ char *err = NULL;
+ char sql[256];
+ int16_t n;
+
+   VERBOSE(5) mea_log_printf ("%s (%s) : passage de la version 10 à la version 11\n",INFO_STR,__func__);
+
+   n=snprintf(sql, sizeof(sql), "REPLACE INTO 'application_parameters' (id, key, value, complement) VALUES ('%d', 'DRIVERSPATH', '%s/lib/mea-drivers', '')", DRIVERS_PATH, upgrade_params->params_list[MEA_PATH]);
+   if(n<0 || n==sizeof(sql))
+   {
+      VERBOSE(9) {
+         mea_log_printf ("%s (%s) : snprintf - ", DEBUG_STR,__func__);
+         perror("");
+      }
+      return -1;
+   }
+   ret = sqlite3_exec(sqlite3_param_db, sql, NULL, NULL, &err);
+   if( ret != SQLITE_OK )
+   {
+      VERBOSE(9) mea_log_printf ("%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__, sqlite3_errmsg(sqlite3_param_db));
+      sqlite3_free(err);
+      return -1;
+   }
+
+   ret = sqlite3_exec(sqlite3_param_db, "UPDATE 'application_parameters' set value = '11' WHERE key = 'PARAMSDBVERSION'", NULL, NULL, &err);
+   if( ret != SQLITE_OK )
+   {
+      VERBOSE(9) mea_log_printf ("%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
+      sqlite3_free(err);
+      return -1;
+   }
+
+   return 0;
 }
 
 
@@ -1724,6 +1766,7 @@ upgrade_params_db_from_x_to_y_f upgrade_params_db_from_x_to_y[]= {
    upgrade_params_db_from_7_to_8,
    upgrade_params_db_from_8_to_9,
    upgrade_params_db_from_9_to_10,
+   upgrade_params_db_from_10_to_11,
    NULL };
 
 
