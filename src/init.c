@@ -1,5 +1,4 @@
 /**
-   OPTION=--nodejspath=\"$BASEPATH/bin/node\"
  * \file      init.c
  * \author    patdie421
  * \version   0.1
