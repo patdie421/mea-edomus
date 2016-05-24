@@ -56,6 +56,9 @@ typedef struct interface_type_006_s
    xpl2_f           xPL_callback2;
    void            *xPL_callback_data;
 
+   PyThreadState   *mainThreadState; 
+   PyThreadState   *myThreadState; 
+
    struct interface_type_006_indicators_s indicators;
 } interface_type_006_t;
 
