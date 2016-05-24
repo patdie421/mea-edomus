@@ -122,7 +122,6 @@ int16_t _interface_type_010_xPL_callback2(cJSON *xplMsgJson, struct device_info_
       plugin_elem->type_elem=XPLMSG;
       {
          PyEval_AcquireLock();
-
          if(!i010->mainThreadState)
             i010->mainThreadState=PyThreadState_Get();
          if(!i010->myThreadState)
@@ -137,8 +136,8 @@ int16_t _interface_type_010_xPL_callback2(cJSON *xplMsgJson, struct device_info_
 
          if(plugin_params->parameters[PLUGIN_PARAMS_PARAMETERS].value.s)
          mea_addString_to_pydict(plugin_elem->aDict, DEVICE_PARAMETERS_STR_C, plugin_params->parameters[PLUGIN_PARAMS_PARAMETERS].value.s);
+         
          PyThreadState_Swap(tempState);
-
          PyEval_ReleaseLock();
       }
    }
