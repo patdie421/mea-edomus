@@ -118,6 +118,7 @@ int16_t _interface_type_010_xPL_callback2(cJSON *xplMsgJson, struct device_info_
             i010->mainThreadState=PyThreadState_Get();
          if(!i010->myThreadState)
             i010->myThreadState = PyThreadState_New(i010->mainThreadState->interp);
+
          PyThreadState *tempState = PyThreadState_Swap(i010->myThreadState);
 
          plugin_elem->aDict=mea_device_info_to_pydict_device(device_info);
@@ -1186,7 +1187,9 @@ void *_thread_interface_type_010(void *args)
 
    if(params->i010->pModule)
    {
-      python_lock(); // attention python_lock / python_unlock définissent un block ({ }) les variables déclérées restent locales au bloc
+//      mea_python_lock(); // attention python_lock / python_unlock définissent un block ({ }) les variables déclérées restent locales au bloc
+      PyEval_AcquireLock();
+      PyThreadState *tempState = PyThreadState_Swap(i010->myThreadState);
 
       PyObject *plugin_params_dict=PyDict_New();
       mea_addLong_to_pydict(plugin_params_dict, INTERFACE_ID_STR_C, params->i010->id_interface);
@@ -1196,7 +1199,9 @@ void *_thread_interface_type_010(void *args)
 
       Py_DECREF(plugin_params_dict);
 
-      python_unlock();
+//      mea_python_unlock();
+      PyThreadState_Swap(tempState);
+      PyEval_ReleaseLock();
    }
 
    while(1)
