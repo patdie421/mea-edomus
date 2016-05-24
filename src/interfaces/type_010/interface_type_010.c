@@ -1330,10 +1330,13 @@ int stop_interface_type_010(int my_id, void *data, char *errmsg, int l_errmsg)
       
    if(start_stop_params->i010->xPL_callback_data)
    {
+      struct callback_xpl_data_s *data = (struct callback_xpl_data_s *)start_stop_params->i010->xPL_callback_data;
       PyEval_AcquireLock(); 
-      PyThreadState_Clear(start_stop_params->i010->xPL_callback_data->myThreadState); 
-      PyThreadState_Delete(start_stop_params->i010->xPL_callback_data->myThreadState); 
-      start_stop_params->i010->xPL_callback_data->myThreadState=NULL; 
+      
+      PyThreadState_Clear(data->myThreadState); 
+      PyThreadState_Delete(data->myThreadState); 
+      data->myThreadState=NULL; 
+
       PyEval_ReleaseLock(); 
       
       free(start_stop_params->i010->xPL_callback_data);
