@@ -113,6 +113,7 @@ int16_t _interface_type_010_xPL_callback2(cJSON *xplMsgJson, struct device_info_
    {
       plugin_elem->type_elem=XPLMSG;
       {
+         pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
          PyEval_AcquireLock();
          if(!i010->mainThreadState)
             i010->mainThreadState=PyThreadState_Get();
@@ -132,6 +133,7 @@ int16_t _interface_type_010_xPL_callback2(cJSON *xplMsgJson, struct device_info_
          
          PyThreadState_Swap(tempState);
          PyEval_ReleaseLock();
+         pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
       }
    }
 
@@ -290,6 +292,7 @@ int init_interface_type_010_data_preprocessor(interface_type_010_t *i010, char *
    int ret;
 
    //mea_python_lock();
+   pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
    PyEval_AcquireLock();
    PyThreadState *tempState = PyThreadState_Swap(i010->myThreadState);
       
@@ -340,6 +343,7 @@ int init_interface_type_010_data_preprocessor(interface_type_010_t *i010, char *
 //   mea_python_unlock();
    PyThreadState_Swap(tempState);
    PyEval_ReleaseLock();
+   pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 
    return ret;
 }
@@ -350,6 +354,7 @@ int interface_type_010_data_preprocessor(interface_type_010_t *i010)
    int retour=-1;
    if(i010->pFunc)
    {
+      pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
       PyEval_AcquireLock();
       PyThreadState *tempState = PyThreadState_Swap(i010->myThreadState);
 
@@ -426,6 +431,7 @@ int interface_type_010_data_preprocessor(interface_type_010_t *i010)
 
       PyThreadState_Swap(tempState);
       PyEval_ReleaseLock();
+      pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
    }
 
    return retour;
@@ -452,6 +458,7 @@ static int _interface_type_010_data_to_plugin(interface_type_010_t *i010, sqlite
    {
       plugin_elem->type_elem=DATAFROMSENSOR;
       {
+         pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
          PyEval_AcquireLock();
          PyThreadState *tempState = PyThreadState_Swap(i010->myThreadState);
 
@@ -471,6 +478,7 @@ static int _interface_type_010_data_to_plugin(interface_type_010_t *i010, sqlite
          }
          PyThreadState_Swap(tempState);
          PyEval_ReleaseLock();
+         pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
       }
    }
    pythonPluginServer_add_cmd(plugin_params->parameters[PLUGIN_PARAMS_PLUGIN].value.s, (void *)plugin_elem, sizeof(plugin_queue_elem_t));
@@ -774,6 +782,7 @@ int clean_interface_type_010(void *ixxx)
       i010->fendstr=NULL;
    }
 
+   pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
    PyEval_AcquireLock();
 
    if(i010->pFunc)
@@ -801,6 +810,7 @@ int clean_interface_type_010(void *ixxx)
    }
 
    PyEval_ReleaseLock();
+   pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 
    return 0;
 }
@@ -1198,16 +1208,19 @@ void *_thread_interface_type_010(void *args)
    params->i010->thread_is_running=1;
    process_heartbeat(params->i010->monitoring_id);
 
+   pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
    PyEval_AcquireLock();
 
    params->i010->mainThreadState = PyThreadState_Get();
    params->i010->myThreadState   = PyThreadState_New(params->i010->mainThreadState->interp);
 
    PyEval_ReleaseLock();
+   pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 
    if(params->i010->pModule)
    {
 //      mea_python_lock(); // attention python_lock / python_unlock définissent un block ({ }) les variables déclérées restent locales au bloc
+      pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
       PyEval_AcquireLock();
       PyThreadState *tempState = PyThreadState_Swap(i010->myThreadState);
 
@@ -1222,6 +1235,7 @@ void *_thread_interface_type_010(void *args)
 //      mea_python_unlock();
       PyThreadState_Swap(tempState);
       PyEval_ReleaseLock();
+      pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
    }
 
    while(1)
