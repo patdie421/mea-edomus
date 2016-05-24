@@ -1408,12 +1408,18 @@ int start_interface_type_010(int my_id, void *data, char *errmsg, int l_errmsg)
 
    start_stop_params->i010->thread=start_interface_type_010_thread(start_stop_params->i010, NULL, start_stop_params->sqlite3_param_db, (thread_f)_thread_interface_type_010);
 
-//   start_stop_params->i010->xPL_callback_data=NULL;
+   start_stop_params->i010->xPL_callback_data=NULL;
    start_stop_params->i010->xPL_callback2=_interface_type_010_xPL_callback2;
 
    return 0;
 
 clean_exit:
+   if(start_stop_params->i010->xPL_callback_data)
+   {
+      free(start_stop_params->i010->xPL_callback_data);
+      start_stop_params->i010->xPL_callback_data=NULL;
+   }
+
    clean_interface_type_010_data_source(start_stop_params->i010);
 
    return -1; 
