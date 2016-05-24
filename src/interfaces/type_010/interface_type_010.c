@@ -301,7 +301,10 @@ int init_interface_type_010_data_preprocessor(interface_type_010_t *i010, char *
 
    PyObject *pName = PyString_FromString(plugin_name);
    if(!pName)
+   {
+      python_unlock();
       return -1;
+   }
 
    i010->pModule =  PyImport_Import(pName);
    Py_XDECREF(pName);
