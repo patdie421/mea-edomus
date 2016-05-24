@@ -59,14 +59,14 @@ char *valid_genericserial_plugin_params[]={"S:PLUGIN","S:PARAMETERS", NULL};
 #define GENERICSERIAL_PLUGIN_PARAMS_PLUGIN      0
 #define GENERICSERIAL_PLUGIN_PARAMS_PARAMETERS  1
 
-
+/*
 struct genericserial_callback_xpl_data_s
 {
 //   PyThreadState  *mainThreadState;
 //   PyThreadState  *myThreadState;
-   sqlite3        *param_db;
+//   sqlite3        *param_db;
 };
-
+*/
 
 struct genericserial_thread_params_s
 {
@@ -214,11 +214,11 @@ int16_t _interface_type_006_xPL_callback2(cJSON *xplMsgJson, struct device_info_
    cJSON *j = NULL;
  
    interface_type_006_t *i006=(interface_type_006_t *)userValue;
-   struct genericserial_callback_xpl_data_s *params=(struct genericserial_callback_xpl_data_s *)i006->xPL_callback_data;
+//   struct genericserial_callback_xpl_data_s *params=(struct genericserial_callback_xpl_data_s *)i006->xPL_callback_data;
    
    i006->indicators.xplin++;
    
-   sqlite3 *params_db = params->param_db;
+//   sqlite3 *params_db = params->param_db;
    
    pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
    PyEval_AcquireLock();
@@ -670,13 +670,13 @@ int clean_interface_type_006(void *ixxx)
       free(i006->parameters);
       i006->parameters=NULL;
    }
-
+/*
    if(i006->xPL_callback_data)
    {
       free(i006->xPL_callback_data);
       i006->xPL_callback_data=NULL;
    }
-   
+*/   
    if(i006->xPL_callback2)
       i006->xPL_callback2=NULL;
 
@@ -794,7 +794,7 @@ interface_type_006_t *malloc_and_init_interface_type_006(sqlite3 *sqlite3_param_
    
    i006->thread=NULL;
    i006->xPL_callback2=NULL;
-   i006->xPL_callback_data=NULL;
+//   i006->xPL_callback_data=NULL;
 
    i006->myThreadState=NULL;
    i006->myThreadState=NULL;
@@ -830,13 +830,13 @@ int stop_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg)
    struct interface_type_006_data_s *start_stop_params=(struct interface_type_006_data_s *)data;
 
    VERBOSE(1) mea_log_printf("%s (%s) : %s shutdown thread ...\n", INFO_STR, __func__, start_stop_params->i006->name);
-
+/*
    if(start_stop_params->i006->xPL_callback_data)
    {
       free(start_stop_params->i006->xPL_callback_data);
       start_stop_params->i006->xPL_callback_data=NULL;
    }
-   
+*/   
    if(start_stop_params->i006->xPL_callback2)
    {
       start_stop_params->i006->xPL_callback2=NULL;
@@ -888,7 +888,7 @@ int start_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg)
    int err=0;
    char err_str[128];
    int ret=0;
-   struct genericserial_callback_xpl_data_s *xpl_callback_params=NULL;
+//   struct genericserial_callback_xpl_data_s *xpl_callback_params=NULL;
    int interface_nb_parameters=0;
    parsed_parameters_t *interface_parameters=NULL;
     
@@ -947,6 +947,7 @@ int start_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg)
       mea_python_unlock();
    }
    // données pour les callbacks xpl
+/*
    xpl_callback_params=(struct genericserial_callback_xpl_data_s *)malloc(sizeof(struct genericserial_callback_xpl_data_s));
    if(!xpl_callback_params)
    {
@@ -957,11 +958,12 @@ int start_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg)
       mea_notify_printf('E', "%s can't be launched - %s", start_stop_params->i006->name, err_str);
       goto clean_exit;
    }
-   xpl_callback_params->param_db=start_stop_params->sqlite3_param_db;
+*/
+//   xpl_callback_params->param_db=start_stop_params->sqlite3_param_db;
 //   xpl_callback_params->mainThreadState=NULL;
 //   xpl_callback_params->myThreadState=NULL;
 
-   start_stop_params->i006->xPL_callback_data=xpl_callback_params;
+//   start_stop_params->i006->xPL_callback_data=xpl_callback_params;
    start_stop_params->i006->xPL_callback2=_interface_type_006_xPL_callback2;
 
    start_stop_params->i006->thread=start_interface_type_006_genericserial_data_thread(start_stop_params->i006, start_stop_params->sqlite3_param_db, interface_parameters, (thread_f)_thread_interface_type_006_genericserial_data);
@@ -990,13 +992,13 @@ clean_exit:
       interface_nb_parameters=0;
 
    }
-   
+/*   
    if(xpl_callback_params)
    {
       free(xpl_callback_params);
       xpl_callback_params=NULL;
    }
-   
+*/   
    return -1;
 }
 
