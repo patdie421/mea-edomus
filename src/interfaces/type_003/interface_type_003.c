@@ -70,7 +70,7 @@ struct enocean_callback_xpl_data_s
 {
    PyThreadState  *mainThreadState;
    PyThreadState  *myThreadState;
-   sqlite3        *param_db;
+//   sqlite3        *param_db;
 };
 
 
@@ -627,7 +627,6 @@ pthread_t *start_interface_type_003_enocean_data_thread(interface_type_003_t *i0
    params->mainThreadState = NULL;
    params->myThreadState = NULL;
 
-   
    // préparation des données pour les callback io_data et data_flow dont les données sont traitées par le même thread
    enocean_callback_data=(struct enocean_callback_data_s *)malloc(sizeof(struct enocean_callback_data_s));
    if(!enocean_callback_data)
@@ -764,7 +763,8 @@ int set_xPLCallback_interface_type_003(void *ixxx, xpl2_f cb)
 }
 
 
-int set_monitoring_id_interface_type_003(void *ixxx, int id) {
+int set_monitoring_id_interface_type_003(void *ixxx, int id)
+{
    interface_type_003_t *i003 = (interface_type_003_t *)ixxx;
 
    if(i003 == NULL)
@@ -1228,7 +1228,7 @@ int start_interface_type_003(int my_id, void *data, char *errmsg, int l_errmsg)
       mea_notify_printf('E', "%s can't be launched - %s.\n", start_stop_params->i003->name, err_str);
       goto clean_exit;
    }
-   xpl_callback_params->param_db=start_stop_params->sqlite3_param_db;
+//   xpl_callback_params->param_db=start_stop_params->sqlite3_param_db;
    xpl_callback_params->mainThreadState=NULL;
    xpl_callback_params->myThreadState=NULL;
    

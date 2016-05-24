@@ -26,21 +26,23 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
+#include "macros.h"
 #include "globals.h"
 #include "consts.h"
 #include "tokens.h"
 #include "tokens_da.h"
 #include "mea_verbose.h"
-#include "macros.h"
 #include "mea_string_utils.h"
-#include "dbServer.h"
 #include "parameters_utils.h"
 #include "cJSON.h"
+
+#include "dbServer.h"
 #include "processManager.h"
 #include "notify.h"
-#include "python_utils.h"
 #include "pythonPluginServer.h"
 #include "interfacesServer.h"
+
+#include "python_utils.h"
 
 
 char *interface_type_010_xplin_str="XPLIN";
@@ -61,11 +63,12 @@ char *valid_plugin_010_params[]={"S:PLUGIN","S:PARAMETERS", NULL};
 #define PLUGIN_PARAMS_PLUGIN       0
 #define PLUGIN_PARAMS_PARAMETERS   1
 
+/*
 struct callback_xpl_data_s
 {
    sqlite3 *param_db;
 };
-
+*/
 
 struct thread_params_s
 {
@@ -98,7 +101,7 @@ int16_t _interface_type_010_xPL_callback2(cJSON *xplMsgJson, struct device_info_
 
    interface_type_010_t *i010=(interface_type_010_t *)userValue;
 
-   struct callback_xpl_data_s *params=(struct callback_xpl_data_s *)i010->xPL_callback_data;
+//   struct callback_xpl_data_s *params=(struct callback_xpl_data_s *)i010->xPL_callback_data;
 
    i010->indicators.xplin++;
 
@@ -874,12 +877,13 @@ int api_write_data(interface_type_010_t *ixxx, PyObject *args, PyObject **res, i
    else
       return -255;
 
-   fprintf(stderr,"TEXT: %s (%d)\n", py_packet.buf, py_packet.len);
-
    ret=write(ixxx->file_desc_out, py_packet.buf, py_packet.len);
    if(ret<0)
    {
-      perror("api_write_data: ");
+      VERBOSE(5) {
+         mea_log_printf("%s (%s) : write - ", ERROR_STR, __func__);
+         perror("");
+      }
    }
  
    PyBuffer_Release(&py_packet);
@@ -900,7 +904,6 @@ int16_t api_interface_type_010(void *ixxx, char *cmnd, void *args, int nb_args, 
    if(strcmp(cmnd, "mea_writeData") == 0)
    {
       int ret=api_write_data(ixxx, pyArgs, pyRes, nerr, err, l_err);
-      fprintf(stderr,"ret=%d\n",ret);
       if(ret<0)
       {
          strncpy(err, "error", l_err);
@@ -1319,17 +1322,18 @@ int restart_interface_type_010(int my_id, void *data, char *errmsg, int l_errmsg
 int start_interface_type_010(int my_id, void *data, char *errmsg, int l_errmsg)
 {
    char err_str[128];
-   struct callback_xpl_data_s *xpl_callback_params=NULL;
+//   struct callback_xpl_data_s *xpl_callback_params=NULL;
    struct interface_type_010_data_s *start_stop_params=(struct interface_type_010_data_s *)data;
 
    if(init_interface_type_010_data_source(start_stop_params->i010)<0)
    {
-      fprintf(stderr,"BIG ERROR ...\n");
+      VERBOSE(1) mea_log_printf("%s (%s) : cant'open start interface %s, initialisation error", INFO_STR, __func__, start_stop_params->i010->name);
       return -1;
    }
 
    start_stop_params->i010->thread=start_interface_type_010_thread(start_stop_params->i010, NULL, start_stop_params->sqlite3_param_db, (thread_f)_thread_interface_type_010);
 
+/*
    xpl_callback_params=(struct callback_xpl_data_s *)malloc(sizeof(struct callback_xpl_data_s)); 
    if(!xpl_callback_params)
    {
@@ -1343,17 +1347,20 @@ int start_interface_type_010(int my_id, void *data, char *errmsg, int l_errmsg)
    xpl_callback_params->param_db=start_stop_params->sqlite3_param_db;
 
    start_stop_params->i010->xPL_callback_data=xpl_callback_params;
+*/
+   start_stop_params->i010->xPL_callback_data=NULL;
    start_stop_params->i010->xPL_callback2=_interface_type_010_xPL_callback2;
 
    return 0;
 
 clean_exit:
+/*
    if(xpl_callback_params)
    {
       free(xpl_callback_params);
       xpl_callback_params=NULL;
    }
-
+*/
    clean_interface_type_010_data_source(start_stop_params->i010);
 
    return -1; 
