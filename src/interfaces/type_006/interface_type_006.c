@@ -103,7 +103,7 @@ int interface_type_006_call_serialDataPre(struct genericserial_thread_params_s *
          mea_addLong_to_pydict(aDict, "l_data", (long)l_data);
 
          mea_addLong_to_pydict(aDict, INTERFACE_ID_STR_C, params->i006->id_interface);
-         mea_addLong_to_pydict(aDict, "api_key", (long)i006->id_interface);
+         mea_addLong_to_pydict(aDict, "api_key", (long)params->i006->id_interface);
 //         mea_addLong_to_pydict(aDict, "fd", params->i006->fd);
 
          if(params->i006->pParams)
@@ -518,7 +518,7 @@ void *_thread_interface_type_006_genericserial_data(void *args)
                      if(s==SQLITE_ROW)
                      {
 //                        int ret=interface_type_006_data_to_plugin(params->myThreadState, params->i006->fd, stmt, GENERICSERIALDATA, (void *)buffer, buffer_ptr+1);
-                        int ret=interface_type_006_data_to_plugin(params->i006->myThreadState, params->i006->fd, stmt, DATAFROMSENSOR, (void *)buffer, buffer_ptr+1);
+                        int ret=interface_type_006_data_to_plugin(params->i006->myThreadState, stmt, DATAFROMSENSOR, (void *)buffer, buffer_ptr+1);
                         if(ret<0)
                         {
                            VERBOSE(5) mea_log_printf("%s (%s) : can't send to plugin\n", ERROR_STR, __func__);
