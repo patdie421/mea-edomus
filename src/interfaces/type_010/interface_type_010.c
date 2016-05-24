@@ -298,9 +298,6 @@ int init_interface_type_010_data_preprocessor(interface_type_010_t *i010, char *
    int ret;
 
    mea_python_lock();
-//   pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
-//   PyEval_AcquireLock();
-//   PyThreadState *tempState = PyThreadState_Swap(i010->myThreadState);
       
    PyObject *pName = PyString_FromString(plugin_name);
    if(!pName)
@@ -347,9 +344,6 @@ int init_interface_type_010_data_preprocessor(interface_type_010_t *i010, char *
       ret = -1;
    }
    mea_python_unlock();
-//   PyThreadState_Swap(tempState);
-//   PyEval_ReleaseLock();
-//   pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 
    return ret;
 }
@@ -751,13 +745,7 @@ int clean_interface_type_010(void *ixxx)
       free(i010->parameters);
       i010->parameters=NULL;
    }
-/*
-   if(i010->xPL_callback_data)
-   {
-      free(i010->xPL_callback_data);
-      i010->xPL_callback_data=NULL;
-   }
-*/
+
    if(i010->xPL_callback2)
       i010->xPL_callback2=NULL;
 
@@ -822,6 +810,7 @@ int clean_interface_type_010(void *ixxx)
    {
       PyThreadState_Clear(i010->myThreadState);
       PyThreadState_Delete(i010->myThreadState);
+      i010->myThreadState=NULL;
    }
 
    PyEval_ReleaseLock();
@@ -1336,6 +1325,9 @@ int stop_interface_type_010(int my_id, void *data, char *errmsg, int l_errmsg)
 
    VERBOSE(1) mea_log_printf("%s (%s) : %s shutdown thread ... ", INFO_STR, __func__, start_stop_params->i010->name);
 
+   if(start_stop_params->i010->xPL_callback2)
+      start_stop_params->i010->xPL_callback2=NULL;
+      
    if(start_stop_params->i010->xPL_callback_data)
    {
       PyEval_AcquireLock(); 
@@ -1347,9 +1339,6 @@ int stop_interface_type_010(int my_id, void *data, char *errmsg, int l_errmsg)
       free(start_stop_params->i010->xPL_callback_data);
       start_stop_params->i010->xPL_callback_data=NULL;
    }
-
-   if(start_stop_params->i010->xPL_callback2)
-      start_stop_params->i010->xPL_callback2=NULL;
 
    clean_interface_type_010_data_source(start_stop_params->i010);
 
@@ -1390,7 +1379,7 @@ int restart_interface_type_010(int my_id, void *data, char *errmsg, int l_errmsg
 int start_interface_type_010(int my_id, void *data, char *errmsg, int l_errmsg)
 {
    char err_str[128];
-//   struct callback_xpl_data_s *xpl_callback_params=NULL;
+   struct callback_xpl_data_s *xpl_callback_params=NULL;
    struct interface_type_010_data_s *start_stop_params=(struct interface_type_010_data_s *)data;
 
    if(init_interface_type_010_data_source(start_stop_params->i010)<0)
