@@ -62,8 +62,8 @@ char *valid_genericserial_plugin_params[]={"S:PLUGIN","S:PARAMETERS", NULL};
 
 struct genericserial_callback_xpl_data_s
 {
-   PyThreadState  *mainThreadState;
-   PyThreadState  *myThreadState;
+//   PyThreadState  *mainThreadState;
+//   PyThreadState  *myThreadState;
    sqlite3        *param_db;
 };
 
@@ -71,8 +71,8 @@ struct genericserial_callback_xpl_data_s
 struct genericserial_thread_params_s
 {
    sqlite3       *param_db;
-   PyThreadState *mainThreadState;
-   PyThreadState *myThreadState;
+//   PyThreadState *mainThreadState;
+//   PyThreadState *myThreadState;
    sqlite3_stmt  *stmt;
    PyObject      *pModule, *pFunc, *pParams;
    interface_type_006_t *i006;
@@ -91,7 +91,7 @@ int interface_type_006_call_serialDataPre(struct genericserial_thread_params_s *
    if(params->pFunc)
    {
       PyEval_AcquireLock();
-      PyThreadState *tempState = PyThreadState_Swap(params->myThreadState);
+      PyThreadState *tempState = PyThreadState_Swap(params->i006->myThreadState);
 
       PyObject *aDict=PyDict_New();
       if(aDict)
@@ -212,19 +212,17 @@ int16_t _interface_type_006_xPL_callback2(cJSON *xplMsgJson, struct device_info_
    int err;
    cJSON *j = NULL;
  
-   interface_type_006_t *interface=(interface_type_006_t *)userValue;
-   struct genericserial_callback_xpl_data_s *params=(struct genericserial_callback_xpl_data_s *)interface->xPL_callback_data;
+   interface_type_006_t *i006=(interface_type_006_t *)userValue;
+   struct genericserial_callback_xpl_data_s *params=(struct genericserial_callback_xpl_data_s *)i006->xPL_callback_data;
    
-   interface->indicators.xplin++;
+   i006->indicators.xplin++;
    
    sqlite3 *params_db = params->param_db;
    
-   if(!params->mainThreadState)
-   {
-      params->mainThreadState=PyThreadState_Get();
-   }
-   if(!params->myThreadState)
-      params->myThreadState = PyThreadState_New(params->mainThreadState->interp);
+   if(!i006->mainThreadState)
+      i006->mainThreadState=PyThreadState_Get();
+   if(!i006->myThreadState)
+      i006->myThreadState = PyThreadState_New(params->mainThreadState->interp);
   
    j=cJSON_GetObjectItem(xplMsgJson, get_token_string_by_id(XPL_DEVICE_ID));
    if(j)
@@ -263,7 +261,7 @@ int16_t _interface_type_006_xPL_callback2(cJSON *xplMsgJson, struct device_info_
 
       { // appel des fonctions Python
          PyEval_AcquireLock();
-         PyThreadState *tempState = PyThreadState_Swap(params->myThreadState);
+         PyThreadState *tempState = PyThreadState_Swap(i006->myThreadState);
 
 //      plugin_elem->aDict=mea_stmt_to_pydict_device(stmt);
          plugin_elem->aDict=mea_device_info_to_pydict_device(device_info);
@@ -282,7 +280,7 @@ int16_t _interface_type_006_xPL_callback2(cJSON *xplMsgJson, struct device_info_
 
       pythonPluginServer_add_cmd(plugin_params->parameters[GENERICSERIAL_PLUGIN_PARAMS_PLUGIN].value.s, (void *)plugin_elem, sizeof(plugin_queue_elem_t));
 
-      interface->indicators.senttoplugin++;
+      i006->indicators.senttoplugin++;
       free(plugin_elem);
       plugin_elem=NULL;
    }
@@ -290,83 +288,6 @@ int16_t _interface_type_006_xPL_callback2(cJSON *xplMsgJson, struct device_info_
    release_parsed_parameters(&plugin_params);
    nb_plugin_params=0;
    plugin_params=NULL;
-
-/*   
-   char sql[2048];
-   sqlite3_stmt * stmt;
-   
-   sprintf(sql,"%s WHERE lower(sensors_actuators.name)='%s' AND sensors_actuators.deleted_flag <> 1 AND sensors_actuators.state='1';", sql_select_device_info, device);
-   ret = sqlite3_prepare_v2(params_db, sql, strlen(sql)+1, &stmt, NULL);
-   if(ret)
-   {
-      VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (params_db));
-      return -1;
-   }
-   
-   while(1)
-   {
-      int s = sqlite3_step(stmt);
-      if (s == SQLITE_ROW)
-      {
-         parsed_parameters_t *plugin_params=NULL;
-         int nb_plugin_params;
-        
-         plugin_params=alloc_parsed_parameters((char *)sqlite3_column_text(stmt, 3), valid_genericserial_plugin_params, &nb_plugin_params, &err, 0);
-         if(!plugin_params || !plugin_params->parameters[GENERICSERIAL_PLUGIN_PARAMS_PLUGIN].value.s)
-         {
-            if(plugin_params)
-            {
-               release_parsed_parameters(&plugin_params);
-               nb_plugin_params=0;
-               plugin_params=NULL;
-            }
-
-            continue;
-         }
-         plugin_queue_elem_t *plugin_elem = (plugin_queue_elem_t *)malloc(sizeof(plugin_queue_elem_t));
-         if(plugin_elem)
-         {
-            plugin_elem->type_elem=XPLMSG;
-            
-            { // appel des fonctions Python
-               PyEval_AcquireLock();
-               PyThreadState *tempState = PyThreadState_Swap(params->myThreadState);
-               
-               plugin_elem->aDict=mea_stmt_to_pydict_device(stmt);
-               if(plugin_params->parameters[GENERICSERIAL_PLUGIN_PARAMS_PARAMETERS].value.s)
-                  mea_addString_to_pydict(plugin_elem->aDict, DEVICE_PARAMETERS_STR_C, plugin_params->parameters[GENERICSERIAL_PLUGIN_PARAMS_PARAMETERS].value.s);
-
-               mea_addLong_to_pydict(plugin_elem->aDict, "fd", (long)interface->fd);
-
-               PyObject *_xplmsg=mea_xplMsgToPyDict2(xplMsgJson);
-               PyDict_SetItemString(plugin_elem->aDict, XPLMSG_STR_C, _xplmsg); 
-               
-               PyThreadState_Swap(tempState);
-               PyEval_ReleaseLock();
-            } // fin appel des fonctions Python
-            
-            pythonPluginServer_add_cmd(plugin_params->parameters[GENERICSERIAL_PLUGIN_PARAMS_PLUGIN].value.s, (void *)plugin_elem, sizeof(plugin_queue_elem_t));
-            interface->indicators.senttoplugin++;
-            free(plugin_elem);
-            plugin_elem=NULL;
-         }
-         
-         release_parsed_parameters(&plugin_params);
-         nb_plugin_params=0;
-         plugin_params=NULL;
-      }
-      else if (s == SQLITE_DONE)
-      {
-         sqlite3_finalize(stmt);
-         break;
-      }
-      else
-      {
-         sqlite3_finalize(stmt);
-         break; // voir autres erreurs possibles
-      }
-   }
-*/
 
    return 0;
 }
@@ -387,7 +308,7 @@ void *_thread_interface_type_006_genericserial_data_cleanup(void *args)
    if(params->myThreadState)
    {
       PyEval_AcquireLock();
-      PyThreadState *tempState = PyThreadState_Swap(params->myThreadState);
+      PyThreadState *tempState = PyThreadState_Swap(params->i006->myThreadState);
       if(params->pFunc)
       {
          Py_XDECREF(params->pFunc);
@@ -404,8 +325,9 @@ void *_thread_interface_type_006_genericserial_data_cleanup(void *args)
          params->pParams=NULL;
       }
       PyThreadState_Swap(tempState);
-      PyThreadState_Clear(params->myThreadState);
-      PyThreadState_Delete(params->myThreadState);
+      PyThreadState_Clear(params->i006->myThreadState);
+      PyThreadState_Delete(params->i006->myThreadState);
+      i006->myThreadState=NULL;
       PyEval_ReleaseLock();
 
       params->myThreadState=NULL;
@@ -463,8 +385,8 @@ void *_thread_interface_type_006_genericserial_data(void *args)
    // on se met un context python sous le coude pour ce thread
    pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
    PyEval_AcquireLock();
-   params->mainThreadState = PyThreadState_Get();
-   params->myThreadState = PyThreadState_New(params->mainThreadState->interp);
+   params->i006->mainThreadState = PyThreadState_Get();
+   params->i006->myThreadState = PyThreadState_New(params->mainThreadState->interp);
    PyEval_ReleaseLock();
    pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
    pthread_testcancel();
@@ -646,8 +568,8 @@ pthread_t *start_interface_type_006_genericserial_data_thread(interface_type_006
 
    params->param_db=db;
    params->i006=(void *)i006;
-   params->mainThreadState = NULL;
-   params->myThreadState = NULL;
+//   params->mainThreadState = NULL;
+//   params->myThreadState = NULL;
    params->pModule = NULL;
    params->pFunc = NULL;
    params->pParams = NULL;
@@ -754,7 +676,16 @@ int clean_interface_type_006(void *ixxx)
       free(i006->thread);
       i006->thread=NULL;
    }
-      
+   
+   if(i006->myThreadState) 
+   {
+      PyEval_AcquireLock();
+      PyThreadState_Clear(i006->myThreadState);
+      PyThreadState_Delete(i006->myThreadState);
+      i006->myThreadState=NULL;
+      PyEval_ReleaseLock();
+   }
+
    return 0;
 }
 
@@ -854,6 +785,9 @@ interface_type_006_t *malloc_and_init_interface_type_006(sqlite3 *sqlite3_param_
    i006->thread=NULL;
    i006->xPL_callback2=NULL;
    i006->xPL_callback_data=NULL;
+
+   i006->myThreadState=NULL;
+   i006->myThreadState=NULL;
 
    i006->monitoring_id=process_register((char *)name);
    i006_start_stop_params->sqlite3_param_db = sqlite3_param_db;
