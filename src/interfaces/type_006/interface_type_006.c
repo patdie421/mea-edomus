@@ -59,14 +59,12 @@ char *valid_genericserial_plugin_params[]={"S:PLUGIN","S:PARAMETERS", NULL};
 #define GENERICSERIAL_PLUGIN_PARAMS_PLUGIN      0
 #define GENERICSERIAL_PLUGIN_PARAMS_PARAMETERS  1
 
-/*
-struct genericserial_callback_xpl_data_s
+struct callback_xpl_data_s
 {
-//   PyThreadState  *mainThreadState;
-//   PyThreadState  *myThreadState;
+   PyThreadState  *mainThreadState;
+   PyThreadState  *myThreadState;
 //   sqlite3        *param_db;
 };
-*/
 
 struct genericserial_thread_params_s
 {
@@ -216,7 +214,7 @@ int16_t _interface_type_006_xPL_callback2(cJSON *xplMsgJson, struct device_info_
    cJSON *j = NULL;
  
    interface_type_006_t *i006=(interface_type_006_t *)userValue;
-//   struct genericserial_callback_xpl_data_s *params=(struct genericserial_callback_xpl_data_s *)i006->xPL_callback_data;
+   struct callback_xpl_data_s *callback_data=(struct callback_xpl_data_s *)i006->xPL_callback_data;
    
    i006->indicators.xplin++;
    
@@ -224,10 +222,10 @@ int16_t _interface_type_006_xPL_callback2(cJSON *xplMsgJson, struct device_info_
    
    pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
    PyEval_AcquireLock();
-   if(!i006->mainThreadState)
-      i006->mainThreadState=PyThreadState_Get();
-   if(!i006->myThreadState)
-      i006->myThreadState = PyThreadState_New(i006->mainThreadState->interp);
+   if(!callback_data->mainThreadState)
+      callback_data->mainThreadState=PyThreadState_Get();
+   if(!callback_data->myThreadState)
+      callback_data->myThreadState = PyThreadState_New(callback_data->mainThreadState->interp);
    PyEval_ReleaseLock();
    pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL); // on réauthorise les arrêts         
 
@@ -269,7 +267,7 @@ int16_t _interface_type_006_xPL_callback2(cJSON *xplMsgJson, struct device_info_
       { // appel des fonctions Python
          pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
          PyEval_AcquireLock();
-         PyThreadState *tempState = PyThreadState_Swap(i006->myThreadState);
+         PyThreadState *tempState = PyThreadState_Swap(callback_data->myThreadState);
 
 //      plugin_elem->aDict=mea_stmt_to_pydict_device(stmt);
          plugin_elem->aDict=mea_device_info_to_pydict_device(device_info);
