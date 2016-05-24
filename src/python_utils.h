@@ -12,7 +12,7 @@
 #include "cJSON.h"
 #include "interfacesServer.h"
 
-#define python_lock() \
+#define mea_python_lock() \
    { \
    pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL); \
    PyEval_AcquireLock(); \
@@ -20,7 +20,7 @@
    PyThreadState *__myThreadState = PyThreadState_New(__mainThreadState->interp); \
    PyThreadState *__tempState = PyThreadState_Swap(__myThreadState)
 
-#define python_unlock() \
+#define mea_python_unlock() \
    PyThreadState_Swap(__tempState); \
    PyThreadState_Clear(__myThreadState); \
    PyThreadState_Delete(__myThreadState); \
