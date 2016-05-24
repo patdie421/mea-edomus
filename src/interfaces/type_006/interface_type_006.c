@@ -973,7 +973,8 @@ int start_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg)
     
    struct interface_type_006_data_s *start_stop_params=(struct interface_type_006_data_s *)data;
    start_stop_params->i006->thread=NULL;
-
+   start_stop_params->i006->xPL_callback_data=NULL;
+   
    ret=get_dev_and_speed((char *)start_stop_params->i006->dev, buff, sizeof(buff), &speed);
    if(!ret)
    {
@@ -1061,19 +1062,18 @@ clean_exit:
    {
       stop_interface_type_006(start_stop_params->i006->monitoring_id, start_stop_params, NULL, 0);
    }
-   
+
+   if(start_stop_params->i006->xPL_callback_data)
+   {
+      free(start_stop_params->i006->xPL_callback_data);
+      start_stop_params->i006->xPL_callback_data=NULL;
+   }
+
    if(interface_parameters)
    {
       release_parsed_parameters(&interface_parameters);
       interface_parameters=NULL;
       interface_nb_parameters=0;
-
-   }
-   
-   if(xpl_callback_params)
-   {
-      free(xpl_callback_params);
-      xpl_callback_params=NULL;
    }
    
    return -1;
