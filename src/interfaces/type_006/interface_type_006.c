@@ -676,7 +676,8 @@ int clean_interface_type_006(void *ixxx)
       free(i006->thread);
       i006->thread=NULL;
    }
-   
+
+/*   
    if(i006->myThreadState) 
    {
       PyEval_AcquireLock();
@@ -685,7 +686,7 @@ int clean_interface_type_006(void *ixxx)
       i006->myThreadState=NULL;
       PyEval_ReleaseLock();
    }
-
+*/
    return 0;
 }
 
