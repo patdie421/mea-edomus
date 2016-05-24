@@ -90,6 +90,7 @@ int interface_type_006_call_serialDataPre(struct genericserial_thread_params_s *
    int retour=-1;
    if(params->pFunc)
    {
+      pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
       PyEval_AcquireLock();
       PyThreadState *tempState = PyThreadState_Swap(params->i006->myThreadState);
 
@@ -113,6 +114,7 @@ int interface_type_006_call_serialDataPre(struct genericserial_thread_params_s *
 
       PyThreadState_Swap(tempState);
       PyEval_ReleaseLock();
+      pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
    }
 
    return retour;
@@ -137,8 +139,8 @@ int interface_type_006_data_to_plugin(PyThreadState *myThreadState, int fd, sqli
       plugin_elem->type_elem=data_type;
             
       { // appel des fonctions Python => on lock
-         PyEval_AcquireLock();
          pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL); // trop compliquer de traiter avec pthread_cleanup => on interdit les arrêts lors des commandes python
+         PyEval_AcquireLock();
 
          PyThreadState *tempState = PyThreadState_Swap(myThreadState);
                
@@ -169,8 +171,8 @@ int interface_type_006_data_to_plugin(PyThreadState *myThreadState, int fd, sqli
             mea_addString_to_pydict(plugin_elem->aDict, DEVICE_PARAMETERS_STR_C, plugin_params->parameters[GENERICSERIAL_PLUGIN_PARAMS_PARAMETERS].value.s);
 
          PyThreadState_Swap(tempState);
-         pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL); // on réauthorise les arrêts         
          PyEval_ReleaseLock();
+         pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL); // on réauthorise les arrêts         
       } // fin appel des fonctions Python
      
       // commande dans la file de traitement 
@@ -219,11 +221,15 @@ int16_t _interface_type_006_xPL_callback2(cJSON *xplMsgJson, struct device_info_
    
    sqlite3 *params_db = params->param_db;
    
+   pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
+   PyEval_AcquireLock();
    if(!i006->mainThreadState)
       i006->mainThreadState=PyThreadState_Get();
    if(!i006->myThreadState)
       i006->myThreadState = PyThreadState_New(params->mainThreadState->interp);
-  
+   PyEval_ReleaseLock();
+   pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL); // on réauthorise les arrêts         
+
    j=cJSON_GetObjectItem(xplMsgJson, get_token_string_by_id(XPL_DEVICE_ID));
    if(j)
       device=j->valuestring;
@@ -260,6 +266,7 @@ int16_t _interface_type_006_xPL_callback2(cJSON *xplMsgJson, struct device_info_
       plugin_elem->type_elem=XPLMSG;
 
       { // appel des fonctions Python
+         pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
          PyEval_AcquireLock();
          PyThreadState *tempState = PyThreadState_Swap(i006->myThreadState);
 
@@ -276,6 +283,7 @@ int16_t _interface_type_006_xPL_callback2(cJSON *xplMsgJson, struct device_info_
 
          PyThreadState_Swap(tempState);
          PyEval_ReleaseLock();
+         pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
    } // fin appel des fonctions Python
 
       pythonPluginServer_add_cmd(plugin_params->parameters[GENERICSERIAL_PLUGIN_PARAMS_PLUGIN].value.s, (void *)plugin_elem, sizeof(plugin_queue_elem_t));
@@ -307,6 +315,7 @@ void *_thread_interface_type_006_genericserial_data_cleanup(void *args)
    
    if(params->myThreadState)
    {
+      pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
       PyEval_AcquireLock();
       PyThreadState *tempState = PyThreadState_Swap(params->i006->myThreadState);
       if(params->pFunc)
@@ -327,8 +336,9 @@ void *_thread_interface_type_006_genericserial_data_cleanup(void *args)
       PyThreadState_Swap(tempState);
       PyThreadState_Clear(params->i006->myThreadState);
       PyThreadState_Delete(params->i006->myThreadState);
-      i006->myThreadState=NULL;
+      params->i006->myThreadState=NULL;
       PyEval_ReleaseLock();
+      pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 
       params->myThreadState=NULL;
    }
@@ -506,7 +516,7 @@ void *_thread_interface_type_006_genericserial_data(void *args)
                      if(s==SQLITE_ROW)
                      {
 //                        int ret=interface_type_006_data_to_plugin(params->myThreadState, params->i006->fd, stmt, GENERICSERIALDATA, (void *)buffer, buffer_ptr+1);
-                        int ret=interface_type_006_data_to_plugin(params->myThreadState, params->i006->fd, stmt, DATAFROMSENSOR, (void *)buffer, buffer_ptr+1);
+                        int ret=interface_type_006_data_to_plugin(params->i006->myThreadState, params->i006->fd, stmt, DATAFROMSENSOR, (void *)buffer, buffer_ptr+1);
                         if(ret<0)
                         {
                            VERBOSE(5) mea_log_printf("%s (%s) : can't send to plugin\n", ERROR_STR, __func__);
