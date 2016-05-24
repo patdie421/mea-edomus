@@ -65,13 +65,13 @@ struct enocean_callback_data_s // donnee "userdata" pour les callbacks
    pthread_cond_t  *callback_cond;
 };
 
-/*
-struct enocean_callback_xpl_data_s
+
+struct callback_xpl_data_s
 {
-//   PyThreadState  *mainThreadState;
-//   PyThreadState  *myThreadState;
+   PyThreadState  *mainThreadState;
+   PyThreadState  *myThreadState;
 };
-*/
+
 
 struct enocean_thread_params_s
 {
@@ -123,7 +123,7 @@ int16_t _interface_type_003_xPL_callback2(cJSON *xplMsgJson, struct device_info_
    int err =0;
 
    interface_type_003_t *i003=(interface_type_003_t *)userValue;
-   struct enocean_callback_xpl_data_s *params=(struct enocean_callback_xpl_data_s *)i003->xPL_callback_data;
+   struct callback_xpl_data_s *callback_data=(struct callback_xpl_data_s *)i003->xPL_callback_data;
 
    char *dev = (char *)device_info->interface_dev;
    int a,b,c,d;
@@ -159,12 +159,12 @@ int16_t _interface_type_003_xPL_callback2(cJSON *xplMsgJson, struct device_info_
 
       PyEval_AcquireLock(); {
 
-         if(!i003->mainThreadState)
-            i003->mainThreadState=PyThreadState_Get();
-         if(!i003->myThreadState)
-            i003->myThreadState = PyThreadState_New(i003->mainThreadState->interp);
+         if(!callback_data->mainThreadState)
+            callback_data->mainThreadState=PyThreadState_Get();
+         if(!callback_data->myThreadState)
+            callback_data->myThreadState = PyThreadState_New(callback_data->mainThreadState->interp);
 
-         PyThreadState *tempState = PyThreadState_Swap(i003->myThreadState);
+         PyThreadState *tempState = PyThreadState_Swap(callback_data->myThreadState);
                    
          plugin_elem->aDict=mea_device_info_to_pydict_device(device_info);
 
@@ -539,7 +539,6 @@ pthread_t *start_interface_type_003_enocean_data_thread(interface_type_003_t *i0
    
    if(pthread_create (thread, NULL, (void *)function, (void *)params))
       goto clean_exit;
-//   fprintf(stderr,"INTERFACE_TYPE_003 : %x\n", (unsigned int)*thread);
    pthread_detach(*thread);
 
    return thread;
@@ -586,6 +585,17 @@ int clean_interface_type_003(void *ixxx)
 
    if(i003->xPL_callback_data)
    {
+      struct callback_xpl_data_s *data = (struct callback_xpl_data_s *)i003->xPL_callback_data;
+     
+      if(data->myThreadState)
+      {
+         PyEval_AcquireLock();
+         PyThreadState_Clear(data->myThreadState);
+         PyThreadState_Delete(data->myThreadState);
+         PyEval_ReleaseLock();
+         data->myThreadState=NULL;
+      }
+
       free(i003->xPL_callback_data);
       i003->xPL_callback_data=NULL;
    }
@@ -931,7 +941,7 @@ int start_interface_type_003(int my_id, void *data, char *errmsg, int l_errmsg)
    
    enocean_ed_t *ed=NULL;
    
-   struct enocean_callback_xpl_data_s *xpl_callback_params=NULL;
+   struct callback_xpl_data_s *xpl_callback_params=NULL;
    
    struct interface_type_003_data_s *start_stop_params=(struct interface_type_003_data_s *)data;
 
@@ -1083,8 +1093,7 @@ int start_interface_type_003(int my_id, void *data, char *errmsg, int l_errmsg)
    //
    // gestion des demandes xpl : ajouter une zone de donnees specifique au callback xpl (pas simplement passe i003).
    //
-/*
-   xpl_callback_params=(struct enocean_callback_xpl_data_s *)malloc(sizeof(struct enocean_callback_xpl_data_s));
+   xpl_callback_params=(struct callback_xpl_data_s *)malloc(sizeof(struct callback_xpl_data_s));
    if(!xpl_callback_params)
    {
       strerror_r(errno, err_str, sizeof(err_str));
@@ -1094,9 +1103,8 @@ int start_interface_type_003(int my_id, void *data, char *errmsg, int l_errmsg)
       mea_notify_printf('E', "%s can't be launched - %s.\n", start_stop_params->i003->name, err_str);
       goto clean_exit;
    }
-//   xpl_callback_params->mainThreadState=NULL;
-//   xpl_callback_params->myThreadState=NULL;
-*/
+   xpl_callback_params->mainThreadState=NULL;
+   xpl_callback_params->myThreadState=NULL;
    
    start_stop_params->i003->xPL_callback_data=xpl_callback_params;
    start_stop_params->i003->xPL_callback2=_interface_type_003_xPL_callback2;
