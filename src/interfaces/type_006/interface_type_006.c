@@ -908,13 +908,14 @@ int stop_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg)
    struct interface_type_006_data_s *start_stop_params=(struct interface_type_006_data_s *)data;
 
    VERBOSE(1) mea_log_printf("%s (%s) : %s shutdown thread ...\n", INFO_STR, __func__, start_stop_params->i006->name);
-/*
+
    if(start_stop_params->i006->xPL_callback_data)
    {
+      
       free(start_stop_params->i006->xPL_callback_data);
       start_stop_params->i006->xPL_callback_data=NULL;
    }
-*/   
+   
    if(start_stop_params->i006->xPL_callback2)
    {
       start_stop_params->i006->xPL_callback2=NULL;
@@ -1025,7 +1026,6 @@ int start_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg)
       mea_python_unlock();
    }
    // données pour les callbacks xpl
-/*
    xpl_callback_params=(struct genericserial_callback_xpl_data_s *)malloc(sizeof(struct genericserial_callback_xpl_data_s));
    if(!xpl_callback_params)
    {
@@ -1036,10 +1036,9 @@ int start_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg)
       mea_notify_printf('E', "%s can't be launched - %s", start_stop_params->i006->name, err_str);
       goto clean_exit;
    }
-*/
 //   xpl_callback_params->param_db=start_stop_params->sqlite3_param_db;
-//   xpl_callback_params->mainThreadState=NULL;
-//   xpl_callback_params->myThreadState=NULL;
+   xpl_callback_params->mainThreadState=NULL;
+   xpl_callback_params->myThreadState=NULL;
 
 //   start_stop_params->i006->xPL_callback_data=xpl_callback_params;
    start_stop_params->i006->xPL_callback2=_interface_type_006_xPL_callback2;
