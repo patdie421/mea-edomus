@@ -58,20 +58,20 @@ char *valid_enocean_plugin_params[]={"S:PLUGIN","S:PARAMETERS", NULL};
 struct enocean_callback_data_s // donnee "userdata" pour les callbacks
 {
 //   PyThreadState   *mainThreadState;
-   sqlite3         *param_db;
+//   sqlite3         *param_db;
    enocean_ed_t    *ed;
    mea_queue_t     *queue;
    pthread_mutex_t *callback_lock;
    pthread_cond_t  *callback_cond;
 };
 
-
+/*
 struct enocean_callback_xpl_data_s
 {
 //   PyThreadState  *mainThreadState;
 //   PyThreadState  *myThreadState;
 };
-
+*/
 
 struct enocean_thread_params_s
 {
@@ -523,7 +523,7 @@ pthread_t *start_interface_type_003_enocean_data_thread(interface_type_003_t *i0
       goto clean_exit;
    }
    enocean_callback_data->ed=ed;
-   enocean_callback_data->param_db=db;
+//   enocean_callback_data->param_db=db;
    enocean_callback_data->callback_lock=&params->callback_lock;
    enocean_callback_data->callback_cond=&params->callback_cond;
    enocean_callback_data->queue=params->queue;
@@ -1083,6 +1083,7 @@ int start_interface_type_003(int my_id, void *data, char *errmsg, int l_errmsg)
    //
    // gestion des demandes xpl : ajouter une zone de donnees specifique au callback xpl (pas simplement passe i003).
    //
+/*
    xpl_callback_params=(struct enocean_callback_xpl_data_s *)malloc(sizeof(struct enocean_callback_xpl_data_s));
    if(!xpl_callback_params)
    {
@@ -1095,6 +1096,7 @@ int start_interface_type_003(int my_id, void *data, char *errmsg, int l_errmsg)
    }
 //   xpl_callback_params->mainThreadState=NULL;
 //   xpl_callback_params->myThreadState=NULL;
+*/
    
    start_stop_params->i003->xPL_callback_data=xpl_callback_params;
    start_stop_params->i003->xPL_callback2=_interface_type_003_xPL_callback2;
