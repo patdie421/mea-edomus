@@ -74,7 +74,7 @@ struct genericserial_thread_params_s
 //   PyThreadState *mainThreadState;
 //   PyThreadState *myThreadState;
    sqlite3_stmt  *stmt;
-   PyObject      *pModule, *pFunc, *pParams;
+//   PyObject      *pModule, *pFunc, *pParams;
    interface_type_006_t *i006;
 };
 
@@ -88,7 +88,7 @@ int16_t check_status_interface_type_006(interface_type_006_t *i006);
 int interface_type_006_call_serialDataPre(struct genericserial_thread_params_s *params, void *data, int l_data)
 {
    int retour=-1;
-   if(params->pFunc)
+   if(params->i006->pFunc)
    {
       pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
       PyEval_AcquireLock();
@@ -105,10 +105,10 @@ int interface_type_006_call_serialDataPre(struct genericserial_thread_params_s *
          mea_addLong_to_pydict(aDict, INTERFACE_ID_STR_C, params->i006->id_interface);
          mea_addLong_to_pydict(aDict, "fd", params->i006->fd);
 
-         if(params->pParams)
-            PyDict_SetItemString(aDict, "plugin_paramters", params->pParams);
+         if(params->i006->pParams)
+            PyDict_SetItemString(aDict, "plugin_paramters", params->i006->pParams);
 
-         retour=mea_call_python_function2(params->pFunc, aDict);
+         retour=mea_call_python_function2(params->i006->pFunc, aDict);
          Py_DECREF(aDict);
       }
 
@@ -317,20 +317,20 @@ void *_thread_interface_type_006_genericserial_data_cleanup(void *args)
       pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
       PyEval_AcquireLock();
       PyThreadState *tempState = PyThreadState_Swap(params->i006->myThreadState);
-      if(params->pFunc)
+      if(params->i006->pFunc)
       {
-         Py_XDECREF(params->pFunc);
-         params->pFunc=NULL;
+         Py_XDECREF(params->i006->pFunc);
+         params->i006->pFunc=NULL;
       } 
-      if(params->pModule)
+      if(params->i006->pModule)
       {
-         Py_XDECREF(params->pModule);
-         params->pModule=NULL;
+         Py_XDECREF(params->i006->pModule);
+         params->i006->pModule=NULL;
       }
-      if(params->pParams)
+      if(params->i006->pParams)
       {
-         Py_XDECREF(params->pParams);
-         params->pParams=NULL;
+         Py_XDECREF(params->i006->pParams);
+         params->i006->pParams=NULL;
       }
       PyThreadState_Swap(tempState);
       PyThreadState_Clear(params->i006->myThreadState);
@@ -344,20 +344,20 @@ void *_thread_interface_type_006_genericserial_data_cleanup(void *args)
    else
    {
       mea_python_lock();
-      if(params->pFunc)
+      if(params->i006->pFunc)
       {
-         Py_XDECREF(params->pFunc);
-         params->pFunc=NULL;
+         Py_XDECREF(params->i006->pFunc);
+         params->i006->pFunc=NULL;
       }
-      if(params->pModule)
+      if(params->i006->pModule)
       {
-         Py_XDECREF(params->pModule);
-         params->pModule=NULL;
+         Py_XDECREF(params->i006->pModule);
+         params->i006->pModule=NULL;
       }
-      if(params->pParams)
+      if(params->i006->pParams)
       {
-         Py_XDECREF(params->pParams);
-         params->pParams=NULL;
+         Py_XDECREF(params->i006->pParams);
+         params->i006->pParams=NULL;
       }
       mea_python_unlock();
    }
@@ -579,9 +579,9 @@ pthread_t *start_interface_type_006_genericserial_data_thread(interface_type_006
    params->i006=(void *)i006;
 //   params->mainThreadState = NULL;
 //   params->myThreadState = NULL;
-   params->pModule = NULL;
-   params->pFunc = NULL;
-   params->pParams = NULL;
+//   params->pModule = NULL;
+//   params->pFunc = NULL;
+//   params->pParams = NULL;
 
    // recherche pré-traitement du plugin
    PyObject *pName=NULL, *pModule=NULL, *pFunc=NULL;
@@ -605,12 +605,12 @@ pthread_t *start_interface_type_006_genericserial_data_thread(interface_type_006
 
          if(pFunc && PyCallable_Check(pFunc))
          {
-            params->pModule=pModule;
-            params->pFunc=pFunc;
+            params->i006->pModule=pModule;
+            params->i006->pFunc=pFunc;
             if(interface_parameters->parameters[GENERICSERIAL_PLUGIN_PARAMS_PARAMETERS].value.s)
-               params->pParams=PyString_FromString(interface_parameters->parameters[GENERICSERIAL_PLUGIN_PARAMS_PARAMETERS].value.s);
+               params->i006->pParams=PyString_FromString(interface_parameters->parameters[GENERICSERIAL_PLUGIN_PARAMS_PARAMETERS].value.s);
             else
-               params->pParams=NULL;
+               params->i006->pParams=NULL;
          }
          else
          {
@@ -798,7 +798,10 @@ interface_type_006_t *malloc_and_init_interface_type_006(sqlite3 *sqlite3_param_
 
    i006->myThreadState=NULL;
    i006->myThreadState=NULL;
-
+   i006->pModule=NULL;
+   i006->pFunc=NULL;
+   i006->pParams=NULL;
+   
    i006->monitoring_id=process_register((char *)name);
    i006_start_stop_params->sqlite3_param_db = sqlite3_param_db;
    i006_start_stop_params->i006=i006;
