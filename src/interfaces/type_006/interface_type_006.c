@@ -103,7 +103,8 @@ int interface_type_006_call_serialDataPre(struct genericserial_thread_params_s *
          mea_addLong_to_pydict(aDict, "l_data", (long)l_data);
 
          mea_addLong_to_pydict(aDict, INTERFACE_ID_STR_C, params->i006->id_interface);
-         mea_addLong_to_pydict(aDict, "fd", params->i006->fd);
+         mea_addLong_to_pydict(aDict, "api_key", (long)i006->id_interface);
+//         mea_addLong_to_pydict(aDict, "fd", params->i006->fd);
 
          if(params->i006->pParams)
             PyDict_SetItemString(aDict, "plugin_paramters", params->i006->pParams);
@@ -121,7 +122,7 @@ int interface_type_006_call_serialDataPre(struct genericserial_thread_params_s *
 }
 
 
-int interface_type_006_data_to_plugin(PyThreadState *myThreadState, int fd, sqlite3_stmt * stmt, int data_type, void *data, int l_data)
+static int interface_type_006_data_to_plugin(PyThreadState *myThreadState, sqlite3_stmt * stmt, int data_type, void *data, int l_data)
 {
    parsed_parameters_t *plugin_params=NULL;
    int nb_plugin_params;
@@ -163,8 +164,9 @@ int interface_type_006_data_to_plugin(PyThreadState *myThreadState, int fd, sqli
          Py_DECREF(value);
          mea_addLong_to_pydict(plugin_elem->aDict, "l_data", (long)l_data);
 
-         mea_addLong_to_pydict(plugin_elem->aDict, "fd", fd);
-
+//         mea_addLong_to_pydict(plugin_elem->aDict, "fd", fd);
+         mea_addLong_to_pydict(plugin_elem->aDict, "api_key", (long)sqlite3_column_int(stmt, 7));
+         
          // parametres spécifiques
          if(plugin_params->parameters[GENERICSERIAL_PLUGIN_PARAMS_PARAMETERS].value.s)
             mea_addString_to_pydict(plugin_elem->aDict, DEVICE_PARAMETERS_STR_C, plugin_params->parameters[GENERICSERIAL_PLUGIN_PARAMS_PARAMETERS].value.s);
@@ -275,7 +277,8 @@ int16_t _interface_type_006_xPL_callback2(cJSON *xplMsgJson, struct device_info_
          if(plugin_params->parameters[GENERICSERIAL_PLUGIN_PARAMS_PARAMETERS].value.s)
             mea_addString_to_pydict(plugin_elem->aDict, DEVICE_PARAMETERS_STR_C, plugin_params->parameters[GENERICSERIAL_PLUGIN_PARAMS_PARAMETERS].value.s);
 
-         mea_addLong_to_pydict(plugin_elem->aDict, "fd", (long)i006->fd);
+//         mea_addLong_to_pydict(plugin_elem->aDict, "fd", (long)i006->fd);
+         mea_addLong_to_pydict(plugin_elem->aDict, "api_key", i006->id_interface);
 
          PyObject *_xplmsg=mea_xplMsgToPyDict2(xplMsgJson);
          PyDict_SetItemString(plugin_elem->aDict, XPLMSG_STR_C, _xplmsg);
