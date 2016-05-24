@@ -911,14 +911,14 @@ int stop_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg)
 
    if(start_stop_params->i006->xPL_callback_data)
    {
-      callback_data = start_stop_params->i006->xPL_callback_data;
-      if(i006->myThreadState) 
+      struct callback_xpl_data_s *callback_data = (struct callback_xpl_data_s *)start_stop_params->i006->xPL_callback_data;
+      if(callback_data->myThreadState)
       {
-      PyEval_AcquireLock();
-      PyThreadState_Clear(callback_data->myThreadState);
-      PyThreadState_Delete(callback_data->myThreadState);
-      callback_data->myThreadState=NULL;
-      PyEval_ReleaseLock();
+         PyEval_AcquireLock();
+         PyThreadState_Clear(callback_data->myThreadState);
+         PyThreadState_Delete(callback_data->myThreadState);
+         callback_data->myThreadState=NULL;
+         PyEval_ReleaseLock();
       }
 
       free(start_stop_params->i006->xPL_callback_data);
