@@ -291,10 +291,10 @@ int init_interface_type_010_data_preprocessor(interface_type_010_t *i010, char *
 {
    int ret;
 
-   //mea_python_lock();
-   pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
-   PyEval_AcquireLock();
-   PyThreadState *tempState = PyThreadState_Swap(i010->myThreadState);
+   mea_python_lock();
+//   pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
+//   PyEval_AcquireLock();
+//   PyThreadState *tempState = PyThreadState_Swap(i010->myThreadState);
       
    PyObject *pName = PyString_FromString(plugin_name);
    if(!pName)
@@ -340,10 +340,10 @@ int init_interface_type_010_data_preprocessor(interface_type_010_t *i010, char *
    else
       ret = -1;
    }
-//   mea_python_unlock();
-   PyThreadState_Swap(tempState);
-   PyEval_ReleaseLock();
-   pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+   mea_python_unlock();
+//   PyThreadState_Swap(tempState);
+//   PyEval_ReleaseLock();
+//   pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 
    return ret;
 }
@@ -723,7 +723,7 @@ static int clean_interface_type_010_data_source(interface_type_010_t *i010)
 
    if(i010->file_desc_out >= 0)
       close(i010->file_desc_out);
-   char *fname = alloca(strlen(i010->file_name)+strlen(i010->out_ext)+1);
+   fname = alloca(strlen(i010->file_name)+strlen(i010->out_ext)+1);
    sprintf(fname,"%s%s", i010->file_name, i010->out_ext);
    unlink(fname);
 
@@ -745,13 +745,13 @@ int clean_interface_type_010(void *ixxx)
       free(i010->parameters);
       i010->parameters=NULL;
    }
-
+/*
    if(i010->xPL_callback_data)
    {
       free(i010->xPL_callback_data);
       i010->xPL_callback_data=NULL;
    }
-
+*/
    if(i010->xPL_callback2)
       i010->xPL_callback2=NULL;
 
@@ -960,6 +960,7 @@ int16_t api_interface_type_010(void *ixxx, char *cmnd, void *args, int nb_args, 
          return 0;
       }
    }
+/*
    else if(strcmp(cmnd, "test") == 0)
    {
       *res = PyString_FromString("New style Api call OK !!!");
@@ -968,6 +969,7 @@ int16_t api_interface_type_010(void *ixxx, char *cmnd, void *args, int nb_args, 
 
       return 0;
    }
+*/
    else
    {
       strncpy(err, "unknown function", l_err);
@@ -1050,6 +1052,7 @@ interface_type_010_t *malloc_and_init_interface_type_010(sqlite3 *sqlite3_param_
    i010->mainThreadState=NULL;
    i010->myThreadState=NULL;
 
+
    parsed_parameters_t *interface_params=NULL;
    int nb_interface_params;
    int err;
@@ -1104,7 +1107,9 @@ interface_type_010_t *malloc_and_init_interface_type_010(sqlite3 *sqlite3_param_
          }
          else
          {
-            fprintf(stderr,"DIR ERROR\n");
+            VERBOSE(5) {
+               mea_log_printf("%s (%s) : direction parameter error - \"%s\" unknown and not used\n", ERROR_STR, __func__, interface_params->parameters[INTERFACE_PARAMS_DIRECTION].value.s);
+            }
          }
       }
 
@@ -1128,7 +1133,6 @@ interface_type_010_t *malloc_and_init_interface_type_010(sqlite3 *sqlite3_param_
             i010->fstartstr=malloc(l+1);
             if(i010->fstartstr)
             {
-//               strcpy(i010->fstartstr, interface_params->parameters[INTERFACE_PARAMS_FSTARTSTR].value.s);
                mea_unescape(i010->fstartstr, interface_params->parameters[INTERFACE_PARAMS_FSTARTSTR].value.s);
                i010->fstartstr = realloc(i010->fstartstr, strlen(i010->fstartstr)+1);
             }
@@ -1157,6 +1161,7 @@ interface_type_010_t *malloc_and_init_interface_type_010(sqlite3 *sqlite3_param_
 
       release_parsed_parameters(&interface_params);
    }
+
 
    char *tmpstr1=alloca(strlen(dev)+1);
    char *tmpstr2=alloca(strlen(dev)+1);
@@ -1187,7 +1192,7 @@ interface_type_010_t *malloc_and_init_interface_type_010(sqlite3 *sqlite3_param_
 
    i010->thread=NULL;
    i010->xPL_callback2=NULL;
-   i010->xPL_callback_data=NULL;
+//   i010->xPL_callback_data=NULL;
    i010->monitoring_id=process_register((char *)name);
 
    i010_start_stop_params->sqlite3_param_db = sqlite3_param_db;
@@ -1231,7 +1236,7 @@ void *_thread_interface_type_010(void *args)
 //      mea_python_lock(); // attention python_lock / python_unlock définissent un block ({ }) les variables déclérées restent locales au bloc
       pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
       PyEval_AcquireLock();
-      PyThreadState *tempState = PyThreadState_Swap(i010->myThreadState);
+      PyThreadState *tempState = PyThreadState_Swap(params->i010->myThreadState);
 
       PyObject *plugin_params_dict=PyDict_New();
       mea_addLong_to_pydict(plugin_params_dict, INTERFACE_ID_STR_C, params->i010->id_interface);
@@ -1324,13 +1329,13 @@ int stop_interface_type_010(int my_id, void *data, char *errmsg, int l_errmsg)
    struct interface_type_010_data_s *start_stop_params=(struct interface_type_010_data_s *)data;
 
    VERBOSE(1) mea_log_printf("%s (%s) : %s shutdown thread ... ", INFO_STR, __func__, start_stop_params->i010->name);
-
+/*
    if(start_stop_params->i010->xPL_callback_data)
    {
       free(start_stop_params->i010->xPL_callback_data);
       start_stop_params->i010->xPL_callback_data=NULL;
    }
-
+*/
    if(start_stop_params->i010->xPL_callback2)
       start_stop_params->i010->xPL_callback2=NULL;
 
@@ -1384,22 +1389,7 @@ int start_interface_type_010(int my_id, void *data, char *errmsg, int l_errmsg)
 
    start_stop_params->i010->thread=start_interface_type_010_thread(start_stop_params->i010, NULL, start_stop_params->sqlite3_param_db, (thread_f)_thread_interface_type_010);
 
-/*
-   xpl_callback_params=(struct callback_xpl_data_s *)malloc(sizeof(struct callback_xpl_data_s)); 
-   if(!xpl_callback_params)
-   {
-      strerror_r(errno, err_str, sizeof(err_str));
-      VERBOSE(2) {
-         mea_log_printf("%s (%s) : %s - %s\n", ERROR_STR, __func__, MALLOC_ERROR_STR, err_str);
-      }
-      mea_notify_printf('E', "%s can't be launched - %s.\n", start_stop_params->i010->name, err_str);
-      goto clean_exit;
-   }
-   xpl_callback_params->param_db=start_stop_params->sqlite3_param_db;
-
-   start_stop_params->i010->xPL_callback_data=xpl_callback_params;
-*/
-   start_stop_params->i010->xPL_callback_data=NULL;
+//   start_stop_params->i010->xPL_callback_data=NULL;
    start_stop_params->i010->xPL_callback2=_interface_type_010_xPL_callback2;
 
    return 0;
