@@ -1497,7 +1497,7 @@ int get_fns_interface_type_004(struct interfacesServer_interfaceFns_s *interface
    interfacesFns->set_monitoring_id = (set_monitoring_id_f)&set_monitoring_id_interface_type_004;
    interfacesFns->set_xPLCallback = (set_xPLCallback_f)&set_xPLCallback_interface_type_004;
    interfacesFns->get_type = (get_type_f)&get_type_interface_type_004;
-
+   interfacesFns->api = NULL;
    interfacesFns->lib = NULL;
    interfacesFns->type = interfacesFns->get_type();
    interfacesFns->plugin_flag = 0;
