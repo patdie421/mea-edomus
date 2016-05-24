@@ -412,7 +412,7 @@ void *_thread_interface_type_006_genericserial_data_cleanup(void *args)
    }
    else
    {
-      python_lock();
+      mea_python_lock();
       if(params->pFunc)
       {
          Py_XDECREF(params->pFunc);
@@ -428,7 +428,7 @@ void *_thread_interface_type_006_genericserial_data_cleanup(void *args)
          Py_XDECREF(params->pParams);
          params->pParams=NULL;
       }
-      python_unlock();
+      mea_python_unlock();
    }
       
    if(params->stmt)
@@ -655,7 +655,7 @@ pthread_t *start_interface_type_006_genericserial_data_thread(interface_type_006
    // recherche pré-traitement du plugin
    PyObject *pName=NULL, *pModule=NULL, *pFunc=NULL;
 
-   python_lock(); // attention python_lock / python_unlock définissent un block ({ }) les variables déclérées restent locales au bloc
+   mea_python_lock(); // attention python_lock / python_unlock définissent un block ({ }) les variables déclérées restent locales au bloc
    if(interface_parameters && interface_parameters->parameters[GENERICSERIAL_PLUGIN_PARAMS_PLUGIN].value.s)
    {
       pName = PyString_FromString(interface_parameters->parameters[GENERICSERIAL_PLUGIN_PARAMS_PLUGIN].value.s);
@@ -692,7 +692,7 @@ pthread_t *start_interface_type_006_genericserial_data_thread(interface_type_006
          }
       }
    }
-   python_unlock();
+   mea_python_unlock();
 
    thread=(pthread_t *)malloc(sizeof(pthread_t));
    if(!thread)
@@ -987,7 +987,7 @@ int start_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg)
    }
    else
    {
-      python_lock(); // attention python_lock / python_unlock définissent un block ({ }) les variables déclérées restent locales au bloc
+      mea_python_lock(); // attention python_lock / python_unlock définissent un block ({ }) les variables déclérées restent locales au bloc
 
       PyObject *plugin_params_dict=PyDict_New();
 
@@ -997,7 +997,7 @@ int start_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg)
       mea_call_python_function(interface_parameters->parameters[GENERICSERIAL_PLUGIN_PARAMS_PLUGIN].value.s, "mea_init", plugin_params_dict);
       Py_DECREF(plugin_params_dict);
 
-      python_unlock();
+      mea_python_unlock();
    }
    // données pour les callbacks xpl
    xpl_callback_params=(struct genericserial_callback_xpl_data_s *)malloc(sizeof(struct genericserial_callback_xpl_data_s));
