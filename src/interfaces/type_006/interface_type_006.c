@@ -1040,7 +1040,7 @@ int start_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg)
    xpl_callback_params->mainThreadState=NULL;
    xpl_callback_params->myThreadState=NULL;
 
-//   start_stop_params->i006->xPL_callback_data=xpl_callback_params;
+   start_stop_params->i006->xPL_callback_data=xpl_callback_params;
    start_stop_params->i006->xPL_callback2=_interface_type_006_xPL_callback2;
 
    start_stop_params->i006->thread=start_interface_type_006_genericserial_data_thread(start_stop_params->i006, start_stop_params->sqlite3_param_db, interface_parameters, (thread_f)_thread_interface_type_006_genericserial_data);
@@ -1069,13 +1069,13 @@ clean_exit:
       interface_nb_parameters=0;
 
    }
-/*   
+   
    if(xpl_callback_params)
    {
       free(xpl_callback_params);
       xpl_callback_params=NULL;
    }
-*/   
+   
    return -1;
 }
 
