@@ -62,6 +62,9 @@ typedef struct interface_type_003_s
    void            *xPL_callback_data;
    char            *parameters;
    
+   PyThreadState   *mainThreadState;
+   PyThreadState   *myThreadState;
+
    struct interface_type_003_indicators_s indicators;
 } interface_type_003_t;
 
