@@ -41,7 +41,7 @@ typedef struct interface_type_010_s
    pthread_t       *thread;
    volatile sig_atomic_t thread_is_running;
    xpl2_f           xPL_callback2;
-   void            *xPL_callback_data;
+//   void            *xPL_callback_data;
    char            *parameters;
 
    int              fduration;
