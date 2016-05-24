@@ -7,7 +7,7 @@
 //
 #include <Python.h>
 
-//#include "interface_type_006.h"
+#include "interface_type_006.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -42,7 +42,6 @@
 #include "notify.h"
 
 #include "interfacesServer.h"
-#include "interface_type_006.h"
 
 
 char *interface_type_006_senttoplugin_str="SENT2PLUGIN";
@@ -1036,7 +1035,7 @@ int start_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg)
       mea_python_unlock();
    }
    // données pour les callbacks xpl
-   xpl_callback_params=(struct genericserial_callback_xpl_data_s *)malloc(sizeof(struct genericserial_callback_xpl_data_s));
+   struct callback_xpl_data_s *xpl_callback_params=(struct callback_xpl_data_s *)malloc(sizeof(struct callback_xpl_data_s));
    if(!xpl_callback_params)
    {
       strerror_r(errno, err_str, sizeof(err_str));
