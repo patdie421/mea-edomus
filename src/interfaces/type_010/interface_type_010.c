@@ -49,15 +49,15 @@ char *interface_type_010_xplin_str="XPLIN";
 char *interface_type_010_senttoplugin_str="SENTTOPLUGIN";
 
 char *valid_interface_010_params[]={"S:FSTARTSTR","S:FENDSTR","I:FSIZE","I:FDURATION", "S:PLUGIN", "S:PLUGIN_PARAMETERS", "S:DIRECTION", "S:IN-EXT", "S:OUT-EXT", NULL};
-#define INTERFACE_PARAMS_FSTARTSTR    0
-#define INTERFACE_PARAMS_FENDSTR      1
-#define INTERFACE_PARAMS_FSIZE        2
-#define INTERFACE_PARAMS_FDURATION    3
-#define INTERFACE_PARAMS_PLUGIN       4
+#define INTERFACE_PARAMS_FSTARTSTR         0
+#define INTERFACE_PARAMS_FENDSTR           1
+#define INTERFACE_PARAMS_FSIZE             2
+#define INTERFACE_PARAMS_FDURATION         3
+#define INTERFACE_PARAMS_PLUGIN            4
 #define INTERFACE_PARAMS_PLUGIN_PARAMETERS 5
-#define INTERFACE_PARAMS_DIRECTION    6
-#define INTERFACE_PARAMS_IN_EXT       7
-#define INTERFACE_PARAMS_OUT_EXT      8
+#define INTERFACE_PARAMS_DIRECTION         6
+#define INTERFACE_PARAMS_IN_EXT            7
+#define INTERFACE_PARAMS_OUT_EXT           8
 
 char *valid_plugin_010_params[]={"S:PLUGIN","S:PARAMETERS", NULL};
 #define PLUGIN_PARAMS_PLUGIN       0
