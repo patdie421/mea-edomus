@@ -756,6 +756,83 @@ int get_type_interface_type_006()
 }
 
 
+int api_write_data(interface_type_006_t *i006, PyObject *args, PyObject **res, int16_t *nerr, char *err, int l_err)
+{
+   if(ixxx->file_desc_out == -1)
+   {
+      *nerr=253;
+      return -253;
+   }
+   PyObject *arg;
+   int16_t ret;
+   *nerr=255;
+   *res = NULL;
+
+   // récupération des paramètres et contrôle des types
+   if(PyTuple_Size(args)!=3)
+      return -255;
+
+   Py_buffer py_packet;
+   arg=PyTuple_GetItem(args, 2);
+   if(PyObject_CheckBuffer(arg))
+   {
+      ret=PyObject_GetBuffer(arg, &py_packet, PyBUF_SIMPLE);
+      if(ret<0)
+      return -255;
+   }
+   else
+      return -255;
+
+   ret=write(i006->fd, py_packet.buf, py_packet.len);
+   if(ret<0)
+   {
+      VERBOSE(5) {
+         mea_log_printf("%s (%s) : write - ", ERROR_STR, __func__);
+         perror("");
+      }
+   }
+ 
+   PyBuffer_Release(&py_packet);
+ 
+   nerr=0;
+
+   return 0;
+}
+
+
+int16_t api_interface_type_006(void *ixxx, char *cmnd, void *args, int nb_args, void **res, int16_t *nerr, char *err, int l_err)
+{
+   interface_type_010_t *i006 = (interface_type_010_t *)ixxx;
+
+   PyObject *pyArgs = (PyObject *)args;
+   PyObject **pyRes = (PyObject **)res;
+   
+   if(strcmp(cmnd, "mea_writeData") == 0)
+   {
+      int ret=api_write_data(ixxx, pyArgs, pyRes, nerr, err, l_err);
+      if(ret<0)
+      {
+         strncpy(err, "error", l_err);
+         return -1;
+      }
+      else
+      {
+         strncpy(err, "no error", l_err);
+         *nerr=0;
+         return 0;
+      }
+   }
+   else
+   {
+      strncpy(err, "unknown function", l_err);
+
+      return -254;
+   }
+
+   return -1;
+}
+
+
 interface_type_006_t *malloc_and_init_interface_type_006(sqlite3 *sqlite3_param_db, int id_driver, int id_interface, char *name, char *dev, char *parameters, char *description)
 {
    interface_type_006_t *i006;
@@ -1012,7 +1089,7 @@ int get_fns_interface_type_006(struct interfacesServer_interfaceFns_s *interface
    interfacesFns->set_monitoring_id = (set_monitoring_id_f)&set_monitoring_id_interface_type_006;
    interfacesFns->set_xPLCallback = (set_xPLCallback_f)&set_xPLCallback_interface_type_006;
    interfacesFns->get_type = (get_type_f)&get_type_interface_type_006;
-
+   interfacesFns->api = (api_f)&api_interface_type_006;
    interfacesFns->lib = NULL;
    interfacesFns->type = interfacesFns->get_type();
    interfacesFns->plugin_flag = 0;
