@@ -63,12 +63,6 @@ char *valid_plugin_010_params[]={"S:PLUGIN","S:PARAMETERS", NULL};
 #define PLUGIN_PARAMS_PLUGIN       0
 #define PLUGIN_PARAMS_PARAMETERS   1
 
-/*
-struct callback_xpl_data_s
-{
-   sqlite3 *param_db;
-};
-*/
 
 struct thread_params_s
 {
@@ -100,8 +94,6 @@ int16_t _interface_type_010_xPL_callback2(cJSON *xplMsgJson, struct device_info_
    int err = 0;
 
    interface_type_010_t *i010=(interface_type_010_t *)userValue;
-
-//   struct callback_xpl_data_s *params=(struct callback_xpl_data_s *)i010->xPL_callback_data;
 
    i010->indicators.xplin++;
 
@@ -296,15 +288,17 @@ int init_interface_type_010_data_preprocessor(interface_type_010_t *i010, char *
 {
    int ret;
 
-   python_lock();
-
+   //mea_python_lock();
+   PyEval_AcquireLock();
+   PyThreadState *tempState = PyThreadState_Swap(i010->myThreadState);
+      
    PyObject *pName = PyString_FromString(plugin_name);
    if(!pName)
    {
-      python_unlock();
-      return -1;
+      ret=-1;
    }
-
+   else
+   {
    i010->pModule =  PyImport_Import(pName);
    Py_XDECREF(pName);
    pName=NULL;
@@ -328,17 +322,24 @@ int init_interface_type_010_data_preprocessor(interface_type_010_t *i010, char *
       else
       {
          VERBOSE(5) mea_log_printf("%s (%s) : no mea_dataPreprocessor entry point\n", ERROR_STR, __func__);
+         if(i010->pFunc)
+         {
+            Py_XDECREF(i010->pFunc);
+            i010->pFunc=NULL;
+         }
          Py_XDECREF(i010->pModule);
-         i010->pFunc=NULL;
          i010->pModule=NULL;
+
          ret = -1;
       }
    }
    else
       ret = -1;
+   }
+//   mea_python_unlock();
+   PyThreadState_Swap(tempState);
+   PyEval_ReleaseLock();
 
-   python_unlock();
- 
    return ret;
 }
 
@@ -479,22 +480,6 @@ static int _interface_type_010_data_to_plugin(interface_type_010_t *i010, sqlite
 }
 
 
-/*
-0: sensors_actuators.id_sensor_actuator, \
-1: sensors_actuators.id_location, \
-2: sensors_actuators.state, \
-3: sensors_actuators.parameters, \
-4: types.parameters, \
-5: sensors_actuators.id_type, \
-6: lower(sensors_actuators.name), \
-7: lower(interfaces.name), \
-8: interfaces.id_type, \
-9: (SELECT lower(types.name) FROM types WHERE types.id_type = interfaces.id_type), \
-10: interfaces.dev, \
-11: sensors_actuators.todbflag, \
-12: types.typeoftype, \
-13: sensors_actuators.id_interface \
-*/
 static int interface_type_010_data_to_plugin(interface_type_010_t *i010, sqlite3 *params_db)
 {
    char *device = NULL;
@@ -531,6 +516,23 @@ static int interface_type_010_data_to_plugin(interface_type_010_t *i010, sqlite3
       if (s == SQLITE_ROW)
       {
          // traiter ici le message en fonction des données des capteurs/actionneurs
+         
+/* contenue stmt
+0: sensors_actuators.id_sensor_actuator, \
+1: sensors_actuators.id_location, \
+2: sensors_actuators.state, \
+3: sensors_actuators.parameters, \
+4: types.parameters, \
+5: sensors_actuators.id_type, \
+6: lower(sensors_actuators.name), \
+7: lower(interfaces.name), \
+8: interfaces.id_type, \
+9: (SELECT lower(types.name) FROM types WHERE types.id_type = interfaces.id_type), \
+10: interfaces.dev, \
+11: sensors_actuators.todbflag, \
+12: types.typeoftype, \
+13: sensors_actuators.id_interface \
+*/
          _interface_type_010_data_to_plugin(i010, stmt);
       }
       else if (s == SQLITE_DONE)
@@ -1101,7 +1103,6 @@ interface_type_010_t *malloc_and_init_interface_type_010(sqlite3 *sqlite3_param_
             i010->fendstr=malloc(l+1);
             if(i010->fendstr)
             {
-//               strcpy(i010->fendstr, interface_params->parameters[INTERFACE_PARAMS_FENDSTR].value.s);
                mea_unescape(i010->fendstr, interface_params->parameters[INTERFACE_PARAMS_FENDSTR].value.s);
                i010->fendstr = realloc(i010->fendstr, strlen(i010->fendstr)+1);
             }
