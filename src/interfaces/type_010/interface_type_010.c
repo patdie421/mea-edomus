@@ -72,7 +72,8 @@ struct thread_params_s
 
 struct callback_xpl_data_s 
 {
-   sqlite3 *param_db;
+   PyThreadState  *mainThreadState; 
+   PyThreadState  *myThreadState; 
 };
 
 typedef void (*thread_f)(void *);
@@ -98,7 +99,7 @@ int16_t _interface_type_010_xPL_callback2(cJSON *xplMsgJson, struct device_info_
    int err = 0;
 
    interface_type_010_t *i010=(interface_type_010_t *)userValue;
-   struct callback_xpl_data_s *data=(struct callback_xpl_data_s *)i010->xPL_callback_data;
+   struct callback_xpl_data_s *callback_data=(struct callback_xpl_data_s *)i010->xPL_callback_data;
 
    i010->indicators.xplin++;
 
@@ -120,12 +121,12 @@ int16_t _interface_type_010_xPL_callback2(cJSON *xplMsgJson, struct device_info_
       {
          pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
          PyEval_AcquireLock();
-         if(!data->mainThreadState)
-            data->mainThreadState=PyThreadState_Get();
-         if(!data->myThreadState)
-            data->myThreadState = PyThreadState_New(data->mainThreadState->interp);
+         if(!callback_data->mainThreadState)
+            callback_data->mainThreadState=PyThreadState_Get();
+         if(!callback_data->myThreadState)
+            callback_data->myThreadState = PyThreadState_New(callback_data->mainThreadState->interp);
 
-         PyThreadState *tempState = PyThreadState_Swap(data->myThreadState);
+         PyThreadState *tempState = PyThreadState_Swap(callback_data->myThreadState);
 
          plugin_elem->aDict=mea_device_info_to_pydict_device(device_info);
          mea_addLong_to_pydict(plugin_elem->aDict, "api_key", (long)i010->id_interface);
