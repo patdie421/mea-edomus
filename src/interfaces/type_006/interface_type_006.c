@@ -73,7 +73,7 @@ struct genericserial_thread_params_s
    sqlite3       *param_db;
 //   PyThreadState *mainThreadState;
 //   PyThreadState *myThreadState;
-   sqlite3_stmt  *stmt;
+//   sqlite3_stmt  *stmt;
 //   PyObject      *pModule, *pFunc, *pParams;
    interface_type_006_t *i006;
 };
@@ -361,13 +361,13 @@ void *_thread_interface_type_006_genericserial_data_cleanup(void *args)
       }
       mea_python_unlock();
    }
-      
+/* 
    if(params->stmt)
    {
       sqlite3_finalize(params->stmt);
       params->stmt=NULL;
    }
-   
+*/   
    free(params);
    params=NULL;
 
@@ -389,7 +389,7 @@ void *_thread_interface_type_006_genericserial_data(void *args)
    
    sqlite3 *params_db=params->param_db;
    
-   params->stmt=NULL;
+//   params->stmt=NULL;
    
    // on se met un context python sous le coude pour ce thread
    pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
