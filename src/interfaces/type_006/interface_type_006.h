@@ -59,6 +59,8 @@ typedef struct interface_type_006_s
    PyThreadState   *mainThreadState; 
    PyThreadState   *myThreadState; 
 
+   PyObject      *pModule, *pFunc, *pParams;
+
    struct interface_type_006_indicators_s indicators;
 } interface_type_006_t;
 
