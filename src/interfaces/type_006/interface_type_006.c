@@ -141,7 +141,6 @@ int interface_type_006_data_to_plugin(PyThreadState *myThreadState, int fd, sqli
       { // appel des fonctions Python => on lock
          pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL); // trop compliquer de traiter avec pthread_cleanup => on interdit les arrêts lors des commandes python
          PyEval_AcquireLock();
-
          PyThreadState *tempState = PyThreadState_Swap(myThreadState);
                
          plugin_elem->aDict=PyDict_New();
