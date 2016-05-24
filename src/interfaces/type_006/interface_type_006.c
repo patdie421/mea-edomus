@@ -225,7 +225,7 @@ int16_t _interface_type_006_xPL_callback2(cJSON *xplMsgJson, struct device_info_
    if(!i006->mainThreadState)
       i006->mainThreadState=PyThreadState_Get();
    if(!i006->myThreadState)
-      i006->myThreadState = PyThreadState_New(params->mainThreadState->interp);
+      i006->myThreadState = PyThreadState_New(i006->mainThreadState->interp);
    PyEval_ReleaseLock();
    pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL); // on réauthorise les arrêts         
 
@@ -275,7 +275,7 @@ int16_t _interface_type_006_xPL_callback2(cJSON *xplMsgJson, struct device_info_
          if(plugin_params->parameters[GENERICSERIAL_PLUGIN_PARAMS_PARAMETERS].value.s)
             mea_addString_to_pydict(plugin_elem->aDict, DEVICE_PARAMETERS_STR_C, plugin_params->parameters[GENERICSERIAL_PLUGIN_PARAMS_PARAMETERS].value.s);
 
-         mea_addLong_to_pydict(plugin_elem->aDict, "fd", (long)interface->fd);
+         mea_addLong_to_pydict(plugin_elem->aDict, "fd", (long)i006->fd);
 
          PyObject *_xplmsg=mea_xplMsgToPyDict2(xplMsgJson);
          PyDict_SetItemString(plugin_elem->aDict, XPLMSG_STR_C, _xplmsg);
@@ -312,7 +312,7 @@ void *_thread_interface_type_006_genericserial_data_cleanup(void *args)
       close(params->i006->fd);
    }
    
-   if(params->myThreadState)
+   if(params->i006->myThreadState)
    {
       pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
       PyEval_AcquireLock();
@@ -339,7 +339,7 @@ void *_thread_interface_type_006_genericserial_data_cleanup(void *args)
       PyEval_ReleaseLock();
       pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 
-      params->myThreadState=NULL;
+      params->i006->myThreadState=NULL;
    }
    else
    {
@@ -395,7 +395,7 @@ void *_thread_interface_type_006_genericserial_data(void *args)
    pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
    PyEval_AcquireLock();
    params->i006->mainThreadState = PyThreadState_Get();
-   params->i006->myThreadState = PyThreadState_New(params->mainThreadState->interp);
+   params->i006->myThreadState = PyThreadState_New(params->i006->mainThreadState->interp);
    PyEval_ReleaseLock();
    pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
    pthread_testcancel();
@@ -955,8 +955,8 @@ int start_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg)
       goto clean_exit;
    }
    xpl_callback_params->param_db=start_stop_params->sqlite3_param_db;
-   xpl_callback_params->mainThreadState=NULL;
-   xpl_callback_params->myThreadState=NULL;
+//   xpl_callback_params->mainThreadState=NULL;
+//   xpl_callback_params->myThreadState=NULL;
 
    start_stop_params->i006->xPL_callback_data=xpl_callback_params;
    start_stop_params->i006->xPL_callback2=_interface_type_006_xPL_callback2;
