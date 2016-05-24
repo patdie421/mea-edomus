@@ -758,7 +758,7 @@ int get_type_interface_type_006()
 
 int api_write_data(interface_type_006_t *i006, PyObject *args, PyObject **res, int16_t *nerr, char *err, int l_err)
 {
-   if(ixxx->file_desc_out == -1)
+   if(i006->fd == -1)
    {
       *nerr=253;
       return -253;
@@ -802,7 +802,7 @@ int api_write_data(interface_type_006_t *i006, PyObject *args, PyObject **res, i
 
 int16_t api_interface_type_006(void *ixxx, char *cmnd, void *args, int nb_args, void **res, int16_t *nerr, char *err, int l_err)
 {
-   interface_type_010_t *i006 = (interface_type_010_t *)ixxx;
+   interface_type_006_t *i006 = (interface_type_006_t *)ixxx;
 
    PyObject *pyArgs = (PyObject *)args;
    PyObject **pyRes = (PyObject **)res;
