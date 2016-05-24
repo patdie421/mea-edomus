@@ -1335,13 +1335,19 @@ int stop_interface_type_010(int my_id, void *data, char *errmsg, int l_errmsg)
    struct interface_type_010_data_s *start_stop_params=(struct interface_type_010_data_s *)data;
 
    VERBOSE(1) mea_log_printf("%s (%s) : %s shutdown thread ... ", INFO_STR, __func__, start_stop_params->i010->name);
-/*
+
    if(start_stop_params->i010->xPL_callback_data)
    {
+      PyEval_AcquireLock(); 
+      PyThreadState_Clear(start_stop_params->i010->xPL_callback_data->myThreadState); 
+      PyThreadState_Delete(start_stop_params->i010->xPL_callback_data->myThreadState); 
+      start_stop_params->i010->xPL_callback_data->myThreadState=NULL; 
+      PyEval_ReleaseLock(); 
+      
       free(start_stop_params->i010->xPL_callback_data);
       start_stop_params->i010->xPL_callback_data=NULL;
    }
-*/
+
    if(start_stop_params->i010->xPL_callback2)
       start_stop_params->i010->xPL_callback2=NULL;
 
@@ -1402,7 +1408,9 @@ int start_interface_type_010(int my_id, void *data, char *errmsg, int l_errmsg)
        }
        mea_notify_printf('E', "%s can't be launched - %s.\n", start_stop_params->i010->name, err_str);
        goto clean_exit;
-    } 
+   }
+   xpl_callback_params->mainThreadState=NULL;
+   xpl_callback_params->myThreadState=NULL;
 
    start_stop_params->i010->thread=start_interface_type_010_thread(start_stop_params->i010, NULL, start_stop_params->sqlite3_param_db, (thread_f)_thread_interface_type_010);
 
