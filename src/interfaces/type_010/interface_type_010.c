@@ -700,7 +700,15 @@ static int clean_interface_type_010_data_source(interface_type_010_t *i010)
 {
    if(i010->file_desc_in >= 0)
       close(i010->file_desc_in);
-   unlink(i010->file_name);
+   char *fname = alloca(strlen(i010->file_name)+strlen(i010->in_ext)+1);
+   sprintf(fname,"%s%s", i010->file_name, i010->in_ext);
+   unlink(fname);
+
+   if(i010->file_desc_out >= 0)
+      close(i010->file_desc_out);
+   char *fname = alloca(strlen(i010->file_name)+strlen(i010->out_ext)+1);
+   sprintf(fname,"%s%s", i010->file_name, i010->out_ext);
+   unlink(fname);
 
    i010->line_buffer_l = 0;
    i010->line_buffer_ptr = 0;
@@ -740,6 +748,18 @@ int clean_interface_type_010(void *ixxx)
    {
       free(i010->file_name);
       i010->file_name=NULL;
+   }
+
+   if(i010->in_ext)
+   {
+      free(i010->in_ext);
+      i010->in_ext=NULL;
+   }
+
+   if(i010->out_ext)
+   {
+      free(i010->out_ext);
+      i010->out_ext=NULL;
    }
 
    if(i010->fstartstr)
