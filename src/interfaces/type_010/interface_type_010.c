@@ -70,6 +70,10 @@ struct thread_params_s
    interface_type_010_t *i010;
 };
 
+struct callback_xpl_data_s 
+{
+   sqlite3 *param_db;
+};
 
 typedef void (*thread_f)(void *);
 
@@ -94,6 +98,7 @@ int16_t _interface_type_010_xPL_callback2(cJSON *xplMsgJson, struct device_info_
    int err = 0;
 
    interface_type_010_t *i010=(interface_type_010_t *)userValue;
+   struct callback_xpl_data_s *data=(struct callback_xpl_data_s *)i010->xPL_callback_data;
 
    i010->indicators.xplin++;
 
@@ -115,12 +120,12 @@ int16_t _interface_type_010_xPL_callback2(cJSON *xplMsgJson, struct device_info_
       {
          pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
          PyEval_AcquireLock();
-         if(!i010->mainThreadState)
-            i010->mainThreadState=PyThreadState_Get();
-         if(!i010->myThreadState)
-            i010->myThreadState = PyThreadState_New(i010->mainThreadState->interp);
+         if(!data->mainThreadState)
+            data->mainThreadState=PyThreadState_Get();
+         if(!data->myThreadState)
+            data->myThreadState = PyThreadState_New(data->mainThreadState->interp);
 
-         PyThreadState *tempState = PyThreadState_Swap(i010->myThreadState);
+         PyThreadState *tempState = PyThreadState_Swap(data->myThreadState);
 
          plugin_elem->aDict=mea_device_info_to_pydict_device(device_info);
          mea_addLong_to_pydict(plugin_elem->aDict, "api_key", (long)i010->id_interface);
@@ -1386,6 +1391,17 @@ int start_interface_type_010(int my_id, void *data, char *errmsg, int l_errmsg)
       VERBOSE(1) mea_log_printf("%s (%s) : cant'open start interface %s, initialisation error", INFO_STR, __func__, start_stop_params->i010->name);
       return -1;
    }
+
+   xpl_callback_params=(struct callback_xpl_data_s *)malloc(sizeof(struct callback_xpl_data_s));
+   if(!xpl_callback_params)
+   {
+       strerror_r(errno, err_str, sizeof(err_str));
+       VERBOSE(2) {
+          mea_log_printf("%s (%s) : %s - %s\n", ERROR_STR, __func__, MALLOC_ERROR_STR, err_str);
+       }
+       mea_notify_printf('E', "%s can't be launched - %s.\n", start_stop_params->i010->name, err_str);
+       goto clean_exit;
+    } 
 
    start_stop_params->i010->thread=start_interface_type_010_thread(start_stop_params->i010, NULL, start_stop_params->sqlite3_param_db, (thread_f)_thread_interface_type_010);
 
