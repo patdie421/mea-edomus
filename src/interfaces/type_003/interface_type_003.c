@@ -815,6 +815,9 @@ interface_type_003_t *malloc_and_init_interface_type_003(sqlite3 *sqlite3_param_
    i003->xPL_callback2=NULL;
    i003->xPL_callback_data=NULL;
 
+   i003->mainThreadState=NULL;
+   i003->myThreadState=NULL;
+
    i003->monitoring_id=process_register((char *)name);
    i003_start_stop_params->sqlite3_param_db = sqlite3_param_db;
    i003_start_stop_params->i003=i003;
@@ -1090,8 +1093,8 @@ int start_interface_type_003(int my_id, void *data, char *errmsg, int l_errmsg)
       mea_notify_printf('E', "%s can't be launched - %s.\n", start_stop_params->i003->name, err_str);
       goto clean_exit;
    }
-   xpl_callback_params->mainThreadState=NULL;
-   xpl_callback_params->myThreadState=NULL;
+//   xpl_callback_params->mainThreadState=NULL;
+//   xpl_callback_params->myThreadState=NULL;
    
    start_stop_params->i003->xPL_callback_data=xpl_callback_params;
    start_stop_params->i003->xPL_callback2=_interface_type_003_xPL_callback2;
