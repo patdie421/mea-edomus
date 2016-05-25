@@ -135,7 +135,7 @@ int16_t _interface_type_010_xPL_callback2(cJSON *xplMsgJson, struct device_info_
          Py_DECREF(dd);
 
          if(plugin_params->parameters[PLUGIN_PARAMS_PARAMETERS].value.s)
-            mea_addString_to_pydict(plugin_elem->aDict, DEVICE_PARAMETERS_STR_C, plugin_params->parameters[PLUGIN_PARAMS_PARAMETERS].value.s);
+            mea_addString_to_pydict(plugin_qelem->aDict, DEVICE_PARAMETERS_STR_C, plugin_params->parameters[PLUGIN_PARAMS_PARAMETERS].value.s);
          
          PyThreadState_Swap(tempState);
          PyEval_ReleaseLock();
@@ -509,7 +509,7 @@ static int interface_type_010_data_to_plugin(interface_type_010_t *i010, sqlite3
 
    sprintf(sql,"%s WHERE sensors_actuators.deleted_flag <> 1 "
                     "AND sensors_actuators.state='1' "
-                    "AND types.typeoftype='1' "
+                    "AND types.typeoftype='0' " // entrée
                     "AND sensors_actuators.id_interface='%d';",
            sql_select_device_info, i010->id_interface);
 

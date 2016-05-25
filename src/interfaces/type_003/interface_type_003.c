@@ -595,10 +595,10 @@ int clean_interface_type_003(void *ixxx)
          PyEval_ReleaseLock();
          data->myThreadState=NULL;
       }
-*/
       free(i003->xPL_callback_data);
       i003->xPL_callback_data=NULL;
    }
+*/
    
    if(i003->xPL_callback2)
       i003->xPL_callback2=NULL;
@@ -952,7 +952,7 @@ int start_interface_type_003(int my_id, void *data, char *errmsg, int l_errmsg)
    
    enocean_ed_t *ed=NULL;
    
-   struct xpl_callback_data_s *xpl_callback_params=NULL;
+   struct xpl_callback_data_s *xpl_callback_data=NULL;
    
    struct interface_type_003_data_s *start_stop_params=(struct interface_type_003_data_s *)data;
 
