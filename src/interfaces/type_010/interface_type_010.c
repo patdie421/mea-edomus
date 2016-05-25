@@ -114,10 +114,10 @@ int16_t _interface_type_010_xPL_callback2(cJSON *xplMsgJson, struct device_info_
       return -1;
    }
 
-   plugin_queue_elem_t *plugin_elem = (plugin_queue_elem_t *)malloc(sizeof(plugin_queue_elem_t));
-   if(plugin_elem)
+   plugin_queue_elem_t *plugin_qelem = (plugin_queue_elem_t *)malloc(sizeof(plugin_queue_elem_t));
+   if(plugin_qelem)
    {
-      plugin_elem->type_elem=XPLMSG;
+      plugin_qelem->type_elem=XPLMSG;
       {
          pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
          PyEval_AcquireLock();
@@ -128,14 +128,14 @@ int16_t _interface_type_010_xPL_callback2(cJSON *xplMsgJson, struct device_info_
 
          PyThreadState *tempState = PyThreadState_Swap(callback_data->myThreadState);
 
-         plugin_elem->aDict=mea_device_info_to_pydict_device(device_info);
-         mea_addLong_to_pydict(plugin_elem->aDict, "api_key", (long)i010->id_interface);
+         plugin_qelem->aDict=mea_device_info_to_pydict_device(device_info);
+         mea_addLong_to_pydict(plugin_qelem->aDict, "api_key", (long)i010->id_interface);
          PyObject *dd=mea_xplMsgToPyDict2(xplMsgJson);
-         PyDict_SetItemString(plugin_elem->aDict, XPLMSG_STR_C, dd);
+         PyDict_SetItemString(plugin_qelem->aDict, XPLMSG_STR_C, dd);
          Py_DECREF(dd);
 
          if(plugin_params->parameters[PLUGIN_PARAMS_PARAMETERS].value.s)
-         mea_addString_to_pydict(plugin_elem->aDict, DEVICE_PARAMETERS_STR_C, plugin_params->parameters[PLUGIN_PARAMS_PARAMETERS].value.s);
+            mea_addString_to_pydict(plugin_elem->aDict, DEVICE_PARAMETERS_STR_C, plugin_params->parameters[PLUGIN_PARAMS_PARAMETERS].value.s);
          
          PyThreadState_Swap(tempState);
          PyEval_ReleaseLock();
@@ -143,10 +143,10 @@ int16_t _interface_type_010_xPL_callback2(cJSON *xplMsgJson, struct device_info_
       }
    }
 
-   pythonPluginServer_add_cmd(plugin_params->parameters[PLUGIN_PARAMS_PLUGIN].value.s, (void *)plugin_elem, sizeof(plugin_queue_elem_t));
+   pythonPluginServer_add_cmd(plugin_params->parameters[PLUGIN_PARAMS_PLUGIN].value.s, (void *)plugin_qelem, sizeof(plugin_queue_elem_t));
    i010->indicators.senttoplugin++;
-   free(plugin_elem);
-   plugin_elem=NULL;
+   free(plugin_qelem);
+   plugin_qelem=NULL;
 
    release_parsed_parameters(&plugin_params);
    plugin_params=NULL;
@@ -160,7 +160,7 @@ static int init_interface_type_010_data_source_pipe(interface_type_010_t *i010)
    int retour = 0;
    int ret = 0;
 
-   i010->file_desc_in = -1;
+   i010->file_desc_in  = -1;
    i010->file_desc_out = -1;
    
    if(i010->direction == DIR_IN || i010->direction == DIR_BOTH)
@@ -343,6 +343,7 @@ int init_interface_type_010_data_preprocessor(interface_type_010_t *i010, char *
    else
       ret = -1;
    }
+   
    mea_python_unlock();
 
    return ret;
