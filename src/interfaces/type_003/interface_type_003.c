@@ -582,7 +582,7 @@ int clean_interface_type_003(void *ixxx)
       free(i003->parameters);
       i003->parameters=NULL;
    }
-
+/*
    if(i003->xPL_callback_data)
    {
       struct callback_xpl_data_s *data = (struct callback_xpl_data_s *)i003->xPL_callback_data;
@@ -595,7 +595,7 @@ int clean_interface_type_003(void *ixxx)
          PyEval_ReleaseLock();
          data->myThreadState=NULL;
       }
-
+*/
       free(i003->xPL_callback_data);
       i003->xPL_callback_data=NULL;
    }
@@ -863,6 +863,17 @@ int stop_interface_type_003(int my_id, void *data, char *errmsg, int l_errmsg)
 
    if(start_stop_params->i003->xPL_callback_data)
    {
+      struct callback_xpl_data_s *data = (struct callback_xpl_data_s *)start_stop_params->i003->xPL_callback_data;
+     
+      if(data->myThreadState)
+      {
+         PyEval_AcquireLock();
+         PyThreadState_Clear(data->myThreadState);
+         PyThreadState_Delete(data->myThreadState);
+         PyEval_ReleaseLock();
+         data->myThreadState=NULL;
+      }
+
       free(start_stop_params->i003->xPL_callback_data);
       start_stop_params->i003->xPL_callback_data=NULL;
    }
