@@ -340,13 +340,13 @@ int16_t _interface_type_002_xPL_callback2(cJSON *xplMsgJson, struct device_info_
    
    sqlite3 *params_db = params->param_db;
    
+   PyEval_AcquireLock();
    if(!params->mainThreadState)
-   {
       params->mainThreadState=PyThreadState_Get();
-   }
    if(!params->myThreadState)
       params->myThreadState = PyThreadState_New(params->mainThreadState->interp);
-  
+   PyEval_ReleaseLock();
+   
    cJSON *j = NULL;
    j = cJSON_GetObjectItem(xplMsgJson, get_token_string_by_id(XPL_DEVICE_ID));
    if(!j)
@@ -1071,6 +1071,17 @@ int clean_interface_type_002(interface_type_002_t *i002)
    
    if(i002->xPL_callback_data)
    {
+      struct callback_xpl_data_s *data = (struct callback_xpl_data_s *)i002->xPL_callback_data;
+      
+      PyEval_AcquireLock();
+      if(data->myThreadState)
+      {
+         PyThreadState_Clear(data->myThreadState);
+         PyThreadState_Delete(data->myThreadState);
+         data->myThreadState=NULL;
+      }
+      PyEval_ReleaseLock();
+         
       free(i002->xPL_callback_data);
       i002->xPL_callback_data=NULL;
    }
@@ -1144,14 +1155,21 @@ int stop_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
 
    if(start_stop_params->i002->xPL_callback_data)
    {
+      struct callback_xpl_data_s *data = (struct callback_xpl_data_s *)start_stop_params->i002->xPL_callback_data;
+      
+      PyEval_AcquireLock();
+      if(data->myThreadState)
+      {
+         PyThreadState_Clear(data->myThreadState);
+         PyThreadState_Delete(data->myThreadState);
+         data->myThreadState=NULL;
+      }
+      PyEval_ReleaseLock();
+         
       free(start_stop_params->i002->xPL_callback_data);
       start_stop_params->i002->xPL_callback_data=NULL;
    }
    
-//   if(start_stop_params->i002->xPL_callback)
-//   {
-//      start_stop_params->i002->xPL_callback=NULL;
-//   }
    if(start_stop_params->i002->xPL_callback2)
    {
       start_stop_params->i002->xPL_callback2=NULL;
