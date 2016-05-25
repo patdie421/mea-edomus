@@ -684,6 +684,14 @@ static int process_interface_type_010_data(interface_type_010_t *i010, sqlite3 *
          if(i010->fsize>0 && i010->line_buffer_ptr==i010->fsize)
          {
             i010->line_buffer[i010->line_buffer_ptr]=0;
+            
+            int b = haveFrameEndStr(i010);
+            if(b>0)
+            {
+               i010->line_buffer_ptr-=b;
+               i010->line_buffer[i010->line_buffer_ptr]=0;
+            }
+
             interface_type_010_data_to_plugin(i010, params_db);
             i010->line_buffer_ptr=0;
             break;
