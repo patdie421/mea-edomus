@@ -66,7 +66,7 @@ struct enocean_callback_data_s // donnee "userdata" pour les callbacks
 };
 
 
-struct callback_xpl_data_s
+struct xpl_callback_data_s
 {
    PyThreadState  *mainThreadState;
    PyThreadState  *myThreadState;
@@ -123,7 +123,7 @@ int16_t _interface_type_003_xPL_callback2(cJSON *xplMsgJson, struct device_info_
    int err =0;
 
    interface_type_003_t *i003=(interface_type_003_t *)userValue;
-   struct callback_xpl_data_s *callback_data=(struct callback_xpl_data_s *)i003->xPL_callback_data;
+   struct xpl_callback_data_s *callback_data=(struct xpl_callback_data_s *)i003->xPL_callback_data;
 
    char *dev = (char *)device_info->interface_dev;
    int a,b,c,d;
@@ -863,7 +863,7 @@ int stop_interface_type_003(int my_id, void *data, char *errmsg, int l_errmsg)
 
    if(start_stop_params->i003->xPL_callback_data)
    {
-      struct callback_xpl_data_s *data = (struct callback_xpl_data_s *)start_stop_params->i003->xPL_callback_data;
+      struct xpl_callback_data_s *data = (struct xpl_callback_data_s *)start_stop_params->i003->xPL_callback_data;
      
       if(data->myThreadState)
       {
@@ -952,7 +952,7 @@ int start_interface_type_003(int my_id, void *data, char *errmsg, int l_errmsg)
    
    enocean_ed_t *ed=NULL;
    
-   struct callback_xpl_data_s *xpl_callback_params=NULL;
+   struct xpl_callback_data_s *xpl_callback_params=NULL;
    
    struct interface_type_003_data_s *start_stop_params=(struct interface_type_003_data_s *)data;
 
@@ -1104,8 +1104,8 @@ int start_interface_type_003(int my_id, void *data, char *errmsg, int l_errmsg)
    //
    // gestion des demandes xpl : ajouter une zone de donnees specifique au callback xpl (pas simplement passe i003).
    //
-   xpl_callback_params=(struct callback_xpl_data_s *)malloc(sizeof(struct callback_xpl_data_s));
-   if(!xpl_callback_params)
+   xpl_callback_data=(struct xpl_callback_data_s *)malloc(sizeof(struct xpl_callback_data_s));
+   if(!xpl_callback_data)
    {
       strerror_r(errno, err_str, sizeof(err_str));
       VERBOSE(2) {
@@ -1114,10 +1114,10 @@ int start_interface_type_003(int my_id, void *data, char *errmsg, int l_errmsg)
       mea_notify_printf('E', "%s can't be launched - %s.\n", start_stop_params->i003->name, err_str);
       goto clean_exit;
    }
-   xpl_callback_params->mainThreadState=NULL;
-   xpl_callback_params->myThreadState=NULL;
+   xpl_callback_data->mainThreadState=NULL;
+   xpl_callback_data->myThreadState=NULL;
    
-   start_stop_params->i003->xPL_callback_data=xpl_callback_params;
+   start_stop_params->i003->xPL_callback_data=xpl_callback_data;
    start_stop_params->i003->xPL_callback2=_interface_type_003_xPL_callback2;
    
    VERBOSE(2) mea_log_printf("%s (%s) : %s %s.\n", INFO_STR, __func__, start_stop_params->i003->name, launched_successfully_str);
@@ -1139,10 +1139,10 @@ clean_exit:
       interface_nb_parameters=0;
    }
    
-   if(xpl_callback_params)
+   if(xpl_callback_data)
    {
-      free(xpl_callback_params);
-      xpl_callback_params=NULL;
+      free(xpl_callback_data);
+      xpl_callback_data=NULL;
    }
    
    if(ed)
