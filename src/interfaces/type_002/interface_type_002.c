@@ -77,8 +77,8 @@ struct callback_data_s // donnee "userdata" pour les callbacks
 
 struct callback_commissionning_data_s
 {
-   PyThreadState  *mainThreadState;
-   PyThreadState  *myThreadState;
+//   PyThreadState  *mainThreadState;
+//   PyThreadState  *myThreadState;
    sqlite3        *param_db;
 //   xbee_xd_t      *xd;
 //   xbee_host_t    *local_xbee;
@@ -526,17 +526,20 @@ mea_error_t _interface_type_002_commissionning_callback(int id, unsigned char *c
       {
          plugin_elem->type_elem=COMMISSIONNING;
          
+         /*
          if(!callback_commissionning->mainThreadState)
          {
             callback_commissionning->mainThreadState=PyThreadState_Get();
          }
          if(!callback_commissionning->myThreadState)
             callback_commissionning->myThreadState = PyThreadState_New(callback_commissionning->mainThreadState->interp);
-         
+         */
          { // appel des fonctions Python
+            mea_python_lock();
+            /*
             PyEval_AcquireLock();
             PyThreadState *tempState = PyThreadState_Swap(callback_commissionning->myThreadState);
-            
+            */
             plugin_elem->aDict=stmt_to_pydict_interface(stmt);
             mea_addLong_to_pydict(plugin_elem->aDict, get_token_string_by_id(ID_XBEE_ID), (long)callback_commissionning->i002->xd);
             mea_addLong_to_pydict(plugin_elem->aDict, "LOCAL_XBEE_ADDR_H", (long)callback_commissionning->i002->local_xbee->l_addr_64_h);
@@ -544,9 +547,11 @@ mea_error_t _interface_type_002_commissionning_callback(int id, unsigned char *c
             
             if(plugin_params->parameters[XBEE_PLUGIN_PARAMS_PARAMETERS].value.s)
                mea_addString_to_pydict(plugin_elem->aDict, get_token_string_by_id(INTERFACE_PARAMETERS_ID), plugin_params->parameters[XBEE_PLUGIN_PARAMS_PARAMETERS].value.s);
-            
+            /*
             PyThreadState_Swap(tempState);
             PyEval_ReleaseLock();
+            */
+            mea_python_unlock();
          } // fin appel des fonctions Python
          
          pythonPluginServer_add_cmd(plugin_params->parameters[XBEE_PLUGIN_PARAMS_PLUGIN].value.s, (void *)plugin_elem, sizeof(plugin_queue_elem_t));
@@ -1524,8 +1529,8 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
 //   commissionning_callback_params->xd=xd;
    commissionning_callback_params->i002=start_stop_params->i002;
    commissionning_callback_params->param_db=start_stop_params->sqlite3_param_db;
-   commissionning_callback_params->mainThreadState=NULL;
-   commissionning_callback_params->myThreadState=NULL;
+//   commissionning_callback_params->mainThreadState=NULL;
+//   commissionning_callback_params->myThreadState=NULL;
 //   commissionning_callback_params->local_xbee=local_xbee;
    commissionning_callback_params->senttoplugin=&(start_stop_params->i002->indicators.senttoplugin); // indicateur requete vers plugin
    commissionning_callback_params->commissionning_request=&(start_stop_params->i002->indicators.commissionning_request); // indicateur nb demande commissionnement
