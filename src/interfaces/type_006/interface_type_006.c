@@ -863,7 +863,8 @@ interface_type_006_t *malloc_and_init_interface_type_006(sqlite3 *sqlite3_param_
    strncpy(i006->name, (char *)name, sizeof(i006->name)-1);
    i006->id_interface=id_interface;
    i006->parameters=(char *)malloc(strlen((char *)parameters)+1);
-   strcpy(i006->parameters,(char *)parameters);
+   if(i006->parameters)
+      strcpy(i006->parameters,(char *)parameters);
    i006->indicators.senttoplugin=0;
    i006->indicators.xplin=0;
    i006->indicators.serialin=0;
@@ -871,7 +872,7 @@ interface_type_006_t *malloc_and_init_interface_type_006(sqlite3 *sqlite3_param_
    
    i006->thread=NULL;
    i006->xPL_callback2=NULL;
-//   i006->xPL_callback_data=NULL;
+   i006->xPL_callback_data=NULL;
 
    i006->myThreadState=NULL;
    i006->myThreadState=NULL;
@@ -908,6 +909,11 @@ int stop_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg)
 
    VERBOSE(1) mea_log_printf("%s (%s) : %s shutdown thread ...\n", INFO_STR, __func__, start_stop_params->i006->name);
 
+   if(start_stop_params->i006->xPL_callback2)
+   {
+      start_stop_params->i006->xPL_callback2=NULL;
+   }
+
    if(start_stop_params->i006->xPL_callback_data)
    {
       struct callback_xpl_data_s *callback_data = (struct callback_xpl_data_s *)start_stop_params->i006->xPL_callback_data;
@@ -924,17 +930,11 @@ int stop_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg)
       start_stop_params->i006->xPL_callback_data=NULL;
    }
    
-   if(start_stop_params->i006->xPL_callback2)
-   {
-      start_stop_params->i006->xPL_callback2=NULL;
-   }
-
    if(start_stop_params->i006->thread)
    {
       pthread_cancel(*(start_stop_params->i006->thread));
       
       int counter=100;
-//      int stopped=-1;
       while(counter--)
       {
          if(start_stop_params->i006->thread_is_running)
@@ -943,7 +943,6 @@ int stop_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg)
          }
          else
          {
-//            stopped=0;
             break;
          }
       }
