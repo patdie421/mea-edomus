@@ -3,6 +3,7 @@
 import re
 import string
 import sys
+import subprocess
 
 try:
    import mea
@@ -52,7 +53,22 @@ def mea_xplCmndMsg(data):
    mem_actuator=mea.getMemory(id_actuator)
    mem_interface=mea.getMemory("interface"+str(interface_id))
 
+   x=data["xplmsg"]
+   body=x["body"]
 
+   target="*"
+   if "source" in x:
+      target=x["source"]
+
+   if x["schema"]=="control.basic":
+      try:
+         cmnd=params["cmnd"];
+      except:
+         verbose(2, "ERROR (", fn_name, ") - no cmnd")
+         return False
+
+      _cmnd=[cmnd]
+      p = subprocess.Popen(_cmnd)
 
 def mea_dataFromSensor(data):
    fn_name= __name__ + "/" + str(sys._getframe().f_code.co_name)
