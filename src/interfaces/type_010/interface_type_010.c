@@ -295,7 +295,7 @@ static int init_interface_type_010_data_source(interface_type_010_t *i010)
 
 int init_interface_type_010_data_preprocessor(interface_type_010_t *i010, char *plugin_name, char *plugin_parameters)
 {
-   int ret;
+   int ret = -1;
 
    mea_python_lock();
       
@@ -303,22 +303,46 @@ int init_interface_type_010_data_preprocessor(interface_type_010_t *i010, char *
    if(!pName)
    {
       ret=-1;
+      goto init_interface_type_010_data_preprocessor_clean_exit;
    }
    else
    {
-   i010->pModule =  PyImport_Import(pName);
-   Py_XDECREF(pName);
-   pName=NULL;
+      if(!i010->pModule)
+      {
+         i010->pModule =  PyImport_Import(pName);
+         if(!i010->pModule)
+         {
+            ret=-1;
+            goto init_interface_type_010_data_preprocessor_clean_exit;
+         }
+      }
+      else
+      {
+         PyObject *m = NULL;
+         m=i010->pModule;
+         i010->pModule=PyImport_ReloadModule(m); // on force le rechargement (c'est pour simplifier)
+         Py_DECREF(m);
+         if(!i010->pModule)
+         {
+            ret=-1;
+            goto init_interface_type_010_data_preprocessor_clean_exit;
+         }
+      }
 
-   if(i010->pModule)
-   {
-      PyObject *m;
-      m=i010->pModule;
-      i010->pModule=PyImport_ReloadModule(m); // on force le rechargement (c'est pour simplifier)
-      Py_DECREF(m);
+      if(i010->pFunc)
+      {
+         Py_DECREF(i010->pFunc);
+         i010->pFunc=NULL;
+      }
+
       i010->pFunc = PyObject_GetAttrString(i010->pModule, "mea_dataPreprocessor");
-
-      if(i010->pFunc && PyCallable_Check(i010->pFunc))
+      if(!i010->pFunc)
+      {
+         ret=-1;
+         goto init_interface_type_010_data_preprocessor_clean_exit;
+      }
+      
+      if(PyCallable_Check(i010->pFunc))
       {
          if(plugin_parameters)
             i010->pParams=PyString_FromString(plugin_parameters);
@@ -329,21 +353,23 @@ int init_interface_type_010_data_preprocessor(interface_type_010_t *i010, char *
       else
       {
          VERBOSE(5) mea_log_printf("%s (%s) : no mea_dataPreprocessor entry point\n", ERROR_STR, __func__);
-         if(i010->pFunc)
-         {
-            Py_XDECREF(i010->pFunc);
-            i010->pFunc=NULL;
-         }
+
+         Py_XDECREF(i010->pFunc);
+         i010->pFunc=NULL;
+
          Py_XDECREF(i010->pModule);
          i010->pModule=NULL;
 
          ret = -1;
       }
    }
-   else
-      ret = -1;
+
+init_interface_type_010_data_preprocessor_clean_exit:
+   if(pName)
+   {
+      Py_XDECREF(pName);
+      pName=NULL;      
    }
-   
    mea_python_unlock();
 
    return ret;
