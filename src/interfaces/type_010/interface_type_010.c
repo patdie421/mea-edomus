@@ -1222,7 +1222,7 @@ interface_type_010_t *malloc_and_init_interface_type_010(sqlite3 *sqlite3_param_
 
    i010->thread=NULL;
    i010->xPL_callback2=NULL;
-//   i010->xPL_callback_data=NULL;
+   i010->xPL_callback_data=NULL;
    i010->monitoring_id=process_register((char *)name);
 
    i010_start_stop_params->sqlite3_param_db = sqlite3_param_db;
