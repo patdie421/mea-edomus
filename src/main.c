@@ -1012,7 +1012,6 @@ int main(int argc, const char * argv[])
       VERBOSE(1) mea_log_printf("%s (%s) : can't start xpl server\n",ERROR_STR,__func__);
       clean_all_and_exit();
    }
-   sleep(1);
 
    //
    // automatorServer
