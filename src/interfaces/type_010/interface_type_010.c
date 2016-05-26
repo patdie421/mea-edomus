@@ -312,11 +312,22 @@ int init_interface_type_010_data_preprocessor(interface_type_010_t *i010, char *
 
    if(i010->pModule)
    {
-      PyObject *m;
+      PyObject *m = NULL;
       m=i010->pModule;
       i010->pModule=PyImport_ReloadModule(m); // on force le rechargement (c'est pour simplifier)
-      Py_DECREF(m);
-      i010->pFunc = PyObject_GetAttrString(i010->pModule, "mea_dataPreprocessor");
+      if(i010->pModule)
+      {
+         PyObject *f = NULL;
+         f = i010->pFunc;
+         i010->pFunc = PyObject_GetAttrString(i010->pModule, "mea_dataPreprocessor");
+         if(i010->pFunc)
+            Py_DECREF(f);
+         else
+            i010->pFunc = f;
+         Py_DECREF(m);
+      }
+      else
+         i010->pModule=m;
 
       if(i010->pFunc && PyCallable_Check(i010->pFunc))
       {
