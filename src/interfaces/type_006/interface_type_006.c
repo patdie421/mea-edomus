@@ -375,7 +375,7 @@ void *_thread_interface_type_006_genericserial_data_cleanup(void *args)
 }
 
 
-int init_interface_type_006_data_preprocessor(interface_type_010_t *i006, char *plugin_name, char *plugin_parameters)
+int init_interface_type_006_data_preprocessor(interface_type_006_t *i006, char *plugin_name, char *plugin_parameters)
 {
    int ret = -1;
 
@@ -389,10 +389,10 @@ int init_interface_type_006_data_preprocessor(interface_type_010_t *i006, char *
    }
    else
    {
-      if(!i010->pModule)
+      if(!i006->pModule)
       {
-         i010->pModule =  PyImport_Import(pName);
-         if(!i010->pModule)
+         i006->pModule =  PyImport_Import(pName);
+         if(!i006->pModule)
          {
             ret=-1;
             goto init_interface_type_006_data_preprocessor_clean_exit;
@@ -401,10 +401,10 @@ int init_interface_type_006_data_preprocessor(interface_type_010_t *i006, char *
       else
       {
          PyObject *m = NULL;
-         m=i010->pModule;
-         i010->pModule=PyImport_ReloadModule(m); // on force le rechargement (c'est pour simplifier)
+         m=i006->pModule;
+         i006->pModule=PyImport_ReloadModule(m); // on force le rechargement (c'est pour simplifier)
          Py_DECREF(m);
-         if(!i010->pModule)
+         if(!i006->pModule)
          {
             ret=-1;
             goto init_interface_type_006_data_preprocessor_clean_exit;
@@ -414,7 +414,7 @@ int init_interface_type_006_data_preprocessor(interface_type_010_t *i006, char *
       if(i006->pFunc)
       {
          Py_DECREF(i006->pFunc);
-         i010->pFunc=NULL;
+         i006->pFunc=NULL;
       }
 
       i006->pFunc = PyObject_GetAttrString(i006->pModule, "mea_dataPreprocessor");
@@ -437,7 +437,7 @@ int init_interface_type_006_data_preprocessor(interface_type_010_t *i006, char *
          VERBOSE(5) mea_log_printf("%s (%s) : no mea_dataPreprocessor entry point\n", ERROR_STR, __func__);
 
          Py_XDECREF(i006->pFunc);
-         i010->pFunc=NULL;
+         i006->pFunc=NULL;
 
          Py_XDECREF(i006->pModule);
          i006->pModule=NULL;
@@ -674,7 +674,7 @@ pthread_t *start_interface_type_006_genericserial_data_thread(interface_type_006
    {
       init_interface_type_006_data_preprocessor(params->i006,
                                                 interface_parameters->parameters[GENERICSERIAL_PLUGIN_PARAMS_PLUGIN].value.s,
-                                                interface_parameters->parameters[GENERICSERIAL_PLUGIN_PARAMS_PARAMETERS].value.s):
+                                                interface_parameters->parameters[GENERICSERIAL_PLUGIN_PARAMS_PARAMETERS].value.s);
 /*      
       pName = PyString_FromString(interface_parameters->parameters[GENERICSERIAL_PLUGIN_PARAMS_PLUGIN].value.s);
       pModule =  PyImport_Import(pName);
