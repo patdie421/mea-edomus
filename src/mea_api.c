@@ -32,14 +32,14 @@ static PyObject *mea_sendAtCmdAndWaitResp(PyObject *self, PyObject *args);
 static PyObject *mea_sendAtCmd(PyObject *self, PyObject *args);
 //static PyObject *mea_sendEnoceanPacketAndWaitResp(PyObject *self, PyObject *args);
 //static PyObject *mea_enoceanCRC(PyObject *self, PyObject *args);
-static PyObject *mea_sendEnoceanRadioErp1Packet(PyObject *self, PyObject *args);
-static PyObject *mea_xplGetVendorID();
-static PyObject *mea_xplGetDeviceID();
-static PyObject *mea_xplGetInstanceID();
+//static PyObject *mea_sendEnoceanRadioErp1Packet(PyObject *self, PyObject *args);
+//static PyObject *mea_xplGetVendorID();
+//static PyObject *mea_xplGetDeviceID();
+//static PyObject *mea_xplGetInstanceID();
 static PyObject *mea_xplSendMsg2(PyObject *self, PyObject *args);
 static PyObject *mea_addDataToSensorsValuesTable(PyObject *self, PyObject *args);
-static PyObject *mea_write(PyObject *self, PyObject *args);
-static PyObject *mea_read(PyObject *self, PyObject *args);
+//static PyObject *mea_write(PyObject *self, PyObject *args);
+//static PyObject *mea_read(PyObject *self, PyObject *args);
 static PyObject *mea_interface_api(PyObject *self, PyObject *args);
 
 
@@ -832,7 +832,7 @@ mea_addDataToSensorsValuesTable_arg_err:
    return NULL;
 }
 
-
+/*
 static PyObject *mea_read(PyObject *self, PyObject *args)
 {
    PyObject *arg;
@@ -933,4 +933,4 @@ mea_write_arg_err:
    PyErr_BadArgument();
    return NULL;
 }
-
+*/
