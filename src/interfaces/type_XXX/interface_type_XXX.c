@@ -43,7 +43,6 @@ char *interface_type_XXX_xplin_str="XPLIN";
 
 struct callback_xpl_data_s
 {
-   sqlite3        *param_db;
 };
 
 
