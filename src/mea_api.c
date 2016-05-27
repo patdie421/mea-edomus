@@ -48,13 +48,13 @@ static PyMethodDef MeaMethods[] = {
    {"sendXbeeCmdAndWaitResp",       mea_sendAtCmdAndWaitResp,         METH_VARARGS, "Envoie d'une commande AT et recupere la reponse"},
    {"sendXbeeCmd",                  mea_sendAtCmd,                    METH_VARARGS, "Envoie d'une commande AT sans attendre de reponse"},
 //   {"sendEnoceanRadioErp1Packet",   mea_sendEnoceanRadioErp1Packet,   METH_VARARGS, "Envoie un message ERP1"},
-   {"xplGetVendorID",               mea_xplGetVendorID,               METH_VARARGS, "VendorID"},
-   {"xplGetDeviceID",               mea_xplGetDeviceID,               METH_VARARGS, "DeviceID"},
-   {"xplGetInstanceID",             mea_xplGetInstanceID,             METH_VARARGS, "InstanceID"},
+//   {"xplGetVendorID",               mea_xplGetVendorID,               METH_VARARGS, "VendorID"},
+//   {"xplGetDeviceID",               mea_xplGetDeviceID,               METH_VARARGS, "DeviceID"},
+//   {"xplGetInstanceID",             mea_xplGetInstanceID,             METH_VARARGS, "InstanceID"},
    {"xplSendMsg",                   mea_xplSendMsg2,                  METH_VARARGS, "Envoie un message XPL"},
    {"addDataToSensorsValuesTable",  mea_addDataToSensorsValuesTable,  METH_VARARGS, "Envoi des donnees dans la table sensors_values"},
-   {"sendSerialData",               mea_write,                        METH_VARARGS, "Envoi des donnees vers une ligne serie"},
-   {"receiveSerialData",            mea_read,                         METH_VARARGS, "recupere des donnees depuis une ligne serie"},
+//   {"sendSerialData",               mea_write,                        METH_VARARGS, "Envoi des donnees vers une ligne serie"},
+//   {"receiveSerialData",            mea_read,                         METH_VARARGS, "recupere des donnees depuis une ligne serie"},
    {"interfaceAPI",                 mea_interface_api,                METH_VARARGS, "appel api d'interface"},
    {NULL, NULL, 0, NULL}
 };
@@ -377,7 +377,7 @@ mea_sendEnoceanPacketAndWaitResp_arg_err:
 }
 */
 
-
+/*
 static PyObject *mea_xplGetVendorID()
 {
    return PyString_FromString(mea_getXPLVendorID());
@@ -394,7 +394,7 @@ static PyObject *mea_xplGetInstanceID()
 {
    return PyString_FromString(mea_getXPLInstanceID());
 }
-
+*/
 
 static PyObject *mea_xplSendMsg2(PyObject *self, PyObject *args)
 {
