@@ -140,13 +140,13 @@ int16_t _interface_type_010_xPL_callback2(cJSON *xplMsgJson, struct device_info_
          PyThreadState_Swap(tempState);
          PyEval_ReleaseLock();
          pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
-         
-         pythonPluginServer_add_cmd(plugin_params->parameters[PLUGIN_PARAMS_PLUGIN].value.s, (void *)plugin_qelem, sizeof(plugin_queue_elem_t));
-
-         i010->indicators.senttoplugin++;
-         free(plugin_qelem);
-         plugin_qelem=NULL;
       }
+      
+      pythonPluginServer_add_cmd(plugin_params->parameters[PLUGIN_PARAMS_PLUGIN].value.s, (void *)plugin_qelem, sizeof(plugin_queue_elem_t));
+
+      i010->indicators.senttoplugin++;
+      free(plugin_qelem);
+      plugin_qelem=NULL;
    }
 
    release_parsed_parameters(&plugin_params);
