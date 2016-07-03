@@ -702,7 +702,7 @@ int16_t mea_eval_calc_numeric(char *str, double *r)
 {
    char *p;
    int16_t err;
-   double d;
+   double d = 0.0;
 
    int32_t stack_ptr=0;
 
@@ -824,7 +824,7 @@ void mea_eval_clean_stack_cache()
 
 int mea_eval_calc_numeric_by_cache(char *expr, double *d)
 {
-   char *p;
+   char *p = NULL;
    int16_t err=0;
 
    int stack_ptr=0;

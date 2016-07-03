@@ -121,6 +121,8 @@ static int16_t _interface_type_005_send_xPL_sensor_basic2(interface_type_005_t *
    (i005->indicators.xplout)++;
 
    cJSON_Delete(xplMsgJson);
+   
+   return 0;
 }
 
 
@@ -458,7 +460,7 @@ int16_t interface_type_005_xPL_sensor2(interface_type_005_t *i005,
 //int16_t interface_type_005_xPL_callback2(cJSON *xplMsgJson, xPL_ObjectPtr userValue)
 int16_t interface_type_005_xPL_callback2(cJSON *xplMsgJson, struct device_info_s *device_info, void *userValue)
 {
-   char *schema = NULL, *device = NULL, *type = NULL;
+   char *schema = NULL, *device = NULL; //, *type = NULL;
    cJSON *j;
 
    interface_type_005_t *i005=(interface_type_005_t *)userValue;

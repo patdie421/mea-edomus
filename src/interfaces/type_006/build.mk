@@ -43,9 +43,9 @@ ifeq ($(TECHNO), macosx)
    CFLAGS      = -std=c99 \
                  -O2 \
                  -DTECHNO_$(TECHNO) \
-                 -IxPLLib-mac \
                  -I/usr/local/mysql/include \
                  -I/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7 \
+                 -I$(BASEDIR)/src \
                  $(DEBUGFLAGS) \
                  $(MACOSX_ASPLUGIN_CFLAGS)
    LDFLAGS     = $(MACOSX_ASPLUGIN_LDFLAGS)

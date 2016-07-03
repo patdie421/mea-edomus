@@ -118,8 +118,8 @@ void _enocean_data_free_queue_elem(void *d)
 
 int16_t _interface_type_003_xPL_callback2(cJSON *xplMsgJson, struct device_info_s *device_info, void *userValue)
 {
-   char *device = NULL;
-   int ret = -1;
+//   char *device = NULL;
+//   int ret = -1;
    int err =0;
 
    interface_type_003_t *i003=(interface_type_003_t *)userValue;
@@ -695,7 +695,7 @@ int get_interface_id_interface_type_003(void *ixxx)
 int api_sendEnoceanRadioErp1Packet(interface_type_003_t *i003, PyObject *args, PyObject **res, int16_t *nerr, char *err, int l_err)
 {
    PyObject *arg;
-   enocean_ed_t *ed;
+//   enocean_ed_t *ed;
    int16_t ret;
 
    *nerr=255;
@@ -762,7 +762,8 @@ int16_t api_interface_type_003(void *ixxx, char *cmnd, void *args, int nb_args, 
 
    if(strcmp(cmnd, "sendEnoceanRadioErp1Packet") == 0)
    {
-      int ret=api_sendEnoceanRadioErp1Packet(i003, pyArgs, pyRes, nerr, err, l_err);
+//      int ret=api_sendEnoceanRadioErp1Packet(i003, pyArgs, pyRes, nerr, err, l_err);
+      api_sendEnoceanRadioErp1Packet(i003, pyArgs, pyRes, nerr, err, l_err);
    }
 #ifdef DEBUG
    else if(strcmp(cmnd, "test") == 0)

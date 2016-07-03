@@ -10,7 +10,7 @@
 #include <sqlite3.h>
 
 #include "cJSON.h"
-#include "xPL.h"
+//#include "xPL.h"
 #include "interfacesServer.h"
 
 #include "mea_verbose.h"
@@ -366,7 +366,7 @@ PyObject *mea_xplMsgToPyDict2(cJSON *xplMsgJson)
    PyObject *pyXplMsg = NULL;
    PyObject *s = NULL;
    PyObject *l = NULL;
-   char tmpStr[35]=""; // chaine temporaire. Taille max pour vendorID(8) + "-"(1) + deviceID(8) + "."(1) + instanceID(16)
+//   char tmpStr[35]=""; // chaine temporaire. Taille max pour vendorID(8) + "-"(1) + deviceID(8) + "."(1) + instanceID(16)
 //   cJSON *j = NULL;
    
    pyXplMsg = PyDict_New();

@@ -1307,7 +1307,7 @@ static int automator_setunknownstate(cJSON *parameters)
 #if DEBUGFLAG_AUTOMATOR > 0
    _automatorServer_fn = (char *)__func__;
 #endif
-   int16_t _updatestate = 1;
+//   int16_t _updatestate = 1;
    struct timespec last_update_time;
    int16_t state = UNKNOWN;
 

@@ -21,7 +21,8 @@ MACOSX_SONAME          =
 LINUX_ASPLUGIN_CFLAGS  =
 LINUX_ASPLUGIN_LDFLAGS =
 MACOSX_ASPLUGIN_CFLAGS =
-MACOSX_ASPLUGIN_LDFLAGS=
+MACOSX_ASPLUGIN_LDFLAGS= -L/System/Library/Frameworks/Python.framework/Versions/2.7/lib -lpython2.7
+
 endif
 
 DEBUGFLAGS  = -D__DEBUG_ON__
@@ -43,9 +44,9 @@ ifeq ($(TECHNO), macosx)
    CFLAGS      = -std=c99 \
                  -O2 \
                  -DTECHNO_$(TECHNO) \
-                 -IxPLLib-mac \
                  -I/usr/local/mysql/include \
                  -I/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7 \
+                 -I$(BASEDIR)/src \
                  $(DEBUGFLAGS) \
                  $(MACOSX_ASPLUGIN_CFLAGS)
    LDFLAGS     = $(MACOSX_ASPLUGIN_LDFLAGS)

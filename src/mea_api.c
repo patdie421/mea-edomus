@@ -145,10 +145,10 @@ static PyObject *mea_interface_api(PyObject *self, PyObject *args)
 {
    PyObject *arg;
 
-   int id_driver=-1;
+//   int id_driver=-1;
    int id_interface=-1;
-   char *data=NULL;
-   int l_data=0;
+//   char *data=NULL;
+//   int l_data=0;
    int nb_args=0;
    // récupération des paramètres et contrôle des types
 
@@ -402,9 +402,9 @@ static PyObject *mea_xplSendMsg2(PyObject *self, PyObject *args)
    PyObject *item;
    PyObject *body;
             
-   char vendor_id[40]="";
-   char device_id[40]="";
-   char instance_id[40]="";
+//   char vendor_id[40]="";
+//   char device_id[40]="";
+//   char instance_id[40]="";
    
    if(PyTuple_Size(args)!=1)
    {
@@ -426,7 +426,7 @@ static PyObject *mea_xplSendMsg2(PyObject *self, PyObject *args)
    // - le type de message xpl (xpl-cmnd, xpl-trig ou xpl-stat)
    // - le schema
    // - les donnees
-   char str[256];
+//   char str[256];
    cJSON *xplMsgJson = cJSON_CreateObject();
  
    // recuperation du type de message

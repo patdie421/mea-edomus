@@ -207,8 +207,8 @@ void set_interface_type_006_isnt_running(void *data)
 
 int16_t _interface_type_006_xPL_callback2(cJSON *xplMsgJson, struct device_info_s *device_info, void *userValue)
 {
-   char *device;
-   int ret;
+   char *device = NULL;
+//   int ret;
    int err;
    cJSON *j = NULL;
  
@@ -897,7 +897,7 @@ int16_t api_interface_type_006(void *ixxx, char *cmnd, void *args, int nb_args, 
    
    if(strcmp(cmnd, "mea_writeData") == 0)
    {
-      int ret=api_write_data(ixxx, pyArgs, pyRes, nerr, err, l_err);
+      int ret=api_write_data((void *)i006, pyArgs, pyRes, nerr, err, l_err);
       if(ret<0)
       {
          strncpy(err, "error", l_err);

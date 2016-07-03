@@ -1270,8 +1270,8 @@ int16_t upgrade_params_db_from_9_to_10(sqlite3 *sqlite3_param_db, struct upgrade
 {
  int ret;
  char *err = NULL;
- char sql[256];
- int16_t n;
+// char sql[256];
+// int16_t n;
 
    VERBOSE(5) mea_log_printf ("%s (%s) : passage de la version 9 à la version 10\n",INFO_STR,__func__);
 

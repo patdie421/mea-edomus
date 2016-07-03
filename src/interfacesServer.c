@@ -174,7 +174,7 @@ int dispatchXPLMessageToInterfaces2(cJSON *xplMsgJson)
             {
                mea_queue_current(_interfaces, (void **)&iq);
 
-               int i=0;
+//               int i=0;
 
                if(iq->context && device_info.interface_id == iq->id)
                {
@@ -214,6 +214,8 @@ int dispatchXPLMessageToInterfaces2(cJSON *xplMsgJson)
    sqlite3_finalize(stmt);
 
    cJSON_Delete(xplMsgJson);
+   
+   return 0;
 }
 
 
@@ -251,6 +253,8 @@ int16_t init_statics_interfaces_fns(struct interfacesServer_interfaceFns_s *ifns
 
    *ifns_nb=i;
    interfacesFns[*ifns_nb].get_type = NULL;
+   
+   return 0;
 }
 
 
@@ -262,6 +266,7 @@ struct plugin_info_s {
 };
 
 struct plugin_info_s *plugins_list = NULL;
+
 
 int init_interfaces_list(sqlite3 * sqlite3_param_db)
 {
@@ -470,7 +475,7 @@ int load_interface(int type, char **params_list)
 int16_t interfacesServer_call_interface_api(int id_interface, char *cmnd, void *args, int nb_args, void **res, int16_t *nerr, char *err, int l_err)
 {
    int ret;
-   void *context = NULL;
+//   void *context = NULL;
    interfaces_queue_elem_t *iq;
    int found=0;
 
@@ -549,7 +554,7 @@ void stop_interfaces()
       {
          mea_queue_out_elem(_interfaces, (void **)&iq);
 
-         int i=0;
+//         int i=0;
          int monitoring_id = iq->fns->get_monitoring_id(iq->context);
 
          if(iq->delegate_flag == 0 && monitoring_id>-1 && process_is_running(monitoring_id))
@@ -668,8 +673,9 @@ mea_queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
    int sortie=0;
    interfaces_queue_elem_t *iq;
 
+#ifdef ASPLUGIN
    init_interfaces_list(sqlite3_param_db);
-
+#endif
 
    pthread_rwlock_init(&interfaces_queue_rwlock, NULL);
 
@@ -774,8 +780,8 @@ mea_queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
                iq->id=id_interface;
                iq->type=id_type;
                iq->delegate_flag=0;
-               strncpy(iq->name, name, sizeof(iq->name));
-               strncpy(iq->dev, dev, sizeof(iq->dev));
+               strncpy(iq->name, (const char *)name, sizeof(iq->name));
+               strncpy(iq->dev, (const char *)dev, sizeof(iq->dev));
                mea_queue_in_elem(_interfaces, iq);
                process_start(monitoring_id, NULL, 0);
             }
@@ -796,8 +802,8 @@ mea_queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
             iq->id=id_interface;
             iq->type=id_type;
             iq->delegate_flag=1;
-            strncpy(iq->name, name, sizeof(iq->name));
-            strncpy(iq->dev, dev, sizeof(iq->dev));
+            strncpy(iq->name, (const char *)name, sizeof(iq->name));
+            strncpy(iq->dev, (const char *)dev, sizeof(iq->dev));
 
             // ajouter dans la liste des déléguées
             mea_queue_in_elem(_interfaces, iq);

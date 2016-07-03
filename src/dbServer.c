@@ -148,6 +148,7 @@ int16_t start_batch(int batch_id)
    pthread_mutex_unlock(&(_md->lock));
    pthread_cleanup_pop(0);
 
+   return 0;
 }
 
 
@@ -518,7 +519,7 @@ uint16_t resync_sensors_mysql_sqlite3_batch()
       return -1;
 
    // sensors_names
-   sprintf(sql_query, "SELECT id, sensor_id FROM sensors_names WHERE collector_id = %u", _md->collector_id);
+   sprintf(sql_query, "SELECT id, sensor_id FROM sensors_names WHERE collector_id = %u", (unsigned int)_md->collector_id);
 
    ret=mysql_query(_md->conn, sql_query);
    if(ret)
@@ -587,7 +588,7 @@ uint16_t resync_locations_mysql_sqlite3_batch()
       return -1;
 
    // sensors_names
-   sprintf(sql_query, "SELECT id, location_id FROM locations WHERE collector_id = %u", _md->collector_id);
+   sprintf(sql_query, "SELECT id, location_id FROM locations WHERE collector_id = %u", (unsigned int)_md->collector_id);
 
    ret=mysql_query(_md->conn, sql_query);
    if(ret)
@@ -691,7 +692,7 @@ int get_keyid_of_location_in_mysql_db(unsigned int location_id)
    if(!_md || !_md->conn)
       return -1;
 
-   sprintf(sql_query, "SELECT id FROM locations WHERE location_id = %d and collector_id = %u", location_id, _md->collector_id);
+   sprintf(sql_query, "SELECT id FROM locations WHERE location_id = %d and collector_id = %u", location_id, (unsigned int)_md->collector_id);
    ret=mysql_query(_md->conn, sql_query);
    if(ret)
    {
@@ -757,7 +758,7 @@ uint16_t sync_mysql_sqlite3_locations_tables(unsigned int location_id)
 {
    int ret;
    char sql_query[255];
-   int id=-1;
+//   int id=-1;
 
    if(!_md || !_md->conn)
       return -1;
@@ -773,7 +774,7 @@ uint16_t sync_mysql_sqlite3_locations_tables(unsigned int location_id)
       }
       else
       {
-         sprintf(sql_query, "INSERT INTO locations (location_id, collector_id, name, description) values (%d, %u, \"%s\", \"%s\")", location_id, _md->collector_id, name, description);
+         sprintf(sql_query, "INSERT INTO locations (location_id, collector_id, name, description) values (%d, %u, \"%s\", \"%s\")", location_id, (unsigned int)_md->collector_id, name, description);
          ret=mysql_query(_md->conn, sql_query);
          if(ret)
          {
@@ -796,7 +797,7 @@ int exist_sensorid_in_mysql_db(unsigned int sensor_id)
    if(!_md || !_md->conn)
       return -1;
 
-   sprintf(sql_query, "SELECT count(sensor_id) FROM sensors_names WHERE sensor_id = %d and collector_id = %u", sensor_id, _md->collector_id);
+   sprintf(sql_query, "SELECT count(sensor_id) FROM sensors_names WHERE sensor_id = %d and collector_id = %u", sensor_id, (unsigned int)_md->collector_id);
    ret=mysql_query(_md->conn, sql_query);
    if(ret)
    {
@@ -826,7 +827,7 @@ uint16_t sync_mysql_sqlite3_sensors_tables(unsigned int sensor_id)
 {
    int ret;
    char sql_query[255];
-   int exist=-1;
+//   int exist=-1;
 
    if(!_md || !_md->conn)
       return -1;
@@ -842,7 +843,7 @@ uint16_t sync_mysql_sqlite3_sensors_tables(unsigned int sensor_id)
       }
       else
       {
-         sprintf(sql_query, "INSERT INTO sensors_names (sensor_id, collector_id, name, description) values (%d, %u, \"%s\", \"%s\")", sensor_id, _md->collector_id, name, description);
+         sprintf(sql_query, "INSERT INTO sensors_names (sensor_id, collector_id, name, description) values (%d, %u, \"%s\", \"%s\")", sensor_id, (unsigned int)_md->collector_id, name, description);
          ret=mysql_query(_md->conn, sql_query);
          if(ret)
          {
@@ -899,7 +900,7 @@ uint16_t build_query_for_sensors_values(char *sql_query, uint16_t l_sql_query, v
               sensor_value->unit, // code unité de mesure (s'applique à la valeur principale)
               sensor_value->value2, // valeur secondaire
               sensor_value->complement,
-              _md->collector_id,
+              (unsigned int)_md->collector_id,
               location_id
 
    );

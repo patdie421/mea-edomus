@@ -749,8 +749,8 @@ int16_t interface_type_001_sensors_poll_inputs2(interface_type_001_t *i001)
                   VERBOSE(9) mea_log_printf("%s (%s) : raw sensor %s = %d\n", INFO_STR, __func__, sensor->name, sensor->val);
                }
                   
-               char str_value[20];
-               char str_last[20];
+//               char str_value[20];
+//               char str_last[20];
                
                if(sensor->todbflag == 1)
                   dbServer_add_data_to_sensors_values(sensor->sensor_id, (double)sensor->computed_val, unit, (double)sensor->val, "");

@@ -206,7 +206,7 @@ valid_and_malloc_counter_clean_exit:
 
 void counter_to_xpl2(interface_type_001_t *i001, struct electricity_counter_s *counter)
 {
-   char value[20];
+//   char value[20];
    char str[256];
 
    cJSON *xplMsgJson = cJSON_CreateObject();

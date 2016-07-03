@@ -419,14 +419,24 @@ static int _netatmo_parse_token_json(char *response, struct netatmo_token_s *tok
     if(e)
     {
        if(e->valuestring)
+       {
           VERBOSE(2) mea_log_printf("%s (%s) : NETATMO error : %s\n", DEBUG_STR, __func__, e->valuestring);
+       }
        else
+       {
           VERBOSE(2) mea_log_printf("%s (%s) : NETATMO error : non message\n", DEBUG_STR, __func__);
+       }
        if(err)
+       {
           if(e->valuestring)
+          {
              strncpy(err, e->valuestring, l_err);
+          }
           else
+          {
              strncpy(err, "non message", l_err);
+          }
+       }
        ret_code=1;
        goto netatmo_parse_token_json_clean_exit;
     }

@@ -436,8 +436,8 @@ gui_api_next:
 
 int gui_restart_automator(struct mg_connection *conn, char *phpsessid, char *_php_sessions_path)
 {
-   const struct mg_request_info *request_info = mg_get_request_info(conn);
-   char errmsg[80];
+//   const struct mg_request_info *request_info = mg_get_request_info(conn);
+//   char errmsg[80];
 
       // on récupère le session_id PHP
    if(!phpsessid[0] || _phpsessid_check_loggedin_and_admin(phpsessid, _php_sessions_path)!=1)
@@ -474,6 +474,8 @@ int gui_restart_automator(struct mg_connection *conn, char *phpsessid, char *_ph
    automator_reload_rules_from_file(getAutomatorRulesFile());
 
    _httpErrno(conn, 0, NULL);
+   
+   return 0;
 }
 
 

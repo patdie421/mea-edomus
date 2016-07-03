@@ -176,7 +176,7 @@ int mea_sendXplMsgJson(cJSON *xplMsgJson)
    if(e==NULL)
       return -1;
 
-   int retour=0;
+//   int retour=0;
 
    char *schema=NULL;
    char *target=NULL;
@@ -601,6 +601,8 @@ int16_t mea_xPLSendMessage2(char *data, int l_data)
    int ret=mea_xPLSendMessage(xpl_sdb, xpl_broadcastAddr, data, l_data);
    if(ret<0)
       process_update_indicator(_xplServer_monitoring_id, xpl_server_senderr_str, ++xplsenderr_indicator);
+   
+   return 0;
 }
 
 

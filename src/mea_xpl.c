@@ -82,8 +82,13 @@ int mea_xPLConnectBroadcast(char *xPLInterfaceName, char *ip, int l_ip, struct s
     close(sockfd);
     return -1;
   }
-  interfaceNetmask.s_addr = ((struct sockaddr_in *) &interfaceInfo.ifr_netmask)->sin_addr.s_addr;
 
+#ifndef __APPLE__
+  interfaceNetmask.s_addr = ((struct sockaddr_in *) &interfaceInfo.ifr_netmask)->sin_addr.s_addr;
+#else
+  interfaceNetmask.s_addr = ((struct sockaddr_in *) &interfaceInfo.ifr_addr)->sin_addr.s_addr;
+  fprintf(stderr,"NETMASK=%x\n", interfaceNetmask.s_addr);
+#endif
   // Build our broadcast addr
   bzero(xPLBroadcastAddr, sizeof(struct sockaddr_in));
   xPLBroadcastAddr->sin_family = AF_INET;

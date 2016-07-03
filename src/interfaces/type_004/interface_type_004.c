@@ -78,13 +78,13 @@ int16_t sendXPLLightState2(interface_type_004_t *i004, char *xplMsgType, char *d
    char *high=get_token_string_by_id(HIGH_ID);
    char *low=get_token_string_by_id(LOW_ID);
    
-   char xplBodyStr[2048]="";
-   int xplBodyStrPtr=0;
-   char source[32];
-   char schema[32];
-   int n=0;
-   char *msgtype=XPL_CMND_STR_C;
-   int l=8;
+//   char xplBodyStr[2048]="";
+//   int xplBodyStrPtr=0;
+//   char source[32];
+//   char schema[32];
+//   int n=0;
+//   char *msgtype=XPL_CMND_STR_C;
+//   int l=8;
  
    if(newState)
       current_state_str = high;
@@ -109,7 +109,7 @@ int16_t sendXPLLightState2(interface_type_004_t *i004, char *xplMsgType, char *d
    else
       reachable_str=FALSE_STR_C;
 
-   cJSON *msg = NULL;
+//   cJSON *msg = NULL;
 
    char str[256];
    cJSON *xplMsgJson = cJSON_CreateObject();

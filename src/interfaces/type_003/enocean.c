@@ -1079,11 +1079,11 @@ int16_t enocean_send_radio_erp1_packet(enocean_ed_t *ed, uint8_t rorg, uint32_t 
    uint16_t l_packet = sizeof(packet);
    uint8_t response[8];
    uint16_t l_response=sizeof(response);
-    
    int16_t return_val=-1;
   
    *nerr=0;
-       
+   
+   memset(response, 0, 8);
    if(_enocean_build_radio_erp1_packet(rorg, source + sub_id, dest, data, l_data, status, packet, &l_packet)<0)
       return -1;
 
