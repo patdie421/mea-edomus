@@ -60,10 +60,9 @@ function change()
    var password2=$("#password2").val();
    var prevpassword=false;
    
-   console.log($('#password').length);
       if( $('#prevpassword').length )
    {
-      prevpassword=$('#prevpassword');
+      prevpassword=$('#prevpassword').val();
       // vérifier ici le mot de passe sur le serveur
    }
    

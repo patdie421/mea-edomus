@@ -283,7 +283,7 @@ int16_t _interface_type_006_xPL_callback2(cJSON *xplMsgJson, struct device_info_
          PyThreadState_Swap(tempState);
          PyEval_ReleaseLock();
          pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
-   } // fin appel des fonctions Python
+      } // fin appel des fonctions Python
 
       pythonPluginServer_add_cmd(plugin_params->parameters[GENERICSERIAL_PLUGIN_PARAMS_PLUGIN].value.s, (void *)plugin_elem, sizeof(plugin_queue_elem_t));
 

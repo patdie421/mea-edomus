@@ -130,9 +130,9 @@ int16_t _interface_type_010_xPL_callback2(cJSON *xplMsgJson, struct device_info_
 
          plugin_qelem->aDict=mea_device_info_to_pydict_device(device_info);
          mea_addLong_to_pydict(plugin_qelem->aDict, "api_key", (long)i010->id_interface);
-         PyObject *dd=mea_xplMsgToPyDict2(xplMsgJson);
-         PyDict_SetItemString(plugin_qelem->aDict, XPLMSG_STR_C, dd);
-         Py_DECREF(dd);
+         PyObject *xplmsg=mea_xplMsgToPyDict2(xplMsgJson);
+         PyDict_SetItemString(plugin_qelem->aDict, XPLMSG_STR_C, xplmsg);
+         Py_DECREF(xplmsg);
 
          if(plugin_params->parameters[PLUGIN_PARAMS_PARAMETERS].value.s)
             mea_addString_to_pydict(plugin_qelem->aDict, DEVICE_PARAMETERS_STR_C, plugin_params->parameters[PLUGIN_PARAMS_PARAMETERS].value.s);
@@ -141,12 +141,13 @@ int16_t _interface_type_010_xPL_callback2(cJSON *xplMsgJson, struct device_info_
          PyEval_ReleaseLock();
          pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
       }
-   }
+      
+      pythonPluginServer_add_cmd(plugin_params->parameters[PLUGIN_PARAMS_PLUGIN].value.s, (void *)plugin_qelem, sizeof(plugin_queue_elem_t));
 
-   pythonPluginServer_add_cmd(plugin_params->parameters[PLUGIN_PARAMS_PLUGIN].value.s, (void *)plugin_qelem, sizeof(plugin_queue_elem_t));
-   i010->indicators.senttoplugin++;
-   free(plugin_qelem);
-   plugin_qelem=NULL;
+      i010->indicators.senttoplugin++;
+      free(plugin_qelem);
+      plugin_qelem=NULL;
+   }
 
    release_parsed_parameters(&plugin_params);
    plugin_params=NULL;
