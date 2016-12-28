@@ -360,7 +360,7 @@ int16_t _interface_type_002_xPL_callback2(cJSON *xplMsgJson, struct device_info_
    
 //   sprintf(sql,"%s WHERE sensors_actuators.deleted_flag <> 1 AND lower(sensors_actuators.name)='%s' AND sensors_actuators.state='1';", sql_select_device_info, device);
    sprintf(sql,"%s WHERE sensors_actuators.deleted_flag <> 1 AND lower(sensors_actuators.name)='%s' AND sensors_actuators.state='1' AND lower(interfaces.dev) LIKE \'%s://%%';", sql_select_device_info, device, interface->name);
-   ret = sqlite3_prepare_v2(params_db, sql, strlen(sql)+1, &stmt, NULL);
+   ret = sqlite3_prepare_v2(params_db, sql, (int)(strlen(sql)+1), &stmt, NULL);
    if(ret)
    {
       VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (params_db));
@@ -498,7 +498,7 @@ mea_error_t _interface_type_002_commissionning_callback(int id, unsigned char *c
 //   sprintf(sql,"%s WHERE sensors_actuators.deleted_flag <> 1 AND interfaces.dev ='MESH://%s' AND interfaces.state='2';", sql_select_interface_info, addr);
    sprintf(sql,"%s WHERE sensors_actuators.deleted_flag <> 1 AND lower(interfaces.dev) ='%s://%s' AND interfaces.state='2';", sql_select_interface_info, callback_commissionning->i002->name, addr);
    
-   int ret = sqlite3_prepare_v2(params_db,sql,strlen(sql)+1,&stmt,NULL);
+   int ret = sqlite3_prepare_v2(params_db,sql,(int)(strlen(sql)+1),&stmt,NULL);
    if(ret)
    {
       VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (params_db));
@@ -719,7 +719,7 @@ void *_thread_interface_type_002_xbeedata(void *args)
          
 //         sprintf(sql,"%s WHERE interfaces.dev ='MESH://%s' AND sensors_actuators.deleted_flag <> 1 AND sensors_actuators.state='1';", sql_select_device_info, addr);
          sprintf(sql,"%s WHERE lower(interfaces.dev)=lower('%s://%s') AND sensors_actuators.deleted_flag <> 1 AND sensors_actuators.state='1';", sql_select_device_info, params->i002->name, addr);
-         ret = sqlite3_prepare_v2(params_db,sql,strlen(sql)+1,&(params->stmt),NULL);
+         ret = sqlite3_prepare_v2(params_db,sql,(int)(strlen(sql)+1),&(params->stmt),NULL);
          if(ret)
          {
             VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (params_db));
@@ -1345,7 +1345,7 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
       goto clean_exit;
    }
    
-   fd=xbee_init(xd, dev, speed);
+   fd=xbee_init(xd, dev, (int)speed);
    if (fd == -1)
    {
       strerror_r(errno, err_str, sizeof(err_str));

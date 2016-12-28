@@ -247,7 +247,7 @@ static int _data_type_from_json_to_flags(cJSON *data_type)
       return -1;
 }
 
-
+/*
 static void print_netatmo_data(struct netatmo_data_s *data)
 {
    int flag=1;
@@ -261,7 +261,7 @@ static void print_netatmo_data(struct netatmo_data_s *data)
       flag=flag << 1;
    }
 }
-
+*/
 
 static int _netatmo_get_data_from_dashboard_json(cJSON *dashboard, int dataTypeFlags, struct netatmo_data_s *data)
 {

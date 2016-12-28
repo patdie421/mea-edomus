@@ -176,7 +176,7 @@ int mea_socket_send(int *s, char *message, int l_message)
    pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&mea_socket_send_lock );
    pthread_mutex_lock(&mea_socket_send_lock);
    
-   ret=send(*s, message, l_message, 0);
+   ret=(int)send(*s, message, l_message, 0);
 
    pthread_mutex_unlock(&mea_socket_send_lock);
    pthread_cleanup_pop(0);
@@ -323,7 +323,7 @@ char *httpRequest(uint8_t type, char *server, int port, char *url, char *data, u
       goto httpRequest_clean_exit;
    }
    
-   int ret=send(sockfd, requete, strlen(requete), 0);
+   int ret=(int)send(sockfd, requete, strlen(requete), 0);
    if(ret < 0)
    {
       *nerr = HTTPREQUEST_ERR_SEND;
@@ -342,7 +342,7 @@ char *httpRequest(uint8_t type, char *server, int port, char *url, char *data, u
    
    if(type==HTTP_PUT || type==HTTP_POST)
    {
-      int ret=send(sockfd, data, l_data, 0);
+      int ret=(int)send(sockfd, data, l_data, 0);
       if(ret < 0)
       {
          *nerr = HTTPREQUEST_ERR_SEND;
@@ -370,7 +370,7 @@ char *httpRequest(uint8_t type, char *server, int port, char *url, char *data, u
       s = select(sockfd+1, &input_set, NULL, NULL, &timeout); // avec select pour le timeout
       if (s > 0)
       {
-         n=recv(sockfd, ptr, l, 0);
+         n=(int)recv(sockfd, ptr, l, 0);
          if(n == -1)
          {
             DEBUG_SECTION {
@@ -410,7 +410,7 @@ char *httpRequest(uint8_t type, char *server, int port, char *url, char *data, u
    if(!l_response)
    {
       char tmpbuff[1];
-      n=recv(sockfd, tmpbuff, sizeof(tmpbuff), MSG_PEEK | MSG_DONTWAIT); // on verifie que le buffer est vide
+      n=(int)recv(sockfd, tmpbuff, sizeof(tmpbuff), MSG_PEEK | MSG_DONTWAIT); // on verifie que le buffer est vide
       if(n) // on peut encore lire un caractère, le buffer n'est pas vide ... on a pas assez de place pour tout lire !
       {
          *nerr = HTTPREQUEST_ERR_OVERFLOW;

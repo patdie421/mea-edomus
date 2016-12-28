@@ -422,7 +422,7 @@ int interface_type_010_data_preprocessor(interface_type_010_t *i010)
                {
                   if(py_packet.len >= i010->line_buffer_l)
                   {
-                     int n=((py_packet.len / INC_LINE_BUFFER_SIZE) + 1) * INC_LINE_BUFFER_SIZE;
+                     int n=(int)(((py_packet.len / INC_LINE_BUFFER_SIZE) + 1) * INC_LINE_BUFFER_SIZE);
                      char *tmp = realloc(i010->line_buffer, n);
                      if(!tmp)
                      {
@@ -439,7 +439,7 @@ int interface_type_010_data_preprocessor(interface_type_010_t *i010)
                   }
 
                   memcpy(i010->line_buffer,py_packet.buf,py_packet.len);
-                  i010->line_buffer_ptr=py_packet.len;
+                  i010->line_buffer_ptr=(int)(py_packet.len);
 
                   retour = 1;
 
@@ -514,6 +514,8 @@ static int _interface_type_010_data_to_plugin(interface_type_010_t *i010, sqlite
 
    free(plugin_elem);
    plugin_elem=NULL;
+   
+   return 0;
 }
 
 
@@ -540,7 +542,7 @@ static int interface_type_010_data_to_plugin(interface_type_010_t *i010, sqlite3
                     "AND sensors_actuators.id_interface='%d';",
            sql_select_device_info, i010->id_interface);
 
-   ret = sqlite3_prepare_v2(params_db, sql, strlen(sql)+1, &stmt, NULL);
+   ret = sqlite3_prepare_v2(params_db, sql, (int)(strlen(sql)+1), &stmt, NULL);
    if(ret)
    {
       VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (params_db));
@@ -591,7 +593,7 @@ int haveFrameStartStr(interface_type_010_t *i010)
 {
    if(!i010->fstartstr || !i010->fstartstr[0])
       return -1;
-   int l=strlen(i010->fstartstr);
+   int l=(int)strlen(i010->fstartstr);
    char *s=&(i010->line_buffer[i010->line_buffer_ptr-l]);
    if(strncmp(s, i010->fstartstr, l) == 0)
       return 0;
@@ -605,7 +607,7 @@ int haveFrameEndStr(interface_type_010_t *i010)
    if(!i010->fendstr || !i010->fendstr[0])
       return -1;
 
-   int l=strlen(i010->fendstr);
+   int l=(int)strlen(i010->fendstr);
    char *s=&(i010->line_buffer[i010->line_buffer_ptr-l]);
    if(strncmp(s, i010->fendstr, l) == 0)
       return l;
@@ -675,7 +677,7 @@ static int process_interface_type_010_data(interface_type_010_t *i010, sqlite3 *
       {
          char c;
 
-         int r=read(i010->file_desc_in, &c, 1);
+         int r=(int)read(i010->file_desc_in, &c, 1);
          if(r<1)
          {
             if(r<0)
@@ -746,6 +748,8 @@ static int process_interface_type_010_data(interface_type_010_t *i010, sqlite3 *
       }
    }
    while(ret);
+   
+   return 0;
 }
 
 
@@ -925,7 +929,7 @@ int get_interface_id_interface_type_010(void *ixxx)
 }
 
 
-int api_write_data(interface_type_010_t *ixxx, PyObject *args, PyObject **res, int16_t *nerr, char *err, int l_err)
+static int api_write_data(interface_type_010_t *ixxx, PyObject *args, PyObject **res, int16_t *nerr, char *err, int l_err)
 {
    if(ixxx->file_desc_out == -1)
    {
@@ -1158,7 +1162,7 @@ interface_type_010_t *malloc_and_init_interface_type_010(sqlite3 *sqlite3_param_
 
       if(interface_params->parameters[INTERFACE_PARAMS_FSTARTSTR].label)
       {
-         int l=strlen(interface_params->parameters[INTERFACE_PARAMS_FSTARTSTR].value.s);
+         int l=(int)strlen(interface_params->parameters[INTERFACE_PARAMS_FSTARTSTR].value.s);
          if(l>0)
          {
             i010->fstartstr=malloc(l+1);
@@ -1172,7 +1176,7 @@ interface_type_010_t *malloc_and_init_interface_type_010(sqlite3 *sqlite3_param_
 
       if(interface_params->parameters[INTERFACE_PARAMS_FENDSTR].label)
       {
-         int l=strlen(interface_params->parameters[INTERFACE_PARAMS_FENDSTR].value.s);
+         int l=(int)strlen(interface_params->parameters[INTERFACE_PARAMS_FENDSTR].value.s);
          if(l>0)
          {
             i010->fendstr=malloc(l+1);

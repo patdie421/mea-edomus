@@ -233,7 +233,7 @@ int16_t read_all_application_parameters(sqlite3 *sqlite3_param_db)
    sqlite3_stmt * stmt;
    
    char *sql="SELECT * FROM application_parameters";
-   int ret = sqlite3_prepare_v2(sqlite3_param_db,sql,strlen(sql)+1,&stmt,NULL); // sqlite function need int
+   int ret = sqlite3_prepare_v2(sqlite3_param_db,sql,(int)(strlen(sql)+1),&stmt,NULL); // sqlite function need int
    if(ret)
    {
       VERBOSE(2) fprintf (MEA_STDERR, "%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));

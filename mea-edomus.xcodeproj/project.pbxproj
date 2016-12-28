@@ -141,6 +141,15 @@
 		4E7A0B151AB7684D00ABF5ED /* python_utils.c in Sources */ = {isa = PBXBuildFile; fileRef = 4EFBFCCB175E8BDC007BBFD1 /* python_utils.c */; };
 		4E7A0B161AB7685000ABF5ED /* sqlite3db_utils.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E8787E51816732800A87FF0 /* sqlite3db_utils.c */; };
 		4E7A0B181AB7686300ABF5ED /* processManager.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E798FF819D4871400F87593 /* processManager.c */; };
+		4E8122B01E13E2AA009A6C2B /* interface_type_010.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E8122AD1E13E2AA009A6C2B /* interface_type_010.c */; };
+		4E8122B11E13E2AA009A6C2B /* plugin.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E8122AF1E13E2AA009A6C2B /* plugin.c */; };
+		4E8122B71E13E308009A6C2B /* interface_type_XXX.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E8122B41E13E308009A6C2B /* interface_type_XXX.c */; };
+		4E8122B81E13E308009A6C2B /* plugin.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E8122B61E13E308009A6C2B /* plugin.c */; };
+		4E8122BC1E13E38C009A6C2B /* plugin.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E8122BA1E13E38C009A6C2B /* plugin.c */; };
+		4E8122BF1E13E3A8009A6C2B /* plugin.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E8122BD1E13E3A8009A6C2B /* plugin.c */; };
+		4E8122C21E13E3CC009A6C2B /* plugin.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E8122C01E13E3CC009A6C2B /* plugin.c */; };
+		4E8122C51E13E3E7009A6C2B /* plugin.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E8122C31E13E3E7009A6C2B /* plugin.c */; };
+		4E8122C81E13E3FE009A6C2B /* plugin.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E8122C61E13E3FE009A6C2B /* plugin.c */; };
 		4E83D2B51BF12A81009FF74F /* mea_queue.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E83D2A91BF12A81009FF74F /* mea_queue.c */; };
 		4E83D2B61BF12A81009FF74F /* mea_queue.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E83D2A91BF12A81009FF74F /* mea_queue.c */; };
 		4E83D2B71BF12A81009FF74F /* mea_queue.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E83D2A91BF12A81009FF74F /* mea_queue.c */; };
@@ -1316,7 +1325,6 @@
 		4E1A179A1C765D2400B67DDE /* datagrid-scrollview.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "datagrid-scrollview.js"; sourceTree = "<group>"; };
 		4E1A179B1C765D2400B67DDE /* datagrid-scrollview2.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "datagrid-scrollview2.html"; sourceTree = "<group>"; };
 		4E1A179C1C765D2400B67DDE /* datagrid_data.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = datagrid_data.json; sourceTree = "<group>"; };
-		4E1A179E1C765D2400B67DDE /* class.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = class.js; sourceTree = "<group>"; };
 		4E1A17A01C765D2400B67DDE /* mea-translation.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "mea-translation.js"; sourceTree = "<group>"; };
 		4E1A17A11C765D2400B67DDE /* fsselector.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = fsselector.js; sourceTree = "<group>"; };
 		4E1A17A21C765D2400B67DDE /* logo-mea-eDomus.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "logo-mea-eDomus.png"; sourceTree = "<group>"; };
@@ -1369,7 +1377,6 @@
 		4E1A1A191C765D8A00B67DDE /* mapeditor-view.php */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.php; path = "mapeditor-view.php"; sourceTree = "<group>"; };
 		4E1A1A1A1C765D8A00B67DDE /* ruleseditor-view.php */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.php; path = "ruleseditor-view.php"; sourceTree = "<group>"; };
 		4E1A1A1B1C765D8A00B67DDE /* rulesmanager-view.php */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.php; path = "rulesmanager-view.php"; sourceTree = "<group>"; };
-		4E1A1A1C1C765D8A00B67DDE /* test-view.php */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.php; path = "test-view.php"; sourceTree = "<group>"; };
 		4E1A1A1D1C765DA200B67DDE /* maps.php */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.php; name = maps.php; path = gui/maps.php; sourceTree = "<group>"; };
 		4E1A1A1E1C765DA200B67DDE /* page4.php */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.php; name = page4.php; path = gui/page4.php; sourceTree = "<group>"; };
 		4E1A1A1F1C765DC800B67DDE /* map-ctrl.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "map-ctrl.js"; sourceTree = "<group>"; };
@@ -1389,7 +1396,6 @@
 		4E1A1A2E1C765F0700B67DDE /* meawidget.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = meawidget.js; sourceTree = "<group>"; };
 		4E1A1A2F1C765F0700B67DDE /* meawidget_box.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = meawidget_box.js; sourceTree = "<group>"; };
 		4E1A1A301C765F0700B67DDE /* meawidget_button.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = meawidget_button.js; sourceTree = "<group>"; };
-		4E1A1A311C765F0700B67DDE /* meawidget_lampe.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = meawidget_lampe.js; sourceTree = "<group>"; };
 		4E1A1A321C765F0700B67DDE /* meawidget_pastille.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = meawidget_pastille.js; sourceTree = "<group>"; };
 		4E1A1A331C765F0700B67DDE /* meawidget_slider.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = meawidget_slider.js; sourceTree = "<group>"; };
 		4E1A1A341C765F0700B67DDE /* meawidget_value.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = meawidget_value.js; sourceTree = "<group>"; };
@@ -2208,6 +2214,52 @@
 		4E7A0AA51AB74D3C00ABF5ED /* commands.mk */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = commands.mk; path = commands/commands.mk; sourceTree = "<group>"; };
 		4E7A0AA61AB74D8600ABF5ED /* utilslib.mk */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = utilslib.mk; path = src/utilslib.mk; sourceTree = "<group>"; };
 		4E7A0B0A1AB766FB00ABF5ED /* mea-automator */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "mea-automator"; sourceTree = BUILT_PRODUCTS_DIR; };
+		4E8122AC1E13E2AA009A6C2B /* build.mk */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = build.mk; sourceTree = "<group>"; };
+		4E8122AD1E13E2AA009A6C2B /* interface_type_010.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = interface_type_010.c; sourceTree = "<group>"; };
+		4E8122AE1E13E2AA009A6C2B /* interface_type_010.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = interface_type_010.h; sourceTree = "<group>"; };
+		4E8122AF1E13E2AA009A6C2B /* plugin.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = plugin.c; sourceTree = "<group>"; };
+		4E8122B31E13E308009A6C2B /* build.mk */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = build.mk; sourceTree = "<group>"; };
+		4E8122B41E13E308009A6C2B /* interface_type_XXX.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = interface_type_XXX.c; sourceTree = "<group>"; };
+		4E8122B51E13E308009A6C2B /* interface_type_XXX.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = interface_type_XXX.h; sourceTree = "<group>"; };
+		4E8122B61E13E308009A6C2B /* plugin.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = plugin.c; sourceTree = "<group>"; };
+		4E8122B91E13E364009A6C2B /* build.mk */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = build.mk; path = src/interfaces/type_001/build.mk; sourceTree = "<group>"; };
+		4E8122BA1E13E38C009A6C2B /* plugin.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = plugin.c; path = src/interfaces/type_002/plugin.c; sourceTree = "<group>"; };
+		4E8122BB1E13E38C009A6C2B /* build.mk */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = build.mk; path = src/interfaces/type_002/build.mk; sourceTree = "<group>"; };
+		4E8122BD1E13E3A8009A6C2B /* plugin.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = plugin.c; path = src/interfaces/type_003/plugin.c; sourceTree = "<group>"; };
+		4E8122BE1E13E3A8009A6C2B /* build.mk */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = build.mk; path = src/interfaces/type_003/build.mk; sourceTree = "<group>"; };
+		4E8122C01E13E3CC009A6C2B /* plugin.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = plugin.c; path = src/interfaces/type_004/plugin.c; sourceTree = "<group>"; };
+		4E8122C11E13E3CC009A6C2B /* build.mk */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = build.mk; path = src/interfaces/type_004/build.mk; sourceTree = "<group>"; };
+		4E8122C31E13E3E7009A6C2B /* plugin.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = plugin.c; path = src/interfaces/type_005/plugin.c; sourceTree = "<group>"; };
+		4E8122C41E13E3E7009A6C2B /* build.mk */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = build.mk; path = src/interfaces/type_005/build.mk; sourceTree = "<group>"; };
+		4E8122C61E13E3FE009A6C2B /* plugin.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = plugin.c; path = src/interfaces/type_006/plugin.c; sourceTree = "<group>"; };
+		4E8122C71E13E3FE009A6C2B /* build.mk */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = build.mk; path = src/interfaces/type_006/build.mk; sourceTree = "<group>"; };
+		4E8122C91E13E9A4009A6C2B /* driverslib.mk */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = driverslib.mk; path = src/interfaces/drivers/driverslib.mk; sourceTree = "<group>"; };
+		4E8122CB1E13EA2B009A6C2B /* translation.php */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.php; path = translation.php; sourceTree = "<group>"; };
+		4E8122CC1E13EA56009A6C2B /* wait.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = wait.gif; path = gui/lib/wait.gif; sourceTree = SOURCE_ROOT; };
+		4E8122CD1E13EA56009A6C2B /* translation_default.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = translation_default.json; path = gui/lib/translation_default.json; sourceTree = SOURCE_ROOT; };
+		4E8122CF1E13EA97009A6C2B /* mea-translation.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "mea-translation.js"; sourceTree = "<group>"; };
+		4E8122D01E13EABC009A6C2B /* meawidget_bulb.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = meawidget_bulb.js; sourceTree = "<group>"; };
+		4E8122D11E13EABC009A6C2B /* meawidget_chart4.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = meawidget_chart4.js; sourceTree = "<group>"; };
+		4E8122D21E13EABC009A6C2B /* meawidget_gauge.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = meawidget_gauge.js; sourceTree = "<group>"; };
+		4E8122D31E13EABC009A6C2B /* meawidget_hslider.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = meawidget_hslider.js; sourceTree = "<group>"; };
+		4E8122D41E13EABC009A6C2B /* meawidget_label.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = meawidget_label.js; sourceTree = "<group>"; };
+		4E8122D51E13EABC009A6C2B /* meawidget_rtchart.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = meawidget_rtchart.js; sourceTree = "<group>"; };
+		4E8122D61E13EABC009A6C2B /* meawidget_sgauge.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = meawidget_sgauge.js; sourceTree = "<group>"; };
+		4E8122D71E13EABC009A6C2B /* meawidget_switch.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = meawidget_switch.js; sourceTree = "<group>"; };
+		4E8122D81E13EABC009A6C2B /* meawidget_button.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = meawidget_button.png; sourceTree = "<group>"; };
+		4E8122D91E13EABC009A6C2B /* meawidget_chart4.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = meawidget_chart4.png; sourceTree = "<group>"; };
+		4E8122DA1E13EABC009A6C2B /* meawidget_gauge.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = meawidget_gauge.png; sourceTree = "<group>"; };
+		4E8122DB1E13EABC009A6C2B /* meawidget_hslider.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = meawidget_hslider.png; sourceTree = "<group>"; };
+		4E8122DC1E13EABC009A6C2B /* meawidget_sgauge.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = meawidget_sgauge.png; sourceTree = "<group>"; };
+		4E8122DD1E13EABC009A6C2B /* meawidget_switch.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = meawidget_switch.png; sourceTree = "<group>"; };
+		4E8122DE1E13EABC009A6C2B /* meawidget_value.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = meawidget_value.png; sourceTree = "<group>"; };
+		4E8122DF1E13EABC009A6C2B /* cross.svg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = cross.svg; sourceTree = "<group>"; };
+		4E8122E01E13EABC009A6C2B /* meawidget_bulbna.svg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = meawidget_bulbna.svg; sourceTree = "<group>"; };
+		4E8122E11E13EABC009A6C2B /* meawidget_bulboff.svg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = meawidget_bulboff.svg; sourceTree = "<group>"; };
+		4E8122E21E13EABC009A6C2B /* meawidget_bulbon.svg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = meawidget_bulbon.svg; sourceTree = "<group>"; };
+		4E8122E31E13EABC009A6C2B /* meawidget_chart.svg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = meawidget_chart.svg; sourceTree = "<group>"; };
+		4E8122E41E13EAFC009A6C2B /* mapsseteditor-view.php */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.php; path = "mapsseteditor-view.php"; sourceTree = "<group>"; };
+		4E8122E51E13EB1C009A6C2B /* page5.php */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.php; name = page5.php; path = gui/page5.php; sourceTree = "<group>"; };
 		4E83D2A81BF12A81009FF74F /* mea_error.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mea_error.h; path = src/mea_error.h; sourceTree = "<group>"; };
 		4E83D2A91BF12A81009FF74F /* mea_queue.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mea_queue.c; path = src/mea_queue.c; sourceTree = "<group>"; };
 		4E83D2AA1BF12A81009FF74F /* mea_queue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mea_queue.h; path = src/mea_queue.h; sourceTree = "<group>"; };
@@ -2404,6 +2456,8 @@
 		4E1A10681C765D2200B67DDE /* lib */ = {
 			isa = PBXGroup;
 			children = (
+				4E8122CC1E13EA56009A6C2B /* wait.gif */,
+				4E8122CD1E13EA56009A6C2B /* translation_default.json */,
 				4E73D5181D292C250063F381 /* highcharts-4.2.3 */,
 				4E73D6171D292C250063F381 /* highstock-4.2.3 */,
 				4E1A10691C765D2200B67DDE /* ace */,
@@ -4212,7 +4266,7 @@
 		4E1A179D1C765D2400B67DDE /* js */ = {
 			isa = PBXGroup;
 			children = (
-				4E1A179E1C765D2400B67DDE /* class.js */,
+				4E8122CE1E13EA97009A6C2B /* default */,
 				4E1A179F1C765D2400B67DDE /* fr */,
 				4E1A17A11C765D2400B67DDE /* fsselector.js */,
 			);
@@ -4326,6 +4380,7 @@
 		4E1A17D51C765D2400B67DDE /* php */ = {
 			isa = PBXGroup;
 			children = (
+				4E8122CA1E13EA2B009A6C2B /* default */,
 				4E1A1A361C79BBEF00B67DDE /* tools.php */,
 				4E1A17D61C765D2400B67DDE /* auth_utils.php */,
 				4E1A17D71C765D2400B67DDE /* fr */,
@@ -4345,10 +4400,29 @@
 		4E1A1A2D1C765F0600B67DDE /* widgets */ = {
 			isa = PBXGroup;
 			children = (
+				4E8122D01E13EABC009A6C2B /* meawidget_bulb.js */,
+				4E8122D11E13EABC009A6C2B /* meawidget_chart4.js */,
+				4E8122D21E13EABC009A6C2B /* meawidget_gauge.js */,
+				4E8122D31E13EABC009A6C2B /* meawidget_hslider.js */,
+				4E8122D41E13EABC009A6C2B /* meawidget_label.js */,
+				4E8122D51E13EABC009A6C2B /* meawidget_rtchart.js */,
+				4E8122D61E13EABC009A6C2B /* meawidget_sgauge.js */,
+				4E8122D71E13EABC009A6C2B /* meawidget_switch.js */,
+				4E8122D81E13EABC009A6C2B /* meawidget_button.png */,
+				4E8122D91E13EABC009A6C2B /* meawidget_chart4.png */,
+				4E8122DA1E13EABC009A6C2B /* meawidget_gauge.png */,
+				4E8122DB1E13EABC009A6C2B /* meawidget_hslider.png */,
+				4E8122DC1E13EABC009A6C2B /* meawidget_sgauge.png */,
+				4E8122DD1E13EABC009A6C2B /* meawidget_switch.png */,
+				4E8122DE1E13EABC009A6C2B /* meawidget_value.png */,
+				4E8122DF1E13EABC009A6C2B /* cross.svg */,
+				4E8122E01E13EABC009A6C2B /* meawidget_bulbna.svg */,
+				4E8122E11E13EABC009A6C2B /* meawidget_bulboff.svg */,
+				4E8122E21E13EABC009A6C2B /* meawidget_bulbon.svg */,
+				4E8122E31E13EABC009A6C2B /* meawidget_chart.svg */,
 				4E1A1A2E1C765F0700B67DDE /* meawidget.js */,
 				4E1A1A2F1C765F0700B67DDE /* meawidget_box.js */,
 				4E1A1A301C765F0700B67DDE /* meawidget_button.js */,
-				4E1A1A311C765F0700B67DDE /* meawidget_lampe.js */,
 				4E1A1A321C765F0700B67DDE /* meawidget_pastille.js */,
 				4E1A1A331C765F0700B67DDE /* meawidget_slider.js */,
 				4E1A1A341C765F0700B67DDE /* meawidget_value.js */,
@@ -4405,6 +4479,8 @@
 		4E3B80511C07942600757EF8 /* Interface_type_006 */ = {
 			isa = PBXGroup;
 			children = (
+				4E8122C61E13E3FE009A6C2B /* plugin.c */,
+				4E8122C71E13E3FE009A6C2B /* build.mk */,
 				4E00963E1BFBE7E40003C62D /* interface_type_006.c */,
 				4E00963F1BFBE7E40003C62D /* interface_type_006.h */,
 			);
@@ -4498,6 +4574,8 @@
 		4E4292911AA4E82000E64F4F /* Interface_type_004 */ = {
 			isa = PBXGroup;
 			children = (
+				4E8122C01E13E3CC009A6C2B /* plugin.c */,
+				4E8122C11E13E3CC009A6C2B /* build.mk */,
 				4E4292931AA4E84700E64F4F /* interface_type_004.h */,
 				4E4292921AA4E84700E64F4F /* interface_type_004.c */,
 			);
@@ -4563,6 +4641,7 @@
 				4E4BF5201A1E952000CEB284 /* page2.php */,
 				4EF3BFD41A7BF56F00080C6D /* page3.php */,
 				4E1A1A1E1C765DA200B67DDE /* page4.php */,
+				4E8122E51E13EB1C009A6C2B /* page5.php */,
 				4E1A1A1D1C765DA200B67DDE /* maps.php */,
 				4E4BF0BC1A1D12AE00CEB284 /* index.php */,
 			);
@@ -4596,10 +4675,10 @@
 		4E4BF4841A1D12AF00CEB284 /* views */ = {
 			isa = PBXGroup;
 			children = (
+				4E8122E41E13EAFC009A6C2B /* mapsseteditor-view.php */,
 				4E1A1A191C765D8A00B67DDE /* mapeditor-view.php */,
 				4E1A1A1A1C765D8A00B67DDE /* ruleseditor-view.php */,
 				4E1A1A1B1C765D8A00B67DDE /* rulesmanager-view.php */,
-				4E1A1A1C1C765D8A00B67DDE /* test-view.php */,
 				4EF3BFD51A7BF5A100080C6D /* application-view.php */,
 				4EF3BFD61A7BF5A100080C6D /* capteurs-actionneurs-view.php */,
 				4EF3BFD81A7BF5A100080C6D /* utilisateurs-view.php */,
@@ -4616,12 +4695,14 @@
 		4E4D4E7E1601F1510008C14C /* Interfaces manager */ = {
 			isa = PBXGroup;
 			children = (
-				4E3B80511C07942600757EF8 /* Interface_type_006 */,
+				4E8122B21E13E308009A6C2B /* interface_type_XXX */,
+				4E8122AB1E13E2AA009A6C2B /* interface_type_010 */,
 				4E4ED05A1668186300820EF8 /* Interface_type_001 */,
 				4E4ED05B1668188400820EF8 /* Interface_type_002 */,
 				4E4F87771A98D24F00479945 /* Interface_type_003 */,
 				4E4292911AA4E82000E64F4F /* Interface_type_004 */,
 				4E83D2E21BF766AB009FF74F /* interface_type_005 */,
+				4E3B80511C07942600757EF8 /* Interface_type_006 */,
 				4E14ABFC16083B8C000686C3 /* interfacesServer.h */,
 				4EF3F6C21828400F00959B93 /* interfacesServer.c */,
 			);
@@ -4670,6 +4751,7 @@
 		4E4D4E811601F2930008C14C /* Libs */ = {
 			isa = PBXGroup;
 			children = (
+				4E8122C91E13E9A4009A6C2B /* driverslib.mk */,
 				4E5E49061C1F7FA200CBE3EE /* sunriset.c */,
 				4E5E49071C1F7FA200CBE3EE /* sunriset.h */,
 				4E4D4E801601F2730008C14C /* Utils */,
@@ -4697,6 +4779,7 @@
 		4E4ED05A1668186300820EF8 /* Interface_type_001 */ = {
 			isa = PBXGroup;
 			children = (
+				4E8122B91E13E364009A6C2B /* build.mk */,
 				4E5FC65A172F0F91004266EB /* interface_type_001_actuators.h */,
 				4E5FC661172F103B004266EB /* interface_type_001_actuators.c */,
 				4E5FC65E172F0F91004266EB /* interface_type_001_sensors.h */,
@@ -4712,6 +4795,8 @@
 		4E4ED05B1668188400820EF8 /* Interface_type_002 */ = {
 			isa = PBXGroup;
 			children = (
+				4E8122BA1E13E38C009A6C2B /* plugin.c */,
+				4E8122BB1E13E38C009A6C2B /* build.mk */,
 				4E4A5E9D15F003420052ABF4 /* interface_type_002.h */,
 				4E4A5E9C15F003420052ABF4 /* interface_type_002.c */,
 			);
@@ -4733,6 +4818,8 @@
 		4E4F87771A98D24F00479945 /* Interface_type_003 */ = {
 			isa = PBXGroup;
 			children = (
+				4E8122BD1E13E3A8009A6C2B /* plugin.c */,
+				4E8122BE1E13E3A8009A6C2B /* build.mk */,
 				4E4F88541A98D2A500479945 /* interface_type_003.c */,
 				4E4F88551A98D2A500479945 /* interface_type_003.h */,
 			);
@@ -7339,9 +7426,51 @@
 			name = "process manager";
 			sourceTree = "<group>";
 		};
+		4E8122AB1E13E2AA009A6C2B /* interface_type_010 */ = {
+			isa = PBXGroup;
+			children = (
+				4E8122AC1E13E2AA009A6C2B /* build.mk */,
+				4E8122AD1E13E2AA009A6C2B /* interface_type_010.c */,
+				4E8122AE1E13E2AA009A6C2B /* interface_type_010.h */,
+				4E8122AF1E13E2AA009A6C2B /* plugin.c */,
+			);
+			name = interface_type_010;
+			path = src/interfaces/type_010;
+			sourceTree = "<group>";
+		};
+		4E8122B21E13E308009A6C2B /* interface_type_XXX */ = {
+			isa = PBXGroup;
+			children = (
+				4E8122B31E13E308009A6C2B /* build.mk */,
+				4E8122B41E13E308009A6C2B /* interface_type_XXX.c */,
+				4E8122B51E13E308009A6C2B /* interface_type_XXX.h */,
+				4E8122B61E13E308009A6C2B /* plugin.c */,
+			);
+			name = interface_type_XXX;
+			path = src/interfaces/type_XXX;
+			sourceTree = SOURCE_ROOT;
+		};
+		4E8122CA1E13EA2B009A6C2B /* default */ = {
+			isa = PBXGroup;
+			children = (
+				4E8122CB1E13EA2B009A6C2B /* translation.php */,
+			);
+			path = default;
+			sourceTree = "<group>";
+		};
+		4E8122CE1E13EA97009A6C2B /* default */ = {
+			isa = PBXGroup;
+			children = (
+				4E8122CF1E13EA97009A6C2B /* mea-translation.js */,
+			);
+			path = default;
+			sourceTree = "<group>";
+		};
 		4E83D2E21BF766AB009FF74F /* interface_type_005 */ = {
 			isa = PBXGroup;
 			children = (
+				4E8122C31E13E3E7009A6C2B /* plugin.c */,
+				4E8122C41E13E3E7009A6C2B /* build.mk */,
 				4E83D2D91BF515F7009FF74F /* interface_type_005.c */,
 				4E83D2DA1BF515F7009FF74F /* interface_type_005.h */,
 			);
@@ -7823,7 +7952,7 @@
 		08FB7793FE84155DC02AAC07 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0710;
+				LastUpgradeCheck = 0820;
 				TargetAttributes = {
 					4E4F876D1A979A4800479945 = {
 						CreatedOnToolsVersion = 6.1.1;
@@ -7999,12 +8128,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4E8122BF1E13E3A8009A6C2B /* plugin.c in Sources */,
 				4E2AD4D01A3F4C84004177D4 /* enocean.c in Sources */,
 				4E0096431BFCFFC70003C62D /* serial.c in Sources */,
 				4E4A5EA315F003420052ABF4 /* interface_type_001.c in Sources */,
 				4E4F885E1A9E76A000479945 /* cJSON.c in Sources */,
 				4E8787E61816732800A87FF0 /* sqlite3db_utils.c in Sources */,
 				4EF3F6C31828400F00959B93 /* interfacesServer.c in Sources */,
+				4E8122BC1E13E38C009A6C2B /* plugin.c in Sources */,
 				4E4A5EA815F003420052ABF4 /* interface_type_002.c in Sources */,
 				4E83D2B51BF12A81009FF74F /* mea_queue.c in Sources */,
 				4E4A5EA915F003420052ABF4 /* dbServer.c in Sources */,
@@ -8028,14 +8159,21 @@
 				4E4292961AA7AEC700E64F4F /* philipshue_color.c in Sources */,
 				4E98B6241C15D04200985383 /* automator.c in Sources */,
 				4E76CEA5163F12C800A3EBA9 /* arduino_pins.c in Sources */,
+				4E8122B01E13E2AA009A6C2B /* interface_type_010.c in Sources */,
+				4E8122C81E13E3FE009A6C2B /* plugin.c in Sources */,
+				4E8122C21E13E3CC009A6C2B /* plugin.c in Sources */,
 				4E76CEAB163F146900A3EBA9 /* parameters_utils.c in Sources */,
 				4E5E490B1C21D62E00CBE3EE /* datetimeServer.c in Sources */,
 				4E76CEB2163F175100A3EBA9 /* tokens.c in Sources */,
+				4E8122B11E13E2AA009A6C2B /* plugin.c in Sources */,
+				4E8122B71E13E308009A6C2B /* interface_type_XXX.c in Sources */,
 				4E207BB519F0529D00410B40 /* logServer.c in Sources */,
+				4E8122C51E13E3E7009A6C2B /* plugin.c in Sources */,
 				4E83D2E01BF515F7009FF74F /* netatmo.c in Sources */,
 				4E98B6401C1A25E700985383 /* mea_eval.c in Sources */,
 				4E5FC65F172F0F91004266EB /* interface_type_001_counters.c in Sources */,
 				4E8A87B01A095D4A00A99E80 /* nodejsServer.c in Sources */,
+				4E8122B81E13E308009A6C2B /* plugin.c in Sources */,
 				4E5FC660172F0F91004266EB /* interface_type_001_sensors.c in Sources */,
 				4E5FC662172F103B004266EB /* interface_type_001_actuators.c in Sources */,
 				4E5FC67917357D72004266EB /* pythonPluginServer.c in Sources */,
@@ -8116,10 +8254,26 @@
 		1DEB928A08733DD80010E9CD /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = "/usr/local/mysql/include/**";
 				LIBRARY_SEARCH_PATHS = /usr/local/mysql/lib;
@@ -8138,8 +8292,24 @@
 		1DEB928B08733DD80010E9CD /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = "/usr/local/mysql/include/**";
 				LIBRARY_SEARCH_PATHS = /usr/local/mysql/lib;

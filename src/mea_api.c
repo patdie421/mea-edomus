@@ -90,7 +90,7 @@ static int16_t _check_todbflag(sqlite3 *db, uint16_t sensor_id)
    
    DEBUG_SECTION mea_log_printf("%s (%s) : check loggin for sensor n#%d.\n", DEBUG_STR ,__func__,sensor_id);
    snprintf(sql,sizeof(sql),"SELECT id,todbflag,id_sensor_actuator FROM sensors_actuators WHERE id_sensor_actuator = %d AND deleted_flag <> 1",sensor_id);
-   ret = sqlite3_prepare_v2(db, sql, strlen(sql)+1, &stmt, NULL);
+   ret = sqlite3_prepare_v2(db, sql, (int)(strlen(sql)+1), &stmt, NULL);
    if(ret)
    {
       VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (db));
@@ -152,7 +152,7 @@ static PyObject *mea_interface_api(PyObject *self, PyObject *args)
    int nb_args=0;
    // récupération des paramètres et contrôle des types
 
-   nb_args=PyTuple_Size(args);
+   nb_args=(int)PyTuple_Size(args);
    if(nb_args<2)
       goto mea_interface_api_arg_err;
 /*

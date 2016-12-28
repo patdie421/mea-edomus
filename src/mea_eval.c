@@ -778,7 +778,7 @@ struct mea_eval_stack_s *mea_eval_addStackToCache(char *expr, struct mea_eval_st
    }
    else
    {
-      int l_expr = strlen(expr);
+      int l_expr = (int)(strlen(expr));
 
       e = (struct mea_eval_stack_cache_s *)malloc(sizeof(struct mea_eval_stack_cache_s));
       if(e == NULL)

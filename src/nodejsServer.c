@@ -58,7 +58,7 @@ int nodejsServer_send_cmnd(char *hostname, int port, char cmnd, char *str)
    int s;
    if( mea_socket_connect(&s, hostname, port)==0 )
    {
-      int str_l=strlen(str)+6;
+      int str_l=(int)(strlen(str)+6);
       char message[256];
       snprintf(message,sizeof(message)-8,"$$$%c%cINT:%c:%s###", (char)(str_l%128), (char)(str_l/128), cmnd, str);
       int ret = mea_socket_send(&s, message, str_l+8);

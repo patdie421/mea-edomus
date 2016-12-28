@@ -1156,7 +1156,7 @@ int _xbee_read_cmd(int fd, char unsigned *frame, uint16_t *l_frame, int16_t *ner
          goto on_error_exit_xbee_read;
       }
       
-      ret=read(fd,&c,1);
+      ret=(int)read(fd,&c,1);
       if(ret!=1)
       {
          if(ntry>(XBEE_NB_RETRY-1)) // 5 essais si pas de caratères lus
@@ -1240,7 +1240,7 @@ int _xbee_write_cmd(int fd, unsigned char *cmd, uint16_t l_cmd, int16_t *nerr)
    
    l_frame=_xbee_build_frame(frame,cmd,l_cmd);
    
-   ret=write(fd,frame,l_frame);
+   ret=(int)write(fd,frame,l_frame);
 
    free(frame);
    frame=NULL;

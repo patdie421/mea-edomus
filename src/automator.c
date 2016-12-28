@@ -715,7 +715,7 @@ static int function_call(char *str, struct value_s *v, cJSON *xplMsgJson)
 #endif
    char *f = NULL;
    int retour=-1;
-   int str_l = strlen(str)+1;
+   int str_l = (int)(strlen(str)+1);
    if(str_l > MAX_STR_FUNCTION_SIZE)
    {
       VERBOSE(2) mea_log_printf("%s (%s) : string length overflow - %s\n", ERROR_STR, __func__, str);
@@ -820,7 +820,7 @@ static int function_call(char *str, struct value_s *v, cJSON *xplMsgJson)
          break;
       case F_CALCN:
          {
-            int l_params=strlen(params)-1;
+            int l_params=(int)(strlen(params)-1);
             double d;
 
             if(l_params > 1 && params[0]=='\'' && params[l_params]=='\'')
@@ -1032,7 +1032,7 @@ static int automator_evalStr(char *str, struct value_s *v, cJSON *xplMsgJson)
          break;
       case '\'':
          {
-            int l=strlen(p);
+            int l=(int)(strlen(p));
             if(p[l-1]!='\'')
                return -1;
             l=l-2;
@@ -1063,7 +1063,7 @@ static int automator_evalStr(char *str, struct value_s *v, cJSON *xplMsgJson)
         break;
      case '{':
         {
-           int l=strlen(p);
+           int l=(int)(strlen(p));
            if(p[l-1]!='}')
               return -1;
            char name[VALUE_MAX_STR_SIZE];
@@ -1982,7 +1982,7 @@ int timespec2str(char *buf, uint len, struct timespec *ts) {
     if (localtime_r(&(ts->tv_sec), &t) == NULL)
         return -1;
 
-    ret = strftime(buf, len, "%F %T", &t);
+    ret = (int)strftime(buf, len, "%F %T", &t);
     if (ret == 0)
         return -1;
     l = ret;
@@ -2041,7 +2041,7 @@ int send_change(char *name, struct value_s *v, struct timespec *t)
          return -1;
    }
 
-   int l_data = strlen(str)+strlen(name)+r+18;
+   int l_data = (int)(strlen(str)+strlen(name)+r+18);
    char *msg = alloca(l_data+1);
    sprintf(msg,"{\"%s\":{\"v\":%s,\"t\":\"%s\"}}",name, str, last_update_str);
    msg[l_data]=0;
@@ -2140,7 +2140,7 @@ int automator_send_all_inputs()
       return -1;
    else
    {
-      int l_data = strlen(msg);
+      int l_data = (int)strlen(msg);
       l_data=l_data+4; // 4 pour AUT:
       char *message = (char *)alloca(l_data+9);
 
@@ -2411,7 +2411,7 @@ char *automator_inputs_table_to_json_string_alloc()
    if(ret==-1)
       return NULL;
 
-   int l_data = strlen(jsonstr);
+   int l_data = (int)strlen(jsonstr);
    char *data = NULL;
 
    data=(char *)malloc(l_data+1);
@@ -2481,12 +2481,12 @@ cJSON *automator_load_rules_from_file(char *file)
    int d = fileno(fd); //if you have a stream (e.g. from fopen), not a file descriptor.
    struct stat buf;
    fstat(d, &buf);
-   int size = buf.st_size;
+   int size = (int)buf.st_size;
 
    char *rules = (char *)alloca(size);
    if(rules !=NULL)
    {
-      int nbread = fread(rules, 1, size, fd);
+      int nbread = (int)fread(rules, 1, size, fd);
       
       if (nbread != size)
       {

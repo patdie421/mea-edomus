@@ -260,7 +260,7 @@ int16_t _setOnOffState(int id, char *template, int16_t state, char *server, int 
 
 
    l_response=sizeof(response);
-   char *httpResponseDataPtr = httpRequest(HTTP_PUT, server, port, url, request, strlen(request), response, &l_response, &nerr);
+   char *httpResponseDataPtr = httpRequest(HTTP_PUT, server, port, url, request, (int)(strlen(request)), response, &l_response, &nerr);
    if(!httpResponseDataPtr)
    {
       VERBOSE(5) mea_log_printf("%s : httpRequest() error (%d)\n", __func__, nerr);
@@ -357,7 +357,7 @@ int16_t setRGBColor(int id, char *template, uint32_t color, char *server, int po
    sprintf(request, apiOnxyBriColorTemplate, x, y, bri);
    
    l_response=sizeof(response);
-   char *httpResponseDataPtr = httpRequest(HTTP_PUT, server, port, url, request, strlen(request), response, &l_response, &nerr);
+   char *httpResponseDataPtr = httpRequest(HTTP_PUT, server, port, url, request, (int)(strlen(request)), response, &l_response, &nerr);
    if(!httpResponseDataPtr)
    {
       VERBOSE(5) mea_log_printf("%s : httpRequest() error (%d)\n", __func__, nerr);

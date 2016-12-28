@@ -504,9 +504,9 @@ mea_error_t mea_queue_find_elem_using_index(mea_queue_t *queue, void *data_to_fi
 {
    if(!queue || !queue->index || !queue->index_status || !queue->nb_elem)
       return ERROR;
-   int start = 0;
-   int end = queue->nb_elem - 1;
-   int middle = 0;
+   unsigned long start = 0;
+   unsigned long end = queue->nb_elem - 1;
+   unsigned long middle = 0;
    int _cmpres;
 
    *data=NULL;

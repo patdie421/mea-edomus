@@ -14,8 +14,6 @@
 
 #include <sqlite3.h>
 
-//#include "debug.h"
-//#include "error.h"
 #include "mea_verbose.h"
 
 

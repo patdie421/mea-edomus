@@ -107,7 +107,7 @@ int send_line(char *hostname, int port_socketdata, char *line)
    }
  
 //   char message[1024];
-   int l_data=strlen(line)+4; // 4 pour strlen de "LOG:"
+   int l_data=(int)(strlen(line)+4); // 4 pour strlen de "LOG:"
    char *message=(char *)alloca(l_data+12);
    sprintf(message,"$$$xxLOG:%s###", line);
    // on remplace les xx par la longueur
@@ -289,7 +289,7 @@ long seek_to_previous_line(FILE *fp, long *pos)
       p = end-256*i; // on prévoit de remonter d'un nouveau bloc de 256 octets par rapport à la fin du fichier
       if(p<0) // bloc trop court (on a atteint le début du fichier), on ajuste
       {
-         block_size=256+p; // rappel : ici p est négatif (c'est donc un soustraction ...)
+         block_size=(int)(256+p); // rappel : ici p est négatif (c'est donc un soustraction ...)
          p=0;
          fseek(fp,0,SEEK_SET); // on pointe au début du fichier
       }

@@ -359,7 +359,7 @@ void *_thread_interface_type_003_enocean_data(void *args)
 //         sprintf(sql,"%s WHERE interfaces.dev ='ENOCEAN://%02x-%02x-%02x-%02x' AND sensors_actuators.deleted_flag <> 1 AND sensors_actuators.state='1';", sql_select_device_info,a,b,c,d);
          sprintf(sql,"%s WHERE lower(interfaces.dev) = lower('%s://%02x-%02x-%02x-%02x') AND sensors_actuators.deleted_flag <> 1 AND sensors_actuators.state='1';", sql_select_device_info, params->i003->name, a, b, c, d);
          
-         ret = sqlite3_prepare_v2(params_db,sql,strlen(sql)+1,&(params->stmt),NULL);
+         ret = sqlite3_prepare_v2(params_db,sql,(int)(strlen(sql)+1),&(params->stmt),NULL);
          if(ret)
          {
             VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (params_db));

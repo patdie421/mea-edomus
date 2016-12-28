@@ -51,7 +51,7 @@ int mea_notify(char *hostname, int port, char *notif_str, char notif_type)
       return -1;
    }
 
-   int notif_str_l=strlen(notif_str)+6;
+   int notif_str_l=(int)(strlen(notif_str)+6);
    char message[2048];
    sprintf(message,"$$$%c%cNOT:%c:%s###", (char)(notif_str_l%128), (char)(notif_str_l/128), notif_type, notif_str);
    ret = mea_socket_send(&s, message, notif_str_l+12);

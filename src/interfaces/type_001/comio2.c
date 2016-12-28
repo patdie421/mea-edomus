@@ -118,7 +118,7 @@ int16_t comio2_init(comio2_ad_t *ad, char *dev, speed_t speed)
 {
    memset (ad,0,sizeof(comio2_ad_t));
 
-   if(_comio2_open(ad, dev, speed)<0)
+   if(_comio2_open(ad, dev, (int)speed)<0)
      return -1;
 
    // préparation synchro consommateur / producteur
@@ -738,7 +738,7 @@ int _comio2_reopen(comio2_ad_t *ad)
       return -1;
 
    strncpy(dev, ad->serial_dev_name, sizeof(dev));
-   speed=ad->speed;
+   speed=(int)ad->speed;
    
    VERBOSE(2) mea_log_printf("%s  (%s) : try to reset communication (%s).\n",INFO_STR,__func__,dev);
    

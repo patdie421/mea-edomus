@@ -78,7 +78,9 @@ struct managed_processes_s
    mea_timer_t timer;
 
    pthread_rwlock_t rwlock;
-} managed_processes;
+};
+
+extern struct managed_processes_s managed_processes;
 
 
 //pthread_t *start_monitoringServer(char **parms_list);

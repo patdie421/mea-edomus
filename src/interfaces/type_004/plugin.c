@@ -1,3 +1,4 @@
+#ifdef ASPLUGIN
 #include <Python.h>
 #include <stdio.h>
 #include <dlfcn.h>
@@ -50,3 +51,4 @@ int get_fns_interface(void *lib, struct interfacesServer_interfaceFns_s *interfa
       return -1;
    }
 }
+#endif

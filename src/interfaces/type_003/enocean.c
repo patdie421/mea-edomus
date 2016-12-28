@@ -690,7 +690,7 @@ int16_t enocean_send_packet(enocean_ed_t *ed, uint8_t *packet, uint16_t l_packet
    struct timeval tv;
    struct timespec ts;
   
-   int wr=write(ed->fd, packet, l_packet);
+   int wr=(int)write(ed->fd, packet, l_packet);
    if(wr!=-1)
    {
       pthread_cleanup_push( (void *)pthread_mutex_unlock, (void *)&(ed->sync_lock) );
@@ -1252,6 +1252,7 @@ void *_enocean_thread(void *args)
                }
          }
       }
+      
       if(ret<0)
       {
          switch(nerr)
@@ -1285,5 +1286,4 @@ void *_enocean_thread(void *args)
       }
       pthread_testcancel();
    }
-   pthread_exit(NULL);
 }

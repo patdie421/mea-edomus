@@ -858,7 +858,7 @@ int load_interface_type_004(interface_type_004_t *i004, sqlite3 *db)
    // on récupère les capteurs/actionneurs déclaré dans la base
    sprintf(sql_request,"SELECT * FROM sensors_actuators WHERE sensors_actuators.deleted_flag <> 1 AND id_interface=%d AND sensors_actuators.state='1'", i004->id_interface);
    
-   ret = sqlite3_prepare_v2(db,sql_request,strlen(sql_request)+1,&stmt,NULL);
+   ret = sqlite3_prepare_v2(db,sql_request,(int)(strlen(sql_request)+1),&stmt,NULL);
    if(ret)
    {
       VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg (db));

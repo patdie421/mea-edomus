@@ -152,7 +152,7 @@ int16_t get_dev_and_speed(char *device, char *dev, int16_t dev_l, speed_t *speed
          return -1;
 
       vitesse_ptr=mea_strtrim(vitesse);
-      v=strtol(vitesse_ptr,&end,10);
+      v=(uint32_t)strtol(vitesse_ptr,&end,10);
       if(end==vitesse || *end!=0 || errno==ERANGE)
          return -1;
 

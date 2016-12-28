@@ -94,14 +94,14 @@ int gethttp(char *server, int port, char *url, char *response, int l_response)
       return -1;
    }
    
-   if(mea_socket_send(&sockfd, requete, strlen(requete))<0)
+   if(mea_socket_send(&sockfd, requete, (int)strlen(requete))<0)
    {
       close(sockfd);
       return -1;
    }
    
    // reception de la reponse HTTP
-   int n=recv(sockfd, response, l_response, 0);
+   int n=(int)recv(sockfd, response, l_response, 0);
    if(n == -1)
    {
       VERBOSE(2) {
@@ -227,7 +227,7 @@ int _phpsessid_check_loggedin_and_admin(char *phpsessid,char *sessions_files_pat
    fd=fopen(session_file, "r");
    if(fd)
    {
-      int n = fread(buff, 1, st.st_size, fd);
+      int n = (int)fread(buff, 1, st.st_size, fd);
       fclose(fd);
       if(!n)
       {
@@ -517,7 +517,7 @@ int gui_startstop_cmnd(struct mg_connection *conn, char *phpsessid, char *_php_s
       if(ret)
       {
          char errmsg[80];
-         if(mea_strncmplower("start", command, strlen(command))==0)
+         if(mea_strncmplower("start", command, (int)(strlen(command)))==0)
          {
             ret=process_start(process_id, errmsg, sizeof(errmsg));
             if(!ret)
@@ -527,7 +527,7 @@ int gui_startstop_cmnd(struct mg_connection *conn, char *phpsessid, char *_php_s
             else
                _httpErrno(conn, -1, "all ready running !");
          }
-         else if (mea_strncmplower("stop", command, strlen(command))==0)
+         else if (mea_strncmplower("stop", command, (int)(strlen(command)))==0)
          {
             ret=process_stop(process_id, errmsg, sizeof(errmsg));
             if(!ret)
@@ -537,7 +537,7 @@ int gui_startstop_cmnd(struct mg_connection *conn, char *phpsessid, char *_php_s
             else
                _httpErrno(conn, -1, "all ready not running !");
          }
-         else if (mea_strncmplower("task", command, strlen(command))==0)
+         else if (mea_strncmplower("task", command, (int)(strlen(command)))==0)
          {
             ret=process_run_task(process_id, errmsg, sizeof(errmsg));
             if(!ret)

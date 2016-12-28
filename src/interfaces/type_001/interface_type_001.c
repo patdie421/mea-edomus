@@ -194,7 +194,7 @@ int load_interface_type_001(interface_type_001_t *i001, int interface_id, sqlite
    //     essayer "SELECT * FROM sensors_actuators WHERE id_interface=%d" and sensors_actuators.state='1'"
    sprintf(sql_request,"SELECT * FROM sensors_actuators WHERE id_interface=%d sensors_actuators.deleted_flag <> 1 AND sensors_actuators.state='1'", interface_id);
    
-   ret = sqlite3_prepare_v2(db,sql_request,strlen(sql_request)+1,&stmt,NULL);
+   ret = (int)sqlite3_prepare_v2(db,sql_request,(int)(strlen(sql_request)+1),&stmt,NULL);
    if(ret)
    {
       VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg (db));

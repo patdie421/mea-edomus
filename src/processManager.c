@@ -1206,7 +1206,7 @@ int managed_processes_send_stats_now(char *hostname, int port)
       }
       else
       {
-         int l_data=strlen(json)+4; // 4 pour MON: 
+         int l_data=(int)(strlen(json)+4); // 4 pour MON:
          char *message = (char *)alloca(l_data+12);
 
          sprintf(message,"$$$%c%cMON:%s###", (char)(l_data%128), (char)(l_data/128), json);
@@ -1246,7 +1246,7 @@ int _managed_processes_send_stats(char *hostname, int port)
          }
          else
          {
-            int l_data=strlen(json)+4;
+            int l_data=(int)(strlen(json)+4);
             char *message = (char *)alloca(l_data+12);
             sprintf(message,"$$$%c%cMON:%s###", (char)(l_data%128), (char)(l_data/128), json);
             ret = mea_socket_send(&sock, message, l_data+12);

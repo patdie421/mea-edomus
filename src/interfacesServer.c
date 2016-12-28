@@ -109,7 +109,7 @@ int send_reload( char *hostname, int port)
    if(mea_socket_connect(&s, hostname, port)<0)
       return -1;
    
-   int reload_str_l=strlen(reload_str)+4;
+   int reload_str_l=(int)(strlen(reload_str)+4);
    char message[2048];
    sprintf(message,"$$$%c%cREL:%s###", (char)(reload_str_l%128), (char)(reload_str_l/128), reload_str);
 
@@ -149,7 +149,7 @@ int dispatchXPLMessageToInterfaces2(cJSON *xplMsgJson)
                   "AND sensors_actuators.deleted_flag <> 1 "
                   "AND sensors_actuators.state='1';", sql_select_device_info, device->valuestring);
 
-   ret = sqlite3_prepare_v2(params_db, sql, strlen(sql)+1, &stmt, NULL);
+   ret = (int)sqlite3_prepare_v2(params_db, sql, (int)(strlen(sql)+1), &stmt, NULL);
    if(ret)
    {
       VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (params_db));
@@ -689,7 +689,7 @@ mea_queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db)
    init_statics_interfaces_fns(interfacesFns, &interfacesFns_nb);
  
    sprintf(sql,"SELECT * FROM interfaces");
-   ret = sqlite3_prepare_v2(sqlite3_param_db, sql, strlen(sql)+1, &stmt, NULL);
+   ret = sqlite3_prepare_v2(sqlite3_param_db, sql, (int)(strlen(sql)+1), &stmt, NULL);
    if(ret)
    {
       VERBOSE(1) mea_log_printf("%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg (sqlite3_param_db));

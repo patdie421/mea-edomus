@@ -618,9 +618,9 @@ mea_error_t interface_type_001_sensors_process_xpl_msg2(interface_type_001_t *i0
                if(sensor->arduino_pin_type==DIGITAL_ID)
                {
                   if(sensor->val==0)
-                     sprintf(value, LOW_STR_C);
+                     sprintf(value, "%s", LOW_STR_C);
                   else
-                     sprintf(value, HIGH_STR_C);
+                     sprintf(value, "%s", HIGH_STR_C);
                   unit=NULL;
                   send_xpl_flag=1;
                }

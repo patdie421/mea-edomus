@@ -448,7 +448,7 @@ cJSON *xPLParser(const char* xplmsg, char *xpl_type, char *xpl_schema, char *xpl
 
    w = XPL_IN_SECTION;
    z = 0;
-   y = strlen(xplmsg);
+   y = (int)(strlen(xplmsg));
 
    for (c=0;c<y;c++) {
 

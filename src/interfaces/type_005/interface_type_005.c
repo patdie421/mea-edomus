@@ -418,7 +418,7 @@ int16_t interface_type_005_xPL_actuator2(interface_type_005_t *i005,
                _setpoint=0.0;
             case MANUAL:
             case AWAY:
-               netatmo_set_thermostat_setpoint(i005->token.access, e->module->device->device_id, e->module->module_id, _mode, _expire, _setpoint, err, sizeof(err)-1);
+               netatmo_set_thermostat_setpoint(i005->token.access, e->module->device->device_id, e->module->module_id, (enum netatmo_setpoint_mode_e)_mode, (uint32_t)_expire, _setpoint, err, sizeof(err)-1);
                break;
                
             default:
@@ -582,7 +582,7 @@ int load_interface_type_005(interface_type_005_t *i005, sqlite3 *db)
 
    sprintf(sql_request,"SELECT * FROM sensors_actuators WHERE id_interface=%d AND sensors_actuators.deleted_flag <> 1 AND sensors_actuators.state='1'", i005->id_interface);
 
-   ret = sqlite3_prepare_v2(db,sql_request,strlen(sql_request)+1,&stmt,NULL);
+   ret = sqlite3_prepare_v2(db,sql_request,(int)(strlen(sql_request)+1),&stmt,NULL);
    if(ret)
    {
       VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg (db));

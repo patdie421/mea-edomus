@@ -330,5 +330,5 @@ void mea_xPLSendHbeat(int fd, struct sockaddr_in *xPLBroadcastAddr, char *remote
 
    sprintf(msg, hbeatMsg, source, type, interval, port, remoteip, version);
 
-   mea_xPLSendMessage(fd, xPLBroadcastAddr, msg, strlen(msg));
+   mea_xPLSendMessage(fd, xPLBroadcastAddr, msg, (int)strlen(msg));
 }

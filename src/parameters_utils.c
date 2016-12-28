@@ -50,7 +50,7 @@ static uint32_t _parsed_parameters_cache_counter=0;
 static pthread_rwlock_t *_parsed_parameters_cache_rwlock = NULL;
 
 
-static int16_t _parsed_parameters_clean_cache(int t, int force)
+static int16_t _parsed_parameters_clean_cache(time_t t, int force)
 {
    time_t now=time(NULL);
 
@@ -453,7 +453,7 @@ parsed_parameters_t *alloc_parsed_parameters(char *parameters_string, char *para
                      
                   case 'S':
                      parsed_parameters->parameters[i].type=STRING;
-                     r=strlen(value_token);
+                     r=(int)strlen(value_token);
                      parsed_parameters->parameters[i].value.s=malloc(r+1);
                      if(!parsed_parameters->parameters[i].value.s)
                      {

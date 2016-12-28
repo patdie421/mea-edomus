@@ -429,7 +429,7 @@ int start_interface_type_XXX(int my_id, void *data, char *errmsg, int l_errmsg)
       mea_notify_printf('E', "%s can't be launched - %s.\n", start_stop_params->iXXX->name, err_str);
       goto clean_exit;
    }
-   xpl_callback_params->param_db=start_stop_params->sqlite3_param_db;
+//   xpl_callback_params->param_db=start_stop_params->sqlite3_param_db;
 
    start_stop_params->iXXX->xPL_callback_data=xpl_callback_params;
    start_stop_params->iXXX->xPL_callback2=_interface_type_XXX_xPL_callback2;
@@ -457,7 +457,7 @@ int get_fns_interface_type_XXX(struct interfacesServer_interfaceFns_s *interface
    interfacesFns->set_monitoring_id = (set_monitoring_id_f)&set_monitoring_id_interface_type_XXX;
    interfacesFns->set_xPLCallback = (set_xPLCallback_f)&set_xPLCallback_interface_type_XXX;
    interfacesFns->get_type = (get_type_f)&get_type_interface_type_XXX;
-   interfacesFns->get_interface_id = (get_interface_id_f)&get_interface_id_interface_type_XXX;
+//   interfacesFns->get_interface_id = (get_interface_id_f)&get_interface_id_interface_type_XXX;
    interfacesFns->api = (api_f)&api_interface_type_XXX;
    interfacesFns->lib = NULL;
    interfacesFns->type = interfacesFns->get_type();

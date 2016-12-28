@@ -555,7 +555,7 @@ void *_thread_interface_type_006_genericserial_data(void *args)
             }
             else
             {
-               ret=read(params->i006->fd, &c, 1);
+               ret=(int)read(params->i006->fd, &c, 1);
                if(ret<0)
                {
                   close(params->i006->fd);
@@ -584,7 +584,7 @@ void *_thread_interface_type_006_genericserial_data(void *args)
                sqlite3_stmt * stmt;
 
                sprintf(sql_request, "SELECT sensors_actuators.id_sensor_actuator, sensors_actuators.id_location, sensors_actuators.state, sensors_actuators.parameters, sensors_actuators.id_type, lower(sensors_actuators.name), sensors_actuators.todbflag, sensors_actuators.id_interface, types.typeoftype FROM sensors_actuators INNER JOIN types ON sensors_actuators.id_type = types.id_type WHERE sensors_actuators.id_interface=%d AND sensors_actuators.deleted_flag <> 1 AND sensors_actuators.state='1'", params->i006->id_interface);
-               int ret = sqlite3_prepare_v2(params_db, sql_request, strlen(sql_request)+1, &stmt, NULL);
+               int ret = sqlite3_prepare_v2(params_db, sql_request, (int)(strlen(sql_request)+1), &stmt, NULL);
                if(ret)
                {
                   VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR, __func__, sqlite3_errmsg (params_db));
@@ -844,7 +844,7 @@ int get_type_interface_type_006()
 }
 
 
-int api_write_data(interface_type_006_t *i006, PyObject *args, PyObject **res, int16_t *nerr, char *err, int l_err)
+static int api_write_data(interface_type_006_t *i006, PyObject *args, PyObject **res, int16_t *nerr, char *err, int l_err)
 {
    if(i006->fd == -1)
    {
@@ -1091,7 +1091,7 @@ int start_interface_type_006(int my_id, void *data, char *errmsg, int l_errmsg)
       goto clean_exit;
    }
    strncpy(start_stop_params->i006->real_dev, dev, sizeof( start_stop_params->i006->real_dev)-1);
-   start_stop_params->i006->real_speed=speed;
+   start_stop_params->i006->real_speed=(int)speed;
 
    interface_parameters=alloc_parsed_parameters(start_stop_params->i006->parameters, valid_genericserial_plugin_params, &interface_nb_parameters, &err, 0);
    if(!interface_parameters || !interface_parameters->parameters[GENERICSERIAL_PLUGIN_PARAMS_PLUGIN].value.s)
