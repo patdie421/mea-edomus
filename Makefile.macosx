@@ -3,7 +3,7 @@ CC = gcc
 
 TECHNO=macosx
 DEBUGFLAGS = -g -D__DEBUG_ON__
-#ASPLUGIN = 1
+ASPLUGIN = 1
 
 #MYPATH=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 MYPATH=/Users/patrice/Developpement/Logiciels/mea-edomus

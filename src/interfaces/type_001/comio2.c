@@ -853,7 +853,7 @@ void *_comio2_thread(void *args)
       }
       pthread_testcancel();
    }
-   pthread_exit(NULL);
+//   pthread_exit(NULL);
 }
 
 

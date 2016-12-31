@@ -8,8 +8,8 @@ ifndef BASEDIR
 $(error - BASEDIR is unset)
 endif
 
-COMMANDS=$(shell ls -d $(BASEDIR)/commands/*/)
-
+#COMMANDS=$(shell ls -d $(BASEDIR)/commands/*/)
+COMMANDS=mea-compilr mea-enocean
 .DEFAULT_GOAL = all
 
 printenv:

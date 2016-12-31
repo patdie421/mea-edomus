@@ -185,7 +185,6 @@ int get_interface_id_interface_type_XXX(void *ixxx)
 int16_t api_interface_type_XXX(void *ixxx, char *cmnd, void *args, int nb_args, void **res, int16_t *nerr, char *err, int l_err)
 {
    interface_type_XXX_t *iXXX = (interface_type_XXX_t *)ixxx;
-
    PyObject *pyArgs = (PyObject *)args;
    PyObject **pyRes = (PyObject **)res;
    

@@ -303,6 +303,7 @@ static int pushToEvalStack(int type, void *value, struct mea_eval_stack_s **stac
 }
 
 
+#ifndef ONFLYEVAL
 static int mea_eval_calcOperationN(int op, struct mea_eval_stack_s *stack, int *stack_size, int *stack_index)
 {
    double d, d1, d2;
@@ -333,6 +334,7 @@ static int mea_eval_calcOperationN(int op, struct mea_eval_stack_s *stack, int *
    
    return 0;
 }
+#endif
 
 
 static int _evalCalcN(char *str, char **newptr, int16_t *lvl, struct mea_eval_stack_s *stack, int32_t *stack_size, int32_t *stack_index, int16_t *err)

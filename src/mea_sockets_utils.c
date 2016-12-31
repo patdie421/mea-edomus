@@ -24,93 +24,94 @@
 #include "mea_verbose.h"
 
 
-int mea_connect(int soc, const struct sockaddr *addr, socklen_t addr_l) { 
-   int res; 
-   long arg; 
-   fd_set myset; 
-   struct timeval tv; 
-   int valopt; 
-
-  // Set non-blocking 
-  if( (arg = fcntl(soc, F_GETFL, NULL)) < 0)
-  { 
-     DEBUG_SECTION2(DEBUGFLAG) fprintf(stderr, "Error fcntl(..., F_GETFL) (%s)\n", strerror(errno)); 
-     return -1; 
-  }
- 
-  arg |= O_NONBLOCK; 
-  if( fcntl(soc, F_SETFL, arg) < 0)
-  { 
-     DEBUG_SECTION2(DEBUGFLAG) fprintf(stderr, "Error fcntl(..., F_SETFL) (%s)\n", strerror(errno)); 
-     return -1; 
-  } 
-
-  // Trying to connect with timeout 
-  res = connect(soc, addr, addr_l); 
-  if (res < 0)
-  { 
-     if(errno == EINPROGRESS)
-     { 
-//        fprintf(stderr, "EINPROGRESS in connect() - selecting\n"); 
-        do
-        { 
-           tv.tv_sec = 2; 
-           tv.tv_usec = 0; 
-           FD_ZERO(&myset); 
-           FD_SET(soc, &myset); 
-           res = select(soc+1, NULL, &myset, NULL, &tv); 
-           if (res < 0 && errno != EINTR)
-           { 
-              DEBUG_SECTION2(DEBUGFLAG) fprintf(stderr, "Error connecting %d - %s\n", errno, strerror(errno)); 
-              return -1; 
-           } 
-           else if (res > 0)
-           { 
-              // Socket selected for write 
-              socklen_t l = sizeof(int); 
-              if (getsockopt(soc, SOL_SOCKET, SO_ERROR, (void*)(&valopt), &l) < 0)
-              { 
-                 DEBUG_SECTION2(DEBUGFLAG) fprintf(stderr, "Error in getsockopt() %d - %s\n", errno, strerror(errno)); 
-                 return -1; 
-              } 
-              // Check the value returned... 
-              if (valopt)
-              { 
-                 DEBUG_SECTION2(DEBUGFLAG) fprintf(stderr, "Error in delayed connection() %d - %s\n", valopt, strerror(valopt)); 
-                 return -1; 
-              } 
-              break; 
-           } 
-           else
-           { 
-              DEBUG_SECTION2(DEBUGFLAG) fprintf(stderr, "mea_connect timeout !\n"); 
-              return -1; 
-           } 
-        }
-        while(1); 
-     } 
-     else
-    { 
-        DEBUG_SECTION2(DEBUGFLAG) fprintf(stderr, "Error connecting %d - %s\n", errno, strerror(errno)); 
-        return -1; 
-     } 
-  } 
-
-  // Set to blocking mode again... 
-  if( (arg = fcntl(soc, F_GETFL, NULL)) < 0)
-  { 
-     DEBUG_SECTION2(DEBUGFLAG) fprintf(stderr, "Error fcntl(..., F_GETFL) (%s)\n", strerror(errno)); 
-     return -1; 
-  }
-
-  arg &= (~O_NONBLOCK); 
-  if( fcntl(soc, F_SETFL, arg) < 0)
-  { 
-     DEBUG_SECTION2(DEBUGFLAG) fprintf(stderr, "Error fcntl(..., F_SETFL) (%s)\n", strerror(errno)); 
-     return -1; 
-  } 
-
-  return 0;
+int mea_connect(int soc, const struct sockaddr *addr, socklen_t addr_l)
+{
+   int res;
+   long arg;
+   fd_set myset;
+   struct timeval tv;
+   int valopt;
+   
+   // Set non-blocking
+   if( (arg = fcntl(soc, F_GETFL, NULL)) < 0)
+   {
+      VERBOSE(2) mea_log_printf ("%s (%s) : fcntl(..., F_GETFL) - %s\n", ERROR_STR, __func__, strerror(errno));
+      return -1;
+   }
+   
+   arg |= O_NONBLOCK;
+   if( fcntl(soc, F_SETFL, arg) < 0)
+   {
+      VERBOSE(2) mea_log_printf ("%s (%s) : fcntl(..., F_SETFL) - %s\n", ERROR_STR, __func__, strerror(errno));
+      return -1;
+   }
+   
+   // Trying to connect with timeout
+   res = connect(soc, addr, addr_l);
+   if (res < 0)
+   {
+      if(errno == EINPROGRESS)
+      {
+         //        fprintf(stderr, "EINPROGRESS in connect() - selecting\n");
+         do
+         {
+            tv.tv_sec = 2;
+            tv.tv_usec = 0;
+            FD_ZERO(&myset);
+            FD_SET(soc, &myset);
+            res = select(soc+1, NULL, &myset, NULL, &tv);
+            if (res < 0 && errno != EINTR)
+            {
+               VERBOSE(2) mea_log_printf ("%s (%s) : select() - %s\n", ERROR_STR, __func__, strerror(errno));
+               return -1;
+            }
+            else if (res > 0)
+            {
+               // Socket selected for write
+               socklen_t l = sizeof(int);
+               if (getsockopt(soc, SOL_SOCKET, SO_ERROR, (void*)(&valopt), &l) < 0)
+               {
+                  VERBOSE(2) mea_log_printf ("%s (%s) : getsockopt() - %s\n", ERROR_STR, __func__, strerror(errno));
+                  return -1;
+               }
+               // Check the value returned...
+               if (valopt)
+               {
+                  VERBOSE(2) mea_log_printf ("%s (%s) : getsockopt(), valopt=%d - %s\n", ERROR_STR, __func__, valopt, strerror(valopt));
+                  return -1;
+               }
+               break;
+            }
+            else
+            {
+               VERBOSE(2) mea_log_printf ("%s (%s) : select() - %s\n", ERROR_STR, __func__, strerror(errno));
+               return -1;
+            }
+         }
+         while(1);
+      }
+      else
+      {
+         VERBOSE(2) mea_log_printf ("%s (%s) : connect() - %s\n", ERROR_STR, __func__, strerror(errno));
+         return -1;
+      }
+   }
+   
+   // Set to blocking mode again...
+   if( (arg = fcntl(soc, F_GETFL, NULL)) < 0)
+   {
+      VERBOSE(2) mea_log_printf ("%s (%s) : fcntl(..., F_GETFL) - %s\n", ERROR_STR, __func__, strerror(errno));
+      return -1;
+   }
+   
+   arg &= (~O_NONBLOCK);
+   if( fcntl(soc, F_SETFL, arg) < 0)
+   {
+      VERBOSE(2) mea_log_printf ("%s (%s) : fcntl(..., F_SETFL) - %s\n", ERROR_STR, __func__, strerror(errno));
+      return -1;
+   } 
+   
+   return 0;
 }
 
 
@@ -120,11 +121,13 @@ int mea_socket_connect(int *s, char *hostname, int port)
    struct sockaddr_in serv_addr;
    struct hostent *serv_info = NULL;
 
+   *s=0;
+   
    sock = socket(AF_INET, SOCK_STREAM, 0);
    if(sock < 0)
    {
       DEBUG_SECTION {
-         mea_log_printf("%s (%s) :  socket - can't create : ",ERROR_STR,__func__);
+         mea_log_printf("%s (%s) :  socket - can't create : ", ERROR_STR, __func__);
          perror("");
       }
       return -1;
@@ -149,7 +152,7 @@ int mea_socket_connect(int *s, char *hostname, int port)
    if(mea_connect(sock, (const struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
    {
       DEBUG_SECTION {
-         mea_log_printf("%s (%s) :  connect - can't connect\n", ERROR_STR, __func__);
+         mea_log_printf("%s (%s) :  connect - can't connect (hostname=%s, port=%d)\n", ERROR_STR, __func__, hostname, port);
 //         perror("");
       }
       close(sock);

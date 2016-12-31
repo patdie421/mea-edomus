@@ -28,9 +28,9 @@ function MapEditorController(container, map, widgets_container, widgetsPanelWin,
 {
    MapEditorController.superConstructor.call(this, container, map, widgets_container, mapContextMenu);
 
-//   this.propertiesPanel =   $('#'+propertiesPanel);
    this.actionPanel =       $('#'+actionPanel);
-   this.propertiesPanel = false;
+//   this.propertiesPanel =   $('#'+propertiesPanel);
+   this.propertiesPanel =   false;
    this.newPanel =          $('#'+newPanel);
    this.widgetContextMenu = $('#'+widgetContextMenu);
    this.mn1               = $('#'+mn1);
@@ -307,10 +307,17 @@ MapEditorController.prototype.widgetsPanel_init = function()
 
    _this.map.droppable({
       accept:'.drag',
+      
       onDragEnter:function(e,source){
          $(source).draggable('options').cursor='auto';
          $(this).addClass('over');
          $(this).removeClass('notover');
+
+         _this.toolsPanelStateSave = _this.toolsPanelState;
+         _this.propertiesPanelStateSave = _this.propertiesPanelState;
+         _this.toolsPanel.window('close');
+         _this.propertiesPanel.window('close');
+
          _this.dragDropEntered = true;
       },
 
@@ -385,6 +392,11 @@ MapEditorController.prototype.widgetsPanel_init = function()
 
          $(this).removeClass('over');
          $(this).addClass('notover');
+         
+         if(_this.toolsPanelStateSave!='closed')
+            _this.toolsPanel.window('open');
+         if(_this.propertiesPanelStateSave!='closed')
+            _this.propertiesPanel.window('open');
       }
    });
 }
@@ -552,10 +564,10 @@ MapEditorController.prototype.propertiesPanel_init = function()
             namesvalues2_sel.datalist({data: namesvalues2_data});
 
             var names_keyhandler = {
- 	       up: function(e){},
-	       down: function(e){},
-	       left: function(e){},
-	       right: function(e){},
+               up: function(e){},
+               down: function(e){},
+               left: function(e){},
+               right: function(e){},
                query: function(q,e){},
                enter: function(e) {
                   if(names_sel.combobox('isValid')) {
@@ -564,7 +576,7 @@ MapEditorController.prototype.propertiesPanel_init = function()
                   }
                }
             };
-            names_sel.combobox({data: data_names, keyHandler:names_keyhandler, required: true, validType: 'device_name' });
+            names_sel.combobox({data: data_names, keyHandler: names_keyhandler, required: true, validType: 'device_name' });
             names_sel.combobox('textbox').on('keydown', function(e){
                if(e.keyCode == 187 || e.keyCode == 9)
                {
@@ -574,13 +586,13 @@ MapEditorController.prototype.propertiesPanel_init = function()
                      values_sel.textbox('textbox').focus();
                   }
                }
-	    });
+            });
 
             var values_keyhandler = {
- 	       up: function(e){},
-	       down: function(e){},
-	       left: function(e){},
-	       right: function(e){},
+               up: function(e){},
+               down: function(e){},
+               left: function(e){},
+               right: function(e){},
                query: function(q,e){},
                enter: function(e) {
                   if(values_sel.combobox('isValid')) {
@@ -592,7 +604,7 @@ MapEditorController.prototype.propertiesPanel_init = function()
                   }
                }
             };
-            values_sel.combobox({data: data_values, required: true, keyHandler:values_keyhandler });
+            values_sel.combobox({data: data_values, required: true, keyHandler: values_keyhandler });
 
             _this.actionPanel.window('open');
            
@@ -708,7 +720,6 @@ MapEditorController.prototype.newWidgetData = function(newid, type, x, y, zi, p)
          mea_widgetdata.push({"name":i, "value":val, "group":"Position", "editor":"empty"});
       });
    }
-
    catch(e) {};
  
    try {
@@ -964,6 +975,7 @@ MapEditorController.prototype._delete_map = function(name, type)
           _delete_rules(name);
     });
 }
+
 
 MapEditorController.prototype.new_map = function() {
    var _this = this;
@@ -1321,13 +1333,13 @@ MapEditorController.prototype.max_zIndex = function(div)
 }
 
 
-MapEditorController.prototype.repair = function(v,dec,s)
+MapEditorController.prototype.repair = function(v, dec, s)
 {
    var _this = this;
    if(_this.grid == 1)
       return v;
 
-   var vb = v-dec+s;
+   var vb = v - dec + s;
    var vt = vb % _this.grid;
 
 //   var r = parseInt(vb/_this.grid) * _this.grid;
@@ -1338,10 +1350,12 @@ MapEditorController.prototype.repair = function(v,dec,s)
       r += _this.grid;
    }
 
-   return r+dec-s;
+   return r + dec - s;
 }
 
 
+const _timeout = 75; // 50
+const _dec = 10; // 25
 MapEditorController.prototype._scroll = function()
 {
    var _this = this;
@@ -1353,15 +1367,15 @@ MapEditorController.prototype._scroll = function()
    y2=y1+_this.container.height();
 
    if(_this.mea_mouse_y < y1)
-      _this.container.scrollTop(_this.container.scrollTop() - 25);
+      _this.container.scrollTop(_this.container.scrollTop() - _dec);
    if(_this.mea_mouse_y > y2)
-      _this.container.scrollTop(_this.container.scrollTop() + 25);
+      _this.container.scrollTop(_this.container.scrollTop() + _dec);
    if(_this.mea_mouse_x < x1)
-      _this.container.scrollLeft(_this.container.scrollLeft() - 25);
+      _this.container.scrollLeft(_this.container.scrollLeft() - _dec);
    if(_this.mea_mouse_x > x2)
-      _this.container.scrollLeft(_this.container.scrollLeft() + 25);
+      _this.container.scrollLeft(_this.container.scrollLeft() + _dec);
 
-   _this.timeout=setTimeout(_this.scroll, 50);
+   _this.timeout=setTimeout(_this.scroll, _timeout);
 }
 
 
@@ -1392,29 +1406,29 @@ MapEditorController.prototype._constrain = function(e, drag, model)
 
    if (d.left < l_min)
    {
-      _this.container.scrollLeft(_this.container.scrollLeft() - 25);
-      _this.timeout=setTimeout(_this.scroll, 50);
+      _this.container.scrollLeft(_this.container.scrollLeft() - _dec);
+      _this.timeout=setTimeout(_this.scroll, _timeout);
       d.left = offset.left;
    }
 
    if (d.top < t_min)
    {
-      _this.container.scrollTop(_this.container.scrollTop() - 25);
-      _this.timeout=setTimeout(_this.scroll, 50);
+      _this.container.scrollTop(_this.container.scrollTop() - _dec);
+      _this.timeout=setTimeout(_this.scroll, _timeout);
       d.top = offset.top;
    }
 
    if (d.left + model.width() > l_max)
    {
-      _this.container.scrollLeft(_this.container.scrollLeft() + 25);
-      _this.timeout=setTimeout(_this.scroll, 50);
+      _this.container.scrollLeft(_this.container.scrollLeft() + _dec);
+      _this.timeout=setTimeout(_this.scroll, _timeout);
       d.left = l_max - model.width();
    }
 
    if (d.top + model.height() > t_max)
    {
-      _this.container.scrollTop(_this.container.scrollTop() + 25);
-      _this.timeout=setTimeout(_this.scroll, 150);
+      _this.container.scrollTop(_this.container.scrollTop() + _dec);
+      _this.timeout=setTimeout(_this.scroll, _timeout);
       d.top = t_max - model.height();
    }
 
@@ -1536,7 +1550,7 @@ MapEditorController.prototype.createWidgetsPanel = function()
             $('body').unbind('mousemove',  _this.getmousepos_handler);
          },
 
-         onStartDrag:function(e){
+         onStartDrag:function(e) {
             var __this = this;
             meaWidgetsJar[type].init(type+'_drag');
             $(__this).draggable('options').cursor='not-allowed';
@@ -1560,13 +1574,13 @@ MapEditorController.prototype._xplEditorCancel = function()
 MapEditorController.prototype._xplEditorOk = function()
 {
    var _this = this;
+   
    var data = {};
-
    var id = _this.actionPanel.attr('id');
 
    var namesvalues2_sel = $('#actions_win_me_namesvalues2');
    var _data = namesvalues2_sel.datalist('getData')['rows'];
-   $.each(_data,function(i,val) {
+   $.each(_data, function(i, val) {
       data[val['f1'][0]]=val['f1'][1];
    });
 
@@ -1578,6 +1592,7 @@ MapEditorController.prototype._xplEditorOk = function()
       if(val.name === action)
       {
          val.value = JSON.stringify({ "xplsend" : data });
+
          return false;
       }
    });
@@ -1595,15 +1610,17 @@ MapEditorController.prototype._xplEditorDown = function()
    var name = $("#"+id+"_names").combobox('getText');
    if(name)
       name=name.trim();
+
    var value = $("#"+id+"_values").combobox('getText');
    if(value)
       value=value.trim();
+
    if(name && name.length && value && value.length)
    {
       var namesvalues2_sel = $('#actions_win_me_namesvalues2');
       var data = namesvalues2_sel.datalist('getData')['rows'];
-      var found = false;
 
+      var found = false;
       $.each(data, function(i,val) {
          if(name == val['f1'][0])
          {
@@ -1628,7 +1645,7 @@ MapEditorController.prototype._xplEditorUp = function()
    var id = _this.actionPanel.attr('id');
    var namesvalues2_sel = $('#'+id+'_namesvalues2');
    var data = namesvalues2_sel.datalist('getData')['rows'];
-   var index = namesvalues2_sel.datalist('getRowIndex',namesvalues2_sel.datalist('getSelected'));
+   var index = namesvalues2_sel.datalist('getRowIndex', namesvalues2_sel.datalist('getSelected'));
    if(index<0)
       return;
    $("#"+id+"_names").combobox('setValue',data[index]['f1'][0]);

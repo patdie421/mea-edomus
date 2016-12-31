@@ -49,6 +49,8 @@ int16_t enocean_f6_02_01(enocean_ed_t *ed, uint32_t addr_dec, uint32_t device_ad
       data[0]=0b00000000; 
       status=0b00100000; // status: T21=1, NU=0
       ret=enocean_send_radio_erp1_packet(ed, ENOCEAN_RPS_TELEGRAM, ed->id+addr_dec, 0, device_addr, data, 1, status, &nerr);
+
+      return ret;
 }
 
 
@@ -60,13 +62,13 @@ int16_t enocean_d2(enocean_ed_t *ed, uint32_t addr_dec, uint32_t device_addr, ui
    if(reverse == 0)
    {
       data[0]=0x01;
-      data[1]=channel && 0b11111;
-      data[2]=value && 0b1111111;
+      data[1]=channel & 0b11111;
+      data[2]=value & 0b1111111;
    }
    else
    {
-      data[0]=value && 0b1111111;
-      data[1]=channel && 0b11111;
+      data[0]=value & 0b1111111;
+      data[1]=channel & 0b11111;
       data[2]=0x01;
    }
 /*

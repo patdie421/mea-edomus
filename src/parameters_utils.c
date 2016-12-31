@@ -55,7 +55,7 @@ static int16_t _parsed_parameters_clean_cache(time_t t, int force)
    time_t now=time(NULL);
 
    if(_parsed_parameters_cache_rwlock==NULL)
-      goto _parsed_parameters_clean_cache_clean_exit;
+      return 0;
 
    pthread_cleanup_push( (void *)pthread_rwlock_unlock, (void *)_parsed_parameters_cache_rwlock );
    pthread_rwlock_wrlock(_parsed_parameters_cache_rwlock);

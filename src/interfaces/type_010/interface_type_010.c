@@ -94,8 +94,8 @@ void set_interface_type_010_isnt_running(void *data)
 
 int16_t _interface_type_010_xPL_callback2(cJSON *xplMsgJson, struct device_info_s *device_info, void *userValue)
 {
-   char *device = NULL;
-   int ret = -1;
+//   char *device = NULL;
+//   int ret = -1;
    int err = 0;
 
    interface_type_010_t *i010=(interface_type_010_t *)userValue;
@@ -158,7 +158,7 @@ int16_t _interface_type_010_xPL_callback2(cJSON *xplMsgJson, struct device_info_
 
 static int init_interface_type_010_data_source_pipe(interface_type_010_t *i010)
 {
-   int retour = 0;
+//   int retour = 0;
    int ret = 0;
 
    i010->file_desc_in  = -1;
@@ -261,7 +261,7 @@ static int init_interface_type_010_data_source_pipe(interface_type_010_t *i010)
 
 static int init_interface_type_010_data_source(interface_type_010_t *i010)
 {
-   int ret = 0;
+//   int ret = 0;
 
    if(!i010->file_name)
       return -1;
@@ -521,11 +521,11 @@ static int _interface_type_010_data_to_plugin(interface_type_010_t *i010, sqlite
 
 static int interface_type_010_data_to_plugin(interface_type_010_t *i010, sqlite3 *params_db)
 {
-   char *device = NULL;
+//   char *device = NULL;
    int ret = -1;
-   int err = 0;
+//   int err = 0;
 
-   interface_type_010_t *interface=i010;
+//   interface_type_010_t *interface=i010;
    char sql[2048];
    sqlite3_stmt * stmt;
 
@@ -623,7 +623,7 @@ static int process_interface_type_010_data(interface_type_010_t *i010, sqlite3 *
 
    fd_set set;
    struct timeval timeout;
-   char buffer[255];
+//   char buffer[255];
 
    mea_timer_t timer;
    mea_init_timer(&timer, 10, 1);
@@ -975,7 +975,7 @@ static int api_write_data(interface_type_010_t *ixxx, PyObject *args, PyObject *
 
 int16_t api_interface_type_010(void *ixxx, char *cmnd, void *args, int nb_args, void **res, int16_t *nerr, char *err, int l_err)
 {
-   interface_type_010_t *i010 = (interface_type_010_t *)ixxx;
+//   interface_type_010_t *i010 = (interface_type_010_t *)ixxx;
 
    PyObject *pyArgs = (PyObject *)args;
    PyObject **pyRes = (PyObject **)res;
@@ -1249,7 +1249,7 @@ interface_type_010_t *malloc_and_init_interface_type_010(sqlite3 *sqlite3_param_
 void *_thread_interface_type_010(void *args)
 {
    struct thread_params_s *params=(struct thread_params_s *)args;
-   int ret;
+//   int ret;
 
    pthread_cleanup_push( (void *)_thread_interface_type_010_cleanup, (void *)params );
    pthread_cleanup_push( (void *)set_interface_type_010_isnt_running, (void *)params->i010 );
@@ -1311,7 +1311,7 @@ pthread_t *start_interface_type_010_thread(interface_type_010_t *i010, void *fd,
 {
    pthread_t *thread=NULL;
    struct thread_params_s *thread_params=NULL;
-   struct callback_data_s *callback_data=NULL;
+//   struct callback_data_s *callback_data=NULL;
 
    thread_params=malloc(sizeof(struct thread_params_s));
    if(!thread_params)

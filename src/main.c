@@ -394,7 +394,7 @@ static void error_handler(int signal_number)
    fprintf(stderr, "Error: aborting\n");
    fprintf(stderr, "Thread id : %x", (unsigned int)pthread_self());
    abort();
-   exit(1);
+//   exit(1);
 }
 
 

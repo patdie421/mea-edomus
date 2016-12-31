@@ -107,7 +107,9 @@ int send_reload( char *hostname, int port)
    char reload_str[80];
    
    if(mea_socket_connect(&s, hostname, port)<0)
+   {
       return -1;
+   }
    
    int reload_str_l=(int)(strlen(reload_str)+4);
    char message[2048];
@@ -292,31 +294,51 @@ int init_interfaces_list(sqlite3 * sqlite3_param_db)
 
    plugins_list = (struct plugin_info_s *)realloc(plugins_list, sizeof(struct plugin_info_s)*(next_int+1));
    plugins_list[next_int].type = INTERFACE_TYPE_002;
+#ifndef __APPLE__
    plugins_list[next_int].name = "interface_type_002.so";
+#else
+   plugins_list[next_int].name = "interface_type_002.dylib";
+#endif
    plugins_list[next_int].free_flag  = 0;
    next_int++;
 
    plugins_list = (struct plugin_info_s *)realloc(plugins_list, sizeof(struct plugin_info_s)*(next_int+1));
    plugins_list[next_int].type = INTERFACE_TYPE_003;
+#ifndef __APPLE__
    plugins_list[next_int].name = "interface_type_003.so";
+#else
+   plugins_list[next_int].name = "interface_type_003.dylib";
+#endif
    plugins_list[next_int].free_flag  = 0;
    next_int++;
 
    plugins_list = (struct plugin_info_s *)realloc(plugins_list, sizeof(struct plugin_info_s)*(next_int+1));
    plugins_list[next_int].type = INTERFACE_TYPE_004;
+#ifndef __APPLE__
    plugins_list[next_int].name = "interface_type_004.so";
+#else
+   plugins_list[next_int].name = "interface_type_004.dylib";
+#endif
    plugins_list[next_int].free_flag  = 0;
    next_int++;
 
    plugins_list = (struct plugin_info_s *)realloc(plugins_list, sizeof(struct plugin_info_s)*(next_int+1));
    plugins_list[next_int].type = INTERFACE_TYPE_005;
+#ifndef __APPLE__
    plugins_list[next_int].name = "interface_type_005.so";
+#else
+   plugins_list[next_int].name = "interface_type_005.dylib";
+#endif
    plugins_list[next_int].free_flag  = 0;
    next_int++;
 
    plugins_list = (struct plugin_info_s *)realloc(plugins_list, sizeof(struct plugin_info_s)*(next_int+1));
    plugins_list[next_int].type = INTERFACE_TYPE_006;
+#ifndef __APPLE__
    plugins_list[next_int].name = "interface_type_006.so";
+#else
+   plugins_list[next_int].name = "interface_type_006.so";
+#endif
    plugins_list[next_int].free_flag  = 0;
    next_int++;
 

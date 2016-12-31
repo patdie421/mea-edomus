@@ -15,6 +15,7 @@
 #include "consts.h"
 
 #include "mea_sockets_utils.h"
+#include "mea_verbose.h"
 
 int _port=5600;
 int _notify_socket=-1;
@@ -45,8 +46,9 @@ int mea_notify(char *hostname, int port, char *notif_str, char notif_type)
    
    if(_notify_enable==0)
       return 0;
-   
-   if(mea_socket_connect(&s, hostname, port+1)<0)
+
+//   if(mea_socket_connect(&s, hostname, port+1)<0)
+   if(mea_socket_connect(&s, hostname, port)<0)
    {
       return -1;
    }
@@ -61,28 +63,6 @@ int mea_notify(char *hostname, int port, char *notif_str, char notif_type)
    return ret;
 }
 
-/*
-int _notify( char *hostname, int port, char *notif_str, char notif_type)
-{
-   int ret;
-   int s;
-   
-   if(_notify_enable==0)
-      return 0;
-
-   if(mea_socket_connect(&s, hostname, port)<0)
-      return -1;
-
-   int notif_str_l=strlen(notif_str)+6;
-   char message[2048];
-   sprintf(message,"$$$%c%cNOT:%c:%s###", (char)(notif_str_l%128), (char)(notif_str_l/128), notif_type, notif_str);
-   ret = mea_socket_send(&s, message, notif_str_l+12);
-
-   close(s);
-
-   return ret;
-}
-*/
 
 int mea_notify_printf(int notif_type, char const* fmt, ...)
 {

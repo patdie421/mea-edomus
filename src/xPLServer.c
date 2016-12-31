@@ -551,12 +551,13 @@ void _rawXPLMessageHandler(char *s, int l)
    cJSON *msg_json = xPLParser(s, type, schema, source, target);
    if(msg_json != NULL)
    {
+/*
       DEBUG_SECTION {
          char *s = cJSON_Print(msg_json);
          fprintf(stderr,"%s\n", s);
          free(s);
       }
-
+*/
       mea_start_timer(&xPLnoMsgReceivedTimer);
 
       DEBUG_SECTION {

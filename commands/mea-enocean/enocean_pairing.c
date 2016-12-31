@@ -61,13 +61,13 @@ int16_t enocean_d2(enocean_ed_t *ed, uint32_t addr_dec, uint32_t device_addr, ui
    if(reverse == 0)
    {
       data[0]=0x01;
-      data[1]=channel && 0b11111;
-      data[2]=value && 0b1111111;
+      data[1]=channel & 0b11111;
+      data[2]=value & 0b1111111;
    }
    else
    {
-      data[0]=value && 0b1111111;
-      data[1]=channel && 0b11111;
+      data[0]=value & 0b1111111;
+      data[1]=channel & 0b11111;
       data[2]=0x01;
    }
    return enocean_send_radio_erp1_packet(ed, ENOCEAN_VLD_TELEGRAM, ed->id, 0, device_addr, data, 3, 0, &nerr);
@@ -168,6 +168,8 @@ int16_t teachinout(enocean_ed_t *ed, int16_t addr_dec, uint8_t *data, uint16_t l
          learning_state = 0;
       }
    }
+
+   return 0;
 }
 
 

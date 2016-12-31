@@ -1458,8 +1458,9 @@ int16_t upgrade_params_db_from_5_to_6(sqlite3 *sqlite3_param_db, struct upgrade_
       {0,NULL,NULL,NULL,NULL,NULL}
    };
 
-   addNewTypes(sqlite3_param_db, types_values);   // mise à journ de la version
-
+   addNewTypes(sqlite3_param_db, types_values);
+   
+   // mise à journ de la version
    ret = sqlite3_exec(sqlite3_param_db, "UPDATE 'application_parameters' set value = '6' WHERE key = 'PARAMSDBVERSION'", NULL, NULL, &err);
    if( ret != SQLITE_OK )
    {
@@ -1485,8 +1486,9 @@ int16_t upgrade_params_db_from_4_to_5(sqlite3 *sqlite3_param_db, struct upgrade_
       {0,NULL,NULL,NULL,NULL,NULL}
    };
 
-   addNewTypes(sqlite3_param_db, types_values);   // mise à journ de la version
-
+   addNewTypes(sqlite3_param_db, types_values);
+   
+   // mise à journ de la version
    ret = sqlite3_exec(sqlite3_param_db, "UPDATE 'application_parameters' set value = '5' WHERE key = 'PARAMSDBVERSION'", NULL, NULL, &err);
    if( ret != SQLITE_OK )
    {
@@ -1512,8 +1514,9 @@ int16_t upgrade_params_db_from_3_to_4(sqlite3 *sqlite3_param_db, struct upgrade_
       {0,NULL,NULL,NULL,NULL,NULL}
    };
 
-   addNewTypes(sqlite3_param_db, types_values);   // mise à journ de la version
-
+   addNewTypes(sqlite3_param_db, types_values);
+   
+   // mise à journ de la version
    ret = sqlite3_exec(sqlite3_param_db, "UPDATE 'application_parameters' set value = '4' WHERE key = 'PARAMSDBVERSION'", NULL, NULL, &err);
    if( ret != SQLITE_OK )
    {
@@ -1539,8 +1542,9 @@ int16_t upgrade_params_db_from_2_to_3(sqlite3 *sqlite3_param_db, struct upgrade_
       {0,NULL,NULL,NULL,NULL,NULL}
    };
 
-   addNewTypes(sqlite3_param_db, types_values);   // mise à journ de la version
-
+   addNewTypes(sqlite3_param_db, types_values);
+   
+   // mise à journ de la version
    ret = sqlite3_exec(sqlite3_param_db, "UPDATE 'application_parameters' set value = '3' WHERE key = 'PARAMSDBVERSION'", NULL, NULL, &err);
    if( ret != SQLITE_OK )
    {
@@ -1627,8 +1631,9 @@ int16_t upgrade_params_db_from_1_to_2(sqlite3 *sqlite3_param_db, struct upgrade_
       {0,NULL,NULL,NULL,NULL,NULL}
    };
 
-   addNewTypes(sqlite3_param_db, types_values);   // mise à journ de la version
-
+   addNewTypes(sqlite3_param_db, types_values);
+   
+   // mise à journ de la version
    ret = sqlite3_exec(sqlite3_param_db, "UPDATE 'application_parameters' set value = '2' WHERE key = 'PARAMSDBVERSION'", NULL, NULL, &err);
    if( ret != SQLITE_OK )
    {

@@ -11,8 +11,7 @@ CFLAGS = -std=gnu99 \
 	 -D_BSD_SOURCE \
 	 $(DEBUGFLAGS)
 
-	LDFLAGS = -lm \
-	          -lfl
+	LDFLAGS = -lm -ll
 
 MYPATH=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 

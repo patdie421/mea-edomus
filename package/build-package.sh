@@ -44,7 +44,7 @@ tar cf - . | ( cd $SOURCE/package/tmp/lib/mea-plugins ; tar xf - )
 rm $SOURCE/package/tmp/lib/mea-plugins/*.pyc
 
 cd $SOURCE/src/interfaces
-cp type_*/interface*.so $SOURCE/package/tmp/lib/mea-drivers
+cp type_*/interface*.dylib type_*/interface*.so $SOURCE/package/tmp/lib/mea-drivers
  
 cp $SOURCE/linux/init.d/* $SOURCE/package/tmp/etc/init.d
 

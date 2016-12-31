@@ -14,7 +14,7 @@ MACOSX_SONAME          = interface_type_010.dylib
 LINUX_ASPLUGIN_CFLAGS  = -DASPLUGIN
 LINUX_ASPLUGIN_LDFLAGS = -shared -Wl,--export-dynamic
 MACOSX_ASPLUGIN_CFLAGS = -DASPLUGIN
-MACOSX_ASPLUGIN_LDFLAGS=
+MACOSX_ASPLUGIN_LDFLAGS= -dynamiclib -undefined suppress -flat_namespace
 else
 LINUX_SONAME           =
 MACOSX_SONAME          =
@@ -43,9 +43,9 @@ ifeq ($(TECHNO), macosx)
    CFLAGS      = -std=c99 \
                  -O2 \
                  -DTECHNO_$(TECHNO) \
-                 -IxPLLib-mac \
                  -I/usr/local/mysql/include \
                  -I/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7 \
+                 -I$(BASEDIR)/src \
                  $(DEBUGFLAGS) \
                  $(MACOSX_ASPLUGIN_CFLAGS)
    LDFLAGS     = $(MACOSX_ASPLUGIN_LDFLAGS)

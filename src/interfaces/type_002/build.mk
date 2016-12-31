@@ -14,15 +14,14 @@ MACOSX_SONAME          = interface_type_002.dylib
 LINUX_ASPLUGIN_CFLAGS  = -DASPLUGIN
 LINUX_ASPLUGIN_LDFLAGS = -shared -Wl,--export-dynamic
 MACOSX_ASPLUGIN_CFLAGS = -DASPLUGIN
-MACOSX_ASPLUGIN_LDFLAGS=
+MACOSX_ASPLUGIN_LDFLAGS= -dynamiclib -undefined suppress -flat_namespace
 else
 LINUX_SONAME           =
 MACOSX_SONAME          =
 LINUX_ASPLUGIN_CFLAGS  =
 LINUX_ASPLUGIN_LDFLAGS =
 MACOSX_ASPLUGIN_CFLAGS =
-MACOSX_ASPLUGIN_LDFLAGS= -L/System/Library/Frameworks/Python.framework/Versions/2.7/lib -lpython2.7
-
+MACOSX_ASPLUGIN_LDFLAGS=
 endif
 
 DEBUGFLAGS  = -D__DEBUG_ON__

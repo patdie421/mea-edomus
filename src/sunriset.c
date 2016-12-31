@@ -50,7 +50,7 @@ Released to the public domain by Paul Schlyter, December 1992
 
 
 /* A small test program */
-#ifdef MEA_STRING_UTILS_MODULE_TEST
+#ifdef MEA_SUNRISET_MODULE_TEST
 main()
 {
       int year,month,day;

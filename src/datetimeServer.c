@@ -653,7 +653,7 @@ void *_timeServer_thread(void *data)
       if((last_te_tv_sec != te.tv_sec) && (te.tv_sec % 60) == 0) // toutes les minutes
       {
          DEBUG_SECTION2(DEBUGFLAG) {
-            mea_log_printf("Traitement minute\n");
+            mea_log_printf("%s (%s) : Traitement minute\n", INFO_STR, __func__);
          }
          localtime_r(&(mea_time_value), &mea_tm); // conversion en tm
       }
@@ -663,7 +663,7 @@ void *_timeServer_thread(void *data)
          if(hour_job_done == 0) // pour pas begailler
          {
             DEBUG_SECTION2(DEBUGFLAG) {
-               mea_log_printf("Traitement heure\n");
+               mea_log_printf("%s (%s) : Traitement heure\n", INFO_STR, __func__);
             }
             mea_clean_datetime_values_cache(); // on fait le ménage dans le cache
 
@@ -680,7 +680,7 @@ void *_timeServer_thread(void *data)
       if(mea_tm.tm_wday != current_day) // 1x par jour
       {
          DEBUG_SECTION2(DEBUGFLAG) {
-            mea_log_printf("Traitement jour\n");
+            mea_log_printf("%s (%s) : Traitement jour\n", INFO_STR, __func__);
          }
          current_day = mea_tm.tm_wday;
 
@@ -747,7 +747,7 @@ void *_timeServer_thread(void *data)
       pthread_testcancel();
    }
    
-   pthread_exit(NULL);
+//   pthread_exit(NULL);
 
    return NULL;
 }

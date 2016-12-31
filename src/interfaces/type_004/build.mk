@@ -14,7 +14,7 @@ MACOSX_SONAME          = interface_type_004.dylib
 LINUX_ASPLUGIN_CFLAGS  = -DASPLUGIN
 LINUX_ASPLUGIN_LDFLAGS = -shared -Wl,--export-dynamic
 MACOSX_ASPLUGIN_CFLAGS = -DASPLUGIN
-MACOSX_ASPLUGIN_LDFLAGS=
+MACOSX_ASPLUGIN_LDFLAGS= -dynamiclib -undefined suppress -flat_namespace
 else
 LINUX_SONAME           =
 MACOSX_SONAME          =

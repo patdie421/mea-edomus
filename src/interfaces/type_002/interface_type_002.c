@@ -1395,8 +1395,8 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
             ret=at_get_local_char_array_reg(xd, at_cmd, (char *)addr_l, &l_reg_val, &nerr);
             if(ret!=-1)
             {
-               break;
                localAddrFound=1;
+               break;
             }
          }
          VERBOSE(9) mea_log_printf("%s  (%s) : can't get local xbee address (try %d/5)\n", INFO_STR, __func__, i+1);
