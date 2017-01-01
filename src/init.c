@@ -125,7 +125,7 @@ char *get_and_malloc_string(char *default_value, char *question_str)
 }
 
 
-char *get_and_malloc_path(char *base_path,char *dir_name,char *question_str)
+char *get_and_malloc_path(char *base_path, char *dir_name, char *question_str)
  /**
   * \brief     Demande la saisie d'un chemin de fichier ou de répertoire depuis l'entrée standard et retourne la valeur dans une chaine allouée (malloc).
   * \details   Une question est affichée et une propostion de répertoire est faite (validée par ENTER sans saisir de caractères).
@@ -253,6 +253,7 @@ int16_t checkInstallationPaths(char *base_path, int16_t try_to_create_flag)
   *            BASEPATH/var/db
   *            BASEPATH/var/log
   *            BASEPATH/var/sessions
+  *            BASEPATH/var/backup
   *            BASEPATH/gui
   *   Si BASEPATH == /usr (installation traditionnelle des distributions linux)
   *            /usr/bin
@@ -264,6 +265,7 @@ int16_t checkInstallationPaths(char *base_path, int16_t try_to_create_flag)
   *            /var/db
   *            /var/log
   *            /tmp
+  *            /var/backup
   *            /usr/lib/mea-gui
   *   Mes recommendations :
   *      BASEPATH=/usr/local/mea-edomus ou /opt/mea-edomus ou /apps/mea-edomus
@@ -272,8 +274,8 @@ int16_t checkInstallationPaths(char *base_path, int16_t try_to_create_flag)
   * \return    0 si l'installation est ok, -1 = erreur bloquante, -2 = au moins un répertoire n'existe pas
   */
 {
-    const char *default_paths_list[]={NULL,"bin","etc","lib","lib/mea-drivers","lib/mea-plugins","var","var/db","var/log","var/sessions","lib/mea-gui","lib/mea-rules", NULL};
-    const char *usr_paths_list[]={"/etc","/usr/lib/mea-plugins","/usr/lib/mea-drivers","/var/db","/var/log","/tmp","/usr/lib/mea-gui","/usr/lib/mea-rules", NULL};
+    const char *default_paths_list[]={NULL,"bin","etc","lib","lib/mea-drivers","lib/mea-plugins","var","var/db","var/log","var/sessions","var/backup", "lib/mea-gui","lib/mea-rules", NULL};
+    const char *usr_paths_list[]={"/etc","/usr/lib/mea-plugins","/usr/lib/mea-drivers","/var/db","/var/log","/tmp","var/backup", "/usr/lib/mea-gui","/usr/lib/mea-rules", NULL};
     
     char **paths_list;
     
@@ -282,13 +284,13 @@ int16_t checkInstallationPaths(char *base_path, int16_t try_to_create_flag)
     int16_t is_usr_flag;
     int16_t n;
     
-    if(strcmp("/",base_path)==0 || base_path[0]==0) // root et pas de base_path interdit !!!
+    if(strcmp("/", base_path)==0 || base_path[0]==0) // root et pas de base_path interdit !!!
     {
         VERBOSE(2) mea_log_printf("%s (%s) : root (\"/\") and empty string (\"\") not allowed for base path\n", ERROR_STR,__func__);
         return -1;
     }
 
-    if(strcmp(usr_str,base_path)==0) // l'installation dans /usr n'a pas la même configuration de répertoire
+    if(strcmp(usr_str, base_path)==0) // l'installation dans /usr n'a pas la même configuration de répertoire
     {
         paths_list=(char **)usr_paths_list;
         is_usr_flag=1;
@@ -930,6 +932,7 @@ int16_t autoInit(char **params_list, char **keys)
    _construct_path(params_list,   RULES_FILE,        params_list[MEA_PATH], "lib/mea-rules/automator.rules");
    _construct_path(params_list,   RULES_FILES_PATH,  params_list[MEA_PATH], "lib/mea-rules");
    _construct_path(params_list,   LOG_PATH,          p_str,                 "var/log");
+   _construct_path(params_list,   BACKUPDIR_PATH,    p_str,                 "var/backup");
    _construct_path(params_list,   SQLITE3_DB_BUFF_PATH, p_str, "var/db/queries.db");
 
    _construct_path(params_list,   NODEJS_PATH,       "", "usr/bin/nodejs");
@@ -1056,7 +1059,8 @@ int16_t interactiveInit(char **params_list, char **keys)
    _read_path(params_list,   SQLITE3_DB_BUFF_PATH, p_str,        "var/db/queries.db", "PATH to sqlite3 buffer db");
 
    _read_path(params_list,   LOG_PATH,         p_str, "var/log", "PATH to logs directory");
-
+   _read_path(params_list,   BACKUPDIR_PATH,   p_str, "var/backup", "PATH to backup directory");
+   
    _read_path(params_list,   NODEJS_PATH,      "", "usr/bin/nodejs", "PATH to nodejs");
 
    _read_integer(params_list, NODEJSIOSOCKET_PORT, 8000,   "nodejs socketio port");
@@ -1226,7 +1230,58 @@ exit_updateMeaEdomus:
 }
 
 
+static int16_t _setVersion(sqlite3 *sqlite3_param_db, int version)
+{
+ char *err = NULL;
+ int ret;
+ char sql[256];
+ int16_t n;
+ 
+   n=snprintf(sql, sizeof(sql), "UPDATE 'application_parameters' set value = '%d' WHERE key = 'PARAMSDBVERSION'", version);
+
+   ret = sqlite3_exec(sqlite3_param_db, sql, NULL, NULL, &err);
+   if( ret != SQLITE_OK )
+   {
+      VERBOSE(9) mea_log_printf ("%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
+      sqlite3_free(err);
+      return -1;
+   }
+   
+   return 0;
+}
+
+
 // une fonction pour chaque changement de version.
+int16_t upgrade_params_db_from_11_to_12(sqlite3 *sqlite3_param_db, struct upgrade_params_s *upgrade_params)
+{
+ int ret;
+ char *err = NULL;
+ char sql[256];
+ int16_t n;
+
+   VERBOSE(5) mea_log_printf ("%s (%s) : passage de la version 11 à la version 12\n",INFO_STR,__func__);
+
+   n=snprintf(sql, sizeof(sql), "REPLACE INTO 'application_parameters' (id, key, value, complement) VALUES ('%d', 'BACKUPDIRPATH', '%s/var/backup', '')", BACKUPDIR_PATH, upgrade_params->params_list[MEA_PATH]);
+   if(n<0 || n==sizeof(sql))
+   {
+      VERBOSE(9) {
+         mea_log_printf ("%s (%s) : snprintf - ", DEBUG_STR,__func__);
+         perror("");
+      }
+      return -1;
+   }
+   ret = sqlite3_exec(sqlite3_param_db, sql, NULL, NULL, &err);
+   if( ret != SQLITE_OK )
+   {
+      VERBOSE(9) mea_log_printf ("%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__, sqlite3_errmsg(sqlite3_param_db));
+      sqlite3_free(err);
+      return -1;
+   }
+
+   return _setVersion(sqlite3_param_db, 12);
+}
+
+
 int16_t upgrade_params_db_from_10_to_11(sqlite3 *sqlite3_param_db, struct upgrade_params_s *upgrade_params)
 {
  int ret;
@@ -1253,15 +1308,7 @@ int16_t upgrade_params_db_from_10_to_11(sqlite3 *sqlite3_param_db, struct upgrad
       return -1;
    }
 
-   ret = sqlite3_exec(sqlite3_param_db, "UPDATE 'application_parameters' set value = '11' WHERE key = 'PARAMSDBVERSION'", NULL, NULL, &err);
-   if( ret != SQLITE_OK )
-   {
-      VERBOSE(9) mea_log_printf ("%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
-      sqlite3_free(err);
-      return -1;
-   }
-
-   return 0;
+   return _setVersion(sqlite3_param_db, 11);
 }
 
 
@@ -1283,15 +1330,7 @@ int16_t upgrade_params_db_from_9_to_10(sqlite3 *sqlite3_param_db, struct upgrade
       sqlite3_free(err);
    }
 
-   ret = sqlite3_exec(sqlite3_param_db, "UPDATE 'application_parameters' set value = '10' WHERE key = 'PARAMSDBVERSION'", NULL, NULL, &err);
-   if( ret != SQLITE_OK )
-   {
-      VERBOSE(9) mea_log_printf ("%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
-      sqlite3_free(err);
-      return -1;
-   }
-
-   return 0;
+   return _setVersion(sqlite3_param_db, 10);
 }
 
 
@@ -1355,15 +1394,7 @@ int16_t upgrade_params_db_from_8_to_9(sqlite3 *sqlite3_param_db, struct upgrade_
    }
 
 
-   ret = sqlite3_exec(sqlite3_param_db, "UPDATE 'application_parameters' set value = '9' WHERE key = 'PARAMSDBVERSION'", NULL, NULL, &err);
-   if( ret != SQLITE_OK )
-   {
-      VERBOSE(9) mea_log_printf ("%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
-      sqlite3_free(err);
-      return -1;
-   }
-
-   return 0;
+   return _setVersion(sqlite3_param_db, 9);
 }
 
 
@@ -1394,15 +1425,7 @@ int16_t upgrade_params_db_from_7_to_8(sqlite3 *sqlite3_param_db, struct upgrade_
       return -1;
    }
  
-   ret = sqlite3_exec(sqlite3_param_db, "UPDATE 'application_parameters' set value = '8' WHERE key = 'PARAMSDBVERSION'", NULL, NULL, &err);
-   if( ret != SQLITE_OK )
-   {
-      VERBOSE(9) mea_log_printf ("%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
-      sqlite3_free(err);
-      return -1;
-   }
-   
-   return 0;
+   return _setVersion(sqlite3_param_db, 8);
 }
 
 
@@ -1433,24 +1456,13 @@ int16_t upgrade_params_db_from_6_to_7(sqlite3 *sqlite3_param_db, struct upgrade_
       return -1;
    }
  
-   ret = sqlite3_exec(sqlite3_param_db, "UPDATE 'application_parameters' set value = '7' WHERE key = 'PARAMSDBVERSION'", NULL, NULL, &err);
-   if( ret != SQLITE_OK )
-   {
-      VERBOSE(9) mea_log_printf ("%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
-      sqlite3_free(err);
-      return -1;
-   }
-   
-   return 0;
+   return _setVersion(sqlite3_param_db, 7);
 }
 
 
 // une fonction pour chaque changement de version.
 int16_t upgrade_params_db_from_5_to_6(sqlite3 *sqlite3_param_db, struct upgrade_params_s *upgrade_params)
 {
- int ret;
- char *err = NULL;
- 
    VERBOSE(5) mea_log_printf ("%s (%s) : passage de la version 5 à la version 6\n",INFO_STR,__func__);
    
    struct types_value_s types_values[] = {
@@ -1460,25 +1472,13 @@ int16_t upgrade_params_db_from_5_to_6(sqlite3 *sqlite3_param_db, struct upgrade_
 
    addNewTypes(sqlite3_param_db, types_values);
    
-   // mise à journ de la version
-   ret = sqlite3_exec(sqlite3_param_db, "UPDATE 'application_parameters' set value = '6' WHERE key = 'PARAMSDBVERSION'", NULL, NULL, &err);
-   if( ret != SQLITE_OK )
-   {
-      VERBOSE(9) mea_log_printf ("%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
-      sqlite3_free(err);
-      return -1;
-   }
-   
-   return 0;
+   return _setVersion(sqlite3_param_db, 6);
 }
 
 
 // une fonction pour chaque changement de version.
 int16_t upgrade_params_db_from_4_to_5(sqlite3 *sqlite3_param_db, struct upgrade_params_s *upgrade_params)
 {
- int ret;
- char *err = NULL;
- 
    VERBOSE(5) mea_log_printf ("%s (%s) : passage de la version 4 à la version 5\n",INFO_STR,__func__);
    
    struct types_value_s types_values[] = {
@@ -1489,24 +1489,13 @@ int16_t upgrade_params_db_from_4_to_5(sqlite3 *sqlite3_param_db, struct upgrade_
    addNewTypes(sqlite3_param_db, types_values);
    
    // mise à journ de la version
-   ret = sqlite3_exec(sqlite3_param_db, "UPDATE 'application_parameters' set value = '5' WHERE key = 'PARAMSDBVERSION'", NULL, NULL, &err);
-   if( ret != SQLITE_OK )
-   {
-      VERBOSE(9) mea_log_printf ("%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
-      sqlite3_free(err);
-      return -1;
-   }
-   
-   return 0;
+   return _setVersion(sqlite3_param_db, 5);
 }
 
 
 // une fonction pour chaque changement de version.
 int16_t upgrade_params_db_from_3_to_4(sqlite3 *sqlite3_param_db, struct upgrade_params_s *upgrade_params)
 {
- int ret;
- char *err = NULL;
- 
    VERBOSE(5) mea_log_printf ("%s (%s) : passage de la version 3 à la version 4\n",INFO_STR,__func__);
    
    struct types_value_s types_values[] = {
@@ -1516,25 +1505,13 @@ int16_t upgrade_params_db_from_3_to_4(sqlite3 *sqlite3_param_db, struct upgrade_
 
    addNewTypes(sqlite3_param_db, types_values);
    
-   // mise à journ de la version
-   ret = sqlite3_exec(sqlite3_param_db, "UPDATE 'application_parameters' set value = '4' WHERE key = 'PARAMSDBVERSION'", NULL, NULL, &err);
-   if( ret != SQLITE_OK )
-   {
-      VERBOSE(9) mea_log_printf ("%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
-      sqlite3_free(err);
-      return -1;
-   }
-   
-   return 0;
+   return _setVersion(sqlite3_param_db, 4);
 }
 
 
 // une fonction pour chaque changement de version.
 int16_t upgrade_params_db_from_2_to_3(sqlite3 *sqlite3_param_db, struct upgrade_params_s *upgrade_params)
 {
- int ret;
- char *err = NULL;
- 
    VERBOSE(5) mea_log_printf ("%s (%s) : passage de la version 2 à la version 3\n",INFO_STR,__func__);
    
    struct types_value_s types_values[] = {
@@ -1544,16 +1521,7 @@ int16_t upgrade_params_db_from_2_to_3(sqlite3 *sqlite3_param_db, struct upgrade_
 
    addNewTypes(sqlite3_param_db, types_values);
    
-   // mise à journ de la version
-   ret = sqlite3_exec(sqlite3_param_db, "UPDATE 'application_parameters' set value = '3' WHERE key = 'PARAMSDBVERSION'", NULL, NULL, &err);
-   if( ret != SQLITE_OK )
-   {
-      VERBOSE(9) mea_log_printf ("%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
-      sqlite3_free(err);
-      return -1;
-   }
-   
-   return 0;
+   return _setVersion(sqlite3_param_db, 3);
 }
 
 
@@ -1634,15 +1602,7 @@ int16_t upgrade_params_db_from_1_to_2(sqlite3 *sqlite3_param_db, struct upgrade_
    addNewTypes(sqlite3_param_db, types_values);
    
    // mise à journ de la version
-   ret = sqlite3_exec(sqlite3_param_db, "UPDATE 'application_parameters' set value = '2' WHERE key = 'PARAMSDBVERSION'", NULL, NULL, &err);
-   if( ret != SQLITE_OK )
-   {
-      VERBOSE(9) mea_log_printf ("%s (%s) : sqlite3_exec - %s\n", DEBUG_STR,__func__,sqlite3_errmsg(sqlite3_param_db));
-      sqlite3_free(err);
-      return -1;
-   }
-   
-   return 0;
+   return _setVersion(sqlite3_param_db, 2);
 }
 
 
@@ -1772,6 +1732,7 @@ upgrade_params_db_from_x_to_y_f upgrade_params_db_from_x_to_y[]= {
    upgrade_params_db_from_8_to_9,
    upgrade_params_db_from_9_to_10,
    upgrade_params_db_from_10_to_11,
+   upgrade_params_db_from_11_to_12,
    NULL };
 
 

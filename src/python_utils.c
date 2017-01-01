@@ -10,7 +10,6 @@
 #include <sqlite3.h>
 
 #include "cJSON.h"
-//#include "xPL.h"
 #include "interfacesServer.h"
 
 #include "mea_verbose.h"

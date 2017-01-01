@@ -234,7 +234,6 @@
 		4E015C881BFB81FE008E9A2B /* interface_SMS_SIM900.ino */ = {isa = PBXFileReference; explicitFileType = sourcecode.c; name = interface_SMS_SIM900.ino; path = interface_SMS_SIM900/interface_SMS_SIM900.ino; sourceTree = "<group>"; };
 		4E09454C17C10FA6003749FE /* init.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = init.h; path = src/init.h; sourceTree = "<group>"; };
 		4E09454D17C10FB2003749FE /* init.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = init.c; path = src/init.c; sourceTree = "<group>"; };
-		4E1496FA163F290200E08E6D /* sample_params_data.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = sample_params_data.sql; path = sql/sample_params_data.sql; sourceTree = "<group>"; };
 		4E14ABFC16083B8C000686C3 /* interfacesServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = interfacesServer.h; path = src/interfacesServer.h; sourceTree = "<group>"; };
 		4E14ABFD16083B8C000686C3 /* macros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = macros.h; path = src/macros.h; sourceTree = "<group>"; };
 		4E1A106B1C765D2200B67DDE /* ace.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = ace.js; sourceTree = "<group>"; };
@@ -2190,7 +2189,6 @@
 		4E76CEA1163F124200A3EBA9 /* xPLServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = xPLServer.h; path = src/xPLServer.h; sourceTree = "<group>"; };
 		4E76CEA3163F12C700A3EBA9 /* arduino_pins.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = arduino_pins.c; path = src/interfaces/type_001/arduino_pins.c; sourceTree = "<group>"; };
 		4E76CEA4163F12C700A3EBA9 /* arduino_pins.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = arduino_pins.h; path = src/interfaces/type_001/arduino_pins.h; sourceTree = "<group>"; };
-		4E76CEA6163F133400A3EBA9 /* sqlite3_params_db.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = sqlite3_params_db.sql; path = sql/sqlite3_params_db.sql; sourceTree = "<group>"; };
 		4E76CEA9163F146900A3EBA9 /* parameters_utils.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = parameters_utils.c; path = src/parameters_utils.c; sourceTree = "<group>"; };
 		4E76CEAA163F146900A3EBA9 /* parameters_utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = parameters_utils.h; path = src/parameters_utils.h; sourceTree = "<group>"; };
 		4E76CEB0163F175100A3EBA9 /* tokens.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = tokens.c; path = src/tokens.c; sourceTree = "<group>"; };
@@ -2260,6 +2258,9 @@
 		4E8122E31E13EABC009A6C2B /* meawidget_chart.svg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = meawidget_chart.svg; sourceTree = "<group>"; };
 		4E8122E41E13EAFC009A6C2B /* mapsseteditor-view.php */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.php; path = "mapsseteditor-view.php"; sourceTree = "<group>"; };
 		4E8122E51E13EB1C009A6C2B /* page5.php */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.php; name = page5.php; path = gui/page5.php; sourceTree = "<group>"; };
+		4E8122E61E18162D009A6C2B /* enocean_d2-01-12.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = "enocean_d2-01-12.py"; path = "plugins/enocean_d2-01-12.py"; sourceTree = "<group>"; };
+		4E8122E71E18162D009A6C2B /* enocean_d2-01-xx.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = "enocean_d2-01-xx.py"; path = "plugins/enocean_d2-01-xx.py"; sourceTree = "<group>"; };
+		4E8122E81E18162D009A6C2B /* mea_text_inout.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = mea_text_inout.py; path = plugins/mea_text_inout.py; sourceTree = "<group>"; };
 		4E83D2A81BF12A81009FF74F /* mea_error.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mea_error.h; path = src/mea_error.h; sourceTree = "<group>"; };
 		4E83D2A91BF12A81009FF74F /* mea_queue.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mea_queue.c; path = src/mea_queue.c; sourceTree = "<group>"; };
 		4E83D2AA1BF12A81009FF74F /* mea_queue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mea_queue.h; path = src/mea_queue.h; sourceTree = "<group>"; };
@@ -2427,8 +2428,6 @@
 			isa = PBXGroup;
 			children = (
 				4E7A0AA61AB74D8600ABF5ED /* utilslib.mk */,
-				4E73D2C31D29298B0063F381 /* mea_xpl.c */,
-				4E73D2C21D29297A0063F381 /* mea_xpl.h */,
 				4E4A5E9815F003420052ABF4 /* main.c */,
 				4E09454C17C10FA6003749FE /* init.h */,
 				4E09454D17C10FB2003749FE /* init.c */,
@@ -4613,15 +4612,18 @@
 		4E48119F19C37C46001C5F48 /* plugins */ = {
 			isa = PBXGroup;
 			children = (
+				4E8122E61E18162D009A6C2B /* enocean_d2-01-12.py */,
+				4E8122E71E18162D009A6C2B /* enocean_d2-01-xx.py */,
+				4E4F88571A9A109100479945 /* enocean_f6-02-01.py */,
+				4E4292A41AB22FBA00E64F4F /* enocean_f6-02-01_xplonoff.py */,
+				4E8122E81E18162D009A6C2B /* mea_text_inout.py */,
 				4E98B6181C0CF76200985383 /* mea_serial_send_sms.py */,
 				4E98B6191C0CF76200985383 /* mea_serial_sms_alarme_epc.py */,
 				4E3B80501C0790B000757EF8 /* mea_serial.py */,
-				4E4292A41AB22FBA00E64F4F /* enocean_f6-02-01_xplonoff.py */,
 				4E4811A219C37D43001C5F48 /* mea_simulation.py */,
 				4E4811A319C37D43001C5F48 /* mea_utils.py */,
 				4E4811A419C37D43001C5F48 /* my_dht22.py */,
 				4E4811A519C37D43001C5F48 /* xbee_generic.py */,
-				4E4F88571A9A109100479945 /* enocean_f6-02-01.py */,
 			);
 			name = plugins;
 			sourceTree = "<group>";
@@ -4751,26 +4753,12 @@
 		4E4D4E811601F2930008C14C /* Libs */ = {
 			isa = PBXGroup;
 			children = (
-				4E8122C91E13E9A4009A6C2B /* driverslib.mk */,
-				4E5E49061C1F7FA200CBE3EE /* sunriset.c */,
-				4E5E49071C1F7FA200CBE3EE /* sunriset.h */,
+				4E8122EE1E181AE4009A6C2B /* Drivers */,
 				4E4D4E801601F2730008C14C /* Utils */,
-				4E83D2DB1BF515F7009FF74F /* netatmo.c */,
-				4E83D2DC1BF515F7009FF74F /* netatmo.h */,
 				4E4F885A1A9E76A000479945 /* cJSON.c */,
 				4E4F885B1A9E76A000479945 /* cJSON.h */,
-				4E4F885C1A9E76A000479945 /* philipshue.c */,
-				4E4F885D1A9E76A000479945 /* philipshue.h */,
-				4E4292971AAA26E700E64F4F /* philipshue_color.h */,
-				4E4292951AA7AEC700E64F4F /* philipshue_color.c */,
-				4E76CEA3163F12C700A3EBA9 /* arduino_pins.c */,
-				4E76CEA4163F12C700A3EBA9 /* arduino_pins.h */,
-				4E4A5EA015F003420052ABF4 /* xbee.c */,
-				4E4A5EA115F003420052ABF4 /* xbee.h */,
-				4EF3D8FA19B3C02200892F29 /* comio2.c */,
-				4EF3D8FB19B3C02200892F29 /* comio2.h */,
-				4E2AD4CE1A3F4C84004177D4 /* enocean.c */,
-				4E2AD4CF1A3F4C84004177D4 /* enocean.h */,
+				4E5E49061C1F7FA200CBE3EE /* sunriset.c */,
+				4E5E49071C1F7FA200CBE3EE /* sunriset.h */,
 				4E40668E19F3C0D600468E11 /* uthash.h */,
 			);
 			name = Libs;
@@ -7466,6 +7454,28 @@
 			path = default;
 			sourceTree = "<group>";
 		};
+		4E8122EE1E181AE4009A6C2B /* Drivers */ = {
+			isa = PBXGroup;
+			children = (
+				4E4F885C1A9E76A000479945 /* philipshue.c */,
+				4E4F885D1A9E76A000479945 /* philipshue.h */,
+				4E4292971AAA26E700E64F4F /* philipshue_color.h */,
+				4E4292951AA7AEC700E64F4F /* philipshue_color.c */,
+				4E83D2DB1BF515F7009FF74F /* netatmo.c */,
+				4E83D2DC1BF515F7009FF74F /* netatmo.h */,
+				4E8122C91E13E9A4009A6C2B /* driverslib.mk */,
+				4E76CEA3163F12C700A3EBA9 /* arduino_pins.c */,
+				4E76CEA4163F12C700A3EBA9 /* arduino_pins.h */,
+				4E4A5EA015F003420052ABF4 /* xbee.c */,
+				4E4A5EA115F003420052ABF4 /* xbee.h */,
+				4EF3D8FA19B3C02200892F29 /* comio2.c */,
+				4EF3D8FB19B3C02200892F29 /* comio2.h */,
+				4E2AD4CE1A3F4C84004177D4 /* enocean.c */,
+				4E2AD4CF1A3F4C84004177D4 /* enocean.h */,
+			);
+			name = Drivers;
+			sourceTree = "<group>";
+		};
 		4E83D2E21BF766AB009FF74F /* interface_type_005 */ = {
 			isa = PBXGroup;
 			children = (
@@ -7806,6 +7816,8 @@
 		4EE28EAA162F4DD00090B5B3 /* xPL manager */ = {
 			isa = PBXGroup;
 			children = (
+				4E73D2C31D29298B0063F381 /* mea_xpl.c */,
+				4E73D2C21D29297A0063F381 /* mea_xpl.h */,
 				4E76CEA1163F124200A3EBA9 /* xPLServer.h */,
 				4E76CEA0163F124200A3EBA9 /* xPLServer.c */,
 			);
@@ -7867,9 +7879,7 @@
 		4EFD8C3215D97ABE0032D454 /* SQL */ = {
 			isa = PBXGroup;
 			children = (
-				4E1496FA163F290200E08E6D /* sample_params_data.sql */,
 				4E76CEB4163F17E300A3EBA9 /* mysql_mea-edomus_db.sql */,
-				4E76CEA6163F133400A3EBA9 /* sqlite3_params_db.sql */,
 			);
 			name = SQL;
 			sourceTree = "<group>";

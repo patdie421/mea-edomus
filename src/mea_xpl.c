@@ -1,3 +1,10 @@
+//
+//  mea_xpl.c
+//
+//  Created by Patrice DIETSCH on 12/31/16.
+//  Copyright (c) 2012 -. All rights reserved.
+//
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -234,7 +241,7 @@ int mea_xPLConnectHub(int *xPLPort)
     */
    //   maximizeReceiveBufferSize(sockfd);
    
-   VERBOSE(5) mea_log_printf("%s (%s) : xPL Starting in Hub mode on port %d\n", INFO_STR, __func__, xPLPort);
+   VERBOSE(5) mea_log_printf("%s (%s) : xPL Starting in Hub mode on port %d\n", INFO_STR, __func__, *xPLPort);
    
    return sockfd;
 }

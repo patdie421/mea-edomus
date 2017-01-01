@@ -1,3 +1,10 @@
+//
+//  mea_xpl.h
+//
+//  Created by Patrice DIETSCH on 12/31/16.
+//  Copyright (c) 2012 -. All rights reserved.
+//
+
 #ifndef __mea_xpl_h
 #define __mea_xpl_h
 

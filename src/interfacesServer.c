@@ -647,8 +647,8 @@ int link_delegates(mea_queue_t *interfaces_list)
    while(1)
    {
       mea_queue_current(interfaces_list, (void **)&iq);
-
-      if(!iq->context)
+      
+      if(iq && !iq->context)
       {
          char name[256], more[256];
          int n;
@@ -863,7 +863,7 @@ start_interfaces_clean_exit:
    clean_not_linked(_interfaces);
 
    // associer ici les délégués aux interfaces réelles ou suppression si pas d'interface réelle chargée
-
+   
    return _interfaces;
 }
 

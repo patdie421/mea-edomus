@@ -70,6 +70,7 @@ def mea_xplCmndMsg(data):
       _cmnd=[cmnd]
       p = subprocess.Popen(_cmnd)
 
+
 def mea_dataFromSensor(data):
    fn_name= __name__ + "/" + str(sys._getframe().f_code.co_name)
 
@@ -125,8 +126,6 @@ def mea_dataFromSensor(data):
  
       else:
          return -1
-
-
 
 
 def mea_init(data):

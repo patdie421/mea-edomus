@@ -46,10 +46,11 @@
 #define RULES_FILE            26
 #define RULES_FILES_PATH      27
 #define COLLECTOR_ID          28
-#define DRIVERS_PATH          29 
-#define MAX_LIST_SIZE         30
+#define DRIVERS_PATH          29
+#define BACKUPDIR_PATH        30
+#define MAX_LIST_SIZE         31
 
-#define CURRENT_PARAMS_DB_VERSION 11
+#define CURRENT_PARAMS_DB_VERSION 12
 sqlite3 *get_sqlite3_param_db();
 
 // voir ou mettre

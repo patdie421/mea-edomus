@@ -577,6 +577,7 @@ void display_parsed_parameters(parsed_parameters_t *mpp)
    }
 }
 
+
 #ifdef PARAMETERS_UTILS_MODULE_R7
 // gcc -std=c99 -std=gnu99 parameters_utils.c mea_string_utils.c -lpthread -DPARAMETERS_UTILS_MODULE_R7
 #include <sys/time.h>
@@ -638,5 +639,4 @@ int main(int argc, char *argv[])
 
    parsed_parameters_clean_all(1);
 }
-
 #endif

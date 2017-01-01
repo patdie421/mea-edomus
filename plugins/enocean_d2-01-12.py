@@ -42,7 +42,6 @@ debug=0
 # 21 0x00  0  Optionnal7 Security level
 # 22 0x43  67 CRC8D
 
-
 def mea_xplCmndMsg(data):
    fn_name=sys._getframe().f_code.co_name
 
@@ -51,9 +50,7 @@ def mea_xplCmndMsg(data):
    try:
       id_sensor=data["device_id"]
       parameters=data["device_parameters"]
-#      id_driver=data["driver_id"]
       api_key=data["api_key"]
-
    except:
       verbose(2, "ERROR (", fn_name, ") - device_id not found")
       return 0
@@ -90,10 +87,8 @@ def mea_xplCmndMsg(data):
               buf.append(channel & 0b11111)
               buf.append(current & 0b1111111)
 
-#              mea.sendEnoceanRadioErp1Packet(data["ID_ENOCEAN"], 0xD2, 0, data["ENOCEAN_ADDR"], buf)
-#              mea.interfaceAPI(id_driver, api_key, "sendEnoceanRadioErp1Packet", data["ID_ENOCEAN"], 0xD2, 0, data["ENOCEAN_ADDR"], buf)
-#              mea.interfaceAPI(id_driver, api_key, "sendEnoceanRadioErp1Packet", 0xD2, 0, data["ENOCEAN_ADDR"], buf)
               mea.interfaceAPI(api_key, "sendEnoceanRadioErp1Packet", 0xD2, 0, data["ENOCEAN_ADDR"], buf)
+
      except Exception as e:
         verbose(2, "ERROR (", fn_name, ") - can't create enocean packet ", str(e))
         return False
@@ -120,7 +115,6 @@ def mea_xplCmndMsg(data):
    return False
 
 
-#def mea_enoceanData(data):
 def mea_dataFromSensor(data):
    fn_name=sys._getframe().f_code.co_name
 

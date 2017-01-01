@@ -13,10 +13,10 @@ process.on('uncaughtException', function (error) {
 //   console.log(error.stack);
    if(error.code == 'EADDRINUSE')
    {
-      console.log(getDateTime()+"ERROR port already in use");
+      console.log(getDateTime()+" ERROR (server.js) port already in use");
       process.exit(0);
    }
-   console.log(getDateTime()+" INFO  uncaughtException, check :");
+   console.log(getDateTime()+" INFO  (server.js) uncaughtException, check :");
    console.log(error);
 });
 
@@ -101,7 +101,7 @@ for (var i = 2; i < process.argv.length; i++) {
    }
    else
    {
-      console.log(getDateTime()+" WARNING unknow parameter "+opt[0]);
+      console.log(getDateTime()+" WARNING (server.js) unknow parameter "+opt[0]);
    }
 }
 
@@ -125,7 +125,7 @@ function internalCmnd(s, msg)
          s.write("OK");
          break;
       case "D"  : // déconnexion d'un client
-         console.log(getDateTime()+" INFO  : send deconnection request to %s", data);
+         console.log(getDateTime()+" INFO  : (internalCmnd) send deconnection request to %s", data);
          clients[phpsessids[data]].socket.emit("dct","now");
          break;
      default:
@@ -162,7 +162,7 @@ function process_msg(s, cmnd, msg)
    }
    else
    {
-      console.log(getDateTime()+" INFO   socket.on(data) : unknown command - "+cnmd);
+      console.log(getDateTime()+" INFO   (process_msg) : socket.on(data), unknown command - "+cnmd);
       return -1;
    }
    return 0;
@@ -327,7 +327,8 @@ function sendMessage(key, message) {
       catch(err)
       {
          // console.log(err.stack);
-         console.log("Erreur d'emmission vers le client impossible");
+         // console.log("Erreur d'emmission vers le client impossible");
+         console.log(getDateTime()+" INFO  (sendMessage) can't send to client");
          // on supprime le client
          delete phpsessids[client[i].socket.phpsessid];
          clients[i].socket.destroy();

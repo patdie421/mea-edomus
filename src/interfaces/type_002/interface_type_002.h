@@ -11,7 +11,6 @@
 #include <Python.h>
 #include <sqlite3.h>
 
-//#include "error.h"
 #include "mea_verbose.h"
 #include "xbee.h"
 
@@ -63,7 +62,6 @@ typedef struct interface_type_002_s
    xbee_host_t     *local_xbee;
    pthread_t       *thread;
    volatile sig_atomic_t thread_is_running;
-//   xpl_f            xPL_callback;
    xpl2_f           xPL_callback2;
    void            *xPL_callback_data;
    char            *parameters;
@@ -76,9 +74,6 @@ struct interface_type_002_data_s
 {
    interface_type_002_t *i002;
    sqlite3 *sqlite3_param_db;
-//   int16_t id_interface;
-//   tomysqldb_md_t *myd;
-//   char *parameters;
 };  
 
 
@@ -90,13 +85,6 @@ typedef struct plugin_commissionning_queue_elem_s
    PyObject      *parameters;
 } plugin_commissionning_queue_elem_t;
 
-/*
-int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg);
-int stop_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg);
-//int restart_interface_type_002(int id);
-int restart_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg);
-int16_t check_status_interface_type_002(interface_type_002_t *it002);
-*/
 
 xpl2_f get_xPLCallback_interface_type_002(void *ixxx);
 int get_monitoring_id_interface_type_002(void *ixxx);

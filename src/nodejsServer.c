@@ -10,8 +10,7 @@
 
 #include "globals.h"
 #include "consts.h"
-//#include "debug.h"
-//#include "error.h"
+
 #include "mea_verbose.h"
 #include "mea_string_utils.h"
 #include "mea_sockets_utils.h"
@@ -169,7 +168,7 @@ int start_nodejsServer(int my_id, void *data, char *errmsg, int l_errmsg)
      
       execvp(nodejs_path, cmd_line_params);
 
-      VERBOSE(1) mea_log_printf("%s (%s) : can't start nodejs Server (execvp).\n", ERROR_STR, __func__);
+      VERBOSE(1) mea_log_printf("%s (%s) : can't start nodejs Server \"%s\" (execvp).\n", ERROR_STR, __func__, nodejs_path);
       perror("");
      
       exit(1);

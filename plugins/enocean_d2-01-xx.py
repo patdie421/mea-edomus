@@ -50,14 +50,10 @@ def mea_xplCmndMsg(data):
       id_sensor=data["device_id"]
       parameters=data["device_parameters"]
       typeoftype=data["typeoftype"]
-
-#      id_driver=data["driver_id"]
       api_key=data["api_key"]
    except:
       verbose(2, "ERROR (", fn_name, ") - invalid data")
       return 0
-
-#   verbose(1, mea.interfaceAPI(id_driver, api_key, "test"))
 
    mem=mea.getMemory(id_sensor)
 
@@ -87,8 +83,6 @@ def mea_xplCmndMsg(data):
               buf.append(channel & 0b11111)
               buf.append(current & 0b1111111)
 
-#              mea.sendEnoceanRadioErp1Packet(data["ID_ENOCEAN"], 0xD2, 0, data["ENOCEAN_ADDR"], buf)
-#              mea.interfaceAPI(id_driver, api_key, "sendEnoceanRadioErp1Packet", 0xD2, 0, data["ENOCEAN_ADDR"], buf)
               mea.interfaceAPI(api_key, "sendEnoceanRadioErp1Packet", 0xD2, 0, data["ENOCEAN_ADDR"], buf)
 
               try:
@@ -97,8 +91,6 @@ def mea_xplCmndMsg(data):
                     buf=bytearray()
                     buf.append(0x03)
                     buf.append(channel & 0b11111)
-#                    mea.sendEnoceanRadioErp1Packet(data["ID_ENOCEAN"], 0xD2, 0, data["ENOCEAN_ADDR"], buf)
-#                    mea.interfaceAPI(id_driver, api_key, "sendEnoceanRadioErp1Packet", 0xD2, 0, data["ENOCEAN_ADDR"], buf)
                     mea.interfaceAPI(api_key, "sendEnoceanRadioErp1Packet", 0xD2, 0, data["ENOCEAN_ADDR"], buf)
               except Exception as e:
                  verbose(2, "ERROR (", fn_name, ") - can't query device: ", str(e)) 
@@ -115,8 +107,6 @@ def mea_xplCmndMsg(data):
             channel = ord(paramsDict["channel"][0]) - ord('A');
             buf.append(0x03);
             buf.append(channel & 0b11111);
-#            mea.sendEnoceanRadioErp1Packet(data["ID_ENOCEAN"], 0xD2, 0, data["ENOCEAN_ADDR"], buf)
-#            mea.interfaceAPI(id_driver, api_key,"sendEnoceanRadioErp1Packet", 0xD2, 0, data["ENOCEAN_ADDR"], buf)
             mea.interfaceAPI(api_key,"sendEnoceanRadioErp1Packet", 0xD2, 0, data["ENOCEAN_ADDR"], buf)
          except Exception as e:
             verbose(2, "ERROR (", fn_name, ") - can't query device: ", str(e))
@@ -131,7 +121,6 @@ def mea_xplCmndMsg(data):
    return False
 
 
-#def mea_enoceanData(data):
 def mea_dataFromSensor(data):
    fn_name=sys._getframe().f_code.co_name
 

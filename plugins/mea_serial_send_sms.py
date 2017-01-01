@@ -74,7 +74,6 @@ def mea_xplCmndMsg(data):
    return False
 
 
-# def mea_serialData(data):
 def mea_dataFromSensor(data):
    fn_name= __name__ + "/" + str(sys._getframe().f_code.co_name)
 

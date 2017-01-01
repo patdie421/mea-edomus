@@ -104,7 +104,6 @@ void usage(char *cmd)
       "Options de lancement de l'application : ",
       "  --basepath, -p      : chemin de l'installation",
       "  --paramsdb, -d      : chemin et nom la base de paramétrage",
-//      "  --config, -c        : fichier de configuration (mea-edomus.ini peut contenir contient basepath, paramsdb et guiport). Les options de la ligne de commandes sont prioritaires sur le fichier de config.",
       "  --guiport, -g       : port tcp de l'ihm",
       "  --nodatabase, -b    : le gestionnaire de base de données n'est pas lancé (pas",
       "                        d'historisation des données)",
@@ -160,6 +159,39 @@ void usage(char *cmd)
    printf("\nusage : %s [options de lancememnt] [options d'intialisation]\n", cmd);
    for(int16_t i=0;usage_text[i];i++)
       printf("%s\n",usage_text[i]);
+}
+
+
+int backup_job(int my_id, void *data, char *errmsg, int l_errmsg)
+{
+   VERBOSE(5) mea_log_printf("%s (%s) : backup job start\n", INFO_STR, __func__);
+   sqlite3 *param_db=get_sqlite3_param_db();
+   if(param_db==NULL)
+   {
+      return -1;
+   }
+   
+   /* Create the temporary directory */
+   char template[] = "/tmp/tmpdir.XXXXXX";
+   char *tmp_dirname = mkdtemp(template);
+   
+   if(tmp_dirname == NULL)
+   {
+      VERBOSE(9) mea_log_printf("%s (%s) : can't create tmp dir - ", ERROR_STR, __func__);
+      perror ("");
+      return -1;
+   }
+   DEBUG_SECTION mea_log_printf("%s (%s) : tmp_dirname = %s\n", DEBUG_STR, __func__, tmp_dirname);
+   
+   VERBOSE(9) mea_log_printf("%s (%s) : configuration database backup\n", INFO_STR, __func__);
+
+   VERBOSE(9) mea_log_printf("%s (%s) : backup maps\n", INFO_STR, __func__);
+   VERBOSE(9) mea_log_printf("%s (%s) : backup rules\n", INFO_STR, __func__);
+   VERBOSE(9) mea_log_printf("%s (%s) : backup rules set\n", INFO_STR, __func__);
+
+   VERBOSE(5) mea_log_printf("%s (%s) : backup job done\n", INFO_STR, __func__);
+
+   return 0;
 }
 
 
@@ -220,6 +252,7 @@ void init_param_names(char *param_names[])
    param_names[RULES_FILE]           = "RULESFILE";
    param_names[RULES_FILES_PATH]     = "RULESFILESPATH";
    param_names[COLLECTOR_ID]         = "COLLECTORID";
+   param_names[BACKUPDIR_PATH]       = "BACKUPDIRPATH";
 }
 
 
@@ -866,7 +899,7 @@ int main(int argc, const char * argv[])
 
    logfile_rotation_job(-1, (void *)log_file, NULL, 0);
 
-   DEBUG_SECTION mea_log_printf("INFO Starting MEA-EDOMUS %s\n",__MEA_EDOMUS_VERSION__);
+   DEBUG_SECTION mea_log_printf("INFO  (main) Starting MEA-EDOMUS %s\n",__MEA_EDOMUS_VERSION__);
 
    //
    // initialisation gestions des signaux (arrêt de l'appli et réinitialisation)
@@ -1045,7 +1078,7 @@ int main(int argc, const char * argv[])
    process_set_type(interfaces_reload_task_id, TASK);
 
    //
-   // rotation des log 1x par jour (0|0|*|*|* = à miniuit)
+   // batch rotation des log 1x par jour (0|0|*|*|* = à miniuit)
    // 
    int log_rotation_id=process_register("LOGROTATION");
    process_set_start_stop(log_rotation_id, logfile_rotation_job, NULL, (void *)log_file, 1);
@@ -1053,6 +1086,18 @@ int main(int argc, const char * argv[])
 //   process_job_set_scheduling_data(log_rotation_id, "0,5,10,15,20,25,30,35,40,45,50,55|*|*|*|*", 0);
    process_job_set_scheduling_data(log_rotation_id, "0|0|*|*|*", 0); // rotation des log tous les jours à minuit
    process_set_group(log_rotation_id, 7);
+
+   //
+   // batch sauvegarde des données 1x par jour (0|3|*|*|* = à 3 heures du matin)
+   //
+   char *backup_dir=params_list[BACKUPDIR_PATH];
+   
+   int backup_id=process_register("BACKUP");
+   process_set_start_stop(backup_id, backup_job, NULL, (void *)backup_dir, 1);
+   process_set_type(backup_id, JOB);
+   process_job_set_scheduling_data(backup_id, "34|19|*|*|*", 0);
+   process_set_group(backup_id, 7);
+
 
    // au démarrage : rotation des log.
    VERBOSE(1) mea_log_printf("%s (%s) : MEA-EDOMUS %s starded\n", INFO_STR, __func__, __MEA_EDOMUS_VERSION__);

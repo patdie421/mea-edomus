@@ -216,7 +216,7 @@ int mea_xPLConnectHub(int *xPLPort) {
 */
 //   maximizeReceiveBufferSize(sockfd);
 
-   VERBOSE(5) mea_log_printf("xPL Starting in Hub mode on port %d\n", xPLPort);
+   VERBOSE(5) mea_log_printf("xPL Starting in Hub mode on port %d\n", *xPLPort);
 
    return sockfd;
 }
