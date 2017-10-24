@@ -133,6 +133,7 @@ void usage(char *cmd)
       "  --logpath, -L       (défaut : basepath/var/log ou /var/log si basepath=/usr)",
       "  --pluginspath, -A   (défaut : basepath/lib/mea-plugins)",
       "  --driverspath, -x   (défaut : basepath/lib/mea-drivers)",
+      "  --backupdirpath, -X (défaut : basepath/var/backup)",
       "  --rulesfilespath, -R(défaut : basepath/lib/rules)",
       "  --rulesfile, -r     (défaut : basepath/lib/rules/automator.rules)",
       "  --bufferdb, -B      (défaut : basepath/var/db/queries.db ou",
@@ -172,7 +173,7 @@ int backup_job(int my_id, void *data, char *errmsg, int l_errmsg)
    }
    
    /* Create the temporary directory */
-   char template[] = "/tmp/tmpdir.XXXXXX";
+   char template[] = "/tmp/mea-edomus.XXXXXXXX";
    char *tmp_dirname = mkdtemp(template);
    
    if(tmp_dirname == NULL)
@@ -186,7 +187,9 @@ int backup_job(int my_id, void *data, char *errmsg, int l_errmsg)
    VERBOSE(9) mea_log_printf("%s (%s) : configuration database backup\n", INFO_STR, __func__);
 
    VERBOSE(9) mea_log_printf("%s (%s) : backup maps\n", INFO_STR, __func__);
+   
    VERBOSE(9) mea_log_printf("%s (%s) : backup rules\n", INFO_STR, __func__);
+   
    VERBOSE(9) mea_log_printf("%s (%s) : backup rules set\n", INFO_STR, __func__);
 
    VERBOSE(5) mea_log_printf("%s (%s) : backup job done\n", INFO_STR, __func__);
@@ -492,6 +495,7 @@ int main(int argc, const char * argv[])
       {"logpath",           required_argument, 0,  LOG_PATH             }, // 'L'
       {"pluginspath",       required_argument, 0,  PLUGINS_PATH         }, // 'A'
       {"driverspath",       required_argument, 0,  DRIVERS_PATH         }, // 'x'
+      {"backupdirpath",     required_argument, 0,  BACKUPDIR_PATH       }, // 'X'
       {"bufferdbpath",      required_argument, 0,  SQLITE3_DB_BUFF_PATH }, // 'B'
       {"dbserver",          required_argument, 0,  MYSQL_DB_SERVER      }, // 'D'
       {"dbport",            required_argument, 0,  MYSQL_DB_PORT        }, // 'P'
@@ -564,7 +568,7 @@ int main(int argc, const char * argv[])
    int option_index = 0; // getopt_long function need int
    int c; // getopt_long function need int
 //   while ((c = getopt_long(argc, (char * const *)argv, "bhiaup:d:c:C:H:s:G:L:A:B:D:P:N:U:W:V:E:S:v:g:j:J:k:I:", long_options, &option_index)) != -1)
-   while ((c = getopt_long(argc, (char * const *)argv, "bhiaup:d:C:H:s:G:L:A:B:D:P:N:U:W:V:E:S:v:g:j:J:k:I:x:", long_options, &option_index)) != -1)
+   while ((c = getopt_long(argc, (char * const *)argv, "bhiaup:d:C:H:s:G:L:A:B:D:P:N:U:W:V:E:S:v:g:j:J:k:I:x:X:", long_options, &option_index)) != -1)
    {
       switch (c)
       {
@@ -656,6 +660,10 @@ int main(int argc, const char * argv[])
             c=DRIVERS_PATH;
             break;
             
+         case 'X':
+            c=BACKUPDIR_PATH;
+            break;
+
          case 'B':
             c=SQLITE3_DB_BUFF_PATH;
             break;
@@ -767,12 +775,6 @@ int main(int argc, const char * argv[])
       sprintf(params_list[SQLITE3_DB_PARAM_PATH],"%s/var/db/params.db",params_list[MEA_PATH]);
    }
    
-/*
-   if(_c)
-   {
-      // chargement des options si non présente dans params_list
-   }
-*/   
    if(_i || _a)
    {
       initMeaEdomus(_a, params_list, params_names);
