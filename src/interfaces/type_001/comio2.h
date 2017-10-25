@@ -90,7 +90,7 @@ int16_t      comio2_cmdSend(comio2_ad_t *ad,
                          uint16_t l_data, // longueur zone donnee
                          int16_t *comio2_err);
 void         comio2_free_ad(comio2_ad_t *ad);
-comio2_ad_t *comio2_new_ad();
+comio2_ad_t *comio2_new_ad(void);
 int16_t      comio2_setTrap(comio2_ad_t *ad, int16_t numTrap, trap_f trap, void *userdata);
 int16_t      comio2_removeTrap(comio2_ad_t *ad, uint16_t numTrap);
 void         comio2_removeAllTraps(comio2_ad_t *ad);

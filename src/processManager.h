@@ -86,7 +86,7 @@ extern struct managed_processes_s managed_processes;
 //pthread_t *start_monitoringServer(char **parms_list);
 
 
-struct managed_processes_s *get_managed_processes_descriptor();
+struct managed_processes_s *get_managed_processes_descriptor(void);
 
 int   process_register(char *name);
 int   process_unregister(int id);
@@ -119,7 +119,7 @@ int   process_wd_disable(int id, int flag);
 int   process_forced_watchdog_recovery(int id);
 
 int   init_processes_manager(int max_nb_processes);
-int   clean_managed_processes();
+int   clean_managed_processes(void);
 
 int   managed_processes_processes_to_json(char *json, int l_json);
 int   managed_processes_processes_to_json_mini(char *json, int l_json);
@@ -132,6 +132,6 @@ int   managed_processes_send_stats_now(char *hostname, int port);
 #endif
 
 int   managed_processes_check_heartbeat(int doRecovery);
-int   managed_processes_loop();
+int   managed_processes_loop(void);
 
 #endif

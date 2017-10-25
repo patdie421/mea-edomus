@@ -40,7 +40,7 @@ typedef struct dbServer_queue_elem_s
 {
    unsigned char type;
    void *data;
-   void (*freedata)();
+   void (*freedata)(void *);
 } dbServer_queue_elem_t;
 
 
@@ -56,8 +56,8 @@ int start_dbServer(int my_id, void *data, char *errmsg, int l_errmsg);
 int stop_dbServer(int my_id, void *data, char *errmsg, int l_errmsg);
 int restart_dbServer(int my_id, void *data, char *errmsg, int l_errmsg);
 
-int16_t start_consolidation_batch();
-int16_t start_purge_batch();
-int16_t start_resync_batch();
+int16_t start_consolidation_batch(void);
+int16_t start_purge_batch(void);
+int16_t start_resync_batch(void);
 
 #endif

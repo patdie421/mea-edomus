@@ -51,7 +51,7 @@
 #define MAX_LIST_SIZE         31
 
 #define CURRENT_PARAMS_DB_VERSION 12
-sqlite3 *get_sqlite3_param_db();
+sqlite3 *get_sqlite3_param_db(void);
 
 // voir ou mettre
 #define UNIT_WH 1 // Watt/Heure

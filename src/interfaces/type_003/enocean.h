@@ -97,7 +97,7 @@ int16_t       enocean_init(enocean_ed_t *ed, char *dev);
 void          enocean_close(enocean_ed_t *ed);
 void          enocean_clean_ed(enocean_ed_t *ed);
 void          enocean_free_ed(enocean_ed_t *ed);
-enocean_ed_t *enocean_new_ed();
+enocean_ed_t *enocean_new_ed(void);
 
 uint32_t enocean_calc_addr(uint8_t a, uint8_t b, uint8_t c, uint8_t d);
 

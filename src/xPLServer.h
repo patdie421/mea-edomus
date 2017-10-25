@@ -55,16 +55,16 @@ char          *mea_setXPLVendorID(char *value);
 char          *mea_setXPLDeviceID(char *value);
 char          *mea_setXPLInstanceID(char *value);
 
-char          *mea_getXPLInstanceID();
-char          *mea_getXPLDeviceID();
-char          *mea_getXPLVendorID();
+char          *mea_getXPLInstanceID(void);
+char          *mea_getXPLDeviceID(void);
+char          *mea_getXPLVendorID(void);
 
 //char          *mea_getXPLSource();
-char          *mea_getMyXPLAddr();
+char          *mea_getMyXPLAddr(void);
 
 uint16_t       mea_sendXPLMessage2(cJSON *xplMsgJson);
 cJSON         *mea_readXPLResponse(int id);
-uint32_t       mea_getXplRequestId();
+uint32_t       mea_getXplRequestId(void);
 //int16_t        mea_xPLServerIsActive();
 
 /*

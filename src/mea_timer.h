@@ -26,7 +26,7 @@ void     mea_start_timer(mea_timer_t *aTimer);
 void     mea_stop_timer(mea_timer_t *aTimer);
 int16_t  mea_test_timer(mea_timer_t *aTimer);
 
-double   mea_now();
+double   mea_now(void);
 void     mea_nanosleep(uint32_t ns);
 void     mea_microsleep(uint32_t usecs);
 

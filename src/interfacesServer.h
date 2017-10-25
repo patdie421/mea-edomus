@@ -76,7 +76,7 @@ typedef int    (*set_monitoring_id_f)(void *, int);
 typedef xpl2_f (*get_xPLCallback_f)(void *);
 typedef int    (*set_xPLCallback_f)(void *, xpl2_f);
 typedef int    (*clean_f)(void *);
-typedef int    (*get_type_f)();
+typedef int    (*get_type_f)(void);
 typedef int    (*get_interface_id_f)(void *);
 typedef int    (*api_f)(void *ixxx, char *, void *, int, void **, int16_t *, char *, int); // *cmnd, void *args, int nb_args, void **res, char *err, int l_err
 
@@ -130,7 +130,7 @@ struct interfacesServerData_s
 
 int16_t      interfacesServer_call_interface_api(int id_interface, char *cmnd, void *args, int nb_args, void **res, int16_t *nerr, char *err, int l_err);
 mea_queue_t *start_interfaces(char **params_list, sqlite3 *sqlite3_param_db);
-void         stop_interfaces();
+void         stop_interfaces(void);
 int          dispatchXPLMessageToInterfaces2(cJSON *xplMsgJson);
 int          restart_interfaces(int my_id, void *data, char *errmsg, int l_errmsg);
 

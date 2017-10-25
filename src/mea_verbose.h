@@ -37,9 +37,9 @@ extern const char *_malloc_error_str;
 #define PRINT_MALLOC_ERROR { mea_log_printf("%s (%s) : %s - ", ERROR_STR, __func__, MALLOC_ERROR_STR); perror(""); }
 
 void set_verbose_level(int level);
-void debug_on();
-void debug_off();
-int16_t debug_status();
+void debug_on(void);
+void debug_off(void);
+int16_t debug_status(void);
 
 void mea_log_printf(char const* fmt, ...);
 

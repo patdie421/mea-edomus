@@ -111,8 +111,8 @@ _END = LOCAL_XBEE_ADDR_L_ID,
 _START = ACTION_ID,
 };
 
-void init_tokens();
-void release_tokens();
+void init_tokens(void);
+void release_tokens(void);
 char *get_token_string_by_id(enum token_id_e id);
 enum token_id_e get_token_id_by_string(char *str);
 

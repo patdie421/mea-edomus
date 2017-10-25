@@ -182,8 +182,8 @@ extern struct tokens_strings_da_s *tokens_string_da;
 
 #endif
 
-int16_t init_strings_da();
-void release_strings_da();
+int16_t init_strings_da(void);
+void release_strings_da(void);
 
 #endif
 
