@@ -16,7 +16,7 @@ DEBUGFLAGS  = -D__DEBUG_ON__
 ifeq ($(TECHNO), linux)
    CFLAGS      = -std=c99 \
                  -std=gnu99 \
-                 -D_BSD_SOURCE \
+                 -D_DEFAULT_SOURCE \
                  -O2 \
                  -DTECHNO_$(TECHNO) \
                  -I/usr/include/mysql \
