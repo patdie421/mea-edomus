@@ -83,7 +83,7 @@ xpl2_f  get_xPLCallback_interface_type_010(void *ixxx);
 int     get_monitoring_id_interface_type_010(void *ixxx);
 int     set_xPLCallback_interface_type_010(void *ixxx, xpl2_f cb);
 int     set_monitoring_id_interface_type_010(void *ixxx, int id);
-int     get_type_interface_type_010();
+int     get_type_interface_type_010(void);
 
 int     clean_interface_type_010(void *ixxx);
 interface_type_010_t *malloc_and_init_interface_type_010(sqlite3 *sqlite3_param_db, int id_driver, int id_interface, char *name, char *dev, char *parameters, char *description);

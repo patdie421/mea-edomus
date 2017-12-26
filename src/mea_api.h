@@ -10,8 +10,8 @@
 
 #include <Python.h>
 
-void mea_api_init();
-void mea_api_release();
+void mea_api_init(void);
+void mea_api_release(void);
 
 /*
 static PyObject *mea_api_getMemory(PyObject *self, PyObject *args);

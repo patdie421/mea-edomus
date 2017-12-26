@@ -95,23 +95,23 @@ void cJSON_Delete(cJSON *c)
 /* Parse the input text to generate a number, and populate the result into item. */
 static const char *parse_number(cJSON *item,const char *num)
 {
-	double n=0,sign=1,scale=0;int subscale=0,signsubscale=1;
-
-	if (*num=='-') sign=-1,num++;	/* Has sign? */
-	if (*num=='0') num++;			/* is zero */
-	if (*num>='1' && *num<='9')	do	n=(n*10.0)+(*num++ -'0');	while (*num>='0' && *num<='9');	/* Number? */
-	if (*num=='.' && num[1]>='0' && num[1]<='9') {num++;		do	n=(n*10.0)+(*num++ -'0'),scale--; while (*num>='0' && *num<='9');}	/* Fractional part? */
-	if (*num=='e' || *num=='E')		/* Exponent? */
-	{	num++;if (*num=='+') num++;	else if (*num=='-') signsubscale=-1,num++;		/* With sign? */
-		while (*num>='0' && *num<='9') subscale=(subscale*10)+(*num++ - '0');	/* Number? */
-	}
-
-	n=sign*n*pow(10.0,(scale+subscale*signsubscale));	/* number = +/- number.fraction * 10^+/- exponent */
-	
-	item->valuedouble=n;
-	item->valueint=(int)n;
-	item->type=cJSON_Number;
-	return num;
+   double n=0,sign=1,scale=0;int subscale=0,signsubscale=1;
+   
+   if (*num=='-') { sign=-1; num++; }	/* Has sign? */
+   if (*num=='0') num++;			/* is zero */
+   if (*num>='1' && *num<='9') do n=(n*10.0)+(*num++ -'0');	while (*num>='0' && *num<='9');	/* Number? */
+   if (*num=='.' && num[1]>='0' && num[1]<='9') { num++; do { n=(n*10.0)+(*num++ -'0'); scale--; } while (*num>='0' && *num<='9'); }	/* Fractional part? */
+   if (*num=='e' || *num=='E')		/* Exponent? */
+   {	num++; if (*num=='+') num++; else if (*num=='-') { signsubscale=-1; num++; }		/* With sign? */
+      while (*num>='0' && *num<='9') subscale=(subscale*10)+(*num++ - '0');	/* Number? */
+   }
+   
+   n=sign*n*pow(10.0,(scale+subscale*signsubscale));	/* number = +/- number.fraction * 10^+/- exponent */
+   
+   item->valuedouble=n;
+   item->valueint=(int)n;
+   item->type=cJSON_Number;
+   return num;
 }
 
 static int pow2gt (int x)	{	--x;	x|=x>>1;	x|=x>>2;	x|=x>>4;	x|=x>>8;	x|=x>>16;	return x+1;	}
@@ -127,7 +127,7 @@ static char* ensure(printbuffer *p,int needed)
 
 	newsize=pow2gt(needed);
 	newbuffer=(char*)cJSON_malloc(newsize);
-	if (!newbuffer) {cJSON_free(p->buffer);p->length=0,p->buffer=0;return 0;}
+	if (!newbuffer) {cJSON_free(p->buffer); p->length=0; p->buffer=0; return 0;}
 	if (newbuffer) memcpy(newbuffer,p->buffer,p->length);
 	cJSON_free(p->buffer);
 	p->length=newsize;
@@ -440,7 +440,7 @@ static char *print_array(cJSON *item,int depth,int fmt,printbuffer *p)
 	size_t tmplen=0;
 	
 	/* How many entries in the array? */
-	while (child) numentries++,child=child->next;
+	while (child) { numentries++; child=child->next; }
 	/* Explicitly handle numentries==0 */
 	if (!numentries)
 	{
@@ -555,7 +555,7 @@ static char *print_object(cJSON *item,int depth,int fmt,printbuffer *p)
 	int numentries=0,fail=0;
 	size_t tmplen=0;
 	/* Count the number of entries. */
-	while (child) numentries++,child=child->next;
+	while (child) { numentries++; child=child->next; }
 	/* Explicitly handle empty object case */
 	if (!numentries)
 	{
@@ -658,8 +658,8 @@ static char *print_object(cJSON *item,int depth,int fmt,printbuffer *p)
 }
 
 /* Get Array size/item / object item. */
-int    cJSON_GetArraySize(cJSON *array)							{cJSON *c=array->child;int i=0;while(c)i++,c=c->next;return i;}
-cJSON *cJSON_GetArrayItem(cJSON *array,int item)				{cJSON *c=array->child;  while (c && item>0) item--,c=c->next; return c;}
+int    cJSON_GetArraySize(cJSON *array)							{cJSON *c=array->child;int i=0;while(c) { i++; c=c->next; } return i; }
+cJSON *cJSON_GetArrayItem(cJSON *array,int item)				{cJSON *c=array->child;  while (c && item>0) { item--; c=c->next; } return c;}
 cJSON *cJSON_GetObjectItem(cJSON *object,const char *string)	{cJSON *c=object->child; while (c && cJSON_strcasecmp(c->string,string)) c=c->next; return c;}
 
 /* Utility for array list handling. */
@@ -674,19 +674,19 @@ void   cJSON_AddItemToObjectCS(cJSON *object,const char *string,cJSON *item)	{if
 void	cJSON_AddItemReferenceToArray(cJSON *array, cJSON *item)						{cJSON_AddItemToArray(array,create_reference(item));}
 void	cJSON_AddItemReferenceToObject(cJSON *object,const char *string,cJSON *item)	{cJSON_AddItemToObject(object,string,create_reference(item));}
 
-cJSON *cJSON_DetachItemFromArray(cJSON *array,int which)			{cJSON *c=array->child;while (c && which>0) c=c->next,which--;if (!c) return 0;
+cJSON *cJSON_DetachItemFromArray(cJSON *array,int which)			{cJSON *c=array->child;while (c && which>0) { c=c->next;which--;} if (!c) return 0;
 	if (c->prev) c->prev->next=c->next;if (c->next) c->next->prev=c->prev;if (c==array->child) array->child=c->next;c->prev=c->next=0;return c;}
 void   cJSON_DeleteItemFromArray(cJSON *array,int which)			{cJSON_Delete(cJSON_DetachItemFromArray(array,which));}
-cJSON *cJSON_DetachItemFromObject(cJSON *object,const char *string) {int i=0;cJSON *c=object->child;while (c && cJSON_strcasecmp(c->string,string)) i++,c=c->next;if (c) return cJSON_DetachItemFromArray(object,i);return 0;}
+cJSON *cJSON_DetachItemFromObject(cJSON *object,const char *string) {int i=0;cJSON *c=object->child;while (c && cJSON_strcasecmp(c->string,string)) { i++; c=c->next; } if(c) return cJSON_DetachItemFromArray(object,i);return 0;}
 void   cJSON_DeleteItemFromObject(cJSON *object,const char *string) {cJSON_Delete(cJSON_DetachItemFromObject(object,string));}
 
 /* Replace array/object items with new ones. */
-void   cJSON_InsertItemInArray(cJSON *array,int which,cJSON *newitem)		{cJSON *c=array->child;while (c && which>0) c=c->next,which--;if (!c) {cJSON_AddItemToArray(array,newitem);return;}
+void   cJSON_InsertItemInArray(cJSON *array,int which,cJSON *newitem)		{cJSON *c=array->child;while (c && which>0) { c=c->next;which--;} if (!c) {cJSON_AddItemToArray(array,newitem);return;}
 	newitem->next=c;newitem->prev=c->prev;c->prev=newitem;if (c==array->child) array->child=newitem; else newitem->prev->next=newitem;}
-void   cJSON_ReplaceItemInArray(cJSON *array,int which,cJSON *newitem)		{cJSON *c=array->child;while (c && which>0) c=c->next,which--;if (!c) return;
+void   cJSON_ReplaceItemInArray(cJSON *array,int which,cJSON *newitem)		{cJSON *c=array->child;while (c && which>0) { c=c->next;which--;} if (!c) return;
 	newitem->next=c->next;newitem->prev=c->prev;if (newitem->next) newitem->next->prev=newitem;
 	if (c==array->child) array->child=newitem; else newitem->prev->next=newitem;c->next=c->prev=0;cJSON_Delete(c);}
-void   cJSON_ReplaceItemInObject(cJSON *object,const char *string,cJSON *newitem){int i=0;cJSON *c=object->child;while(c && cJSON_strcasecmp(c->string,string))i++,c=c->next;if(c){newitem->string=cJSON_strdup(string);cJSON_ReplaceItemInArray(object,i,newitem);}}
+void   cJSON_ReplaceItemInObject(cJSON *object,const char *string,cJSON *newitem){int i=0;cJSON *c=object->child;while(c && cJSON_strcasecmp(c->string,string)) { i++;c=c->next;} if(c){newitem->string=cJSON_strdup(string);cJSON_ReplaceItemInArray(object,i,newitem);}}
 
 /* Create basic types: */
 cJSON *cJSON_CreateNull(void)					{cJSON *item=cJSON_New_Item();if(item)item->type=cJSON_NULL;return item;}
@@ -714,7 +714,7 @@ cJSON *cJSON_Duplicate(cJSON *item,int recurse)
 	newitem=cJSON_New_Item();
 	if (!newitem) return 0;
 	/* Copy over all vars */
-	newitem->type=item->type&(~cJSON_IsReference),newitem->valueint=item->valueint,newitem->valuedouble=item->valuedouble;
+	newitem->type=item->type&(~cJSON_IsReference);newitem->valueint=item->valueint;newitem->valuedouble=item->valuedouble;
 	if (item->valuestring)	{newitem->valuestring=cJSON_strdup(item->valuestring);	if (!newitem->valuestring)	{cJSON_Delete(newitem);return 0;}}
 	if (item->string)		{newitem->string=cJSON_strdup(item->string);			if (!newitem->string)		{cJSON_Delete(newitem);return 0;}}
 	/* If non-recursive, then we're done! */
@@ -725,7 +725,7 @@ cJSON *cJSON_Duplicate(cJSON *item,int recurse)
 	{
 		newchild=cJSON_Duplicate(cptr,1);		/* Duplicate (with recurse) each item in the ->next chain */
 		if (!newchild) {cJSON_Delete(newitem);return 0;}
-		if (nptr)	{nptr->next=newchild,newchild->prev=nptr;nptr=newchild;}	/* If newitem->child already set, then crosswire ->prev and ->next and move on */
+		if (nptr)	{nptr->next=newchild;newchild->prev=nptr;nptr=newchild;}	/* If newitem->child already set, then crosswire ->prev and ->next and move on */
 		else		{newitem->child=newchild;nptr=newchild;}					/* Set newitem->child and move to it */
 		cptr=cptr->next;
 	}

@@ -229,12 +229,25 @@ int __sunriset__( int year, int month, int day, double lon, double lat,
             double cost;
             cost = ( sind(altit) - sind(lat) * sind(sdec) ) /
                   ( cosd(lat) * cosd(sdec) );
-            if ( cost >= 1.0 )
-                  rc = -1, t = 0.0;       /* Sun always below altit */
-            else if ( cost <= -1.0 )
-                  rc = +1, t = 12.0;      /* Sun always above altit */
-            else
+            if ( cost >= 1.0 ) {
+                  rc = -1;
+                  t = 0.0;       /* Sun always below altit */
+            }
+            else if ( cost <= -1.0 ) {
+                  rc = +1;
+                  t = 12.0;      /* Sun always above altit */
+            }
+            else {
                   t = acosd(cost)/15.0;   /* The diurnal arc, hours */
+            }
+/*
+            if ( cost >= 1.0 )
+                  rc = -1, t = 0.0;       // Sun always below altit
+            else if ( cost <= -1.0 )
+                  rc = +1, t = 12.0;      // Sun always above altit
+            else
+                  t = acosd(cost)/15.0;   // The diurnal arc, hours
+*/
       }
 
       /* Store rise and set times - in hours UT */

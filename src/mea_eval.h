@@ -25,7 +25,7 @@ int16_t mea_eval_setGetVarCallBacks(getVarId_f fid, getVarVal_f fval, void *user
 #if ONFLYEVAL==0
 struct eval_stack_s *getEvalStack(char *str, char **p, int16_t *err, int32_t *stack_ptr);
 int16_t evalCalc(struct eval_stack_s *stack, int32_t stack_ptr, double *r);
-void mea_eval_clean_stack_cache();
+void mea_eval_clean_stack_cache(void);
 int mea_eval_calc_numeric_by_cache(char *expr, double *d);
 #else
 int16_t evalCalc(char *str, char **p, double *r, int16_t *err);

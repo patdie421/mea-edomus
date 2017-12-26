@@ -82,7 +82,7 @@ xbee_host_t
 
 void  _xbee_free_queue_elem(void *d);
 uint32_t
-      _xbee_get_timestamp();
+_xbee_get_timestamp(void);
 void  _xbee_flush_old_responses_queue(xbee_xd_t *xd);
 
 int   _xbee_build_at_cmd(unsigned char *frame, uint8_t id, unsigned char *at_cmd, uint16_t l_at_cmd);

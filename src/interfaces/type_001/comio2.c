@@ -52,7 +52,7 @@ int16_t  _comio2_build_frame(char id, char *frame, char *cmd, uint16_t l_cmd);
 int16_t  _comio2_write_frame(int fd, char id, char *cmd, uint16_t l_cmd, int16_t *nerr);
 void     _comio2_flush_old_responses_queue(comio2_ad_t *ad);
 int16_t  _comio2_add_response_to_queue(comio2_ad_t *ad, char *frame, uint16_t l_frame);
-uint32_t _comio2_get_timestamp();
+uint32_t _comio2_get_timestamp(void);
 void    *_comio2_thread(void *args);
 
 

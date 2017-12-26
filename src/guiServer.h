@@ -21,7 +21,7 @@ struct httpServerData_s
 int start_guiServer(int my_id, void *data, char *errmsg, int l_errmsg);
 int stop_guiServer(int my_id, void *data, char *errmsg, int l_errmsg);
 int gethttp(char *server, int port, char *url, char *response, int l_response);
-int get_socketio_port();
+int get_socketio_port(void);
 
 int restart_guiServer(int my_id, void *data, char *errmsg, int l_errmsg);
 

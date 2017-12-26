@@ -59,10 +59,10 @@ typedef struct automator_queue_elem_s
 mea_error_t automatorServer_add_msg(cJSON *msg_json);
 int         automatorServer_timer_wakeup(char *name, void *userdata);
 
-int         automatorServer_send_all_inputs();
+int         automatorServer_send_all_inputs(void);
 
 void        setAutomatorRulesFile(char *file);
-char       *getAutomatorRulesFile();
+char       *getAutomatorRulesFile(void);
 int         start_automatorServer(int my_id, void *data, char *errmsg, int l_errmsg);
 int         stop_automatorServer(int my_id, void *data, char *errmsg, int l_errmsg);
 int         restart_automatorServer(int my_id, void *data, char *errmsg, int l_errmsg);

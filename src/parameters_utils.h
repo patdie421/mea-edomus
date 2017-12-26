@@ -57,7 +57,7 @@ typedef struct parsed_parameters_s
 } parsed_parameters_t;
 
 
-int16_t parsed_parameters_init();
+int16_t parsed_parameters_init(void);
 
 parsed_parameters_t *alloc_parsed_parameters(char *parameters_string, char *parameters_to_find[], int *nb_params, int *err, int value_to_upper_flag);
 void release_parsed_parameters(parsed_parameters_t **params);

@@ -203,11 +203,11 @@ int16_t dbServer_add_data_to_sensors_values(uint16_t sensor_id, double value1, u
       return -1;
    }
    
-   value->sensor_id=sensor_id,
+   (void)(value->sensor_id=sensor_id),
    memcpy(&(value->date_tv),&tv,sizeof(struct timeval));
-   value->value1=value1, // valeur principale
-   value->unit=unit, // code unité de mesure (s'applique à la valeur principale)
-   value->value2=value2, // valeur secondaire
+   value->value1=value1; // valeur principale
+   value->unit=unit; // code unité de mesure (s'applique à la valeur principale)
+   value->value2=value2; // valeur secondaire
    value->complement=NULL;
    if(complement)
    {

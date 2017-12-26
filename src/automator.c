@@ -151,7 +151,7 @@ struct inputs_id_name_assoc_s *inputs_id_name_assoc = NULL;
 
 static int startupStatus = 1;
 
-static int automator_print_inputs_table();
+static int automator_print_inputs_table(void);
 static struct inputs_table_s *automator_add_to_inputs_table(char *name, struct value_s *v, struct timespec *t);
 static struct inputs_table_s *_automator_add_to_inputs_table(char *name, struct value_s *v, struct timespec *t, int16_t updatestate, int16_t forcestate);
 //static int reset_inputs_table_change_flag();
@@ -1352,7 +1352,7 @@ int automator_playOutputRules(cJSON *rules)
    int xplout_cntr=0;
    if(rules==NULL)
    {
-      DEBUG_SECTION2(DEBUGFLAG)  mea_log_printf("%s (%s) : NO OUTPUT RULE\n", DEBUG_STR, __func__);
+      DEBUG_SECTION2(DEBUGFLAG) mea_log_printf("%s (%s) : NO OUTPUT RULE\n", DEBUG_STR, __func__);
       return -1;
    }
 
@@ -1879,7 +1879,7 @@ next_loop: {}
       DEBUG_SECTION2(DEBUGFLAG) {
          mea_log_printf("%s (%s) : inputs rules processing time=%ld us\n", DEBUG_STR, __func__, exectime);
          automator_print_inputs_table();
-      } 
+      }
 //      automator_print_inputs_table();
    }
 
