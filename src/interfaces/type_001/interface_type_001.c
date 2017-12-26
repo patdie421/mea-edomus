@@ -192,12 +192,12 @@ int load_interface_type_001(interface_type_001_t *i001, int interface_id, sqlite
    
    // /!\ on ne tient pas compte de l'état du capteur => à ajouter ...
    //     essayer "SELECT * FROM sensors_actuators WHERE id_interface=%d" and sensors_actuators.state='1'"
-   sprintf(sql_request,"SELECT * FROM sensors_actuators WHERE id_interface=%d sensors_actuators.deleted_flag <> 1 AND sensors_actuators.state='1'", interface_id);
+   sprintf(sql_request,"SELECT * FROM sensors_actuators WHERE id_interface=%d AND sensors_actuators.deleted_flag <> 1 AND sensors_actuators.state='1'", interface_id);
    
    ret = (int)sqlite3_prepare_v2(db,sql_request,(int)(strlen(sql_request)+1),&stmt,NULL);
    if(ret)
    {
-      VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_prepare_v2 - %s\n", ERROR_STR,__func__,sqlite3_errmsg (db));
+      VERBOSE(2) mea_log_printf("%s (%s) : sqlite3_prepare_v2 - %s (%s)\n", ERROR_STR,__func__,sqlite3_errmsg(db), sql_request);
       goto load_interface_type_001_clean_exit;
    }
    
