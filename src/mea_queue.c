@@ -241,12 +241,14 @@ mea_error_t mea_queue_cleanup(mea_queue_t *queue, mea_queue_free_data_f f)
 
 mea_error_t mea_queue_current(mea_queue_t *queue, void **data)
 {
-   if(!queue)
+   if(!queue) {
+      *data=NULL;
       return ERROR;
-
-   if(!queue->current)
+   }
+   if(!queue->current) {
+      *data=NULL;
       return ERROR;
-   
+   }
    *data=queue->current->d;
    
    return NOERROR;
