@@ -29,6 +29,7 @@ ifeq ($(TECHNO), linux)
    SONAME      = $(LINUX_SONAME)
    CFLAGS      = -std=gnu99 \
                  -D_BSD_SOURCE \
+                 -D_DEFAULT_SOURCE \
                  -O2 \
                  -DTECHNO_$(TECHNO) \
                  -I/usr/include/mysql \

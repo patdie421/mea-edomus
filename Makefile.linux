@@ -6,7 +6,8 @@ DEBUGFLAGS = -g -D__DEBUG_ON__
 ASPLUGIN = 1
 
 #MYPATH=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
-MYPATH=/home/bananapi/mea-edomus
+#MYPATH=/home/bananapi/mea-edomus
+MYPATH=/apps/mea-edomus/dev
 
 SOURCES=$(shell echo src/*.c)
 # OBJECTS=$(SOURCES:.c=.o)
@@ -43,7 +44,7 @@ CFLAGS      = -std=c99 \
               -std=gnu99 \
                $(DEBUGFLAGS) \
               -O3 \
-              -D_BSD_SOURCE \
+              -D_DEFAULT_SOURCE \
               -I/usr/include/mysql \
               -I/usr/include/python2.7 \
               -I$(MYPATH)/src \
