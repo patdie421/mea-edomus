@@ -180,6 +180,7 @@
 		4E98B61F1C12282E00985383 /* automatorServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E98B61D1C12282E00985383 /* automatorServer.c */; };
 		4E98B6241C15D04200985383 /* automator.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E98B6221C15D04200985383 /* automator.c */; };
 		4E98B6401C1A25E700985383 /* mea_eval.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E98B63E1C1A25E700985383 /* mea_eval.c */; };
+		4EE721B71FF4350400C5CB87 /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = 4EE721A51FF4350400C5CB87 /* Makefile */; };
 		4EF3D8FC19B3C02200892F29 /* comio2.c in Sources */ = {isa = PBXBuildFile; fileRef = 4EF3D8FA19B3C02200892F29 /* comio2.c */; };
 		4EF3F6C31828400F00959B93 /* interfacesServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4EF3F6C21828400F00959B93 /* interfacesServer.c */; };
 		4EFBFCAE175E616E007BBFD1 /* guiServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4EFBFCAD175E616E007BBFD1 /* guiServer.c */; };
@@ -1403,7 +1404,7 @@
 		4E207BB319F0528400410B40 /* logServer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = logServer.h; path = src/logServer.h; sourceTree = "<group>"; };
 		4E207BB419F0529D00410B40 /* logServer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = logServer.c; path = src/logServer.c; sourceTree = "<group>"; };
 		4E207BB819F1BA4300410B40 /* mea-xpllogger.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = "mea-xpllogger.c"; path = "/Users/patrice/Developpement/Logiciels/mea-edomus/commands/mea-xpllogger/mea-xpllogger.c"; sourceTree = "<absolute>"; };
-		4E207BBF19F1C13A00410B40 /* mea-xpllogger */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "mea-xpllogger"; sourceTree = BUILT_PRODUCTS_DIR; };
+		4E207BBF19F1C13A00410B40 /* mea-xpllogger */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = "mea-xpllogger"; path = "/Users/patrice/Developpement/Logiciels/mea-edomus/build/Debug/mea-xpllogger"; sourceTree = "<absolute>"; };
 		4E2AD4CE1A3F4C84004177D4 /* enocean.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = enocean.c; path = src/interfaces/type_003/enocean.c; sourceTree = "<group>"; };
 		4E2AD4CF1A3F4C84004177D4 /* enocean.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = enocean.h; path = src/interfaces/type_003/enocean.h; sourceTree = "<group>"; };
 		4E2AD4D31A434AA5004177D4 /* delete_locations.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; name = delete_locations.php; path = gui/models/delete_locations.php; sourceTree = "<group>"; };
@@ -1424,13 +1425,13 @@
 		4E3F342419F80BA40066A9CC /* xpl.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = xpl.py; sourceTree = "<group>"; };
 		4E3F342519F80BA40066A9CC /* xsource.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = xsource.py; sourceTree = "<group>"; };
 		4E3F342619F80BA40066A9CC /* xplhub.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = xplhub.py; sourceTree = "<group>"; };
-		4E3F342819F816050066A9CC /* gpl.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = gpl.txt; path = "Logiciels/mea-edomus/complements/xplhub/src/xplhub/gpl.txt"; sourceTree = "<group>"; };
-		4E3F342919F816050066A9CC /* install.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; name = install.sh; path = "Logiciels/mea-edomus/complements/xplhub/src/xplhub/install.sh"; sourceTree = "<group>"; };
-		4E3F342A19F816050066A9CC /* Install.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Install.txt; path = "Logiciels/mea-edomus/complements/xplhub/src/xplhub/Install.txt"; sourceTree = "<group>"; };
-		4E3F342D19F816050066A9CC /* xplhub.amp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file; name = xplhub.amp; path = "Logiciels/mea-edomus/complements/xplhub/src/xplhub/xplhub.amp"; sourceTree = "<group>"; };
-		4E3F342E19F816050066A9CC /* xplhub.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = xplhub.cc; path = "Logiciels/mea-edomus/complements/xplhub/src/xplhub/xplhub.cc"; sourceTree = "<group>"; };
-		4E3F343019F816050066A9CC /* xplhub.start */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file; name = xplhub.start; path = "Logiciels/mea-edomus/complements/xplhub/src/xplhub/xplhub.start"; sourceTree = "<group>"; };
-		4E3F343419F844660066A9CC /* xplhub */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = xplhub; path = complements/xplhub/install/init.d/xplhub; sourceTree = "<group>"; };
+		4E3F342819F816050066A9CC /* gpl.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = gpl.txt; path = complements/xplhub/src/xplhub/gpl.txt; sourceTree = "<group>"; };
+		4E3F342919F816050066A9CC /* install.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; name = install.sh; path = complements/xplhub/src/xplhub/install.sh; sourceTree = "<group>"; };
+		4E3F342A19F816050066A9CC /* Install.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Install.txt; path = complements/xplhub/src/xplhub/Install.txt; sourceTree = "<group>"; };
+		4E3F342D19F816050066A9CC /* xplhub.amp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = xplhub.amp; path = complements/xplhub/src/xplhub/xplhub.amp; sourceTree = "<group>"; };
+		4E3F342E19F816050066A9CC /* xplhub.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = xplhub.cc; path = complements/xplhub/src/xplhub/xplhub.cc; sourceTree = "<group>"; };
+		4E3F343019F816050066A9CC /* xplhub.start */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; name = xplhub.start; path = complements/xplhub/src/xplhub/xplhub.start; sourceTree = "<group>"; };
+		4E3F343419F844660066A9CC /* xplhub */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; name = xplhub; path = install/init.d/xplhub; sourceTree = "<group>"; };
 		4E3F343919F8F5660066A9CC /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; name = Makefile; path = complements/xplhub/src/xplhub/Makefile; sourceTree = SOURCE_ROOT; };
 		4E3F343A19F970150066A9CC /* consts.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = consts.c; path = src/consts.c; sourceTree = "<group>"; };
 		4E3F343B19F970150066A9CC /* consts.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = consts.h; path = src/consts.h; sourceTree = "<group>"; };
@@ -1476,7 +1477,7 @@
 		4E4F87631A936B2F00479945 /* password-ctrl.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "password-ctrl.js"; sourceTree = "<group>"; };
 		4E4F87641A936D1A00479945 /* change_password2.php */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.php; name = change_password2.php; path = gui/change_password2.php; sourceTree = "<group>"; };
 		4E4F87651A951D7A00479945 /* login.php */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.php; name = login.php; path = gui/models/login.php; sourceTree = "<group>"; };
-		4E4F876E1A979A4800479945 /* enoceanlogger */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = enoceanlogger; sourceTree = BUILT_PRODUCTS_DIR; };
+		4E4F876E1A979A4800479945 /* enoceanlogger */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = enoceanlogger; path = "/Users/patrice/Developpement/Logiciels/mea-edomus/build/Debug/enoceanlogger"; sourceTree = "<absolute>"; };
 		4E4F88541A98D2A500479945 /* interface_type_003.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = interface_type_003.c; path = src/interfaces/type_003/interface_type_003.c; sourceTree = "<group>"; };
 		4E4F88551A98D2A500479945 /* interface_type_003.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = interface_type_003.h; path = src/interfaces/type_003/interface_type_003.h; sourceTree = "<group>"; };
 		4E4F88571A9A109100479945 /* enocean_f6-02-01.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = "enocean_f6-02-01.py"; path = "plugins/enocean_f6-02-01.py"; sourceTree = "<group>"; };
@@ -1506,7 +1507,7 @@
 		4E7227071A4A01B20007A599 /* commoncontroller.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = commoncontroller.js; path = common/commoncontroller.js; sourceTree = "<group>"; };
 		4E73D2C21D29297A0063F381 /* mea_xpl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mea_xpl.h; path = src/mea_xpl.h; sourceTree = "<group>"; };
 		4E73D2C31D29298B0063F381 /* mea_xpl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mea_xpl.c; path = src/mea_xpl.c; sourceTree = "<group>"; };
-		4E73D2C51D2929E60063F381 /* mea-xpllogger2.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "mea-xpllogger2.c"; path = "commands/mea-xpllogger/mea-xpllogger2.c"; sourceTree = "<group>"; };
+		4E73D2C51D2929E60063F381 /* mea-xpllogger2.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = "mea-xpllogger2.c"; sourceTree = "<group>"; };
 		4E73D2C71D292A7F0063F381 /* cJSON.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = cJSON.h; path = "commands/mea-compilr/cJSON.h"; sourceTree = "<group>"; };
 		4E73D2C81D292A7F0063F381 /* cJSON.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = cJSON.c; path = "commands/mea-compilr/cJSON.c"; sourceTree = "<group>"; };
 		4E73D2C91D292A7F0063F381 /* Makefile.linux */ = {isa = PBXFileReference; lastKnownFileType = text; name = Makefile.linux; path = "commands/mea-compilr/Makefile.linux"; sourceTree = "<group>"; };
@@ -2211,7 +2212,7 @@
 		4E79947719DCB04B00F87593 /* nodejs.mk */ = {isa = PBXFileReference; lastKnownFileType = text; name = nodejs.mk; path = complements/nodejs/nodejs.mk; sourceTree = "<group>"; };
 		4E7A0AA51AB74D3C00ABF5ED /* commands.mk */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = commands.mk; path = commands/commands.mk; sourceTree = "<group>"; };
 		4E7A0AA61AB74D8600ABF5ED /* utilslib.mk */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = utilslib.mk; path = src/utilslib.mk; sourceTree = "<group>"; };
-		4E7A0B0A1AB766FB00ABF5ED /* mea-automator */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "mea-automator"; sourceTree = BUILT_PRODUCTS_DIR; };
+		4E7A0B0A1AB766FB00ABF5ED /* mea-automator */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = "mea-automator"; path = "/Users/patrice/Developpement/Logiciels/mea-edomus/build/Debug/mea-automator"; sourceTree = "<absolute>"; };
 		4E8122AC1E13E2AA009A6C2B /* build.mk */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = build.mk; sourceTree = "<group>"; };
 		4E8122AD1E13E2AA009A6C2B /* interface_type_010.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = interface_type_010.c; sourceTree = "<group>"; };
 		4E8122AE1E13E2AA009A6C2B /* interface_type_010.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = interface_type_010.h; sourceTree = "<group>"; };
@@ -2341,6 +2342,59 @@
 		4EC421D51A12747300D94204 /* LowPower.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LowPower.h; sourceTree = "<group>"; };
 		4EC421D71A12747300D94204 /* Pulses.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Pulses.cpp; sourceTree = "<group>"; };
 		4EC421D81A12747300D94204 /* Pulses.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Pulses.h; sourceTree = "<group>"; };
+		4EE721751FF4350400C5CB87 /* xplhub.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = xplhub.js; sourceTree = "<group>"; };
+		4EE721761FF4350400C5CB87 /* xplHttpBridge.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = xplHttpBridge.js; sourceTree = "<group>"; };
+		4EE721791FF4350400C5CB87 /* license.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = license.md; sourceTree = "<group>"; };
+		4EE7217A1FF4350400C5CB87 /* index.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = index.js; sourceTree = "<group>"; };
+		4EE7217B1FF4350400C5CB87 /* readme.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = readme.md; sourceTree = "<group>"; };
+		4EE7217C1FF4350400C5CB87 /* package.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = package.json; sourceTree = "<group>"; };
+		4EE7217E1FF4350400C5CB87 /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
+		4EE7217F1FF4350400C5CB87 /* History.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = History.md; sourceTree = "<group>"; };
+		4EE721801FF4350400C5CB87 /* index.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = index.js; sourceTree = "<group>"; };
+		4EE721811FF4350400C5CB87 /* Readme.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = Readme.md; sourceTree = "<group>"; };
+		4EE721821FF4350400C5CB87 /* package.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = package.json; sourceTree = "<group>"; };
+		4EE721841FF4350400C5CB87 /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
+		4EE721851FF4350400C5CB87 /* CHANGELOG.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = CHANGELOG.md; sourceTree = "<group>"; };
+		4EE721871FF4350400C5CB87 /* async.min.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = async.min.js; sourceTree = "<group>"; };
+		4EE721881FF4350400C5CB87 /* async.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = async.js; sourceTree = "<group>"; };
+		4EE721891FF4350400C5CB87 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		4EE7218A1FF4350400C5CB87 /* package.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = package.json; sourceTree = "<group>"; };
+		4EE7218C1FF4350400C5CB87 /* async.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = async.js; sourceTree = "<group>"; };
+		4EE7218E1FF4350400C5CB87 /* .npmignore */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = .npmignore; sourceTree = "<group>"; };
+		4EE721901FF4350400C5CB87 /* semaphore.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = semaphore.js; sourceTree = "<group>"; };
+		4EE721911FF4350400C5CB87 /* bower.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = bower.json; sourceTree = "<group>"; };
+		4EE721921FF4350400C5CB87 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		4EE721931FF4350400C5CB87 /* package.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = package.json; sourceTree = "<group>"; };
+		4EE721951FF4350400C5CB87 /* semaphore.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = semaphore.js; sourceTree = "<group>"; };
+		4EE721961FF4350400C5CB87 /* .travis.yml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = .travis.yml; sourceTree = "<group>"; };
+		4EE721981FF4350400C5CB87 /* .npmignore */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = .npmignore; sourceTree = "<group>"; };
+		4EE721991FF4350400C5CB87 /* xplhub.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = xplhub.js; sourceTree = "<group>"; };
+		4EE7219A1FF4350400C5CB87 /* .jshintrc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = .jshintrc; sourceTree = "<group>"; };
+		4EE7219B1FF4350400C5CB87 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		4EE7219C1FF4350400C5CB87 /* main.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = main.js; sourceTree = "<group>"; };
+		4EE7219D1FF4350400C5CB87 /* package.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = package.json; sourceTree = "<group>"; };
+		4EE7219F1FF4350400C5CB87 /* xpl-api.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "xpl-api.js"; sourceTree = "<group>"; };
+		4EE721A01FF4350400C5CB87 /* xplsend.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = xplsend.js; sourceTree = "<group>"; };
+		4EE721A21FF4350400C5CB87 /* .npmignore */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = .npmignore; sourceTree = "<group>"; };
+		4EE721A31FF4350400C5CB87 /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
+		4EE721A41FF4350400C5CB87 /* CHANGELOG.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = CHANGELOG.md; sourceTree = "<group>"; };
+		4EE721A51FF4350400C5CB87 /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
+		4EE721A61FF4350400C5CB87 /* .eslintrc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = .eslintrc; sourceTree = "<group>"; };
+		4EE721A71FF4350400C5CB87 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		4EE721A81FF4350400C5CB87 /* component.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = component.json; sourceTree = "<group>"; };
+		4EE721A91FF4350400C5CB87 /* node.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = node.js; sourceTree = "<group>"; };
+		4EE721AA1FF4350400C5CB87 /* package.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = package.json; sourceTree = "<group>"; };
+		4EE721AB1FF4350400C5CB87 /* karma.conf.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = karma.conf.js; sourceTree = "<group>"; };
+		4EE721AC1FF4350400C5CB87 /* .coveralls.yml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = .coveralls.yml; sourceTree = "<group>"; };
+		4EE721AD1FF4350400C5CB87 /* .travis.yml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = .travis.yml; sourceTree = "<group>"; };
+		4EE721AF1FF4350400C5CB87 /* index.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = index.js; sourceTree = "<group>"; };
+		4EE721B01FF4350400C5CB87 /* node.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = node.js; sourceTree = "<group>"; };
+		4EE721B11FF4350400C5CB87 /* browser.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = browser.js; sourceTree = "<group>"; };
+		4EE721B21FF4350400C5CB87 /* inspector-log.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "inspector-log.js"; sourceTree = "<group>"; };
+		4EE721B31FF4350400C5CB87 /* debug.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = debug.js; sourceTree = "<group>"; };
+		4EE721B41FF4350400C5CB87 /* httpClient.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = httpClient.js; sourceTree = "<group>"; };
+		4EE721B51FF4350400C5CB87 /* xpldevicesim.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = xpldevicesim.js; sourceTree = "<group>"; };
+		4EE721B61FF4350400C5CB87 /* xplsend.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = xplsend.js; sourceTree = "<group>"; };
 		4EF3BFC61A712F4100080C6D /* interfaces-view.php */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.php; path = "interfaces-view.php"; sourceTree = "<group>"; };
 		4EF3BFC71A712F4100080C6D /* localisations-view.php */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.php; path = "localisations-view.php"; sourceTree = "<group>"; };
 		4EF3BFC81A712F7900080C6D /* localisations-ctrl.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "localisations-ctrl.js"; sourceTree = "<group>"; };
@@ -2406,8 +2460,8 @@
 		08FB7794FE84155DC02AAC07 /* Comio */ = {
 			isa = PBXGroup;
 			children = (
+				4EE721741FF4350400C5CB87 /* more */,
 				4E4292A11AB2054C00E64F4F /* lib */,
-				4E207BC019F1C13A00410B40 /* Products */,
 				4EC421A71A12747200D94204 /* arduino */,
 				4E4811A619C37D96001C5F48 /* Makefile.linux */,
 				4E4811A719C37D96001C5F48 /* Makefile.macosx */,
@@ -4443,16 +4497,6 @@
 			name = commands;
 			sourceTree = "<group>";
 		};
-		4E207BC019F1C13A00410B40 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				4E207BBF19F1C13A00410B40 /* mea-xpllogger */,
-				4E4F876E1A979A4800479945 /* enoceanlogger */,
-				4E7A0B0A1AB766FB00ABF5ED /* mea-automator */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		4E207BC119F1C13A00410B40 /* mea-xpllogger */ = {
 			isa = PBXGroup;
 			children = (
@@ -4461,7 +4505,8 @@
 				4E207BB819F1BA4300410B40 /* mea-xpllogger.c */,
 				4E73D2C51D2929E60063F381 /* mea-xpllogger2.c */,
 			);
-			path = "mea-xpllogger";
+			name = "mea-xpllogger";
+			path = "commands/mea-xpllogger";
 			sourceTree = "<group>";
 		};
 		4E2AD4D11A434A37004177D4 /* locations */ = {
@@ -4520,7 +4565,7 @@
 				4E3F343519F8446C0066A9CC /* install */,
 			);
 			name = xplhub;
-			path = commands/xPLHub;
+			path = complements/xplhub;
 			sourceTree = "<group>";
 		};
 		4E3F343519F8446C0066A9CC /* install */ = {
@@ -7639,8 +7684,7 @@
 			children = (
 				4EF3BFD21A713CAA00080C6D /* dht22 */,
 			);
-			name = interface_type_002;
-			path = interface_type_002_dht22;
+			path = interface_type_002;
 			sourceTree = "<group>";
 		};
 		4EC421AC1A12747300D94204 /* Libraries */ = {
@@ -7824,6 +7868,170 @@
 			name = "xPL manager";
 			sourceTree = "<group>";
 		};
+		4EE721741FF4350400C5CB87 /* more */ = {
+			isa = PBXGroup;
+			children = (
+				4EE721751FF4350400C5CB87 /* xplhub.js */,
+				4EE721761FF4350400C5CB87 /* xplHttpBridge.js */,
+				4EE721771FF4350400C5CB87 /* node_modules */,
+				4EE721B41FF4350400C5CB87 /* httpClient.js */,
+				4EE721B51FF4350400C5CB87 /* xpldevicesim.js */,
+				4EE721B61FF4350400C5CB87 /* xplsend.js */,
+			);
+			path = more;
+			sourceTree = "<group>";
+		};
+		4EE721771FF4350400C5CB87 /* node_modules */ = {
+			isa = PBXGroup;
+			children = (
+				4EE721781FF4350400C5CB87 /* ms */,
+				4EE7217D1FF4350400C5CB87 /* commander */,
+				4EE721831FF4350400C5CB87 /* async */,
+				4EE7218D1FF4350400C5CB87 /* semaphore */,
+				4EE721971FF4350400C5CB87 /* xpl-api */,
+				4EE721A11FF4350400C5CB87 /* debug */,
+			);
+			path = node_modules;
+			sourceTree = "<group>";
+		};
+		4EE721781FF4350400C5CB87 /* ms */ = {
+			isa = PBXGroup;
+			children = (
+				4EE721791FF4350400C5CB87 /* license.md */,
+				4EE7217A1FF4350400C5CB87 /* index.js */,
+				4EE7217B1FF4350400C5CB87 /* readme.md */,
+				4EE7217C1FF4350400C5CB87 /* package.json */,
+			);
+			path = ms;
+			sourceTree = "<group>";
+		};
+		4EE7217D1FF4350400C5CB87 /* commander */ = {
+			isa = PBXGroup;
+			children = (
+				4EE7217E1FF4350400C5CB87 /* LICENSE */,
+				4EE7217F1FF4350400C5CB87 /* History.md */,
+				4EE721801FF4350400C5CB87 /* index.js */,
+				4EE721811FF4350400C5CB87 /* Readme.md */,
+				4EE721821FF4350400C5CB87 /* package.json */,
+			);
+			path = commander;
+			sourceTree = "<group>";
+		};
+		4EE721831FF4350400C5CB87 /* async */ = {
+			isa = PBXGroup;
+			children = (
+				4EE721841FF4350400C5CB87 /* LICENSE */,
+				4EE721851FF4350400C5CB87 /* CHANGELOG.md */,
+				4EE721861FF4350400C5CB87 /* dist */,
+				4EE721891FF4350400C5CB87 /* README.md */,
+				4EE7218A1FF4350400C5CB87 /* package.json */,
+				4EE7218B1FF4350400C5CB87 /* lib */,
+			);
+			path = async;
+			sourceTree = "<group>";
+		};
+		4EE721861FF4350400C5CB87 /* dist */ = {
+			isa = PBXGroup;
+			children = (
+				4EE721871FF4350400C5CB87 /* async.min.js */,
+				4EE721881FF4350400C5CB87 /* async.js */,
+			);
+			path = dist;
+			sourceTree = "<group>";
+		};
+		4EE7218B1FF4350400C5CB87 /* lib */ = {
+			isa = PBXGroup;
+			children = (
+				4EE7218C1FF4350400C5CB87 /* async.js */,
+			);
+			path = lib;
+			sourceTree = "<group>";
+		};
+		4EE7218D1FF4350400C5CB87 /* semaphore */ = {
+			isa = PBXGroup;
+			children = (
+				4EE7218E1FF4350400C5CB87 /* .npmignore */,
+				4EE7218F1FF4350400C5CB87 /* test */,
+				4EE721911FF4350400C5CB87 /* bower.json */,
+				4EE721921FF4350400C5CB87 /* README.md */,
+				4EE721931FF4350400C5CB87 /* package.json */,
+				4EE721941FF4350400C5CB87 /* lib */,
+				4EE721961FF4350400C5CB87 /* .travis.yml */,
+			);
+			path = semaphore;
+			sourceTree = "<group>";
+		};
+		4EE7218F1FF4350400C5CB87 /* test */ = {
+			isa = PBXGroup;
+			children = (
+				4EE721901FF4350400C5CB87 /* semaphore.js */,
+			);
+			path = test;
+			sourceTree = "<group>";
+		};
+		4EE721941FF4350400C5CB87 /* lib */ = {
+			isa = PBXGroup;
+			children = (
+				4EE721951FF4350400C5CB87 /* semaphore.js */,
+			);
+			path = lib;
+			sourceTree = "<group>";
+		};
+		4EE721971FF4350400C5CB87 /* xpl-api */ = {
+			isa = PBXGroup;
+			children = (
+				4EE721981FF4350400C5CB87 /* .npmignore */,
+				4EE721991FF4350400C5CB87 /* xplhub.js */,
+				4EE7219A1FF4350400C5CB87 /* .jshintrc */,
+				4EE7219B1FF4350400C5CB87 /* README.md */,
+				4EE7219C1FF4350400C5CB87 /* main.js */,
+				4EE7219D1FF4350400C5CB87 /* package.json */,
+				4EE7219E1FF4350400C5CB87 /* lib */,
+				4EE721A01FF4350400C5CB87 /* xplsend.js */,
+			);
+			path = "xpl-api";
+			sourceTree = "<group>";
+		};
+		4EE7219E1FF4350400C5CB87 /* lib */ = {
+			isa = PBXGroup;
+			children = (
+				4EE7219F1FF4350400C5CB87 /* xpl-api.js */,
+			);
+			path = lib;
+			sourceTree = "<group>";
+		};
+		4EE721A11FF4350400C5CB87 /* debug */ = {
+			isa = PBXGroup;
+			children = (
+				4EE721A21FF4350400C5CB87 /* .npmignore */,
+				4EE721A31FF4350400C5CB87 /* LICENSE */,
+				4EE721A41FF4350400C5CB87 /* CHANGELOG.md */,
+				4EE721A51FF4350400C5CB87 /* Makefile */,
+				4EE721A61FF4350400C5CB87 /* .eslintrc */,
+				4EE721A71FF4350400C5CB87 /* README.md */,
+				4EE721A81FF4350400C5CB87 /* component.json */,
+				4EE721A91FF4350400C5CB87 /* node.js */,
+				4EE721AA1FF4350400C5CB87 /* package.json */,
+				4EE721AB1FF4350400C5CB87 /* karma.conf.js */,
+				4EE721AC1FF4350400C5CB87 /* .coveralls.yml */,
+				4EE721AD1FF4350400C5CB87 /* .travis.yml */,
+				4EE721AE1FF4350400C5CB87 /* src */,
+			);
+			path = debug;
+			sourceTree = "<group>";
+		};
+		4EE721AE1FF4350400C5CB87 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				4EE721AF1FF4350400C5CB87 /* index.js */,
+				4EE721B01FF4350400C5CB87 /* node.js */,
+				4EE721B11FF4350400C5CB87 /* browser.js */,
+				4EE721B21FF4350400C5CB87 /* inspector-log.js */,
+				4EE721B31FF4350400C5CB87 /* debug.js */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
 		4EF3BFD21A713CAA00080C6D /* dht22 */ = {
 			isa = PBXGroup;
 			children = (
@@ -7980,7 +8188,7 @@
 				German,
 			);
 			mainGroup = 08FB7794FE84155DC02AAC07 /* Comio */;
-			productRefGroup = 4E207BC019F1C13A00410B40 /* Products */;
+			productRefGroup = 08FB7794FE84155DC02AAC07 /* Comio */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -8155,6 +8363,7 @@
 				4E7A0B011AB766DE00ABF5ED /* main.c in Sources */,
 				4E5E49081C1F7FA200CBE3EE /* sunriset.c in Sources */,
 				4E73D2C41D29298B0063F381 /* mea_xpl.c in Sources */,
+				4EE721B71FF4350400C5CB87 /* Makefile in Sources */,
 				4E83D2B91BF12A81009FF74F /* mea_sockets_utils.c in Sources */,
 				4E4F88561A98D2A500479945 /* interface_type_003.c in Sources */,
 				4E60BA7A19FEF40A00D56F21 /* notify.c in Sources */,

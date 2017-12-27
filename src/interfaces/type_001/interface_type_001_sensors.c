@@ -731,9 +731,18 @@ int16_t interface_type_001_sensors_poll_inputs2(interface_type_001_t *i001)
                float computed_last;
                
                sensor->val=v;
-               sensor->computed_val=sensor->compute_fn(v);
-               computed_last=sensor->compute_fn(last);
-                  
+               if(sensor->compute_fn==NULL)
+               {
+                  sensor->computed_val=v;
+                  computed_last=last;
+                  sensor->compute=RAW_ID;
+               }
+               else
+               {
+                  sensor->computed_val=sensor->compute_fn(v);
+                  computed_last=sensor->compute_fn(last);
+               }
+               
                if(sensor->compute==XPL_TEMP_ID)
                {
                   VERBOSE(9) mea_log_printf("%s (%s) : temperature sensor %s =  %.1f °C (%d) \n", INFO_STR, __func__, sensor->name, sensor->computed_val, sensor->val);

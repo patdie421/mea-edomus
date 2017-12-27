@@ -536,7 +536,7 @@ int16_t _comio2_read_frame(int fd, char *cmd_data, uint16_t *l_cmd_data, int16_t
          case 0:
             if(c=='{')
             {
-               DEBUG_SECTION mea_log_printf("%s (%s) : ok, start caracter ('{') recepted\n",DEBUG_STR,__func__);
+               DEBUG_SECTION mea_log_printf("%s (%s) : ok, start character ('{') recepted\n",DEBUG_STR,__func__);
                step++;
             }
             else
@@ -580,7 +580,7 @@ int16_t _comio2_read_frame(int fd, char *cmd_data, uint16_t *l_cmd_data, int16_t
          case 4:
             if(c=='}')
             {
-              DEBUG_SECTION mea_log_printf("%s (%s) : ok, end caracter ('}') recepted\n",DEBUG_STR,__func__);
+              DEBUG_SECTION mea_log_printf("%s (%s) : ok, end character ('}') recepted\n",DEBUG_STR,__func__);
               return 0;
             }
             *nerr=COMIO2_ERR_STOPFRAME;

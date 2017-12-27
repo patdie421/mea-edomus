@@ -50,7 +50,7 @@ char *interface_type_003_enoceandatain_str="ENOCEANIN";
 
 typedef void (*thread_f)(void *);
 
-// parametres valide pour les capteurs ou actionneurs pris en compte par le type 2.
+// parametres valide pour les capteurs ou actionneurs pris en compte par le type 3.
 char *valid_enocean_plugin_params[]={"S:PLUGIN","S:PARAMETERS", NULL};
 #define ENOCEAN_PLUGIN_PARAMS_PLUGIN      0
 #define ENOCEAN_PLUGIN_PARAMS_PARAMETERS  1
