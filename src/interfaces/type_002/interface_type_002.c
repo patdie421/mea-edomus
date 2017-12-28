@@ -1175,12 +1175,12 @@ int stop_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
       start_stop_params->i002->xPL_callback_data=NULL;
    }
    
-   VERBOSE(1) mea_log_printf("%s  (%s) : ICI1", INFO_STR, __func__);
    if(start_stop_params->i002->xPL_callback2)
    {
       start_stop_params->i002->xPL_callback2=NULL;
    }
-   
+   VERBOSE(1) mea_log_printf("%s  (%s) : ICI1", INFO_STR, __func__);
+
    if(start_stop_params->i002->xd &&
       start_stop_params->i002->xd->dataflow_callback_data &&
      (start_stop_params->i002->xd->dataflow_callback_data == start_stop_params->i002->xd->io_callback_data))
@@ -1202,6 +1202,7 @@ int stop_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
          start_stop_params->i002->xd->io_callback_data=NULL;
       }
    }
+   VERBOSE(1) mea_log_printf("%s  (%s) : ICI2", INFO_STR, __func__);
 
    if(start_stop_params->i002->thread)
    {
@@ -1226,29 +1227,35 @@ int stop_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
       free(start_stop_params->i002->thread);
       start_stop_params->i002->thread=NULL;
    }
-   
+   VERBOSE(1) mea_log_printf("%s  (%s) : ICI3", INFO_STR, __func__);
+
    xbee_remove_commissionning_callback(start_stop_params->i002->xd);
-   
+   VERBOSE(1) mea_log_printf("%s  (%s) : ICI4", INFO_STR, __func__);
+
    if(start_stop_params->i002->xd && start_stop_params->i002->xd->commissionning_callback_data)
    {
       free(start_stop_params->i002->xd->commissionning_callback_data);
       start_stop_params->i002->xd->commissionning_callback_data=NULL;
    }
+   VERBOSE(1) mea_log_printf("%s  (%s) : ICI5", INFO_STR, __func__);
 
    xbee_close(start_stop_params->i002->xd);
+   VERBOSE(1) mea_log_printf("%s  (%s) : ICI6", INFO_STR, __func__);
 
    if(start_stop_params->i002->xd)
    {
       free(start_stop_params->i002->xd);
       start_stop_params->i002->xd=NULL;
    }
-   
+   VERBOSE(1) mea_log_printf("%s  (%s) : ICI7", INFO_STR, __func__);
+
    if(start_stop_params->i002->local_xbee)
    {
       free(start_stop_params->i002->local_xbee);
       start_stop_params->i002->local_xbee=NULL;
    }
-   
+   VERBOSE(1) mea_log_printf("%s  (%s) : ICI8", INFO_STR, __func__);
+
    mea_notify_printf('S', "%s %s", start_stop_params->i002->name, stopped_successfully_str);
 
    return 0;
