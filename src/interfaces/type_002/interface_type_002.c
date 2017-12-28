@@ -1425,13 +1425,12 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
       if(interface_parameters)
       {
          release_parsed_parameters(&interface_parameters);
-         VERBOSE(9) mea_log_printf("%s  (%s) : no python plugin specified\n", INFO_STR, __func__);
+         
+         VERBOSE(9) mea_log_printf("%s (%s) : invalid python plugin parameters (%s)\n", INFO_STR, __func__, start_stop_params->i002->parameters);
       }
       else
       {
-         VERBOSE(2) mea_log_printf("%s (%s) : invalid python plugin parameters (%s)\n", ERROR_STR, __func__, start_stop_params->i002->parameters);
-//         mea_notify_printf('E', "%s - invalid python plugin parameters (%s)", start_stop_params->i002->name, start_stop_params->i002->parameters);
-//         goto clean_exit;
+         VERBOSE(9) mea_log_printf("%s  (%s) : no python plugin specified\n", INFO_STR, __func__);
       }
    }
    else
