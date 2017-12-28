@@ -5,10 +5,10 @@ endif
 DOWNLOAD=$(SOURCE)/complements/downloads
 
 COMP_NAME=nodejs
-COMP_SRC_NAME=node-v0.10.32
+COMP_SRC_NAME=node-v8.9.3
 COMP_EXEC=out/Release/node
-COMP_TAR_FILE=node-v0.10.32.tar.gz
-COMP_URL=http://nodejs.org/dist/v0.10.32/node-v0.10.32.tar.gz
+COMP_TAR_FILE=node-v8.9.3.tar.gz
+COMP_URL=http://nodejs.org/dist/v8.9.3/node-v8.9.3.tar.gz
 
 COMP_PATH=$(SOURCE)/complements/$(COMP_NAME)
 COMP_SRC_PATH=$(COMP_PATH)/src/$(COMP_SRC_NAME)
@@ -28,6 +28,8 @@ $(COMP_SRC_PATH)/extract.ok: $(DOWNLOAD)/$(COMP_TAR_FILE)
 $(DOWNLOAD)/$(COMP_TAR_FILE):
 	@mkdir -p $(DOWNLOAD)
 	curl -o $(DOWNLOAD)/$(COMP_TAR_FILE) $(COMP_URL)
+
+download: $(DOWNLOAD)/$(COMP_TAR_FILE)
 
 clean:
 	cd $(COMP_SRC_PATH) ; make clean
