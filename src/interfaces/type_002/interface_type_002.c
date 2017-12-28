@@ -1419,7 +1419,6 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
    /*
     * exécution du plugin de paramétrage
     */
-   
    interface_parameters=alloc_parsed_parameters(start_stop_params->i002->parameters, valid_xbee_plugin_params, &interface_nb_parameters, &err, 0);
    if(!interface_parameters || !interface_parameters->parameters[XBEE_PLUGIN_PARAMS_PLUGIN].value.s)
    {
@@ -1431,8 +1430,8 @@ int start_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
       else
       {
          VERBOSE(2) mea_log_printf("%s (%s) : invalid python plugin parameters (%s)\n", ERROR_STR, __func__, start_stop_params->i002->parameters);
-         mea_notify_printf('E', "%s - invalid python plugin parameters (%s)", start_stop_params->i002->name, start_stop_params->i002->parameters);
-         goto clean_exit;
+//         mea_notify_printf('E', "%s - invalid python plugin parameters (%s)", start_stop_params->i002->name, start_stop_params->i002->parameters);
+//         goto clean_exit;
       }
    }
    else
