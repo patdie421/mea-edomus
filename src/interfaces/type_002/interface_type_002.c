@@ -1175,6 +1175,7 @@ int stop_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
       start_stop_params->i002->xPL_callback_data=NULL;
    }
    
+   VERBOSE(1) mea_log_printf("%s  (%s) : ICI1", INFO_STR, __func__);
    if(start_stop_params->i002->xPL_callback2)
    {
       start_stop_params->i002->xPL_callback2=NULL;
