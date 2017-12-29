@@ -46,6 +46,14 @@
 #include "interfacesServer.h"
 #include "interface_type_002.h"
 
+#define DBG_FREE(x) dbg_free((void *)(x),__func__,__line__)
+
+void dbg_free(void *ptr, char *func, int line)
+{
+   fprintf(MEA_STDERR, "FREE %s %d\n",func, line);
+   free(ptr);
+}
+
 
 char *interface_type_002_senttoplugin_str="SENT2PLUGIN";
 char *interface_type_002_xplin_str="XPLIN";
@@ -1207,7 +1215,7 @@ int stop_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
    {
       VERBOSE(1) mea_log_printf("%s  (%s) : IN IF\n", INFO_STR, __func__);
       pthread_cancel(*(start_stop_params->i002->thread));
-      
+
       int counter=100;
 //      int stopped=-1;
       while(counter--)
