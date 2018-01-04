@@ -1,4 +1,4 @@
-CREATE DATABASE domotique;
+CREATE DATABASE domotique2;
 
 CREATE USER domotique;
 CREATE USER domotique@'localhost';
@@ -8,7 +8,7 @@ SET PASSWORD FOR domotique@'localhost' = PASSWORD('maison');
 
 FLUSH PRIVILEGES;
 
-USE domotique;
+USE domotique2;
 
 CREATE TABLE IF NOT EXISTS sensors_values (
    id INT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -77,8 +77,8 @@ CREATE TABLE IF NOT EXISTS sensors_values_c (
    PRIMARY KEY(id)
 );
 
-GRANT SELECT, INSERT, DELETE, UPDATE, LOCK TABLES ON domotique.* TO 'domotique'@'%' WITH GRANT OPTION;
-GRANT SELECT, INSERT, DELETE, UPDATE, LOCK TABLES ON domotique.* TO 'domotique'@'localhost' WITH GRANT OPTION;
+GRANT SELECT, INSERT, DELETE, UPDATE, LOCK TABLES ON domotique2.* TO 'domotique'@'%' WITH GRANT OPTION;
+GRANT SELECT, INSERT, DELETE, UPDATE, LOCK TABLES ON domotique2.* TO 'domotique'@'localhost' WITH GRANT OPTION;
 
 FLUSH PRIVILEGES;
 
