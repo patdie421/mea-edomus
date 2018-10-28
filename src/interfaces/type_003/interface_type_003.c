@@ -934,7 +934,7 @@ int restart_interface_type_003(int my_id, void *data, char *errmsg, int l_errmsg
 int start_interface_type_003(int my_id, void *data, char *errmsg, int l_errmsg)
 /**
  * \brief     Demarrage d'une interface de type 3
- * \details   ouverture de la communication avec un USB300 ou équivalant, démarrage du thread de gestion des données
+ * \details   ouverture de la communication avec un dongle USB300 ou équivalant, démarrage du thread de gestion des données
  *            "non sollicitées" et mise en place des callback xpl et données
  * \param     my_id          id attribué par processManager
  * \param     data           données nécessaire au arret/relance (à caster sur struct interface_type_003_data_s)

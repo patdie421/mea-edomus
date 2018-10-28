@@ -323,7 +323,7 @@ void logger2(char *interface)
    int port=0;
    char ip[255];
    char *source="mea-edomus.logger";
-   int interval = 5;
+   int interval = 1;
 
    int sd=mea_xPLConnectHub(&port);
    if(sd<0)

@@ -46,14 +46,13 @@
 #include "interfacesServer.h"
 #include "interface_type_002.h"
 
-#define DBG_FREE(x) dbg_free((void *)(x),__func__,__line__)
+#define DBG_FREE(x) dbg_free((void *)(x), (char *)__func__, (int)__LINE__)
 
 void dbg_free(void *ptr, char *func, int line)
 {
    fprintf(MEA_STDERR, "FREE %s %d\n",func, line);
    free(ptr);
 }
-
 
 char *interface_type_002_senttoplugin_str="SENT2PLUGIN";
 char *interface_type_002_xplin_str="XPLIN";
@@ -175,11 +174,11 @@ void _iodata_free_queue_elem(void *d)
 // /!\ voir s'il ne faut pas nettoyer l'interieur de e
    if(e->cmd)
    {
-      free(e->cmd);
+      DBG_FREE(e->cmd);
       e->cmd=NULL;
    }
    
-   free(e);
+   DBG_FREE(e);
    e=NULL;
 }
 
@@ -422,7 +421,7 @@ int16_t _interface_type_002_xPL_callback2(cJSON *xplMsgJson, struct device_info_
             plugin_elem=NULL;
          }
          
-         free(plugin_params);
+         DBG_FREE(plugin_params);
          plugin_params=NULL;
       }
       else if (s == SQLITE_DONE)
@@ -584,14 +583,17 @@ void *_thread_interface_type_002_xbeedata_cleanup(void *args)
 {
    struct thread_params_s *params=(struct thread_params_s *)args;
 
+   return NULL;
+
+   mea_log_printf("%s (%s)  : stop.\n", INFO_STR, __func__);
    if(!params)
       return NULL;
    
    if(params->e)
    {
-      free(params->e->cmd);
+      DBG_FREE(params->e->cmd);
       params->e->cmd=NULL;
-      free(params->e);
+      DBG_FREE(params->e);
       params->e=NULL;
    }
 
@@ -618,12 +620,14 @@ void *_thread_interface_type_002_xbeedata_cleanup(void *args)
    
    if(params->queue)
    {
-      free(params->queue);
+      DBG_FREE(params->queue);
       params->queue=NULL;
    }
 
-   free(params);
+   DBG_FREE(params);
    params=NULL;
+
+   mea_log_printf("%s (%s)  : end.\n", INFO_STR, __func__);
 
    return NULL;
 }
@@ -794,7 +798,7 @@ void *_thread_interface_type_002_xbeedata(void *args)
                   } // fin appel des fonctions Python
                   pythonPluginServer_add_cmd(params->plugin_params->parameters[XBEE_PLUGIN_PARAMS_PLUGIN].value.s, (void *)plugin_elem, sizeof(plugin_queue_elem_t));
                   params->i002->indicators.senttoplugin++;
-                  free(plugin_elem);
+                  DBG_FREE(plugin_elem);
                   plugin_elem=NULL;
                   
                   pthread_cleanup_pop(0);
@@ -823,9 +827,9 @@ void *_thread_interface_type_002_xbeedata(void *args)
             }
          }
          
-         free(e->cmd);
+         DBG_FREE(e->cmd);
          e->cmd=NULL;
-         free(e);
+         DBG_FREE(e);
          e=NULL;
          
          pthread_testcancel();
@@ -926,13 +930,13 @@ pthread_t *start_interface_type_002_xbeedata_thread(interface_type_002_t *i002, 
 clean_exit:
    if(thread)
    {
-      free(thread);
+      DBG_FREE(thread);
       thread=NULL;
    }
    
    if(callback_xbeedata)
    {
-      free(callback_xbeedata);
+      DBG_FREE(callback_xbeedata);
       callback_xbeedata=NULL;
    }
 
@@ -943,10 +947,10 @@ clean_exit:
    {
       if(params->queue)
       {
-         free(params->queue);
+         DBG_FREE(params->queue);
          params->queue=NULL;
       }
-      free(params);
+      DBG_FREE(params);
       params=NULL;
    }
    return NULL;
@@ -1027,7 +1031,7 @@ interface_type_002_t *malloc_and_init_interface_type_002(sqlite3 *sqlite3_param_
    struct interface_type_002_data_s *i002_start_stop_params=(struct interface_type_002_data_s *)malloc(sizeof(struct interface_type_002_data_s));
    if(!i002_start_stop_params)
    {
-      free(i002);
+      DBG_FREE(i002);
       i002=NULL;
       VERBOSE(2) {
          mea_log_printf("%s (%s) : %s - ",ERROR_STR,__func__,MALLOC_ERROR_STR);
@@ -1077,7 +1081,7 @@ int clean_interface_type_002(interface_type_002_t *i002)
 {
    if(i002->parameters)
    {
-      free(i002->parameters);
+      DBG_FREE(i002->parameters);
       i002->parameters=NULL;
    }
    
@@ -1094,7 +1098,7 @@ int clean_interface_type_002(interface_type_002_t *i002)
       }
       PyEval_ReleaseLock();
          
-      free(i002->xPL_callback_data);
+      DBG_FREE(i002->xPL_callback_data);
       i002->xPL_callback_data=NULL;
    }
    
@@ -1104,7 +1108,7 @@ int clean_interface_type_002(interface_type_002_t *i002)
    if(i002->xd && i002->xd->dataflow_callback_data &&
      (i002->xd->dataflow_callback_data == i002->xd->io_callback_data))
    {
-      free(i002->xd->dataflow_callback_data);
+      DBG_FREE(i002->xd->dataflow_callback_data);
       i002->xd->io_callback_data=NULL;
       i002->xd->dataflow_callback_data=NULL;
    }
@@ -1112,37 +1116,37 @@ int clean_interface_type_002(interface_type_002_t *i002)
    {
       if(i002->xd && i002->xd->dataflow_callback_data)
       {
-         free(i002->xd->dataflow_callback_data);
+         DBG_FREE(i002->xd->dataflow_callback_data);
          i002->xd->dataflow_callback_data=NULL;
       }
       if(i002->xd && i002->xd->io_callback_data)
       {
-         free(i002->xd->io_callback_data);
+         DBG_FREE(i002->xd->io_callback_data);
          i002->xd->io_callback_data=NULL;
       }
    }
 
    if(i002->thread)
    {
-      free(i002->thread);
+      DBG_FREE(i002->thread);
       i002->thread=NULL;
    }
 
    if(i002->xd && i002->xd->commissionning_callback_data)
    {
-      free(i002->xd->commissionning_callback_data);
+      DBG_FREE(i002->xd->commissionning_callback_data);
       i002->xd->commissionning_callback_data=NULL;
    }
 
    if(i002->xd)
    {
-      free(i002->xd);
+      DBG_FREE(i002->xd);
       i002->xd=NULL;
    }
    
    if(i002->local_xbee)
    {
-      free(i002->local_xbee);
+      DBG_FREE(i002->local_xbee);
       i002->local_xbee=NULL;
    }
    
@@ -1178,7 +1182,7 @@ int stop_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
       }
       PyEval_ReleaseLock();
          
-      free(start_stop_params->i002->xPL_callback_data);
+      DBG_FREE(start_stop_params->i002->xPL_callback_data);
       start_stop_params->i002->xPL_callback_data=NULL;
    }
    
@@ -1186,13 +1190,12 @@ int stop_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
    {
       start_stop_params->i002->xPL_callback2=NULL;
    }
-   VERBOSE(1) mea_log_printf("%s  (%s) : ICI1\n", INFO_STR, __func__);
 
    if(start_stop_params->i002->xd &&
       start_stop_params->i002->xd->dataflow_callback_data &&
      (start_stop_params->i002->xd->dataflow_callback_data == start_stop_params->i002->xd->io_callback_data))
    {
-      free(start_stop_params->i002->xd->dataflow_callback_data);
+      DBG_FREE(start_stop_params->i002->xd->dataflow_callback_data);
       start_stop_params->i002->xd->io_callback_data=NULL;
       start_stop_params->i002->xd->dataflow_callback_data=NULL;
    }
@@ -1200,20 +1203,18 @@ int stop_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
    {
       if(start_stop_params->i002->xd && start_stop_params->i002->xd->dataflow_callback_data)
       {
-         free(start_stop_params->i002->xd->dataflow_callback_data);
+         DBG_FREE(start_stop_params->i002->xd->dataflow_callback_data);
          start_stop_params->i002->xd->dataflow_callback_data=NULL;
       }
       if(start_stop_params->i002->xd && start_stop_params->i002->xd->io_callback_data)
       {
-         free(start_stop_params->i002->xd->io_callback_data);
+         DBG_FREE(start_stop_params->i002->xd->io_callback_data);
          start_stop_params->i002->xd->io_callback_data=NULL;
       }
    }
-   VERBOSE(1) mea_log_printf("%s  (%s) : ICI2\n", INFO_STR, __func__);
 
    if(start_stop_params->i002->thread)
    {
-      VERBOSE(1) mea_log_printf("%s  (%s) : IN IF\n", INFO_STR, __func__);
       pthread_cancel(*(start_stop_params->i002->thread));
 
       int counter=100;
@@ -1232,39 +1233,31 @@ int stop_interface_type_002(int my_id, void *data, char *errmsg, int l_errmsg)
       }
       DEBUG_SECTION mea_log_printf("%s (%s) : %s, fin après %d itération(s)\n",DEBUG_STR, __func__,start_stop_params->i002->name,100-counter);
 
-      VERBOSE(1) mea_log_printf("%s  (%s) : AVANT\n", INFO_STR, __func__);
-      free(start_stop_params->i002->thread);
-      VERBOSE(1) mea_log_printf("%s  (%s) : APRES\n", INFO_STR, __func__);
+      DBG_FREE(start_stop_params->i002->thread);
       start_stop_params->i002->thread=NULL;
    }
-   VERBOSE(1) mea_log_printf("%s  (%s) : ICI3\n", INFO_STR, __func__);
 
    xbee_remove_commissionning_callback(start_stop_params->i002->xd);
-   VERBOSE(1) mea_log_printf("%s  (%s) : ICI4\n", INFO_STR, __func__);
 
    if(start_stop_params->i002->xd && start_stop_params->i002->xd->commissionning_callback_data)
    {
-      free(start_stop_params->i002->xd->commissionning_callback_data);
+      DBG_FREE(start_stop_params->i002->xd->commissionning_callback_data);
       start_stop_params->i002->xd->commissionning_callback_data=NULL;
    }
-   VERBOSE(1) mea_log_printf("%s  (%s) : ICI5\n", INFO_STR, __func__);
 
    xbee_close(start_stop_params->i002->xd);
-   VERBOSE(1) mea_log_printf("%s  (%s) : ICI6\n", INFO_STR, __func__);
 
    if(start_stop_params->i002->xd)
    {
-      free(start_stop_params->i002->xd);
+      DBG_FREE(start_stop_params->i002->xd);
       start_stop_params->i002->xd=NULL;
    }
-   VERBOSE(1) mea_log_printf("%s  (%s) : ICI7\n", INFO_STR, __func__);
 
    if(start_stop_params->i002->local_xbee)
    {
-      free(start_stop_params->i002->local_xbee);
+      DBG_FREE(start_stop_params->i002->local_xbee);
       start_stop_params->i002->local_xbee=NULL;
    }
-   VERBOSE(1) mea_log_printf("%s  (%s) : ICI8\n", INFO_STR, __func__);
 
    mea_notify_printf('S', "%s %s", start_stop_params->i002->name, stopped_successfully_str);
 
@@ -1602,19 +1595,19 @@ clean_exit:
    
    if(commissionning_callback_params)
    {
-      free(commissionning_callback_params);
+      DBG_FREE(commissionning_callback_params);
       commissionning_callback_params=NULL;
    }
    
    if(xpl_callback_params)
    {
-      free(xpl_callback_params);
+      DBG_FREE(xpl_callback_params);
       xpl_callback_params=NULL;
    }
    
    if(local_xbee)
    {
-      free(local_xbee);
+      DBG_FREE(local_xbee);
       local_xbee=NULL;
    }
    
@@ -1623,7 +1616,7 @@ clean_exit:
       if(fd>=0)
          xbee_close(xd);
       xbee_clean_xd(xd);
-      free(xd);
+      DBG_FREE(xd);
       xd=NULL;
    }
    

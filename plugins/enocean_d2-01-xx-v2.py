@@ -1,6 +1,7 @@
 import re
 import string
 import sys
+import json
 
 try:
     import mea
@@ -15,7 +16,7 @@ import string
 
 debug=0
 
-# Exemple "Trame D2"
+# Exemple "Trame D2 0x04"
 # 00 0x55  85 Synchro
 # 01 0x00   0 Header1 Data Lenght
 # 02 0x09   9 Header2 Data Lenght
@@ -42,15 +43,17 @@ debug=0
 # 21 0x00  0  Optionnal7 Security level
 # 22 0x43  67 CRC8D
 
+
 def mea_xplCmndMsg(data):
    fn_name=sys._getframe().f_code.co_name
 
    try:
       id_sensor=data["device_id"]
       parameters=data["device_parameters"]
+      typeoftype=data["typeoftype"]
       api_key=data["api_key"]
    except:
-      verbose(2, "ERROR (", fn_name, ") - device_id not found")
+      verbose(2, "ERROR (", fn_name, ") - invalid data")
       return 0
 
    mem=mea.getMemory(id_sensor)
@@ -74,40 +77,46 @@ def mea_xplCmndMsg(data):
            elif body["current"]=="low":
               current = 0; 
 
-           if paramsDict["channel"]=="A":
-              channel = 0;
-           elif paramsDict["channel"]=="B":
-              channel = 1;
-
-           if channel <> -1 and current <> -1:
-              buf=bytearray();
+           if current <> -1:
+              channel = ord(paramsDict["channel"][0]) - ord('A');
+              buf=bytearray()
               buf.append(0x01)
               buf.append(channel & 0b11111)
               buf.append(current & 0b1111111)
 
               mea.interfaceAPI(api_key, "sendEnoceanRadioErp1Packet", 0xD2, 0, data["ENOCEAN_ADDR"], buf)
 
+              try:
+                 if paramsDict["force_status"]=="yes":
+                    channel = ord(paramsDict["channel"][0]) - ord('A');
+                    buf=bytearray()
+                    buf.append(0x03)
+                    buf.append(channel & 0b11111)
+                    mea.interfaceAPI(api_key, "sendEnoceanRadioErp1Packet", 0xD2, 0, data["ENOCEAN_ADDR"], buf)
+              except Exception as e:
+                 verbose(2, "ERROR (", fn_name, ") - can't query device: ", str(e)) 
+                 pass
+
      except Exception as e:
-        verbose(2, "ERROR (", fn_name, ") - can't create enocean packet ", str(e))
+        verbose(2, "ERROR (", fn_name, ") - can't create/send enocean packet: ", str(e))
         return False
  
    elif x["schema"]=="sensor.request":
-      try:
-         xplMsg=mea_utils.xplMsgNew("me", target, "xpl-stat", "sensor", "basic")
-         mea_utils.xplMsgAddValue(xplMsg,"device", data["device_name"].lower())
-         if body["request"]=="current":
-            mea_utils.xplMsgAddValue(xplMsg,"current",mem["current"])
-         elif body["request"]=="last":
-            mea_utils.xplMsgAddValue(xplMsg,"last",mem["last"])
-         else:
-            verbose(2, "ERROR (", fn_name, ") - invalid request (", body["request"],")")
+      if body["request"]=="current":
+         try:
+            buf=bytearray()
+            channel = ord(paramsDict["channel"][0]) - ord('A');
+            buf.append(0x03);
+            buf.append(channel & 0b11111);
+            mea.interfaceAPI(api_key,"sendEnoceanRadioErp1Packet", 0xD2, 0, data["ENOCEAN_ADDR"], buf)
+         except Exception as e:
+            verbose(2, "ERROR (", fn_name, ") - can't query device: ", str(e))
             return False
-         mea_utils.xplMsgAddValue(xplMsg,"type","input")
-      except:
-         verbose(2, "ERROR (", fn_name, ") - can't create xpl message")
+
+      else:
+         verbose(2, "ERROR (", fn_name, ") - invalid request (", body["request"],")")
          return False
 
-      mea.xplSendMsg(xplMsg)
       return True
 
    return False
@@ -122,12 +131,19 @@ def mea_dataFromSensor(data):
       packet=data["data"]
       l_packet=data["l_data"]
       parameters=data["device_parameters"]
+      typeoftype=data["typeoftype"]
    except:
       verbose(2, "ERROR (", fn_name, ") - invalid data")
       return False
 
    mem=mea.getMemory(id_sensor)
    paramsDict=mea_utils.parseKeyValueDatasToDictionary(parameters, ",", ":")
+
+   f = "highlow"
+   try:
+      f=paramsDict["format"]
+   except:
+      pass
 
    current=""
    try:
@@ -139,11 +155,18 @@ def mea_dataFromSensor(data):
       if packet[6]==0xD2:
          if (packet[7] & 0b00001111) == 4: # reception packet status
             try:
-               if (paramsDict["channel"]=="A" and (packet[8] & 0b00011111) == 0) or (paramsDict["channel"]=="B" and (packet[8] & 0b00011111) == 1): 
-                  if (packet[9] & 0b01111111) == 0:
-                     current='low'
-                  else:
-                     current='high'
+               data_channel_num = packet[8] & 0b00011111;
+               device_channel_num = ord(paramsDict["channel"][0]) - ord('A');
+ 
+               #if (paramsDict["channel"]=="A" and (packet[8] & 0b00011111) == 0) or (paramsDict["channel"]=="B" and (packet[8] & 0b00011111) == 1): 
+               if data_channel_num == device_channel_num:
+                  if f == "highlow":
+                     if (packet[9] & 0b01111111) == 0:
+                        current='low'
+                     else:
+                        current='high'
+                  elif f == "value":
+                     current = packet[9] & 0b01111111;
             except:
                return False 
 
@@ -160,6 +183,6 @@ def mea_dataFromSensor(data):
                mea_utils.xplMsgAddValue(xplMsg,"type", "input")
                mea_utils.xplMsgAddValue(xplMsg,"last", mem["last"])
                mea.xplSendMsg(xplMsg)
-
+   
                return True
    return False

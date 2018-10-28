@@ -136,9 +136,6 @@ def mea_dataFromSensor(data):
       verbose(2, "ERROR (", fn_name, ") - invalid data")
       return False
 
-   if typeoftype == 1:
-      return False
-
    mem=mea.getMemory(id_sensor)
    paramsDict=mea_utils.parseKeyValueDatasToDictionary(parameters, ",", ":")
 
